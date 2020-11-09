@@ -26,19 +26,123 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static readonly ImmutableArray<SpecialType> s_builtInEnumConversionTargets = ImmutableArray.Create(
             // Presorted alphabetical to reduce sorting cost of the completion items. 
-            SpecialType.System_Byte,    // byte
-            SpecialType.System_Char,    // char
-            SpecialType.System_Decimal, // decimal
-            SpecialType.System_Double,  // double
-            SpecialType.System_Single,  // float
-            SpecialType.System_Int32,   // int
-            SpecialType.System_Int64,   // long
-            SpecialType.System_SByte,   // sbyte
-            SpecialType.System_Int16,   // short
-            SpecialType.System_UInt32,  // uint
-            SpecialType.System_UInt64,  // ulong
-            SpecialType.System_UInt16  // ushort
-            );
+            SpecialType.System_Byte,
+            SpecialType.System_Char,
+            SpecialType.System_Decimal,
+            SpecialType.System_Double,
+            SpecialType.System_Single,
+            SpecialType.System_Int32,
+            SpecialType.System_Int64,
+            SpecialType.System_SByte,
+            SpecialType.System_Int16,
+            SpecialType.System_UInt32,
+            SpecialType.System_UInt64,
+            SpecialType.System_UInt16);
+
+        private static readonly ImmutableArray<SpecialType> s_sbyteConversions = ImmutableArray.Create(
+            SpecialType.System_Byte,
+            SpecialType.System_Char,
+            SpecialType.System_UInt32,
+            SpecialType.System_UInt64,
+            SpecialType.System_UInt16);
+
+        private static readonly ImmutableArray<SpecialType> s_byteConversions = ImmutableArray.Create(
+            SpecialType.System_Char,
+            SpecialType.System_SByte);
+
+        private static readonly ImmutableArray<SpecialType> s_int16Conversions = ImmutableArray.Create(
+            SpecialType.System_Byte,
+            SpecialType.System_Char,
+            SpecialType.System_UInt32,
+            SpecialType.System_UInt64,
+            SpecialType.System_UInt16,
+            SpecialType.System_SByte);
+
+        private static readonly ImmutableArray<SpecialType> s_uint16Conversions = ImmutableArray.Create(
+            SpecialType.System_Byte,
+            SpecialType.System_Char,
+            SpecialType.System_SByte,
+            SpecialType.System_Int16);
+
+        private static readonly ImmutableArray<SpecialType> s_int32Conversions = ImmutableArray.Create(
+            SpecialType.System_Byte,
+            SpecialType.System_Char,
+            SpecialType.System_SByte,
+            SpecialType.System_Int16,
+            SpecialType.System_UInt32,
+            SpecialType.System_UInt16,
+            SpecialType.System_UInt64);
+
+        private static readonly ImmutableArray<SpecialType> s_uint32Conversions = ImmutableArray.Create(
+            SpecialType.System_Byte,
+            SpecialType.System_Char,
+            SpecialType.System_Int32,
+            SpecialType.System_SByte,
+            SpecialType.System_Int16,
+            SpecialType.System_UInt16);
+
+        private static readonly ImmutableArray<SpecialType> s_int64Conversions = ImmutableArray.Create(
+            SpecialType.System_Byte,
+            SpecialType.System_Char,
+            SpecialType.System_Int32,
+            SpecialType.System_UInt32,
+            SpecialType.System_UInt64,
+            SpecialType.System_UInt16,
+            SpecialType.System_SByte,
+            SpecialType.System_Int16);
+
+        private static readonly ImmutableArray<SpecialType> s_uint64Conversions = ImmutableArray.Create(
+            SpecialType.System_Byte,
+            SpecialType.System_Char,
+            SpecialType.System_Int32,
+            SpecialType.System_Int64,
+            SpecialType.System_UInt32,
+            SpecialType.System_UInt16,
+            SpecialType.System_SByte,
+            SpecialType.System_Int16);
+
+        private static readonly ImmutableArray<SpecialType> s_charConversions = ImmutableArray.Create(
+             SpecialType.System_Byte,
+            SpecialType.System_SByte,
+            SpecialType.System_Int16);
+
+        private static readonly ImmutableArray<SpecialType> s_singleConversions = ImmutableArray.Create(
+            SpecialType.System_Byte,
+            SpecialType.System_Char,
+            SpecialType.System_Decimal,
+            SpecialType.System_Int32,
+            SpecialType.System_Int64,
+            SpecialType.System_UInt32,
+            SpecialType.System_UInt64,
+            SpecialType.System_UInt16,
+            SpecialType.System_SByte,
+            SpecialType.System_Int16);
+
+        private static readonly ImmutableArray<SpecialType> s_doubleConversions = ImmutableArray.Create(
+            SpecialType.System_Byte,
+            SpecialType.System_Char,
+            SpecialType.System_Decimal,
+            SpecialType.System_Single,
+            SpecialType.System_Int32,
+            SpecialType.System_Int64,
+            SpecialType.System_UInt32,
+            SpecialType.System_UInt64,
+            SpecialType.System_UInt16,
+            SpecialType.System_SByte,
+            SpecialType.System_Int16);
+
+        private static readonly ImmutableArray<SpecialType> s_decimalConversions = ImmutableArray.Create(
+            SpecialType.System_Byte,
+            SpecialType.System_Char,
+            SpecialType.System_Double,
+            SpecialType.System_Single,
+            SpecialType.System_Int32,
+            SpecialType.System_Int64,
+            SpecialType.System_UInt32,
+            SpecialType.System_UInt64,
+            SpecialType.System_UInt16,
+            SpecialType.System_SByte,
+            SpecialType.System_Int16);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -122,13 +226,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
-            var numericConversions = container.GetBuiltInNumericConversions();
+            var numericConversions = GetBuiltInNumericConversions(container);
             if (!numericConversions.HasValue)
                 return;
 
             AddCompletionItemsForSpecialTypes(
                 builder, semanticModel, container, containerIsNullable, position, numericConversions.Value);
         }
+
+        // Source: https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-numeric-conversions
+        // Sorted alphabetical
+        public static ImmutableArray<SpecialType>? GetBuiltInNumericConversions(ITypeSymbol container)
+            => container.SpecialType switch
+            {
+                SpecialType.System_SByte => s_sbyteConversions,
+                SpecialType.System_Byte => s_byteConversions,
+                SpecialType.System_Int16 => s_int16Conversions,
+                SpecialType.System_UInt16 => s_uint16Conversions,
+                SpecialType.System_Int32 => s_int32Conversions,
+                SpecialType.System_UInt32 => s_uint32Conversions,
+                SpecialType.System_Int64 => s_int64Conversions,
+                SpecialType.System_UInt64 => s_uint64Conversions,
+                SpecialType.System_Char => s_charConversions,
+                SpecialType.System_Single => s_singleConversions,
+                SpecialType.System_Double => s_doubleConversions,
+                SpecialType.System_Decimal => s_decimalConversions,
+                _ => null,
+            };
 
         private void AddBuiltInEnumConversions(
             ArrayBuilder<CompletionItem> builder,
@@ -172,34 +296,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var optionalNullableQuestionmark = targetTypeIsNullable ? "?" : "";
             return SymbolCompletionItem.CreateWithSymbolId(
-                           displayTextPrefix: "(",
-                           displayText: targetTypeName,
-                           displayTextSuffix: $"{optionalNullableQuestionmark})",
-                           filterText: targetTypeName,
-                           sortText: SortText(targetTypeName),
-                           glyph: Glyph.Operator,
-                           symbols: ImmutableList.Create(symbols),
-                           rules: CompletionItemRules.Default,
-                           contextPosition: position,
-                           properties: CreatePropertiesBag((MinimalTypeNamePropertyName, $"{targetTypeName}{optionalNullableQuestionmark}")));
+                displayTextPrefix: "(",
+                displayText: targetTypeName,
+                displayTextSuffix: $"{optionalNullableQuestionmark})",
+                filterText: targetTypeName,
+                sortText: SortText(targetTypeName),
+                glyph: Glyph.Operator,
+                symbols: ImmutableList.Create(symbols),
+                rules: CompletionItemRules.Default,
+                contextPosition: position,
+                properties: CreatePropertiesBag((MinimalTypeNamePropertyName, $"{targetTypeName}{optionalNullableQuestionmark}")));
         }
 
         protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
-            if (symbols.Length == 2 && symbols[0] is INamedTypeSymbol from && symbols[1] is ITypeSymbol to)
-            {
-                return await GetBuiltInConversionDescriptionAsync(document, item, from, to, cancellationToken).ConfigureAwait(false);
-            }
-
-            return await base.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
+            return symbols.Length == 2 && symbols[0] is INamedTypeSymbol from && symbols[1] is ITypeSymbol to
+                ? await GetBuiltInConversionDescriptionAsync(document, item, from, to, cancellationToken).ConfigureAwait(false)
+                : await base.GetDescriptionWorkerAsync(document, item, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<CompletionDescription> GetBuiltInConversionDescriptionAsync(Document document,
             CompletionItem item, INamedTypeSymbol fromType, ITypeSymbol toType, CancellationToken cancellationToken)
         {
             var symbol = new BuiltinOperatorMethodSymbol(toType, fromType);
-            return await SymbolCompletionItem.GetDescriptionForSymbolsAsync(item, document, new ISymbol[] { symbol }.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
+            return await SymbolCompletionItem.GetDescriptionForSymbolsAsync(
+                item, document, ImmutableArray.Create<ISymbol>(symbol), cancellationToken).ConfigureAwait(false);
         }
 
         internal override async Task<CompletionChange> GetChangeAsync(
@@ -211,7 +333,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var (tokenAtPosition, potentialDotTokenLeftOfCursor) = FindTokensAtPosition(position, root);
-            // syntax tree manipulations are to complicated if a mixture of conditionals is involved. Some text manipulation is easier here.
+            // syntax tree manipulations are too complicated if a mixture of conditionals is involved. Some text
+            // manipulation is easier here.
+
             //                      ↓               | cursor position
             //                   ↓                  | potentialDotTokenLeftOfCursor
             // white?.Black.White.Black?.White      | current user input

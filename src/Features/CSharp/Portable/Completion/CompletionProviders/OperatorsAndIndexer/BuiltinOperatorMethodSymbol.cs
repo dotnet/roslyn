@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     /// }
     /// </code>
     /// </summary>
-    internal class BuiltinOperatorMethodSymbol : IMethodSymbol
+    internal partial class BuiltinOperatorMethodSymbol : IMethodSymbol
     {
         private static readonly SymbolDisplayFormat s_displayFormat = new(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
