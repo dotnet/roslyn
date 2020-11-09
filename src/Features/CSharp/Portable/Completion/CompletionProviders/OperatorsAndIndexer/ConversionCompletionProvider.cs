@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -12,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,22 +24,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         private const string MinimalTypeNamePropertyName = "MinimalTypeName";
 
-        private static readonly ImmutableArray<SpecialType> s_builtInEnumConversionTargets = new[]
-            {
-                // Presorted alphabetical to reduce sorting cost of the completion items. 
-                SpecialType.System_Byte,    // byte
-                SpecialType.System_Char,    // char
-                SpecialType.System_Decimal, // decimal
-                SpecialType.System_Double,  // double
-                SpecialType.System_Single,  // float
-                SpecialType.System_Int32,   // int
-                SpecialType.System_Int64,   // long
-                SpecialType.System_SByte,   // sbyte
-                SpecialType.System_Int16,   // short
-                SpecialType.System_UInt32,  // uint
-                SpecialType.System_UInt64,  // ulong
-                SpecialType.System_UInt16,  // ushort
-            }.ToImmutableArray();
+        private static readonly ImmutableArray<SpecialType> s_builtInEnumConversionTargets = ImmutableArray.Create(
+            // Presorted alphabetical to reduce sorting cost of the completion items. 
+            SpecialType.System_Byte,    // byte
+            SpecialType.System_Char,    // char
+            SpecialType.System_Decimal, // decimal
+            SpecialType.System_Double,  // double
+            SpecialType.System_Single,  // float
+            SpecialType.System_Int32,   // int
+            SpecialType.System_Int64,   // long
+            SpecialType.System_SByte,   // sbyte
+            SpecialType.System_Int16,   // short
+            SpecialType.System_UInt32,  // uint
+            SpecialType.System_UInt64,  // ulong
+            SpecialType.System_UInt16  // ushort
+            );
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -52,7 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override int SortingGroupIndex => 2;
 
-        protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(SemanticModel semanticModel,
+        protected override ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(
+            SemanticModel semanticModel,
             ITypeSymbol container,
             int position,
             bool isAccessedByConditionalAccess,
@@ -79,24 +76,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return builder.ToImmutable();
         }
 
-        private void AddUserDefinedConversionsOfType(ArrayBuilder<CompletionItem> builder, SemanticModel semanticModel, ITypeSymbol container, bool containerIsNullable, int position)
+        private void AddUserDefinedConversionsOfType(
+            ArrayBuilder<CompletionItem> builder,
+            SemanticModel semanticModel,
+            ITypeSymbol container,
+            bool containerIsNullable,
+            int position)
         {
-            // Base types are valid sources for user-defined conversions
+            // Base types are valid sources for user-defined conversions.
             // Note: We only look in the source (aka container), because target could be any type (in scope) of the compilation.
             // No need to check for accessibility as operators must always be public.
             // The target type is lifted, if containerIsNullable and the target of the conversion is a struct
-            var allExplicitConversions = from t in container.GetBaseTypesAndThis()
-                                         from m in t.GetMembers(WellKnownMemberNames.ExplicitConversionName).OfType<IMethodSymbol>()
-                                         where
-                                             m.IsConversion() && // MethodKind.Conversion
-                                             m.Parameters.Length == 1 && // Malformed conversion operator may have more or less than one parameter
-                                             t.Equals(m.Parameters[0].Type) // Convert from container type to other type
-                                         select CreateSymbolCompletionItem(
-                                             targetTypeName: m.ReturnType.ToMinimalDisplayString(semanticModel, position),
-                                             targetTypeIsNullable: containerIsNullable && m.ReturnType.IsStructType(),
-                                             position,
-                                             m);
-            builder.AddRange(allExplicitConversions);
+
+            foreach (var type in container.GetBaseTypesAndThis())
+            {
+                foreach (var member in type.GetMembers(WellKnownMemberNames.ExplicitConversionName))
+                {
+                    if (member is not IMethodSymbol method)
+                        continue;
+
+                    if (!method.IsConversion())
+                        continue;
+
+                    if (method.Parameters.Length != 1)
+                        continue;
+
+                    if (!type.Equals(method.Parameters[0].Type))
+                        continue;
+
+                    builder.Add(CreateSymbolCompletionItem(
+                        targetTypeName: method.ReturnType.ToMinimalDisplayString(semanticModel, position),
+                        targetTypeIsNullable: containerIsNullable && method.ReturnType.IsStructType(),
+                        position,
+                        method));
+                }
+            }
         }
 
         private void AddBuiltInNumericConversions(ArrayBuilder<CompletionItem> builder, SemanticModel semanticModel, INamedTypeSymbol container, bool containerIsNullable, int position)
