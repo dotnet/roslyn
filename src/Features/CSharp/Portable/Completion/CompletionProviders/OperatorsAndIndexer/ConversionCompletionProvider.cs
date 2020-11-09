@@ -117,17 +117,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             if (container.SpecialType == SpecialType.System_Decimal)
             {
-                // Decimal is defined in the spec with integrated conversions, but is the only type that reports it's conversions as normal method symbols
+                // Decimal is defined in the spec with integrated conversions, but is the only type that reports it's
+                // conversions as normal method symbols
                 return;
             }
+
             var numericConversions = container.GetBuiltInNumericConversions();
-            if (numericConversions.HasValue)
-            {
-                AddCompletionItemsForSpecialTypes(builder, semanticModel, container, containerIsNullable, position, numericConversions.Value);
-            }
+            if (!numericConversions.HasValue)
+                return;
+
+            AddCompletionItemsForSpecialTypes(
+                builder, semanticModel, container, containerIsNullable, position, numericConversions.Value);
         }
 
-        private void AddBuiltInEnumConversions(ArrayBuilder<CompletionItem> builder, SemanticModel semanticModel, INamedTypeSymbol container, bool containerIsNullable, int position)
+        private void AddBuiltInEnumConversions(
+            ArrayBuilder<CompletionItem> builder,
+            SemanticModel semanticModel,
+            INamedTypeSymbol container,
+            bool containerIsNullable,
+            int position)
         {
             // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
             // Three kinds of conversions are defined in the spec.
@@ -139,25 +147,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // Suggest after enum members: SomeEnum.EnumMember.$$ 
             // or on enum values: someEnumVariable.$$
-            var suggestBuiltInEnumConversion = container.IsEnumMember() || container.IsEnumType();
-
-            if (suggestBuiltInEnumConversion)
-            {
+            if (container.IsEnumMember() || container.IsEnumType())
                 AddCompletionItemsForSpecialTypes(builder, semanticModel, container, containerIsNullable, position, s_builtInEnumConversionTargets);
-            }
         }
 
         private void AddCompletionItemsForSpecialTypes(
-            ArrayBuilder<CompletionItem> builder, SemanticModel semanticModel, INamedTypeSymbol fromType,
-            bool containerIsNullable, int position, ImmutableArray<SpecialType> specialTypes)
+            ArrayBuilder<CompletionItem> builder,
+            SemanticModel semanticModel,
+            INamedTypeSymbol fromType,
+            bool containerIsNullable,
+            int position,
+            ImmutableArray<SpecialType> specialTypes)
         {
-            var conversionCompletionItems = from specialType in specialTypes
-                                            let targetTypeSymbol = semanticModel.Compilation.GetSpecialType(specialType)
-                                            let targetTypeName = targetTypeSymbol.ToMinimalDisplayString(semanticModel, position)
-                                            select CreateSymbolCompletionItem(
-                                                targetTypeName, targetTypeIsNullable: containerIsNullable, position,
-                                                fromType, targetTypeSymbol);
-            builder.AddRange(conversionCompletionItems);
+            foreach (var specialType in specialTypes)
+            {
+                var targetTypeSymbol = semanticModel.Compilation.GetSpecialType(specialType);
+                var targetTypeName = targetTypeSymbol.ToMinimalDisplayString(semanticModel, position);
+                builder.Add(CreateSymbolCompletionItem(
+                    targetTypeName, targetTypeIsNullable: containerIsNullable, position, fromType, targetTypeSymbol));
+            }
         }
 
         private CompletionItem CreateSymbolCompletionItem(string targetTypeName, bool targetTypeIsNullable, int position, params ISymbol[] symbols)
