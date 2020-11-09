@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Runtime.Serialization;
 using MessagePack;
 using MessagePack.Formatters;
+using MessagePack.Resolvers;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.ConvertTupleToStruct;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class MessagePackFormatters
     {
-        public static ImmutableArray<IMessagePackFormatter> GetFormatters() => ImmutableArray.Create<IMessagePackFormatter>(
+        private static readonly ImmutableArray<IMessagePackFormatter> s_formatters = ImmutableArray.Create<IMessagePackFormatter>(
             SolutionIdFormatter.Instance,
             ProjectIdFormatter.Instance,
             DocumentIdFormatter.Instance,
@@ -47,6 +48,15 @@ namespace Microsoft.CodeAnalysis.Remote
             EnumFormatters.AddImportFixKind,
             EnumFormatters.CodeActionPriority,
             EnumFormatters.DependentTypesKind);
+
+        private static readonly ImmutableArray<IFormatterResolver> s_resolvers = ImmutableArray.Create<IFormatterResolver>(
+            ImmutableCollectionMessagePackResolver.Instance,
+            StandardResolverAllowPrivate.Instance);
+
+        internal static readonly IFormatterResolver DefaultResolver = CompositeResolver.Create(s_formatters, s_resolvers);
+
+        internal static IFormatterResolver CreateResolver(ImmutableArray<IMessagePackFormatter> additionalFormatters, ImmutableArray<IFormatterResolver> additionalResolvers)
+            => (additionalFormatters.IsEmpty && additionalResolvers.IsEmpty) ? DefaultResolver : CompositeResolver.Create(s_formatters.AddRange(additionalFormatters), s_resolvers.AddRange(additionalResolvers));
 
         // TODO: remove https://github.com/neuecc/MessagePack-CSharp/issues/1025
         internal static class EnumFormatters
