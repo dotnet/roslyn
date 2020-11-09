@@ -158,6 +158,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 else if (syntaxFacts.IsInterpolatedStringExpression(piece) &&
                     syntaxFacts.IsVerbatimInterpolatedStringExpression(piece) == isVerbatimStringLiteral)
                 {
+                    // The piece is itself an interpolated string (of the same "verbatimity" as the new interpolated string)
+                    // "a" + $"{1+ 1}" -> instead of $"a{$"{1 + 1}"}" inline the interpolated part: $"a{1 + 1}"
                     syntaxFacts.GetPartsOfInterpolationExpression(piece, out var _, out var contentParts, out var _);
                     foreach (var contentPart in contentParts)
                     {
@@ -165,9 +167,12 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                         {
                             content.Add(contentPart);
                             previousContentWasStringLiteralExpression = false;
+                            // currentContentIsStringOrCharacterLiteral needs to be updated in this loop
+                            currentContentIsStringOrCharacterLiteral = false;
                         }
                         else if (syntaxFacts.IsInterpolatedStringText(contentPart))
                         {
+                            // if the piece starts with a text and the previous part was a string, merge the two parts (see also above)
                             if (previousContentWasStringLiteralExpression)
                             {
                                 var contentTextToken = contentPart.GetFirstToken();
@@ -178,11 +183,11 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                             {
                                 content.Add(contentPart);
                             }
-                            previousContentWasStringLiteralExpression = true;
+                            currentContentIsStringOrCharacterLiteral = true;
                         }
                         else
                         {
-                            Contract.Fail();
+                            throw ExceptionUtilities.Unreachable;
                         }
                     }
                 }
