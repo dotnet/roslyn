@@ -128,7 +128,7 @@ namespace RunTests
             var assemblyInfoList = GetAssemblyList(options);
             if (assemblyInfoList.Count == 0)
             {
-                ConsoleUtil.WriteLine(ConsoleColor.Red, "No assemlbies to test");
+                ConsoleUtil.WriteLine(ConsoleColor.Red, "No assemblies to test");
                 return ExitFailure;
             }
 
@@ -329,7 +329,6 @@ namespace RunTests
 
             return list;
         }
-
 
         private static void DisplayResults(Display display, ImmutableArray<TestResult> testResults)
         {
