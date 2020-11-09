@@ -92,10 +92,10 @@ namespace RoslynEx
                         return;
                     }
 
-                    // found and incorrect, replace the annotation in the dictionary and array
+                    // found and incorrect, replace the annotation
                     preTransformationNodeMap.TryGetValue(oldAnnotation, out var oldNode);
                     Debug.Assert(oldNode != null);
-                    preTransformationNodeMap.Remove(oldAnnotation);
+                    annotations = annotations.ToArray();
                     annotations[index] = CreateAnnotation(oldNode, includeChildren: false);
                 }
             }
