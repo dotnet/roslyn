@@ -52,11 +52,6 @@
         <target state="translated">Allgemein</target>
         <note>Title of the control group on the General Formatting options page</note>
       </trans-unit>
-      <trans-unit id="Generate_Event_Subscription">
-        <source>Generate Event Subscription</source>
-        <target state="translated">Ereignisabonnement generieren</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
         <target state="translated">In relationalen Operatoren: &lt; &gt; &lt;= &gt;= is as == !=</target>
