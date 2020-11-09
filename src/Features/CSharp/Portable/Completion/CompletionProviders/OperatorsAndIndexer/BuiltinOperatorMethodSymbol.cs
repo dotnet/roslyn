@@ -26,25 +26,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
+        public ITypeSymbol ReturnType { get; }
+        public INamedTypeSymbol ContainingType { get; }
+        public ImmutableArray<IParameterSymbol> Parameters { get; }
+
         public BuiltinOperatorMethodSymbol(ITypeSymbol returnType, INamedTypeSymbol containingType)
         {
             ReturnType = returnType;
-            Parameters = new IParameterSymbol[]
-            {
-                new BuiltinOperatorParameterSymbol(containingType),
-            }.ToImmutableArray();
+            Parameters = ImmutableArray.Create<IParameterSymbol>(new BuiltinOperatorParameterSymbol(containingType));
             ContainingType = containingType;
         }
 
-        public ITypeSymbol ReturnType { get; }
+        public void Accept(SymbolVisitor visitor)
+            => visitor.VisitMethod(this);
 
-        public INamedTypeSymbol ContainingType { get; }
-
-        public ImmutableArray<IParameterSymbol> Parameters { get; }
+        [return: MaybeNull]
+        public TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+            => visitor.VisitMethod(this);
 
         public string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
         {
-
             // Explicit conversion of <see cref="T:{0}"/> to <see cref="T:{1}"/>.
             var template = @$"
 <summary>
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             return template;
 
-            string CreateSeeTag(ISymbol symbol)
+            static string CreateSeeTag(ISymbol symbol)
             {
                 return $@"<see cref=""T:{symbol.ToDisplayParts(s_displayFormat)}""/>";
             }
@@ -75,21 +76,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             => SymbolDisplay.ToMinimalDisplayString(this, semanticModel, position, format);
 
         public bool Equals([NotNullWhen(true)] ISymbol? other, SymbolEqualityComparer equalityComparer)
-        {
-            if (other is BuiltinOperatorMethodSymbol otherMethod)
-            {
-                return ReturnType.Equals(otherMethod.ReturnType, equalityComparer) &&
-                    otherMethod.Parameters.Length == 1 &&
-                    Parameters[0].Equals(otherMethod.Parameters[0], equalityComparer);
-            }
-
-            return false;
-        }
+            => other is BuiltinOperatorMethodSymbol otherMethod &&
+               ReturnType.Equals(otherMethod.ReturnType, equalityComparer) &&
+               Parameters[0].Equals(otherMethod.Parameters[0], equalityComparer);
 
         public bool Equals([AllowNull] ISymbol? other)
             => Equals(other, SymbolEqualityComparer.Default);
 
         #region IMethodSymbol implementation returning constants
+
         public MethodKind MethodKind => MethodKind.Conversion;
 
         public int Arity => 0;
@@ -200,14 +195,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         ISymbol ISymbol.OriginalDefinition => this;
 
+        public DllImportData? GetDllImportData() => null;
+
+        #endregion
+
+        #region not implemented yet
+
         public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => throw new NotImplementedException();
-
-        public void Accept(SymbolVisitor visitor)
-            => visitor.VisitMethod(this);
-
-        [return: MaybeNull]
-        public TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-            => visitor.VisitMethod(this);
 
         public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
             => throw new NotImplementedException();
@@ -217,8 +211,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public ImmutableArray<AttributeData> GetAttributes() => ImmutableArray<AttributeData>.Empty;
 
-        public DllImportData? GetDllImportData() => null;
-
         public ImmutableArray<AttributeData> GetReturnTypeAttributes() => ImmutableArray<AttributeData>.Empty;
 
         public ITypeSymbol? GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter)
@@ -226,6 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public IMethodSymbol? ReduceExtensionMethod(ITypeSymbol receiverType)
             => throw new NotImplementedException();
+
         #endregion
     }
 }
