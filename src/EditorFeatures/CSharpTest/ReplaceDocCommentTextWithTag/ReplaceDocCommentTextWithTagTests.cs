@@ -453,7 +453,7 @@ class C
 
         [WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
-        public async Task TextBaseKeyword()
+        public async Task TestBaseKeyword()
         {
             await TestInRegularAndScriptAsync(
 @"
