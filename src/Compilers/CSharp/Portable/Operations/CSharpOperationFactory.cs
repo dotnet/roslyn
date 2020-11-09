@@ -373,9 +373,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 isImplicit: boundNode.WasCompilerGenerated);
         }
 
-        internal ImmutableArray<IOperation> GetIOperationChildren(BoundNode boundNode)
+        internal ImmutableArray<IOperation> GetIOperationChildren(IBoundNodeWithIOperationChildren boundNodeWithChildren)
         {
-            var boundNodeWithChildren = (IBoundNodeWithIOperationChildren)boundNode;
             var children = boundNodeWithChildren.Children;
             if (children.IsDefaultOrEmpty)
             {
@@ -432,7 +431,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IDeconstructionAssignmentOperation CreateBoundDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator boundDeconstructionAssignmentOperator)
         {
             IOperation target = Create(boundDeconstructionAssignmentOperator.Left);
-            // Skip the synthetic deconstruction conversion wrapping the right operand.
+            // Skip the synthetic deconstruction conversion wrapping the right operand. This is a compiler-generated conversion that we don't want to reflect
+            // in the public API because it's an implementation detail.
             IOperation value = Create(boundDeconstructionAssignmentOperator.Right.Operand);
             SyntaxNode syntax = boundDeconstructionAssignmentOperator.Syntax;
             ITypeSymbol? type = boundDeconstructionAssignmentOperator.GetPublicTypeSymbol();
@@ -899,7 +899,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         private IDynamicMemberReferenceOperation CreateBoundDynamicMemberAccessOperation(
-            BoundExpression? receiverOpt,
+            BoundExpression? receiver,
             ImmutableArray<TypeSymbol> typeArgumentsOpt,
             string memberName,
             SyntaxNode syntaxNode,
@@ -907,10 +907,10 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit)
         {
             ITypeSymbol? containingType = null;
-            if (receiverOpt?.Kind == BoundKind.TypeExpression)
+            if (receiver?.Kind == BoundKind.TypeExpression)
             {
-                containingType = receiverOpt.GetPublicTypeSymbol();
-                receiverOpt = null;
+                containingType = receiver.GetPublicTypeSymbol();
+                receiver = null;
             }
 
             ImmutableArray<ITypeSymbol> typeArguments = ImmutableArray<ITypeSymbol>.Empty;
@@ -919,7 +919,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 typeArguments = typeArgumentsOpt.GetPublicSymbols();
             }
 
-            IOperation? instance = Create(receiverOpt);
+            IOperation? instance = Create(receiver);
             return new DynamicMemberReferenceOperation(instance, memberName, typeArguments, containingType, _semanticModel, syntaxNode, type, isImplicit);
         }
 
