@@ -585,7 +585,6 @@ Public Class C
 End Class")
         End Function
 
-
         <WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")>
         <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         <InlineData("[|""a"" + $""{1:000}""|]", "$""a{1:000}""")>
