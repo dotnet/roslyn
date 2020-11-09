@@ -39,20 +39,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var containingType = semanticModel.GetEnclosingNamedType(position, cancellationToken);
             if (containingType != null)
             {
-                foreach (var property in container.GetAccessibleMembersInThisAndBaseTypes<IPropertySymbol>(containingType))
+                var indexers = container.GetAccessibleMembersInThisAndBaseTypes<IPropertySymbol>(containingType).WhereAsArray(p => p.IsIndexer);
+                if (indexers.Any())
                 {
-                    if (property.IsIndexer)
-                    {
-                        var indexerCompletion = SymbolCompletionItem.CreateWithSymbolId(
-                            displayText: "this",
-                            displayTextSuffix: "[]",
-                            filterText: "this",
-                            sortText: "this",
-                            symbols: indexerList,
-                            rules: CompletionItemRules.Default,
-                            contextPosition: position);
-                        return ImmutableArray.Create(indexerCompletion);
-                    }
+                    var indexerCompletion = SymbolCompletionItem.CreateWithSymbolId(
+                        displayText: "this",
+                        displayTextSuffix: "[]",
+                        filterText: "this",
+                        sortText: "this",
+                        symbols: indexers,
+                        rules: CompletionItemRules.Default,
+                        contextPosition: position);
+                    return ImmutableArray.Create(indexerCompletion);
                 }
             }
 
