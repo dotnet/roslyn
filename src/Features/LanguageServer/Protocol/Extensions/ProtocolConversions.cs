@@ -175,7 +175,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static async Task<LSP.TextDocumentEdit[]> ChangedDocumentsToTextDocumentEditsAsync<T>(IEnumerable<DocumentId> changedDocuments, Func<DocumentId, T> getNewDocumentFunc,
                 Func<DocumentId, T> getOldDocumentFunc, IDocumentTextDifferencingService? textDiffService, CancellationToken cancellationToken) where T : TextDocument
         {
-            //var uriToTextEdits = new MultiDictionary<Uri, LSP.TextEdit>();
             using var _ = ArrayBuilder<(Uri Uri, LSP.TextEdit TextEdit)>.GetInstance(out var uriToTextEdits);
 
             foreach (var docId in changedDocuments)
@@ -263,7 +262,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 return ConvertTextSpanWithTextToLocation(span, text, document.GetURI());
-            } 
+            }
 
             static LSP.Location ConvertTextSpanWithTextToLocation(TextSpan span, SourceText text, Uri documentUri)
             {
