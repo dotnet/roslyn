@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,16 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal abstract class OperatorIndexerCompletionProviderBase : LSPCompletionProvider
     {
-        // CompletionItems for indexers/operators should be sorted below other suggestions like methods or properties of the type.
-        // Identifier (of methods or properties) can start with "A Unicode character of classes Lu, Ll, Lt, Lm, Lo, or Nl". https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/lexical-structure#identifiers
-        // Sorting is done via StringComparer.OrdinalIgnoreCase which compares the utf-16 bytes after converting to uppercase.
-        // \ufffd http://www.fileformat.info/info/unicode/char/fffd/index.htm is the largest possible value for utf-16
-        // and is also greater than surrogate pairs, if byte comparison is used. The "biggest" possible characters are 
-        // \u3134a http://www.fileformat.info/info/unicode/char/3134a/index.htm surrogate pair "\ud884\udf4a" and
-        // \uffdc http://www.fileformat.info/info/unicode/char/ffdc/index.htm (non-surrogate)
+        // CompletionItems for indexers/operators should be sorted below other suggestions like methods or properties of
+        // the type.  We accomplish this by placing a character known to be greater than all other normal identifier
+        // characters as the start of our item's name. this doesn't affect what we insert though as all derived providers
+        // have specialized logic for what they need to do.
         private const string SortingPrefix = "\uFFFD";
 
-        protected abstract int SortingGroupIndex { get; } // Indexer, operators and conversion should be listed grouped together.
+        protected abstract int SortingGroupIndex { get; }
 
         protected abstract ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(
             SemanticModel semanticModel,
@@ -51,17 +47,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
             foreach (var (key, value) in properties)
-            {
                 builder.Add(key, value);
-            }
 
             return builder.ToImmutable();
         }
 
-        protected string SortText(string? sortTextSymbolPart = null)
+        protected string SortText(string sortTextSymbolPart)
             => $"{SortingPrefix}{SortingGroupIndex:000}{sortTextSymbolPart}";
 
-        protected static (SyntaxToken tokenAtPosition, SyntaxToken potentialDotTokenLeftOfCursor) FindTokensAtPosition(int position, SyntaxNode root)
+        protected static (SyntaxToken tokenAtPosition, SyntaxToken potentialDotTokenLeftOfCursor) FindTokensAtPosition(
+            SyntaxNode root, int position)
         {
             var tokenAtPosition = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
             var potentialDotTokenLeftOfCursor = tokenAtPosition.GetPreviousTokenIfTouchingWord(position);
@@ -74,24 +69,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var document = context.Document;
             var position = context.Position;
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var (_, potentialDotToken) = FindTokensAtPosition(position, root);
+            var (_, potentialDotToken) = FindTokensAtPosition(root, position);
             if (!potentialDotToken.IsKind(SyntaxKind.DotToken))
-            {
                 return;
-            }
 
             var expression = GetParentExpressionOfToken(potentialDotToken);
             if (expression is null || expression.IsKind(SyntaxKind.NumericLiteralExpression))
-            {
                 return;
-            }
 
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(expression.SpanStart, cancellationToken).ConfigureAwait(false);
             var container = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
             if (container is null)
-            {
                 return;
-            }
 
             var expressionSymbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
             if (expressionSymbolInfo.Symbol is INamedTypeSymbol)
@@ -165,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
-            var (tokenAtPosition, token) = FindTokensAtPosition(position, root);
+            var (tokenAtPosition, token) = FindTokensAtPosition(root, position);
             Contract.ThrowIfFalse(token.IsKind(SyntaxKind.DotToken)); // ProvideCompletionsAsync bails out, if token is not a DotToken
 
             var replacementStart = GetReplacementStart(removeConditionalAccess, token);
