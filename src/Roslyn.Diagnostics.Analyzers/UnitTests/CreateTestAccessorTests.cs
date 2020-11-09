@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Xunit;
+using CSharpLanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion;
 using VerifyCS = Test.Utilities.CSharpCodeRefactoringVerifier<
     Roslyn.Diagnostics.CSharp.Analyzers.CSharpCreateTestAccessor>;
 using VerifyVB = Test.Utilities.VisualBasicCodeRefactoringVerifier<
@@ -81,6 +82,51 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
             // Applying the refactoring a second time does not produce any changes
             fixedSource = typeHeader + fixedSourceBody;
             await VerifyCS.VerifyRefactoringAsync(fixedSource, fixedSource);
+        }
+
+        [Theory(Skip = "Needs Roslyn 16.9 Preview 1: https://github.com/dotnet/roslyn/pull/48096")]
+        [InlineData("$$record TestRecord ")]
+        [InlineData("record $$TestRecord ")]
+        [InlineData("record TestRecord$$ ")]
+        [InlineData("record [|TestRecord|] ")]
+        [InlineData("[|record TestRecord|] ")]
+        public async Task CreateTestAccessorRecordCSharp(string typeHeader)
+        {
+            var source = typeHeader + @"{
+}";
+            var fixedSourceBody = @"{
+    internal TestAccessor GetTestAccessor()
+    {
+        return new TestAccessor(this);
+    }
+
+    internal readonly struct TestAccessor
+    {
+        private readonly TestRecord _testRecord;
+
+        internal TestAccessor(TestRecord testRecord)
+        {
+            _testRecord= testRecord;
+        }
+    }
+}";
+
+            var fixedSource = "record TestRecord " + fixedSourceBody;
+            await new VerifyCS.Test
+            {
+                LanguageVersion = CSharpLanguageVersion.CSharp9,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+
+            // Applying the refactoring a second time does not produce any changes
+            fixedSource = typeHeader + fixedSourceBody;
+            await new VerifyCS.Test
+            {
+                LanguageVersion = CSharpLanguageVersion.CSharp9,
+                TestCode = fixedSource,
+                FixedCode = fixedSource,
+            }.RunAsync();
         }
 
         [Theory]

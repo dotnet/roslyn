@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             DiagnosticSeverity.Warning,
             description: s_localizableCodeActionNeedsEquivalenceKeyDescription,
             isEnabledByDefault: true,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         internal static readonly DiagnosticDescriptor OverrideCodeActionEquivalenceKeyRule = new DiagnosticDescriptor(
             DiagnosticIds.OverrideCodeActionEquivalenceKeyRuleId,
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             DiagnosticSeverity.Warning,
             description: s_localizableCodeActionNeedsEquivalenceKeyDescription,
             isEnabledByDefault: true,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         internal static readonly DiagnosticDescriptor OverrideGetFixAllProviderRule = new DiagnosticDescriptor(
             DiagnosticIds.OverrideGetFixAllProviderRuleId,
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             DiagnosticSeverity.Warning,
             description: s_localizableOverrideGetFixAllProviderDescription,
             isEnabledByDefault: true,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(CreateCodeActionEquivalenceKeyRule, OverrideCodeActionEquivalenceKeyRule, OverrideGetFixAllProviderRule);

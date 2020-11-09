@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableUseUniqueDiagnosticIdDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         /// <summary>
         /// RS1028 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.ProvideCustomTagsInDescriptorTitle"/>)

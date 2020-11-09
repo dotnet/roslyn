@@ -5,7 +5,7 @@
     {
       "tool": {
         "name": "Roslyn.Diagnostics.Analyzers",
-        "version": "3.3.1",
+        "version": "3.3.2",
         "language": "en-US"
       },
       "rules": {
@@ -134,24 +134,6 @@
             ]
           }
         },
-        "RS0042": {
-          "id": "RS0042",
-          "shortDescription": "Do not copy value",
-          "fullDescription": "Do not unbox non-copyable value types.",
-          "defaultLevel": "warning",
-          "properties": {
-            "category": "RoslynDiagnosticsReliability",
-            "isEnabledByDefault": true,
-            "typeName": "DoNotCopyValue",
-            "languages": [
-              "C#",
-              "Visual Basic"
-            ],
-            "tags": [
-              "Telemetry"
-            ]
-          }
-        },
         "RS0043": {
           "id": "RS0043",
           "shortDescription": "Do not call 'GetTestAccessor()'",
@@ -169,13 +151,31 @@
               "Telemetry"
             ]
           }
+        },
+        "RS0049": {
+          "id": "RS0049",
+          "shortDescription": "Instance of TemporaryArray<T>.AsRef() must be a 'using' variable",
+          "fullDescription": "Instance of TemporaryArray<T>.AsRef() must be a 'using' variable.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "TemporaryArrayAsRefAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
         }
       }
     },
     {
       "tool": {
         "name": "Roslyn.Diagnostics.CSharp.Analyzers",
-        "version": "3.3.1",
+        "version": "3.3.2",
         "language": "en-US"
       },
       "rules": {
@@ -226,6 +226,7 @@
               "C#"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
@@ -239,6 +240,23 @@
             "category": "RoslynDiagnosticsMaintainability",
             "isEnabledByDefault": true,
             "typeName": "PreferNullLiteral",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0042": {
+          "id": "RS0042",
+          "shortDescription": "Do not copy value",
+          "fullDescription": "Do not unbox non-copyable value types.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpDoNotCopyValue",
             "languages": [
               "C#"
             ],
@@ -320,7 +338,7 @@
     {
       "tool": {
         "name": "Roslyn.Diagnostics.VisualBasic.Analyzers",
-        "version": "3.3.1",
+        "version": "3.3.2",
         "language": "en-US"
       },
       "rules": {
@@ -384,6 +402,24 @@
             "category": "RoslynDiagnosticsReliability",
             "isEnabledByDefault": false,
             "typeName": "BasicSymbolDeclaredEventAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0042": {
+          "id": "RS0042",
+          "shortDescription": "Do not copy value",
+          "fullDescription": "Do not unbox non-copyable value types.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsReliability",
+            "isEnabledByDefault": true,
+            "typeName": "VisualBasicDoNotCopyValue",
             "languages": [
               "Visual Basic"
             ],
