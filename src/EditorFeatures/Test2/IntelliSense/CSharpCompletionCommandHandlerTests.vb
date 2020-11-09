@@ -7581,8 +7581,7 @@ class C
         End Function
 
         <WorkItem(47511, "https://github.com/dotnet/roslyn/pull/47511")>
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ConversionsOperatorsAndIndexerAreShownBelowMethodsAndPropertiesAndBeforeUnimportedItems()
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
