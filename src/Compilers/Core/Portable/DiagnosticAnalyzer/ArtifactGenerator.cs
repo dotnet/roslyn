@@ -11,6 +11,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// The base type for artifact generators that can programmatically produce additional files for a compilation.  All
     /// implementations of this must support concurrent execution of the various GenerateArtifacts overloads.
     /// </summary>
+    /// <remarks>
+    /// Normally, an artifact generator will not need to report diagnostics.  However, it may sometimes be necessary if
+    /// errors or other issues arise during generation.  If diagnostic reporting is needed, then the same mechanism are
+    /// available as with normal analyzers.  Specifically, <see cref="SupportedDiagnostics"/> should be overridden to
+    /// state which diagnostics may be produced, and the various context `ReportDiagnostic` calls should be used to
+    /// report them.
+    /// </remarks>
     public abstract class ArtifactGenerator : DiagnosticAnalyzer
     {
         // By default artifact generators don't report diagnostics.  However, they are still allowed to if they run into
