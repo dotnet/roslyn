@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).
-                Returns(New ValueTask(Of ImmutableArray(Of ReferenceAssemblyWithTypeResult))(ImmutableArray(Of ReferenceAssemblyWithTypeResult).Empty))
+                Returns(ValueTaskFactory.FromResult(ImmutableArray(Of ReferenceAssemblyWithTypeResult).Empty))
             packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                 Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")))
 
@@ -86,7 +86,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).
-                Returns(New ValueTask(Of ImmutableArray(Of ReferenceAssemblyWithTypeResult))(ImmutableArray(Of ReferenceAssemblyWithTypeResult).Empty))
+                Returns(ValueTaskFactory.FromResult(ImmutableArray(Of ReferenceAssemblyWithTypeResult).Empty))
             packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                 Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
@@ -115,7 +115,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).
-                Returns(New ValueTask(Of ImmutableArray(Of ReferenceAssemblyWithTypeResult))(ImmutableArray(Of ReferenceAssemblyWithTypeResult).Empty))
+                Returns(ValueTaskFactory.FromResult(ImmutableArray(Of ReferenceAssemblyWithTypeResult).Empty))
             packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                 Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
@@ -140,7 +140,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).
-                Returns(New ValueTask(Of ImmutableArray(Of ReferenceAssemblyWithTypeResult))(ImmutableArray(Of ReferenceAssemblyWithTypeResult).Empty))
+                Returns(ValueTaskFactory.FromResult(ImmutableArray(Of ReferenceAssemblyWithTypeResult).Empty))
             packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                 Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
@@ -165,7 +165,7 @@ New TestParameters(fixProviderData:=New ProviderData(installerServiceMock.Object
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).
-                Returns(New ValueTask(Of ImmutableArray(Of ReferenceAssemblyWithTypeResult))(ImmutableArray(Of ReferenceAssemblyWithTypeResult).Empty))
+                Returns(ValueTaskFactory.FromResult(ImmutableArray(Of ReferenceAssemblyWithTypeResult).Empty))
             packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                 Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")))
 
@@ -207,7 +207,7 @@ parameters:=New TestParameters(index:=2, fixProviderData:=data))
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).
-                Returns(New ValueTask(Of ImmutableArray(Of ReferenceAssemblyWithTypeResult))(ImmutableArray(Of ReferenceAssemblyWithTypeResult).Empty))
+                Returns(ValueTaskFactory.FromResult(ImmutableArray(Of ReferenceAssemblyWithTypeResult).Empty))
             packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                 Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")))
 
@@ -239,7 +239,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
 
             Dim packageServiceMock = New Mock(Of ISymbolSearchService)(MockBehavior.Strict)
             packageServiceMock.Setup(Function(s) s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny(Of CancellationToken))).
-                Returns(New ValueTask(Of ImmutableArray(Of ReferenceAssemblyWithTypeResult))(ImmutableArray(Of ReferenceAssemblyWithTypeResult).Empty))
+                Returns(ValueTaskFactory.FromResult(ImmutableArray(Of ReferenceAssemblyWithTypeResult).Empty))
             packageServiceMock.Setup(Function(s) s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny(Of CancellationToken)())).
                 Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")))
 
@@ -267,7 +267,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
         End Function
 
         Private Shared Function CreateSearchResult(ParamArray results As PackageWithTypeResult()) As ValueTask(Of ImmutableArray(Of PackageWithTypeResult))
-            Return New ValueTask(Of ImmutableArray(Of PackageWithTypeResult))(ImmutableArray.Create(results))
+            Return ValueTaskFactory.FromResult(ImmutableArray.Create(results))
         End Function
 
         Private Shared Function CreateNameParts(ParamArray parts As String()) As ImmutableArray(Of String)

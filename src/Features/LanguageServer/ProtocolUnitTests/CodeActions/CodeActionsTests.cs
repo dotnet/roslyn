@@ -142,9 +142,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             // 4. Changing the document should generate a new cached item.
             var currentDocText = await document.GetTextAsync();
             var changedSourceText = currentDocText.WithChanges(new TextChange(new TextSpan(0, 0), "class D { } \n"));
-            var docId = ((TestWorkspace)workspace).Documents.First().Id;
-            ((TestWorkspace)workspace).ChangeDocument(docId, changedSourceText);
-            UpdateSolutionProvider((TestWorkspace)workspace, workspace.CurrentSolution);
+            var docId = workspace.Documents.First().Id;
+            workspace.ChangeDocument(docId, changedSourceText);
+            UpdateSolutionProvider(workspace, workspace.CurrentSolution);
             var updatedDocument = GetDocument(workspace, CreateTextDocumentIdentifier(caretLocation.Uri));
 
             await RunCodeActionsAndAssertActionsInCacheAsync(workspace, cache, caretLocation, updatedDocument);

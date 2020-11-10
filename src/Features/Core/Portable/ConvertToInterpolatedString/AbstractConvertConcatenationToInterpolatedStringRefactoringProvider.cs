@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                         //      {InterpolatedStringText}{Interpolation}{InterpolatedStringText}{InterpolatedStringText}
                         var existingInterpolatedStringTextNode = content.Last();
                         var newText = ConcatinateTextToTextNode(generator, existingInterpolatedStringTextNode, textWithoutQuotes);
-                        content[content.Count - 1] = newText;
+                        content[^1] = newText;
                     }
                     else
                     {

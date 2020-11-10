@@ -6,6 +6,7 @@
 
 using System.Windows;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
@@ -89,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme);
 
-            BindToOption(DisplayAllHintsWhilePressingCtrlAlt, InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt);
+            BindToOption(DisplayAllHintsWhilePressingAltF1, InlineHintsOptions.DisplayAllHintsWhilePressingAltF1);
             BindToOption(ColorHints, InlineHintsOptions.ColorHints, LanguageNames.CSharp);
 
             BindToOption(DisplayInlineParameterNameHints, InlineHintsOptions.EnabledForParameters, LanguageNames.CSharp);
@@ -115,9 +116,40 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             Customized_Theme_Warning.Visibility = isSupportedTheme && isThemeCustomized ? Visibility.Visible : Visibility.Collapsed;
             Custom_VS_Theme_Warning.Visibility = isSupportedTheme ? Visibility.Collapsed : Visibility.Visible;
 
+            UpdatePullDiagnosticsOptions();
             UpdateInlineHintsOptions();
 
             base.OnLoad();
+        }
+
+        private void UpdatePullDiagnosticsOptions()
+        {
+            Enable_pull_diagnostics_experimental_requires_restart.IsChecked = OptionStore.GetOption(InternalDiagnosticsOptions.NormalDiagnosticMode) == DiagnosticMode.Pull;
+            Enable_Razor_pull_diagnostics_experimental_requires_restart.IsChecked = OptionStore.GetOption(InternalDiagnosticsOptions.RazorDiagnosticMode) == DiagnosticMode.Pull;
+        }
+
+        private void Enable_pull_diagnostics_experimental_requires_restart_Checked(object sender, RoutedEventArgs e)
+        {
+            this.OptionStore.SetOption(InternalDiagnosticsOptions.NormalDiagnosticMode, DiagnosticMode.Pull);
+            UpdatePullDiagnosticsOptions();
+        }
+
+        private void Enable_pull_diagnostics_experimental_requires_restart_Unchecked(object sender, RoutedEventArgs e)
+        {
+            this.OptionStore.SetOption(InternalDiagnosticsOptions.NormalDiagnosticMode, DiagnosticMode.Push);
+            UpdatePullDiagnosticsOptions();
+        }
+
+        private void Enable_Razor_pull_diagnostics_experimental_requires_restart_Checked(object sender, RoutedEventArgs e)
+        {
+            this.OptionStore.SetOption(InternalDiagnosticsOptions.RazorDiagnosticMode, DiagnosticMode.Pull);
+            UpdatePullDiagnosticsOptions();
+        }
+
+        private void Enable_Razor_pull_diagnostics_experimental_requires_restart_Unchecked(object sender, RoutedEventArgs e)
+        {
+            this.OptionStore.SetOption(InternalDiagnosticsOptions.RazorDiagnosticMode, DiagnosticMode.Push);
+            UpdatePullDiagnosticsOptions();
         }
 
         private void UpdateInlineHintsOptions()

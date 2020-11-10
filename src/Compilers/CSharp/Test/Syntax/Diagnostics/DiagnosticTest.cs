@@ -261,6 +261,7 @@ class X
                         case ErrorCode.WRN_RecordNamedDisallowed:
                         case ErrorCode.WRN_ParameterNotNullIfNotNull:
                         case ErrorCode.WRN_ReturnNotNullIfNotNull:
+                        case ErrorCode.WRN_UnreadRecordParameter:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -415,6 +416,7 @@ class X
                     ErrorCode.WRN_RecordNamedDisallowed,
                     ErrorCode.WRN_RecordEqualsWithoutGetHashCode,
                     ErrorCode.WRN_AnalyzerReferencesFramework,
+                    ErrorCode.WRN_UnreadRecordParameter,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

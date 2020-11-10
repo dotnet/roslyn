@@ -27,6 +27,11 @@
         <target state="translated">デリゲート呼び出しを簡略化できます。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Discard_can_be_removed">
+        <source>Discard can be removed</source>
+        <target state="new">Discard can be removed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="translated">インデックスの作成を簡略化することができます</target>
@@ -80,6 +85,11 @@
       <trans-unit id="Remove_unnecessary_suppression_operator">
         <source>Remove unnecessary suppression operator</source>
         <target state="translated">不要な抑制演算子を削除します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnessary_discard">
+        <source>Remove unnecessary discard</source>
+        <target state="new">Remove unnecessary discard</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_default_expression">

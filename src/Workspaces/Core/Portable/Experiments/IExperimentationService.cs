@@ -17,15 +17,13 @@ namespace Microsoft.CodeAnalysis.Experiments
     [ExportWorkspaceService(typeof(IExperimentationService)), Shared]
     internal class DefaultExperimentationService : IExperimentationService
     {
-        public bool ReturnValue = false;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultExperimentationService()
         {
         }
 
-        public bool IsExperimentEnabled(string experimentName) => ReturnValue;
+        public bool IsExperimentEnabled(string experimentName) => false;
     }
 
     internal static class WellKnownExperimentNames
@@ -35,5 +33,6 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string TargetTypedCompletionFilter = "Roslyn.TargetTypedCompletionFilter";
         public const string TriggerCompletionInArgumentLists = "Roslyn.TriggerCompletionInArgumentLists";
         public const string SQLiteInMemoryWriteCache2 = "Roslyn.SQLiteInMemoryWriteCache2";
+        public const string OOPServerGC = "Roslyn.OOPServerGC";
     }
 }

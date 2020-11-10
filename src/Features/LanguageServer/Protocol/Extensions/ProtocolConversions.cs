@@ -137,6 +137,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             };
         }
 
+        public static TextChange ContentChangeEventToTextChange(LSP.TextDocumentContentChangeEvent changeEvent, SourceText text)
+            => new TextChange(RangeToTextSpan(changeEvent.Range, text), changeEvent.Text);
+
         public static LSP.Position LinePositionToPosition(LinePosition linePosition)
             => new LSP.Position { Line = linePosition.Line, Character = linePosition.Character };
 
@@ -216,25 +219,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 };
 
                 return location;
-            }
-        }
-
-        public static LSP.DiagnosticSeverity DiagnosticSeverityToLspDiagnositcSeverity(DiagnosticSeverity severity)
-        {
-            switch (severity)
-            {
-                // TO-DO: Add new LSP diagnostic severity for hidden diagnostics
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1063158
-                case DiagnosticSeverity.Hidden:
-                    return LSP.DiagnosticSeverity.Hint;
-                case DiagnosticSeverity.Info:
-                    return LSP.DiagnosticSeverity.Hint;
-                case DiagnosticSeverity.Warning:
-                    return LSP.DiagnosticSeverity.Warning;
-                case DiagnosticSeverity.Error:
-                    return LSP.DiagnosticSeverity.Error;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(severity);
             }
         }
 

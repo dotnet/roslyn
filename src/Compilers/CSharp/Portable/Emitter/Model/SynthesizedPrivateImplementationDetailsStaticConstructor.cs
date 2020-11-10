@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (KeyValuePair<int, InstrumentationPayloadRootField> payloadRoot in ContainingPrivateImplementationDetailsType.GetInstrumentationPayloadRoots())
                 {
                     int analysisKind = payloadRoot.Key;
-                    ArrayTypeSymbol payloadArrayType = (ArrayTypeSymbol)payloadRoot.Value.Type;
+                    ArrayTypeSymbol payloadArrayType = (ArrayTypeSymbol)payloadRoot.Value.Type.GetInternalSymbol();
 
                     BoundStatement payloadInitialization =
                         factory.Assignment(

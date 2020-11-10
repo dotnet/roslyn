@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -32,32 +33,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
     /// </summary>
     internal class InProcLanguageServer
     {
-        private readonly IDiagnosticService _diagnosticService;
+        /// <summary>
+        /// Legacy support for LSP push diagnostics.
+        /// </summary>
+        private readonly IDiagnosticService? _diagnosticService;
         private readonly IAsynchronousOperationListener _listener;
         private readonly string? _clientName;
         private readonly JsonRpc _jsonRpc;
+        private readonly AbstractInProcLanguageClient _languageClient;
         private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
         private readonly Workspace _workspace;
         private readonly RequestExecutionQueue _queue;
 
         /// <summary>
+        /// Legacy support for LSP push diagnostics.
         /// Work queue responsible for receiving notifications about diagnostic updates and publishing those to
         /// interested parties.
         /// </summary>
         private readonly AsyncBatchingWorkQueue<DocumentId> _diagnosticsWorkQueue;
 
-        private VSClientCapabilities _clientCapabilities;
+        private VSClientCapabilities? _clientCapabilities;
         private bool _shuttingDown;
 
-        public InProcLanguageServer(Stream inputStream,
+        public InProcLanguageServer(
+            AbstractInProcLanguageClient languageClient,
+            Stream inputStream,
             Stream outputStream,
             AbstractRequestHandlerProvider requestHandlerProvider,
             Workspace workspace,
-            IDiagnosticService diagnosticService,
+            IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspSolutionProvider solutionProvider,
             string? clientName)
         {
+            _languageClient = languageClient;
             _requestHandlerProvider = requestHandlerProvider;
             _workspace = workspace;
 
@@ -73,8 +82,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _clientName = clientName;
 
-            _clientCapabilities = new VSClientCapabilities();
-
             _queue = new RequestExecutionQueue(solutionProvider);
             _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
@@ -85,30 +92,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 EqualityComparer<DocumentId>.Default,
                 _listener,
                 _queue.CancellationToken);
-            _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
+
+            if (_diagnosticService != null)
+                _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
         }
 
         public bool Running => !_shuttingDown && !_jsonRpc.IsDisposed;
 
         /// <summary>
-        /// Handle the LSP initialize request by storing the client capabilities
-        /// and responding with the server capabilities.
-        /// The specification assures that the initialize request is sent only once.
+        /// Handle the LSP initialize request by storing the client capabilities and responding with the server
+        /// capabilities.  The specification assures that the initialize request is sent only once.
         /// </summary>
         [JsonRpcMethod(Methods.InitializeName, UseSingleObjectParameterDeserialization = true)]
-        public async Task<InitializeResult> InitializeAsync(InitializeParams initializeParams, CancellationToken cancellationToken)
+        public Task<InitializeResult> InitializeAsync(InitializeParams initializeParams, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfTrue(_clientCapabilities != null, $"{nameof(InitializeAsync)} called multiple times");
             _clientCapabilities = (VSClientCapabilities)initializeParams.Capabilities;
-
-            var serverCapabilities = await _requestHandlerProvider.ExecuteRequestAsync<InitializeParams, InitializeResult>(_queue, Methods.InitializeName,
-                initializeParams, _clientCapabilities, _clientName, cancellationToken).ConfigureAwait(false);
-
-            // Always support hover - if any LSP client for a content type advertises support,
-            // then the liveshare provider is disabled.  So we must provide for both C# and razor
-            // until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1106064/ is fixed
-            // or we have different content types.
-            serverCapabilities.Capabilities.HoverProvider = true;
-            return serverCapabilities;
+            return Task.FromResult(new InitializeResult
+            {
+                Capabilities = _languageClient.GetCapabilities(),
+            });
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
@@ -129,7 +132,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             Contract.ThrowIfTrue(_shuttingDown, "Shutdown has already been called.");
 
             _shuttingDown = true;
-            _diagnosticService.DiagnosticsUpdated -= DiagnosticService_DiagnosticsUpdated;
+
+            if (_diagnosticService != null)
+                _diagnosticService.DiagnosticsUpdated -= DiagnosticService_DiagnosticsUpdated;
 
             ShutdownRequestQueue();
 
@@ -154,122 +159,248 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             return Task.CompletedTask;
         }
 
+        [JsonRpcMethod(MSLSPMethods.DocumentPullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
+        public Task<DiagnosticReport[]?> GetDocumentPullDiagnosticsAsync(DocumentDiagnosticsParams diagnosticsParams, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<DocumentDiagnosticsParams, DiagnosticReport[]?>(
+                _queue, MSLSPMethods.DocumentPullDiagnosticName,
+                diagnosticsParams, _clientCapabilities, _clientName, cancellationToken);
+        }
+
+        [JsonRpcMethod(MSLSPMethods.WorkspacePullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
+        public Task<WorkspaceDiagnosticReport[]?> GetWorkspacePullDiagnosticsAsync(WorkspaceDocumentDiagnosticsParams diagnosticsParams, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport[]?>(
+                _queue, MSLSPMethods.WorkspacePullDiagnosticName,
+                diagnosticsParams, _clientCapabilities, _clientName, cancellationToken);
+        }
+
         [JsonRpcMethod(Methods.TextDocumentDefinitionName, UseSingleObjectParameterDeserialization = true)]
         public Task<LSP.Location[]> GetTextDocumentDefinitionAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<TextDocumentPositionParams, LSP.Location[]>(_queue, Methods.TextDocumentDefinitionName,
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<TextDocumentPositionParams, LSP.Location[]>(_queue, Methods.TextDocumentDefinitionName,
                 textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(Methods.TextDocumentRenameName, UseSingleObjectParameterDeserialization = true)]
         public Task<WorkspaceEdit> GetTextDocumentRenameAsync(RenameParams renameParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<RenameParams, WorkspaceEdit>(_queue, Methods.TextDocumentRenameName,
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<RenameParams, WorkspaceEdit>(_queue, Methods.TextDocumentRenameName,
                 renameParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(Methods.TextDocumentReferencesName, UseSingleObjectParameterDeserialization = true)]
-        public Task<VSReferenceItem[]> GetTextDocumentReferencesAsync(ReferenceParams referencesParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<ReferenceParams, VSReferenceItem[]>(_queue, Methods.TextDocumentReferencesName,
+        public Task<VSReferenceItem[]?> GetTextDocumentReferencesAsync(ReferenceParams referencesParams, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<ReferenceParams, VSReferenceItem[]?>(_queue, Methods.TextDocumentReferencesName,
                 referencesParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(Methods.TextDocumentCodeActionName, UseSingleObjectParameterDeserialization = true)]
         public Task<VSCodeAction[]> GetTextDocumentCodeActionsAsync(CodeActionParams codeActionParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<CodeActionParams, VSCodeAction[]>(_queue, Methods.TextDocumentCodeActionName,
-                codeActionParams, _clientCapabilities, _clientName, cancellationToken);
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<CodeActionParams, VSCodeAction[]>(_queue, Methods.TextDocumentCodeActionName, codeActionParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(MSLSPMethods.TextDocumentCodeActionResolveName, UseSingleObjectParameterDeserialization = true)]
         public Task<VSCodeAction> ResolveCodeActionAsync(VSCodeAction vsCodeAction, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<VSCodeAction, VSCodeAction>(_queue, MSLSPMethods.TextDocumentCodeActionResolveName,
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<VSCodeAction, VSCodeAction>(_queue, MSLSPMethods.TextDocumentCodeActionResolveName,
                 vsCodeAction, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(Methods.TextDocumentCompletionName, UseSingleObjectParameterDeserialization = true)]
         public async Task<SumType<CompletionList, CompletionItem[]>> GetTextDocumentCompletionAsync(CompletionParams completionParams, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
             // Convert to sumtype before reporting to work around https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107698
-            => await _requestHandlerProvider.ExecuteRequestAsync<CompletionParams, CompletionList>(_queue, Methods.TextDocumentCompletionName,
+            return await _requestHandlerProvider.ExecuteRequestAsync<CompletionParams, CompletionList>(_queue, Methods.TextDocumentCompletionName,
                 completionParams, _clientCapabilities, _clientName, cancellationToken).ConfigureAwait(false);
+        }
 
         [JsonRpcMethod(Methods.TextDocumentCompletionResolveName, UseSingleObjectParameterDeserialization = true)]
         public Task<CompletionItem> ResolveCompletionItemAsync(CompletionItem completionItem, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<CompletionItem, CompletionItem>(_queue, Methods.TextDocumentCompletionResolveName,
-                completionItem, _clientCapabilities, _clientName, cancellationToken);
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<CompletionItem, CompletionItem>(_queue, Methods.TextDocumentCompletionResolveName, completionItem, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(Methods.TextDocumentFoldingRangeName, UseSingleObjectParameterDeserialization = true)]
         public Task<FoldingRange[]> GetTextDocumentFoldingRangeAsync(FoldingRangeParams textDocumentFoldingRangeParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<FoldingRangeParams, FoldingRange[]>(_queue, Methods.TextDocumentFoldingRangeName,
-                textDocumentFoldingRangeParams, _clientCapabilities, _clientName, cancellationToken);
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<FoldingRangeParams, FoldingRange[]>(_queue, Methods.TextDocumentFoldingRangeName, textDocumentFoldingRangeParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(Methods.TextDocumentDocumentHighlightName, UseSingleObjectParameterDeserialization = true)]
         public Task<DocumentHighlight[]> GetTextDocumentDocumentHighlightsAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<TextDocumentPositionParams, DocumentHighlight[]>(_queue, Methods.TextDocumentDocumentHighlightName,
-                textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<TextDocumentPositionParams, DocumentHighlight[]>(_queue, Methods.TextDocumentDocumentHighlightName, textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(Methods.TextDocumentHoverName, UseSingleObjectParameterDeserialization = true)]
         public Task<Hover?> GetTextDocumentDocumentHoverAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<TextDocumentPositionParams, Hover?>(_queue, Methods.TextDocumentHoverName,
-                textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<TextDocumentPositionParams, Hover?>(_queue, Methods.TextDocumentHoverName, textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(Methods.TextDocumentDocumentSymbolName, UseSingleObjectParameterDeserialization = true)]
         public Task<object[]> GetTextDocumentDocumentSymbolsAsync(DocumentSymbolParams documentSymbolParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<DocumentSymbolParams, object[]>(_queue, Methods.TextDocumentDocumentSymbolName,
-                documentSymbolParams, _clientCapabilities, _clientName, cancellationToken);
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<DocumentSymbolParams, object[]>(_queue, Methods.TextDocumentDocumentSymbolName, documentSymbolParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(Methods.TextDocumentFormattingName, UseSingleObjectParameterDeserialization = true)]
         public Task<TextEdit[]> GetTextDocumentFormattingAsync(DocumentFormattingParams documentFormattingParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<DocumentFormattingParams, TextEdit[]>(_queue, Methods.TextDocumentFormattingName,
-                documentFormattingParams, _clientCapabilities, _clientName, cancellationToken);
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<DocumentFormattingParams, TextEdit[]>(_queue, Methods.TextDocumentFormattingName, documentFormattingParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(Methods.TextDocumentOnTypeFormattingName, UseSingleObjectParameterDeserialization = true)]
         public Task<TextEdit[]> GetTextDocumentFormattingOnTypeAsync(DocumentOnTypeFormattingParams documentOnTypeFormattingParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<DocumentOnTypeFormattingParams, TextEdit[]>(_queue, Methods.TextDocumentOnTypeFormattingName,
-                documentOnTypeFormattingParams, _clientCapabilities, _clientName, cancellationToken);
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<DocumentOnTypeFormattingParams, TextEdit[]>(_queue, Methods.TextDocumentOnTypeFormattingName, documentOnTypeFormattingParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(Methods.TextDocumentImplementationName, UseSingleObjectParameterDeserialization = true)]
         public Task<LSP.Location[]> GetTextDocumentImplementationsAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<TextDocumentPositionParams, LSP.Location[]>(_queue, Methods.TextDocumentImplementationName,
-                textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<TextDocumentPositionParams, LSP.Location[]>(_queue, Methods.TextDocumentImplementationName, textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(Methods.TextDocumentRangeFormattingName, UseSingleObjectParameterDeserialization = true)]
         public Task<TextEdit[]> GetTextDocumentRangeFormattingAsync(DocumentRangeFormattingParams documentRangeFormattingParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<DocumentRangeFormattingParams, TextEdit[]>(_queue, Methods.TextDocumentRangeFormattingName,
-                documentRangeFormattingParams, _clientCapabilities, _clientName, cancellationToken);
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<DocumentRangeFormattingParams, TextEdit[]>(_queue, Methods.TextDocumentRangeFormattingName, documentRangeFormattingParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(Methods.TextDocumentSignatureHelpName, UseSingleObjectParameterDeserialization = true)]
         public Task<SignatureHelp> GetTextDocumentSignatureHelpAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<TextDocumentPositionParams, SignatureHelp>(_queue, Methods.TextDocumentSignatureHelpName,
-                textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<TextDocumentPositionParams, SignatureHelp>(_queue, Methods.TextDocumentSignatureHelpName, textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(Methods.WorkspaceExecuteCommandName, UseSingleObjectParameterDeserialization = true)]
         public Task<object> ExecuteWorkspaceCommandAsync(ExecuteCommandParams executeCommandParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<ExecuteCommandParams, object>(_queue, Methods.WorkspaceExecuteCommandName,
-                executeCommandParams, _clientCapabilities, _clientName, cancellationToken);
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<ExecuteCommandParams, object>(_queue, Methods.WorkspaceExecuteCommandName, executeCommandParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(Methods.WorkspaceSymbolName, UseSingleObjectParameterDeserialization = true)]
-        public Task<SymbolInformation[]> GetWorkspaceSymbolsAsync(WorkspaceSymbolParams workspaceSymbolParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<WorkspaceSymbolParams, SymbolInformation[]>(_queue, Methods.WorkspaceSymbolName,
-                workspaceSymbolParams, _clientCapabilities, _clientName, cancellationToken);
+        public Task<SymbolInformation[]?> GetWorkspaceSymbolsAsync(WorkspaceSymbolParams workspaceSymbolParams, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<WorkspaceSymbolParams, SymbolInformation[]?>(_queue, Methods.WorkspaceSymbolName, workspaceSymbolParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(MSLSPMethods.ProjectContextsName, UseSingleObjectParameterDeserialization = true)]
         public Task<ActiveProjectContexts?> GetProjectContextsAsync(GetTextDocumentWithContextParams textDocumentWithContextParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<GetTextDocumentWithContextParams, ActiveProjectContexts?>(_queue, MSLSPMethods.ProjectContextsName,
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<GetTextDocumentWithContextParams, ActiveProjectContexts?>(_queue, MSLSPMethods.ProjectContextsName,
                 textDocumentWithContextParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(SemanticTokensMethods.TextDocumentSemanticTokensName, UseSingleObjectParameterDeserialization = true)]
         public Task<SemanticTokens> GetTextDocumentSemanticTokensAsync(SemanticTokensParams semanticTokensParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<SemanticTokensParams, SemanticTokens>(_queue, SemanticTokensMethods.TextDocumentSemanticTokensName,
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<SemanticTokensParams, SemanticTokens>(_queue, SemanticTokensMethods.TextDocumentSemanticTokensName,
                 semanticTokensParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(SemanticTokensMethods.TextDocumentSemanticTokensEditsName, UseSingleObjectParameterDeserialization = true)]
         public Task<SumType<SemanticTokens, SemanticTokensEdits>> GetTextDocumentSemanticTokensEditsAsync(SemanticTokensEditsParams semanticTokensEditsParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<SemanticTokensEditsParams, SumType<SemanticTokens, SemanticTokensEdits>>(_queue, SemanticTokensMethods.TextDocumentSemanticTokensEditsName,
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<SemanticTokensEditsParams, SumType<SemanticTokens, SemanticTokensEdits>>(_queue, SemanticTokensMethods.TextDocumentSemanticTokensEditsName,
                 semanticTokensEditsParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         // Note: Since a range request is always received in conjunction with a whole document request, we don't need to cache range results.
         [JsonRpcMethod(SemanticTokensMethods.TextDocumentSemanticTokensRangeName, UseSingleObjectParameterDeserialization = true)]
         public Task<SemanticTokens> GetTextDocumentSemanticTokensRangeAsync(SemanticTokensRangeParams semanticTokensRangeParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(_queue, SemanticTokensMethods.TextDocumentSemanticTokensRangeName,
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(_queue, SemanticTokensMethods.TextDocumentSemanticTokensRangeName,
                 semanticTokensRangeParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         [JsonRpcMethod(MSLSPMethods.OnAutoInsertName, UseSingleObjectParameterDeserialization = true)]
         public Task<DocumentOnAutoInsertResponseItem[]> GetDocumentOnAutoInsertAsync(DocumentOnAutoInsertParams autoInsertParams, CancellationToken cancellationToken)
-            => _requestHandlerProvider.ExecuteRequestAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem[]>(_queue, MSLSPMethods.OnAutoInsertName,
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem[]>(_queue, MSLSPMethods.OnAutoInsertName,
                 autoInsertParams, _clientCapabilities, _clientName, cancellationToken);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentDidChangeName, UseSingleObjectParameterDeserialization = true)]
+        public Task<object> HandleDocumentDidChangeAsync(DidChangeTextDocumentParams didChangeParams, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<DidChangeTextDocumentParams, object>(_queue, Methods.TextDocumentDidChangeName,
+                didChangeParams, _clientCapabilities, _clientName, cancellationToken);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentDidOpenName, UseSingleObjectParameterDeserialization = true)]
+        public Task<object?> HandleDocumentDidOpenAsync(DidOpenTextDocumentParams didOpenParams, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<DidOpenTextDocumentParams, object?>(_queue, Methods.TextDocumentDidOpenName,
+                didOpenParams, _clientCapabilities, _clientName, cancellationToken);
+        }
+
+        [JsonRpcMethod(Methods.TextDocumentDidCloseName, UseSingleObjectParameterDeserialization = true)]
+        public Task<object?> HandleDocumentDidCloseAsync(DidCloseTextDocumentParams didCloseParams, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestHandlerProvider.ExecuteRequestAsync<DidCloseTextDocumentParams, object?>(_queue, Methods.TextDocumentDidCloseName,
+                didCloseParams, _clientCapabilities, _clientName, cancellationToken);
+        }
 
         private void DiagnosticService_DiagnosticsUpdated(object _, DiagnosticsUpdatedArgs e)
             => DiagnosticService_DiagnosticsUpdated(e.Solution, e.DocumentId);
@@ -354,21 +485,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
         private async Task ProcessDiagnosticUpdatedBatchAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
+            if (_diagnosticService == null)
+                return;
+
             var solution = _workspace.CurrentSolution;
             foreach (var documentId in documentIds)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var document = solution.GetDocument(documentId);
                 if (document != null)
-                    await PublishDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
+                    await PublishDiagnosticsAsync(_diagnosticService, document, cancellationToken).ConfigureAwait(false);
             }
         }
 
         // Internal for testing purposes.
-        internal async Task PublishDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        internal async Task PublishDiagnosticsAsync(IDiagnosticService diagnosticService, Document document, CancellationToken cancellationToken)
         {
             // Retrieve all diagnostics for the current document grouped by their actual file uri.
-            var fileUriToDiagnostics = await GetDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
+            var fileUriToDiagnostics = await GetDiagnosticsAsync(diagnosticService, document, cancellationToken).ConfigureAwait(false);
 
             // Get the list of file uris with diagnostics (for the document).
             // We need to join the uris from current diagnostics with those previously published
@@ -438,10 +572,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             await _jsonRpc.NotifyWithParameterObjectAsync(Methods.TextDocumentPublishDiagnosticsName, publishDiagnosticsParams).ConfigureAwait(false);
         }
 
-        private async Task<Dictionary<Uri, ImmutableArray<LSP.Diagnostic>>> GetDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        private async Task<Dictionary<Uri, ImmutableArray<LSP.Diagnostic>>> GetDiagnosticsAsync(
+            IDiagnosticService diagnosticService, Document document, CancellationToken cancellationToken)
         {
-            var diagnostics = _diagnosticService.GetDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, null, false, cancellationToken)
-                                                .Where(IncludeDiagnostic);
+            var option = document.IsRazorDocument()
+                ? InternalDiagnosticsOptions.RazorDiagnosticMode
+                : InternalDiagnosticsOptions.NormalDiagnosticMode;
+            var diagnostics = diagnosticService.GetPushDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, id: null, includeSuppressedDiagnostics: false, option, cancellationToken)
+                                               .WhereAsArray(IncludeDiagnostic);
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -461,31 +599,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             {
                 Contract.ThrowIfNull(diagnosticData.DataLocation, "Diagnostic data location should not be null here");
 
+                // Razor wants to handle all span mapping themselves.  So if we are in razor, return the raw doc spans, and
+                // do not map them.
                 var filePath = diagnosticData.DataLocation.MappedFilePath ?? diagnosticData.DataLocation.OriginalFilePath;
                 return ProtocolConversions.GetUriFromFilePath(filePath);
             }
-
-            static LSP.Diagnostic ConvertToLspDiagnostic(DiagnosticData diagnosticData, SourceText text)
-            {
-                Contract.ThrowIfNull(diagnosticData.DataLocation);
-
-                var diagnostic = new LSP.Diagnostic
-                {
-                    Code = diagnosticData.Id,
-                    Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diagnosticData.Severity),
-                    Range = GetDiagnosticRange(diagnosticData.DataLocation, text),
-                    // Only the unnecessary diagnostic tag is currently supported via LSP.
-                    Tags = diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary)
-                        ? new DiagnosticTag[] { DiagnosticTag.Unnecessary }
-                        : Array.Empty<DiagnosticTag>()
-                };
-
-                if (diagnosticData.Message != null)
-                    diagnostic.Message = diagnosticData.Message;
-
-                return diagnostic;
-            }
         }
+
+        private LSP.Diagnostic ConvertToLspDiagnostic(DiagnosticData diagnosticData, SourceText text)
+        {
+            Contract.ThrowIfNull(diagnosticData.DataLocation);
+
+            var diagnostic = new LSP.Diagnostic
+            {
+                Source = _languageClient?.GetType().Name,
+                Code = diagnosticData.Id,
+                Severity = Convert(diagnosticData.Severity),
+                Range = GetDiagnosticRange(diagnosticData.DataLocation, text),
+                // Only the unnecessary diagnostic tag is currently supported via LSP.
+                Tags = diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary)
+                    ? new DiagnosticTag[] { DiagnosticTag.Unnecessary }
+                    : Array.Empty<DiagnosticTag>()
+            };
+
+            if (diagnosticData.Message != null)
+                diagnostic.Message = diagnosticData.Message;
+
+            return diagnostic;
+        }
+
+        private static LSP.DiagnosticSeverity Convert(CodeAnalysis.DiagnosticSeverity severity)
+            => severity switch
+            {
+                CodeAnalysis.DiagnosticSeverity.Hidden => LSP.DiagnosticSeverity.Hint,
+                CodeAnalysis.DiagnosticSeverity.Info => LSP.DiagnosticSeverity.Hint,
+                CodeAnalysis.DiagnosticSeverity.Warning => LSP.DiagnosticSeverity.Warning,
+                CodeAnalysis.DiagnosticSeverity.Error => LSP.DiagnosticSeverity.Error,
+                _ => throw ExceptionUtilities.UnexpectedValue(severity),
+            };
 
         // Some diagnostics only apply to certain clients and document types, e.g. Razor.
         // If the DocumentPropertiesService.DiagnosticsLspClientName property exists, we only include the
