@@ -347,6 +347,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return this.TypeDescriptor.GetHashCode();
             }
+
+            internal override bool HasPossibleWellKnownCloneMethod() => false;
         }
     }
 }

@@ -16,10 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     /// <summary>
     /// Represents an intrinsic debugger method with byref return type.
     /// </summary>
-    internal sealed class PlaceholderMethodSymbol : MethodSymbol
-#if !DEBUG
-        , Cci.ISignature
-#endif
+    internal sealed partial class PlaceholderMethodSymbol : MethodSymbol
     {
         internal delegate ImmutableArray<TypeParameterSymbol> GetTypeParameters(PlaceholderMethodSymbol method);
         internal delegate ImmutableArray<ParameterSymbol> GetParameters(PlaceholderMethodSymbol method);
@@ -170,23 +167,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
-#if !DEBUG
-        bool Cci.ISignature.ReturnValueIsByRef
-        {
-            get { return true; }
-        }
-
-        // This should be inherited from the base class implementation, but it does not currently work with Nullable
-        // Reference Types.
-        // https://github.com/dotnet/roslyn/issues/39167
-        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<Cci.ICustomModifier>.CastUp(this.RefCustomModifiers);
-            }
-        }
-#endif
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return ImmutableArray<CustomModifier>.Empty; }
@@ -289,6 +269,45 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             throw ExceptionUtilities.Unreachable;
+        }
+
+#if DEBUG
+        protected override MethodSymbolAdapter CreateCciAdapter()
+        {
+            return new PlaceholderMethodSymbolAdapter(this);
+        }
+#endif
+    }
+
+#if DEBUG
+    internal sealed partial class PlaceholderMethodSymbolAdapter : MethodSymbolAdapter
+    {
+        internal PlaceholderMethodSymbolAdapter(MethodSymbol underlyingMethodSymbol) : base(underlyingMethodSymbol)
+        { }
+    }
+#endif
+
+#if DEBUG
+    internal partial class PlaceholderMethodSymbolAdapter :
+#else
+    internal partial class PlaceholderMethodSymbol :
+#endif
+        Cci.ISignature
+    {
+        bool Cci.ISignature.ReturnValueIsByRef
+        {
+            get { return true; }
+        }
+
+        // This should be inherited from the base class implementation, but it does not currently work with Nullable
+        // Reference Types.
+        // https://github.com/dotnet/roslyn/issues/39167
+        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
+        {
+            get
+            {
+                return ImmutableArray<Cci.ICustomModifier>.CastUp(AdaptedMethodSymbol.RefCustomModifiers);
+            }
         }
     }
 }

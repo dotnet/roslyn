@@ -74,9 +74,9 @@ namespace RunTests
         public bool Retry { get; set; }
 
         /// <summary>
-        /// Whether or not to use proc dump to monitor running processes for failures.
+        /// Whether or not to collect dumps on crashes and timeouts.
         /// </summary>
-        public bool UseProcDump { get; set; }
+        public bool CollectDumps { get; set; }
 
         /// <summary>
         /// The path to procdump.exe
@@ -103,25 +103,18 @@ namespace RunTests
         /// </summary>
         public string LogFilesDirectory { get; set; }
 
-        /// <summary>
-        /// Directory to hold secondary dump files created while running tests.
-        /// </summary>
-        public string LogFilesSecondaryDirectory { get; set; }
-
         public string Platform { get; set; }
 
         public Options(
             string dotnetFilePath,
             string testResultsDirectory,
             string logFilesDirectory,
-            string logFilesSecondaryDirectory,
             string targetFramework,
             string platform)
         {
             DotnetFilePath = dotnetFilePath;
             TestResultsDirectory = testResultsDirectory;
             LogFilesDirectory = logFilesDirectory;
-            LogFilesSecondaryDirectory = logFilesSecondaryDirectory;
             TargetFramework = targetFramework;
             Platform = platform;
         }
@@ -140,16 +133,15 @@ namespace RunTests
             int? timeout = null;
             string resultFileDirectory = Path.Combine(Directory.GetCurrentDirectory(), "TestResults");
             string? logFileDirectory = null;
-            string? logFileSecondaryDirectory = null;
             var display = Display.None;
-            var useProcDump = false;
+            var collectDumps = false;
             string? procDumpFilePath = null;
             var optionSet = new OptionSet()
             {
                 { "dotnet=", "Path to dotnet", (string s) => dotnetFilePath = s },
                 { "platform=", "Platform to test: x86 or x64", (string s) => platform = s },
                 { "tfm=", "Target framework to test", (string s) => targetFramework = s },
-                { "testVsi", "Test Visual Studio", o => testVsi = o is object },
+                { "testvsi", "Test Visual Studio", o => testVsi = o is object },
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
                 { "traits=", "xUnit traits to include (semicolon delimited)", (string s) => traits = s },
@@ -157,10 +149,9 @@ namespace RunTests
                 { "timeout=", "Minute timeout to limit the tests to", (int i) => timeout = i },
                 { "out=", "Test result file directory", (string s) => resultFileDirectory = s },
                 { "logs=", "Log file directory", (string s) => logFileDirectory = s },
-                { "secondarylogs=", "Log secondary file directory", (string s) => logFileSecondaryDirectory = s },
                 { "display=", "Display", (Display d) => display = d },
                 { "procdumppath=", "Path to procdump", (string s) => procDumpFilePath = s },
-                { "useprocdump", "Whether or not to use procdump", o => useProcDump = o is object },
+                { "collectdumps", "Whether or not to gather dumps on timeouts and crashes", o => collectDumps = o is object },
                 { "retry", "Retry failed test a few times", o => retry = o is object },
             };
 
@@ -182,16 +173,15 @@ namespace RunTests
                 return null;
             }
 
-            if (useProcDump && string.IsNullOrEmpty(procDumpFilePath))
-            {
-                Console.WriteLine($"The option 'useprocdump' was specified but 'procdumppath' was not provided");
-                return null;
-            }
-
             if (retry && includeHtml)
             {
                 Console.WriteLine($"Cannot specify both --retry and --html");
                 return null;
+            }
+
+            if (procDumpFilePath is { } && !collectDumps)
+            {
+                Console.WriteLine($"procdumppath was specified without collectdumps hence it will not be used");
             }
 
             if (logFileDirectory is null)
@@ -199,13 +189,10 @@ namespace RunTests
                 logFileDirectory = resultFileDirectory;
             }
 
-            logFileSecondaryDirectory ??= logFileDirectory;
-
             return new Options(
                 dotnetFilePath: dotnetFilePath,
                 testResultsDirectory: resultFileDirectory,
                 logFilesDirectory: logFileDirectory,
-                logFilesSecondaryDirectory: logFileSecondaryDirectory,
                 targetFramework: targetFramework,
                 platform: platform)
             {
@@ -213,7 +200,7 @@ namespace RunTests
                 TestVsi = testVsi,
                 Display = display,
                 ProcDumpFilePath = procDumpFilePath,
-                UseProcDump = useProcDump,
+                CollectDumps = collectDumps,
                 Sequential = sequential,
                 IncludeHtml = includeHtml,
                 Trait = traits,
