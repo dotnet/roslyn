@@ -1292,7 +1292,7 @@ namespace Microsoft.CodeAnalysis
                         (hint, callback) =>
                         {
                             CreateFileStream(diagnostics, hint, out var path, out var fileStream);
-                            if (fileStream is object)
+                            if (fileStream is not null)
                             {
                                 using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
                                 callback(fileStream);
@@ -1387,9 +1387,9 @@ namespace Microsoft.CodeAnalysis
         private void WriteSourceText(TouchedFileLogger? touchedFilesLogger, DiagnosticBag diagnostics, string filePath, Encoding? encoding, SourceText sourceText, CancellationToken cancellationToken)
         {
             CreateFileStream(diagnostics, filePath, out var path, out var fileStream);
-            if (fileStream is object)
+            if (fileStream is not null)
             {
-                Debug.Assert(encoding is object);
+                Debug.Assert(encoding is not null);
 
                 using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
                 using var writer = new StreamWriter(fileStream, encoding);
