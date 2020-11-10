@@ -1289,10 +1289,8 @@ namespace Microsoft.CodeAnalysis
                 if (hasGeneratedOutputPath)
                 {
                     artifactCallback = new ArtifactGeneratorCallback(
-                        tuple =>
+                        (hint, callback) =>
                         {
-                            var (hint, callback) = tuple;
-
                             CreateFileStream(diagnostics, hint, out var path, out var fileStream);
                             if (fileStream is object)
                             {

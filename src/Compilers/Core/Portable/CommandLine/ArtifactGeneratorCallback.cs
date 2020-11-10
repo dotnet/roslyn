@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis
         private const int DefaultBufferSize = 1024;
 #endif
 
-        private readonly Action<(string hintPath, Action<Stream> callback)> _createArtifactStream;
+        private readonly Action<string, Action<Stream>> _createArtifactStream;
 
-        public ArtifactGeneratorCallback(Action<(string hintPath, Action<Stream> callback)> createArtifactStream)
+        public ArtifactGeneratorCallback(Action<string, Action<Stream>> createArtifactStream)
         {
             _createArtifactStream = createArtifactStream;
         }
@@ -96,6 +96,6 @@ namespace Microsoft.CodeAnalysis
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
         /// <param name="writeStream">A callback that will be passed the stream to write into.</param>
         public void GenerateArtifact(string hintName, Action<Stream> writeStream)
-            => _createArtifactStream((hintName, writeStream));
+            => _createArtifactStream(hintName, writeStream);
     }
 }
