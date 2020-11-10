@@ -8,7 +8,8 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
-    /// The base type for artifact generators that can programmatically produce additional files for a compilation.
+    /// The base type for artifact generators that can programmatically produce additional files for a compilation.  All
+    /// implementations of this must support concurrent execution of the various GenerateArtifacts overloads.
     /// </summary>
     public abstract class ArtifactGenerator : DiagnosticAnalyzer
     {
