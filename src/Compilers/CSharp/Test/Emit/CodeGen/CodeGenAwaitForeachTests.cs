@@ -1802,7 +1802,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/49267")]
         public void TestWithPattern_WithStruct_MoveNextAsyncReturnsTask()
         {
             string source = @"
@@ -7031,7 +7031,7 @@ internal static class Extensions
             CompileAndVerify(comp, expectedOutput: "123");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/49267")]
         public void TestAwaitForEachViaExtensionImplicitImplementationOfIAsyncDisposableStruct()
         {
             var source = @"
@@ -7064,7 +7064,7 @@ struct Enumerator : IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: @"123Disposed");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/49267")]
         public void TestAwaitForEachViaExtensionExplicitlyDisposableStruct()
         {
             var source = @"
@@ -7098,7 +7098,7 @@ struct Enumerator : IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: @"123Disposed");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/49267")]
         public void TestAwaitForEachViaExtensionAsyncDisposeStruct()
         {
             var source = @"

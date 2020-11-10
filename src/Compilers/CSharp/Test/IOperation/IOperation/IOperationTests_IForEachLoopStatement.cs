@@ -5568,6 +5568,53 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
             VerifyOperationTreeForTest<BlockSyntax>(source, expectedOperationTree);
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/49267")]
+        public void AsyncForeach_StructEnumeratorWithDispose()
+        {
+            var compilation = CreateCompilation(@"
+#pragma warning disable CS1998 // async method lacks awaits
+using System.Threading.Tasks;
+class C
+{
+    static async Task Main()
+    /*<bind>*/{
+        await foreach (var i in new C())
+        {
+        }
+    }/*</bind>*/
+    public AsyncEnumerator GetAsyncEnumerator() => throw null;
+    public struct AsyncEnumerator
+    {
+        public int Current => throw null;
+        public async Task<bool> MoveNextAsync() => throw null;
+        public async ValueTask DisposeAsync() => throw null;
+    }
+}", targetFramework: TargetFramework.NetCoreApp30);
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(compilation, @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'await forea ... }')
+    Locals: Local_1: System.Int32 i
+    LoopControlVariable: 
+      IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+        Initializer: 
+          null
+    Collection: 
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsImplicit) (Syntax: 'new C()')
+        Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+            Arguments(0)
+            Initializer: 
+              null
+    Body: 
+      IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+    NextVariables(0)
+            ", DiagnosticDescription.None);
+
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, @"");
+        }
+
         private static readonly string s_ValueTask = @"
 namespace System.Threading.Tasks
 {

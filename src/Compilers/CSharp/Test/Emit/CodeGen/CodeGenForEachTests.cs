@@ -1357,7 +1357,7 @@ Done with DisposableEnumerator
 -3");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/49267")]
         public void TestForEachPatternDisposableRefStruct()
         {
             var source = @"
@@ -1420,7 +1420,7 @@ Done with DisposableEnumerator");
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/49267")]
         public void TestForEachPatternDisposableRefStructWithParams()
         {
             var source = @"
@@ -1454,7 +1454,7 @@ ref struct DisposableEnumerator
 Done with DisposableEnumerator. args was System.Object[], length 0");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/49267")]
         public void TestForEachPatternDisposableRefStructWithDefaultArguments()
         {
             var source = @"
@@ -4697,7 +4697,7 @@ struct Enumerator
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/49267")]
         public void TestForEachViaExtensionDisposeRefStruct()
         {
             var source = @"

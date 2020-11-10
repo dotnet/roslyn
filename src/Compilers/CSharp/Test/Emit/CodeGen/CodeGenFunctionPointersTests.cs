@@ -9130,7 +9130,7 @@ public static class CExt
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/49267")]
         public void UnmanagedCallersOnlyDeclaredOnPatternDispose()
         {
             var comp = CreateCompilation(new[] { @"
