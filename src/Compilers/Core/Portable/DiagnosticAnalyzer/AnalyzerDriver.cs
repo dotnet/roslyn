@@ -341,11 +341,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Callback to add additional files to be generated to disk.  Null if generating files is not desired.
-        /// </summary>
-        public Action<(string filePath, SourceText text)>? AddOutputFile;
-
-        /// <summary>
         /// Create an analyzer driver.
         /// </summary>
         /// <param name="analyzers">The set of analyzers to include in the analysis</param>
