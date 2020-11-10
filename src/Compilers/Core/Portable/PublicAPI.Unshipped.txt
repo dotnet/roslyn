@@ -5,6 +5,8 @@ Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext.Cance
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext.GenerateArtifact(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext.GenerateArtifact(string hintName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext.GenerateArtifact(string hintName, System.Action<System.IO.Stream> writeStream) -> void
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext.GenerateArtifact(string hintName, System.Text.StringBuilder builder) -> void
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
 Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerator
@@ -15,6 +17,8 @@ Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext.Compilat
 Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext.CompilationArtifactGenerationContext() -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext.GenerateArtifact(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext.GenerateArtifact(string hintName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext.GenerateArtifact(string hintName, System.Action<System.IO.Stream> writeStream) -> void
+Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext.GenerateArtifact(string hintName, System.Text.StringBuilder builder) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.SyntaxTree tree, Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeValueProvider<TValue> valueProvider, out TValue value) -> bool
@@ -23,6 +27,8 @@ Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext
 Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext.GenerateArtifact(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
 Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext.GenerateArtifact(string hintName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext.GenerateArtifact(string hintName, System.Action<System.IO.Stream> writeStream) -> void
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext.GenerateArtifact(string hintName, System.Text.StringBuilder builder) -> void
 Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
 Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel
@@ -31,6 +37,8 @@ Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext
 Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext.GenerateArtifact(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
 Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext.GenerateArtifact(string hintName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext.GenerateArtifact(string hintName, System.Action<System.IO.Stream> writeStream) -> void
+Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext.GenerateArtifact(string hintName, System.Text.StringBuilder builder) -> void
 Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
 Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext.SyntaxTreeArtifactGenerationContext() -> void

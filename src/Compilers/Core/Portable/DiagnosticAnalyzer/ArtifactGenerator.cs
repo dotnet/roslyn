@@ -33,29 +33,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             context.RegisterCompilationAction(
                 context =>
                 {
-                    if (context._addOutputFile != null)
-                        this.GenerateArtifacts(new CompilationArtifactGenerationContext(context, context._addOutputFile));
+                    if (context._artifactCallback != null)
+                        this.GenerateArtifacts(new CompilationArtifactGenerationContext(context, context._artifactCallback));
                 });
 
             context.RegisterSemanticModelAction(
                 context =>
                 {
-                    if (context._addOutputFile != null)
-                        this.GenerateArtifacts(new SemanticModelArtifactGenerationContext(context, context._addOutputFile));
+                    if (context._artifactCallback != null)
+                        this.GenerateArtifacts(new SemanticModelArtifactGenerationContext(context, context._artifactCallback));
                 });
 
             context.RegisterSyntaxTreeAction(
                 context =>
                 {
-                    if (context._addOutputFile != null)
-                        this.GenerateArtifacts(new SyntaxTreeArtifactGenerationContext(context, context._addOutputFile));
+                    if (context._artifactCallback != null)
+                        this.GenerateArtifacts(new SyntaxTreeArtifactGenerationContext(context, context._artifactCallback));
                 });
 
             context.RegisterAdditionalFileAction(
                 context =>
                 {
-                    if (context._addOutputFile != null)
-                        this.GenerateArtifacts(new AdditionalFileArtifactGenerationContext(context, context._addOutputFile));
+                    if (context._artifactCallback != null)
+                        this.GenerateArtifacts(new AdditionalFileArtifactGenerationContext(context, context._artifactCallback));
                 });
         }
 

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Func<DiagnosticAnalyzer, bool>? _isCompilerAnalyzer;
         private readonly Func<DiagnosticAnalyzer, object?>? _getAnalyzerGate;
         private readonly Func<SyntaxTree, SemanticModel>? _getSemanticModel;
-        private readonly Action<(string filePath, SourceText text)>? _addOutputFile;
+        private readonly ArtifactGeneratorCallback? _artifactCallback;
         private readonly Func<DiagnosticAnalyzer, bool> _shouldSkipAnalysisOnGeneratedCode;
         private readonly Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> _shouldSuppressGeneratedCodeDiagnostic;
         private readonly Func<SyntaxTree, TextSpan, bool> _isGeneratedCodeLocation;
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, bool> isAnalyzerSuppressedForTree,
             Func<DiagnosticAnalyzer, object?> getAnalyzerGate,
             Func<SyntaxTree, SemanticModel> getSemanticModel,
-            Action<(string filePath, SourceText text)>? addOutputFile,
+            ArtifactGeneratorCallback? artifactCallback,
             bool logExecutionTime = false,
             Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic = null,
             Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic = null,
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isAnalyzerSuppressedForTree,
                 getAnalyzerGate,
                 getSemanticModel,
-                addOutputFile,
+                artifactCallback,
                 analyzerExecutionTimeMap,
                 addCategorizedLocalDiagnostic,
                 addCategorizedNonLocalDiagnostic,
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor CreateForSupportedDiagnostics(
             Action<Exception, DiagnosticAnalyzer, Diagnostic>? onAnalyzerException,
-            Action<(string filePath, SourceText text)>? addOutputFile,
+            ArtifactGeneratorCallback? artifactCallback,
             AnalyzerManager analyzerManager,
             CancellationToken cancellationToken = default)
         {
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isAnalyzerSuppressedForTree: null,
                 getAnalyzerGate: null,
                 getSemanticModel: null,
-                addOutputFile: addOutputFile,
+                artifactCallback: artifactCallback,
                 onAnalyzerException: onAnalyzerException,
                 analyzerExceptionFilter: null,
                 analyzerManager: analyzerManager,
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, bool>? isAnalyzerSuppressedForTree,
             Func<DiagnosticAnalyzer, object?>? getAnalyzerGate,
             Func<SyntaxTree, SemanticModel>? getSemanticModel,
-            Action<(string filePath, SourceText text)>? addOutputFile,
+            ArtifactGeneratorCallback? artifactCallback,
             ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>>? analyzerExecutionTimeMap,
             Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic,
             Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic,
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _isAnalyzerSuppressedForTree = isAnalyzerSuppressedForTree;
             _getAnalyzerGate = getAnalyzerGate;
             _getSemanticModel = getSemanticModel;
-            _addOutputFile = addOutputFile;
+            _artifactCallback = artifactCallback;
             _analyzerExecutionTimeMap = analyzerExecutionTimeMap;
             _addCategorizedLocalDiagnostic = addCategorizedLocalDiagnostic;
             _addCategorizedNonLocalDiagnostic = addCategorizedNonLocalDiagnostic;
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _isAnalyzerSuppressedForTree,
                 _getAnalyzerGate,
                 _getSemanticModel,
-                _addOutputFile,
+                _artifactCallback,
                 _analyzerExecutionTimeMap,
                 _addCategorizedLocalDiagnostic,
                 _addCategorizedNonLocalDiagnostic,
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var context = new CompilationAnalysisContext(
                         Compilation, AnalyzerOptions, addDiagnostic,
                         isSupportedDiagnostic, _compilationAnalysisValueProviderFactory,
-                        _addOutputFile, _cancellationToken);
+                        _artifactCallback, _cancellationToken);
 
                     ExecuteAndCatchIfThrows(
                         endAction.Analyzer,
@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         AnalyzerOptions,
                         diagReporter.AddDiagnosticAction,
                         isSupportedDiagnostic,
-                        _addOutputFile,
+                        _artifactCallback,
                         _cancellationToken);
 
                     // Catch Exception from action.
@@ -866,7 +866,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         diagReporter.AddDiagnosticAction,
                         isSupportedDiagnostic,
                         Compilation,
-                        _addOutputFile,
+                        _artifactCallback,
                         _cancellationToken);
 
                     // Catch Exception from action.
@@ -946,7 +946,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         diagReporter.AddDiagnosticAction,
                         isSupportedDiagnostic,
                         Compilation,
-                        _addOutputFile,
+                        _artifactCallback,
                         _cancellationToken);
 
                     // Catch Exception from action.

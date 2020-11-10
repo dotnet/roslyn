@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -528,7 +529,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly CompilationAnalysisValueProviderFactory? _compilationAnalysisValueProviderFactoryOpt;
         private readonly CancellationToken _cancellationToken;
 
-        internal readonly Action<(string filePath, SourceText text)>? _addOutputFile;
+        internal readonly ArtifactGeneratorCallback? _artifactCallback;
 
         /// <summary>
         /// <see cref="CodeAnalysis.Compilation"/> that is the subject of the analysis.
@@ -547,7 +548,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         [Obsolete("Analysis contexts should not be directly instantiated", error: false)]
         public CompilationAnalysisContext(Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-            : this(compilation, options, reportDiagnostic, isSupportedDiagnostic, compilationAnalysisValueProviderFactoryOpt: null, addOutputFile: null, cancellationToken)
+            : this(compilation, options, reportDiagnostic, isSupportedDiagnostic, compilationAnalysisValueProviderFactoryOpt: null, artifactCallback: null, cancellationToken)
         {
         }
 
@@ -557,7 +558,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             CompilationAnalysisValueProviderFactory? compilationAnalysisValueProviderFactoryOpt,
-            Action<(string filePath, SourceText text)>? addOutputFile,
+            ArtifactGeneratorCallback? artifactCallback,
             CancellationToken cancellationToken)
         {
             _compilation = compilation;
@@ -565,7 +566,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _compilationAnalysisValueProviderFactoryOpt = compilationAnalysisValueProviderFactoryOpt;
-            _addOutputFile = addOutputFile;
+            _artifactCallback = artifactCallback;
             _cancellationToken = cancellationToken;
         }
 
@@ -633,7 +634,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public struct CompilationArtifactGenerationContext
     {
         private readonly CompilationAnalysisContext _context;
-        private readonly Action<(string filePath, SourceText text)> _addOutputFile;
+        private readonly ArtifactGeneratorCallback _artifactCallback;
 
         /// <summary>
         /// <see cref="CodeAnalysis.Compilation"/> that is the subject of the analysis.
@@ -652,10 +653,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal CompilationArtifactGenerationContext(
             CompilationAnalysisContext context,
-            Action<(string filePath, SourceText text)> addOutputFile)
+            ArtifactGeneratorCallback artifactCallback)
         {
             _context = context;
-            _addOutputFile = addOutputFile;
+            _artifactCallback = artifactCallback;
         }
 
         /// <inheritdoc cref="CompilationAnalysisContext.ReportDiagnostic(Diagnostic)"/>
@@ -670,20 +671,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
             => _context.TryGetValue(tree, valueProvider, out value);
 
-        /// <summary>
-        /// Adds additional file in the form of a <see cref="string"/>.
-        /// </summary>
-        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
-        /// <param name="source">The source code to be add</param>
-        public void GenerateArtifact(string hintName, string source) => GenerateArtifact(hintName, SourceText.From(source, Encoding.UTF8));
+        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, string)"/>
+        public void GenerateArtifact(string hintName, string source)
+            => _artifactCallback.GenerateArtifact(hintName, source);
 
-        /// <summary>
-        /// Adds additional file in the form of a <see cref="SourceText"/>.
-        /// </summary>
-        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
-        /// <param name="sourceText">The <see cref="SourceText"/> to add</param>
+        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, StringBuilder)"/>
+        public void GenerateArtifact(string hintName, StringBuilder builder)
+            => _artifactCallback.GenerateArtifact(hintName, builder);
+
+        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, SourceText)"/>
         public void GenerateArtifact(string hintName, SourceText sourceText)
-            => _addOutputFile((hintName, sourceText));
+            => _artifactCallback.GenerateArtifact(hintName, sourceText);
+
+        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, Action{Stream})"/>
+        public void GenerateArtifact(string hintName, Action<Stream> writeStream)
+            => _artifactCallback.GenerateArtifact(hintName, writeStream);
     }
 
     /// <summary>
@@ -698,7 +700,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
         private readonly CancellationToken _cancellationToken;
 
-        internal readonly Action<(string filePath, SourceText text)>? _addOutputFile;
+        internal readonly ArtifactGeneratorCallback? _artifactCallback;
 
         /// <summary>
         /// <see cref="CodeAnalysis.SemanticModel"/> that is the subject of the analysis.
@@ -722,7 +724,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             CancellationToken cancellationToken)
-            : this(semanticModel, options, reportDiagnostic, isSupportedDiagnostic, addOutputFile: null, cancellationToken)
+            : this(semanticModel, options, reportDiagnostic, isSupportedDiagnostic, artifactCallback: null, cancellationToken)
         {
         }
 
@@ -731,14 +733,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions options,
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
-            Action<(string filePath, SourceText text)>? addOutputFile,
+            ArtifactGeneratorCallback? artifactCallback,
             CancellationToken cancellationToken)
         {
             _semanticModel = semanticModel;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
-            _addOutputFile = addOutputFile;
+            _artifactCallback = artifactCallback;
             _cancellationToken = cancellationToken;
         }
 
@@ -762,7 +764,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public struct SemanticModelArtifactGenerationContext
     {
         private readonly SemanticModelAnalysisContext _context;
-        private readonly Action<(string filePath, SourceText text)> _addOutputFile;
+        private readonly ArtifactGeneratorCallback _artifactCallback;
 
         /// <summary>
         /// <see cref="CodeAnalysis.SemanticModel"/> that is the subject of the analysis.
@@ -781,31 +783,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal SemanticModelArtifactGenerationContext(
             SemanticModelAnalysisContext context,
-            Action<(string filePath, SourceText text)> addOutputFile)
+            ArtifactGeneratorCallback artifactCallback)
         {
             _context = context;
-            _addOutputFile = addOutputFile;
+            _artifactCallback = artifactCallback;
         }
 
         /// <inheritdoc cref="SemanticModelAnalysisContext.ReportDiagnostic(Diagnostic)"/>
         public void ReportDiagnostic(Diagnostic diagnostic)
             => _context.ReportDiagnostic(diagnostic);
 
-        /// <summary>
-        /// Adds additional file in the form of a <see cref="string"/>.
-        /// </summary>
-        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
-        /// <param name="source">The source code to be add</param>
+        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, string)"/>
         public void GenerateArtifact(string hintName, string source)
-            => GenerateArtifact(hintName, SourceText.From(source, Encoding.UTF8));
+            => _artifactCallback.GenerateArtifact(hintName, source);
 
-        /// <summary>
-        /// Adds additional file in the form of a <see cref="SourceText"/>.
-        /// </summary>
-        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
-        /// <param name="sourceText">The <see cref="SourceText"/> to add</param>
+        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, StringBuilder)"/>
+        public void GenerateArtifact(string hintName, StringBuilder builder)
+            => _artifactCallback.GenerateArtifact(hintName, builder);
+
+        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, SourceText)"/>
         public void GenerateArtifact(string hintName, SourceText sourceText)
-            => _addOutputFile((hintName, sourceText));
+            => _artifactCallback.GenerateArtifact(hintName, sourceText);
+
+        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, Action{Stream})"/>
+        public void GenerateArtifact(string hintName, Action<Stream> writeStream)
+            => _artifactCallback.GenerateArtifact(hintName, writeStream);
     }
 
     /// <summary>
@@ -1396,7 +1398,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
         private readonly CancellationToken _cancellationToken;
 
-        internal readonly Action<(string filePath, SourceText text)>? _addOutputFile;
+        internal readonly ArtifactGeneratorCallback? _artifactCallback;
 
         /// <summary>
         /// <see cref="SyntaxTree"/> that is the subject of the analysis.
@@ -1422,7 +1424,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             CancellationToken cancellationToken)
-            : this(tree, options, reportDiagnostic, isSupportedDiagnostic, compilation: null, addOutputFile: null, cancellationToken)
+            : this(tree, options, reportDiagnostic, isSupportedDiagnostic, compilation: null, artifactCallback: null, cancellationToken)
         {
         }
 
@@ -1432,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             Compilation? compilation,
-            Action<(string filePath, SourceText text)>? addOutputFile,
+            ArtifactGeneratorCallback? artifactCallback,
             CancellationToken cancellationToken)
         {
             _tree = tree;
@@ -1440,7 +1442,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _compilationOpt = compilation;
-            _addOutputFile = addOutputFile;
+            _artifactCallback = artifactCallback;
             _cancellationToken = cancellationToken;
         }
 
@@ -1464,7 +1466,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public struct SyntaxTreeArtifactGenerationContext
     {
         private readonly SyntaxTreeAnalysisContext _context;
-        private readonly Action<(string filePath, SourceText text)> _addOutputFile;
+        private readonly ArtifactGeneratorCallback _artifactCallback;
 
         /// <summary>
         /// <see cref="SyntaxTree"/> that is the subject of the analysis.
@@ -1483,31 +1485,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal SyntaxTreeArtifactGenerationContext(
             SyntaxTreeAnalysisContext context,
-            Action<(string filePath, SourceText text)> addOutputFile)
+            ArtifactGeneratorCallback artifactCallback)
         {
             _context = context;
-            _addOutputFile = addOutputFile;
+            _artifactCallback = artifactCallback;
         }
 
         /// <inheritdoc cref="SyntaxTreeAnalysisContext.ReportDiagnostic(Diagnostic)"/>
         public void ReportDiagnostic(Diagnostic diagnostic)
             => _context.ReportDiagnostic(diagnostic);
 
-        /// <summary>
-        /// Adds additional file in the form of a <see cref="string"/>.
-        /// </summary>
-        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
-        /// <param name="source">The source code to be add</param>
+        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, string)"/>
         public void GenerateArtifact(string hintName, string source)
-            => GenerateArtifact(hintName, SourceText.From(source, Encoding.UTF8));
+            => _artifactCallback.GenerateArtifact(hintName, source);
 
-        /// <summary>
-        /// Adds additional file in the form of a <see cref="SourceText"/>.
-        /// </summary>
-        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
-        /// <param name="sourceText">The <see cref="SourceText"/> to add</param>
+        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, StringBuilder)"/>
+        public void GenerateArtifact(string hintName, StringBuilder builder)
+            => _artifactCallback.GenerateArtifact(hintName, builder);
+
+        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, SourceText)"/>
         public void GenerateArtifact(string hintName, SourceText sourceText)
-            => _addOutputFile((hintName, sourceText));
+            => _artifactCallback.GenerateArtifact(hintName, sourceText);
+
+        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, Action{Stream})"/>
+        public void GenerateArtifact(string hintName, Action<Stream> writeStream)
+            => _artifactCallback.GenerateArtifact(hintName, writeStream);
     }
 
     /// <summary>
@@ -1519,7 +1521,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
 
-        internal readonly Action<(string filePath, SourceText text)>? _addOutputFile;
+        internal readonly ArtifactGeneratorCallback? _artifactCallback;
 
         /// <summary>
         /// <see cref="AdditionalText"/> that is the subject of the analysis.
@@ -1547,7 +1549,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             Compilation compilation,
-            Action<(string filePath, SourceText text)>? addOutputFile,
+            ArtifactGeneratorCallback? artifactCallback,
             CancellationToken cancellationToken)
         {
             AdditionalFile = additionalFile;
@@ -1555,7 +1557,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             Compilation = compilation;
-            _addOutputFile = addOutputFile;
+            _artifactCallback = artifactCallback;
             CancellationToken = cancellationToken;
         }
 
@@ -1580,7 +1582,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public readonly struct AdditionalFileArtifactGenerationContext
     {
         private readonly AdditionalFileAnalysisContext _context;
-        private readonly Action<(string filePath, SourceText text)> _addOutputFile;
+        private readonly ArtifactGeneratorCallback _artifactCallback;
 
         /// <summary>
         /// <see cref="AdditionalText"/> that is the subject of the analysis.
@@ -1604,31 +1606,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal AdditionalFileArtifactGenerationContext(
             AdditionalFileAnalysisContext context,
-            Action<(string filePath, SourceText text)> addOutputFile)
+            ArtifactGeneratorCallback artifactCallback)
         {
             _context = context;
-            _addOutputFile = addOutputFile;
+            _artifactCallback = artifactCallback;
         }
 
         /// <inheritdoc cref="AdditionalFileAnalysisContext.ReportDiagnostic(Diagnostic)"/>
         public void ReportDiagnostic(Diagnostic diagnostic)
             => _context.ReportDiagnostic(diagnostic);
 
-        /// <summary>
-        /// Adds additional file in the form of a <see cref="string"/>.
-        /// </summary>
-        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
-        /// <param name="source">The source code to be add</param>
+        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, string)"/>
         public void GenerateArtifact(string hintName, string source)
-            => GenerateArtifact(hintName, SourceText.From(source, Encoding.UTF8));
+            => _artifactCallback.GenerateArtifact(hintName, source);
 
-        /// <summary>
-        /// Adds additional file in the form of a <see cref="SourceText"/>.
-        /// </summary>
-        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
-        /// <param name="sourceText">The <see cref="SourceText"/> to add</param>
+        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, StringBuilder)"/>
+        public void GenerateArtifact(string hintName, StringBuilder builder)
+            => _artifactCallback.GenerateArtifact(hintName, builder);
+
+        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, SourceText)"/>
         public void GenerateArtifact(string hintName, SourceText sourceText)
-            => _addOutputFile((hintName, sourceText));
+            => _artifactCallback.GenerateArtifact(hintName, sourceText);
+
+        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, Action{Stream})"/>
+        public void GenerateArtifact(string hintName, Action<Stream> writeStream)
+            => _artifactCallback.GenerateArtifact(hintName, writeStream);
     }
 
     /// <summary>

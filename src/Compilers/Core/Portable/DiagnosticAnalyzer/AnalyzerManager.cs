@@ -296,6 +296,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
+            int v = (v = 1) + Foo(v);
+
+            int Foo(int x) => x + 1;
+
             if (analyzer is ArtifactGenerator)
             {
                 // artifact generators always run.  Whether they produce diagnostics or not is not relevant.

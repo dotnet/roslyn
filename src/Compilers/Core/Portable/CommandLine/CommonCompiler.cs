@@ -1282,18 +1282,25 @@ namespace Microsoft.CodeAnalysis
                     severityFilter |= SeverityFilter.Info;
 
                 var hasGeneratedOutputPath = !string.IsNullOrWhiteSpace(Arguments.GeneratedFilesOutputDirectory);
-                var generatedArtifacts = new List<(string filePath, SourceText text)>();
 
                 // Determine if we should support artifact generators or not.  If we have an specified output path, then
                 // we will run artifact generators.  Otherwise, we won't bother as we have no place to put their files.
-                Action<(string filePath, SourceText text)>? addOutputFile = null;
+                ArtifactGeneratorCallback? artifactCallback = null;
                 if (hasGeneratedOutputPath)
                 {
-                    addOutputFile = tuple =>
-                    {
-                        lock (generatedArtifacts)
-                            generatedArtifacts.Add(tuple);
-                    };
+                    artifactCallback = new ArtifactGeneratorCallback(
+                        tuple =>
+                        {
+                            var (hint, callback) = tuple;
+
+                            CreateFileStream(diagnostics, hint, out var path, out var fileStream);
+                            if (fileStream is object)
+                            {
+                                using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
+                                callback(fileStream);
+                                touchedFilesLogger?.AddWritten(path);
+                            };
+                        });
                 }
 
                 analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
@@ -1302,15 +1309,12 @@ namespace Microsoft.CodeAnalysis
                     analyzerOptions,
                     new AnalyzerManager(analyzers),
                     analyzerExceptionDiagnostics.Add,
-                    addOutputFile,
+                    artifactCallback,
                     Arguments.ReportAnalyzer,
                     severityFilter,
                     out compilation,
                     analyzerCts.Token);
                 reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
-
-                foreach (var (filePath, text) in generatedArtifacts)
-                    WriteSourceText(touchedFilesLogger, diagnostics, filePath, text.Encoding, text, cancellationToken);
             }
         }
 
@@ -1384,13 +1388,7 @@ namespace Microsoft.CodeAnalysis
 
         private void WriteSourceText(TouchedFileLogger? touchedFilesLogger, DiagnosticBag diagnostics, string filePath, Encoding? encoding, SourceText sourceText, CancellationToken cancellationToken)
         {
-            var path = Path.Combine(Arguments.GeneratedFilesOutputDirectory!, filePath);
-            if (Directory.Exists(Arguments.GeneratedFilesOutputDirectory))
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
-            }
-
-            var fileStream = OpenFile(path, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+            CreateFileStream(diagnostics, filePath, out var path, out var fileStream);
             if (fileStream is object)
             {
                 Debug.Assert(encoding is object);
@@ -1401,6 +1399,17 @@ namespace Microsoft.CodeAnalysis
                 sourceText.Write(writer, cancellationToken);
                 touchedFilesLogger?.AddWritten(path);
             }
+        }
+
+        private void CreateFileStream(DiagnosticBag diagnostics, string filePath, out string path, out Stream? fileStream)
+        {
+            path = Path.Combine(Arguments.GeneratedFilesOutputDirectory!, filePath);
+            if (Directory.Exists(Arguments.GeneratedFilesOutputDirectory))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+            }
+
+            fileStream = OpenFile(path, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
         }
 
         // virtual for testing
