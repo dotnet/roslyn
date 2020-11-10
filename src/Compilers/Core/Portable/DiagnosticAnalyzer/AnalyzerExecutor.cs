@@ -1276,14 +1276,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var codeBlockAction = blockAction as CodeBlockAnalyzerAction;
                     if (codeBlockAction != null)
                     {
-                        var context = new CodeBlockAnalysisContext(
-                            declaredNode,
-                            declaredSymbol,
-                            semanticModel,
-                            AnalyzerOptions,
-                            addDiagnostic,
-                            isSupportedDiagnostic,
-                            _cancellationToken);
+                        var context = new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken);
 
                         ExecuteAndCatchIfThrows(
                             codeBlockAction.Analyzer,
