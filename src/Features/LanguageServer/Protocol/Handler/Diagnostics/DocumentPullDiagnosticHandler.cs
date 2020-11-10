@@ -5,8 +5,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
@@ -14,13 +17,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     [ExportLspMethod(MSLSPMethods.DocumentPullDiagnosticName, mutatesSolutionState: false), Shared]
     internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<DocumentDiagnosticsParams, DiagnosticReport>
     {
+        private readonly IDiagnosticAnalyzerService _analyzerService;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DocumentPullDiagnosticHandler(
             ILspSolutionProvider solutionProvider,
-            IDiagnosticService diagnosticService)
+            IDiagnosticService diagnosticService,
+            IDiagnosticAnalyzerService analyzerService)
             : base(solutionProvider, diagnosticService)
         {
+            _analyzerService = analyzerService;
         }
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentDiagnosticsParams diagnosticsParams)
@@ -28,6 +35,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         protected override DiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
             => new DiagnosticReport { Diagnostics = diagnostics, ResultId = resultId };
+
+        protected override DiagnosticParams[]? GetPreviousResults(DocumentDiagnosticsParams diagnosticsParams)
+            => new[] { diagnosticsParams };
+
+        protected override IProgress<DiagnosticReport[]>? GetProgress(DocumentDiagnosticsParams diagnosticsParams)
+            => diagnosticsParams.PartialResultToken;
 
         protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
         {
@@ -39,10 +52,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return context.Document == null ? ImmutableArray<Document>.Empty : ImmutableArray.Create(context.Document);
         }
 
-        protected override DiagnosticParams[]? GetPreviousResults(DocumentDiagnosticsParams diagnosticsParams)
-            => new[] { diagnosticsParams };
-
-        protected override IProgress<DiagnosticReport[]>? GetProgress(DocumentDiagnosticsParams diagnosticsParams)
-            => diagnosticsParams.PartialResultToken;
+        protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+            Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+        {
+            // For open documents, directly use the IDiagnosticAnalyzerService.  This will use the actual snapshots
+            // we're passing in.  If information is already cached for that snapshot, it will be returned.  Otherwise,
+            // it will be computed on demand.  Because it is always accurate as per this snapshot, all spans are correct
+            // and do not need to be adjusted.
+            return _analyzerService.GetDiagnosticsAsync(document.Project.Solution, documentId: document.Id, cancellationToken: cancellationToken);
+        }
     }
 }
