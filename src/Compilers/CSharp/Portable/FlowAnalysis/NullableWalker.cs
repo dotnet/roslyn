@@ -3828,7 +3828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 derivedType = derivedType.StrippedType();
                 HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-                var conversion = _conversions.ClassifyBuiltInConversion(derivedType, baseType, ref useSiteDiagnostics);
+                var conversion = _conversions.WithNullability(false).ClassifyBuiltInConversion(derivedType, baseType, ref useSiteDiagnostics);
                 if (conversion.Exists && !conversion.IsExplicit)
                 {
                     return derivedType;
