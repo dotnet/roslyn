@@ -228,6 +228,7 @@ function BuildSolution {
   
   local projects="$repo_root/$solution"
 
+  UNAME="$(uname)"
   # NuGet often exceeds the limit of open files on Mac and Linux
   # https://github.com/NuGet/Home/issues/2163
   if [[ "$UNAME" == "Darwin" || "$UNAME" == "Linux" ]]; then
