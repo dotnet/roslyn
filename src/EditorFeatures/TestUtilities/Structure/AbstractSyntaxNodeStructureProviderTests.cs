@@ -41,7 +41,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 
             var outliner = CreateProvider();
             var actualRegions = ArrayBuilder<BlockSpan>.GetInstance();
-            var optionProvider = new BlockStructureOptionProvider(document.Project.Solution.Options, isMetadataAsSource: false);
+            var optionProvider = new BlockStructureOptionProvider(
+                document.Project.Solution.Options,
+                isMetadataAsSource: document.Project.Solution.Workspace.Kind == CodeAnalysis.WorkspaceKind.MetadataAsSource);
             outliner.CollectBlockSpans(node, actualRegions, optionProvider, CancellationToken.None);
 
             // TODO: Determine why we get null outlining spans.
