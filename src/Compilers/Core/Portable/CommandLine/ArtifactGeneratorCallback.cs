@@ -5,16 +5,26 @@
 using System;
 using System.IO;
 using System.Text;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
+    /// <summary>
+    /// Helper type used for actually generating artifact files during the analyzer pass. <see
+    /// cref="ArtifactGenerator"/>s can provided as plugins and are given the opportunity to analyze the compilation
+    /// during the analysis path, writing out arbitrary data to files during that time. These generators will only be
+    /// executed if the compilation is run with a specified 'generatedoutputpath' argument for both source generator and
+    /// artifacts to be generated into.
+    /// </summary>
     internal class ArtifactGeneratorCallback
     {
+#if !NETCOREAPP
         /// <summary>
         /// From: https://github.com/microsoft/referencesource/blob/f461f1986ca4027720656a0c77bede9963e20b7e/mscorlib/system/io/streamwriter.cs#L48
         /// </summary>
         private const int DefaultBufferSize = 1024;
+#endif
 
         private readonly Action<(string hintPath, Action<Stream> callback)> _createArtifactStream;
 
