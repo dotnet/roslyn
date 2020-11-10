@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private Func<IOperation, ControlFlowGraph> GetControlFlowGraph
             => _lazyGetControlFlowGraph ??= GetControlFlowGraphImpl;
 
-        private readonly ArtifactGenerationContext? _artifactContext;
+        public readonly ArtifactGenerationContext? ArtifactContext;
 
         private bool IsAnalyzerSuppressedForTree(DiagnosticAnalyzer analyzer, SyntaxTree tree)
         {
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _isAnalyzerSuppressedForTree = isAnalyzerSuppressedForTree;
             _getAnalyzerGate = getAnalyzerGate;
             _getSemanticModel = getSemanticModel;
-            _artifactContext = artifactContext;
+            ArtifactContext = artifactContext;
             _analyzerExecutionTimeMap = analyzerExecutionTimeMap;
             _addCategorizedLocalDiagnostic = addCategorizedLocalDiagnostic;
             _addCategorizedNonLocalDiagnostic = addCategorizedNonLocalDiagnostic;
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _isAnalyzerSuppressedForTree,
                 _getAnalyzerGate,
                 _getSemanticModel,
-                _artifactContext,
+                ArtifactContext,
                 _analyzerExecutionTimeMap,
                 _addCategorizedLocalDiagnostic,
                 _addCategorizedNonLocalDiagnostic,
@@ -330,8 +330,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // not have any opportunity to register callsbacks for us to call into in the future.
                     if (analyzer is ArtifactGenerator artifactGenerator)
                     {
-                        if (_artifactContext != null)
-                            artifactGenerator.Initialize(data.context, _artifactContext.Value);
+                        if (ArtifactContext != null)
+                            artifactGenerator.Initialize(data.context, ArtifactContext.Value);
                     }
                     else
                     {

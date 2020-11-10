@@ -298,8 +298,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (analyzer is ArtifactGenerator)
             {
-                // artifact generators always run.  Whether they produce diagnostics or not is not relevant.
-                return false;
+                // artifact generators only run if we're generating output files to disk (and thus have an artifact
+                // context). Otherwise they are suppressed as there's no purpose running them.
+                return analyzerExecutor.ArtifactContext == null;
             }
 
             var supportedDiagnostics = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
