@@ -14,7 +14,3 @@ override Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerator.SupportedDiagnosti
 override sealed Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerator.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext context) -> void
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Compare(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> int
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Equals(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> bool
-virtual Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerator.GenerateArtifacts(Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext context) -> void
-virtual Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerator.GenerateArtifacts(Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext context) -> void
-virtual Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerator.GenerateArtifacts(Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext context) -> void
-virtual Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerator.GenerateArtifacts(Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext context) -> void
