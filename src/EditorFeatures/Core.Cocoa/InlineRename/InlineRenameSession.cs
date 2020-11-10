@@ -780,16 +780,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var changes = _baseSolution.GetChanges(newSolution);
             var changedDocumentIDs = changes.GetProjectChanges().SelectMany(c => c.GetChangedDocuments()).ToList();
 
-            if (!_renameInfo.TryOnBeforeGlobalSymbolRenamed(_workspace, changedDocumentIDs, this.ReplacementText))
-            {
-                var notificationService = _workspace.Services.GetService<INotificationService>();
-                notificationService.SendNotification(
-                    EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid,
-                    EditorFeaturesResources.Rename_Symbol,
-                    NotificationSeverity.Error);
-                return;
-            }
-
             using var undoTransaction = _workspace.OpenGlobalUndoTransaction(EditorFeaturesResources.Inline_Rename);
             var finalSolution = newSolution.Workspace.CurrentSolution;
             foreach (var id in changedDocumentIDs)
@@ -828,15 +818,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         .GetProjectChanges()
                         .SelectMany(c => c.GetChangedDocuments().Concat(c.GetAddedDocuments()))
                         .ToList();
-
-                if (!_renameInfo.TryOnAfterGlobalSymbolRenamed(_workspace, finalChangedIds, this.ReplacementText))
-                {
-                    var notificationService = _workspace.Services.GetService<INotificationService>();
-                    notificationService.SendNotification(
-                        EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated,
-                        EditorFeaturesResources.Rename_Symbol,
-                        NotificationSeverity.Information);
-                }
 
                 undoTransaction.Commit();
             }

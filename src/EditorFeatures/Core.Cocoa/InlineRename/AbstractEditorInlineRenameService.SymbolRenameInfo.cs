@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private const string AttributeSuffix = "Attribute";
 
             private readonly Document _document;
-            private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
             /// <summary>
             /// Whether or not we shortened the trigger span (say because we were renaming an attribute,
@@ -54,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public ISymbol RenameSymbol { get; }
 
             public SymbolInlineRenameInfo(
-                IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 Document document,
                 TextSpan triggerSpan,
                 string triggerText,
@@ -65,7 +63,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 this.CanRename = true;
 
-                _refactorNotifyServices = refactorNotifyServices;
                 _document = document;
                 this.RenameSymbol = renameSymbol;
 
@@ -192,18 +189,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     solution, this.RenameSymbol, RenameOptionSet.From(solution, optionSet), cancellationToken).ConfigureAwait(false);
 
                 return new InlineRenameLocationSet(this, locations);
-            }
-
-            public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)
-            {
-                return _refactorNotifyServices.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocumentIDs, RenameSymbol,
-                    this.GetFinalSymbolName(replacementText), throwOnFailure: false);
-            }
-
-            public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)
-            {
-                return _refactorNotifyServices.TryOnAfterGlobalSymbolRenamed(workspace, changedDocumentIDs, RenameSymbol,
-                    this.GetFinalSymbolName(replacementText), throwOnFailure: false);
             }
 
             public InlineRenameFileRenameInfo GetFileRenameInfo()
