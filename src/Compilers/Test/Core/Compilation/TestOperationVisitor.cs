@@ -567,7 +567,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if (operation.Member.IsStatic &&
                     operation.Instance is IInstanceReferenceOperation)
                 {
-                    Assert.False(operation.Instance.IsImplicit, $"Implicit {nameof(IInstanceReferenceOperation)} on {operation.Syntax}");
+                    Assert.True(!operation.Instance.IsImplicit || operation.Instance.HasErrors(operation.SemanticModel.Compilation),
+                                $"Implicit {nameof(IInstanceReferenceOperation)} on {operation.Syntax}");
                 }
             }
             else

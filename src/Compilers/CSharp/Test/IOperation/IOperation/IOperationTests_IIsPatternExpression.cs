@@ -4,8 +4,10 @@
 
 #nullable disable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1455,6 +1457,12 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
 ";
 
             VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);
+
+            var tree = compilation.SyntaxTrees[0];
+            var isPattern = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+            var model = compilation.GetSemanticModel(tree);
+            var instanceReceiver = model.GetOperation(isPattern).Descendants().OfType<IInstanceReferenceOperation>().Single();
+            TestOperationVisitor.Singleton.Visit(instanceReceiver);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow, CompilerFeature.Patterns)]
