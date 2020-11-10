@@ -367,11 +367,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// It kicks off the <see cref="WhenInitializedTask"/> task for initialization.
         /// Note: This method must be invoked exactly once on the driver.
         /// </summary>
-        private void Initialize(
-            AnalyzerExecutor analyzerExecutor,
-            DiagnosticQueue diagnosticQueue,
-            CompilationData compilationData,
-            CancellationToken cancellationToken)
+        private void Initialize(AnalyzerExecutor analyzerExecutor, DiagnosticQueue diagnosticQueue, CompilationData compilationData, CancellationToken cancellationToken)
         {
             try
             {
