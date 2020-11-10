@@ -1,6 +1,3 @@
-Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.AddOutputFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
-Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.AddOutputFile(string hintName, string source) -> void
-Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.CanAddOutputFile.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext.AdditionalFile.get -> Microsoft.CodeAnalysis.AdditionalText
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext.AdditionalFileArtifactGenerationContext() -> void
