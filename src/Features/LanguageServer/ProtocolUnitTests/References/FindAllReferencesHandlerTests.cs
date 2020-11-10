@@ -211,7 +211,7 @@ class A
             Assert.NotNull(results[0].Location.Uri);
         }
 
-        [WpfFact, WorkItem(1240061, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1240061/")]
+        [WpfFact, WorkItem(1240061, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1240061/")]
         public async Task TestFindAllReferencesAsync_Namespace()
         {
             var markup =
@@ -233,7 +233,7 @@ class A
             // Namespace definitions should not have a location
             Assert.True(results.Any(r => r.DefinitionText != null && r.Location == null));
 
-            // Namespace references should have locations
+            // Namespace references should have a location
             Assert.True(results.Any(r => r.DefinitionText == null && r.Location != null));
 
             AssertValidDefinitionProperties(results, 0, Glyph.Namespace);
