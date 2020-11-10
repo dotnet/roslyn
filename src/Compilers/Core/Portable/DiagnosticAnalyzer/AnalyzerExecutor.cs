@@ -966,14 +966,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (ShouldExecuteAction(analyzerState, syntaxNodeAction))
             {
-                var syntaxNodeContext = new SyntaxNodeAnalysisContext(
-                    node,
-                    containingSymbol,
-                    semanticModel,
-                    AnalyzerOptions,
-                    addDiagnostic,
-                    isSupportedDiagnostic,
-                    _cancellationToken);
+                var syntaxNodeContext = new SyntaxNodeAnalysisContext(node, containingSymbol, semanticModel, AnalyzerOptions, addDiagnostic,
+                    isSupportedDiagnostic, _cancellationToken);
 
                 ExecuteAndCatchIfThrows(
                     syntaxNodeAction.Analyzer,
@@ -999,16 +993,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (ShouldExecuteAction(analyzerState, operationAction))
             {
-                var operationContext = new OperationAnalysisContext(
-                    operation,
-                    containingSymbol,
-                    semanticModel.Compilation,
-                    AnalyzerOptions,
-                    addDiagnostic,
-                    isSupportedDiagnostic,
-                    GetControlFlowGraph,
-                    _cancellationToken);
-
+                var operationContext = new OperationAnalysisContext(operation, containingSymbol, semanticModel.Compilation,
+                    AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, _cancellationToken);
                 ExecuteAndCatchIfThrows(
                     operationAction.Analyzer,
                     data => data.action(data.context),
@@ -1290,14 +1276,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var codeBlockAction = blockAction as CodeBlockAnalyzerAction;
                     if (codeBlockAction != null)
                     {
-                        var context = new CodeBlockAnalysisContext(
-                            declaredNode,
-                            declaredSymbol,
-                            semanticModel,
-                            AnalyzerOptions,
-                            addDiagnostic,
-                            isSupportedDiagnostic,
-                            _cancellationToken);
+                        var context = new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken);
 
                         ExecuteAndCatchIfThrows(
                             codeBlockAction.Analyzer,
@@ -1310,15 +1289,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var operationBlockAction = blockAction as OperationBlockAnalyzerAction;
                         if (operationBlockAction != null)
                         {
-                            var context = new OperationBlockAnalysisContext(
-                                operationBlocks,
-                                declaredSymbol,
-                                semanticModel.Compilation,
-                                AnalyzerOptions,
-                                addDiagnostic,
-                                isSupportedDiagnostic,
-                                GetControlFlowGraph,
-                                _cancellationToken);
+                            var context = new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, semanticModel.Compilation,
+                                AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, _cancellationToken);
 
                             ExecuteAndCatchIfThrows(
                                 operationBlockAction.Analyzer,
