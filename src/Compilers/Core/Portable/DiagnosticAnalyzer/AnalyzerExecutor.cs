@@ -1289,15 +1289,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var operationBlockAction = blockAction as OperationBlockAnalyzerAction;
                         if (operationBlockAction != null)
                         {
-                            var context = new OperationBlockAnalysisContext(
-                                operationBlocks,
-                                declaredSymbol,
-                                semanticModel.Compilation,
-                                AnalyzerOptions,
-                                addDiagnostic,
-                                isSupportedDiagnostic,
-                                GetControlFlowGraph,
-                                _cancellationToken);
+                            var context = new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, semanticModel.Compilation,
+                                AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, _cancellationToken);
 
                             ExecuteAndCatchIfThrows(
                                 operationBlockAction.Analyzer,
