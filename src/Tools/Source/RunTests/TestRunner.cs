@@ -67,7 +67,12 @@ namespace RunTests
                             if (!testResult.Succeeded)
                             {
                                 failures++;
-                                ConsoleUtil.WriteLine(ConsoleColor.Red, "Test failure log: " + testResult.ResultsDisplayFilePath);
+                                ConsoleUtil.WriteLine(ConsoleColor.Red,
+                                    testResult switch
+                                    {
+                                        { ResultsDisplayFilePath: string resultsPath } => "Test failure log: " + resultsPath,
+                                        { } => "No failure log available for " + testResult.AssemblyInfo.DisplayName
+                                    });
                             }
 
                             completed.Add(testResult);

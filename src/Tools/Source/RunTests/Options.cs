@@ -128,7 +128,7 @@ namespace RunTests
             string? traits = null;
             string? noTraits = null;
             int? timeout = null;
-            string resultFileDirectory = Path.Combine(Directory.GetCurrentDirectory(), "TestResults");
+            string? resultFileDirectory = null;
             string? logFileDirectory = null;
             var display = Display.None;
             var collectDumps = false;
@@ -185,6 +185,7 @@ namespace RunTests
                 Console.WriteLine($"Did not find artifacts directory at {artifactsPath}");
                 return null;
             }
+            resultFileDirectory ??= Path.Combine(artifactsPath, "TestResults");
 
             if (dotnetFilePath is null || !File.Exists(dotnetFilePath))
             {
