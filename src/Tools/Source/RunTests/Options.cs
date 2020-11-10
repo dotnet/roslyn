@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Mono.Options;
 
 namespace RunTests
@@ -45,7 +46,7 @@ namespace RunTests
         public string Configuration { get; set; }
 
         /// <summary>
-        /// The set of target frameorks that should be probed for test assemblies.
+        /// The set of target frameworks that should be probed for test assemblies.
         /// </summary>
         public List<string> TargetFrameworks { get; set; } = new List<string>();
 
@@ -100,7 +101,7 @@ namespace RunTests
         public Options(
             string dotnetFilePath,
             string artifactsDirectory,
-            string configuration, 
+            string configuration,
             string testResultsDirectory,
             string logFilesDirectory,
             string platform)
@@ -168,7 +169,7 @@ namespace RunTests
             }
 
             artifactsPath ??= TryGetArtifactsPath();
-            dotnetFilePath ??= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"dotnet\dotnet.exe");
+            dotnetFilePath ??= TryGetDotNetPath();
             if (includeFilter.Count == 0)
             {
                 includeFilter.Add(".*UnitTests.*");
@@ -238,6 +239,19 @@ namespace RunTests
                 }
 
                 return path;
+            }
+
+            static string? TryGetDotNetPath()
+            {
+                var dir = RuntimeEnvironment.GetRuntimeDirectory();
+                var programName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dotnet.exe" : "dotnet";
+
+                while (dir != null && !File.Exists(Path.Combine(dir, programName)))
+                {
+                    dir = Path.GetDirectoryName(dir);
+                }
+
+                return dir == null ? null : Path.Combine(dir, programName);
             }
         }
     }
