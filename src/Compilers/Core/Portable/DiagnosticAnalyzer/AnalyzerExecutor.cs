@@ -993,16 +993,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (ShouldExecuteAction(analyzerState, operationAction))
             {
-                var operationContext = new OperationAnalysisContext(
-                    operation,
-                    containingSymbol,
-                    semanticModel.Compilation,
-                    AnalyzerOptions,
-                    addDiagnostic,
-                    isSupportedDiagnostic,
-                    GetControlFlowGraph,
-                    _cancellationToken);
-
+                var operationContext = new OperationAnalysisContext(operation, containingSymbol, semanticModel.Compilation,
+                    AnalyzerOptions, addDiagnostic, isSupportedDiagnostic, GetControlFlowGraph, _cancellationToken);
                 ExecuteAndCatchIfThrows(
                     operationAction.Analyzer,
                     data => data.action(data.context),
