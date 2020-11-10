@@ -7816,7 +7816,7 @@ class B
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         [WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
-        public async Task DonotIntroduceConstantForConstant_Local()
+        public async Task DoNotIntroduceConstantForConstant_Local()
         {
             await TestMissingAsync(
 @"
@@ -7832,7 +7832,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         [WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
-        public async Task DonotIntroduceConstantForConstant_Member()
+        public async Task DoNotIntroduceConstantForConstant_Member()
         {
             await TestMissingAsync(
 @"
@@ -7845,7 +7845,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         [WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
-        public async Task DonotIntroduceConstantForConstant_Parentheses()
+        public async Task DoNotIntroduceConstantForConstant_Parentheses()
         {
             await TestMissingAsync(
 @"
@@ -7858,7 +7858,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         [WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
-        public async Task DonotIntroduceConstantForConstant_NotForSubExpression()
+        public async Task DoNotIntroduceConstantForConstant_NotForSubExpression()
         {
             await TestInRegularAndScriptAsync(
 @"

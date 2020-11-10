@@ -99,7 +99,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
                 IsConstant = Document.SemanticModel.GetConstantValue(Expression, cancellationToken).HasValue;
 
-                // Note: the ordering of these clauses are important.  They go, generally, from 
                 if (_service.IsConstantDefinition(Expression))
                 {
                     // Don't introduce constant for another constant.
@@ -107,7 +106,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                // innermost to outermost order.  
+                // Note: the ordering of these clauses are important.  They go, generally, from
+                // innermost to outermost order.
                 if (IsInQueryContext(cancellationToken))
                 {
                     if (CanGenerateInto<TQueryExpressionSyntax>(cancellationToken))

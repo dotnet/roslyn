@@ -3232,7 +3232,7 @@ End Class"
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         <WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")>
-        Public Async Function DonotIntroduceConstantForConstant_Local() As Task
+        Public Async Function DoNotIntroduceConstantForConstant_Local() As Task
             Dim source = "
 Class C
     Sub Test
@@ -3245,7 +3245,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         <WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")>
-        Public Async Function DonotIntroduceConstantForConstant_Member() As Task
+        Public Async Function DoNotIntroduceConstantForConstant_Member() As Task
             Dim source = "
 Class C
     Const i As Integer = [|10|]
@@ -3256,7 +3256,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         <WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")>
-        Public Async Function DonotIntroduceConstantForConstant_Parentheses() As Task
+        Public Async Function DoNotIntroduceConstantForConstant_Parentheses() As Task
             Dim source = "
 Class C
     Const i As Integer = ([|10|])
@@ -3267,7 +3267,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         <WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")>
-        Public Async Function DonotIntroduceConstantForConstant_NotForSubExpression() As Task
+        Public Async Function DoNotIntroduceConstantForConstant_NotForSubExpression() As Task
             Dim source = "
 Class C
     Sub Test
