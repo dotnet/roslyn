@@ -544,7 +544,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
-        [Obsolete("Analysis contexts should not be directly instantiated", error: false)]
         public CompilationAnalysisContext(Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
             : this(compilation, options, reportDiagnostic, isSupportedDiagnostic, compilationAnalysisValueProviderFactoryOpt: null, cancellationToken)
         {
@@ -1188,7 +1187,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        [Obsolete("Analysis contexts should not be directly instantiated", error: false)]
         public OperationBlockAnalysisContext(
             ImmutableArray<IOperation> operationBlocks,
             ISymbol owningSymbol,
@@ -1284,7 +1282,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal Compilation? Compilation => _compilationOpt;
 
-        [Obsolete("Analysis contexts should not be directly instantiated", error: false)]
         public SyntaxTreeAnalysisContext(
             SyntaxTree tree,
             AnalyzerOptions options,
@@ -1429,18 +1426,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        [Obsolete("Analysis contexts should not be directly instantiated", error: false)]
-        public SyntaxNodeAnalysisContext(
-            SyntaxNode node,
-            SemanticModel semanticModel,
-            AnalyzerOptions options,
-            Action<Diagnostic> reportDiagnostic,
-            Func<Diagnostic, bool> isSupportedDiagnostic,
-            CancellationToken cancellationToken)
-           : this(node, containingSymbol: null, semanticModel, options, reportDiagnostic, isSupportedDiagnostic, cancellationToken)
-        {
-        }
-
         public SyntaxNodeAnalysisContext(
             SyntaxNode node,
             ISymbol? containingSymbol,
@@ -1457,6 +1442,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _cancellationToken = cancellationToken;
+        }
+
+        public SyntaxNodeAnalysisContext(SyntaxNode node, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+           : this(node, null, semanticModel, options, reportDiagnostic, isSupportedDiagnostic, cancellationToken)
+        {
         }
 
         /// <summary>
@@ -1513,7 +1503,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        [Obsolete("Analysis contexts should not be directly instantiated", error: false)]
         public OperationAnalysisContext(
             IOperation operation,
             ISymbol containingSymbol,
