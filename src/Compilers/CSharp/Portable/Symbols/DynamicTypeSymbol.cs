@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (int)Microsoft.CodeAnalysis.SpecialType.System_Object;
         }
 
-        internal override bool Equals(TypeSymbol? t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol? t2, TypeCompareKind comparison)
         {
             if ((object?)t2 == null)
             {

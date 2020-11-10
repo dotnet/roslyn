@@ -112,6 +112,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         InEEMethodBinder = 1 << 30,
 
+        /// <summary>
+        /// Skip binding type arguments (we use <see cref="Symbols.PlaceholderTypeArgumentSymbol"/> instead).
+        /// For example, currently used when type constraints are bound in some scenarios.
+        /// </summary>
+        SuppressTypeArgumentBinding = 1u << 31,
+
         // Groups
 
         AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch | InNestedFinallyBlock,

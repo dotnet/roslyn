@@ -77,6 +77,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool IsReferenceTypeFromConstraintTypes
+        {
+            get
+            {
+                return _underlyingTypeParameter.IsReferenceTypeFromConstraintTypes || CalculateIsReferenceTypeFromConstraintTypes(ConstraintTypesNoUseSiteDiagnostics);
+            }
+        }
+
         internal override bool? ReferenceTypeConstraintIsNullable
         {
             get
@@ -106,6 +114,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return _underlyingTypeParameter.HasValueTypeConstraint;
+            }
+        }
+
+        public override bool IsValueTypeFromConstraintTypes
+        {
+            get
+            {
+                return _underlyingTypeParameter.IsValueTypeFromConstraintTypes || CalculateIsValueTypeFromConstraintTypes(ConstraintTypesNoUseSiteDiagnostics);
             }
         }
 

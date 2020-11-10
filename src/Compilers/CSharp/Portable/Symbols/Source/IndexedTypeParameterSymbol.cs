@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // These object are unique (per index).
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
             return ReferenceEquals(this, t2);
         }
@@ -125,7 +125,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        public override bool IsValueTypeFromConstraintTypes
+        {
+            get { return false; }
+        }
+
         public override bool HasReferenceTypeConstraint
+        {
+            get { return false; }
+        }
+
+        public override bool IsReferenceTypeFromConstraintTypes
         {
             get { return false; }
         }
