@@ -226,13 +226,7 @@ function BuildSolution {
     bl="/bl:\"$log_dir/Build.binlog\""
   fi
   
-  local projects="$repo_root/$solution" 
-  
-  # https://github.com/dotnet/roslyn/issues/23736
-  UNAME="$(uname)"
-  if [[ "$UNAME" == "Darwin" ]]; then
-    run_analyzers=false
-  fi
+  local projects="$repo_root/$solution"
 
   # NuGet often exceeds the limit of open files on Mac and Linux
   # https://github.com/NuGet/Home/issues/2163
