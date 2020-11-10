@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         {
         }
 
-        protected override bool IsConstantDefinition(ExpressionSyntax expressionSyntax)
+        protected override bool IsConstantInitializerValue(ExpressionSyntax expressionSyntax)
         {
             if (expressionSyntax.WalkUpParentheses() is not
                 {

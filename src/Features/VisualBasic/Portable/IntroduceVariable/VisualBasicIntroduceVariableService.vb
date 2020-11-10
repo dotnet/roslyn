@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return destination.GetInsertionIndices(cancellationToken)
         End Function
 
-        Protected Overrides Function IsConstantDefinition(expressionSyntax As ExpressionSyntax) As Boolean
+        Protected Overrides Function IsConstantInitializerValue(expressionSyntax As ExpressionSyntax) As Boolean
             Dim declarator = TryCast(TryCast(expressionSyntax.Parent, EqualsValueSyntax)?.Parent, VariableDeclaratorSyntax)
 
             If declarator Is Nothing Then

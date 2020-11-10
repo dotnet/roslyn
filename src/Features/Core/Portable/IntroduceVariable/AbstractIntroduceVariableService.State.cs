@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
                 IsConstant = Document.SemanticModel.GetConstantValue(Expression, cancellationToken).HasValue;
 
-                if (_service.IsConstantDefinition(Expression))
+                if (_service.IsConstantInitializerValue(Expression))
                 {
                     // Don't introduce constant for another constant.
                     // Doesn't apply to sub-expression of constant.
