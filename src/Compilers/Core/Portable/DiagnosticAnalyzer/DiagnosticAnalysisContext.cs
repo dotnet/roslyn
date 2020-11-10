@@ -633,6 +633,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public struct CompilationArtifactGenerationContext
     {
         private readonly CompilationAnalysisContext _context;
+        private readonly Action<(string filePath, SourceText text)> _addOutputFile;
 
         /// <summary>
         /// <see cref="CodeAnalysis.Compilation"/> that is the subject of the analysis.
@@ -649,9 +650,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _context.CancellationToken;
 
-        internal CompilationArtifactGenerationContext(CompilationAnalysisContext context)
+        internal CompilationArtifactGenerationContext(
+            CompilationAnalysisContext context,
+            Action<(string filePath, SourceText text)> addOutputFile)
         {
             _context = context;
+            _addOutputFile = addOutputFile;
         }
 
         /// <inheritdoc cref="CompilationAnalysisContext.ReportDiagnostic(Diagnostic)"/>
@@ -679,7 +683,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add</param>
         public void GenerateArtifact(string hintName, SourceText sourceText)
-            => _context._addOutputFile!((hintName, sourceText));
+            => _addOutputFile((hintName, sourceText));
     }
 
     /// <summary>
@@ -758,6 +762,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public struct SemanticModelArtifactGenerationContext
     {
         private readonly SemanticModelAnalysisContext _context;
+        private readonly Action<(string filePath, SourceText text)> _addOutputFile;
 
         /// <summary>
         /// <see cref="CodeAnalysis.SemanticModel"/> that is the subject of the analysis.
@@ -774,9 +779,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _context.CancellationToken;
 
-        internal SemanticModelArtifactGenerationContext(SemanticModelAnalysisContext context)
+        internal SemanticModelArtifactGenerationContext(
+            SemanticModelAnalysisContext context,
+            Action<(string filePath, SourceText text)> addOutputFile)
         {
             _context = context;
+            _addOutputFile = addOutputFile;
         }
 
         /// <inheritdoc cref="SemanticModelAnalysisContext.ReportDiagnostic(Diagnostic)"/>
@@ -797,7 +805,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add</param>
         public void GenerateArtifact(string hintName, SourceText sourceText)
-            => _context._addOutputFile!((hintName, sourceText));
+            => _addOutputFile((hintName, sourceText));
     }
 
     /// <summary>
@@ -1456,6 +1464,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public struct SyntaxTreeArtifactGenerationContext
     {
         private readonly SyntaxTreeAnalysisContext _context;
+        private readonly Action<(string filePath, SourceText text)> _addOutputFile;
 
         /// <summary>
         /// <see cref="SyntaxTree"/> that is the subject of the analysis.
@@ -1472,9 +1481,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _context.CancellationToken;
 
-        internal SyntaxTreeArtifactGenerationContext(SyntaxTreeAnalysisContext context)
+        internal SyntaxTreeArtifactGenerationContext(
+            SyntaxTreeAnalysisContext context,
+            Action<(string filePath, SourceText text)> addOutputFile)
         {
             _context = context;
+            _addOutputFile = addOutputFile;
         }
 
         /// <inheritdoc cref="SyntaxTreeAnalysisContext.ReportDiagnostic(Diagnostic)"/>
@@ -1495,9 +1507,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add</param>
         public void GenerateArtifact(string hintName, SourceText sourceText)
-        {
-            _context._addOutputFile!((hintName, sourceText));
-        }
+            => _addOutputFile((hintName, sourceText));
     }
 
     /// <summary>
@@ -1570,6 +1580,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public readonly struct AdditionalFileArtifactGenerationContext
     {
         private readonly AdditionalFileAnalysisContext _context;
+        private readonly Action<(string filePath, SourceText text)> _addOutputFile;
 
         /// <summary>
         /// <see cref="AdditionalText"/> that is the subject of the analysis.
@@ -1591,9 +1602,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public Compilation Compilation => _context.Compilation;
 
-        internal AdditionalFileArtifactGenerationContext(AdditionalFileAnalysisContext context)
+        internal AdditionalFileArtifactGenerationContext(
+            AdditionalFileAnalysisContext context,
+            Action<(string filePath, SourceText text)> addOutputFile)
         {
             _context = context;
+            _addOutputFile = addOutputFile;
         }
 
         /// <inheritdoc cref="AdditionalFileAnalysisContext.ReportDiagnostic(Diagnostic)"/>
@@ -1614,9 +1628,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add</param>
         public void GenerateArtifact(string hintName, SourceText sourceText)
-        {
-            _context._addOutputFile!((hintName, sourceText));
-        }
+            => _addOutputFile((hintName, sourceText));
     }
 
     /// <summary>

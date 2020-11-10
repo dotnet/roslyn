@@ -23,16 +23,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             context.EnableConcurrentExecution();
 
             context.RegisterCompilationAction(
-                context => this.GenerateArtifacts(new CompilationArtifactGenerationContext(context)));
+                context =>
+                {
+                    if (context._addOutputFile != null)
+                        this.GenerateArtifacts(new CompilationArtifactGenerationContext(context, context._addOutputFile));
+                });
 
             context.RegisterSemanticModelAction(
-                context => this.GenerateArtifacts(new SemanticModelArtifactGenerationContext(context)));
+                context =>
+                {
+                    if (context._addOutputFile != null)
+                        this.GenerateArtifacts(new SemanticModelArtifactGenerationContext(context, context._addOutputFile));
+                });
 
             context.RegisterSyntaxTreeAction(
-                context => this.GenerateArtifacts(new SyntaxTreeArtifactGenerationContext(context)));
+                context =>
+                {
+                    if (context._addOutputFile != null)
+                        this.GenerateArtifacts(new SyntaxTreeArtifactGenerationContext(context, context._addOutputFile));
+                });
 
             context.RegisterAdditionalFileAction(
-                context => this.GenerateArtifacts(new AdditionalFileArtifactGenerationContext(context)));
+                context =>
+                {
+                    if (context._addOutputFile != null)
+                        this.GenerateArtifacts(new AdditionalFileArtifactGenerationContext(context, context._addOutputFile));
+                });
         }
 
         /// <summary>

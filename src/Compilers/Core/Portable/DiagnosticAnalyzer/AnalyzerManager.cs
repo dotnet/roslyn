@@ -296,6 +296,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
+            if (analyzer is ArtifactGenerator)
+            {
+                // artifact generators always run.  Whether they produce diagnostics or not is not relevant.
+                return false;
+            }
+
             var supportedDiagnostics = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
             var diagnosticOptions = options.SpecificDiagnosticOptions;
             analyzerExecutor.TryGetCompilationAndAnalyzerOptions(out var compilation, out var analyzerOptions);
