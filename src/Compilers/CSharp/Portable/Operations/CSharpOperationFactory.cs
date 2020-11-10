@@ -1671,7 +1671,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                 argumentsToParametersOpt: default,
                                                                 defaultArguments: default,
                                                                 argumentRefKindsOpt: default,
-                                                                expanded: false,
+                                                                expanded: enumeratorMethod.Parameters.Any(p => p.IsParams),
                                                                 boundForEachStatement.Expression.Syntax,
                                                                 invokedAsExtensionMethod: true),
                                                             null)
