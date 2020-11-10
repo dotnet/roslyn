@@ -862,13 +862,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    var context = new SyntaxTreeAnalysisContext(
-                        tree,
-                        AnalyzerOptions,
-                        diagReporter.AddDiagnosticAction,
-                        isSupportedDiagnostic,
-                        Compilation,
-                        _cancellationToken);
+                    var context = new SyntaxTreeAnalysisContext(tree, AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, Compilation, _cancellationToken);
 
                     // Catch Exception from action.
                     ExecuteAndCatchIfThrows(
