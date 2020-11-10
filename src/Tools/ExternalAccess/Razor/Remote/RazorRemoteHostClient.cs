@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    internal readonly struct RazorRemoteHostClient
+    internal sealed class RazorRemoteHostClient
     {
         private readonly ServiceHubRemoteHostClient _client;
         private readonly RazorServiceDescriptorsWrapper _serviceDescriptors;

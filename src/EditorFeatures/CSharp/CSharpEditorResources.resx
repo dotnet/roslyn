@@ -171,4 +171,7 @@
   <data name="_0_items_in_cache" xml:space="preserve">
     <value>'{0}' items in cache</value>
   </data>
+  <data name="Generate_Event_Subscription" xml:space="preserve">
+    <value>Generate Event Subscription</value>
+  </data>
 </root>
