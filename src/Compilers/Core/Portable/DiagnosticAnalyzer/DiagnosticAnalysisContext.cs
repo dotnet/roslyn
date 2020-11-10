@@ -1644,9 +1644,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
     /// <summary>
     /// Helper type used for actually generating artifact files during the analyzer pass. <see
-    /// cref="ArtifactGenerator"/>s can provided as plugins and are given the opportunity to analyze the compilation
-    /// during the analysis path, writing out arbitrary data to files during that time. These generators will only be
-    /// executed if the compilation is run with a specified 'generatedoutputpath' argument for both source generator and
+    /// cref="ArtifactGenerator"/>s can be provided as plugins and are given the opportunity to analyze the compilation
+    /// during the analysis pass, writing out arbitrary data to files during that time. These generators will only be
+    /// executed if the compilation is run with a specified 'generatedfilesout' argument for both source generator and
     /// artifacts to be generated into.
     /// </summary>
     public readonly struct ArtifactGenerationContext

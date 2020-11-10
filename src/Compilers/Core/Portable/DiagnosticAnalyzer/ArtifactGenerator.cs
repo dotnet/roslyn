@@ -8,8 +8,9 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
-    /// The base type for artifact generators that can programmatically produce additional files for a compilation.  All
-    /// implementations of this must support concurrent execution of the various GenerateArtifacts overloads.
+    /// The base type for artifact generators that can programmatically produce additional non-code files during a
+    /// compilation.  Artifact generators only run when a compiler is invoked with the <c>generatedfilesout</c>
+    /// parameter.
     /// </summary>
     /// <remarks>
     /// Normally, an artifact generator will not need to report diagnostics.  However, it may sometimes be necessary if
