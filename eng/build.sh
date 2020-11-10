@@ -297,7 +297,7 @@ function BuildSolution {
     $properties
 }
 
-InitializeDotNetCli $restore
+InitializeDotNetCli [[ $restore == true || $test_core_clr == true ]]
 if [[ "$restore" == true ]]; then
   dotnet tool restore
 fi
@@ -308,5 +308,16 @@ if [[ "$bootstrap" == true ]]; then
   bootstrap_dir=$_MakeBootstrapBuild
 fi
 
-BuildSolution
+if [[ "$restore" == true || "$build" == true || "$rebuild" == true || "$test_mono" == true ]]; then
+  BuildSolution
+fi
+
+if [[ "$test_core_clr" == true ]]; then
+  if [[ "$ci" == true ]]; then
+    runtests_args=""
+  else
+    runtests_args="--html"
+  fi
+  dotnet exec artifacts/bin/RunTests/${configuration}/netcoreapp3.1/RunTests.dll --tfm netcoreapp3.1 --tfm net5.0 --configuration ${configuration} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
+fi
 ExitWithExitCode 0

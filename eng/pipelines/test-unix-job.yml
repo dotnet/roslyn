@@ -46,7 +46,7 @@ jobs:
     - bash: find . -name ilasm | xargs chmod 755
       workingDirectory: '$(Build.SourcesDirectory)/artifacts/bin' 
 
-    - script: ./eng/ci-test.sh --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
+    - script: ./eng/build.sh --ci --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
       displayName: Test
 
     - task: PublishTestResults@2
