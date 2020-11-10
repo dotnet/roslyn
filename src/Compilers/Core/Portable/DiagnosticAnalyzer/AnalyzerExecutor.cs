@@ -324,6 +324,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analyzer,
                 data =>
                 {
+                    // If this analyzer is actually an artifact generator, and the compiler is requesting artifacts be
+                    // generated, then actually initialize the generator with the necessary context values it needs to
+                    // generate artifacts.  In all other circumstances, we will not initialize it, and as such it will
+                    // not have any opportunity to register callsbacks for us to call into in the future.
                     if (analyzer is ArtifactGenerator artifactGenerator)
                     {
                         if (_artifactContext != null)
