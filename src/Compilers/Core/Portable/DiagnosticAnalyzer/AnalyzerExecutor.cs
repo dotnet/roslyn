@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Func<DiagnosticAnalyzer, bool>? _isCompilerAnalyzer;
         private readonly Func<DiagnosticAnalyzer, object?>? _getAnalyzerGate;
         private readonly Func<SyntaxTree, SemanticModel>? _getSemanticModel;
-        private readonly ArtifactGeneratorCallback? _artifactCallback;
         private readonly Func<DiagnosticAnalyzer, bool> _shouldSkipAnalysisOnGeneratedCode;
         private readonly Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> _shouldSuppressGeneratedCodeDiagnostic;
         private readonly Func<SyntaxTree, TextSpan, bool> _isGeneratedCodeLocation;
@@ -66,6 +65,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private Func<IOperation, ControlFlowGraph> GetControlFlowGraph
             => _lazyGetControlFlowGraph ??= GetControlFlowGraphImpl;
+
+        private readonly ArtifactGenerationContext? _artifactContext;
 
         private bool IsAnalyzerSuppressedForTree(DiagnosticAnalyzer analyzer, SyntaxTree tree)
         {
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, bool> isAnalyzerSuppressedForTree,
             Func<DiagnosticAnalyzer, object?> getAnalyzerGate,
             Func<SyntaxTree, SemanticModel> getSemanticModel,
-            ArtifactGeneratorCallback? artifactCallback,
+            ArtifactGenerationContext? artifactContext,
             bool logExecutionTime = false,
             Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic = null,
             Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic = null,
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isAnalyzerSuppressedForTree,
                 getAnalyzerGate,
                 getSemanticModel,
-                artifactCallback,
+                artifactContext,
                 analyzerExecutionTimeMap,
                 addCategorizedLocalDiagnostic,
                 addCategorizedNonLocalDiagnostic,
@@ -165,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor CreateForSupportedDiagnostics(
             Action<Exception, DiagnosticAnalyzer, Diagnostic>? onAnalyzerException,
-            ArtifactGeneratorCallback? artifactCallback,
+            ArtifactGenerationContext? artifactContext,
             AnalyzerManager analyzerManager,
             CancellationToken cancellationToken = default)
         {
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isAnalyzerSuppressedForTree: null,
                 getAnalyzerGate: null,
                 getSemanticModel: null,
-                artifactCallback: artifactCallback,
+                artifactContext: artifactContext,
                 onAnalyzerException: onAnalyzerException,
                 analyzerExceptionFilter: null,
                 analyzerManager: analyzerManager,
@@ -206,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, bool>? isAnalyzerSuppressedForTree,
             Func<DiagnosticAnalyzer, object?>? getAnalyzerGate,
             Func<SyntaxTree, SemanticModel>? getSemanticModel,
-            ArtifactGeneratorCallback? artifactCallback,
+            ArtifactGenerationContext? artifactContext,
             ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>>? analyzerExecutionTimeMap,
             Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic,
             Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic,
@@ -226,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _isAnalyzerSuppressedForTree = isAnalyzerSuppressedForTree;
             _getAnalyzerGate = getAnalyzerGate;
             _getSemanticModel = getSemanticModel;
-            _artifactCallback = artifactCallback;
+            _artifactContext = artifactContext;
             _analyzerExecutionTimeMap = analyzerExecutionTimeMap;
             _addCategorizedLocalDiagnostic = addCategorizedLocalDiagnostic;
             _addCategorizedNonLocalDiagnostic = addCategorizedNonLocalDiagnostic;
@@ -257,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _isAnalyzerSuppressedForTree,
                 _getAnalyzerGate,
                 _getSemanticModel,
-                _artifactCallback,
+                _artifactContext,
                 _analyzerExecutionTimeMap,
                 _addCategorizedLocalDiagnostic,
                 _addCategorizedNonLocalDiagnostic,
@@ -312,14 +313,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Use <see cref="ExecuteCompilationStartActions(ImmutableArray{CompilationStartAnalyzerAction}, HostCompilationStartAnalysisScope)"/> API
         /// to get execute these actions to get the per-compilation analyzer actions.
         /// </remarks>
-        public void ExecuteInitializeMethod(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope sessionScope)
+        public void ExecuteInitializeMethod(
+            DiagnosticAnalyzer analyzer,
+            HostSessionStartAnalysisScope sessionScope)
         {
             var context = new AnalyzerAnalysisContext(analyzer, sessionScope);
 
             // The Initialize method should be run asynchronously in case it is not well behaved, e.g. does not terminate.
             ExecuteAndCatchIfThrows(
                 analyzer,
-                data => data.analyzer.Initialize(data.context),
+                data =>
+                {
+                    if (analyzer is ArtifactGenerator artifactGenerator)
+                    {
+                        if (_artifactContext != null)
+                            artifactGenerator.Initialize(data.context, _artifactContext.Value);
+                    }
+                    else
+                    {
+                        data.analyzer.Initialize(data.context);
+                    }
+                },
                 (analyzer, context));
         }
 
@@ -461,8 +475,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     var context = new CompilationAnalysisContext(
                         Compilation, AnalyzerOptions, addDiagnostic,
-                        isSupportedDiagnostic, _compilationAnalysisValueProviderFactory,
-                        _artifactCallback, _cancellationToken);
+                        isSupportedDiagnostic, _compilationAnalysisValueProviderFactory, _cancellationToken);
 
                     ExecuteAndCatchIfThrows(
                         endAction.Analyzer,
@@ -776,7 +789,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         AnalyzerOptions,
                         diagReporter.AddDiagnosticAction,
                         isSupportedDiagnostic,
-                        _artifactCallback,
                         _cancellationToken);
 
                     // Catch Exception from action.
@@ -866,7 +878,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         diagReporter.AddDiagnosticAction,
                         isSupportedDiagnostic,
                         Compilation,
-                        _artifactCallback,
                         _cancellationToken);
 
                     // Catch Exception from action.
@@ -946,7 +957,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         diagReporter.AddDiagnosticAction,
                         isSupportedDiagnostic,
                         Compilation,
-                        _artifactCallback,
                         _cancellationToken);
 
                     // Catch Exception from action.

@@ -529,8 +529,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly CompilationAnalysisValueProviderFactory? _compilationAnalysisValueProviderFactoryOpt;
         private readonly CancellationToken _cancellationToken;
 
-        internal readonly ArtifactGeneratorCallback? _artifactCallback;
-
         /// <summary>
         /// <see cref="CodeAnalysis.Compilation"/> that is the subject of the analysis.
         /// </summary>
@@ -548,7 +546,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         [Obsolete("Analysis contexts should not be directly instantiated", error: false)]
         public CompilationAnalysisContext(Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-            : this(compilation, options, reportDiagnostic, isSupportedDiagnostic, compilationAnalysisValueProviderFactoryOpt: null, artifactCallback: null, cancellationToken)
+            : this(compilation, options, reportDiagnostic, isSupportedDiagnostic, compilationAnalysisValueProviderFactoryOpt: null, cancellationToken)
         {
         }
 
@@ -558,7 +556,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             CompilationAnalysisValueProviderFactory? compilationAnalysisValueProviderFactoryOpt,
-            ArtifactGeneratorCallback? artifactCallback,
             CancellationToken cancellationToken)
         {
             _compilation = compilation;
@@ -566,7 +563,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _compilationAnalysisValueProviderFactoryOpt = compilationAnalysisValueProviderFactoryOpt;
-            _artifactCallback = artifactCallback;
             _cancellationToken = cancellationToken;
         }
 
@@ -629,66 +625,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     }
 
     /// <summary>
-    /// Context for artifact generation that depends only a compilation.
-    /// </summary>
-    public struct CompilationArtifactGenerationContext
-    {
-        private readonly CompilationAnalysisContext _context;
-        private readonly ArtifactGeneratorCallback _artifactCallback;
-
-        /// <summary>
-        /// <see cref="CodeAnalysis.Compilation"/> that is the subject of the analysis.
-        /// </summary>
-        public Compilation Compilation => _context.Compilation;
-
-        /// <summary>
-        /// Options specified for the analysis.
-        /// </summary>
-        public AnalyzerOptions Options => _context.Options;
-
-        /// <summary>
-        /// Token to check for requested cancellation of the analysis.
-        /// </summary>
-        public CancellationToken CancellationToken => _context.CancellationToken;
-
-        internal CompilationArtifactGenerationContext(
-            CompilationAnalysisContext context,
-            ArtifactGeneratorCallback artifactCallback)
-        {
-            _context = context;
-            _artifactCallback = artifactCallback;
-        }
-
-        /// <inheritdoc cref="CompilationAnalysisContext.ReportDiagnostic(Diagnostic)"/>
-        public void ReportDiagnostic(Diagnostic diagnostic)
-            => _context.ReportDiagnostic(diagnostic);
-
-        /// <inheritdoc cref="CompilationAnalysisContext.TryGetValue{TKey, TValue}(TKey, AnalysisValueProvider{TKey, TValue}, out TValue)"/>
-        public bool TryGetValue<TValue>(SourceText text, SourceTextValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
-            => _context.TryGetValue(text, valueProvider, out value);
-
-        /// <inheritdoc cref="CompilationAnalysisContext.TryGetValue{TKey, TValue}(TKey, AnalysisValueProvider{TKey, TValue}, out TValue)"/>
-        public bool TryGetValue<TValue>(SyntaxTree tree, SyntaxTreeValueProvider<TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
-            => _context.TryGetValue(tree, valueProvider, out value);
-
-        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, string)"/>
-        public void GenerateArtifact(string hintName, string source)
-            => _artifactCallback.GenerateArtifact(hintName, source);
-
-        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, StringBuilder)"/>
-        public void GenerateArtifact(string hintName, StringBuilder builder)
-            => _artifactCallback.GenerateArtifact(hintName, builder);
-
-        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, SourceText)"/>
-        public void GenerateArtifact(string hintName, SourceText sourceText)
-            => _artifactCallback.GenerateArtifact(hintName, sourceText);
-
-        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, Action{Stream})"/>
-        public void GenerateArtifact(string hintName, Action<Stream> writeStream)
-            => _artifactCallback.GenerateArtifact(hintName, writeStream);
-    }
-
-    /// <summary>
     /// Context for a semantic model action.
     /// A semantic model action operates on the <see cref="CodeAnalysis.SemanticModel"/> of a code document, and can use a <see cref="SemanticModelAnalysisContext"/> to report <see cref="Diagnostic"/>s about the model.
     /// </summary>
@@ -699,8 +635,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
         private readonly CancellationToken _cancellationToken;
-
-        internal readonly ArtifactGeneratorCallback? _artifactCallback;
 
         /// <summary>
         /// <see cref="CodeAnalysis.SemanticModel"/> that is the subject of the analysis.
@@ -717,30 +651,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
-        [Obsolete("Analysis contexts should not be directly instantiated", error: false)]
         public SemanticModelAnalysisContext(
             SemanticModel semanticModel,
             AnalyzerOptions options,
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             CancellationToken cancellationToken)
-            : this(semanticModel, options, reportDiagnostic, isSupportedDiagnostic, artifactCallback: null, cancellationToken)
-        {
-        }
-
-        internal SemanticModelAnalysisContext(
-            SemanticModel semanticModel,
-            AnalyzerOptions options,
-            Action<Diagnostic> reportDiagnostic,
-            Func<Diagnostic, bool> isSupportedDiagnostic,
-            ArtifactGeneratorCallback? artifactCallback,
-            CancellationToken cancellationToken)
         {
             _semanticModel = semanticModel;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
-            _artifactCallback = artifactCallback;
             _cancellationToken = cancellationToken;
         }
 
@@ -756,58 +677,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _reportDiagnostic(diagnostic);
             }
         }
-    }
-
-    /// <summary>
-    /// Context for artifact generation that depends on individual semantic models.
-    /// </summary>
-    public struct SemanticModelArtifactGenerationContext
-    {
-        private readonly SemanticModelAnalysisContext _context;
-        private readonly ArtifactGeneratorCallback _artifactCallback;
-
-        /// <summary>
-        /// <see cref="CodeAnalysis.SemanticModel"/> that is the subject of the analysis.
-        /// </summary>
-        public SemanticModel SemanticModel => _context.SemanticModel;
-
-        /// <summary>
-        /// Options specified for the analysis.
-        /// </summary>
-        public AnalyzerOptions Options => _context.Options;
-
-        /// <summary>
-        /// Token to check for requested cancellation of the analysis.
-        /// </summary>
-        public CancellationToken CancellationToken => _context.CancellationToken;
-
-        internal SemanticModelArtifactGenerationContext(
-            SemanticModelAnalysisContext context,
-            ArtifactGeneratorCallback artifactCallback)
-        {
-            _context = context;
-            _artifactCallback = artifactCallback;
-        }
-
-        /// <inheritdoc cref="SemanticModelAnalysisContext.ReportDiagnostic(Diagnostic)"/>
-        public void ReportDiagnostic(Diagnostic diagnostic)
-            => _context.ReportDiagnostic(diagnostic);
-
-        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, string)"/>
-        public void GenerateArtifact(string hintName, string source)
-            => _artifactCallback.GenerateArtifact(hintName, source);
-
-        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, StringBuilder)"/>
-        public void GenerateArtifact(string hintName, StringBuilder builder)
-            => _artifactCallback.GenerateArtifact(hintName, builder);
-
-        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, SourceText)"/>
-        public void GenerateArtifact(string hintName, SourceText sourceText)
-            => _artifactCallback.GenerateArtifact(hintName, sourceText);
-
-        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, Action{Stream})"/>
-        public void GenerateArtifact(string hintName, Action<Stream> writeStream)
-            => _artifactCallback.GenerateArtifact(hintName, writeStream);
     }
 
     /// <summary>
@@ -1398,8 +1267,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
         private readonly CancellationToken _cancellationToken;
 
-        internal readonly ArtifactGeneratorCallback? _artifactCallback;
-
         /// <summary>
         /// <see cref="SyntaxTree"/> that is the subject of the analysis.
         /// </summary>
@@ -1424,7 +1291,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             CancellationToken cancellationToken)
-            : this(tree, options, reportDiagnostic, isSupportedDiagnostic, compilation: null, artifactCallback: null, cancellationToken)
+            : this(tree, options, reportDiagnostic, isSupportedDiagnostic, compilation: null, cancellationToken)
         {
         }
 
@@ -1434,7 +1301,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             Compilation? compilation,
-            ArtifactGeneratorCallback? artifactCallback,
             CancellationToken cancellationToken)
         {
             _tree = tree;
@@ -1442,7 +1308,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             _compilationOpt = compilation;
-            _artifactCallback = artifactCallback;
             _cancellationToken = cancellationToken;
         }
 
@@ -1461,58 +1326,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     }
 
     /// <summary>
-    /// Context for artifact generation that depends only on a syntax tree.
-    /// </summary>
-    public struct SyntaxTreeArtifactGenerationContext
-    {
-        private readonly SyntaxTreeAnalysisContext _context;
-        private readonly ArtifactGeneratorCallback _artifactCallback;
-
-        /// <summary>
-        /// <see cref="SyntaxTree"/> that is the subject of the analysis.
-        /// </summary>
-        public SyntaxTree Tree => _context.Tree;
-
-        /// <summary>
-        /// Options specified for the analysis.
-        /// </summary>
-        public AnalyzerOptions Options => _context.Options;
-
-        /// <summary>
-        /// Token to check for requested cancellation of the analysis.
-        /// </summary>
-        public CancellationToken CancellationToken => _context.CancellationToken;
-
-        internal SyntaxTreeArtifactGenerationContext(
-            SyntaxTreeAnalysisContext context,
-            ArtifactGeneratorCallback artifactCallback)
-        {
-            _context = context;
-            _artifactCallback = artifactCallback;
-        }
-
-        /// <inheritdoc cref="SyntaxTreeAnalysisContext.ReportDiagnostic(Diagnostic)"/>
-        public void ReportDiagnostic(Diagnostic diagnostic)
-            => _context.ReportDiagnostic(diagnostic);
-
-        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, string)"/>
-        public void GenerateArtifact(string hintName, string source)
-            => _artifactCallback.GenerateArtifact(hintName, source);
-
-        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, StringBuilder)"/>
-        public void GenerateArtifact(string hintName, StringBuilder builder)
-            => _artifactCallback.GenerateArtifact(hintName, builder);
-
-        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, SourceText)"/>
-        public void GenerateArtifact(string hintName, SourceText sourceText)
-            => _artifactCallback.GenerateArtifact(hintName, sourceText);
-
-        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, Action{Stream})"/>
-        public void GenerateArtifact(string hintName, Action<Stream> writeStream)
-            => _artifactCallback.GenerateArtifact(hintName, writeStream);
-    }
-
-    /// <summary>
     /// Context for an additional file action.
     /// An additional file action can use an <see cref="AdditionalFileAnalysisContext"/> to report <see cref="Diagnostic"/>s about a non-source <see cref="AdditionalText"/> document.
     /// </summary>
@@ -1520,8 +1333,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly Action<Diagnostic> _reportDiagnostic;
         private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
-
-        internal readonly ArtifactGeneratorCallback? _artifactCallback;
 
         /// <summary>
         /// <see cref="AdditionalText"/> that is the subject of the analysis.
@@ -1549,7 +1360,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> reportDiagnostic,
             Func<Diagnostic, bool> isSupportedDiagnostic,
             Compilation compilation,
-            ArtifactGeneratorCallback? artifactCallback,
             CancellationToken cancellationToken)
         {
             AdditionalFile = additionalFile;
@@ -1557,7 +1367,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
             Compilation = compilation;
-            _artifactCallback = artifactCallback;
             CancellationToken = cancellationToken;
         }
 
@@ -1574,63 +1383,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _reportDiagnostic(diagnostic);
             }
         }
-    }
-
-    /// <summary>
-    /// Context for artifact generation that depends only on an additional file.
-    /// </summary>
-    public readonly struct AdditionalFileArtifactGenerationContext
-    {
-        private readonly AdditionalFileAnalysisContext _context;
-        private readonly ArtifactGeneratorCallback _artifactCallback;
-
-        /// <summary>
-        /// <see cref="AdditionalText"/> that is the subject of the analysis.
-        /// </summary>
-        public AdditionalText AdditionalFile => _context.AdditionalFile;
-
-        /// <summary>
-        /// Options specified for the analysis.
-        /// </summary>
-        public AnalyzerOptions Options => _context.Options;
-
-        /// <summary>
-        /// Token to check for requested cancellation of the analysis.
-        /// </summary>
-        public CancellationToken CancellationToken => _context.CancellationToken;
-
-        /// <summary>
-        /// Compilation being analyzed.
-        /// </summary>
-        public Compilation Compilation => _context.Compilation;
-
-        internal AdditionalFileArtifactGenerationContext(
-            AdditionalFileAnalysisContext context,
-            ArtifactGeneratorCallback artifactCallback)
-        {
-            _context = context;
-            _artifactCallback = artifactCallback;
-        }
-
-        /// <inheritdoc cref="AdditionalFileAnalysisContext.ReportDiagnostic(Diagnostic)"/>
-        public void ReportDiagnostic(Diagnostic diagnostic)
-            => _context.ReportDiagnostic(diagnostic);
-
-        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, string)"/>
-        public void GenerateArtifact(string hintName, string source)
-            => _artifactCallback.GenerateArtifact(hintName, source);
-
-        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, StringBuilder)"/>
-        public void GenerateArtifact(string hintName, StringBuilder builder)
-            => _artifactCallback.GenerateArtifact(hintName, builder);
-
-        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, SourceText)"/>
-        public void GenerateArtifact(string hintName, SourceText sourceText)
-            => _artifactCallback.GenerateArtifact(hintName, sourceText);
-
-        /// <inheritdoc cref="ArtifactGeneratorCallback.GenerateArtifact(string, Action{Stream})"/>
-        public void GenerateArtifact(string hintName, Action<Stream> writeStream)
-            => _artifactCallback.GenerateArtifact(hintName, writeStream);
     }
 
     /// <summary>
@@ -1899,5 +1651,94 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Gets a <see cref="SemanticModel"/> for the given <see cref="SyntaxTree"/>, which is shared across all analyzers.
         /// </summary>
         public SemanticModel GetSemanticModel(SyntaxTree syntaxTree) => _getSemanticModel(syntaxTree);
+    }
+
+    /// <summary>
+    /// Helper type used for actually generating artifact files during the analyzer pass. <see
+    /// cref="ArtifactGenerator"/>s can provided as plugins and are given the opportunity to analyze the compilation
+    /// during the analysis path, writing out arbitrary data to files during that time. These generators will only be
+    /// executed if the compilation is run with a specified 'generatedoutputpath' argument for both source generator and
+    /// artifacts to be generated into.
+    /// </summary>
+    public readonly struct ArtifactGenerationContext
+    {
+#if !NETCOREAPP
+        /// <summary>
+        /// From: https://github.com/microsoft/referencesource/blob/f461f1986ca4027720656a0c77bede9963e20b7e/mscorlib/system/io/streamwriter.cs#L48
+        /// </summary>
+        private const int DefaultBufferSize = 1024;
+#endif
+
+        private readonly Action<string, Action<Stream>> _createArtifactStream;
+
+        internal ArtifactGenerationContext(Action<string, Action<Stream>> createArtifactStream)
+        {
+            _createArtifactStream = createArtifactStream;
+        }
+
+        /// <summary>
+        /// Generates an artifact with the contents of <paramref name="source"/>.  The artifact will be written out with utf8 encoding.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="source">The text to generate</param>
+        public void GenerateArtifact(string hintName, string source)
+        {
+            GenerateArtifact(hintName, stream =>
+            {
+#if NETCOREAPP
+                using var writer = new StreamWriter(stream, Encoding.UTF8, leaveOpen: true);
+#else
+                using var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: DefaultBufferSize, leaveOpen: true);
+#endif
+                writer.Write(source);
+            });
+        }
+
+        /// <summary>
+        /// Generates an artifact with the contents of <paramref name="builder"/>.  The artifact will be written out with utf8 encoding.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="builder">The string builder containing the contents to generate</param>
+        public void GenerateArtifact(string hintName, StringBuilder builder)
+        {
+            GenerateArtifact(hintName, stream =>
+            {
+#if NETCOREAPP
+                using var writer = new StreamWriter(stream, Encoding.UTF8, leaveOpen: true);
+#else
+                using var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: DefaultBufferSize, leaveOpen: true);
+#endif
+                writer.Write(builder);
+            });
+        }
+
+        /// <summary>
+        /// Generates an artifact with the contents and encoding specified by <paramref name="sourceText"/>.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="sourceText">The <see cref="SourceText"/> to generate</param>
+        public void GenerateArtifact(string hintName, SourceText sourceText)
+        {
+            GenerateArtifact(hintName, stream =>
+            {
+#if NETCOREAPP
+                using var writer = new StreamWriter(stream, sourceText.Encoding ?? Encoding.UTF8, leaveOpen: true);
+#else
+                using var writer = new StreamWriter(stream, sourceText.Encoding ?? Encoding.UTF8, bufferSize: DefaultBufferSize, leaveOpen: true);
+#endif
+                sourceText.Write(writer);
+            });
+        }
+
+        /// <summary>
+        /// Requests a fresh stream associated with the given <paramref name="hintName"/> to write artifact data into.
+        /// The callback does should not call <see cref="Stream.Close"/>, <see cref="Stream.Flush"/>, or <see
+        /// cref="Stream.Dispose()"/>.  This overload is useful if there is a large amount of data to write, or if there
+        /// is binary data to write.
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="writeStream">A callback that will be passed the stream to write into.</param>
+        public void GenerateArtifact(string hintName, Action<Stream> writeStream)
+            => _createArtifactStream(hintName, writeStream);
     }
 }

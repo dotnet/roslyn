@@ -25,66 +25,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray<DiagnosticDescriptor>.Empty;
 
-        public sealed override void Initialize(AnalysisContext context)
-        {
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-            context.EnableConcurrentExecution();
-
-            context.RegisterCompilationAction(
-                context =>
-                {
-                    if (context._artifactCallback != null)
-                        this.GenerateArtifacts(new CompilationArtifactGenerationContext(context, context._artifactCallback));
-                });
-
-            context.RegisterSemanticModelAction(
-                context =>
-                {
-                    if (context._artifactCallback != null)
-                        this.GenerateArtifacts(new SemanticModelArtifactGenerationContext(context, context._artifactCallback));
-                });
-
-            context.RegisterSyntaxTreeAction(
-                context =>
-                {
-                    if (context._artifactCallback != null)
-                        this.GenerateArtifacts(new SyntaxTreeArtifactGenerationContext(context, context._artifactCallback));
-                });
-
-            context.RegisterAdditionalFileAction(
-                context =>
-                {
-                    if (context._artifactCallback != null)
-                        this.GenerateArtifacts(new AdditionalFileArtifactGenerationContext(context, context._artifactCallback));
-                });
-        }
+#pragma warning disable RS1025 // Configure generated code analysis
+#pragma warning disable RS1026 // Enable concurrent execution
+        public sealed override void Initialize(AnalysisContext context) { }
+#pragma warning restore RS1026 // Enable concurrent execution
+#pragma warning restore RS1025 // Configure generated code analysis
 
         /// <summary>
-        /// Override to support generating artifacts for an entire compilation.
+        /// Called once at session start to register actions in the <paramref name="analysisContext"/>.  The provided
+        /// <paramref name="artifactContext"/> can be used to generate artifacts as appropriate on the desired compiler
+        /// events.
         /// </summary>
-        public virtual void GenerateArtifacts(CompilationArtifactGenerationContext context)
-        {
-        }
-
-        /// <summary>
-        /// Override to support generating artifacts for a particular semantic model.
-        /// </summary>
-        public virtual void GenerateArtifacts(SemanticModelArtifactGenerationContext context)
-        {
-        }
-
-        /// <summary>
-        /// Override to support generating artifacts for a particular syntax tree.
-        /// </summary>
-        public virtual void GenerateArtifacts(SyntaxTreeArtifactGenerationContext context)
-        {
-        }
-
-        /// <summary>
-        /// Override to support generating artifacts for a particular syntax tree.
-        /// </summary>
-        public virtual void GenerateArtifacts(AdditionalFileArtifactGenerationContext context)
-        {
-        }
+        public abstract void Initialize(AnalysisContext analysisContext, ArtifactGenerationContext artifactContext);
     }
 }

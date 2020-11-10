@@ -1285,10 +1285,10 @@ namespace Microsoft.CodeAnalysis
 
                 // Determine if we should support artifact generators or not.  If we have an specified output path, then
                 // we will run artifact generators.  Otherwise, we won't bother as we have no place to put their files.
-                ArtifactGeneratorCallback? artifactCallback = null;
+                ArtifactGenerationContext? artifactContext = null;
                 if (hasGeneratedOutputPath)
                 {
-                    artifactCallback = new ArtifactGeneratorCallback(
+                    artifactContext = new ArtifactGenerationContext(
                         (hint, callback) =>
                         {
                             CreateFileStream(diagnostics, hint, out var path, out var fileStream);
@@ -1307,7 +1307,7 @@ namespace Microsoft.CodeAnalysis
                     analyzerOptions,
                     new AnalyzerManager(analyzers),
                     analyzerExceptionDiagnostics.Add,
-                    artifactCallback,
+                    artifactContext,
                     Arguments.ReportAnalyzer,
                     severityFilter,
                     out compilation,

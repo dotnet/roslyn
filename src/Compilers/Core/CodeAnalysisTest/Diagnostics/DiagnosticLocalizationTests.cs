@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diag) => exceptionDiagnostics.Add(diag);
             var analyzerManager = new AnalyzerManager(analyzer);
             var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(
-                onAnalyzerException, artifactCallback: null, analyzerManager);
+                onAnalyzerException, artifactContext: null, analyzerManager);
             var descriptors = analyzerManager.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
 
             Assert.Equal(1, descriptors.Length);
