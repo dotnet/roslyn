@@ -567,13 +567,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
 
-                        var context = new SymbolAnalysisContext(
-                            symbol,
-                            Compilation,
-                            AnalyzerOptions,
-                            addDiagnostic,
-                            isSupportedDiagnostic,
-                            _cancellationToken);
+                        var context = new SymbolAnalysisContext(symbol, Compilation, AnalyzerOptions, addDiagnostic,
+                            isSupportedDiagnostic, _cancellationToken);
 
                         ExecuteAndCatchIfThrows(
                             symbolAction.Analyzer,
