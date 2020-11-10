@@ -778,12 +778,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    var context = new SemanticModelAnalysisContext(
-                        semanticModel,
-                        AnalyzerOptions,
-                        diagReporter.AddDiagnosticAction,
-                        isSupportedDiagnostic,
-                        _cancellationToken);
+                    var context = new SemanticModelAnalysisContext(semanticModel, AnalyzerOptions, diagReporter.AddDiagnosticAction,
+                        isSupportedDiagnostic, _cancellationToken);
 
                     // Catch Exception from action.
                     ExecuteAndCatchIfThrows(
