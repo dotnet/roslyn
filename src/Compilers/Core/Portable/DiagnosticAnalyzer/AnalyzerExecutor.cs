@@ -966,14 +966,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (ShouldExecuteAction(analyzerState, syntaxNodeAction))
             {
-                var syntaxNodeContext = new SyntaxNodeAnalysisContext(
-                    node,
-                    containingSymbol,
-                    semanticModel,
-                    AnalyzerOptions,
-                    addDiagnostic,
-                    isSupportedDiagnostic,
-                    _cancellationToken);
+                var syntaxNodeContext = new SyntaxNodeAnalysisContext(node, containingSymbol, semanticModel, AnalyzerOptions, addDiagnostic,
+                    isSupportedDiagnostic, _cancellationToken);
 
                 ExecuteAndCatchIfThrows(
                     syntaxNodeAction.Analyzer,
