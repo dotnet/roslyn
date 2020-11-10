@@ -4174,6 +4174,68 @@ class Test
         }
 
         [Fact]
+        public void ParameterDefaultValue()
+        {
+            var source = @"
+class Test
+{
+    void M0(object obj = default) { } // 1
+    void M1(int i = default) { }
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     void M0(object obj = default) { } // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(4, 26));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var default0 = root.DescendantNodes().OfType<EqualsValueClauseSyntax>().ElementAt(0).Value;
+            Assert.Equal(PublicNullableFlowState.MaybeNull, model.GetTypeInfo(default0).Nullability.FlowState);
+
+            var default1 = root.DescendantNodes().OfType<EqualsValueClauseSyntax>().ElementAt(1).Value;
+            Assert.Equal(PublicNullableFlowState.NotNull, model.GetTypeInfo(default1).Nullability.FlowState);
+        }
+
+        [Fact]
+        public void AttributeDefaultValue()
+        {
+            var source = @"
+using System;
+
+class Attr : Attribute
+{
+    public Attr(object obj, int i) { }
+}
+
+[Attr(default, default)] // 1
+class Test
+{
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,7): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // [Attr(default, default)] // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(9, 7));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var default0 = root.DescendantNodes().OfType<AttributeArgumentSyntax>().ElementAt(0).Expression;
+            Assert.Equal(PublicNullableFlowState.MaybeNull, model.GetTypeInfo(default0).Nullability.FlowState);
+
+            var default1 = root.DescendantNodes().OfType<AttributeArgumentSyntax>().ElementAt(1).Expression;
+            Assert.Equal(PublicNullableFlowState.NotNull, model.GetTypeInfo(default1).Nullability.FlowState);
+        }
+
+        [Fact]
         [WorkItem(38638, "https://github.com/dotnet/roslyn/issues/38638")]
         public void TypeParameter_Default()
         {
