@@ -1282,14 +1282,17 @@ namespace Microsoft.CodeAnalysis
                     severityFilter |= SeverityFilter.Info;
 
                 var hasGeneratedOutputPath = !string.IsNullOrWhiteSpace(Arguments.GeneratedFilesOutputDirectory);
-                var generatedAdditionalFiles = new List<(string filePath, SourceText text)>();
+                var generatedArtifacts = new List<(string filePath, SourceText text)>();
+
+                // Determine if we should support artifact generators or not.  If we have an specified output path, then
+                // we will run artifact generators.  Otherwise, we won't bother as we have no place to put their files.
                 Action<(string filePath, SourceText text)>? addOutputFile = null;
                 if (hasGeneratedOutputPath)
                 {
                     addOutputFile = tuple =>
                     {
-                        lock (generatedAdditionalFiles)
-                            generatedAdditionalFiles.Add(tuple);
+                        lock (generatedArtifacts)
+                            generatedArtifacts.Add(tuple);
                     };
                 }
 
@@ -1306,7 +1309,7 @@ namespace Microsoft.CodeAnalysis
                     analyzerCts.Token);
                 reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
 
-                foreach (var (filePath, text) in generatedAdditionalFiles)
+                foreach (var (filePath, text) in generatedArtifacts)
                     WriteSourceText(touchedFilesLogger, diagnostics, filePath, text.Encoding, text, cancellationToken);
             }
         }
