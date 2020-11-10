@@ -1,32 +1,51 @@
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.AddOutputFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.AddOutputFile(string hintName, string source) -> void
 Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.CanAddOutputFile.get -> bool
-Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.AddOutputFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
-Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.AddOutputFile(string hintName, string source) -> void
-Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.CanAddOutputFile.get -> bool
-Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.AddOutputFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
-Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.AddOutputFile(string hintName, string source) -> void
-Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.CanAddOutputFile.get -> bool
-Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.AddOutputFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
-Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.AddOutputFile(string hintName, string source) -> void
-Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.CanAddOutputFile.get -> bool
-Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.AddOutputFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
-Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.AddOutputFile(string hintName, string source) -> void
-Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.CanAddOutputFile.get -> bool
-Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.AddOutputFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
-Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.AddOutputFile(string hintName, string source) -> void
-Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.CanAddOutputFile.get -> bool
-Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.AddOutputFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
-Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.AddOutputFile(string hintName, string source) -> void
-Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.CanAddOutputFile.get -> bool
-Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.AddOutputFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
-Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.AddOutputFile(string hintName, string source) -> void
-Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.CanAddOutputFile.get -> bool
-Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.AddOutputFile(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
-Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.AddOutputFile(string hintName, string source) -> void
-Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.CanAddOutputFile.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext.AdditionalFile.get -> Microsoft.CodeAnalysis.AdditionalText
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext.AdditionalFileArtifactGenerationContext() -> void
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext.GenerateArtifact(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext.GenerateArtifact(string hintName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
+Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
+Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerator
+Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerator.ArtifactGenerator() -> void
+Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext
+Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
+Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext.CompilationArtifactGenerationContext() -> void
+Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext.GenerateArtifact(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext.GenerateArtifact(string hintName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
+Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
+Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.SyntaxTree tree, Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeValueProvider<TValue> valueProvider, out TValue value) -> bool
+Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext.TryGetValue<TValue>(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.Diagnostics.SourceTextValueProvider<TValue> valueProvider, out TValue value) -> bool
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext.GenerateArtifact(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext.GenerateArtifact(string hintName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel
+Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext.SemanticModelArtifactGenerationContext() -> void
+Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext
+Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext.GenerateArtifact(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext.GenerateArtifact(string hintName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
+Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
+Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext.SyntaxTreeArtifactGenerationContext() -> void
+Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext.Tree.get -> Microsoft.CodeAnalysis.SyntaxTree
 Microsoft.CodeAnalysis.ITypeSymbol.IsRecord.get -> bool
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.RecordName = 31 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
 const Microsoft.CodeAnalysis.WellKnownDiagnosticTags.CompilationEnd = "CompilationEnd" -> string
+override Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerator.SupportedDiagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor>
+override sealed Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerator.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext context) -> void
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Compare(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> int
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Equals(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> bool
+virtual Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerator.GenerateArtifacts(Microsoft.CodeAnalysis.Diagnostics.AdditionalFileArtifactGenerationContext context) -> void
+virtual Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerator.GenerateArtifacts(Microsoft.CodeAnalysis.Diagnostics.CompilationArtifactGenerationContext context) -> void
+virtual Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerator.GenerateArtifacts(Microsoft.CodeAnalysis.Diagnostics.SemanticModelArtifactGenerationContext context) -> void
+virtual Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerator.GenerateArtifacts(Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeArtifactGenerationContext context) -> void

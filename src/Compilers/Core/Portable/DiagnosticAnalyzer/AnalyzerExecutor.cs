@@ -556,7 +556,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             AnalyzerOptions,
                             addDiagnostic,
                             isSupportedDiagnostic,
-                            _addOutputFile,
                             _cancellationToken);
 
                         ExecuteAndCatchIfThrows(
@@ -694,7 +693,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         AnalyzerOptions,
                         addDiagnostic,
                         isSupportedDiagnostic,
-                        _addOutputFile,
                         _cancellationToken);
 
                     ExecuteAndCatchIfThrows(
@@ -987,7 +985,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     AnalyzerOptions,
                     addDiagnostic,
                     isSupportedDiagnostic,
-                    _addOutputFile,
                     _cancellationToken);
 
                 ExecuteAndCatchIfThrows(
@@ -1022,7 +1019,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     addDiagnostic,
                     isSupportedDiagnostic,
                     GetControlFlowGraph,
-                    _addOutputFile,
                     _cancellationToken);
 
                 ExecuteAndCatchIfThrows(
@@ -1313,7 +1309,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             AnalyzerOptions,
                             addDiagnostic,
                             isSupportedDiagnostic,
-                            _addOutputFile,
                             _cancellationToken);
 
                         ExecuteAndCatchIfThrows(
@@ -1335,7 +1330,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 addDiagnostic,
                                 isSupportedDiagnostic,
                                 GetControlFlowGraph,
-                                _addOutputFile,
                                 _cancellationToken);
 
                             ExecuteAndCatchIfThrows(
