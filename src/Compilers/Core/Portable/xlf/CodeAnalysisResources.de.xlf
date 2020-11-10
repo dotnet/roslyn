@@ -12,11 +12,6 @@
         <target state="translated">Für diese Option muss ein Sprachenname angegeben werden.</target>
         <note />
       </trans-unit>
-      <trans-unit id="AddOutputFile_can_only_be_called_when_CanAddOutputFile_is_true">
-        <source>'AddOutputFile' can only be called when 'CanAddOutputFile' is true.</source>
-        <target state="new">'AddOutputFile' can only be called when 'CanAddOutputFile' is true.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="AssemblyReferencesNetFramework">
         <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
         <target state="new">The assembly containing type '{0}' references .NET Framework, which is not supported.</target>
