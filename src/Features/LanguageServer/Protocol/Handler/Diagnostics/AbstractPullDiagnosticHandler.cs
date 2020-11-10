@@ -283,6 +283,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 _ => throw ExceptionUtilities.UnexpectedValue(severity),
             };
 
+        /// <summary>
+        /// If you make change in this method, please also update the corresponding file in
+        /// src\VisualStudio\Xaml\Impl\Implementation\LanguageServer\Handler\Diagnostics\AbstractPullDiagnosticHandler.cs
+        /// </summary>
         private static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
         {
             using var _ = ArrayBuilder<DiagnosticTag>.GetInstance(out var result);
