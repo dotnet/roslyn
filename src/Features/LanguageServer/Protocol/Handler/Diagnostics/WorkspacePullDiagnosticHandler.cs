@@ -23,10 +23,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WorkspacePullDiagnosticHandler(
-            ILspSolutionProvider solutionProvider,
-            IDiagnosticService diagnosticService)
-            : base(solutionProvider, diagnosticService)
+        public WorkspacePullDiagnosticHandler(IDiagnosticService diagnosticService)
+            : base(diagnosticService)
         {
         }
 

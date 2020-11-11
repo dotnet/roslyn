@@ -24,10 +24,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DocumentPullDiagnosticHandler(
-            ILspSolutionProvider solutionProvider,
             IDiagnosticService diagnosticService,
             IDiagnosticAnalyzerService analyzerService)
-            : base(solutionProvider, diagnosticService)
+            : base(diagnosticService)
         {
             _analyzerService = analyzerService;
         }

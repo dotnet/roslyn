@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : IRequestHandler<TDiagnosticsParams, TReport[]?>
         where TReport : DiagnosticReport
     {
-        private readonly ILspSolutionProvider _solutionProvider;
-
         protected readonly IDiagnosticService DiagnosticService;
 
         /// <summary>
@@ -45,10 +43,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         private long _nextDocumentResultId;
 
         protected AbstractPullDiagnosticHandler(
-            ILspSolutionProvider solutionProvider,
             IDiagnosticService diagnosticService)
         {
-            // _solutionProvider = solutionProvider;
             DiagnosticService = diagnosticService;
             DiagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
         }
