@@ -2143,11 +2143,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsLocalFunction([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement);
 
-        public void GetPartsOfInterpolationExpression(SyntaxNode node, out SyntaxToken stringStartToken, out SyntaxList<SyntaxNode> content, out SyntaxToken stringEndToken)
+        public void GetPartsOfInterpolationExpression(SyntaxNode node, out SyntaxToken stringStartToken, out SyntaxList<SyntaxNode> contents, out SyntaxToken stringEndToken)
         {
             var interpolatedStringExpression = (InterpolatedStringExpressionSyntax)node;
             stringStartToken = interpolatedStringExpression.StringStartToken;
-            content = interpolatedStringExpression.Contents;
+            contents = interpolatedStringExpression.Contents;
             stringEndToken = interpolatedStringExpression.StringEndToken;
         }
 

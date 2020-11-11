@@ -2408,10 +2408,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Sub GetPartsOfInterpolationExpression(node As SyntaxNode, ByRef stringStartToken As SyntaxToken, ByRef content As SyntaxList(Of SyntaxNode), ByRef stringEndToken As SyntaxToken) Implements ISyntaxFacts.GetPartsOfInterpolationExpression
+        Public Sub GetPartsOfInterpolationExpression(node As SyntaxNode, ByRef stringStartToken As SyntaxToken, ByRef contents As SyntaxList(Of SyntaxNode), ByRef stringEndToken As SyntaxToken) Implements ISyntaxFacts.GetPartsOfInterpolationExpression
             Dim interpolatedStringExpressionSyntax As InterpolatedStringExpressionSyntax = DirectCast(node, InterpolatedStringExpressionSyntax)
             stringStartToken = interpolatedStringExpressionSyntax.DollarSignDoubleQuoteToken
-            content = interpolatedStringExpressionSyntax.Contents
+            contents = interpolatedStringExpressionSyntax.Contents
             stringEndToken = interpolatedStringExpressionSyntax.DoubleQuoteToken
         End Sub
 
