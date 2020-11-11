@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                         {
                             content.Add(contentPart);
                         }
-                        // Only the first contentPart can be merged:
+                        // Only the first contentPart can be merged, therefore we set previousContentWasStringLiteralExpression to false
                         previousContentWasStringLiteralExpression = false;
                     }
                 }
