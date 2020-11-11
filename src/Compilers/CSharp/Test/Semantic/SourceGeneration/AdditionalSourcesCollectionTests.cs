@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             Assert.True(asc.Contains(hintName));
 
             var sources = asc.ToImmutableAndFree();
+            Assert.Single(sources, hintName);
             Assert.True(sources[0].HintName.EndsWith(".cs"));
 
         }
@@ -54,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             Assert.True(asc.Contains(hintName));
 
             var sources = asc.ToImmutableAndFree();
+            Assert.Single(sources, hintName);
             Assert.True(sources[0].HintName.EndsWith(".vb"));
         }
 

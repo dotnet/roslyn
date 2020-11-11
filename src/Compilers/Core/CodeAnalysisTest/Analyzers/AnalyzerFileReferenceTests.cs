@@ -253,19 +253,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
             var generators = reference.GetGeneratorsForAllLanguages();
-            Assert.Equal(10, generators.Length);
-
             var typeNames = generators.Select(g => g.GetType().FullName);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.TestGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.BaseGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.SubClassedGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.ExplicitCSharpOnlyGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.FSharpGenerator", typeNames);
+
+            AssertEx.SetEqual(new[]
+            {
+                "Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.TestGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.BaseGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.SubClassedGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.ExplicitCSharpOnlyGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.FSharpGenerator"
+            }, typeNames);
 
             Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.TestGeneratorNoAttrib", typeNames);
             Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.Test.NotAGenerator", typeNames);
@@ -290,17 +292,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
             var generators = reference.GetGenerators(LanguageNames.CSharp);
-            Assert.Equal(8, generators.Length);
 
             var typeNames = generators.Select(g => g.GetType().FullName);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.TestGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.BaseGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.SubClassedGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.ExplicitCSharpOnlyGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator", typeNames);
+            AssertEx.SetEqual(new[]
+            {
+                "Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.TestGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.BaseGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.SubClassedGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.ExplicitCSharpOnlyGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator"
+            }, typeNames);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -308,12 +312,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
             var generators = reference.GetGenerators(LanguageNames.VisualBasic);
-            Assert.Equal(3, generators.Length);
 
             var typeNames = generators.Select(g => g.GetType().FullName);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator", typeNames);
+            AssertEx.SetEqual(new[]
+            {
+                "Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator"
+            }, typeNames);
         }
 
         // can't load a coreclr targeting generator on net framework / mono

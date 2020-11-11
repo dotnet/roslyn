@@ -1,4 +1,4 @@
-' Licensed to the .NET Foundation under one or more agreements.
+﻿' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -10290,18 +10290,23 @@ End Class")
         End Sub
 
         Private Function EmitGenerator(ByVal targetFramework As String) As String
-            Dim targetFrameworkAttributeText As String = If(TypeOf targetFramework Is Object, $"[assembly: System.Runtime.Versioning.TargetFramework(""{targetFramework}"")]", String.Empty)
+            Dim targetFrameworkAttributeText As String = If(TypeOf targetFramework Is Object, $"<Assembly: System.Runtime.Versioning.TargetFramework(""{targetFramework}"")>", String.Empty)
             Dim generatorSource As String = $"
-using Microsoft.CodeAnalysis;
+Imports Microsoft.CodeAnalysis
 
 {targetFrameworkAttributeText}
 
-[Generator]
-public class Generator : ISourceGenerator
-{{
-            public void Execute(GeneratorExecutionContext context) {{ }}
-            public void Initialize(GeneratorInitializationContext context) {{ }}
- }}"
+<Generator>
+Public Class Generator
+    Inherits ISourceGenerator
+
+    Public Sub Execute(ByVal context As GeneratorExecutionContext)
+    End Sub
+
+    Public Sub Initialize(ByVal context As GeneratorInitializationContext)
+    End Sub
+End Class
+"
             Dim directory = Temp.CreateDirectory()
             Dim generatorPath = Path.Combine(directory.Path, "generator.dll")
             Dim compilation = VisualBasicCompilation.Create($"generator_{targetFramework}",
