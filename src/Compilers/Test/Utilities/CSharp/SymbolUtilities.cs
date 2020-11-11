@@ -120,9 +120,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return symbols.Select(s => s.ToTestDisplayString()).ToArray();
         }
 
-        public static string[] ToTestDisplayStrings(this IEnumerable<Symbol> symbols)
+        public static string[] ToTestDisplayStrings(this IEnumerable<Symbol> symbols, SymbolDisplayFormat format = null)
         {
-            return symbols.Select(s => s.ToTestDisplayString()).ToArray();
+            format ??= SymbolDisplayFormat.TestFormat;
+            return symbols.Select(s => s.ToDisplayString(format)).ToArray();
         }
 
         public static string ToTestDisplayString(this ISymbol symbol, bool includeNonNullable)
