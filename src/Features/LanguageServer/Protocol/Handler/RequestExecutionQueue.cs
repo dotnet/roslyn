@@ -262,14 +262,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // document text. If document id is null here, this will just return null
             var document = solution.GetDocument(documentId);
 
-            DocumentChangeTracker? trackerToUse = null;
-            if (queueItem.MutatesSolutionState)
-            {
-                // Logically, if a mutating request fails we don't want to take its mutations, so giving it the "real" tracker
-                // is a bad idea, but since we tear down the queue for any error anyway, the document tracker will be emptied
-                // and no future requests will be handled, so we don't need to do anything special here.
-                trackerToUse = _documentChangeTracker;
-            }
+            // Logically, if a mutating request fails we don't want to take its mutations, so giving it the "real"
+            // tracker is a bad idea, but since we tear down the queue for any error anyway, the document tracker
+            // will be emptied and no future requests will be handled, so we don't need to do anything special here.
+            var trackerToUse = queueItem.MutatesSolutionState
+                ? (IDocumentChangeTracker)_documentChangeTracker
+                : new NonMutatingDocumentChangeTracker(_documentChangeTracker);
 
             return new RequestContext(solution, queueItem.ClientCapabilities, queueItem.ClientName, document, trackerToUse);
         }

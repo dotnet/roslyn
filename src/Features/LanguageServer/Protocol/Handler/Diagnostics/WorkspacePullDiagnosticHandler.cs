@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -96,10 +95,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
         }
 
-        protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+            RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
         {
             // We only support workspace diagnostics for closed files.
-            if (document.IsOpen())
+            if (context.IsTracking(document.GetURI()))
                 return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
 
             // For closed files, go to the IDiagnosticService for results.  These won't necessarily be totally up to

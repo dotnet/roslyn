@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// <summary>
         /// Produce the diagnostics for the specified document.
         /// </summary>
-        protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
+        protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
 
         private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs updateArgs)
         {
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
                 else
                 {
-                    await ComputeAndReportCurrentDiagnosticsAsync(progress, document, cancellationToken).ConfigureAwait(false);
+                    await ComputeAndReportCurrentDiagnosticsAsync(context, progress, document, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -165,6 +165,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         }
 
         private async Task ComputeAndReportCurrentDiagnosticsAsync(
+            RequestContext context,
             BufferedProgress<TReport> progress,
             Document document,
             CancellationToken cancellationToken)
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             if (isPull)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var diagnostics = await GetDiagnosticsAsync(document, diagnosticMode, cancellationToken).ConfigureAwait(false);
+                var diagnostics = await GetDiagnosticsAsync(context, document, diagnosticMode, cancellationToken).ConfigureAwait(false);
                 foreach (var diagnostic in diagnostics)
                     result.Add(ConvertDiagnostic(document, text, diagnostic));
             }

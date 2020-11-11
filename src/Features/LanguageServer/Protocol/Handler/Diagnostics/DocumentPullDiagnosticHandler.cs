@@ -54,10 +54,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         }
 
         protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-            Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+            RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
         {
             // We only support doc diagnostics for open files.
-            if (!document.IsOpen())
+            if (!context.IsTracking(document.GetURI()))
                 return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
 
             // For open documents, directly use the IDiagnosticAnalyzerService.  This will use the actual snapshots

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -106,6 +104,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var queue = CreateRequestQueue(solution);
             var server = GetLanguageServer(solution);
 
+            await OpenDocumentAsync(queue, server, document);
+
             await WaitForDiagnosticsAsync(workspace);
             var results = await server.ExecuteRequestAsync<DocumentDiagnosticsParams, DiagnosticReport[]>(
                 queue,
@@ -119,6 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             // Now remove the doc.
             workspace.OnDocumentRemoved(workspace.Documents.Single().Id);
+            await CloseDocumentAsync(queue, server, document);
 
             // And get diagnostic again, using the same doc-id as before.
             await WaitForDiagnosticsAsync(workspace);
@@ -271,6 +272,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                     {
                         Uri = document.GetURI(),
                         Text = document.GetTextSynchronously(CancellationToken.None).ToString(),
+                    }
+                },
+                new LSP.ClientCapabilities(),
+                clientName: null,
+                CancellationToken.None);
+        }
+
+        private static async Task CloseDocumentAsync(RequestExecutionQueue queue, LanguageServerProtocol server, Document document)
+        {
+            await server.ExecuteRequestAsync<DidCloseTextDocumentParams, object>(
+                queue,
+                Methods.TextDocumentDidCloseName,
+                new DidCloseTextDocumentParams
+                {
+                    TextDocument = new TextDocumentIdentifier
+                    {
+                        Uri = document.GetURI(),
                     }
                 },
                 new LSP.ClientCapabilities(),
