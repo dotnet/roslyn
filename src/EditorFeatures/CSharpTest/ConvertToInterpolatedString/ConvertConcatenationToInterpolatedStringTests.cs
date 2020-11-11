@@ -1006,7 +1006,7 @@ class C
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         [InlineData(@"""a"" [|+|] (1 + 1)",
                    @"$""a{1 + 1}""")]
-        [InlineData(@"""a"" [|+|] (1 + 1) + ""b"" + (2 + 2)",
+        [InlineData(@"""a"" [||]+ (1 + 1) + ""b"" + (2 + 2)",
                    @"$""a{1 + 1}b{2 + 2}""")]
         [InlineData(@"""a"" [|+|] (true ? ""t"" : ""f"")",
                    @"$""a{(true ? ""t"" : ""f"")}""")]
