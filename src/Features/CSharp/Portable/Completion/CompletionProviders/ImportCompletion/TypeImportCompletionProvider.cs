@@ -61,12 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             if (commitKey == ';')
             {
+                // Only consider add '()' if the type is used under object creation context
                 var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var preProcessorTokenOnLeftOfPosition = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true);
-                var isPreProcessorDirectiveContext = syntaxTree.IsPreProcessorDirectiveContext(position, preProcessorTokenOnLeftOfPosition, cancellationToken);
-                var leftToken = isPreProcessorDirectiveContext
-                    ? preProcessorTokenOnLeftOfPosition
-                    : syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+                var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
                 return syntaxTree.IsObjectCreationTypeContext(position, leftToken, cancellationToken);
             }
 

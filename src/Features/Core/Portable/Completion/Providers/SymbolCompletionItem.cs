@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public static CompletionItem AddShouldProvideParenthesisCompletion(CompletionItem item, bool value)
-            => item.AddProperty("ShouldProvideParenthesisCompletion", value.ToString());
+            => value ? item.AddProperty("ShouldProvideParenthesisCompletion", true.ToString()) : item;
 
         public static bool GetShouldProvideParenthesisCompletion(CompletionItem item)
         {

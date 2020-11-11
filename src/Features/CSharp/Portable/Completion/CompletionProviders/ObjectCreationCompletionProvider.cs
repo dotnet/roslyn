@@ -146,20 +146,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return s_defaultRules;
         }
 
-        public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
+        protected override string GetInsertionText(CompletionItem item, char ch)
         {
-            var insertionText = SymbolCompletionItem.GetInsertionText(item);
-            if (commitKey == ';')
+            if (ch == ';')
             {
-                return Task.FromResult(
-                    GetCompletionChangeWithParenthesis(
-                        insertionText,
-                        commitKey.Value,
-                        item.Span));
+                var insertionText = SymbolCompletionItem.GetInsertionText(item);
+                return insertionText + "()";
             }
 
-            var insertionTextChange = new TextChange(item.Span, insertionText);
-            return Task.FromResult(CompletionChange.Create(insertionTextChange));
+            return base.GetInsertionText(item, ch);
         }
     }
 }

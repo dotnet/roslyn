@@ -1562,7 +1562,7 @@ namespace Foo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestCommitWithSemicolonForParameterlessConstructor()
         {
             var markup = @"
@@ -1600,14 +1600,14 @@ namespace BB
     {
         public void M()
         {
-            var c = new C();$$
+            var c = new C();
         }
     }
 }";
-            await VerifyCustomCommitProviderAsync(markup, "C", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyProviderCommitAsync(markup, "C", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestCommitWithSemicolonUnderNonObjectCreationContext()
         {
             var markup = @"
@@ -1645,11 +1645,11 @@ namespace BB
     {
         public void M()
         {
-            C$$
+            C;
         }
     }
 }";
-            await VerifyCustomCommitProviderAsync(markup, "C", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyProviderCommitAsync(markup, "C", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
         }
 
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null, CompletionItemFlags? flags = null)

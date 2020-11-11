@@ -487,17 +487,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         // This is used to decide which provider we'd collect target type completion telemetry from.
         protected virtual bool ShouldCollectTelemetryForTargetTypeCompletion => false;
 
-        protected static CompletionChange GetCompletionChangeWithParenthesis(
-            string insertionText, char commitKey, TextSpan itemSpan)
-        {
-            var text = string.Concat(insertionText + "()", commitKey);
-            var textChange = new TextChange(itemSpan, text);
-            return CompletionChange.Create(
-                textChange,
-                itemSpan.Start + text.Length,
-                includesCommitCharacter: true);
-        }
-
         private class TelemetryCounter : IDisposable
         {
             private readonly bool _shouldReport;

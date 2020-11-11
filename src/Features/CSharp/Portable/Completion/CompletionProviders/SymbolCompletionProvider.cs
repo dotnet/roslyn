@@ -272,39 +272,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             bool preselect,
             SupportedPlatformData supportedPlatformData)
         {
-            var rules = CreateCompletionItemRules(completionContext, symbols, context, preselect);
-            var symbol = symbols[0];
-            var item = SymbolCompletionItem.CreateWithNameAndKind(
-                displayText: displayText,
-                displayTextSuffix: displayTextSuffix,
-                symbols: symbols,
-                // Always preselect
-                rules: rules,
-                contextPosition: context.Position,
-                insertionText: insertionText,
-                filterText: GetFilterText(symbol, displayText, context),
-                supportedPlatforms: supportedPlatformData);
+            var item = base.CreateItem(
+                completionContext,
+                displayText,
+                displayTextSuffix,
+                insertionText,
+                symbols,
+                context,
+                preselect,
+                supportedPlatformData);
 
-            if (symbol.IsKind(SymbolKind.Method)
-                || symbol.IsKind(SymbolKind.NamedType)
-                || (symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.IsType))
+            var symbol = symbols[0];
+            if (symbol.IsKind(SymbolKind.Method))
             {
                 var isInferredTypeDelegate = context.InferredTypes.Any(type => type.IsDelegateType());
+                if (!isInferredTypeDelegate)
+                {
+                    item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item, true);
+                }
+            }
+            else if (symbol.IsKind(SymbolKind.NamedType) || symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.IsType)
+            {
                 var isObjectCreationTypeContext = context switch
                 {
                     CSharpSyntaxContext csharpSyntaxContext => csharpSyntaxContext.IsObjectCreationTypeContext,
                     _ => false
                 };
 
-                var shouldProvideParenthesisCompletion = symbol switch
-                {
-                    IMethodSymbol => !isInferredTypeDelegate,
-                    ITypeSymbol => isObjectCreationTypeContext,
-                    IAliasSymbol => isObjectCreationTypeContext,
-                    _ => false
-                };
-
-                if (shouldProvideParenthesisCompletion)
+                if (isObjectCreationTypeContext)
                 {
                     item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item, true);
                 }
@@ -313,16 +308,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return item;
         }
 
-        public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
+        protected override string GetInsertionText(CompletionItem item, char ch)
         {
-            var insertionText = SymbolCompletionItem.GetInsertionText(item);
-            if (commitKey == ';' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
+            if (ch == ';' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
             {
-                return Task.FromResult(GetCompletionChangeWithParenthesis(insertionText, commitKey.Value, item.Span));
+                var insertionText = SymbolCompletionItem.GetInsertionText(item);
+                return insertionText + "()";
             }
 
-            var insertionTextChange = new TextChange(item.Span, insertionText);
-            return Task.FromResult(CompletionChange.Create(insertionTextChange));
+            return base.GetInsertionText(item, ch);
         }
     }
 }

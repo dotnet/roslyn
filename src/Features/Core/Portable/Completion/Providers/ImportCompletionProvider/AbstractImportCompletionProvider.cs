@@ -119,17 +119,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 commitKey,
                 cancellationToken).ConfigureAwait(false);
             var insertText = provideParenthesisCompletion
-                ? string.Concat(completionItem.DisplayText, "()", commitKey)
+                ? completionItem.DisplayText + "()"
                 : completionItem.DisplayText;
 
             if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
             {
                 var completionText = $"{containingNamespace}.{insertText}";
-                var textChange = new TextChange(completionListSpan, completionText);
-                return CompletionChange.Create(
-                    textChange,
-                    newPosition: completionListSpan.Start + completionText.Length,
-                    includesCommitCharacter: provideParenthesisCompletion);
+                return CompletionChange.Create(new TextChange(completionListSpan, completionText));
             }
 
             // Find context node so we can use it to decide where to insert using/imports.
@@ -174,10 +170,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(builder);
             var change = Utilities.Collapse(newText, builder.ToImmutableAndFree());
-            return CompletionChange.Create(
-                change,
-                change.NewText != null ? change.Span.Start + change.NewText.Length : null,
-                includesCommitCharacter: provideParenthesisCompletion);
+            return CompletionChange.Create(change);
 
             async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {

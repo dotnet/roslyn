@@ -10759,7 +10759,7 @@ class C
                 matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter });
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionWithSemicolonForMethod()
         {
             var markup = @"
@@ -10783,7 +10783,7 @@ class Program
 {
     private void Bar()
     {
-        Foo();$$
+        Foo();
     }
     
     private void Foo(int i)
@@ -10794,10 +10794,78 @@ class Program
     {
     }
 }";
-            await VerifyCustomCommitProviderAsync(markup, "Foo", expected, commitChar: ';');
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonInNestedMethod()
+        {
+            var markup = @"
+class Program
+{
+    private void Bar()
+    {
+        Foo(F$$);
+    }
+    
+    private int Foo(int i)
+    {
+        return 1;
+    }
+}";
+            var expected = @"
+class Program
+{
+    private void Bar()
+    {
+        Foo(Foo(););
+    }
+    
+    private int Foo(int i)
+    {
+        return 1;
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonForDelegateInferredType()
+        {
+            var markup = @"
+using System;
+class Program
+{
+    private void Bar()
+    {
+        Bar2(F$$);
+    }
+    
+    private void Foo()
+    {
+    }
+
+    void Bar2(Action t) { }
+}";
+            var expected = @"
+using System;
+class Program
+{
+    private void Bar()
+    {
+        Bar2(Foo;);
+    }
+    
+    private void Foo()
+    {
+    }
+
+    void Bar2(Action t) { }
+}";
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionWithSemicolonForVoidParameterlessMethod()
         {
             var markup = @"
@@ -10817,18 +10885,18 @@ class Program
 {
     private void Bar()
     {
-        Foo();$$
+        Foo();
     }
     
     private void Foo()
     {
     }
 }";
-            await VerifyCustomCommitProviderAsync(markup, "Foo", expected, commitChar: ';');
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonForParameterlessConstructor()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonForConstructor()
         {
             var markup = @"
 class Program
@@ -10843,13 +10911,35 @@ class Program
 {
     private static void Bar()
     {
-        var o = new Program();$$
+        var o = new Program();
     }
 }";
-            await VerifyCustomCommitProviderAsync(markup, "Program", expected, commitChar: ';');
+            await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: ';');
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonForTypeUnderNonObjectCreationContext()
+        {
+            var markup = @"
+class Program
+{
+    private static void Bar()
+    {
+        var o = P$$
+    }
+}";
+            var expected = @"
+class Program
+{
+    private static void Bar()
+    {
+        var o = Program;
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: ';');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionWithSemicolonForAliasConstructor()
         {
             var markup = @"
@@ -10872,41 +10962,11 @@ namespace Bar1
     {
         private static void Bar()
         {
-            var o = new String2();$$
+            var o = new String2();
         }
     }
 }";
-            await VerifyCustomCommitProviderAsync(markup, "String2", expected, commitChar: ';');
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonForAliasParameterlessConstructor()
-        {
-            var markup = @"
-using Builder = System.Text.StringBuilder;
-namespace Bar1
-{
-    class Program
-    {
-        private static void Bar()
-        {
-            var o = new Buil$$
-        }
-    }
-}";
-            var expected = @"
-using Builder = System.Text.StringBuilder;
-namespace Bar1
-{
-    class Program
-    {
-        private static void Bar()
-        {
-            var o = new Builder();$$
-        }
-    }
-}";
-            await VerifyCustomCommitProviderAsync(markup, "Builder", expected, commitChar: ';');
+            await VerifyProviderCommitAsync(markup, "String2", expected, commitChar: ';');
         }
 
         [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]

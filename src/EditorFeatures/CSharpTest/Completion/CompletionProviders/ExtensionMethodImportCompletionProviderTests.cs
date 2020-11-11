@@ -1888,8 +1888,8 @@ namespace Foo
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestCommitWithSemicolonForParemeterlessMethod()
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCommitWithSemicolonForMethod()
         {
             var markup = @"
 public class C
@@ -1938,11 +1938,11 @@ namespace BB
         public void M()
         {
             var c = new C();
-            c.ToInt();$$
+            c.ToInt();
         }
     }
 }";
-            await VerifyCustomCommitProviderAsync(markup, "ToInt", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyProviderCommitAsync(markup, "ToInt", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
