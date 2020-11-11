@@ -182,15 +182,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             var workspace = document.Project.Solution.Workspace;
             var isPull = workspace.Options.GetOption(diagnosticMode) == DiagnosticMode.Pull;
-            if (!isPull)
-                return;
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var result);
 
-            var diagnostics = await GetDiagnosticsAsync(document, diagnosticMode, cancellationToken).ConfigureAwait(false);
-            foreach (var diagnostic in diagnostics)
-                result.Add(ConvertDiagnostic(document, text, diagnostic));
+            if (isPull)
+            {
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var diagnostics = await GetDiagnosticsAsync(document, diagnosticMode, cancellationToken).ConfigureAwait(false);
+                foreach (var diagnostic in diagnostics)
+                    result.Add(ConvertDiagnostic(document, text, diagnostic));
+            }
 
             progress.Report(RecordDiagnosticReport(document, result.ToArray()));
         }

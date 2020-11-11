@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -63,8 +64,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             // Calling GetTextBuffer will effectively open the file.
             workspace.Documents.Single().GetTextBuffer();
 
+            var queue = CreateRequestQueue(workspace.CurrentSolution);
+            var server = GetLanguageServer(workspace.CurrentSolution);
+
+            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(queue, server, document);
+
             var results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+                workspace, queue, server, document);
 
             Assert.Empty(results.Single().Diagnostics);
         }
@@ -149,15 +157,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             // Calling GetTextBuffer will effectively open the file.
             var buffer = workspace.Documents.Single().GetTextBuffer();
 
+            var queue = CreateRequestQueue(workspace.CurrentSolution);
+            var server = GetLanguageServer(workspace.CurrentSolution);
+
+            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(queue, server, document);
+
             var results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+                workspace, queue, server, document);
 
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
 
-            buffer.Insert(buffer.CurrentSnapshot.Length, "}");
+            await InsertTextAsync(queue, server, document, buffer.CurrentSnapshot.Length, "}");
 
             results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+                workspace, queue, server, workspace.CurrentSolution.Projects.Single().Documents.Single());
 
             Assert.Empty(results[0].Diagnostics);
         }
@@ -172,20 +187,77 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             // Calling GetTextBuffer will effectively open the file.
             var buffer = workspace.Documents.Single().GetTextBuffer();
 
-            var results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+            var queue = CreateRequestQueue(workspace.CurrentSolution);
+            var server = GetLanguageServer(workspace.CurrentSolution);
+
+            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(queue, server, document);
+            var results = await RunGetDocumentPullDiagnosticsAsync(workspace, queue, server, document);
 
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
             Assert.Equal(new Position { Line = 0, Character = 9 }, results[0].Diagnostics.Single().Range.Start);
 
-            buffer.Insert(0, " ");
+            await InsertTextAsync(queue, server, document, position: 0, text: " ");
 
             results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single(),
+                workspace, queue, server, workspace.CurrentSolution.Projects.Single().Documents.Single(),
                 previousResultId: results[0].ResultId);
 
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
             Assert.Equal(new Position { Line = 0, Character = 10 }, results[0].Diagnostics.Single().Range.Start);
+        }
+
+        private static async Task InsertTextAsync(
+            RequestExecutionQueue queue,
+            LanguageServerProtocol server,
+            Document document,
+            int position,
+            string text)
+        {
+            var sourceText = await document.GetTextAsync();
+            var lineInfo = sourceText.Lines.GetLinePositionSpan(new TextSpan(position, 0));
+
+            await server.ExecuteRequestAsync<DidChangeTextDocumentParams, object>(
+                queue,
+                Methods.TextDocumentDidChangeName,
+                new DidChangeTextDocumentParams
+                {
+                    TextDocument = ProtocolConversions.DocumentToVersionedTextDocumentIdentifier(document),
+                    ContentChanges = new TextDocumentContentChangeEvent[]
+                    {
+                        new TextDocumentContentChangeEvent
+                        {
+                            Range = new LSP.Range
+                            {
+                                Start = ProtocolConversions.LinePositionToPosition(lineInfo.Start),
+                                End  =ProtocolConversions.LinePositionToPosition(lineInfo.End),
+                            },
+                            Text = text,
+                        },
+                    },
+                },
+                new LSP.ClientCapabilities(),
+                clientName: null,
+                CancellationToken.None);
+        }
+
+        private static async Task OpenDocumentAsync(RequestExecutionQueue queue, LanguageServerProtocol server, Document document)
+        {
+            await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(
+                queue,
+                Methods.TextDocumentDidOpenName,
+                new DidOpenTextDocumentParams
+                {
+                    TextDocument = new TextDocumentItem
+                    {
+                        Uri = document.GetURI(),
+                        Text = document.GetTextSynchronously(CancellationToken.None).ToString(),
+                    }
+                },
+                new LSP.ClientCapabilities(),
+                clientName: null,
+                CancellationToken.None);
         }
 
         [Fact]
@@ -406,6 +478,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var queue = CreateRequestQueue(solution);
             var server = GetLanguageServer(solution);
 
+            return await RunGetDocumentPullDiagnosticsAsync(workspace, queue, server, document, previousResultId, progress);
+        }
+
+        private static async Task<DiagnosticReport[]> RunGetDocumentPullDiagnosticsAsync(
+            TestWorkspace workspace,
+            RequestExecutionQueue queue,
+            LanguageServerProtocol server,
+            Document document,
+            string? previousResultId = null,
+            IProgress<DiagnosticReport[]>? progress = null)
+        {
             await WaitForDiagnosticsAsync(workspace);
 
             var result = await server.ExecuteRequestAsync<DocumentDiagnosticsParams, DiagnosticReport[]>(
