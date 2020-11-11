@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// </summary>
     internal sealed class EditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
     {
-        internal static readonly TraceLog Log = new TraceLog(2048, "EnC");
+        internal static readonly TraceLog Log = new(2048, "EnC");
 
         private readonly Workspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// These diagnostics are cleared as soon as we enter break mode or the debugging session terminates.
         /// </summary>
         private readonly HashSet<DocumentId> _documentsWithReportedDiagnosticsDuringRunMode;
-        private readonly object _documentsWithReportedDiagnosticsDuringRunModeGuard = new object();
+        private readonly object _documentsWithReportedDiagnosticsDuringRunModeGuard = new();
 
         private DebuggingSession? _debuggingSession;
         private EditSession? _editSession;
@@ -239,7 +237,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 return analysis.RudeEditErrors.SelectAsArray((e, t) => e.ToDiagnostic(t), tree);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 return ImmutableArray<Diagnostic>.Empty;
             }
@@ -531,7 +529,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return currentActiveStatements[baseActiveStatement.PrimaryDocumentOrdinal].Span;
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 return null;
             }
@@ -571,7 +569,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // If the document is out-of-sync the exception regions can't be determined.
                 return baseExceptionRegions.Spans.IsDefault ? (bool?)null : baseExceptionRegions.IsActiveStatementCovered;
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 return null;
             }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Globalization;
@@ -170,6 +168,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int INF_UnableToLoadSomeTypesInAnalyzer { get; }
         public abstract int WRN_AnalyzerCannotBeCreated { get; }
         public abstract int WRN_NoAnalyzerInAssembly { get; }
+        public abstract int WRN_AnalyzerReferencesFramework { get; }
         public abstract int ERR_CantReadRulesetFile { get; }
         public abstract int ERR_CompileCancelled { get; }
 

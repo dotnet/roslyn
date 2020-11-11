@@ -142,6 +142,7 @@
       <_Dependency Remove="Nerdbank.Streams"/>
       <_Dependency Remove="Newtonsoft.Json"/>
       <_Dependency Remove="NuGet.VisualStudio"/>
+      <_Dependency Remove="NuGet.VisualStudio.Contracts"/>
       <_Dependency Remove="stdole"/>
       <_Dependency Remove="StreamJsonRpc"/>
       <_Dependency Remove="System.IO.Pipelines"/>
@@ -149,6 +150,7 @@
       <_Dependency Remove="System.ValueTuple"/>
       <_Dependency Remove="System.Security.AccessControl"/>
       <_Dependency Remove="System.Security.Principal.Windows"/>
+      <_Dependency Remove="System.Threading.AccessControl"/>
       <_Dependency Remove="System.Threading.Tasks.Dataflow"/>
       <_Dependency Remove="VSLangProj"/>
       <_Dependency Remove="VSLangProj2"/>

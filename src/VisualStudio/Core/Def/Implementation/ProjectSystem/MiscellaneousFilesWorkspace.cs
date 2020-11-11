@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -34,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
 
-        private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = new Dictionary<Guid, LanguageInformation>();
+        private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = new();
 
         /// <summary>
         /// <see cref="WorkspaceRegistration"/> instances for all open buffers being tracked by by this object

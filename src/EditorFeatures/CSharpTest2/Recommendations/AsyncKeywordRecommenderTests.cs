@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -276,7 +278,7 @@ class Goo
         [Theory]
         [CombinatorialData]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task TestLocalFunction(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -286,7 +288,7 @@ class Goo
         [Theory]
         [CombinatorialData]
         [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction2(bool topLevelStatement)
         {
@@ -297,7 +299,7 @@ class Goo
         [Theory]
         [CombinatorialData]
         [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction3(bool topLevelStatement)
         {
@@ -308,7 +310,7 @@ class Goo
         [Theory]
         [CombinatorialData]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction4(bool topLevelStatement)
         {
@@ -318,7 +320,7 @@ class Goo
 
         [Fact]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction5()
         {
@@ -338,7 +340,7 @@ class Goo
         [Theory]
         [CombinatorialData]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction6(bool topLevelStatement)
         {
@@ -349,7 +351,7 @@ class Goo
         [Theory]
         [CombinatorialData]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction7(bool topLevelStatement)
         {

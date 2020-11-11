@@ -847,7 +847,7 @@ End Namespace"
             ExpressionCompilerTestHelpers.EmitCorLibWithAssemblyReferences(
                 compCorLib,
                 Nothing,
-                Function(moduleBuilder, emitOptions) New PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType),
+                Function(moduleBuilder, emitOptions) New PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType.GetCciAdapter()),
                 peBytes,
                 pdbBytes)
 

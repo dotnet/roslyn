@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         {
         }
 
-        public static AddParameterService Instance = new AddParameterService();
+        public static AddParameterService Instance = new();
 
         public bool HasCascadingDeclarations(IMethodSymbol method)
         {
@@ -123,7 +125,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                             ConflictAnnotation.Create(FeaturesResources.Related_method_signatures_found_in_metadata_will_not_be_updated));
                     }
 
-                    if (method.MethodKind == MethodKind.ReducedExtension)
+                    if (method.MethodKind == MethodKind.ReducedExtension && insertionIndex < existingParameters.Count)
                     {
                         insertionIndex++;
                     }

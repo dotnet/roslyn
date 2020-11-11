@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -135,8 +133,16 @@ namespace Microsoft.CodeAnalysis.Options
 
         public override OptionSet WithChangedOption(OptionKey optionKey, object? value)
         {
-            // make sure we first load this in current optionset
-            this.GetOption(optionKey);
+            // Make sure we first load this in current optionset
+            var currentValue = this.GetOption(optionKey);
+
+            // Check if the new value is the same as the current value.
+            if (Equals(value, currentValue))
+            {
+                // Return a cloned option set as the public API 'WithChangedOption' guarantees a new option set is returned.
+                return new SerializableOptionSet(_languages, _workspaceOptionSet, _serializableOptions,
+                    _serializableOptionValues, _changedOptionKeysSerializable, _changedOptionKeysNonSerializable);
+            }
 
             WorkspaceOptionSet workspaceOptionSet;
             ImmutableDictionary<OptionKey, object?> serializableOptionValues;
@@ -443,7 +449,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         private sealed class OptionKeyComparer : IComparer<OptionKey>
         {
-            public static readonly OptionKeyComparer Instance = new OptionKeyComparer();
+            public static readonly OptionKeyComparer Instance = new();
             private OptionKeyComparer() { }
 
             public int Compare(OptionKey x, OptionKey y)

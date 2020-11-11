@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="translated">入力候補一覧を引数リストに自動的に表示する (試験段階)</target>
+        <target state="needs-review-translation">入力候補一覧を引数リストに自動的に表示する (試験段階)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -52,15 +52,15 @@
         <target state="translated">全般</target>
         <note>Title of the control group on the General Formatting options page</note>
       </trans-unit>
-      <trans-unit id="Generate_Event_Subscription">
-        <source>Generate Event Subscription</source>
-        <target state="translated">イベント サブスクリプションの生成</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
         <target state="translated">関係演算子: &lt; &gt; &lt;= &gt;= is as == !=</target>
         <note>'is' and 'as' are C# keywords and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
+        <source>Insert // at the start of new lines when writing // comments</source>
+        <target state="new">Insert // at the start of new lines when writing // comments</target>
+        <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
@@ -80,6 +80,11 @@
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
         <source>Perform additional code cleanup during formatting</source>
         <target state="translated">書式設定中に追加のコード クリーンアップを実行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
+        <source>Prefer implicit object creation when type is apparent</source>
+        <target state="new">Prefer implicit object creation when type is apparent</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
@@ -112,9 +117,14 @@
         <target state="translated">不要な using の削除</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_new_expressions">
+        <source>Show hints for 'new' expressions</source>
+        <target state="new">Show hints for 'new' expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces (experimental)</source>
-        <target state="translated">インポートされていない名前空間の項目を表示する (試験段階)</target>
+        <source>Show items from unimported namespaces</source>
+        <target state="needs-review-translation">インポートされていない名前空間の項目を表示する (試験段階)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

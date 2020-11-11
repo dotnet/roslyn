@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,6 +12,8 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
+
+#pragma warning disable CS0618 // Type or member is obsolete - this should become error once we provide infra for migrating to ISB (https://github.com/dotnet/roslyn/issues/44326)
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         static ServiceBase()
         {
-            // Use a TraceListener hook to intercept assertion failures and report them through FatalError.
-            WatsonTraceListener.Install();
+            WatsonReporter.InitializeFatalErrorHandlers();
         }
 
         protected ServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter>? jsonConverters = null)
@@ -113,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 return await callAsync().ConfigureAwait(false);
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -127,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 await callAsync().ConfigureAwait(false);
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -141,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 return call();
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -155,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 call();
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

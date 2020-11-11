@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
@@ -74,9 +72,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         public static BuildRequest Create(RequestLanguage language,
                                           IList<string> args,
-                                          string? workingDirectory = null,
-                                          string? tempDirectory = null,
-                                          string? compilerHash = null,
+                                          string workingDirectory,
+                                          string tempDirectory,
+                                          string compilerHash,
                                           string? keepAlive = null,
                                           string? libDirectory = null)
         {
@@ -92,15 +90,8 @@ Creating BuildRequest
             var requestLength = args.Count + 1 + (libDirectory == null ? 0 : 1);
             var requestArgs = new List<Argument>(requestLength);
 
-            if (workingDirectory != null)
-            {
-                requestArgs.Add(new Argument(ArgumentId.CurrentDirectory, 0, workingDirectory));
-            }
-
-            if (tempDirectory != null)
-            {
-                requestArgs.Add(new Argument(ArgumentId.TempDirectory, 0, tempDirectory));
-            }
+            requestArgs.Add(new Argument(ArgumentId.CurrentDirectory, 0, workingDirectory));
+            requestArgs.Add(new Argument(ArgumentId.TempDirectory, 0, tempDirectory));
 
             if (keepAlive != null)
             {

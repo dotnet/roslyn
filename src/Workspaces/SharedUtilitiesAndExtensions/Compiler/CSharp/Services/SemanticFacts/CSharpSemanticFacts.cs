@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class CSharpSemanticFacts : ISemanticFacts
     {
-        internal static readonly CSharpSemanticFacts Instance = new CSharpSemanticFacts();
+        internal static readonly CSharpSemanticFacts Instance = new();
 
         private CSharpSemanticFacts()
         {
@@ -308,6 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return queryInfo.OperationInfo;
+                case IdentifierNameSyntax { Parent: PrimaryConstructorBaseTypeSyntax baseType }:
+                    return semanticModel.GetSymbolInfo(baseType, cancellationToken);
             }
 
             //Only in the orderby clause a comma can bind to a symbol.

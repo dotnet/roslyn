@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -147,7 +149,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private class TypeWithOneMember<T> : IObjectWritable, IEquatable<TypeWithOneMember<T>>
         {
-            private T _member;
+            private readonly T _member;
 
             public TypeWithOneMember(T value)
             {
@@ -205,8 +207,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private class TypeWithTwoMembers<T, S> : IObjectWritable, IEquatable<TypeWithTwoMembers<T, S>>
         {
-            private T _member1;
-            private S _member2;
+            private readonly T _member1;
+            private readonly S _member2;
 
             public TypeWithTwoMembers(T value1, S value2)
             {
@@ -262,7 +264,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         // it serializes each member individually, not as an array.
         private class TypeWithManyMembers<T> : IObjectWritable, IEquatable<TypeWithManyMembers<T>>
         {
-            private T[] _members;
+            private readonly T[] _members;
 
             public TypeWithManyMembers(T[] values)
             {

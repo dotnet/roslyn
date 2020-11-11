@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,14 +27,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         private static readonly string s_dotnetSdkVersion;
         private static readonly string? s_dotnetSdkPath;
 
-        private static string s_projectSource =
+        private static readonly string s_projectSource =
 @"<Project Sdk='Microsoft.NET.Sdk'>
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 </Project>
 ";
-        private static string s_classSource =
+        private static readonly string s_classSource =
 @"using System;
 
 public class TestClass 

@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Reflection;
-using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -44,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         // TODO: remove
+        [Obsolete("Supports non-brokered services")]
         internal IAssetSource GetAssetSource()
         {
             Contract.ThrowIfNull(_solutionAssetSource, "Storage not initialized");
@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         // TODO: remove
+        [Obsolete("Supports non-brokered services")]
         internal void InitializeAssetSource(IAssetSource assetSource)
         {
             Contract.ThrowIfFalse(_solutionAssetSource == null);
@@ -61,10 +62,50 @@ namespace Microsoft.CodeAnalysis.Remote
         public IAssetSource? TryGetAssetSource()
             => _solutionAssetSource;
 
+        private static ComposableCatalog CreateCatalog(ImmutableArray<Assembly> assemblies)
+        {
+            var resolver = new Resolver(SimpleAssemblyLoader.Instance);
+            var discovery = new AttributedPartDiscovery(resolver, isNonPublicSupported: true);
+            var parts = Task.Run(async () => await discovery.CreatePartsAsync(assemblies).ConfigureAwait(false)).GetAwaiter().GetResult();
+            return ComposableCatalog.Create(resolver).AddParts(parts);
+        }
+
+        private static IExportProviderFactory CreateExportProviderFactory(ComposableCatalog catalog)
+        {
+            var configuration = CompositionConfiguration.Create(catalog);
+            var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
+            return runtimeComposition.CreateExportProviderFactory();
+        }
+
         private static RemoteWorkspace CreatePrimaryWorkspace()
-            => new RemoteWorkspace(MefHostServices.Create(RemoteHostAssemblies), WorkspaceKind.RemoteWorkspace);
+        {
+            var catalog = CreateCatalog(RemoteHostAssemblies);
+            var exportProviderFactory = CreateExportProviderFactory(catalog);
+            var exportProvider = exportProviderFactory.CreateExportProvider();
+
+            return new RemoteWorkspace(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.RemoteWorkspace);
+        }
 
         public virtual RemoteWorkspace GetWorkspace()
             => _lazyPrimaryWorkspace.Value;
+
+        private sealed class SimpleAssemblyLoader : IAssemblyLoader
+        {
+            public static readonly IAssemblyLoader Instance = new SimpleAssemblyLoader();
+
+            public Assembly LoadAssembly(AssemblyName assemblyName)
+                => Assembly.Load(assemblyName);
+
+            public Assembly LoadAssembly(string assemblyFullName, string codeBasePath)
+            {
+                var assemblyName = new AssemblyName(assemblyFullName);
+                if (!string.IsNullOrEmpty(codeBasePath))
+                {
+                    assemblyName.CodeBase = codeBasePath;
+                }
+
+                return LoadAssembly(assemblyName);
+            }
+        }
     }
 }

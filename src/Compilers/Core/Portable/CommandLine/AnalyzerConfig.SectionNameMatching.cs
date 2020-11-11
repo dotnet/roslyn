@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -111,6 +112,81 @@ namespace Microsoft.CodeAnalysis
             return new SectionNameMatcher(
                 new Regex(sb.ToString(), RegexOptions.Compiled),
                 numberRangePairs.ToImmutableAndFree());
+        }
+
+        /// <summary>
+        /// Test if a section name is an absolute path with no special chars
+        /// </summary>
+        internal static bool IsAbsoluteEditorConfigPath(string sectionName)
+        {
+            // NOTE: editorconfig paths must use '/' as a directory separator character on all OS.
+
+            // on all unix systems this is thus a simple test: does the path start with '/'
+            // and contain no special chars?
+
+            // on windows, a path can be either drive rooted or not (e.g. start with 'c:' or just '')
+            // in addition to being absolute or relative.
+            // for example c:myfile.cs is a relative path, but rooted on drive c:
+            // /myfile2.cs is an absolute path but rooted to the current drive.
+
+            // in addition there are UNC paths and volume guids (see https://docs.microsoft.com/en-us/dotnet/standard/io/file-path-formats)
+            // but these start with \\ (and thus '/' in editor config terminology)
+
+            // in this implementation we choose to ignore the drive root for the purposes of
+            // determining validity. On windows c:/file.cs and /file.cs are both assumed to be
+            // valid absolute paths, even though the second one is technically relative to
+            // the current drive of the compiler working directory. 
+
+            // Note that this check has no impact on config correctness. Files on windows
+            // will still be compared using their full path (including drive root) so it's
+            // not possible to target the wrong file. It's just possible that the user won't
+            // receive a warning that this section is ignored on windows in this edge case.
+
+            SectionNameLexer nameLexer = new SectionNameLexer(sectionName);
+            bool sawStartChar = false;
+            int logicalIndex = 0;
+            while (!nameLexer.IsDone)
+            {
+                if (nameLexer.Lex() != TokenKind.SimpleCharacter)
+                {
+                    return false;
+                }
+                var simpleChar = nameLexer.EatCurrentCharacter();
+
+                // check the path starts with '/'
+                if (logicalIndex == 0)
+                {
+                    if (simpleChar == '/')
+                    {
+                        sawStartChar = true;
+                    }
+                    else if (Path.DirectorySeparatorChar == '/')
+                    {
+                        return false;
+                    }
+                }
+                // on windows we get a second chance to find the start char
+                else if (!sawStartChar && Path.DirectorySeparatorChar == '\\')
+                {
+                    if (logicalIndex == 1 && simpleChar != ':')
+                    {
+                        return false;
+                    }
+                    else if (logicalIndex == 2)
+                    {
+                        if (simpleChar != '/')
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            sawStartChar = true;
+                        }
+                    }
+                }
+                logicalIndex++;
+            }
+            return sawStartChar;
         }
 
         /// <summary>
@@ -454,7 +530,7 @@ namespace Microsoft.CodeAnalysis
             /// Returns the string representation of a decimal integer, or null if
             /// the current lexeme is not an integer.
             /// </summary>
-            public string TryLexNumber()
+            public string? TryLexNumber()
             {
                 bool start = true;
                 var sb = new StringBuilder();

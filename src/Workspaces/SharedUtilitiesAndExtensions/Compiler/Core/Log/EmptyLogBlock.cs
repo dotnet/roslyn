@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal sealed class EmptyLogBlock : IDisposable
     {
-        public static readonly EmptyLogBlock Instance = new EmptyLogBlock();
+        public static readonly EmptyLogBlock Instance = new();
 
         public void Dispose()
         {

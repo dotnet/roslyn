@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 throw new InvalidOperationException("Invoke should not be called on a SuggestedActionWithNestedActions");
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
             }
         }

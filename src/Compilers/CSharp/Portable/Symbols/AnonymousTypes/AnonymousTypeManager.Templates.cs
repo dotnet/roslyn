@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -305,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     foreach (var method in template.SpecialMembers)
                     {
-                        moduleBeingBuilt.AddSynthesizedDefinition(template, method);
+                        moduleBeingBuilt.AddSynthesizedDefinition(template, method.GetCciAdapter());
                     }
 
                     compiler.Visit(template, null);
@@ -388,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var nameAndIndex = template.NameAndIndex;
                 var key = template.GetAnonymousTypeKey();
-                var value = new Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(nameAndIndex.Name, nameAndIndex.Index, template);
+                var value = new Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(nameAndIndex.Name, nameAndIndex.Index, template.GetCciAdapter());
                 result.Add(key, value);
             }
             templates.Free();

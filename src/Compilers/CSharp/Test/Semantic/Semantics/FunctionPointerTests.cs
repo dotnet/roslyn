@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1614,7 +1612,7 @@ unsafe class D : C<delegate*<void>>
                                       .OfType<InvocationExpressionSyntax>()
                                       .Select(s => model.GetSymbolInfo(s).CandidateSymbols.Single())
                                       .Cast<IMethodSymbol>()
-                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .Select(m => m!.TypeArguments.Single().ToTestDisplayString())
                                       .ToList();
 
             var expectedTypes = new string[] {
@@ -1676,7 +1674,7 @@ unsafe class C
                                           return symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.Single();
                                       })
                                       .Cast<IMethodSymbol>()
-                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .Select(m => m!.TypeArguments.Single().ToTestDisplayString())
                                       .ToList();
 
             var expectedTypes = new string[] {
@@ -1749,7 +1747,7 @@ unsafe class C
                                           return symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.Single();
                                       })
                                       .Cast<IMethodSymbol>()
-                                      .Select(m => m.TypeArguments.Single().ToTestDisplayString())
+                                      .Select(m => m!.TypeArguments.Single().ToTestDisplayString())
                                       .ToList();
 
             var expectedTypes = new string[] {
@@ -2350,19 +2348,20 @@ True
 True");
             verifier.VerifyIL("C.Main", expectedIL: @"
 {
-  // Code size       19 (0x13)
+  // Code size       20 (0x14)
   .maxstack  2
   .locals init (delegate*<void> V_0) //ptr
   IL_0000:  ldc.i4.0
   IL_0001:  conv.u
   IL_0002:  stloc.0
   IL_0003:  ldloc.0
-  IL_0004:  ldnull
-  IL_0005:  ceq
-  IL_0007:  call       ""void System.Console.WriteLine(bool)""
-  IL_000c:  ldc.i4.1
-  IL_000d:  call       ""void System.Console.WriteLine(bool)""
-  IL_0012:  ret
+  IL_0004:  ldc.i4.0
+  IL_0005:  conv.u
+  IL_0006:  ceq
+  IL_0008:  call       ""void System.Console.WriteLine(bool)""
+  IL_000d:  ldc.i4.1
+  IL_000e:  call       ""void System.Console.WriteLine(bool)""
+  IL_0013:  ret
 }
 ");
 
@@ -2857,13 +2856,14 @@ unsafe class C
 
             verifier.VerifyIL("C.M", expectedIL: @"
 {
-  // Code size       10 (0xa)
+  // Code size       11 (0xb)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldnull
-  IL_0002:  ceq
-  IL_0004:  call       ""void System.Console.Write(bool)""
-  IL_0009:  ret
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  ceq
+  IL_0005:  call       ""void System.Console.Write(bool)""
+  IL_000a:  ret
 }
 ");
         }
@@ -3090,6 +3090,44 @@ unsafe class C
                 // (11,31): error CS1919: Unsafe type 'delegate*<void>' cannot be used in object creation
                 //         delegate*<void> ptr = new();
                 Diagnostic(ErrorCode.ERR_UnsafeTypeInObjectCreation, "new()").WithArguments("delegate*<void>").WithLocation(11, 31)
+            );
+        }
+
+        [Fact, WorkItem(48071, "https://github.com/dotnet/roslyn/issues/48071")]
+        public void FunctionPointerCalledWithNamedArguments()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+public class C
+{
+    public unsafe void M(delegate*<string, int, void> ptr)
+    {
+        ptr(""a"", arg1: 1);
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,18): error CS8904: A function pointer cannot be called with named arguments.
+                //         ptr("a", arg1: 1);
+                Diagnostic(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, "arg1").WithLocation(6, 18)
+            );
+        }
+
+        [Fact, WorkItem(48071, "https://github.com/dotnet/roslyn/issues/48071")]
+        public void FunctionPointerCalledWithNamedArguments2()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+public class C
+{
+    public unsafe void M(delegate*<string, int, void> ptr)
+    {
+        ptr(arg0: ""a"", arg1: 1);
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,13): error CS8904: A function pointer cannot be called with named arguments.
+                //         ptr(arg0: "a", arg1: 1);
+                Diagnostic(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, "arg0").WithLocation(6, 13)
             );
         }
     }

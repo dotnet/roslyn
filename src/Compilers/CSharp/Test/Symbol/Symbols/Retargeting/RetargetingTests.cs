@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -1077,7 +1079,7 @@ public class C
             );
 
             var m = finalComp.GetTypeByMetadataName("C").GetMethod("M");
-            var unmanagedCallersOnlyData = m.UnmanagedCallersOnlyAttributeData;
+            var unmanagedCallersOnlyData = m.GetUnmanagedCallersOnlyAttributeData(forceComplete: true);
             Assert.IsType<RetargetingMethodSymbol>(m);
             var containingAssembly = unmanagedCallersOnlyData.CallingConventionTypes.Single().ContainingAssembly;
             Assert.NotSame(containingAssembly, beforeRetargeting.Assembly);

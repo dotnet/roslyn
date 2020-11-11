@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Text.Differencing;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 return;
             }
 
-            FatalError.ReportWithoutCrash(new Exception($"Dispose is not called how? viewer state : {_viewer.IsClosed}"));
+            FatalError.ReportAndCatch(new Exception($"Dispose is not called how? viewer state : {_viewer.IsClosed}"));
         }
     }
 }

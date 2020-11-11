@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
@@ -18,10 +16,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private const int InitialCapacity = 64;
             private const int CapacityMultiplier = 2;
 
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
 
             // value is ValueSource so that how metadata is re-acquired back are different per entry. 
-            private readonly Dictionary<FileKey, ValueSource<Optional<AssemblyMetadata>>> _metadataCache = new Dictionary<FileKey, ValueSource<Optional<AssemblyMetadata>>>();
+            private readonly Dictionary<FileKey, ValueSource<Optional<AssemblyMetadata>>> _metadataCache = new();
 
             private int _capacity = InitialCapacity;
 

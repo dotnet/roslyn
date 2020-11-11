@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -10,11 +11,11 @@ namespace Roslyn.Utilities
     {
         bool IsEmpty { get; }
 
-        bool TryGetValue(TKey key, out TValue value);
-        bool TryGetKey(TValue value, out TKey key);
+        bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value);
+        bool TryGetKey(TValue value, [MaybeNullWhen(false)] out TKey key);
 
-        TValue GetValueOrDefault(TKey key);
-        TKey GetKeyOrDefault(TValue value);
+        TValue? GetValueOrDefault(TKey key);
+        TKey? GetKeyOrDefault(TValue value);
 
         bool ContainsKey(TKey key);
         bool ContainsValue(TValue value);

@@ -650,6 +650,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Vnořený kvantifikátor {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
+      <trans-unit id="No_valid_location_to_insert_method_call">
+        <source>No valid location to insert method call.</source>
+        <target state="new">No valid location to insert method call.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Not_enough_close_parens">
         <source>Not enough )'s</source>
         <target state="translated">Nedostatek znaků )</target>
@@ -1880,6 +1885,11 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Shody cílového typu</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_assembly_0_containing_type_1_references_NET_Framework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
         <target state="translated">Výběr obsahuje volání lokální funkce, aniž by byla deklarovaná.</target>
@@ -2081,13 +2091,13 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
-        <source>'{0}' cannot be null or empty</source>
-        <target state="translated">Hodnota {0} nemůže být null nebo prázdná.</target>
+        <source>'{0}' cannot be null or empty.</source>
+        <target state="needs-review-translation">Hodnota {0} nemůže být null nebo prázdná.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_whitespace">
-        <source>'{0}' cannot be null or whitespace</source>
-        <target state="translated">Hodnota {0} nemůže být null ani prázdný znak.</target>
+        <source>'{0}' cannot be null or whitespace.</source>
+        <target state="needs-review-translation">Hodnota {0} nemůže být null ani prázdný znak.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">

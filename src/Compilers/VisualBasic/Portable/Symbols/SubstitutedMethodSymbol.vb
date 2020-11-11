@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private _propertyOrEventSymbolOpt As Symbol
 
         ' The overridden or hidden methods.
-        Private _lazyOverriddenMethods As OverriddenMembersResult(Of MethodSymbol)
+        Private ReadOnly _lazyOverriddenMethods As OverriddenMembersResult(Of MethodSymbol)
 
         Protected Sub New()
         End Sub

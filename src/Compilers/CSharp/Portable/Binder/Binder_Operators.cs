@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -1204,8 +1206,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The default literal is only allowed with equality operators and both operands cannot be typeless at the same time.
             // Note: we only need to restrict expressions that can be converted to *any* type, in which case the resolution could always succeed.
 
-            if (left.IsTypelessNew() ||
-                right.IsTypelessNew())
+            if (left.IsImplicitObjectCreation() ||
+                right.IsImplicitObjectCreation())
             {
                 return false;
             }
@@ -1350,6 +1352,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return valueLeft.Int32Value / valueRight.Int32Value;
                     case BinaryOperatorKind.NIntRemainder:
                         return valueLeft.Int32Value % valueRight.Int32Value;
+                    case BinaryOperatorKind.NIntLeftShift:
+                        {
+                            var int32Value = valueLeft.Int32Value << valueRight.Int32Value;
+                            var int64Value = valueLeft.Int64Value << valueRight.Int32Value;
+                            return (int32Value == int64Value) ? int32Value : null;
+                        }
+                    case BinaryOperatorKind.NUIntLeftShift:
+                        {
+                            var uint32Value = valueLeft.UInt32Value << valueRight.Int32Value;
+                            var uint64Value = valueLeft.UInt64Value << valueRight.Int32Value;
+                            return (uint32Value == uint64Value) ? uint32Value : null;
+                        }
                 }
 
                 return null;
@@ -1808,12 +1822,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.FloatRemainder:
                     return valueLeft.SingleValue % valueRight.SingleValue;
                 case BinaryOperatorKind.IntLeftShift:
-                case BinaryOperatorKind.NIntLeftShift:
                     return valueLeft.Int32Value << valueRight.Int32Value;
                 case BinaryOperatorKind.LongLeftShift:
                     return valueLeft.Int64Value << valueRight.Int32Value;
                 case BinaryOperatorKind.UIntLeftShift:
-                case BinaryOperatorKind.NUIntLeftShift:
                     return valueLeft.UInt32Value << valueRight.Int32Value;
                 case BinaryOperatorKind.ULongLeftShift:
                     return valueLeft.UInt64Value << valueRight.Int32Value;
@@ -2011,7 +2023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
-#nullable restore
+#nullable disable
 
         private static BinaryOperatorKind SyntaxKindToBinaryOperatorKind(SyntaxKind kind)
         {
@@ -2421,7 +2433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
-            bool isOperandNullOrNew = operand.IsLiteralNull() || operand.IsTypelessNew();
+            bool isOperandNullOrNew = operand.IsLiteralNull() || operand.IsImplicitObjectCreation();
             if (isOperandNullOrNew)
             {
                 // Dev10 does not allow unary prefix operators to be applied to the null literal
@@ -2755,7 +2767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindValueKind.RValue;
             }
         }
-#nullable restore
+#nullable disable
 
         private BoundLiteral BindIntegralMinValConstants(PrefixUnaryExpressionSyntax node, BoundExpression operand, DiagnosticBag diagnostics)
         {
