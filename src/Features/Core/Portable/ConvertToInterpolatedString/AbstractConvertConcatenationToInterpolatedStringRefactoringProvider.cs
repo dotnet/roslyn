@@ -164,10 +164,14 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     syntaxFacts.GetPartsOfInterpolationExpression(piece, out var _, out var contentParts, out var _);
                     foreach (var contentPart in contentParts)
                     {
+                        // Track the state of currentContentIsStringOrCharacterLiteral for the inlined parts
+                        // so any text at the end of piece can be merge with the next string literal:
+                        // $"{1 + 1}a" + "b" -> "a" and "b" get merged in the next "pieces" loop
                         currentContentIsStringOrCharacterLiteral = syntaxFacts.IsInterpolatedStringText(contentPart);
                         if (currentContentIsStringOrCharacterLiteral && previousContentWasStringLiteralExpression)
                         {
                             // if piece starts with a text and the previous part was a string, merge the two parts (see also above)
+                            // "a" + $"b{1 + 1}" -> "a" and "b" get merged
                             var newText = ConcatenateTextToTextNode(generator, content.Last(), contentPart.GetFirstToken().Text);
                             content[^1] = newText;
                         }
