@@ -15,6 +15,10 @@
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") support for C#, Microsoft.CodeAnalysis.CSharp.dll.
     </PackageDescription>
+
+    <!-- Enable output of generated files back into our Generated directory -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -41,6 +45,11 @@
     </None>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+
+    <!-- Don't include the output from a previous source generator execution into future runs; the */** trick here ensures that there's
+         at least one subdirectory, which is our key that it's coming from a source generator as opposed to something that is coming from
+         some other tool. -->
+    <Compile Remove="$(CompilerGeneratedFilesOutputPath)/*/**/*.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CSharpResources.resx" GenerateSource="true" />
