@@ -9,8 +9,6 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract class ErrorLogger
     {
-        public Compilation? Compilation { get; set; }
-
         public abstract void LogDiagnostic(Diagnostic diagnostic);
     }
 }

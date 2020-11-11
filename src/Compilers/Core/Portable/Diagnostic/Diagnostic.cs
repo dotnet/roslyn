@@ -460,6 +460,17 @@ namespace Microsoft.CodeAnalysis
         internal abstract Diagnostic WithIsSuppressed(bool isSuppressed);
 
         /// <summary>
+        /// Create a new instance of this diagnostic with the given suppression info.
+        /// </summary>
+        internal Diagnostic WithSuppressionInfo(SuppressionInfo suppressionInfo)
+        {
+            RoslynDebug.Assert(this.SuppressionInfo == null);
+            RoslynDebug.Assert(suppressionInfo != null);
+
+            return new DiagnosticWithSuppression(this, suppressionInfo);
+        }
+
+        /// <summary>
         /// Create a new instance of this diagnostic with the given programmatic suppression info.
         /// </summary>
         internal Diagnostic WithProgrammaticSuppression(ProgrammaticSuppressionInfo programmaticSuppressionInfo)
@@ -469,6 +480,8 @@ namespace Microsoft.CodeAnalysis
 
             return new DiagnosticWithProgrammaticSuppression(this, programmaticSuppressionInfo);
         }
+
+        internal virtual SuppressionInfo? SuppressionInfo { get { return null; } }
 
         internal virtual ProgrammaticSuppressionInfo? ProgrammaticSuppressionInfo { get { return null; } }
 

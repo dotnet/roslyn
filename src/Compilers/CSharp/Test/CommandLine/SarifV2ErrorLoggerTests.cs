@@ -4,12 +4,9 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -292,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText());
         }
 
-        internal string GetExpectedOutputForAnalyzerDiagnosticsWithJustfication(MockCSharpCompiler cmd, string justification)
+        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification)
         {
             string expectedOutput =
 @"{{
@@ -318,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return FormatOutputText(
                 expectedOutput,
                 cmd,
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithJustificationResultsText(cmd.Compilation, justification),
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation, justification),
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText());
         }
 
@@ -329,39 +326,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
-        public void SimpleCompilerDiagnosticsSuppressedWithJustification()
+        public void AnalyzerDiagnosticsSuppressedWithJustification()
         {
-            var source = @"
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category1"", ""ID1"", Justification = ""Justification1"")]
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category2"", ""ID2"", Justification = ""Justification2"")]
-class C
-{
-}";
-            var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
-            var errorLogDir = Temp.CreateDirectory();
-            var errorLogFile = Path.Combine(errorLogDir.Path, "ErrorLog.txt");
+            AnalyzerDiagnosticsSuppressedWithJustificationImpl();
+        }
 
-            string[] arguments = new[] { "/nologo", "/t:library", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}{ErrorLogQualifier}" };
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AnalyzerDiagnosticsSuppressedWithMissingJustification()
+        {
+            AnalyzerDiagnosticsSuppressedWithMissingJustificationImpl();
+        }
 
-            var cmd = CreateCSharpCompiler(null, WorkingDirectory, arguments,
-               analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new AnalyzerForErrorLogTest()));
-            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AnalyzerDiagnosticsSuppressedWithEmptyJustification()
+        {
+            AnalyzerDiagnosticsSuppressedWithEmptyJustificationImpl();
+        }
 
-            var exitCode = cmd.Run(outWriter);
-            var actualConsoleOutput = outWriter.ToString().Trim();
-
-            // Suppressed diagnostics are only reported in the error log, not the console output.
-            Assert.DoesNotContain("Category1", actualConsoleOutput);
-            Assert.DoesNotContain("Category2", actualConsoleOutput);
-            Assert.NotEqual(0, exitCode);
-
-            var actualOutput = File.ReadAllText(errorLogFile).Trim();
-            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithJustfication(cmd, "Justification1");
-
-            Assert.Equal(expectedOutput, actualOutput);
-
-            SharedResourceHelpers.CleanupAllGeneratedFiles(sourceFile);
-            SharedResourceHelpers.CleanupAllGeneratedFiles(errorLogFile);
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AnalyzerDiagnosticsSuppressedWithNullJustification()
+        {
+            AnalyzerDiagnosticsSuppressedWithNullJustificationImpl();
         }
 
         private string FormatOutputText(

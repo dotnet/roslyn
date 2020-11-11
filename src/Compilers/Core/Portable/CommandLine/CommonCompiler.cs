@@ -836,11 +836,6 @@ namespace Microsoft.CodeAnalysis
                 analyzerCts.Cancel();
             }
 
-            if (Arguments.ErrorLogOptions?.SarifVersion != null && Arguments.ErrorLogOptions?.SarifVersion != SarifVersion.Sarif1 && errorLogger != null)
-            {
-                errorLogger.Compilation = compilation;
-            }
-
             var exitCode = ReportDiagnostics(diagnostics, consoleOutput, errorLogger)
                 ? Failed
                 : Succeeded;

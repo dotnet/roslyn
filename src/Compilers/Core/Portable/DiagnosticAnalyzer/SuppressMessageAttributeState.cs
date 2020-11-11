@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (IsDiagnosticSuppressed(diagnostic, out info))
             {
                 // Attach the suppression info to the diagnostic.
-                diagnostic = diagnostic.WithIsSuppressed(true);
+                diagnostic = diagnostic.WithSuppressionInfo(new SuppressionInfo(info.Id, info.Attribute));
             }
 
             return diagnostic;

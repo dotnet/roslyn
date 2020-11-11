@@ -68,17 +68,14 @@ namespace Microsoft.CodeAnalysis
                 _writer.WriteObjectStart(); // suppression
                 _writer.Write("kind", "inSource");
 
-                if (Compilation != null)
+                object? justification = diagnostic.SuppressionInfo?.Attribute
+                                                                    ?.NamedArguments
+                                                                    .FirstOrDefault(o => o.Key == "Justification")
+                                                                    .Value
+                                                                    .Value;
+                if (justification is string justificationStr)
                 {
-                    object? justification = diagnostic.GetSuppressionInfo(Compilation)?.Attribute
-                                                                        ?.NamedArguments
-                                                                        .FirstOrDefault(o => o.Key == "Justification")
-                                                                        .Value
-                                                                        .Value;
-                    if (justification != null)
-                    {
-                        _writer.Write("justification", (string)justification);
-                    }
+                    _writer.Write("justification", justificationStr);
                 }
 
                 _writer.WriteObjectEnd(); // suppression
