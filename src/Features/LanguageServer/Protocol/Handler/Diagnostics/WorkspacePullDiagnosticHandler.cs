@@ -3,16 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             if (context.ClientName != null)
                 return ImmutableArray<Document>.Empty;
 
-            using var _1 = ArrayBuilder<Document>.GetInstance(out var result);
+            using var _ = ArrayBuilder<Document>.GetInstance(out var result);
 
             var solution = context.Solution;
 
@@ -61,16 +60,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // prioritize the files from currently active projects, but then also include all other docs in all projects
             // (depending on current FSA settings).
 
-            // The active and visible docs will not be included as those are handled by DocumentPullDiagnosticHandler.
-
-            using var _2 = PooledHashSet<Document>.GetInstance(out var openDocuments);
+            // Oen docs will not be included as those are handled by DocumentPullDiagnosticHandler.
 
             var activeDocument = documentTrackingService.GetActiveDocument(solution);
             var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
-
-            openDocuments.AddRange(visibleDocuments);
-            if (activeDocument != null)
-                openDocuments.Add(activeDocument);
 
             // Now, prioritize the projects related to the active/visible files.
             AddDocumentsFromProject(activeDocument?.Project, isOpen: true);
@@ -101,17 +94,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
                 // Otherwise, if the user has an open file from this project, or FSA is on, then include all the
                 // documents from it.
-                foreach (var document in project.Documents)
-                {
-                    // Don't process any open documents.  Those are handled by DocumentPullDiagnosticHandler.
-                    if (!openDocuments.Contains(document))
-                        result.AddRange(document);
-                }
+                result.AddRange(project.Documents);
             }
         }
 
         protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
         {
+            // We only support workspace diagnostics for closed files.
+            if (document.IsOpen())
+                return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
+
             // For closed files, go to the IDiagnosticService for results.  These won't necessarily be totally up to
             // date.  However, that's fine as these are closed files and won't be in the process of being edited.  So
             // any deviations in the spans of diagnostics shouldn't be impactful for the user.

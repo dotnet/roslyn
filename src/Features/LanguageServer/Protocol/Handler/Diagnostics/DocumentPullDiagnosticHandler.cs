@@ -10,7 +10,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
@@ -55,6 +57,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
         {
+            // We only support doc diagnostics for open files.
+            if (!document.IsOpen())
+                return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
+
             // For open documents, directly use the IDiagnosticAnalyzerService.  This will use the actual snapshots
             // we're passing in.  If information is already cached for that snapshot, it will be returned.  Otherwise,
             // it will be computed on demand.  Because it is always accurate as per this snapshot, all spans are correct

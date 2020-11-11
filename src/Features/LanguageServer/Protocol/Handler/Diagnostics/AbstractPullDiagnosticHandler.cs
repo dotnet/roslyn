@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             ILspSolutionProvider solutionProvider,
             IDiagnosticService diagnosticService)
         {
-            _solutionProvider = solutionProvider;
+            // _solutionProvider = solutionProvider;
             DiagnosticService = diagnosticService;
             DiagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
         }
@@ -107,12 +107,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
             // the user from squiggles or error-list.
-            HandleRemovedDocuments(previousResults, progress);
+            HandleRemovedDocuments(context, previousResults, progress);
 
             // Create a mapping from documents to the previous results the client says it has for them.  That way as we
             // process documents we know if we should tell the client it should stay the same, or we can tell it what
             // the updated diagnostics are.
-            var documentToPreviousDiagnosticParams = GetDocumentToPreviousDiagnosticParams(previousResults);
+            var documentToPreviousDiagnosticParams = GetDocumentToPreviousDiagnosticParams(context, previousResults);
 
             // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
             // last time we notified the client.  Report back either to the client so they can update accordingly.
@@ -151,14 +151,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return wantsRazorDoc == isRazorDoc;
         }
 
-        private Dictionary<Document, DiagnosticParams> GetDocumentToPreviousDiagnosticParams(DiagnosticParams[] previousResults)
+        private static Dictionary<Document, DiagnosticParams> GetDocumentToPreviousDiagnosticParams(
+            RequestContext context, DiagnosticParams[] previousResults)
         {
             var result = new Dictionary<Document, DiagnosticParams>();
             foreach (var diagnosticParams in previousResults)
             {
                 if (diagnosticParams.TextDocument != null)
                 {
-                    var document = _solutionProvider.GetDocument(diagnosticParams.TextDocument);
+                    var document = context.Solution.GetDocument(diagnosticParams.TextDocument);
                     if (document != null)
                         result[document] = diagnosticParams;
                 }
@@ -196,7 +197,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             progress.Report(RecordDiagnosticReport(document, result.ToArray()));
         }
 
-        private void HandleRemovedDocuments(DiagnosticParams[]? previousResults, BufferedProgress<TReport> progress)
+        private void HandleRemovedDocuments(RequestContext context, DiagnosticParams[]? previousResults, BufferedProgress<TReport> progress)
         {
             if (previousResults == null)
                 return;
@@ -206,7 +207,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 var textDocument = previousResult.TextDocument;
                 if (textDocument != null)
                 {
-                    var document = _solutionProvider.GetDocument(textDocument);
+                    var document = context.Solution.GetDocument(textDocument);
                     if (document == null)
                     {
                         // Client is asking server about a document that no longer exists (i.e. was removed/deleted from
