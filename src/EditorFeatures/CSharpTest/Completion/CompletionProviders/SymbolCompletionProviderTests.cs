@@ -10866,36 +10866,6 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonForVoidParameterlessMethod()
-        {
-            var markup = @"
-class Program
-{
-    private void Bar()
-    {
-        F$$
-    }
-    
-    private void Foo()
-    {
-    }
-}";
-            var expected = @"
-class Program
-{
-    private void Bar()
-    {
-        Foo();
-    }
-    
-    private void Foo()
-    {
-    }
-}";
-            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionWithSemicolonForConstructor()
         {
             var markup = @"
