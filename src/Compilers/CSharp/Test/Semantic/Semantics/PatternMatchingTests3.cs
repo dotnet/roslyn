@@ -6150,6 +6150,332 @@ class C
         }
 
         [Fact]
+        public void IsNot_06()
+        {
+            var source =
+@"using static System.Console;
+class C
+{
+    static void Main()
+    {
+        var c = new C();
+        M1(c);
+        M2(c);
+    }
+    static void M1(object o)
+    {
+        if (!(o is C c1)) return;
+        WriteLine(c1.F);
+    }
+    static void M2(object o)
+    {
+        if (o is not C c1) return;
+        WriteLine(c1.F);
+    }
+    int F = 42;
+}";
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"42
+42");
+            var expectedIL =
+@"{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (C V_0) //c1
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""C""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brtrue.s   IL_000b
+  IL_000a:  ret
+  IL_000b:  ldloc.0
+  IL_000c:  ldfld      ""int C.F""
+  IL_0011:  call       ""void System.Console.WriteLine(int)""
+  IL_0016:  ret
+}";
+            verifier.VerifyIL("C.M1", expectedIL);
+            verifier.VerifyIL("C.M2", expectedIL);
+        }
+
+        [Fact]
+        [WorkItem(49262, "https://github.com/dotnet/roslyn/issues/49262")]
+        public void IsNot_07()
+        {
+            var source =
+@"using static System.Console;
+class C
+{
+    static void Main()
+    {
+        var c = new C();
+        M1(c);
+        M2(c);
+    }
+    static void M1(C c)
+    {
+        if (!(c is C c1)) return;
+        WriteLine(c1.F);
+    }
+    static void M2(C c)
+    {
+        if (c is not C c1) return;
+        WriteLine(c1.F);
+    }
+    int F = 42;
+}";
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"42
+42");
+            verifier.VerifyIL("C.M1",
+@"{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (C V_0) //c1
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0007
+  IL_0003:  ldarg.0
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0008
+  IL_0007:  ret
+  IL_0008:  ldloc.0
+  IL_0009:  ldfld      ""int C.F""
+  IL_000e:  call       ""void System.Console.WriteLine(int)""
+  IL_0013:  ret
+}");
+            verifier.VerifyIL("C.M2",
+@"{
+  // Code size       18 (0x12)
+  .maxstack  1
+  .locals init (C V_0) //c1
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brtrue.s   IL_0006
+  IL_0005:  ret
+  IL_0006:  ldloc.0
+  IL_0007:  ldfld      ""int C.F""
+  IL_000c:  call       ""void System.Console.WriteLine(int)""
+  IL_0011:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(49262, "https://github.com/dotnet/roslyn/issues/49262")]
+        public void IsNot_08()
+        {
+            var source =
+@"using static System.Console;
+class C
+{
+    static void Main()
+    {
+        var c = new C();
+        M1(c);
+        M2(c);
+    }
+    static void M1(C c)
+    {
+        if (!(c is { } c1)) return;
+        WriteLine(c1.F);
+    }
+    static void M2(C c)
+    {
+        if (c is not { } c1) return;
+        WriteLine(c1.F);
+    }
+    int F = 42;
+}";
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"42
+42");
+            verifier.VerifyIL("C.M1",
+@"{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (C V_0) //c1
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0007
+  IL_0003:  ldarg.0
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0008
+  IL_0007:  ret
+  IL_0008:  ldloc.0
+  IL_0009:  ldfld      ""int C.F""
+  IL_000e:  call       ""void System.Console.WriteLine(int)""
+  IL_0013:  ret
+}");
+            verifier.VerifyIL("C.M2",
+@"{
+  // Code size       18 (0x12)
+  .maxstack  1
+  .locals init (C V_0) //c1
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brtrue.s   IL_0006
+  IL_0005:  ret
+  IL_0006:  ldloc.0
+  IL_0007:  ldfld      ""int C.F""
+  IL_000c:  call       ""void System.Console.WriteLine(int)""
+  IL_0011:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(49262, "https://github.com/dotnet/roslyn/issues/49262")]
+        public void IsNot_09()
+        {
+            var source =
+@"using static System.Console;
+class C
+{
+    static void Main()
+    {
+        var c = new C();
+        M1(c);
+        M2(c);
+    }
+    static void M1(C c)
+    {
+        if (!(c is { F: 42 } c1)) return;
+        WriteLine(c1.F);
+    }
+    static void M2(C c)
+    {
+        if (c is not { F: 42 } c1) return;
+        WriteLine(c1.F);
+    }
+    int F = 42;
+}";
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"42
+42");
+            verifier.VerifyIL("C.M1",
+@"{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (C V_0) //c1
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0011
+  IL_0003:  ldarg.0
+  IL_0004:  ldfld      ""int C.F""
+  IL_0009:  ldc.i4.s   42
+  IL_000b:  bne.un.s   IL_0011
+  IL_000d:  ldarg.0
+  IL_000e:  stloc.0
+  IL_000f:  br.s       IL_0012
+  IL_0011:  ret
+  IL_0012:  ldloc.0
+  IL_0013:  ldfld      ""int C.F""
+  IL_0018:  call       ""void System.Console.WriteLine(int)""
+  IL_001d:  ret
+}");
+            verifier.VerifyIL("C.M2",
+@"{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  .locals init (C V_0) //c1
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_000f
+  IL_0005:  ldloc.0
+  IL_0006:  ldfld      ""int C.F""
+  IL_000b:  ldc.i4.s   42
+  IL_000d:  beq.s      IL_0010
+  IL_000f:  ret
+  IL_0010:  ldloc.0
+  IL_0011:  ldfld      ""int C.F""
+  IL_0016:  call       ""void System.Console.WriteLine(int)""
+  IL_001b:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(49262, "https://github.com/dotnet/roslyn/issues/49262")]
+        public void IsNot_10()
+        {
+            var source =
+@"using static System.Console;
+class C
+{
+    static void Main()
+    {
+        var c = new C();
+        M1(c);
+        M2(c);
+    }
+    static void M1(C c)
+    {
+        if (!(c is { F: var f } c1)) return;
+        WriteLine(f);
+        WriteLine(c1.F);
+    }
+    static void M2(C c)
+    {
+        if (c is not { F: var f } c1) return;
+        WriteLine(f);
+        WriteLine(c1.F);
+    }
+    object F = 42;
+}";
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"42
+42
+42
+42");
+            verifier.VerifyIL("C.M1",
+@"{
+  // Code size       33 (0x21)
+  .maxstack  1
+  .locals init (C V_0, //c1
+                object V_1) //f
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000e
+  IL_0003:  ldarg.0
+  IL_0004:  ldfld      ""object C.F""
+  IL_0009:  stloc.1
+  IL_000a:  ldarg.0
+  IL_000b:  stloc.0
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ret
+  IL_000f:  ldloc.1
+  IL_0010:  call       ""void System.Console.WriteLine(object)""
+  IL_0015:  ldloc.0
+  IL_0016:  ldfld      ""object C.F""
+  IL_001b:  call       ""void System.Console.WriteLine(object)""
+  IL_0020:  ret
+}");
+            verifier.VerifyIL("C.M2",
+@"{
+  // Code size       33 (0x21)
+  .maxstack  1
+  .locals init (C V_0, //c1
+                object V_1) //f
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_000e
+  IL_0005:  ldloc.0
+  IL_0006:  ldfld      ""object C.F""
+  IL_000b:  stloc.1
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ret
+  IL_000f:  ldloc.1
+  IL_0010:  call       ""void System.Console.WriteLine(object)""
+  IL_0015:  ldloc.0
+  IL_0016:  ldfld      ""object C.F""
+  IL_001b:  call       ""void System.Console.WriteLine(object)""
+  IL_0020:  ret
+}");
+        }
+
+        [Fact]
         public void NonexhaustiveEnumDiagnostic_10()
         {
             var source =

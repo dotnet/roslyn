@@ -1158,35 +1158,38 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       82 (0x52)
+  // Code size       84 (0x54)
   .maxstack  3
-  .locals init (string V_0) //name
+  .locals init (string V_0, //name
+                Person V_1)
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0051
-  IL_0003:  ldarg.1
-  IL_0004:  callvirt   ""string Person.Name.get""
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  ldstr      ""Bill""
-  IL_0010:  call       ""bool string.op_Equality(string, string)""
-  IL_0015:  brtrue.s   IL_0026
-  IL_0017:  ldloc.0
-  IL_0018:  ldstr      ""Bob""
-  IL_001d:  call       ""bool string.op_Equality(string, string)""
-  IL_0022:  brtrue.s   IL_0031
-  IL_0024:  br.s       IL_003c
-  IL_0026:  ldstr      ""Hey Bill!""
-  IL_002b:  call       ""void System.Console.WriteLine(string)""
-  IL_0030:  ret
-  IL_0031:  ldstr      ""Hey Bob!""
-  IL_0036:  call       ""void System.Console.WriteLine(string)""
-  IL_003b:  ret
-  IL_003c:  ldstr      ""Hello ""
-  IL_0041:  ldloc.0
-  IL_0042:  ldstr      ""!""
-  IL_0047:  call       ""string string.Concat(string, string, string)""
-  IL_004c:  call       ""void System.Console.WriteLine(string)""
-  IL_0051:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloc.1
+  IL_0003:  brfalse.s  IL_0053
+  IL_0005:  ldloc.1
+  IL_0006:  callvirt   ""string Person.Name.get""
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  ldstr      ""Bill""
+  IL_0012:  call       ""bool string.op_Equality(string, string)""
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.0
+  IL_001a:  ldstr      ""Bob""
+  IL_001f:  call       ""bool string.op_Equality(string, string)""
+  IL_0024:  brtrue.s   IL_0033
+  IL_0026:  br.s       IL_003e
+  IL_0028:  ldstr      ""Hey Bill!""
+  IL_002d:  call       ""void System.Console.WriteLine(string)""
+  IL_0032:  ret
+  IL_0033:  ldstr      ""Hey Bob!""
+  IL_0038:  call       ""void System.Console.WriteLine(string)""
+  IL_003d:  ret
+  IL_003e:  ldstr      ""Hello ""
+  IL_0043:  ldloc.0
+  IL_0044:  ldstr      ""!""
+  IL_0049:  call       ""string string.Concat(string, string, string)""
+  IL_004e:  call       ""void System.Console.WriteLine(string)""
+  IL_0053:  ret
 }");
         }
 
@@ -1217,32 +1220,35 @@ public class C {
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C.M",
 @"{
-  // Code size       64 (0x40)
+  // Code size       66 (0x42)
   .maxstack  3
   .locals init (string V_0, //name
-                string V_1) //name
+                string V_1, //name
+                Person V_2)
   IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_003f
-  IL_0003:  ldarg.1
-  IL_0004:  callvirt   ""string Person.Name.get""
-  IL_0009:  stloc.0
-  IL_000a:  ldarg.1
-  IL_000b:  ldfld      ""int Person.Age""
-  IL_0010:  brtrue.s   IL_0028
-  IL_0012:  ldstr      ""Hello baby ""
-  IL_0017:  ldloc.0
-  IL_0018:  ldstr      ""!""
-  IL_001d:  call       ""string string.Concat(string, string, string)""
-  IL_0022:  call       ""void System.Console.WriteLine(string)""
-  IL_0027:  ret
-  IL_0028:  ldloc.0
-  IL_0029:  stloc.1
-  IL_002a:  ldstr      ""Hello ""
-  IL_002f:  ldloc.1
-  IL_0030:  ldstr      ""!""
-  IL_0035:  call       ""string string.Concat(string, string, string)""
-  IL_003a:  call       ""void System.Console.WriteLine(string)""
-  IL_003f:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloc.2
+  IL_0003:  brfalse.s  IL_0041
+  IL_0005:  ldloc.2
+  IL_0006:  callvirt   ""string Person.Name.get""
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.2
+  IL_000d:  ldfld      ""int Person.Age""
+  IL_0012:  brtrue.s   IL_002a
+  IL_0014:  ldstr      ""Hello baby ""
+  IL_0019:  ldloc.0
+  IL_001a:  ldstr      ""!""
+  IL_001f:  call       ""string string.Concat(string, string, string)""
+  IL_0024:  call       ""void System.Console.WriteLine(string)""
+  IL_0029:  ret
+  IL_002a:  ldloc.0
+  IL_002b:  stloc.1
+  IL_002c:  ldstr      ""Hello ""
+  IL_0031:  ldloc.1
+  IL_0032:  ldstr      ""!""
+  IL_0037:  call       ""string string.Concat(string, string, string)""
+  IL_003c:  call       ""void System.Console.WriteLine(string)""
+  IL_0041:  ret
 }");
         }
 
