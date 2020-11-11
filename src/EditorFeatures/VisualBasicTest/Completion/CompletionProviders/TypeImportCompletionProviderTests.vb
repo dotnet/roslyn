@@ -3,20 +3,14 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
 
     <UseExportProvider>
     Public Class TypeImportCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
-
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
 
         Private Property ShowImportCompletionItemsOptionValue As Boolean = True
 

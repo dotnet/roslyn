@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal sealed class EmptyLogBlock : IDisposable
     {
-        public static readonly EmptyLogBlock Instance = new EmptyLogBlock();
+        public static readonly EmptyLogBlock Instance = new();
 
         public void Dispose()
         {

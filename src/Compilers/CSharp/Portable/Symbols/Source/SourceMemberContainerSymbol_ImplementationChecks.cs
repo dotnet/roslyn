@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -331,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal Location? GetImplementsLocation(NamedTypeSymbol implementedInterface)
-#nullable restore
+#nullable disable
         {
             // We ideally want to identify the interface location in the base list with an exact match but
             // will fall back and use the first derived interface if exact interface is not present.
@@ -1545,7 +1547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-#nullable restore
+#nullable disable
 
         /// <summary>
         /// Though there is a method that C# considers to be an implementation of the interface method, that

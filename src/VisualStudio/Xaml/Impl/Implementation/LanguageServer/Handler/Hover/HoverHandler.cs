@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -24,18 +22,20 @@ using Microsoft.VisualStudio.Text.Adornments;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(Methods.TextDocumentHoverName, StringConstants.XamlLanguageName)]
-    internal class HoverHandler : AbstractRequestHandler<TextDocumentPositionParams, Hover?>
+    [ExportLspMethod(Methods.TextDocumentHoverName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
+    internal class HoverHandler : IRequestHandler<TextDocumentPositionParams, Hover?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public HoverHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public HoverHandler()
         {
         }
 
-        public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
+
+        public async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = SolutionProvider.GetTextDocument(request.TextDocument, context.ClientName);
+            var document = context.Document;
             if (document == null)
             {
                 return null;

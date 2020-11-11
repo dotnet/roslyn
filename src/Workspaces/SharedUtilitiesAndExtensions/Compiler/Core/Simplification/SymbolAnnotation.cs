@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         public const string Kind = "SymbolId";
 
         public static SyntaxAnnotation Create(ISymbol symbol)
-            => new SyntaxAnnotation(Kind, DocumentationCommentId.CreateReferenceId(symbol));
+            => new(Kind, DocumentationCommentId.CreateReferenceId(symbol));
 
         public static ISymbol GetSymbol(SyntaxAnnotation annotation, Compilation compilation)
             => GetSymbols(annotation, compilation).FirstOrDefault();

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,18 +14,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
-    internal class TableEntriesFactory<TItem> : ITableEntriesSnapshotFactory
+    internal class TableEntriesFactory<TItem, TData> : ITableEntriesSnapshotFactory
         where TItem : TableItem
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
-        private readonly AbstractTableDataSource<TItem> _tableSource;
+        private readonly AbstractTableDataSource<TItem, TData> _tableSource;
         private readonly AggregatedEntriesSource _entriesSources;
-        private readonly WeakReference<ITableEntriesSnapshot> _lastSnapshotWeakReference = new WeakReference<ITableEntriesSnapshot>(null);
+        private readonly WeakReference<ITableEntriesSnapshot> _lastSnapshotWeakReference = new(null);
 
         private int _lastVersion = 0;
 
-        public TableEntriesFactory(AbstractTableDataSource<TItem> tableSource, AbstractTableEntriesSource<TItem> entriesSource)
+        public TableEntriesFactory(AbstractTableDataSource<TItem, TData> tableSource, AbstractTableEntriesSource<TItem> entriesSource)
         {
             _tableSource = tableSource;
             _entriesSources = new AggregatedEntriesSource(_tableSource, entriesSource);
@@ -76,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        public void OnDataAddedOrChanged(object data)
+        public void OnDataAddedOrChanged(TData data)
         {
             lock (_gate)
             {
@@ -86,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        public bool OnDataRemoved(object data)
+        public bool OnDataRemoved(TData data)
         {
             lock (_gate)
             {
@@ -127,18 +129,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private class AggregatedEntriesSource
         {
             private readonly EntriesSourceCollections _sources;
-            private readonly AbstractTableDataSource<TItem> _tableSource;
+            private readonly AbstractTableDataSource<TItem, TData> _tableSource;
 
-            public AggregatedEntriesSource(AbstractTableDataSource<TItem> tableSource, AbstractTableEntriesSource<TItem> primary)
+            public AggregatedEntriesSource(AbstractTableDataSource<TItem, TData> tableSource, AbstractTableEntriesSource<TItem> primary)
             {
                 _tableSource = tableSource;
                 _sources = new EntriesSourceCollections(primary);
             }
 
-            public void OnDataAddedOrChanged(object data)
+            public void OnDataAddedOrChanged(TData data)
                 => _sources.OnDataAddedOrChanged(data, _tableSource);
 
-            public bool OnDataRemoved(object data)
+            public bool OnDataRemoved(TData data)
                 => _sources.OnDataRemoved(data, _tableSource);
 
             public ImmutableArray<TItem> GetItems()
@@ -252,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
                 }
 
-                public void OnDataAddedOrChanged(object data, AbstractTableDataSource<TItem> tableSource)
+                public void OnDataAddedOrChanged(TData data, AbstractTableDataSource<TItem, TData> tableSource)
                 {
                     var key = tableSource.GetItemKey(data);
                     if (_primary != null && _primary.Key.Equals(key))
@@ -274,7 +276,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     _sources.Add(source.Key, source);
                 }
 
-                public bool OnDataRemoved(object data, AbstractTableDataSource<TItem> tableSource)
+                public bool OnDataRemoved(TData data, AbstractTableDataSource<TItem, TData> tableSource)
                 {
                     var key = tableSource.GetItemKey(data);
                     if (_primary != null && _primary.Key.Equals(key))

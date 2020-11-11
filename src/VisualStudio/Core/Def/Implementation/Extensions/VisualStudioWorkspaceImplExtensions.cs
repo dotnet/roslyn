@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -19,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
         // hierarchy we're getting them for.  To do this, we attach them to the hierarchy with a
         // conditional weak table.
         private static readonly ConditionalWeakTable<IVsHierarchy, Dictionary<uint, IImageHandle>> s_hierarchyToItemIdToImageHandle =
-            new ConditionalWeakTable<IVsHierarchy, Dictionary<uint, IImageHandle>>();
+            new();
 
         private static readonly ConditionalWeakTable<IVsHierarchy, Dictionary<uint, IImageHandle>>.CreateValueCallback s_createValue =
             _ => new Dictionary<uint, IImageHandle>();

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         /// a particular semantic model.
         /// </summary>
         private static readonly ConditionalWeakTable<SemanticModel, RegexPatternDetector> _modelToDetector =
-            new ConditionalWeakTable<SemanticModel, RegexPatternDetector>();
+            new();
 
         private readonly EmbeddedLanguageInfo _info;
         private readonly SemanticModel _semanticModel;
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         /// Option names are the values from the <see cref="RegexOptions"/> enum.
         /// </summary>
         private static readonly Regex s_languageCommentDetector =
-            new Regex(@"^((//)|(')|(/\*))\s*lang(uage)?\s*=\s*regex(p)?\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
+            new(@"^((//)|(')|(/\*))\s*lang(uage)?\s*=\s*regex(p)?\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
                 RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private static readonly Dictionary<string, RegexOptions> s_nameToOption =
@@ -279,6 +281,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                                 argumentNode, cancellationToken, out options);
                         }
                     }
+                }
+            }
+            else if (syntaxFacts.IsImplicitObjectCreationExpression(invocationOrCreation))
+            {
+                var constructor = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken).GetAnySymbol();
+                if (_regexType.Equals(constructor?.ContainingType))
+                {
+                    // Argument to "new Regex".  Need to do deeper analysis
+                    return AnalyzeStringLiteral(
+                        argumentNode, cancellationToken, out options);
                 }
             }
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     {
         private const int MetadataFailed = int.MaxValue;
 
-        private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new ConditionalWeakTable<Metadata, object>();
+        private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
 
         public static Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
         {
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             return Checksum.Create(stream);
         }
 
-        public static void WriteTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             if (reference is PortableExecutableReference portable)
             {
@@ -82,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             throw ExceptionUtilities.UnexpectedValue(reference.GetType());
         }
 
-        public MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+        public virtual MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
             var type = reader.ReadString();
             if (type == nameof(PortableExecutableReference))

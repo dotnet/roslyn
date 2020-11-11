@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -164,7 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestPartialType()
+        public async Task TestClassPartialType()
         {
             await Test_KeywordAsync(
 @"part[||]ial class C
@@ -174,10 +176,40 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestPartialMethod()
+        public async Task TestRecordPartialType()
+        {
+            await Test_KeywordAsync(
+@"part[||]ial record C
+{
+    partial void goo();
+}", "partialtype");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestRecordWithPrimaryConstructorPartialType()
+        {
+            await Test_KeywordAsync(
+@"part[||]ial record C(string S)
+{
+    partial void goo();
+}", "partialtype");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPartialMethodInClass()
         {
             await Test_KeywordAsync(
 @"partial class C
+{
+    par[||]tial void goo();
+}", "partialmethod");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestPartialMethodInRecord()
+        {
+            await Test_KeywordAsync(
+@"partial record C
 {
     par[||]tial void goo();
 }", "partialmethod");

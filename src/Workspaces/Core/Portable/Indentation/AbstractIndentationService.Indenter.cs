@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -206,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             }
 
             public IndentationResult IndentFromStartOfLine(int addedSpaces)
-                => new IndentationResult(this.LineToBeIndented.Start, addedSpaces);
+                => new(this.LineToBeIndented.Start, addedSpaces);
 
             public IndentationResult GetIndentationOfToken(SyntaxToken token)
                 => GetIndentationOfToken(token, addedSpaces: 0);

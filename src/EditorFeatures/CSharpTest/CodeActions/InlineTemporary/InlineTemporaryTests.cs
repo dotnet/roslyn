@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
@@ -337,6 +339,62 @@ class C
     }
 }
 ");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.CSharp9)]
+        public async Task Conversion_NonTargetTypedConditionalExpression(LanguageVersion languageVersion)
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void F()
+    {
+        int? [||]x = 42;
+        var y = true ? x : null;
+    }
+}
+",
+
+@"
+class C
+{
+    void F()
+    {
+        var y = true ? (int?)42 : null;
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [InlineData(LanguageVersion.CSharp8, "(int?)42")]
+        [InlineData(LanguageVersion.CSharp9, "42")] // In C# 9, target-typed conditionals makes this work
+        public async Task Conversion_TargetTypedConditionalExpression(LanguageVersion languageVersion, string expectedSubstitution)
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void F()
+    {
+        int? [||]x = 42;
+        int? y = true ? x : null;
+    }
+}
+",
+
+@"
+class C
+{
+    void F()
+    {
+        int? y = true ? " + expectedSubstitution + @" : null;
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
