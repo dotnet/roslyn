@@ -2143,7 +2143,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsLocalFunction([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement);
 
-        public void GetPartsOfInterpolationExpression(SyntaxNode node, out SyntaxToken stringStartToken, out SyntaxList<SyntaxNode> contents, out SyntaxToken stringEndToken)
+        public void GetPartsOfInterpolationExpression(SyntaxNode node,
+            out SyntaxToken stringStartToken, out SyntaxList<SyntaxNode> contents, out SyntaxToken stringEndToken)
         {
             var interpolatedStringExpression = (InterpolatedStringExpressionSyntax)node;
             stringStartToken = interpolatedStringExpression.StringStartToken;
@@ -2152,8 +2153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public bool IsVerbatimInterpolatedStringExpression(SyntaxNode node)
-        {
-            return node is InterpolatedStringExpressionSyntax interpolatedString && interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
-        }
+            => node is InterpolatedStringExpressionSyntax interpolatedString &&
+                interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
     }
 }
