@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 else
                 {
                     // Add Simplifier annotation to remove superfluous parenthesis after transformation:
-                    // (1 + 1) + "a" -> ${1 + 1}a"
+                    // (1 + 1) + "a" -> $"{1 + 1}a"
                     content.Add(generator.Interpolation(piece.WithoutTrivia().WithAdditionalAnnotations(Simplifier.Annotation)));
                 }
                 // Update this variable to be true every time we encounter a new string literal expression
