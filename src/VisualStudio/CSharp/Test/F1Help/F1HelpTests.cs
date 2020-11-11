@@ -1165,5 +1165,22 @@ static class C
     sta[||]tic void Method() {}
 }", "static");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestWithKeyword()
+        {
+            await Test_KeywordAsync(
+@"
+public record Point(int X, int Y);
+
+public static class Program
+{ 
+    public static void Main()
+    {
+        var p1 = new Point(0, 0);
+        var p2 = p1 w[||]ith { X = 5 };
+    }
+}", "with");
+        }
     }
 }

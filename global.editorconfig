@@ -1,9 +1,0 @@
-# This file is where we put in global rules that need to apply to generated files; setting
-# is_global = true means we can't use regular rules to apply to stuff in specific directories.
- # See https://github.com/dotnet/roslyn/issues/47384#issuecomment-689251500 for a further commentary
- # on the approach taken.
-
-is_global = true
-
-# warning RS0037: PublicAPI.txt is missing '#nullable enable'
-dotnet_diagnostic.RS0037.severity = none

@@ -2,8 +2,4 @@
 <Project>
   <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
   <Import Project="eng\targets\Imports.targets" />
-
-  <ItemGroup>
-    <EditorConfigFiles Include="$(MSBuildThisFileDirectory)global.editorconfig" />
-  </ItemGroup>
 </Project>

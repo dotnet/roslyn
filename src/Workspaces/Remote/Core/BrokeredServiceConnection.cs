@@ -50,27 +50,23 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly IRemoteServiceCallbackDispatcher? _callbackDispatcher;
 
         public BrokeredServiceConnection(
+            ServiceDescriptor serviceDescriptor,
             object? callbackTarget,
-            RemoteServiceCallbackDispatcherRegistry callbackDispatchers,
+            IRemoteServiceCallbackDispatcher? callbackDispatcher,
             ServiceBrokerClient serviceBrokerClient,
             SolutionAssetStorage solutionAssetStorage,
             IErrorReportingService? errorReportingService,
-            IRemoteHostClientShutdownCancellationService? shutdownCancellationService,
-            bool isRemoteHost64Bit,
-            bool isRemoteHostServerGC)
+            IRemoteHostClientShutdownCancellationService? shutdownCancellationService)
         {
+            Contract.ThrowIfFalse((callbackDispatcher == null) == (serviceDescriptor.ClientInterface == null));
+
+            _serviceDescriptor = serviceDescriptor;
             _serviceBrokerClient = serviceBrokerClient;
             _solutionAssetStorage = solutionAssetStorage;
             _errorReportingService = errorReportingService;
             _shutdownCancellationService = shutdownCancellationService;
-
-            _serviceDescriptor = ServiceDescriptors.GetServiceDescriptor(typeof(TService), isRemoteHost64Bit, isRemoteHostServerGC);
-
-            if (_serviceDescriptor.ClientInterface != null)
-            {
-                _callbackDispatcher = callbackDispatchers.GetDispatcher(typeof(TService));
-                _callbackHandle = _callbackDispatcher.CreateHandle(callbackTarget);
-            }
+            _callbackDispatcher = callbackDispatcher;
+            _callbackHandle = callbackDispatcher?.CreateHandle(callbackTarget) ?? default;
         }
 
         public override void Dispose()
@@ -347,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             // report telemetry event:
-            Logger.Log(FunctionId.FeatureNotAvailable, $"{ServiceDescriptors.GetServiceName(typeof(TService))}: {exception.GetType()}: {exception.Message}");
+            Logger.Log(FunctionId.FeatureNotAvailable, $"{_serviceDescriptor.Moniker}: {exception.GetType()}: {exception.Message}");
 
             return FatalError.ReportAndCatch(exception);
         }
@@ -385,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             string message;
             Exception? internalException = null;
-            var featureName = ServiceDescriptors.GetFeatureName(typeof(TService));
+            var featureName = _serviceDescriptor.GetFeatureDisplayName();
 
             if (IsRemoteIOException(exception))
             {

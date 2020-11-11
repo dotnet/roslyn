@@ -14,16 +14,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #End If
         Implements IContextualNamedEntity
 
-#If DEBUG Then
-
-        Friend Sub New(underlyingFieldSymbol As SynthesizedStaticLocalBackingField)
-            MyBase.New(underlyingFieldSymbol)
+        Private Sub IContextualNamedEntity_AssociateWithMetadataWriter(metadataWriter As MetadataWriter) Implements IContextualNamedEntity.AssociateWithMetadataWriter
+            DirectCast(AdaptedFieldSymbol, SynthesizedStaticLocalBackingField).AssociateWithMetadataWriter(metadataWriter)
         End Sub
-
     End Class
 
     Partial Friend Class SynthesizedStaticLocalBackingField
-#End If
         Private _metadataWriter As MetadataWriter
         Private _nameToEmit As String
 
@@ -51,16 +47,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 _nameToEmit = GeneratedNames.MakeStaticLocalFieldName(declaringMethod.Name, signature, Name)
             End If
         End Sub
+    End Class
 
 #If DEBUG Then
-    End Class
-
     Partial Friend Class SynthesizedStaticLocalBackingFieldAdapter
-#End If
 
-        Private Sub IContextualNamedEntity_AssociateWithMetadataWriter(metadataWriter As MetadataWriter) Implements IContextualNamedEntity.AssociateWithMetadataWriter
-            DirectCast(AdaptedFieldSymbol, SynthesizedStaticLocalBackingField).AssociateWithMetadataWriter(metadataWriter)
+        Friend Sub New(underlyingFieldSymbol As SynthesizedStaticLocalBackingField)
+            MyBase.New(underlyingFieldSymbol)
         End Sub
-
     End Class
+#End If
 End Namespace

@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #If DEBUG Then
-    Partial Friend NotInheritable Class ParameterSymbolAdapter
+    Partial Friend Class ParameterSymbolAdapter
         Inherits SymbolAdapter
 #Else
     Partial Friend Class ParameterSymbol
@@ -18,54 +18,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements IParameterTypeInformation
         Implements IParameterDefinition
 
-#If DEBUG Then
-        Friend ReadOnly Property AdaptedParameterSymbol As ParameterSymbol
-
-        Friend Sub New(underlyingParameterSymbol As ParameterSymbol)
-            AdaptedParameterSymbol = underlyingParameterSymbol
-        End Sub
-
-        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
-            Get
-                Return AdaptedParameterSymbol
-            End Get
-        End Property
-#Else
-        Friend ReadOnly Property AdaptedParameterSymbol As ParameterSymbol
-            Get
-                Return Me
-            End Get
-        End Property
-#End If
-
-    End Class
-
-    Partial Friend Class ParameterSymbol
-#If DEBUG Then
-        Private _lazyAdapter As ParameterSymbolAdapter
-
-        Protected Overrides Function GetCciAdapterImpl() As SymbolAdapter
-            Return GetCciAdapter()
-        End Function
-
-        Friend Shadows Function GetCciAdapter() As ParameterSymbolAdapter
-            If _lazyAdapter Is Nothing Then
-                Return InterlockedOperations.Initialize(_lazyAdapter, New ParameterSymbolAdapter(Me))
-            End If
-
-            Return _lazyAdapter
-        End Function
-#Else
-        Friend Shadows Function GetCciAdapter() As ParameterSymbol
-            return Me
-        End Function
-#End If
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class ParameterSymbolAdapter
-#End If
         Private ReadOnly Property IParameterTypeInformationCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements IParameterTypeInformation.CustomModifiers
             Get
                 Return AdaptedParameterSymbol.CustomModifiers.As(Of Cci.ICustomModifier)
@@ -109,30 +61,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class ParameterSymbol
-#End If
-
-        Friend Overridable ReadOnly Property HasMetadataConstantValue As Boolean
-            Get
-                CheckDefinitionInvariant()
-                If Me.HasExplicitDefaultValue Then
-                    Dim value = Me.ExplicitDefaultConstantValue
-                    Return Not (value.Discriminator = ConstantValueTypeDiscriminator.DateTime OrElse value.Discriminator = ConstantValueTypeDiscriminator.Decimal)
-                End If
-                Return False
-            End Get
-        End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class ParameterSymbolAdapter
-#End If
-
-
         Private ReadOnly Property IParameterDefinition_HasDefaultValue As Boolean Implements IParameterDefinition.HasDefaultValue
             Get
                 CheckDefinitionInvariant()
@@ -146,25 +74,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return AdaptedParameterSymbol.IsMetadataOptional
             End Get
         End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class ParameterSymbol
-#End If
-
-        Friend Overridable ReadOnly Property IsMetadataOptional As Boolean
-            Get
-                CheckDefinitionInvariant()
-                Return Me.IsOptional OrElse GetAttributes().Any(Function(a) a.IsTargetAttribute(Me, AttributeDescription.OptionalAttribute))
-            End Get
-        End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class ParameterSymbolAdapter
-#End If
 
         Private ReadOnly Property IParameterDefinitionIsIn As Boolean Implements IParameterDefinition.IsIn
             Get
@@ -187,25 +96,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class ParameterSymbol
-#End If
-
-        Friend Overridable ReadOnly Property IsMarshalledExplicitly As Boolean
-            Get
-                CheckDefinitionInvariant()
-                Return MarshallingInformation IsNot Nothing
-            End Get
-        End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class ParameterSymbolAdapter
-#End If
-
         Private ReadOnly Property IParameterDefinitionMarshallingInformation As IMarshallingInformation Implements IParameterDefinition.MarshallingInformation
             Get
                 CheckDefinitionInvariant()
@@ -219,25 +109,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return AdaptedParameterSymbol.MarshallingDescriptor
             End Get
         End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class ParameterSymbol
-#End If
-
-        Friend Overridable ReadOnly Property MarshallingDescriptor As ImmutableArray(Of Byte)
-            Get
-                CheckDefinitionInvariant()
-                Return Nothing
-            End Get
-        End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class ParameterSymbolAdapter
-#End If
 
         Friend NotOverridable Overrides Sub IReferenceDispatch(visitor As MetadataVisitor) ' Implements IReference.Dispatch
             Debug.Assert(Me.IsDefinitionOrDistinct())
@@ -271,4 +142,80 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
     End Class
+
+    Partial Friend Class ParameterSymbol
+#If DEBUG Then
+        Private _lazyAdapter As ParameterSymbolAdapter
+
+        Protected Overrides Function GetCciAdapterImpl() As SymbolAdapter
+            Return GetCciAdapter()
+        End Function
+
+        Friend Shadows Function GetCciAdapter() As ParameterSymbolAdapter
+            If _lazyAdapter Is Nothing Then
+                Return InterlockedOperations.Initialize(_lazyAdapter, New ParameterSymbolAdapter(Me))
+            End If
+
+            Return _lazyAdapter
+        End Function
+#Else
+        Friend ReadOnly Property AdaptedParameterSymbol As ParameterSymbol
+            Get
+                Return Me
+            End Get
+        End Property
+
+        Friend Shadows Function GetCciAdapter() As ParameterSymbol
+            Return Me
+        End Function
+#End If
+
+        Friend Overridable ReadOnly Property HasMetadataConstantValue As Boolean
+            Get
+                CheckDefinitionInvariant()
+                If Me.HasExplicitDefaultValue Then
+                    Dim value = Me.ExplicitDefaultConstantValue
+                    Return Not (value.Discriminator = ConstantValueTypeDiscriminator.DateTime OrElse value.Discriminator = ConstantValueTypeDiscriminator.Decimal)
+                End If
+                Return False
+            End Get
+        End Property
+
+        Friend Overridable ReadOnly Property IsMetadataOptional As Boolean
+            Get
+                CheckDefinitionInvariant()
+                Return Me.IsOptional OrElse GetAttributes().Any(Function(a) a.IsTargetAttribute(Me, AttributeDescription.OptionalAttribute))
+            End Get
+        End Property
+
+        Friend Overridable ReadOnly Property IsMarshalledExplicitly As Boolean
+            Get
+                CheckDefinitionInvariant()
+                Return MarshallingInformation IsNot Nothing
+            End Get
+        End Property
+
+        Friend Overridable ReadOnly Property MarshallingDescriptor As ImmutableArray(Of Byte)
+            Get
+                CheckDefinitionInvariant()
+                Return Nothing
+            End Get
+        End Property
+    End Class
+
+#If DEBUG Then
+    Partial Friend NotInheritable Class ParameterSymbolAdapter
+        Friend ReadOnly Property AdaptedParameterSymbol As ParameterSymbol
+
+        Friend Sub New(underlyingParameterSymbol As ParameterSymbol)
+            AdaptedParameterSymbol = underlyingParameterSymbol
+        End Sub
+
+        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
+            Get
+                Return AdaptedParameterSymbol
+            End Get
+        End Property
+    End Class
+#End If
 End Namespace
