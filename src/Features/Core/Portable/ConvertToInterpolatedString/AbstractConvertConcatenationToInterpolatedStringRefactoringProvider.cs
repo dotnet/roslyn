@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                         // not:
                         //      {InterpolatedStringText}{Interpolation}{InterpolatedStringText}{InterpolatedStringText}
                         var existingInterpolatedStringTextNode = content.Last();
-                        var newText = ConcatinateTextToTextNode(generator, existingInterpolatedStringTextNode, textWithoutQuotes);
+                        var newText = ConcatenateTextToTextNode(generator, existingInterpolatedStringTextNode, textWithoutQuotes);
                         content[^1] = newText;
                     }
                     else
@@ -168,14 +168,14 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                         if (currentContentIsStringOrCharacterLiteral && previousContentWasStringLiteralExpression)
                         {
                             // if piece starts with a text and the previous part was a string, merge the two parts (see also above)
-                            var newText = ConcatinateTextToTextNode(generator, content.Last(), contentPart.GetFirstToken().Text);
+                            var newText = ConcatenateTextToTextNode(generator, content.Last(), contentPart.GetFirstToken().Text);
                             content[^1] = newText;
                         }
                         else
                         {
                             content.Add(contentPart);
                         }
-                        
+
                         // Only the first contentPart can be merged, therefore we set previousContentWasStringLiteralExpression to false
                         previousContentWasStringLiteralExpression = false;
                     }
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             return generator.InterpolatedStringExpression(startToken, content, endToken);
         }
 
-        private static SyntaxNode ConcatinateTextToTextNode(SyntaxGenerator generator, SyntaxNode interpolatedStringTextNode, string textWithoutQuotes)
+        private static SyntaxNode ConcatenateTextToTextNode(SyntaxGenerator generator, SyntaxNode interpolatedStringTextNode, string textWithoutQuotes)
         {
             var existingText = interpolatedStringTextNode.GetFirstToken().Text;
             var newText = existingText + textWithoutQuotes;
