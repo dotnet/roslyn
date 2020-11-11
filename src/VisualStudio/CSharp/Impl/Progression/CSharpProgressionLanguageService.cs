@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -24,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
     [ExportLanguageService(typeof(IProgressionLanguageService), LanguageNames.CSharp), Shared]
     internal partial class CSharpProgressionLanguageService : IProgressionLanguageService
     {
-        private static readonly SymbolDisplayFormat s_descriptionFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_descriptionFormat = new(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -35,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
                               SymbolDisplayParameterOptions.IncludeOptionalBrackets,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private static readonly SymbolDisplayFormat s_labelFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_labelFormat = new(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             memberOptions: SymbolDisplayMemberOptions.IncludeParameters |
                            SymbolDisplayMemberOptions.IncludeExplicitInterface,
@@ -65,6 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
                     if (!cancellationToken.IsCancellationRequested)
                     {
                         if (node.Kind() == SyntaxKind.ClassDeclaration ||
+                            node.Kind() == SyntaxKind.RecordDeclaration ||
                             node.Kind() == SyntaxKind.DelegateDeclaration ||
                             node.Kind() == SyntaxKind.EnumDeclaration ||
                             node.Kind() == SyntaxKind.InterfaceDeclaration ||

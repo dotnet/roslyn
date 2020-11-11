@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             protected override void DisconnectFromWorkspace(Workspace workspace)
                 => workspace.DocumentActiveContextChanged -= OnDocumentActiveContextChanged;
 
-            private void OnDocumentActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
+            private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)
             {
                 var document = SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
 

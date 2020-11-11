@@ -14,14 +14,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-    Public Partial Class DocumentationCommentTriviaSyntax
+    Partial Public Class DocumentationCommentTriviaSyntax
         Friend Function GetInteriorXml() As String
             ' NOTE: is only used in parse tests
             Return DirectCast(Me.Green, InternalSyntax.DocumentationCommentTriviaSyntax).GetInteriorXml
         End Function
     End Class
 
-    Public Partial Class DirectiveTriviaSyntax
+    Partial Public Class DirectiveTriviaSyntax
         Private Shared ReadOnly s_hasDirectivesFunction As Func(Of SyntaxToken, Boolean) = Function(n) n.ContainsDirectives
 
         Public Function GetNextDirective(Optional predicate As Func(Of DirectiveTriviaSyntax, Boolean) = Nothing) As DirectiveTriviaSyntax
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Property
     End Class
 
-    Public Partial Class MethodBaseSyntax
+    Partial Public Class MethodBaseSyntax
 
         Friend ReadOnly Property AsClauseInternal As AsClauseSyntax
             Get

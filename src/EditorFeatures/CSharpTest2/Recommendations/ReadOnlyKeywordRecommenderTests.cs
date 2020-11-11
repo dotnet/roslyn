@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -358,7 +360,7 @@ $$");
      $$");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyNotAsParameterModifierInMethods()
         {
@@ -369,7 +371,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyNotAsParameterModifierInSecondParameter()
         {
@@ -380,7 +382,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyNotAsParameterModifierInDelegates()
         {
@@ -388,7 +390,7 @@ class Program
 public delegate int Delegate(ref $$ int p);");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [CombinatorialData]
         public async Task TestRefReadonlyNotAsParameterModifierInLocalFunctions(bool topLevelStatement)
@@ -397,7 +399,7 @@ public delegate int Delegate(ref $$ int p);");
 @"void localFunc(ref $$ int p) { }", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyNotAsParameterModifierInLambdaExpressions()
         {
@@ -418,7 +420,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyNotAsParameterModifierInAnonymousMethods()
         {
@@ -434,7 +436,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyAsModifierInMethodReturnTypes()
         {
@@ -448,7 +450,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyAsModifierInGlobalMemberDeclaration()
         {
@@ -456,7 +458,7 @@ class Program
 public ref $$ ");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyAsModifierInDelegateReturnType()
         {
@@ -468,7 +470,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyAsModifierInMemberDeclaration()
         {
@@ -479,7 +481,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
         [CombinatorialData]
@@ -489,7 +491,7 @@ class Program
 @"ref $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [CombinatorialData]
         public async Task TestRefReadonlyInLocalDeclaration(bool topLevelStatement)
@@ -498,7 +500,7 @@ class Program
 @"ref $$ int local;", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [CombinatorialData]
         public async Task TestRefReadonlyInLocalFunction(bool topLevelStatement)
@@ -507,7 +509,7 @@ class Program
 @"ref $$ int Function();", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [CombinatorialData]
         public async Task TestRefReadonlyNotInRefExpression(bool topLevelStatement)

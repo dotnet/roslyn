@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -234,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // type parameters are always accessible, so don't check those (so common it's
                     // worth optimizing this).
-                    if (typeArg.Type.Kind != SymbolKind.TypeParameter && !IsSymbolAccessibleCore(typeArg.Type, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved))
+                    if (typeArg.DefaultType.TypeKind != TypeKind.TypeParameter && !IsSymbolAccessibleCore(typeArg.Type, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved))
                     {
                         return false;
                     }

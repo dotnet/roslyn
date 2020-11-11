@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum ErrorCode
@@ -1634,7 +1636,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PointerTypeInPatternMatching = 8521,
         ERR_ArgumentNameInITuplePattern = 8522,
         ERR_DiscardPatternInSwitchStatement = 8523,
-        // available 8524-8596
+        WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue = 8524,
+        // available 8525-8596
         #endregion diagnostics introduced for recursive patterns
 
         WRN_ThrowPossibleNull = 8597,
@@ -1744,9 +1747,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InternalError = 8751,
 
-        ERR_TypelessNewIllegalTargetType = 8752,
-        ERR_TypelessNewNotValid = 8753,
-        ERR_TypelessNewNoTargetType = 8754,
+        ERR_ImplicitObjectCreationIllegalTargetType = 8752,
+        ERR_ImplicitObjectCreationNotValid = 8753,
+        ERR_ImplicitObjectCreationNoTargetType = 8754,
 
         ERR_BadFuncPointerParamModifier = 8755,
         ERR_BadFuncPointerArgCount = 8756,
@@ -1779,6 +1782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ParameterDisallowsNull = 8777,
         WRN_ConstOutOfRangeChecked = 8778,
 
+        ERR_DuplicateInterfaceWithDifferencesInBaseList = 8779,
         ERR_DesignatorBeneathPatternCombinator = 8780,
         ERR_UnsupportedTypeForRelationalPattern = 8781,
         ERR_RelationalPatternWithNaN = 8782,
@@ -1833,6 +1837,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StaticAnonymousFunctionCannotCaptureThis = 8821,
         ERR_OverrideDefaultConstraintNotSatisfied = 8822,
         ERR_DefaultConstraintOverrideOnly = 8823,
+        WRN_ParameterNotNullIfNotNull = 8824,
+        WRN_ReturnNotNullIfNotNull = 8825,
 
         ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
         ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,
@@ -1841,9 +1847,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_SwitchExpressionNotExhaustiveForNullWithWhen = 8847,
         WRN_PrecedenceInversion = 8848,
         ERR_ExpressionTreeContainsWithExpression = 8849,
-        ERR_BadRecordDeclaration = 8850,
 
-        // Available = 8851,
+        WRN_AnalyzerReferencesFramework = 8850,
+
+        // WRN_EqualsWithoutGetHashCode is for object.Equals and works for classes.
+        // WRN_RecordEqualsWithoutGetHashCode is for IEquatable<T>.Equals and works for records.
+        WRN_RecordEqualsWithoutGetHashCode = 8851,
 
         ERR_AssignmentInitOnly = 8852,
         ERR_CantChangeInitOnlyOnOverride = 8853,
@@ -1907,6 +1916,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ModuleInitializerCannotBeUnmanagedCallersOnly = 8900,
         ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly = 8901,
         ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate = 8902,
+
+        ERR_InitCannotBeReadonly = 8903,
+
+        ERR_UnexpectedVarianceStaticMember = 8904,
+        ERR_FunctionPointersCannotBeCalledWithNamedArguments = 8905,
+
+        ERR_EqualityContractRequiresGetter = 8906,
+        WRN_UnreadRecordParameter = 8907,
+        ERR_BadFieldTypeInRecord = 8908,
 
         #endregion diagnostics introduced for C# 9.0
 

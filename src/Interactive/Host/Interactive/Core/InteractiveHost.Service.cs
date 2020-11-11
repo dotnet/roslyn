@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 extern alias Scripting;
 
 using System;
@@ -18,6 +16,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             private readonly object _lastTaskGuard = new object();
             private Task<EvaluationState> _lastTask;
 
-            private static InteractiveHostPlatformInfo s_currentPlatformInfo = InteractiveHostPlatformInfo.GetCurrentPlatformInfo();
+            private static readonly InteractiveHostPlatformInfo s_currentPlatformInfo = InteractiveHostPlatformInfo.GetCurrentPlatformInfo();
 
             private sealed class ServiceState : IDisposable
             {
@@ -140,7 +139,15 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 _lastTask = Task.FromResult(initialState);
 
-                Console.OutputEncoding = Encoding.UTF8;
+                try
+                {
+                    Console.OutputEncoding = Encoding.UTF8;
+                }
+                catch (IOException ex) when (FatalError.ReportAndCatch(ex))
+                {
+                    // Ignore this exception
+                    // https://github.com/dotnet/roslyn/issues/47571
+                }
 
                 // We want to be sure to delete the shadow-copied files when the process goes away. Frankly
                 // there's nothing we can do if the process is forcefully quit or goes down in a completely

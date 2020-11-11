@@ -6,6 +6,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
@@ -14,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         public static Guid GetTelemetryId(this Type type, short scope = 0)
         {
             type = GetTypeForTelemetry(type);
+            Contract.ThrowIfNull(type.FullName);
 
             // AssemblyQualifiedName will change across version numbers, FullName won't
 

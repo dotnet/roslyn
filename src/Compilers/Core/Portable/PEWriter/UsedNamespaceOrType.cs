@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -69,8 +67,8 @@ namespace Microsoft.Cci
         {
             return AliasOpt == other.AliasOpt
                 && object.Equals(TargetAssemblyOpt, other.TargetAssemblyOpt)
-                && object.Equals(TargetNamespaceOpt, other.TargetNamespaceOpt)
-                && object.Equals(TargetTypeOpt, other.TargetTypeOpt)
+                && Equals(TargetNamespaceOpt, other.TargetNamespaceOpt)
+                && Equals(TargetTypeOpt, other.TargetTypeOpt)
                 && TargetXmlNamespaceOpt == other.TargetXmlNamespaceOpt;
         }
 
@@ -78,9 +76,87 @@ namespace Microsoft.Cci
         {
             return Hash.Combine(AliasOpt,
                    Hash.Combine((object?)TargetAssemblyOpt,
-                   Hash.Combine((object?)TargetNamespaceOpt,
-                   Hash.Combine((object?)TargetTypeOpt,
+                   Hash.Combine(GetHashCode(TargetNamespaceOpt),
+                   Hash.Combine(GetHashCode(TargetTypeOpt),
                    Hash.Combine(TargetXmlNamespaceOpt, 0)))));
+        }
+
+        private static bool Equals(ITypeReference? x, ITypeReference? y)
+        {
+            if (x == y)
+            {
+                return true;
+            }
+
+            if (x is null || y is null)
+            {
+                return false;
+            }
+
+            var xSymbol = x.GetInternalSymbol();
+            var ySymbol = y.GetInternalSymbol();
+
+            if (xSymbol is object && ySymbol is object)
+            {
+                return xSymbol.Equals(ySymbol);
+            }
+            else if (xSymbol is object || ySymbol is object)
+            {
+                return false;
+            }
+
+            return x.Equals(y);
+        }
+
+        private static int GetHashCode(ITypeReference? obj)
+        {
+            var objSymbol = obj?.GetInternalSymbol();
+
+            if (objSymbol is object)
+            {
+                return objSymbol.GetHashCode();
+            }
+
+            return obj?.GetHashCode() ?? 0;
+        }
+
+        private static bool Equals(INamespace? x, INamespace? y)
+        {
+            if (x == y)
+            {
+                return true;
+            }
+
+            if (x is null || y is null)
+            {
+                return false;
+            }
+
+            var xSymbol = x.GetInternalSymbol();
+            var ySymbol = y.GetInternalSymbol();
+
+            if (xSymbol is object && ySymbol is object)
+            {
+                return xSymbol.Equals(ySymbol);
+            }
+            else if (xSymbol is object || ySymbol is object)
+            {
+                return false;
+            }
+
+            return x.Equals(y);
+        }
+
+        private static int GetHashCode(INamespace? obj)
+        {
+            var objSymbol = obj?.GetInternalSymbol();
+
+            if (objSymbol is object)
+            {
+                return objSymbol.GetHashCode();
+            }
+
+            return obj?.GetHashCode() ?? 0;
         }
     }
 }

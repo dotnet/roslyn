@@ -226,14 +226,9 @@ function BuildSolution {
     bl="/bl:\"$log_dir/Build.binlog\""
   fi
   
-  local projects="$repo_root/$solution" 
-  
-  # https://github.com/dotnet/roslyn/issues/23736
-  UNAME="$(uname)"
-  if [[ "$UNAME" == "Darwin" ]]; then
-    run_analyzers=false
-  fi
+  local projects="$repo_root/$solution"
 
+  UNAME="$(uname)"
   # NuGet often exceeds the limit of open files on Mac and Linux
   # https://github.com/NuGet/Home/issues/2163
   if [[ "$UNAME" == "Darwin" || "$UNAME" == "Linux" ]]; then
@@ -266,7 +261,7 @@ function BuildSolution {
     test_runtime_args="--debug"
   elif [[ "$test_core_clr" == true ]]; then
     test=true
-    test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=net5.0%3Bnetcoreapp3.1"
+    test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=net5.0%3Bnetcoreapp3.1 /p:TestRunnerAdditionalArguments=-verbose"
     mono_tool=""
   fi
 

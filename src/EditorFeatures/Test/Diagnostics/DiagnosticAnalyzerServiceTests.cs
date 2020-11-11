@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -61,7 +63,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             // listen to events
             // check empty since this could be called to clear up existing diagnostics
-            service.DiagnosticsUpdated += (s, a) => Assert.Empty(a.Diagnostics);
+            service.DiagnosticsUpdated += (s, a) =>
+            {
+                var diagnostics = a.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                Assert.Empty(diagnostics);
+            };
 
             // now call each analyze method. none of them should run.
             await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
@@ -186,7 +192,8 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var compilationDiagnostic = false;
             service.DiagnosticsUpdated += (s, a) =>
             {
-                var diagnostic = Assert.Single(a.Diagnostics);
+                var diagnostics = a.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnostic = Assert.Single(diagnostics);
                 Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
 
                 if (diagnostic.Id == DisabledByDefaultAnalyzer.s_syntaxRule.Id)
@@ -234,7 +241,8 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             // listen to events
             service.DiagnosticsUpdated += (s, a) =>
             {
-                (syntax, semantic) = resultSetter(syntax, semantic, a.Diagnostics);
+                var diagnostics = a.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                (syntax, semantic) = resultSetter(syntax, semantic, diagnostics);
             };
 
             // now call each analyze method. none of them should run.
@@ -275,16 +283,18 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             {
                 if (workspace.IsDocumentOpen(a.DocumentId))
                 {
+                    var diagnostics = a.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                     // check the diagnostics are reported
                     Assert.Equal(document.Id, a.DocumentId);
-                    Assert.Equal(1, a.Diagnostics.Length);
-                    Assert.Equal(OpenFileOnlyAnalyzer.s_syntaxRule.Id, a.Diagnostics[0].Id);
+                    Assert.Equal(1, diagnostics.Length);
+                    Assert.Equal(OpenFileOnlyAnalyzer.s_syntaxRule.Id, diagnostics[0].Id);
                 }
 
                 if (a.DocumentId == document.Id && !workspace.IsDocumentOpen(a.DocumentId))
                 {
                     // check the diagnostics reported are cleared
-                    Assert.Equal(0, a.Diagnostics.Length);
+                    var diagnostics = a.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                    Assert.Equal(0, diagnostics.Length);
                 }
             };
 
@@ -340,12 +350,13 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             // listen to events
             service.DiagnosticsUpdated += (s, a) =>
             {
-                switch (a.Diagnostics.Length)
+                var diagnostics = a.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                switch (diagnostics.Length)
                 {
                     case 0:
                         return;
                     case 1:
-                        syntax |= a.Diagnostics[0].Id == NoNameAnalyzer.s_syntaxRule.Id;
+                        syntax |= diagnostics[0].Id == NoNameAnalyzer.s_syntaxRule.Id;
                         return;
                     default:
                         AssertEx.Fail("shouldn't reach here");
@@ -360,7 +371,10 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 workspace,
                 ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>>.Empty.Add(
                     document.Project.Id,
-                    ImmutableArray.Create(DiagnosticData.Create(Diagnostic.Create(NoNameAnalyzer.s_syntaxRule, location), document.Project))));
+                    ImmutableArray.Create(DiagnosticData.Create(Diagnostic.Create(NoNameAnalyzer.s_syntaxRule, location), document.Project))),
+                new TaskQueue(service.Listener, TaskScheduler.Default),
+                onBuildCompleted: true,
+                CancellationToken.None);
 
             // wait for all events to raised
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync().ConfigureAwait(false);
@@ -449,7 +463,8 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             var called = false;
             service.DiagnosticsUpdated += (s, e) =>
             {
-                if (e.Diagnostics.Length == 0)
+                var diagnostics = e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                if (diagnostics.Length == 0)
                 {
                     return;
                 }
@@ -550,7 +565,8 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var called = false;
             service.DiagnosticsUpdated += (s, e) =>
             {
-                if (e.Diagnostics.Length == 0)
+                var diagnostics = e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                if (diagnostics.Length == 0)
                 {
                     return;
                 }
@@ -605,7 +621,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var diagnostics = new ConcurrentSet<DiagnosticData>();
             service.DiagnosticsUpdated += (s, e) =>
             {
-                diagnostics.AddRange(e.Diagnostics);
+                diagnostics.AddRange(e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode));
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
@@ -698,12 +714,13 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             DiagnosticData diagnostic = null;
             service.DiagnosticsUpdated += (s, e) =>
             {
-                if (e.Diagnostics.Length == 0)
+                var diagnostics = e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                if (diagnostics.Length == 0)
                 {
                     return;
                 }
 
-                diagnostic = Assert.Single(e.Diagnostics);
+                diagnostic = Assert.Single(diagnostics);
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
@@ -801,7 +818,10 @@ class A
             var diagnostics = ArrayBuilder<DiagnosticData>.GetInstance();
             service.DiagnosticsUpdated += (s, e) =>
             {
-                diagnostics.AddRange(e.Diagnostics.Where(d => d.Id == IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId).OrderBy(d => d.GetTextSpan()));
+                diagnostics.AddRange(
+                    e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                     .Where(d => d.Id == IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId)
+                     .OrderBy(d => d.GetTextSpan()));
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
@@ -876,13 +896,14 @@ class A
             DiagnosticData diagnostic = null;
             service.DiagnosticsUpdated += (s, e) =>
             {
-                if (e.Diagnostics.IsEmpty)
+                var diagnostics = e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                if (diagnostics.IsEmpty)
                 {
                     return;
                 }
 
                 Assert.Null(diagnostic);
-                diagnostic = Assert.Single(e.Diagnostics);
+                diagnostic = Assert.Single(diagnostics);
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
@@ -976,8 +997,8 @@ class A
             // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
             var diagnosticsMap = await diagnosticComputer.GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics: false,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
-            var builder = diagnosticsMap.AnalysisResult.Values.Single();
-            var diagnostic = kind == AnalysisKind.Syntax ? builder.SyntaxLocals.Values.Single().Single() : builder.SemanticLocals.Values.Single().Single();
+            var builder = diagnosticsMap.Diagnostics.Single().diagnosticMap;
+            var diagnostic = kind == AnalysisKind.Syntax ? builder.Syntax.Single().Item2.Single() : builder.Semantic.Single().Item2.Single();
             Assert.Equal(CancellationTestAnalyzer.NonCanceledDiagnosticId, diagnostic.Id);
         }
 

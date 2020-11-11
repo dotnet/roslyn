@@ -47,6 +47,11 @@
         <target state="translated">단일 어셈블리를 찾았습니다. '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">이벤트 구독 생성</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Load_from_0">
         <source>Load from: '{0}'</source>
         <target state="translated">로드 위치: '{0}'</target>

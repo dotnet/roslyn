@@ -15,12 +15,12 @@ The minimal required version of .NET Framework is 4.7.2.
 
 ## Developing with Visual Studio 2019
 
-1. [Visual Studio 2019 16.5](https://visualstudio.microsoft.com/downloads/)
+1. [Visual Studio 2019 16.8p2](https://visualstudio.microsoft.com/downloads/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
-    - Ensure Visual Studio is on Version "16.5" or greater
+    - Ensure Visual Studio is on Version "16.8 Preview 3" or greater
     - Ensure "Use previews of the .NET Core SDK" is checked in Tools -> Options -> Environment -> Preview Features
     - Restart Visual Studio
-1. [.NET Core SDK 5.0 Preview 7](https://dotnet.microsoft.com/download/dotnet-core/5.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-5.0.100-preview.7-windows-x64-installer)
+1. [.NET Core SDK 5.0 Release Candidate 2](https://dotnet.microsoft.com/download/dotnet-core/5.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-5.0.100-rc.2-windows-x64-installer)
 1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on earlier versions of Windows. The download link is under the ["Upgrading existing Windows PowerShell"](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
@@ -166,6 +166,15 @@ version it is operating under.
 You can also attach a debugger to Visual Studio and check the loaded modules, looking at the folder
 where the various `CodeAnalysis` modules were loaded from (the `RoslynDev` should load them somewhere 
 under `AppData`, not from `Program File`).
+
+### Testing on the [dotnet/runtime](https://github.com/dotnet/runtime) repo
+
+1. make sure that you can build the `runtime` repo as baseline (run `build.cmd libs`, which should be sufficient to build all C# code, installing any prerequisites if prompted to)
+2. `build.cmd -pack` on your `roslyn` repo
+3. in `%userprofile%\.nuget\packages\microsoft.net.compilers.toolset` delete the version of the toolset that you just packed so that the new one will get put into the cache
+4. modify your local enlistment of `runtime` as illustrated in [this commit](https://github.com/RikkiGibson/runtime/commit/da3c6d96c3764e571269b07650a374678b476384) then build again
+    - add `<RestoreAdditionalProjectSources><PATH-TO-YOUR-ROSLYN-ENLISTMENT>\artifacts\packages\Debug\Shipping\</RestoreAdditionalProjectSources>` using the local path to your `roslyn` repo to `Directory.Build.props`
+    - add `<MicrosoftNetCompilersToolsetVersion>3.9.0-dev</MicrosoftNetCompilersToolsetVersion>` with the package version you just packed (look in above artifacts folder) to `eng/Versions.props`
 
 ## Contributing
 

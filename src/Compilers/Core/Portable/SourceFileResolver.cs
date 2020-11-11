@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -119,7 +118,7 @@ namespace Microsoft.CodeAnalysis
             return FileUtilities.OpenRead(resolvedPath);
         }
 
-        protected virtual bool FileExists(string resolvedPath)
+        protected virtual bool FileExists([NotNullWhen(true)] string? resolvedPath)
         {
             return File.Exists(resolvedPath);
         }

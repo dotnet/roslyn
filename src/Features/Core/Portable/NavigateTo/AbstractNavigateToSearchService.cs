@@ -2,20 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
-    internal abstract partial class AbstractNavigateToSearchService : INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate
+    internal abstract partial class AbstractNavigateToSearchService : INavigateToSearchService
     {
         public IImmutableSet<string> KindsProvided { get; } = ImmutableHashSet.Create(
             NavigateToItemKind.Class,
+            NavigateToItemKind.Record,
             NavigateToItemKind.Constant,
             NavigateToItemKind.Delegate,
             NavigateToItemKind.Enum,
@@ -38,15 +36,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 var solution = document.Project.Solution;
 
-                var result = await client.RunRemoteAsync<IList<SerializableNavigateToSearchResult>>(
-                    WellKnownServiceHubService.CodeAnalysis,
-                    nameof(IRemoteNavigateToSearchService.SearchDocumentAsync),
+                var result = await client.TryInvokeAsync<IRemoteNavigateToSearchService, ImmutableArray<SerializableNavigateToSearchResult>>(
                     solution,
-                    new object[] { document.Id, searchPattern, kinds.ToArray() },
-                    callbackTarget: null,
+                    (service, solutionInfo, cancellationToken) => service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                return result.SelectAsArray(r => r.Rehydrate(solution));
+                return result.HasValue ? result.Value.SelectAsArray(r => r.Rehydrate(solution)) : ImmutableArray<INavigateToSearchResult>.Empty;
             }
 
             return await SearchDocumentInCurrentProcessAsync(
@@ -60,16 +55,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             if (client != null)
             {
                 var solution = project.Solution;
-
-                var result = await client.RunRemoteAsync<IList<SerializableNavigateToSearchResult>>(
-                    WellKnownServiceHubService.CodeAnalysis,
-                    nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
+                var priorityDocumentIds = priorityDocuments.SelectAsArray(d => d.Id);
+                var result = await client.TryInvokeAsync<IRemoteNavigateToSearchService, ImmutableArray<SerializableNavigateToSearchResult>>(
                     solution,
-                    new object[] { project.Id, priorityDocuments.Select(d => d.Id).ToArray(), searchPattern, kinds.ToArray() },
-                    callbackTarget: null,
+                    (service, solutionInfo, cancellationToken) => service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                return result.SelectAsArray(r => r.Rehydrate(solution));
+                return result.HasValue ? result.Value.SelectAsArray(r => r.Rehydrate(solution)) : ImmutableArray<INavigateToSearchResult>.Empty;
             }
 
             return await SearchProjectInCurrentProcessAsync(

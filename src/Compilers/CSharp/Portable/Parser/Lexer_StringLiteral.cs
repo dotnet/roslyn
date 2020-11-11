@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System;
@@ -276,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Turn a (parsed) interpolated string nonterminal into an interpolated string token.
         /// </summary>
         /// <param name="interpolatedString"></param>
-        static internal SyntaxToken RescanInterpolatedString(InterpolatedStringExpressionSyntax interpolatedString)
+        internal static SyntaxToken RescanInterpolatedString(InterpolatedStringExpressionSyntax interpolatedString)
         {
             var text = interpolatedString.ToString();
             var kind = SyntaxKind.InterpolatedStringToken;

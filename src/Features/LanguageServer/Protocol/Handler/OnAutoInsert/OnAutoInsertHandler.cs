@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,20 +15,22 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(LSP.MSLSPMethods.OnAutoInsertName)]
-    internal class OnAutoInsertHandler : AbstractRequestHandler<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem[]>
+    [ExportLspMethod(LSP.MSLSPMethods.OnAutoInsertName, mutatesSolutionState: false)]
+    internal class OnAutoInsertHandler : IRequestHandler<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public OnAutoInsertHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public OnAutoInsertHandler()
         {
         }
 
-        public override async Task<LSP.DocumentOnAutoInsertResponseItem[]> HandleRequestAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, RequestContext context, CancellationToken cancellationToken)
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentOnAutoInsertParams request) => request.TextDocument;
+
+        public async Task<LSP.DocumentOnAutoInsertResponseItem[]> HandleRequestAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, RequestContext context, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<LSP.DocumentOnAutoInsertResponseItem>.GetInstance(out var response);
 
-            var document = SolutionProvider.GetDocument(autoInsertParams.TextDocument, context.ClientName);
+            var document = context.Document;
 
             if (document == null)
             {

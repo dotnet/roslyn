@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -18,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
@@ -48,10 +47,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             }
         });
 
+        private readonly ILspSolutionProvider _solutionProvider;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptCompletionHandlerShim(ILspSolutionProvider solutionProvider) : base(solutionProvider, Array.Empty<Lazy<CompletionProvider, CompletionProviderMetadata>>())
+        public TypeScriptCompletionHandlerShim(ILspSolutionProvider solutionProvider) : base(Array.Empty<Lazy<CompletionProvider, CompletionProviderMetadata>>())
         {
+            _solutionProvider = solutionProvider;
         }
 
         public Task<LanguageServer.Protocol.CompletionList?> HandleAsync(object input, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
@@ -60,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             // However, this works through liveshare on the LSP client, but not the LSP extension.
             // see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107682 for tracking.
             var request = ((JObject)input).ToObject<CompletionParams>(s_jsonSerializer);
-            var context = new LSP.RequestContext(requestContext.GetClientCapabilities(), null);
+            var context = this.CreateRequestContext(request, _solutionProvider, requestContext.GetClientCapabilities());
             return base.HandleRequestAsync(request, context, cancellationToken);
         }
     }
@@ -68,23 +70,32 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentCompletionResolveName)]
     internal class TypeScriptCompletionResolverHandlerShim : CompletionResolveHandler, ILspRequestHandler<LanguageServer.Protocol.CompletionItem, LanguageServer.Protocol.CompletionItem, Solution>
     {
+        private readonly ILspSolutionProvider _solutionProvider;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptCompletionResolverHandlerShim(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public TypeScriptCompletionResolverHandlerShim(ILspSolutionProvider solutionProvider)
         {
+            _solutionProvider = solutionProvider;
         }
 
         public Task<LanguageServer.Protocol.CompletionItem> HandleAsync(LanguageServer.Protocol.CompletionItem param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(param, new LSP.RequestContext(requestContext.GetClientCapabilities(), null), cancellationToken);
+        {
+            var context = this.CreateRequestContext(param, _solutionProvider, requestContext.GetClientCapabilities());
+            return base.HandleRequestAsync(param, context, cancellationToken);
+        }
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentDocumentSymbolName)]
     internal class TypeScriptDocumentSymbolsHandlerShim : DocumentSymbolsHandler, ILspRequestHandler<DocumentSymbolParams, SymbolInformation[], Solution>
     {
+        private readonly ILspSolutionProvider _solutionProvider;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptDocumentSymbolsHandlerShim(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public TypeScriptDocumentSymbolsHandlerShim(ILspSolutionProvider solutionProvider)
         {
+            _solutionProvider = solutionProvider;
         }
 
         public async Task<SymbolInformation[]> HandleAsync(DocumentSymbolParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
@@ -96,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 clientCapabilities.TextDocument.DocumentSymbol.HierarchicalDocumentSymbolSupport = false;
             }
 
-            var context = new LSP.RequestContext(clientCapabilities, null);
+            var context = this.CreateRequestContext(param, _solutionProvider, clientCapabilities);
             var response = await base.HandleRequestAsync(param, context, cancellationToken).ConfigureAwait(false);
 
             // Since hierarchicalSupport will never be true, it is safe to cast the response to SymbolInformation[]
@@ -107,15 +118,22 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentImplementationName)]
     internal class TypeScriptFindImplementationsHandlerShim : FindImplementationsHandler, ILspRequestHandler<TextDocumentPositionParams, LanguageServer.Protocol.Location[], Solution>
     {
+        private readonly ILspSolutionProvider _solutionProvider;
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptFindImplementationsHandlerShim(ILspSolutionProvider solutionProvider, IThreadingContext threadingContext) : base(solutionProvider)
-            => _threadingContext = threadingContext;
+        public TypeScriptFindImplementationsHandlerShim(ILspSolutionProvider solutionProvider, IThreadingContext threadingContext)
+        {
+            _threadingContext = threadingContext;
+            _solutionProvider = solutionProvider;
+        }
 
         public Task<LanguageServer.Protocol.Location[]> HandleAsync(TextDocumentPositionParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(request, new LSP.RequestContext(requestContext.GetClientCapabilities(), null), cancellationToken);
+        {
+            var context = this.CreateRequestContext(request, _solutionProvider, requestContext.GetClientCapabilities());
+            return base.HandleRequestAsync(request, context, cancellationToken);
+        }
 
         protected override async Task FindImplementationsAsync(IFindUsagesService findUsagesService, Document document, int position, SimpleFindUsagesContext context)
         {
@@ -125,45 +143,60 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         }
     }
 
-    [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.InitializeName)]
-    internal class TypeScriptInitializeHandlerShim : InitializeHandler, ILspRequestHandler<InitializeParams, InitializeResult, Solution>
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptInitializeHandlerShim([ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,
-            ILspSolutionProvider solutionProvider) : base(completionProviders)
-        {
-        }
-
-        public Task<InitializeResult> HandleAsync(InitializeParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(param, new LSP.RequestContext(requestContext.GetClientCapabilities(), null), cancellationToken);
-    }
-
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentSignatureHelpName)]
     internal class TypeScriptSignatureHelpHandlerShim : SignatureHelpHandler, ILspRequestHandler<TextDocumentPositionParams, SignatureHelp, Solution>
     {
+        private readonly ILspSolutionProvider _solutionProvider;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TypeScriptSignatureHelpHandlerShim([ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders,
-            ILspSolutionProvider solutionProvider) : base(allProviders, solutionProvider)
+            ILspSolutionProvider solutionProvider) : base(allProviders)
         {
+            _solutionProvider = solutionProvider;
         }
 
         public Task<SignatureHelp> HandleAsync(TextDocumentPositionParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(param, new LSP.RequestContext(requestContext.GetClientCapabilities(), null), cancellationToken);
+        {
+            var context = this.CreateRequestContext(param, _solutionProvider, requestContext.GetClientCapabilities());
+            return base.HandleRequestAsync(param, context, cancellationToken);
+        }
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.WorkspaceSymbolName)]
-    internal class TypeScriptWorkspaceSymbolsHandlerShim : WorkspaceSymbolsHandler, ILspRequestHandler<WorkspaceSymbolParams, SymbolInformation[], Solution>
+    internal class TypeScriptWorkspaceSymbolsHandlerShim : WorkspaceSymbolsHandler, ILspRequestHandler<WorkspaceSymbolParams, SymbolInformation[]?, Solution>
     {
+        private readonly ILspSolutionProvider _solutionProvider;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptWorkspaceSymbolsHandlerShim(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public TypeScriptWorkspaceSymbolsHandlerShim(ILspSolutionProvider solutionProvider, IAsynchronousOperationListenerProvider listenerProvider)
+            : base(listenerProvider)
         {
+            _solutionProvider = solutionProvider;
         }
 
         [JsonRpcMethod(UseSingleObjectParameterDeserialization = true)]
-        public Task<SymbolInformation[]> HandleAsync(WorkspaceSymbolParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
-            => base.HandleRequestAsync(request, new LSP.RequestContext(requestContext.GetClientCapabilities(), null), cancellationToken);
+        public Task<SymbolInformation[]?> HandleAsync(WorkspaceSymbolParams request, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        {
+            var context = this.CreateRequestContext(request, _solutionProvider, requestContext.GetClientCapabilities());
+            return base.HandleRequestAsync(request, context, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Helper methods only used by the above, that can be deleted along with the above
+    /// </summary>
+    internal static class Extensions
+    {
+        public static LSP.RequestContext CreateRequestContext<TRequest, TResponse>(this IRequestHandler<TRequest, TResponse> requestHandler, TRequest request, ILspSolutionProvider provider, ClientCapabilities clientCapabilities, string? clientName = null)
+        {
+            var textDocument = requestHandler.GetTextDocumentIdentifier(request);
+
+            var (documentId, solution) = provider.GetDocumentAndSolution(textDocument, clientName);
+            var document = solution.GetDocument(documentId);
+
+            return new LSP.RequestContext(solution, clientCapabilities, clientName, document, documentChangeTracker: null);
+        }
     }
 }

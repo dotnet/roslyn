@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -86,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 foreach (var peReference in GetAllRelevantPeReferences())
                 {
                     tasks.Add(Task.Run(()
-                        => SymbolTreeInfo.GetInfoForMetadataReferenceAsync(Solution, peReference, loadOnly: false, cancellationToken), cancellationToken));
+                        => SymbolTreeInfo.GetInfoForMetadataReferenceAsync(Solution, peReference, loadOnly: false, cancellationToken).AsTask(), cancellationToken));
                 }
 
                 return Task.WhenAll(tasks.ToImmutable());
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     tasks.Add(Task.Run(() => GetExtensionMethodSymbolsFromPeReferenceAsync(
                         peReference,
                         forceIndexCreation,
-                        cancellationToken), cancellationToken));
+                        cancellationToken).AsTask(), cancellationToken));
                 }
 
                 foreach (var project in GetAllRelevantProjects())
@@ -131,7 +129,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     symbols.AddRange(result);
                 }
 
-                return (symbols.ToImmutable(), isPartialResult);
+                var browsableSymbols = symbols.ToImmutable()
+                    .FilterToVisibleAndBrowsableSymbols(_originatingDocument.ShouldHideAdvancedMembers(), _originatingSemanticModel.Compilation);
+
+                return (browsableSymbols, isPartialResult);
             }
 
             // Returns all referenced projects and originating project itself.
@@ -183,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     : GetExtensionMethodsForSymbolsFromDifferentCompilation(matchingMethodSymbols, cancellationToken);
             }
 
-            private async Task<ImmutableArray<IMethodSymbol>?> GetExtensionMethodSymbolsFromPeReferenceAsync(
+            private async ValueTask<ImmutableArray<IMethodSymbol>?> GetExtensionMethodSymbolsFromPeReferenceAsync(
                 PortableExecutableReference peReference,
                 bool forceIndexCreation,
                 CancellationToken cancellationToken)

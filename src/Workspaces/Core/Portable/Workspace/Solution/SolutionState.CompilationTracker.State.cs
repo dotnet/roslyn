@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis
                 /// <summary>
                 /// The base <see cref="State"/> that starts with everything empty.
                 /// </summary>
-                public static readonly State Empty = new State(
+                public static readonly State Empty = new(
                     compilation: null, declarationOnlyCompilation: null,
                     generatorDriver: new TrackedGeneratorDriver(null),
                     unrootedSymbolSet: null);

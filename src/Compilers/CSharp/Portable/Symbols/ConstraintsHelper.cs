@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -69,12 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConsList<TypeParameterSymbol> inProgress,
             ImmutableArray<TypeWithAnnotations> constraintTypes,
             bool inherited,
+            bool ignoresNullableContext,
             CSharpCompilation currentCompilation,
             DiagnosticBag diagnostics)
         {
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var bounds = typeParameter.ResolveBounds(corLibrary, inProgress, constraintTypes, inherited, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            var bounds = typeParameter.ResolveBounds(corLibrary, inProgress, constraintTypes, inherited, ignoresNullableContext: ignoresNullableContext, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -97,6 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConsList<TypeParameterSymbol> inProgress,
             ImmutableArray<TypeWithAnnotations> constraintTypes,
             bool inherited,
+            bool ignoresNullableContext,
             CSharpCompilation currentCompilation,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder)
@@ -295,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            var bounds = new TypeParameterBounds(constraintTypes, interfaces, effectiveBaseClass, deducedBaseType);
+            var bounds = new TypeParameterBounds(constraintTypes, interfaces, effectiveBaseClass, deducedBaseType, ignoresNullableContext);
 
             // Additional constraint checks for overrides.
             if (inherited)
@@ -312,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeParameterSymbol> typeParameters,
             TypeParameterListSyntax typeParameterList,
             SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
-            Location location,
+            bool canIgnoreNullableContext,
             DiagnosticBag diagnostics)
         {
             if (typeParameters.Length == 0)
@@ -334,6 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride = null;
             return binder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, typeParameterList, constraintClauses,
+                                                             canIgnoreNullableContext,
                                                              ref isValueTypeOverride,
                                                              diagnostics);
         }

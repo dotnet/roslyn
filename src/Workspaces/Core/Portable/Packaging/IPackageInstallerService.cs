@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -25,34 +28,30 @@ namespace Microsoft.CodeAnalysis.Packaging
 
         ImmutableArray<string> GetInstalledVersions(string packageName);
 
-        IEnumerable<Project> GetProjectsWithInstalledPackage(Solution solution, string packageName, string version);
+        ImmutableArray<Project> GetProjectsWithInstalledPackage(Solution solution, string packageName, string version);
         bool CanShowManagePackagesDialog();
         void ShowManagePackagesDialog(string packageName);
 
         /// <summary>
-        /// Gets the package sources applicable to the workspace.
+        /// Attempts to get the package sources applicable to the workspace.  Note: this call is made on a best effort
+        /// basis.  If the results are not available (for example, they have not been computed, and doing so would
+        /// require switching to the UI thread), then an empty array can be returned.
         /// </summary>
-        /// <param name="allowSwitchToMainThread"><see langword="true"/> to allow the implementation to switch to the
-        /// main thread (if necessary) to compute the result; otherwise <see langword="false"/> to return without an
-        /// answer if such a switch would be required.</param>
-        /// <param name="cancellationToken">The cancellation token that the asynchronous operation will observe.</param>
         /// <returns>
         /// <para>A collection of package sources.</para>
-        /// <para>-or-</para>
-        /// <para><see langword="null"/> if <paramref name="allowSwitchToMainThread"/> is <see langword="false"/> and
-        /// the package sources could not be computed without switching to the main thread.</para>
-        /// <para>-or-</para>
-        /// <para><see langword="null"/> if the package sources were invalidated by the project system before the
-        /// computation completed.</para>
         /// </returns>
-        ValueTask<ImmutableArray<PackageSource>?> TryGetPackageSourcesAsync(bool allowSwitchToMainThread, CancellationToken cancellationToken);
+        ImmutableArray<PackageSource> TryGetPackageSources();
 
         event EventHandler PackageSourcesChanged;
     }
 
-    internal struct PackageSource : IEquatable<PackageSource>
+    [DataContract]
+    internal readonly struct PackageSource : IEquatable<PackageSource>
     {
+        [DataMember(Order = 0)]
         public readonly string Name;
+
+        [DataMember(Order = 1)]
         public readonly string Source;
 
         public PackageSource(string name, string source)
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Packaging
         }
 
         public override bool Equals(object obj)
-            => Equals((PackageSource)obj);
+            => obj is PackageSource source && Equals(source);
 
         public bool Equals(PackageSource other)
             => Name == other.Name && Source == other.Source;

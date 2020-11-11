@@ -3,13 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class DocumentationCommentExtensions
     {
-        public static bool IsMultilineDocComment(this DocumentationCommentTriviaSyntax documentationComment)
+        public static bool IsMultilineDocComment([NotNullWhen(true)] this DocumentationCommentTriviaSyntax? documentationComment)
         {
             if (documentationComment == null)
             {

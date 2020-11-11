@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -712,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return originalSymbol;
         }
-#nullable restore
+#nullable disable
 
         private static LocalFunctionSymbol GetDeclaredLocalFunction(Binder enclosingBinder, SyntaxToken declaredIdentifier)
         {
@@ -1975,7 +1977,24 @@ done:
 
             BoundNode bind(CSharpSyntaxNode root, DiagnosticBag diagnosticBag, out Binder binder)
             {
-                binder = GetEnclosingBinder(GetAdjustedNodePosition(root));
+                if (root is CompilationUnitSyntax)
+                {
+                    // Top level statements are unique among our nodes: if there are no syntax nodes before local functions,
+                    // then that means the start of the span of the top-level statement is the same as the start of the local
+                    // function. Therefore, GetEnclosingBinder can't tell the difference, and it will get the binder for the
+                    // local function, not for the CompilationUnitSyntax. This is desirable in almost all cases but this one:
+                    // There are no locals or invocations before this, meaning there's nothing to call GetDeclaredSymbol,
+                    // GetTypeInfo, or GetSymbolInfo on. GetDeclaredSymbol(CompilationUnitSyntax) goes down another path that
+                    // does not need to do any binding whatsoever, so it also doesn't care about this behavior. The only place
+                    // that actually needs to get the enclosing binding for a CompilationUnitSyntax in such a scenario is this
+                    // method. So, if our root is the CompilationUnitSyntax, directly get the binder for it.
+                    binder = RootBinder.GetBinder(root);
+                    Debug.Assert(binder is SimpleProgramBinder);
+                }
+                else
+                {
+                    binder = GetEnclosingBinder(GetAdjustedNodePosition(root));
+                }
                 return Bind(binder, root, diagnosticBag);
             }
 
@@ -2032,7 +2051,7 @@ done:
         /// </summary>
         protected abstract void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots);
 #endif
-#nullable restore
+#nullable disable
 
         /// <summary>
         /// Get all bounds nodes associated with a node, ordered from highest to lowest in the bound tree.
@@ -2131,7 +2150,7 @@ done:
         }
 
         // some nodes don't have direct semantic meaning by themselves and so we need to bind a different node that does
-        internal protected virtual CSharpSyntaxNode GetBindableSyntaxNode(CSharpSyntaxNode node)
+        protected internal virtual CSharpSyntaxNode GetBindableSyntaxNode(CSharpSyntaxNode node)
         {
             switch (node.Kind())
             {

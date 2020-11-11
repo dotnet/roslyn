@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -723,6 +721,28 @@ abstract record D
                         N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RecordParsing_BlockBodyAndSemiColon()
+        {
+            // Type declarations allow an optional semi-colon after block body
+            var text = "record C { };";
+            UsingTree(text);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }

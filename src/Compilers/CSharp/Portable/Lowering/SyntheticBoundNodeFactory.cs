@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -193,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // It is only valid to call this on a bound node factory with a module builder.
             Debug.Assert(ModuleBuilderOpt is { });
-            ModuleBuilderOpt.AddSynthesizedDefinition(CurrentType, nestedType);
+            ModuleBuilderOpt.AddSynthesizedDefinition(CurrentType, nestedType.GetCciAdapter());
         }
 
         public void OpenNestedType(NamedTypeSymbol nestedType)
@@ -248,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // It is only valid to call this on a bound node factory with a module builder.
             Debug.Assert(ModuleBuilderOpt is { });
-            ModuleBuilderOpt.AddSynthesizedDefinition(containingType, field);
+            ModuleBuilderOpt.AddSynthesizedDefinition(containingType, field.GetCciAdapter());
         }
 
         public GeneratedLabelSymbol GenerateLabel(string prefix)

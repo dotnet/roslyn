@@ -2,70 +2,92 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.XPath;
-using RunTests.Cache;
 
 namespace RunTests
 {
-    internal sealed class ProcessTestExecutor : ITestExecutor
+    internal sealed class ProcessTestExecutor
     {
         public TestExecutionOptions Options { get; }
-
-        public IDataStorage DataStorage => EmptyDataStorage.Instance;
 
         internal ProcessTestExecutor(TestExecutionOptions options)
         {
             Options = options;
         }
 
-        public string GetCommandLine(AssemblyInfo assemblyInfo)
-        {
-            return $"{Options.XunitPath} {GetCommandLineArguments(assemblyInfo)}";
-        }
-
         public string GetCommandLineArguments(AssemblyInfo assemblyInfo)
         {
             var assemblyName = Path.GetFileName(assemblyInfo.AssemblyPath);
-            var resultsFilePath = GetResultsFilePath(assemblyInfo);
 
             var builder = new StringBuilder();
-            builder.AppendFormat(@"""{0}""", assemblyInfo.AssemblyPath);
-            builder.AppendFormat(@" {0}", assemblyInfo.ExtraArguments);
-            builder.AppendFormat(@" -{0} ""{1}""", Options.UseHtml ? "html" : "xml", resultsFilePath);
-            builder.Append(" -noshadow -verbose");
-
-            if (!string.IsNullOrWhiteSpace(Options.Trait))
+            builder.Append($@"test");
+            builder.Append($@" ""{assemblyInfo.AssemblyPath}""");
+            var typeInfoList = assemblyInfo.PartitionInfo.TypeInfoList;
+            if (typeInfoList.Length > 0 || !string.IsNullOrWhiteSpace(Options.Trait) || !string.IsNullOrWhiteSpace(Options.NoTrait))
             {
-                var traits = Options.Trait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var trait in traits)
+                builder.Append(" --filter ");
+                var any = false;
+                foreach (var typeInfo in typeInfoList)
                 {
-                    builder.AppendFormat(" -trait {0}", trait);
+                    MaybeAddSeparator();
+                    builder.Append(typeInfo.FullName);
+                }
+
+                if (Options.Trait is object)
+                {
+                    foreach (var trait in Options.Trait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        MaybeAddSeparator();
+                        builder.Append($"Trait={trait}");
+                    }
+                }
+
+                if (Options.NoTrait is object)
+                {
+                    foreach (var trait in Options.NoTrait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        MaybeAddSeparator('&');
+                        builder.Append($"Trait!~{trait}");
+                    }
+                }
+
+                void MaybeAddSeparator(char separator = '|')
+                {
+                    if (any)
+                    {
+                        builder.Append(separator);
+                    }
+
+                    any = true;
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(Options.NoTrait))
+            builder.Append($@" --framework {assemblyInfo.TargetFramework}");
+            builder.Append($@" --logger ""xunit;LogFilePath={GetResultsFilePath(assemblyInfo, "xml")}""");
+
+            if (Options.IncludeHtml)
             {
-                var traits = Options.NoTrait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var trait in traits)
-                {
-                    builder.AppendFormat(" -notrait {0}", trait);
-                }
+                builder.AppendFormat($@" --logger ""html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}""");
             }
 
             return builder.ToString();
         }
 
-        private string GetResultsFilePath(AssemblyInfo assemblyInfo)
+        private string GetResultsFilePath(AssemblyInfo assemblyInfo, string suffix = "xml")
         {
-            return Path.Combine(Options.OutputDirectory, assemblyInfo.ResultsFileName);
+            var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Platform}.{suffix}";
+            return Path.Combine(Options.TestResultsDirectory, fileName);
         }
 
         public async Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken)
@@ -73,7 +95,7 @@ namespace RunTests
             var result = await RunTestAsyncInternal(assemblyInfo, retry: false, cancellationToken);
 
             // For integration tests (TestVsi), we make one more attempt to re-run failed tests.
-            if (Options.TestVsi && !Options.UseHtml && !result.Succeeded)
+            if (Options.Retry && !Options.IncludeHtml && !result.Succeeded)
             {
                 return await RunTestAsyncInternal(assemblyInfo, retry: true, cancellationToken);
             }
@@ -128,40 +150,26 @@ namespace RunTests
                 File.Create(resultsFilePath).Close();
 
                 var start = DateTime.UtcNow;
-                var xunitProcessInfo = ProcessRunner.CreateProcess(
+                var dotnetProcessInfo = ProcessRunner.CreateProcess(
                     ProcessRunner.CreateProcessStartInfo(
-                        Options.XunitPath,
+                        Options.DotnetFilePath,
                         commandLineArguments,
                         displayWindow: false,
                         captureOutput: true,
                         environmentVariables: environmentVariables),
                     lowPriority: false,
                     cancellationToken: cancellationToken);
-                Logger.Log($"Create xunit process with id {xunitProcessInfo.Id} for test {assemblyInfo.DisplayName}");
+                Logger.Log($"Create xunit process with id {dotnetProcessInfo.Id} for test {assemblyInfo.DisplayName}");
 
-                // Now that xunit is running we should kick off a procDump process if it was specified
-                if (Options.ProcDumpInfo != null)
-                {
-                    var procDumpInfo = Options.ProcDumpInfo.Value;
-                    var procDumpStartInfo = ProcessRunner.CreateProcessStartInfo(
-                        procDumpInfo.ProcDumpFilePath,
-                        ProcDumpUtil.GetProcDumpCommandLine(xunitProcessInfo.Id, procDumpInfo.DumpDirectory),
-                        captureOutput: true,
-                        displayWindow: false);
-                    Directory.CreateDirectory(procDumpInfo.DumpDirectory);
-                    procDumpProcessInfo = ProcessRunner.CreateProcess(procDumpStartInfo, cancellationToken: cancellationToken);
-                    Logger.Log($"Create procdump process with id {procDumpProcessInfo.Value.Id} for xunit {xunitProcessInfo.Id} for test {assemblyInfo.DisplayName}");
-                }
-
-                var xunitProcessResult = await xunitProcessInfo.Result;
+                var xunitProcessResult = await dotnetProcessInfo.Result;
                 var span = DateTime.UtcNow - start;
 
-                Logger.Log($"Exit xunit process with id {xunitProcessInfo.Id} for test {assemblyInfo.DisplayName} with code {xunitProcessResult.ExitCode}");
+                Logger.Log($"Exit xunit process with id {dotnetProcessInfo.Id} for test {assemblyInfo.DisplayName} with code {xunitProcessResult.ExitCode}");
                 processResultList.Add(xunitProcessResult);
                 if (procDumpProcessInfo != null)
                 {
                     var procDumpProcessResult = await procDumpProcessInfo.Value.Result;
-                    Logger.Log($"Exit procdump process with id {procDumpProcessInfo.Value.Id} for {xunitProcessInfo.Id} for test {assemblyInfo.DisplayName} with code {procDumpProcessResult.ExitCode}");
+                    Logger.Log($"Exit procdump process with id {procDumpProcessInfo.Value.Id} for {dotnetProcessInfo.Id} for test {assemblyInfo.DisplayName} with code {procDumpProcessResult.ExitCode}");
                     processResultList.Add(procDumpProcessResult);
                 }
 
@@ -189,13 +197,15 @@ namespace RunTests
                     }
                 }
 
-                var commandLine = GetCommandLine(assemblyInfo);
-                Logger.Log($"Command line {assemblyInfo.DisplayName}: {commandLine}");
+                Logger.Log($"Command line {assemblyInfo.DisplayName}: {Options.DotnetFilePath} {commandLineArguments}");
                 var standardOutput = string.Join(Environment.NewLine, xunitProcessResult.OutputLines) ?? "";
                 var errorOutput = string.Join(Environment.NewLine, xunitProcessResult.ErrorLines) ?? "";
+
+                var htmlResultsFilePath = Options.IncludeHtml ? GetResultsFilePath(assemblyInfo, "html") : null;
                 var testResultInfo = new TestResultInfo(
                     exitCode: xunitProcessResult.ExitCode,
                     resultsFilePath: resultsFilePath,
+                    htmlResultsFilePath: htmlResultsFilePath,
                     elapsed: span,
                     standardOutput: standardOutput,
                     errorOutput: errorOutput);
@@ -203,13 +213,12 @@ namespace RunTests
                 return new TestResult(
                     assemblyInfo,
                     testResultInfo,
-                    commandLine,
-                    isFromCache: false,
+                    commandLineArguments,
                     processResults: ImmutableArray.CreateRange(processResultList));
             }
             catch (Exception ex)
             {
-                throw new Exception($"Unable to run {assemblyInfo.AssemblyPath} with {Options.XunitPath}. {ex}");
+                throw new Exception($"Unable to run {assemblyInfo.AssemblyPath} with {Options.DotnetFilePath}. {ex}");
             }
         }
     }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     /// </summary>
     internal class SimpleFindUsagesContext : FindUsagesContext
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly ImmutableArray<DefinitionItem>.Builder _definitionItems =
             ImmutableArray.CreateBuilder<DefinitionItem>();
 
@@ -31,16 +33,16 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         public string Message { get; private set; }
         public string SearchTitle { get; private set; }
 
-        public override Task ReportMessageAsync(string message)
+        public override ValueTask ReportMessageAsync(string message)
         {
             Message = message;
-            return Task.CompletedTask;
+            return default;
         }
 
-        public override Task SetSearchTitleAsync(string title)
+        public override ValueTask SetSearchTitleAsync(string title)
         {
             SearchTitle = title;
-            return Task.CompletedTask;
+            return default;
         }
 
         public ImmutableArray<DefinitionItem> GetDefinitions()
@@ -59,24 +61,24 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
         }
 
-        public override Task OnDefinitionFoundAsync(DefinitionItem definition)
+        public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
         {
             lock (_gate)
             {
                 _definitionItems.Add(definition);
             }
 
-            return Task.CompletedTask;
+            return default;
         }
 
-        public override Task OnReferenceFoundAsync(SourceReferenceItem reference)
+        public override ValueTask OnReferenceFoundAsync(SourceReferenceItem reference)
         {
             lock (_gate)
             {
                 _referenceItems.Add(reference);
             }
 
-            return Task.CompletedTask;
+            return default;
         }
     }
 }

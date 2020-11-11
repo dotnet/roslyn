@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -141,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     {
                         var type = (NamedTypeSymbol)metadataDecoder.GetTypeOfToken(handle);
                         var key = new AnonymousTypeKey(builder.ToImmutable());
-                        var value = new AnonymousTypeValue(name, index, type);
+                        var value = new AnonymousTypeValue(name, index, type.GetCciAdapter());
                         result.Add(key, value);
                     }
                     builder.Free();
@@ -248,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 foreach (var embeddedType in embeddedTypesManager.EmbeddedTypesMap.Keys)
                 {
-                    diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_EncNoPIAReference, embeddedType), Location.None);
+                    diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_EncNoPIAReference, embeddedType.AdaptedSymbol), Location.None);
                 }
             }
         }
