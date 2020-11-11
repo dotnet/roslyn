@@ -13276,8 +13276,7 @@ dotnet_diagnostic.{diagnosticId}.severity = {analyzerConfigSeverity}");
             }
         }
 
-        // can't load a coreclr targeting generator on net framework / mono
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly), Reason = "Can't load a coreclr targeting generator on net framework / mono")]
         public void TestGeneratorsCantTargetNetFramework()
         {
             var directory = Temp.CreateDirectory();
@@ -13290,7 +13289,7 @@ class C
             var coreGenerator = emitGenerator(".NETCoreApp,Version=v5.0");
             VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + coreGenerator });
 
-            //// netstandard
+            // netstandard
             var nsGenerator = emitGenerator(".NETStandard,Version=v2.0");
             VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + nsGenerator });
 
@@ -13307,7 +13306,6 @@ class C
             // framework, suppressed
             output = VerifyOutput(directory, src, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS8850", "/analyzer:" + frameworkGenerator });
             Assert.Contains("CS8033", output);
-
             VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS8850,CS8033", "/analyzer:" + frameworkGenerator });
 
             string emitGenerator(string targetFramework)
