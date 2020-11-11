@@ -143,6 +143,28 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public async Task DocumentIdOfGeneratedDocumentsIsStable()
+        {
+            using var workspace = new AdhocWorkspace();
+            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
+            var projectBeforeChange = AddEmptyProject(workspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference)
+                .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
+
+            var generatedDocumentBeforeChange = Assert.Single(await projectBeforeChange.GetSourceGeneratedDocumentsAsync());
+
+            var projectAfterChange =
+                projectBeforeChange.Solution.WithAdditionalDocumentText(
+                    projectBeforeChange.AdditionalDocumentIds.Single(),
+                    SourceText.From("Hello, world!!!!")).Projects.Single();
+
+            var generatedDocumentAfterChange = Assert.Single(await projectAfterChange.GetSourceGeneratedDocumentsAsync());
+
+            Assert.NotSame(generatedDocumentBeforeChange, generatedDocumentAfterChange);
+            Assert.Equal(generatedDocumentBeforeChange.Id, generatedDocumentAfterChange.Id);
+        }
+
+        [Fact]
         public async Task CompilationsInCompilationReferencesIncludeGeneratedSourceFiles()
         {
             using var workspace = new AdhocWorkspace();

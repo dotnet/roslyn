@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -776,7 +777,7 @@ namespace Microsoft.CodeAnalysis
                                         generatedDocumentsBuilder.Add(
                                             SourceGeneratedDocumentState.Create(
                                                 generatedSource,
-                                                DocumentId.CreateNewId(ProjectState.Id), // TODO: reuse IDs
+                                                CreateStableSourceGeneratedDocumentId(ProjectState.Id, generatorResult.Generator, generatedSource.HintName),
                                                 generatorResult.Generator,
                                                 this.ProjectState.LanguageServices,
                                                 solution.Services));
@@ -808,6 +809,33 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
+            }
+
+            private static DocumentId CreateStableSourceGeneratedDocumentId(ProjectId projectId, ISourceGenerator generator, string hintName)
+            {
+                // We want the DocumentId generated for a generated output to be stable between Compilations; this is so features that track
+                // a document by DocumentId can find it after some change has happened that requires generators to run again.
+                // To achieve this we'll just do a crytographic hash of the generator name and hint name; the choice of a cryptographic hash
+                // as opposed to a more generic string hash is we actually want to ensure we don't have collisions.
+                var generatorName = generator.GetType().FullName;
+                Contract.ThrowIfNull(generatorName);
+
+                // Combine the strings together; we'll use Encoding.Unicode since that'll match the underlying format; this can be made much
+                // faster once we're on .NET Core since we could directly treat the strings as ReadOnlySpan<char>.
+                using var _ = ArrayBuilder<byte>.GetInstance(capacity: (generatorName.Length + hintName.Length + 1) * 2, out var hashInput);
+                hashInput.AddRange(Encoding.Unicode.GetBytes(generatorName));
+
+                // Add a null to separate the generator name and hint name; since this is effectively a joining of UTF-16 bytes
+                // we'll use a UTF-16 null just to make sure there's absolutely no risk of collision.
+                hashInput.AddRange(0, 0);
+                hashInput.AddRange(Encoding.Unicode.GetBytes(hintName));
+
+                // The particular choice of crypto algorithm here is arbitrary and can be always changed as necessary.
+                var hash = System.Security.Cryptography.SHA256.Create().ComputeHash(hashInput.ToArray());
+                Array.Resize(ref hash, 16);
+                var guid = new Guid(hash);
+
+                return DocumentId.CreateFromSerialized(projectId, guid, hintName);
             }
 
             private void RecordAssemblySymbols(Compilation compilation, Dictionary<MetadataReference, ProjectId> metadataReferenceToProjectId)
