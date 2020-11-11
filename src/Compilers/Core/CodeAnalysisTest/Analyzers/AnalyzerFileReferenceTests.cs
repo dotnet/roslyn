@@ -268,10 +268,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.FSharpGenerator"
             }, typeNames);
-
-            Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.TestGeneratorNoAttrib", typeNames);
-            Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.Test.NotAGenerator", typeNames);
-            Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.NotAGenerator", typeNames);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]

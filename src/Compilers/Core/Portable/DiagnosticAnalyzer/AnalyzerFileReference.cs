@@ -380,9 +380,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private class ExtTypeComparer : IEqualityComparer<TExtension>
             {
-                public static ExtTypeComparer Instance = new ExtTypeComparer();
+                public static readonly ExtTypeComparer Instance = new();
 
-                public bool Equals(TExtension? x, TExtension? y) => x is null && y is null || x is object && y is object && x.GetType().Equals(y.GetType());
+                public bool Equals(TExtension? x, TExtension? y) => object.Equals(x?.GetType(), y?.GetType());
 
                 public int GetHashCode(TExtension obj) => obj.GetType().GetHashCode();
             }
