@@ -12,7 +12,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Friend Partial Class SourceNamedTypeSymbol
+    Partial Friend Class SourceNamedTypeSymbol
 
         ''' <summary>
         ''' Encapsulates ComClass specific data and analysis.
@@ -1867,7 +1867,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim interfaces As ImmutableArray(Of NamedTypeSymbol) = _comClassData.GetSynthesizedInterfaces()
 
-            Return If(interfaces.IsEmpty, Nothing, interfaces.AsEnumerable())
+            If interfaces.IsEmpty Then
+                Return Nothing
+            End If
+
+#If DEBUG Then
+            Return interfaces.Select(Function(i) i.GetCciAdapter())
+#Else
+            return interfaces.AsEnumerable()
+#End If
         End Function
 
         Friend Overrides Function GetSynthesizedImplements() As IEnumerable(Of NamedTypeSymbol)

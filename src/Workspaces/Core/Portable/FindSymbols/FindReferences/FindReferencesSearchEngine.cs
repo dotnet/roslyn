@@ -17,12 +17,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using ProjectToDocumentMap = Dictionary<Project, MultiDictionary<Document, (ISymbol symbol, IReferenceFinder finder)>>;
+    using ProjectToDocumentMap = Dictionary<Project, Dictionary<Document, HashSet<(ISymbol symbol, IReferenceFinder finder)>>>;
 
     internal partial class FindReferencesSearchEngine
     {
         private readonly Solution _solution;
-        private readonly IImmutableSet<Document> _documents;
+        private readonly IImmutableSet<Document>? _documents;
         private readonly ImmutableArray<IReferenceFinder> _finders;
         private readonly IStreamingProgressTracker _progressTracker;
         private readonly IStreamingFindReferencesProgress _progress;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public FindReferencesSearchEngine(
             Solution solution,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             ImmutableArray<IReferenceFinder> finders,
             IStreamingFindReferencesProgress progress,
             FindReferencesSearchOptions options,
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private Task HandleLocationAsync(ISymbol symbol, ReferenceLocation location)
+        private ValueTask HandleLocationAsync(ISymbol symbol, ReferenceLocation location)
             => _progress.OnReferenceFoundAsync(symbol, location);
     }
 }

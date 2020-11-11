@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -48,8 +50,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var expected = new LSP.SymbolInformation[]
             {
-                CreateSymbolInformation(LSP.SymbolKind.Class, "A", locations["class"].Single()),
-                CreateSymbolInformation(LSP.SymbolKind.Method, "M()", locations["method"].Single(), "A")
+                CreateSymbolInformation(LSP.SymbolKind.Class, "A", locations["class"].Single(), Glyph.ClassInternal),
+                CreateSymbolInformation(LSP.SymbolKind.Method, "M()", locations["method"].Single(), Glyph.MethodPrivate, "A")
             };
 
             var results = await RunGetDocumentSymbolsAsync(workspace.CurrentSolution, false);
@@ -102,7 +104,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
                 }
             };
 
-            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentSymbolParams, object[]>(LSP.Methods.TextDocumentDocumentSymbolName,
+            var queue = CreateRequestQueue(solution);
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentSymbolParams, object[]>(queue, LSP.Methods.TextDocumentDocumentSymbolName,
                 request, clientCapabilities, null, CancellationToken.None);
         }
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         {
             return Task.FromResult(
                 (accessibleMethods.SelectAsArray(m => ConvertMethodGroupMethod(document, m, invocationExpression.SpanStart, semanticModel)),
-                 TryGetSelectedIndex(accessibleMethods, currentSymbol)));
+                 TryGetSelectedIndex(accessibleMethods, currentSymbol.Symbol)));
         }
 
         private static ImmutableArray<IMethodSymbol> GetAccessibleMethods(

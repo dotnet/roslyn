@@ -102,6 +102,11 @@
         <target state="translated">Nie można użyć kolekcji typu dynamicznego w asynchronicznej instrukcji foreach</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadFieldTypeInRecord">
+        <source>The type '{0}' may not be used for a field of a record.</source>
+        <target state="new">The type '{0}' may not be used for a field of a record.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadFuncPointerArgCount">
         <source>Function pointer '{0}' does not take {1} arguments</source>
         <target state="new">Function pointer '{0}' does not take {1} arguments</target>
@@ -145,11 +150,6 @@
       <trans-unit id="ERR_BadRecordBase">
         <source>Records may only inherit from object or another record</source>
         <target state="new">Records may only inherit from object or another record</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadRecordDeclaration">
-        <source>A positional record must have a non-empty parameter list</source>
-        <target state="needs-review-translation">Rekord pozycyjny musi mieć zarówno modyfikator „data”, jak i niepustą listę parametrów</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
@@ -292,6 +292,11 @@
         <target state="translated">Element „{0}” jest jawnie zaimplementowany więcej niż raz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
+        <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
+        <target state="new">'{0}' is already listed in the interface list on type '{2}' as '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
         <source>Duplicate null suppression operator ('!')</source>
         <target state="translated">Zduplikowany operator pomijania wartości null („!”)</target>
@@ -311,6 +316,11 @@
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="new">Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_EqualityContractRequiresGetter">
+        <source>Record equality contract property '{0}' must have a get accessor.</source>
+        <target state="new">Record equality contract property '{0}' must have a get accessor.</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
@@ -417,6 +427,11 @@
         <target state="new">Ref mismatch between '{0}' and function pointer '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
+        <source>A function pointer cannot be called with named arguments.</source>
+        <target state="new">A function pointer cannot be called with named arguments.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
         <source>A goto cannot jump to a location before a using declaration within the same block.</source>
         <target state="translated">Instrukcja goto nie może przechodzić do lokalizacji występującej przed deklaracją using w tym samym bloku.</target>
@@ -437,6 +452,21 @@
         <target state="translated">W wywołaniu niejawnego indeksatora indeksu nie może być nazwy argumentu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationIllegalTargetType">
+        <source>The type '{0}' may not be used as the target type of new()</source>
+        <target state="new">The type '{0}' may not be used as the target type of new()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNoTargetType">
+        <source>There is no target type for '{0}'</source>
+        <target state="new">There is no target type for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitObjectCreationNotValid">
+        <source>Use of new() is not valid in this context</source>
+        <target state="new">Use of new() is not valid in this context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
         <source>Invocation of implicit Range Indexer cannot name the argument.</source>
         <target state="translated">W wywołaniu niejawnego indeksatora zakresu nie może być nazwy argumentu.</target>
@@ -445,6 +475,11 @@
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">Nie można używać argumentów z modyfikatorem „in” w wyrażeniach przydzielanych dynamicznie.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InitCannotBeReadonly">
+        <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
+        <target state="new">'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -907,6 +942,46 @@
         <target state="new">'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="IDS_FeatureDiscards">
+        <source>discards</source>
+        <target state="new">discards</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureImplicitObjectCreation">
+        <source>target-typed object creation</source>
+        <target state="new">target-typed object creation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterNotNullIfNotNull">
+        <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
+        <target state="new">Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterNotNullIfNotNull_Title">
+        <source>Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</source>
+        <target state="new">Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
+        <source>'{0}' defines 'Equals' but not 'GetHashCode'</source>
+        <target state="new">'{0}' defines 'Equals' but not 'GetHashCode'</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="WRN_RecordEqualsWithoutGetHashCode_Title">
+        <source>Record defines 'Equals' but not 'GetHashCode'.</source>
+        <target state="new">Record defines 'Equals' but not 'GetHashCode'.</target>
+        <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="new">Types and aliases should not be named 'record'.</target>
@@ -915,6 +990,26 @@
       <trans-unit id="WRN_RecordNamedDisallowed_Title">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="new">Types and aliases should not be named 'record'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnNotNullIfNotNull">
+        <source>Return value must be non-null because parameter '{0}' is non-null.</source>
+        <target state="new">Return value must be non-null because parameter '{0}' is non-null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ReturnNotNullIfNotNull_Title">
+        <source>Return value must be non-null because parameter is non-null.</source>
+        <target state="new">Return value must be non-null because parameter is non-null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">
+        <source>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '{0}' is not covered.</source>
+        <target state="new">The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '{0}' is not covered.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue_Title">
+        <source>The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.</source>
+        <target state="new">The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SyncAndAsyncEntryPoints">
@@ -927,29 +1022,19 @@
         <target state="new">Type '{0}' is not defined.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_TypelessNewIllegalTargetType">
-        <source>The type '{0}' may not be used as the target type of new()</source>
-        <target state="new">The type '{0}' may not be used as the target type of new()</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewNoTargetType">
-        <source>There is no target type for '{0}'</source>
-        <target state="new">There is no target type for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_TypelessNewNotValid">
-        <source>Use of new() is not valid in this context</source>
-        <target state="new">Use of new() is not valid in this context</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_UnexpectedArgumentList">
         <source>Unexpected argument list.</source>
         <target state="new">Unexpected argument list.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedOrMissingConstructorInitializerInRecord">
-        <source>A constructor declared in a record with parameters must have 'this' constructor initializer.</source>
-        <target state="new">A constructor declared in a record with parameters must have 'this' constructor initializer.</target>
+        <source>A constructor declared in a record with parameter list must have 'this' constructor initializer.</source>
+        <target state="new">A constructor declared in a record with parameter list must have 'this' constructor initializer.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnexpectedVarianceStaticMember">
+        <source>Invalid variance: The type parameter '{1}' must be {3} valid on '{0}' unless language version '{4}' or greater is used. '{1}' is {2}.</source>
+        <target state="new">Invalid variance: The type parameter '{1}' must be {3} valid on '{0}' unless language version '{4}' or greater is used. '{1}' is {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedBoundWithClass">
@@ -1084,7 +1169,7 @@
 -instrument:TestCoverage      Produce an assembly instrumented to collect
                               coverage information
 -sourcelink:&lt;file&gt;            Source link info to embed into PDB.
- 
+
                        - ERRORS AND WARNINGS -
 -warnaserror[+|-]             Report all warnings as errors
 -warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
@@ -1171,40 +1256,42 @@
 -moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
+-generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
+                              specified directory.
 </source>
         <target state="needs-review-translation">
                              Opcje kompilatora Visual C#
 
                         - PLIKI WYJŚCIOWE -
--out:&lt;plik&gt;                   Określ nazwę pliku wyjściowego (domyślnie: nazwa podstawowa 
+-out:&lt;plik&gt;                   Określ nazwę pliku wyjściowego (domyślnie: nazwa podstawowa
                               pliku z klasą główną lub pierwszym plikiem)
--target:exe                   Kompiluj plik wykonywalny konsoli (domyślnie) (krótka 
+-target:exe                   Kompiluj plik wykonywalny konsoli (domyślnie) (krótka
                               wersja: -t:exe)
--target:winexe                Kompiluj plik wykonywalny systemu Windows (krótka wersja: 
+-target:winexe                Kompiluj plik wykonywalny systemu Windows (krótka wersja:
                               -t:winexe)
 -target:library               Kompiluj bibliotekę (krótka wersja: -t:library)
--target:module                Kompiluj moduł, który można dodać do innego 
+-target:module                Kompiluj moduł, który można dodać do innego
                               zestawu (krótka wersja: -t:module)
--target:appcontainerexe       Kompiluj plik wykonywalny kontenera aplikacji (krótka wersja: 
+-target:appcontainerexe       Kompiluj plik wykonywalny kontenera aplikacji (krótka wersja:
                               -t:appcontainerexe)
--target:winmdobj              Kompiluj plik pośredni środowiska uruchomieniowego systemu Windows 
+-target:winmdobj              Kompiluj plik pośredni środowiska uruchomieniowego systemu Windows
                               przeznaczony dla narzędzia WinMDExp (krótka wersja: -t:winmdobj)
 -doc:&lt;plik&gt;                   Plik dokumentacji XML do wygenerowania
 -refout:&lt;plik&gt;                Dane wyjściowe zestawu odwołania do wygenerowania
 -platform:&lt;ciąg&gt;              Ogranicz platformy, na których można uruchamiać ten kod: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred lub 
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred lub
                               anycpu. Wartość domyślna to anycpu.
 
                         - PLIKI WEJŚCIOWE -
--recurse:&lt;symbol wieloznaczny&gt; Uwzględnij wszystkie pliki zawarte w bieżącym katalogu i 
-                               podkatalogach zgodnie ze specyfikacją określoną przy użyciu 
+-recurse:&lt;symbol wieloznaczny&gt; Uwzględnij wszystkie pliki zawarte w bieżącym katalogu i
+                               podkatalogach zgodnie ze specyfikacją określoną przy użyciu
                                symboli wieloznacznych
--reference:&lt;alias&gt;=&lt;plik&gt;     Odwołuj się do metadanych z określonego pliku 
+-reference:&lt;alias&gt;=&lt;plik&gt;     Odwołuj się do metadanych z określonego pliku
                               zestawu przy użyciu podanego aliasu (krótka wersja: -r)
--reference:&lt;lista_plików&gt;     Odwołuj się do metadanych z określonych 
+-reference:&lt;lista_plików&gt;     Odwołuj się do metadanych z określonych
                               plików zestawów (krótka wersja: -r)
 -addmodule:&lt;lista plików&gt;     Połącz określone moduły z tym zestawem
--link:&lt;lista_plików&gt;          Osadź metadane z określonych plików 
+-link:&lt;lista_plików&gt;          Osadź metadane z określonych plików
                               zestawów międzyoperacyjnych (krótka wersja: -l)
 -analyzer:&lt;lista_plików&gt;      Uruchom analizatory z tego zestawu
                               (krótka wersja: -a)
@@ -1220,16 +1307,16 @@
 -win32manifest:&lt;plik&gt;         Określ plik manifestu środowiska Win32 (xml)
 -nowin32manifest              Nie dołączaj domyślnego manifestu środowiska Win32
 -resource:&lt;informacje_o_zasobie&gt; Osadź określony zasób (krótka wersja: -res)
--linkresource:&lt;informacje_o_zasobie&gt; Połącz określony zasób z tym zestawem 
-                               (krótka wersja: -linkres), gdzie format informacji o zasobie 
+-linkresource:&lt;informacje_o_zasobie&gt; Połącz określony zasób z tym zestawem
+                               (krótka wersja: -linkres), gdzie format informacji o zasobie
                                to &lt;plik&gt;[,&lt;nazwa ciągu&gt;[,public|private]]
 
                         - GENEROWANIE KODU -
 -debug[+|-]                   Emituj informacje o debugowaniu
 -debug:{full|pdbonly|portable|embedded}
-                              Określ typ debugowania (wartość domyślna to „full”, 
+                              Określ typ debugowania (wartość domyślna to „full”,
                               wartość „portable” to format międzyplatformowy,
-                              a wartość „embedded” to format międzyplatformowy wbudowany w 
+                              a wartość „embedded” to format międzyplatformowy wbudowany w
                               docelowym pliku DLL lub EXE)
 -optimize[+|-]                Włącz optymalizacje (krótka wersja: -o)
 -deterministic                Utwórz zestaw deterministyczny
@@ -1253,11 +1340,11 @@
                               oznaczają format SARIF w wersji 2.1.0.
 -reportanalyzer               Zgłaszaj dodatkowe informacje analizatora, takie jak
                               czas wykonywania.
- 
+
                         -JĘZYK -
 -checked[+|-]                 Generuj operacje sprawdzenia przepełnienia
 -unsafe[+|-]                  Zezwalaj na niebezpieczny kod
--define:&lt;lista symboli&gt;       Zdefiniuj symbole kompilacji warunkowej (krótka 
+-define:&lt;lista symboli&gt;       Zdefiniuj symbole kompilacji warunkowej (krótka
                               wersja: -d)
 -langversion:?                Wyświetl dozwolone wartości dla wersji języka
 -langversion:&lt;ciąg&gt;           Określ wersję języka, na przykład
@@ -1271,7 +1358,7 @@
                               Określ opcję kontekstu dopuszczającego wartość null: enable|disable|warnings|annotations.
 
                         - ZABEZPIECZENIA -
--delaysign[+|-]               Podpisz z opóźnieniem zestaw, używając tylko 
+-delaysign[+|-]               Podpisz z opóźnieniem zestaw, używając tylko
                               części publicznej klucza o silnej nazwie
 -publicsign[+|-]              Podpisz publicznie zestaw, używając tylko
                               części publicznej klucza o silnej nazwie
@@ -1292,34 +1379,34 @@
 -checksumalgorithm:&lt;algorytm&gt; Określ algorytm do obliczania sumy kontrolnej
                               pliku źródłowego przechowywanej w pliku PDB.
                               Obsługiwane wartości: SHA1 lub SHA256 (domyślnie).
--codepage:&lt;n&gt;                 Określ stronę kodową do użycia podczas otwierania 
+-codepage:&lt;n&gt;                 Określ stronę kodową do użycia podczas otwierania
                               plików źródłowych
 -utf8output                   Wyprowadź komunikaty kompilatora przy użyciu kodowania UTF-8
--main:&lt;typ&gt;                   Określ typ zawierający punkt wejścia 
-                              (zignoruj wszystkie pozostałe możliwe punkty wejścia) (krótka 
+-main:&lt;typ&gt;                   Określ typ zawierający punkt wejścia
+                              (zignoruj wszystkie pozostałe możliwe punkty wejścia) (krótka
                               wersja: -m)
 -fullpaths                    Kompilator generuje w pełni kwalifikowane ścieżki
--filealign:&lt;n&gt;                Określ wyrównanie stosowane dla sekcji 
+-filealign:&lt;n&gt;                Określ wyrównanie stosowane dla sekcji
                               plików wyjściowych
--pathmap:&lt;K1&gt;=&lt;W1&gt;,&lt;K2&gt;=&lt;W2&gt;,... 
-                              Określ mapowanie dla nazw ścieżek źródłowych wyprowadzanych przez 
+-pathmap:&lt;K1&gt;=&lt;W1&gt;,&lt;K2&gt;=&lt;W2&gt;,...
+                              Określ mapowanie dla nazw ścieżek źródłowych wyprowadzanych przez
                               kompilator.
--pdb:&lt;plik&gt;                   Określ nazwę pliku z informacjami o debugowaniu (domyślnie: 
+-pdb:&lt;plik&gt;                   Określ nazwę pliku z informacjami o debugowaniu (domyślnie:
                               nazwa pliku wyjściowego z rozszerzeniem pdb)
--errorendlocation             Wyprowadź wiersz i kolumnę lokalizacji końcowej dla 
+-errorendlocation             Wyprowadź wiersz i kolumnę lokalizacji końcowej dla
                               każdego błędu
 -preferreduilang              Określ nazwę preferowanego języka wyjściowego.
 -nosdkpath                    Wyłącz przeszukiwanie domyślnej ścieżki zestawu SDK dla zestawów biblioteki standardowej.
 -nostdlib[+|-]                Nie odwołuj się do biblioteki standardowej (mscorlib.dll)
 -subsystemversion:&lt;ciąg&gt;      Określ wersję podsystemu tego zestawu
--lib:&lt;lista plików&gt;           Określ dodatkowe katalogi do przeszukania pod kątem 
+-lib:&lt;lista plików&gt;           Określ dodatkowe katalogi do przeszukania pod kątem
                               odwołań
--errorreport:&lt;ciąg&gt;           Określ, w jaki sposób obsługiwać wewnętrzne błędy kompilatora: 
-                              prompt, send, queue lub none. Wartość domyślna to 
+-errorreport:&lt;ciąg&gt;           Określ, w jaki sposób obsługiwać wewnętrzne błędy kompilatora:
+                              prompt, send, queue lub none. Wartość domyślna to
                               queue.
--appconfig:&lt;plik&gt;             Określ plik konfiguracji aplikacji 
+-appconfig:&lt;plik&gt;             Określ plik konfiguracji aplikacji
                               zawierający ustawienia powiązania zestawu
--moduleassemblyname:&lt;ciąg&gt;    Nazwa zestawu, którego częścią 
+-moduleassemblyname:&lt;ciąg&gt;    Nazwa zestawu, którego częścią
                               ma być ten moduł
 -modulename:&lt;ciąg&gt;            Określ nazwę modułu źródłowego
 </target>
@@ -1570,11 +1657,6 @@
         <target state="new">target-typed conditional expression</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureTargetTypedObjectCreation">
-        <source>target-typed object creation</source>
-        <target state="new">target-typed object creation</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
         <source>tuple equality</source>
         <target state="translated">równość krotki</target>
@@ -1603,6 +1685,11 @@
       <trans-unit id="IDS_FeatureUsingDeclarations">
         <source>using declarations</source>
         <target state="translated">deklaracje using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureVarianceSafetyForStaticInterfaceMembers">
+        <source>variance safety for static interface members</source>
+        <target state="new">variance safety for static interface members</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">
@@ -2797,6 +2884,16 @@
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
         <target state="needs-review-translation">Nienullowalne pole jest niezainicjowane. Rozważ zadeklarowanie go jako nullowalnego.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter">
+        <source>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="new">Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnreadRecordParameter_Title">
+        <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
+        <target state="new">Parameter is unread. Did you forget to use it to initialize the property with that name?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
@@ -4045,7 +4142,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'</source>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
         <target state="needs-review-translation">Modyfikator „partial” może się pojawić tylko bezpośrednio przed typem „class”, „struct”, „interface” lub „void”</target>
         <note />
       </trans-unit>

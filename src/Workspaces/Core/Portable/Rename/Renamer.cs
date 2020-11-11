@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -77,6 +76,12 @@ namespace Microsoft.CodeAnalysis.Rename
                 throw new ArgumentNullException(nameof(document));
             }
 
+            if (document.Services.GetService<ISpanMappingService>() != null)
+            {
+                // Don't advertise that we can file rename generated documents that map to a different file.
+                return new RenameDocumentActionSet(ImmutableArray<RenameDocumentAction>.Empty, document.Id, document.Name, document.Folders.ToImmutableArray(), document.Project.Solution.Options);
+            }
+
             using var _ = ArrayBuilder<RenameDocumentAction>.GetInstance(out var actions);
 
             if (newDocumentName != null && !newDocumentName.Equals(document.Name))
@@ -127,22 +132,24 @@ namespace Microsoft.CodeAnalysis.Rename
                     var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
                     if (client != null)
                     {
-                        var result = await client.RunRemoteAsync<SerializableConflictResolution?>(
-                            WellKnownServiceHubService.CodeAnalysis,
-                            nameof(IRemoteRenamer.RenameSymbolAsync),
+                        var options = SerializableRenameOptionSet.Dehydrate(optionSet);
+                        var nonConflictSymbolIds = nonConflictSymbols?.SelectAsArray(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)) ?? default;
+
+                        var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
                             solution,
-                            new object?[]
-                            {
+                            (service, solutionInfo, cancellationToken) => service.RenameSymbolAsync(
+                                solutionInfo,
                                 serializedSymbol,
                                 newName,
-                                SerializableRenameOptionSet.Dehydrate(optionSet),
-                                nonConflictSymbols?.Select(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)).ToArray(),
-                            },
-                            callbackTarget: null,
+                                options,
+                                nonConflictSymbolIds,
+                                cancellationToken),
                             cancellationToken).ConfigureAwait(false);
 
-                        if (result != null)
-                            return await result.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                        if (result.HasValue && result.Value != null)
+                            return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+
+                        // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)
                     }
                 }
             }

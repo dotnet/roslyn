@@ -5,9 +5,6 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]

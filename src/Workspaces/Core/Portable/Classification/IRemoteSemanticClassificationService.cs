@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal interface IRemoteSemanticClassificationService
     {
-        Task<SerializableClassifiedSpans> GetSemanticClassificationsAsync(
+        ValueTask<SerializableClassifiedSpans> GetSemanticClassificationsAsync(
             PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan span, CancellationToken cancellationToken);
     }
 
@@ -26,9 +25,13 @@ namespace Microsoft.CodeAnalysis.Classification
     /// first int is the index of classification type in <see cref="ClassificationTypes"/>, and the
     /// second and third ints encode the span.
     /// </summary>
+    [DataContract]
     internal sealed class SerializableClassifiedSpans
     {
+        [DataMember(Order = 0)]
         public List<string>? ClassificationTypes;
+
+        [DataMember(Order = 1)]
         public List<int>? ClassificationTriples;
 
         internal static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans)

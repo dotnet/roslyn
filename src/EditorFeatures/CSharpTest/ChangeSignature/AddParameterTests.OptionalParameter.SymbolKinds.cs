@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
@@ -43,6 +45,47 @@ class B
     public B(int a, int x = 10, int y = 11, int z = 12)
     {
         var q = new B(1, 100, z: 102);
+    }
+}
+
+class D : B
+{
+    public D() : base(1, 100, z: 102) { }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddOptionalParameter_ToConstructor_ImplicitObjectCreation()
+        {
+            var markup = @"
+class B
+{
+    public B() : this(1) { }
+    public B$$(int a)
+    {
+        B q = new(1);
+    }
+}
+
+class D : B
+{
+    public D() : base(1) { }
+}";
+            var updatedSignature = new[] {
+                new AddedParameterOrExistingIndex(0),
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "x", CallSiteKind.Value, callSiteValue: "100", isRequired: false, defaultValue: "10"),
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "y", CallSiteKind.Omitted, isRequired: false, defaultValue: "11"),
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "z", CallSiteKind.Value, callSiteValue: "102", isRequired: false, defaultValue: "12")};
+            var updatedCode = @"
+class B
+{
+    public B() : this(1, 100, z: 102) { }
+    public B(int a, int x = 10, int y = 11, int z = 12)
+    {
+        B q = new(1, 100, z: 102);
     }
 }
 

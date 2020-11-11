@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -89,19 +87,26 @@ namespace Microsoft.CodeAnalysis.Text
             GetIndexAndOffset(sourceIndex, out segIndex, out segOffset);
 
             var newSegments = ArrayBuilder<SourceText>.GetInstance();
-            while (segIndex < _segments.Length && count > 0)
+            try
             {
-                var segment = _segments[segIndex];
-                var copyLength = Math.Min(count, segment.Length - segOffset);
+                while (segIndex < _segments.Length && count > 0)
+                {
+                    var segment = _segments[segIndex];
+                    var copyLength = Math.Min(count, segment.Length - segOffset);
 
-                AddSegments(newSegments, segment.GetSubText(new TextSpan(segOffset, copyLength)));
+                    AddSegments(newSegments, segment.GetSubText(new TextSpan(segOffset, copyLength)));
 
-                count -= copyLength;
-                segIndex++;
-                segOffset = 0;
+                    count -= copyLength;
+                    segIndex++;
+                    segOffset = 0;
+                }
+
+                return ToSourceText(newSegments, this, adjustSegments: false);
             }
-
-            return ToSourceTextAndFree(newSegments, this, adjustSegments: false);
+            finally
+            {
+                newSegments.Free();
+            }
         }
 
         private void GetIndexAndOffset(int position, out int index, out int offset)
@@ -169,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        internal static SourceText ToSourceTextAndFree(ArrayBuilder<SourceText> segments, SourceText original, bool adjustSegments)
+        internal static SourceText ToSourceText(ArrayBuilder<SourceText> segments, SourceText original, bool adjustSegments)
         {
             if (adjustSegments)
             {
@@ -179,18 +184,15 @@ namespace Microsoft.CodeAnalysis.Text
 
             if (segments.Count == 0)
             {
-                segments.Free();
                 return SourceText.From(string.Empty, original.Encoding, original.ChecksumAlgorithm);
             }
             else if (segments.Count == 1)
             {
-                SourceText result = segments[0];
-                segments.Free();
-                return result;
+                return segments[0];
             }
             else
             {
-                return new CompositeText(segments.ToImmutableAndFree(), original.Encoding, original.ChecksumAlgorithm);
+                return new CompositeText(segments.ToImmutable(), original.Encoding, original.ChecksumAlgorithm);
             }
         }
 
@@ -318,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        private static ObjectPool<HashSet<SourceText>> s_uniqueSourcesPool
+        private static readonly ObjectPool<HashSet<SourceText>> s_uniqueSourcesPool
             = new ObjectPool<HashSet<SourceText>>(() => new HashSet<SourceText>(), 5);
 
         /// <summary>

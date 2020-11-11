@@ -385,7 +385,7 @@ VerifyDiagnostics(
 
 #End Region
 
-        Private Shared s_arraysOfRank1IlSource As String =
+        Private Shared ReadOnly s_arraysOfRank1IlSource As String =
         <![CDATA[
 .class public auto ansi beforefieldinit Test
        extends [mscorlib]System.Object

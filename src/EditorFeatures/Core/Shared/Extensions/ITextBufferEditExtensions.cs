@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
     internal static class ITextBufferEditExtensions
     {
 #pragma warning disable IDE0052 // Remove unread private members - Used for debugging.
-        private static Exception s_lastException = null;
+        private static Exception? s_lastException = null;
 #pragma warning restore IDE0052 // Remove unread private members
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             {
                 return edit.Apply();
             }
-            catch (Exception e) when (ErrorReporting.FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (ErrorReporting.FatalError.ReportAndCatch(e))
             {
                 s_lastException = e;
 

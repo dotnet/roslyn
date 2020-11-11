@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -73,8 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ... this.state = FinishedState; ...
 
             // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
-            // this.promiseOfValueOrEnd.SetResult(false);
             // this.builder.Complete();
+            // this.promiseOfValueOrEnd.SetResult(false);
             // return;
             // _exprReturnLabelTrue:
             // this.promiseOfValueOrEnd.SetResult(true);
@@ -88,9 +90,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddDisposeCombinedTokensIfNeeded(builder);
 
             builder.AddRange(
+                GenerateCompleteOnBuilder(),
                 // this.promiseOfValueOrEnd.SetResult(false);
                 generateSetResultOnPromise(false),
-                GenerateCompleteOnBuilder(),
                 F.Return(),
                 F.Label(_exprReturnLabelTrue),
                 // this.promiseOfValueOrEnd.SetResult(true);
@@ -141,14 +143,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
             AddDisposeCombinedTokensIfNeeded(builder);
 
+            // this.builder.Complete();
+            builder.Add(GenerateCompleteOnBuilder());
+
             // _promiseOfValueOrEnd.SetException(ex);
             builder.Add(F.ExpressionStatement(F.Call(
                 F.InstanceField(_asyncIteratorInfo.PromiseOfValueOrEndField),
                 _asyncIteratorInfo.SetExceptionMethod,
                 F.Local(exceptionLocal))));
-
-            // this.builder.Complete();
-            builder.Add(GenerateCompleteOnBuilder());
 
             return F.Block(builder.ToImmutableAndFree());
         }

@@ -10,7 +10,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class Symbol
+#If DEBUG Then
+    Partial Friend MustInherit Class SymbolAdapter
+#Else
+    Partial Friend Class Symbol
+#End If
         Implements Cci.IReference
 
         Friend Overridable Function IReferenceAsDefinition(context As EmitContext) As Cci.IDefinition _
@@ -19,11 +23,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw ExceptionUtilities.Unreachable
         End Function
 
+        Private Function IReferenceGetInternalSymbol() As CodeAnalysis.Symbols.ISymbolInternal Implements Cci.IReference.GetInternalSymbol
+            Return AdaptedSymbol
+        End Function
+
         Friend Overridable Sub IReferenceDispatch(visitor As Cci.MetadataVisitor) _
             Implements Cci.IReference.Dispatch
 
             Throw ExceptionUtilities.Unreachable
         End Sub
+
+        Private Function IReferenceGetAttributes(context As EmitContext) As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IReference.GetAttributes
+            Return AdaptedSymbol.GetCustomAttributesToEmit(DirectCast(context.Module, PEModuleBuilder).CompilationState)
+        End Function
+    End Class
+
+    Partial Friend Class Symbol
+#If DEBUG Then
+        Friend Function GetCciAdapter() As SymbolAdapter
+            Return GetCciAdapterImpl()
+        End Function
+
+        Protected Overridable Function GetCciAdapterImpl() As SymbolAdapter
+            Throw ExceptionUtilities.Unreachable
+        End Function
+#Else
+        Friend ReadOnly Property AdaptedSymbol As Symbol
+            Get
+                Return Me
+            End Get
+        End Property
+
+        Friend Function GetCciAdapter() As Symbol
+            Return Me
+        End Function
+#End If
+
+        Private Function ISymbolInternalGetCciAdapter() As Cci.IReference Implements CodeAnalysis.Symbols.ISymbolInternal.GetCciAdapter
+            Return GetCciAdapter()
+        End Function
 
         ''' <summary>
         ''' Return whether the symbol is either the original definition
@@ -32,10 +70,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Function IsDefinitionOrDistinct() As Boolean
             Return Me.IsDefinition OrElse Not Me.Equals(Me.OriginalDefinition)
-        End Function
-
-        Private Function IReferenceGetAttributes(context As EmitContext) As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IReference.GetAttributes
-            Return GetCustomAttributesToEmit(DirectCast(context.Module, PEModuleBuilder).CompilationState)
         End Function
 
         Friend Overridable Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
@@ -108,7 +142,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' must be declared in the module we are building
             Debug.Assert(TypeOf Me.ContainingModule Is SourceModuleSymbol)
         End Sub
-
     End Class
+
+#If DEBUG Then
+    Partial Friend Class SymbolAdapter
+        Friend MustOverride ReadOnly Property AdaptedSymbol As Symbol
+
+        Public NotOverridable Overrides Function ToString() As String
+            Return AdaptedSymbol.ToString()
+        End Function
+
+        Public NotOverridable Overrides Function Equals(obj As Object) As Boolean
+            ' It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            Throw Roslyn.Utilities.ExceptionUtilities.Unreachable
+        End Function
+
+        Public NotOverridable Overrides Function GetHashCode() As Integer
+            ' It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            Throw Roslyn.Utilities.ExceptionUtilities.Unreachable
+        End Function
+
+        <Conditional("DEBUG")>
+        Protected Friend Sub CheckDefinitionInvariant()
+            AdaptedSymbol.CheckDefinitionInvariant()
+        End Sub
+
+        Friend Function IsDefinitionOrDistinct() As Boolean
+            Return AdaptedSymbol.IsDefinitionOrDistinct()
+        End Function
+    End Class
+#End If
 
 End Namespace

@@ -54,7 +54,7 @@ Selecting an Equivalence key for code actions
 Each unique equivalence key for a code fixer defines a unique equivalence class of code actions. Equivalence key of the trigger code action is part of the `FixAllContext` and is used to determine the FixAll occurrences code fix.
 Normally, you can use the **'title'** of the code action as the equivalence key. However, there are cases where you may desire to have different values. Let us take an example to get a better understanding.
 
-Let us consider the [C# SimplifyTypeNamesCodeFixProvider](http://source.roslyn.io/#q=Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames.SimplifyTypeNamesCodeFixProvider) that registers multiple code actions and also has FixAll support. This code fixer offers fixes to simplify the following expressions:
+Let us consider the [C# SimplifyTypeNamesCodeFixProvider](https://github.com/dotnet/roslyn/blob/master/src/Features/CSharp/Portable/SimplifyTypeNames/SimplifyTypeNamesCodeFixProvider.cs) that registers multiple code actions and also has FixAll support. This code fixer offers fixes to simplify the following expressions:
  - `this` expressions of the form 'this.x' to 'x'.
  - Qualified type names of the form 'A.B' to 'B'.
  - Member access expressions of the form 'A.M' to 'M'.
@@ -64,22 +64,22 @@ This fixer needs the following semantics for the corresponding FixAll occurrence
  - Qualified type name simplification: Fix all should simplify all qualified type names 'A.B' to 'B'. However, we don't want to simplify **all** qualified type names, such as 'C.D', 'E.F', etc. as that would be too generic a fix, which is not likely intended by the user.
  - Member access expressions: Fix all should simplify all member access expressions 'A.M' to 'M'.
 
-It uses the below equivalence keys for it's registered code actions to get the desired FixAll behavior:
+It uses the below equivalence keys for its registered code actions to get the desired FixAll behavior:
  - `this` expression simplification: Generic resource string "Simplify this expression", which explicitly excludes the contents of the node being simplified.
  - Qualified type name simplification: Formatted resource string "Simplify type name A.B", which explicitly includes the contents of the node being simplified.
  - Member access expressions: Formatted resource string "Simplify type name A.M", which explicitly includes the contents of the node being simplified.
 
-Note that '`this` expression simplification' fix requires a different kind of an equivalence class from the other two simplifications. See method [GetCodeActionId](http://source.roslyn.io/Microsoft.CodeAnalysis.CSharp.Features/R/917a728e9783562f.html) for the actual implementation.
+Note that '`this` expression simplification' fix requires a different kind of an equivalence class from the other two simplifications. See method [GetCodeActionId](https://github.com/dotnet/roslyn/blob/master/src/Features/Core/Portable/ImplementAbstractClass/AbstractImplementAbstractClassCodeFixProvider.cs) for the actual implementation.
 
 To summarize, use the equivalence key that best suits the category of fixes to be applied as part of a FixAll operation.
 
 Spectrum of FixAll providers
 ============================
 
-When multiple fixes need to be applied to documents, there are various way to do it:
-- **Sequential approach**: One way to do it is to compute diagnostics, pick one, ask a fixer to produce a code action to fix that, apply it. Now for the resulting new compilation, recomputed diagnostics, pick the next one and repeat the process. This approach would be very slow but would lead to correct results (unless it doesn't converge where one fix introduces a diagnostic that was just fixed by a previous fix). We chose to not implement this approach.
-- **Batch fix approach** - Another way to do this to compute all the diagnostics, pick each diagnostic and give it to a fixer to and ask it apply it to produce a new solution. If there were 'n' diagnostics, there would be 'n' new solutions. Now just merge them all together in one go. This may produce incorrect results (when different fixes change the same region of code in different ways) but it is very fast. We have one implementation of this approach in `WellKnownFixAllProviders.BatchFixer`
-- **Custom approach** - Depending on the fix, there may be a custom solution to fix multiple issues. For example, consider an analyzer that simply needs to generate one file as the fix for any instance of the issue. Instead of generating the same file over and over using the previous two approaches, one could write a custom `FixAllProvider` that simply generates the file once if there were any diagnostics at all.
+When multiple fixes need to be applied to documents, there are various ways to do it:
+- **Sequential approach**: One way to do it is to compute diagnostics, pick one, ask a fixer to produce a code action to fix that, apply it. Now for the resulting new compilation, recompute diagnostics, pick the next one and repeat the process. This approach would be very slow but would lead to correct results (unless it doesn't converge where one fix introduces a diagnostic that was just fixed by a previous fix). We chose to not implement this approach.
+- **Batch fix approach**: Another way is to compute all the diagnostics, pick each diagnostic and give it to a fixer and apply it to produce a new solution. If there were 'n' diagnostics, there would be 'n' new solutions. Now just merge them all together in one go. This may produce incorrect results (when different fixes change the same region of code in different ways) but it is very fast. We have one implementation of this approach in `WellKnownFixAllProviders.BatchFixer`
+- **Custom approach**: Depending on the fix, there may be a custom solution to fix multiple issues. For example, consider an analyzer that simply needs to generate one file as the fix for any instance of the issue. Instead of generating the same file over and over using the previous two approaches, one could write a custom `FixAllProvider` that simply generates the file once if there were any diagnostics at all.
 
 Since there are various ways of fixing all issues, we've implemented a framework and provided the one general implementation that we think is useful in many cases.
 

@@ -553,6 +553,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return Nothing
         End Function
 
+        Public Function GetNameOfMemberBindingExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetNameOfMemberBindingExpression
+            ' Member bindings are a C# concept.
+            Return Nothing
+        End Function
+
         Public Sub GetPartsOfElementAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef argumentList As SyntaxNode) Implements ISyntaxFacts.GetPartsOfElementAccessExpression
             Dim invocation = TryCast(node, InvocationExpressionSyntax)
             If invocation IsNot Nothing Then
@@ -1983,7 +1988,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 Case SyntaxKind.ConstructorBlock,
                      SyntaxKind.SubNewStatement
                     ' Shared constructor cannot have modifiers in VB.
-                    Return Not declaration.GetModifiers().Any(SyntaxKind.SharedKeyword)
+                    ' Module constructors are implicitly Shared and can't have accessibility modifier.
+                    Return Not declaration.GetModifiers().Any(SyntaxKind.SharedKeyword) AndAlso
+                        Not declaration.Parent.IsKind(SyntaxKind.ModuleBlock)
 
                 Case SyntaxKind.ModifiedIdentifier
                     Return If(IsChildOf(declaration, SyntaxKind.VariableDeclarator),
@@ -2219,9 +2226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 Case SyntaxKind.Parameter
                     Return DeclarationKind.Parameter
                 Case SyntaxKind.FieldDeclaration
-                    If GetDeclarationCount(declaration) = 1 Then
-                        Return DeclarationKind.Field
-                    End If
+                    Return DeclarationKind.Field
                 Case SyntaxKind.LocalDeclarationStatement
                     If GetDeclarationCount(declaration) = 1 Then
                         Return DeclarationKind.Variable

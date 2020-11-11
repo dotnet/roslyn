@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -791,6 +793,132 @@ IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation,
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: ImplicitObjectCreationOptions);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(1198816, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
+        public void ImplicitObjectCreationUnconverted_ArrayIndex()
+        {
+            var comp = CreateCompilation("_ = new int[/*<bind>*/new(bad)/*</bind>*/];", options: TestOptions.ReleaseExe);
+
+            var expectedDiagnostics = new DiagnosticDescription[] { 
+                // (1,27): error CS0103: The name 'bad' does not exist in the current context
+                // _ = new int[/*<bind>*/new(bad)/*</bind>*/];
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(1, 27)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(comp, @"
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new(bad)')
+  Children(1):
+      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'bad')
+        Children(0)
+            ", expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(1198816, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
+        public void ImplicitObjectCreationUnconverted_IfCondition()
+        {
+            var comp = CreateCompilation(@"
+if (/*<bind>*/new(bad)/*</bind>*/) {}
+", options: TestOptions.UnsafeReleaseExe);
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (2,19): error CS0103: The name 'bad' does not exist in the current context
+                // if (/*<bind>*/new(bad)/*</bind>*/) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(2, 19)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(comp, @"
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new(bad)')
+  Children(1):
+      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'bad')
+        Children(0)
+            ", expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(1198816, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
+        public void ImplicitObjectCreationUnconverted_ConditionalOperator()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        _ = /*<bind>*/new(bad)/*</bind>*/ ? null : new object();
+    }
+}";
+            var comp = CreateCompilation(source);
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (5,27): error CS0103: The name 'bad' does not exist in the current context
+                //         _ = /*<bind>*/new(bad)/*</bind>*/ ? null : new object();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(5, 27)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(comp, @"
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new(bad)')
+  Children(1):
+      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'bad')
+        Children(0)
+            ", expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(1198816, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
+        public void ImplicitObjectCreationUnconverted_ConditionalOperator_Nested1()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        _ = (/*<bind>*/new(bad)/*</bind>*/, null) ? null : new object();
+    }
+}";
+            var comp = CreateCompilation(source);
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (5,28): error CS0103: The name 'bad' does not exist in the current context
+                //         _ = (/*<bind>*/new(bad)/*</bind>*/, null) ? null : new object();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(5, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(comp, @"
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new(bad)')
+  Children(1):
+      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'bad')
+        Children(0)
+            ", expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(1198816, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
+        public void ImplicitObjectCreationUnconverted_ConditionalOperator_Nested2()
+        {
+            var source =
+@"class Program
+{
+    static void Main(int i)
+    {
+        _ = i switch { 1 => /*<bind>*/new(bad)/*</bind>*/, _ => null } ? null : new object();
+    }
+}";
+            var comp = CreateCompilation(source);
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (5,43): error CS0103: The name 'bad' does not exist in the current context
+                //         _ = i switch { 1 => /*<bind>*/new(bad)/*</bind>*/, _ => null } ? null : new object();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(5, 43)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ImplicitObjectCreationExpressionSyntax>(comp, @"
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new(bad)')
+  Children(1):
+      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'bad')
+        Children(0)
+            ", expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

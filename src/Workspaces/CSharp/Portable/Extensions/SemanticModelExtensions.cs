@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,6 +16,7 @@ using Microsoft.CodeAnalysis.Utilities;
 using Humanizer;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -55,33 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return GenerateNames(reservedNames, isFixed, parameterNames);
         }
 
-        public static ImmutableArray<ParameterName> GenerateParameterNames(
-            this SemanticModel semanticModel,
-            IEnumerable<ArgumentSyntax> arguments,
-            IList<string> reservedNames,
-            NamingRule parameterNamingRule,
-            CancellationToken cancellationToken)
-        {
-            reservedNames ??= SpecializedCollections.EmptyList<string>();
-
-            // We can't change the names of named parameters.  Any other names we're flexible on.
-            var isFixed = reservedNames.Select(s => true).Concat(
-                arguments.Select(a => a.NameColon != null)).ToImmutableArray();
-
-            var parameterNames = reservedNames.Concat(
-                arguments.Select(a => semanticModel.GenerateNameForArgument(a, cancellationToken))).ToImmutableArray();
-
-            return GenerateNames(reservedNames, isFixed, parameterNames, parameterNamingRule);
-        }
-
-        private static ImmutableArray<ParameterName> GenerateNames(IList<string> reservedNames, ImmutableArray<bool> isFixed, ImmutableArray<string> parameterNames)
+        public static ImmutableArray<ParameterName> GenerateNames(IList<string> reservedNames, ImmutableArray<bool> isFixed, ImmutableArray<string> parameterNames)
             => NameGenerator.EnsureUniqueness(parameterNames, isFixed)
                 .Select((name, index) => new ParameterName(name, isFixed[index]))
-                .Skip(reservedNames.Count).ToImmutableArray();
-
-        private static ImmutableArray<ParameterName> GenerateNames(IList<string> reservedNames, ImmutableArray<bool> isFixed, ImmutableArray<string> parameterNames, NamingRule parameterNamingRule)
-            => NameGenerator.EnsureUniqueness(parameterNames, isFixed)
-                .Select((name, index) => new ParameterName(name, isFixed[index], parameterNamingRule))
                 .Skip(reservedNames.Count).ToImmutableArray();
 
         public static ImmutableArray<ParameterName> GenerateParameterNames(
@@ -100,25 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 arguments.Select(a => semanticModel.GenerateNameForArgument(a, cancellationToken))).ToImmutableArray();
 
             return GenerateNames(reservedNames, isFixed, parameterNames);
-        }
-
-        public static ImmutableArray<ParameterName> GenerateParameterNames(
-            this SemanticModel semanticModel,
-            IEnumerable<AttributeArgumentSyntax> arguments,
-            IList<string> reservedNames,
-            NamingRule parameterNamingRule,
-            CancellationToken cancellationToken)
-        {
-            reservedNames ??= SpecializedCollections.EmptyList<string>();
-
-            // We can't change the names of named parameters.  Any other names we're flexible on.
-            var isFixed = reservedNames.Select(s => true).Concat(
-                arguments.Select(a => a.NameEquals != null)).ToImmutableArray();
-
-            var parameterNames = reservedNames.Concat(
-                arguments.Select(a => semanticModel.GenerateNameForArgument(a, cancellationToken))).ToImmutableArray();
-
-            return GenerateNames(reservedNames, isFixed, parameterNames, parameterNamingRule);
         }
 
         /// <summary>
@@ -219,25 +179,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Otherwise, figure out the type of the expression and generate a name from that
             // instead.
             var info = semanticModel.GetTypeInfo(expression, cancellationToken);
+            if (info.Type == null)
+            {
+                return CodeAnalysis.Shared.Extensions.ITypeSymbolExtensions.DefaultParameterName;
+            }
 
-            // If we can't determine the type, then fallback to some placeholders.
-            var type = info.Type;
-            var pluralize = Pluralize(semanticModel, type);
-
-            var parameterName = type.CreateParameterName(capitalize);
-            return pluralize ? parameterName.Pluralize() : parameterName;
-        }
-
-        private static bool Pluralize(SemanticModel semanticModel, ITypeSymbol type)
-        {
-            if (type == null)
-                return false;
-
-            if (type.SpecialType == SpecialType.System_String)
-                return false;
-
-            var enumerableType = semanticModel.Compilation.IEnumerableOfTType();
-            return type.AllInterfaces.Any(i => i.OriginalDefinition.Equals(enumerableType));
+            return semanticModel.GenerateNameFromType(info.Type, CSharpSyntaxFacts.Instance, capitalize);
         }
 
         private static string TryGenerateNameForArgumentExpression(

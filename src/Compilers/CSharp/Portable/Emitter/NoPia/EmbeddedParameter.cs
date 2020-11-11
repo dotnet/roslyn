@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
@@ -11,27 +13,32 @@ using System.Diagnostics;
 using Cci = Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 
+#if !DEBUG
+using ParameterSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.ParameterSymbol;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedParameter : EmbeddedTypesManager.CommonEmbeddedParameter
     {
-        public EmbeddedParameter(EmbeddedTypesManager.CommonEmbeddedMember containingPropertyOrMethod, ParameterSymbol underlyingParameter) :
+        public EmbeddedParameter(
+            EmbeddedTypesManager.CommonEmbeddedMember containingPropertyOrMethod, ParameterSymbolAdapter underlyingParameter) :
             base(containingPropertyOrMethod, underlyingParameter)
         {
-            Debug.Assert(underlyingParameter.IsDefinition);
+            Debug.Assert(underlyingParameter.AdaptedParameterSymbol.IsDefinition);
         }
 
         protected override bool HasDefaultValue
         {
             get
             {
-                return UnderlyingParameter.HasMetadataConstantValue;
+                return UnderlyingParameter.AdaptedParameterSymbol.HasMetadataConstantValue;
             }
         }
 
         protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
-            return UnderlyingParameter.GetCustomAttributesToEmit(moduleBuilder);
+            return UnderlyingParameter.AdaptedParameterSymbol.GetCustomAttributesToEmit(moduleBuilder);
         }
 
         protected override MetadataConstant GetDefaultValue(EmitContext context)
@@ -43,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingParameter.IsMetadataIn;
+                return UnderlyingParameter.AdaptedParameterSymbol.IsMetadataIn;
             }
         }
 
@@ -51,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingParameter.IsMetadataOut;
+                return UnderlyingParameter.AdaptedParameterSymbol.IsMetadataOut;
             }
         }
 
@@ -59,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingParameter.IsMetadataOptional;
+                return UnderlyingParameter.AdaptedParameterSymbol.IsMetadataOptional;
             }
         }
 
@@ -67,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingParameter.IsMarshalledExplicitly;
+                return UnderlyingParameter.AdaptedParameterSymbol.IsMarshalledExplicitly;
             }
         }
 
@@ -75,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingParameter.MarshallingInformation;
+                return UnderlyingParameter.AdaptedParameterSymbol.MarshallingInformation;
             }
         }
 
@@ -83,13 +90,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingParameter.MarshallingDescriptor;
+                return UnderlyingParameter.AdaptedParameterSymbol.MarshallingDescriptor;
             }
         }
 
         protected override string Name
         {
-            get { return UnderlyingParameter.MetadataName; }
+            get { return UnderlyingParameter.AdaptedParameterSymbol.MetadataName; }
         }
 
         protected override Cci.IParameterTypeInformation UnderlyingParameterTypeInformation
@@ -104,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return (ushort)UnderlyingParameter.Ordinal;
+                return (ushort)UnderlyingParameter.AdaptedParameterSymbol.Ordinal;
             }
         }
     }

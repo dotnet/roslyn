@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -103,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_PathList = MessageBase + 12686,
         IDS_Text = MessageBase + 12687,
 
-        // available
+        IDS_FeatureDiscards = MessageBase + 12688,
 
         IDS_FeatureDefaultTypeParameterConstraint = MessageBase + 12689,
         IDS_FeatureNullPropagatingOperator = MessageBase + 12690,
@@ -194,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureMemberNotNull = MessageBase + 12768,
 
         IDS_FeatureNativeInt = MessageBase + 12769,
-        IDS_FeatureTargetTypedObjectCreation = MessageBase + 12770,
+        IDS_FeatureImplicitObjectCreation = MessageBase + 12770,
         IDS_FeatureTypePattern = MessageBase + 12771,
         IDS_FeatureParenthesizedPattern = MessageBase + 12772,
         IDS_FeatureOrPattern = MessageBase + 12773,
@@ -215,6 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExtensionGetAsyncEnumerator = MessageBase + 12788,
         IDS_Parameter = MessageBase + 12789,
         IDS_Return = MessageBase + 12790,
+        IDS_FeatureVarianceSafetyForStaticInterfaceMembers = MessageBase + 12791,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -326,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureFunctionPointers:
                 case MessageID.IDS_FeatureLocalFunctionAttributes: // syntax check
                 case MessageID.IDS_FeatureExternLocalFunctions: // syntax check
-                case MessageID.IDS_FeatureTargetTypedObjectCreation: // syntax check
+                case MessageID.IDS_FeatureImplicitObjectCreation: // syntax check
                 case MessageID.IDS_FeatureMemberNotNull:
                 case MessageID.IDS_FeatureAndPattern:
                 case MessageID.IDS_FeatureNotPattern:
@@ -347,6 +346,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureModuleInitializers: // semantic check on method attribute
                 case MessageID.IDS_FeatureDefaultTypeParameterConstraint:
                     return LanguageVersion.CSharp9;
+
+                case MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers: //semantic check
+                    return LanguageVersion.Preview;
 
                 // C# 8.0 features.
                 case MessageID.IDS_FeatureAltInterpolatedVerbatimStrings:
@@ -417,6 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureOutVar:
                 case MessageID.IDS_FeatureExpressionBodiedAccessor:
                 case MessageID.IDS_FeatureExpressionBodiedDeOrConstructor:
+                case MessageID.IDS_FeatureDiscards:
                     return LanguageVersion.CSharp7;
 
                 // C# 6 features.

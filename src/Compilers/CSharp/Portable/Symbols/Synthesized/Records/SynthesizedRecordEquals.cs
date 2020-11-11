@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -66,6 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
                 {
+                    if (_equalityContract.GetMethod is null)
+                    {
+                        // The equality contract isn't usable, an error was reported elsewhere
+                        F.CloseMethod(F.ThrowNull());
+                        return;
+                    }
+
                     if (_equalityContract.IsStatic || !_equalityContract.Type.Equals(DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.AllIgnoreOptions))
                     {
                         // There is a signature mismatch, an error was reported elsewhere
@@ -120,14 +125,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // field1 == other.field1 && ... && fieldN == other.fieldN
                 var fields = ArrayBuilder<FieldSymbol>.GetInstance();
+                bool foundBadField = false;
                 foreach (var f in ContainingType.GetFieldsToEmit())
                 {
                     if (!f.IsStatic)
                     {
                         fields.Add(f);
+
+                        var parameterType = f.Type;
+                        if (parameterType.IsUnsafe())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadFieldTypeInRecord, f.Locations.FirstOrNone(), parameterType);
+                            foundBadField = true;
+                        }
+                        else if (parameterType.IsRestrictedType())
+                        {
+                            // We'll have reported a diagnostic elsewhere (SourceMemberFieldSymbol.TypeChecks)
+                            foundBadField = true;
+                        }
                     }
                 }
-                if (fields.Count > 0)
+                if (fields.Count > 0 && !foundBadField)
                 {
                     retExpr = MethodBodySynthesizer.GenerateFieldEquals(
                         retExpr,
