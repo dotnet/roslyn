@@ -931,5 +931,47 @@ class C
     }
 }");
         }
+
+        [WorkItem(42195, "https://github.com/dotnet/roslyn/issues/42195")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestConcatenAtionWithExistingInterpolation()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    string M(string a, string b)
+    {
+        return [|$""Foo {a} goo: $ "" + b|];
+    }
+}",
+@"public class C
+{
+    string M(string a, string b)
+    {
+        return $""Foo {a} goo: $ {b}"";
+    }
+}");
+        }
+
+        [WorkItem(42195, "https://github.com/dotnet/roslyn/issues/42195")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestConcatenAtionWithExistingInterpolation1()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class C
+{
+    string M(string a, string b, string c)
+    {
+        return [|$""Foo {a} goo: ""+ b + $"" {c} : test""|];
+    }
+}",
+@"public class C
+{
+    string M(string a, string b, string c)
+    {
+        return $""Foo {a} goo: {b} {c} : test"";
+    }
+}");
+        }
     }
 }

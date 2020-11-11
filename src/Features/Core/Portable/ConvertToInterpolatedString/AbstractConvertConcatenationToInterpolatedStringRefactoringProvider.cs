@@ -158,7 +158,25 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 }
                 else
                 {
-                    content.Add(generator.Interpolation(piece.WithoutTrivia()));
+                    var firstInterpolationToken = piece.GetFirstToken();
+                    var lastInterpolationToken = piece.GetLastToken();
+
+                    if (firstInterpolationToken.RawKind == startToken.RawKind && lastInterpolationToken.RawKind == endToken.RawKind)
+                    {
+                        // If the piece like $"foo {a} goo: ",
+                        // we get the sub string between the first two caracters (whitch represent intepolation startToken)
+                        // and the last one that represent interpolation endToken 
+                        // objective here is to transform the non-StringOrCharacterLiteral to a string literal
+                        var pieceString = piece.ToString();
+                        var textWithoutInterpolationTokens = pieceString.Substring(2, ((pieceString.Length - 1) - 2));
+                        // Then we generate new InterpolatedStringTextToken from the new string litéral 
+                        // and we add it in the content list
+                        content.Add(generator.InterpolatedStringText(generator.InterpolatedStringTextToken(textWithoutInterpolationTokens)));
+                    }
+                    else
+                    {
+                        content.Add(generator.Interpolation(piece.WithoutTrivia()));
+                    }
                 }
                 // Update this variable to be true every time we encounter a new string literal expression
                 // so we know to concatenate future string literals together if we encounter them.
