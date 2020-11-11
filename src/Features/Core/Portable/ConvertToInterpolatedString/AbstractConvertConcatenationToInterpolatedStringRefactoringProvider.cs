@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 {
@@ -186,7 +187,9 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 }
                 else
                 {
-                    content.Add(generator.Interpolation(piece.WithoutTrivia()));
+                    // Add Simplifier annotation to remove superfluous parenthesis after transformation:
+                    // (1 + 1) + "a" -> ${1 + 1}a"
+                    content.Add(generator.Interpolation(piece.WithoutTrivia().WithAdditionalAnnotations(Simplifier.Annotation)));
                 }
                 // Update this variable to be true every time we encounter a new string literal expression
                 // so we know to concatenate future string literals together if we encounter them.

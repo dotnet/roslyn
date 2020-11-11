@@ -1001,5 +1001,32 @@ class C
 }}";
             await TestInRegularAndScriptAsync(initialMarkup, expected);
         }
+
+        [WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [InlineData(@"""a"" [|+|] (1 + 1)",
+                   @"$""a{1 + 1}""")]
+        [InlineData(@"""a"" [|+|] (true ? ""t"" : ""f"")",
+                   @"$""a{(true ? ""t"" : ""f"")}""")]
+        [InlineData(@"""a"" [|+|] $""{(1 + 1)}""",
+                   @"$""a{(1 + 1)}""")]
+        public async Task TestRemovalOfSuperflousParenthesis(string before, string after)
+        {
+            var initialMarkup = $@"
+class C
+{{
+    void M() {{
+        {before}
+    }}
+}}";
+            var expected = $@"
+class C
+{{
+    void M() {{
+        {after}
+    }}
+}}";
+            await TestInRegularAndScriptAsync(initialMarkup, expected);
+        }
     }
 }
