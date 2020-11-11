@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 {
@@ -166,29 +165,18 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     foreach (var contentPart in contentParts)
                     {
                         currentContentIsStringOrCharacterLiteral = syntaxFacts.IsInterpolatedStringText(contentPart);
-                        if (currentContentIsStringOrCharacterLiteral)
+                        if (currentContentIsStringOrCharacterLiteral && previousContentWasStringLiteralExpression)
                         {
-                            // if the piece starts with a text and the previous part was a string, merge the two parts (see also above)
-                            if (previousContentWasStringLiteralExpression)
-                            {
-                                var contentTextToken = contentPart.GetFirstToken();
-                                var newText = ConcatinateTextToTextNode(generator, content.Last(), contentTextToken.Text);
-                                content[^1] = newText;
-                            }
-                            else
-                            {
-                                content.Add(contentPart);
-                            }
-                        }
-                        else if (syntaxFacts.IsInterpolation(contentPart))
-                        {
-                            content.Add(contentPart);
-                            previousContentWasStringLiteralExpression = false;
+                            // if piece starts with a text and the previous part was a string, merge the two parts (see also above)
+                            var newText = ConcatinateTextToTextNode(generator, content.Last(), contentPart.GetFirstToken().Text);
+                            content[^1] = newText;
                         }
                         else
                         {
-                            throw ExceptionUtilities.Unreachable;
+                            content.Add(contentPart);
                         }
+                        // Only the first contentPart can be merged:
+                        previousContentWasStringLiteralExpression = false;
                     }
                 }
                 else
