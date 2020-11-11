@@ -1148,6 +1148,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // SPEC: interface type, the base types of T are the base interfaces
                             // SPEC: of T and the class type object. 
 
+                            if (hiddenContainer.Equals(hidingSym.ContainingType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                            {
+                                goto symIsHidden; // discard the new candidate, as it is not really different
+                            }
                             if (!IsDerivedType(baseType: hiddenContainer, derivedType: hidingSym.ContainingType, basesBeingResolved, useSiteDiagnostics: ref useSiteDiagnostics) &&
                                 hiddenContainer.SpecialType != SpecialType.System_Object)
                             {
