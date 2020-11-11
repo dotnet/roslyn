@@ -2739,7 +2739,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
         {
             DeclareLocals(node.IterationVariables);
-            Visit(node.AwaitOpt);
             return base.VisitForEachStatement(node);
         }
 
@@ -5328,6 +5327,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.In:
                     {
                         // Note: for lambda arguments, they will be converted in the context/state we saved for that argument
+                        if (conversion is { Kind: ConversionKind.ImplicitUserDefined })
+                        {
+                            var argumentResultType = result.RValueType.Type;
+                            Debug.Assert(argumentResultType is not null);
+                            conversion = GenerateConversion(_conversions, argumentNoConversion, argumentResultType, parameterType.Type, fromExplicitCast: false, extensionMethodThisArgument: false);
+                            if (!conversion.Exists && !argumentNoConversion.IsSuppressed)
+                            {
+                                ReportNullabilityMismatchInArgument(argumentNoConversion.Syntax, argumentResultType, parameter, parameterType.Type, forOutput: false);
+                            }
+                        }
+
                         var stateAfterConversion = VisitConversion(
                             conversionOpt: conversionOpt,
                             conversionOperand: argumentNoConversion,
@@ -8571,6 +8581,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 currentPropertyGetterTypeWithState = ApplyUnconditionalAnnotations(
                     currentPropertyGetter.ReturnTypeWithAnnotations.ToTypeWithState(),
                     currentPropertyGetter.ReturnTypeFlowAnalysisAnnotations);
+
+                // Analyze `await MoveNextAsync()`
+                if (node.AwaitOpt is { AwaitableInstancePlaceholder: BoundAwaitableValuePlaceholder moveNextPlaceholder } awaitMoveNextInfo)
+                {
+                    var moveNextAsyncMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.MoveNextMethod);
+
+                    EnsureAwaitablePlaceholdersInitialized();
+                    var result = new VisitResult(GetReturnTypeWithState(moveNextAsyncMethod), moveNextAsyncMethod.ReturnTypeWithAnnotations);
+                    _awaitablePlaceholdersOpt.Add(moveNextPlaceholder, (moveNextPlaceholder, result));
+                    Visit(awaitMoveNextInfo);
+                    _awaitablePlaceholdersOpt.Remove(moveNextPlaceholder);
+                }
+
+                // Analyze `await DisposeAsync()`
+                if (node.EnumeratorInfoOpt is { NeedsDisposal: true, DisposeAwaitableInfo: BoundAwaitableInfo awaitDisposalInfo })
+                {
+                    var disposalPlaceholder = awaitDisposalInfo.AwaitableInstancePlaceholder;
+                    if (disposalPlaceholder is not null && node.EnumeratorInfoOpt.DisposeMethod is not null) // no statically known Dispose method if doing a runtime check
+                    {
+                        var disposeAsyncMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.DisposeMethod);
+                        EnsureAwaitablePlaceholdersInitialized();
+                        var result = new VisitResult(GetReturnTypeWithState(disposeAsyncMethod), disposeAsyncMethod.ReturnTypeWithAnnotations);
+                        _awaitablePlaceholdersOpt.Add(disposalPlaceholder, (disposalPlaceholder, result));
+                    }
+
+                    Visit(awaitDisposalInfo);
+
+                    if (disposalPlaceholder is not null)
+                    {
+                        _awaitablePlaceholdersOpt!.Remove(disposalPlaceholder);
+                    }
+                }
             }
 
             SetResultType(expression: null, currentPropertyGetterTypeWithState);
@@ -8921,7 +8963,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var placeholder = awaitableInfo.AwaitableInstancePlaceholder;
             Debug.Assert(placeholder is object);
 
-            _awaitablePlaceholdersOpt ??= PooledDictionary<BoundAwaitableValuePlaceholder, (BoundExpression AwaitableExpression, VisitResult Result)>.GetInstance();
+            EnsureAwaitablePlaceholdersInitialized();
             _awaitablePlaceholdersOpt.Add(placeholder, (node.Expression, _visitResult));
             Visit(awaitableInfo);
             _awaitablePlaceholdersOpt.Remove(placeholder);
@@ -9510,6 +9552,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SetNotNullResult(node);
             return null;
+        }
+
+        [MemberNotNull("_awaitablePlaceholdersOpt")]
+        private void EnsureAwaitablePlaceholdersInitialized()
+        {
+            _awaitablePlaceholdersOpt ??= PooledDictionary<BoundAwaitableValuePlaceholder, (BoundExpression AwaitableExpression, VisitResult Result)>.GetInstance();
         }
 
         public override BoundNode? VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
