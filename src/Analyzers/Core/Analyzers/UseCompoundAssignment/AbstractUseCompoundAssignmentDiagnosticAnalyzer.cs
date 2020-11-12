@@ -111,8 +111,10 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             }
 
             // Don't offer if this is `x = x + 1` inside an obj initializer like:
-            // `new Point { x = x + 1 }`
-            if (_syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(assignmentLeft))
+            // `new Point { x = x + 1 }` or
+            // `new () { x = x + 1 }` or
+            // `p with { x = x + 1 }`
+            if (_syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(assignmentLeft))
             {
                 return;
             }
