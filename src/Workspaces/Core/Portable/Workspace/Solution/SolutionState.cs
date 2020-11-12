@@ -981,7 +981,7 @@ namespace Microsoft.CodeAnalysis
 
             return ForkProject(
                 oldProject.WithAnalyzerReferences(newReferences),
-                new CompilationAndGeneratorDriverTranslationAction.AddAnalyzerReferencesAction(analyzerReferences));
+                new CompilationAndGeneratorDriverTranslationAction.AddAnalyzerReferencesAction(analyzerReferences, oldProject.Language));
         }
 
         /// <summary>
@@ -1000,7 +1000,7 @@ namespace Microsoft.CodeAnalysis
 
             return ForkProject(
                 oldProject.WithAnalyzerReferences(newReferences),
-                new CompilationAndGeneratorDriverTranslationAction.RemoveAnalyzerReferencesAction(ImmutableArray.Create(analyzerReference)));
+                new CompilationAndGeneratorDriverTranslationAction.RemoveAnalyzerReferencesAction(ImmutableArray.Create(analyzerReference), oldProject.Language));
         }
 
         /// <summary>

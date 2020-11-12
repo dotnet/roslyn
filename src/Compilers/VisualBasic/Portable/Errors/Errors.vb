@@ -1976,6 +1976,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         WRN_AttributeNotSupportedInVB = 42381
         ERR_MultipleAnalyzerConfigsInSameDir = 42500
+        WRN_GeneratorFailedDuringInitialization = 42501
+        WRN_GeneratorFailedDuringGeneration = 42502
+        WRN_AnalyzerReferencesFramework = 42503
 
         ' // AVAILABLE                             42600 - 49998
         ERRWRN_NextAvailable = 42600
