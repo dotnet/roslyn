@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsRecord => false;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
 
-        internal override bool Equals(TypeSymbol? other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol? other, TypeCompareKind comparison)
         {
             if (other is null)
             {
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return true;
             }
-            if (!_underlyingType.Equals(other, comparison, isValueTypeOverrideOpt))
+            if (!_underlyingType.Equals(other, comparison))
             {
                 return false;
             }
