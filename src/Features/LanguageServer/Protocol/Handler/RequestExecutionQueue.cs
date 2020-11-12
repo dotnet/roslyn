@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var lspSolution = GetLSPSolution(workspaceSolution);
 
-                        // If we got a document id back, we pull it out of our updated solution so the handler is operating on the latest
+            // If we got a document id back, we pull it out of our updated solution so the handler is operating on the latest
             // document text. If document id is null here, this will just return null
             var document = lspSolution.GetDocument(documentId);
 
