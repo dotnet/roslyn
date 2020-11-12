@@ -5764,7 +5764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    throw new InvalidOperationException($"parameters.Length ({n}) must be less than argsToParamsOpt[argumentOrdinal] ({parameterOrdinal})");
+                    throw new InvalidOperationException($"parameters.Length ({n}) must not be less than argsToParamsOpt[argumentOrdinal] ({parameterOrdinal})");
                     // parameter = null;
                     // expanded = false;
                 }
