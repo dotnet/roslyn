@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis
     {
         internal GeneratorDriverState(ParseOptions parseOptions,
                                       AnalyzerConfigOptionsProvider optionsProvider,
+                                      CachingSemanticModelProvider modelProvider,
                                       ImmutableArray<ISourceGenerator> generators,
                                       ImmutableArray<AdditionalText> additionalTexts,
                                       ImmutableArray<GeneratorState> generatorStates,
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis
             Edits = edits;
             ParseOptions = parseOptions;
             OptionsProvider = optionsProvider;
+            ModelProvider = modelProvider;
             EditsFailed = editsFailed;
 
             Debug.Assert(Generators.Length == GeneratorStates.Length);
@@ -74,6 +76,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal readonly ParseOptions ParseOptions;
 
+        internal readonly CachingSemanticModelProvider ModelProvider;
+
         internal GeneratorDriverState With(
             ImmutableArray<ISourceGenerator>? generators = null,
             ImmutableArray<GeneratorState>? generatorStates = null,
@@ -84,6 +88,7 @@ namespace Microsoft.CodeAnalysis
             return new GeneratorDriverState(
                 this.ParseOptions,
                 this.OptionsProvider,
+                this.ModelProvider,
                 generators ?? this.Generators,
                 additionalTexts ?? this.AdditionalTexts,
                 generatorStates ?? this.GeneratorStates,

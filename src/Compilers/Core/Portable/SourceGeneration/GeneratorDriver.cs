@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
         {
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), ImmutableArray<PendingEdit>.Empty, editsFailed: true);
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, new CachingSemanticModelProvider(), generators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), ImmutableArray<PendingEdit>.Empty, editsFailed: true);
         }
 
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
@@ -226,6 +226,8 @@ namespace Microsoft.CodeAnalysis
             }
             walkerBuilder.Free();
 
+            compilation = compilation.WithSemanticModelProvider(_state.ModelProvider);
+
             // https://github.com/dotnet/roslyn/issues/42629: should be possible to parallelize this
             for (int i = 0; i < state.Generators.Length; i++)
             {
@@ -256,6 +258,7 @@ namespace Microsoft.CodeAnalysis
                 diagnosticsBag?.AddRange(diagnostics);
             }
             state = state.With(generatorStates: stateBuilder.ToImmutableAndFree());
+            state.ModelProvider.ClearCache(compilation);
             return state;
         }
 

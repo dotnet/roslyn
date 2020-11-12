@@ -972,5 +972,72 @@ class C
 
             Assert.Same(parseOptions, passedOptions);
         }
+
+        [Fact]
+        public void Semantic_Models_Are_Cached_Between_Generators_In_The_Same_Run()
+        {
+            var source1 = "class C { }";
+            var source2 = "class D { }";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Equal(2, compilation.SyntaxTrees.Count());
+
+            SemanticModel? generator1Source1Model = null;
+            SemanticModel? generator1Source2Model = null;
+            SemanticModel? generator2Source1Model = null;
+            SemanticModel? generator2Source2Model = null;
+
+            var testGenerator1 = new CallbackGenerator(onInit: (i) => { }, onExecute: (e) => 
+            {
+                generator1Source1Model = e.Compilation.GetSemanticModel(compilation.SyntaxTrees.First());
+                generator1Source2Model = e.Compilation.GetSemanticModel(compilation.SyntaxTrees.Last());
+            });
+
+            var testGenerator2 = new CallbackGenerator2(onInit: (i) => { }, onExecute: (e) =>
+            {
+                generator2Source1Model = e.Compilation.GetSemanticModel(compilation.SyntaxTrees.First());
+                generator2Source2Model = e.Compilation.GetSemanticModel(compilation.SyntaxTrees.Last());
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator1, testGenerator2 }, parseOptions: parseOptions);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+
+            Assert.NotNull(generator1Source1Model);
+            Assert.NotNull(generator1Source2Model);
+            Assert.NotNull(generator2Source1Model);
+            Assert.NotNull(generator2Source1Model);
+
+            Assert.Same(generator1Source1Model, generator2Source1Model);
+            Assert.Same(generator1Source2Model, generator2Source2Model);
+        }
+
+        [Fact]
+        public void Semantic_Models_Are_Not_Cached_Between_Generations()
+        {
+            var source = "class C { }";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(new[] { source }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            SemanticModel? model = null;
+            var testGenerator = new CallbackGenerator(onInit: (i) => { }, onExecute: (e) =>
+            {
+                model = e.Compilation.GetSemanticModel(compilation.SyntaxTrees.First());
+            });
+
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+
+            Assert.NotNull(model);
+            SemanticModel firstRun = model!;
+            model = null;
+
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+            Assert.NotNull(model);
+            Assert.NotSame(model, firstRun);
+        }
     }
 }
