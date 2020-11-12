@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Rename
     }
     void M2()
     {
-        {|renamed:M|}()
+        {|renamed:M|}();
     }
 }";
             using var workspace = CreateTestWorkspace(markup, out var locations);
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Rename
             var expectedEdits = locations["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
             var results = await RunRenameAsync(workspace.CurrentSolution, CreateRenameParams(renameLocation, renameValue));
-            AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
+            AssertJsonEquals(expectedEdits, WorkspaceEditToFirstTextDocumentEdit(results).Edits);
         }
 
         [WpfFact]
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Rename
     }
     void M2()
     {
-        {|renamed:M|}()
+        {|renamed:M|}();
     }
 }";
 
@@ -72,7 +72,7 @@ $@"<Workspace>
             var expectedEdits = locations["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
             var results = await RunRenameAsync(workspace.CurrentSolution, CreateRenameParams(renameLocation, renameValue));
-            AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
+            AssertJsonEquals(expectedEdits, WorkspaceEditToFirstTextDocumentEdit(results).Edits);
         }
 
         [WpfFact]
@@ -86,18 +86,18 @@ $@"<Workspace>
     }
     void M2()
     {
-        {|renamed:M|}()
+        {|renamed:M|}();
     }
     void M3()
     {
 #if Proj1
-        {|renamed:M|}()
+        {|renamed:M|}();
 #endif
     }
     void M4()
     {
 #if Proj2
-        {|renamed:M|}()
+        {|renamed:M|}();
 #endif
     }
 }";
@@ -118,7 +118,7 @@ $@"<Workspace>
             var expectedEdits = locations["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
             var results = await RunRenameAsync(workspace.CurrentSolution, CreateRenameParams(renameLocation, renameValue));
-            AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
+            AssertJsonEquals(expectedEdits, WorkspaceEditToFirstTextDocumentEdit(results).Edits);
         }
 
         [WpfFact]
@@ -132,7 +132,7 @@ $@"<Workspace>
     }
     void M2()
     {
-        M()
+        M();
     }
 }";
             using var workspace = CreateTestWorkspace(string.Empty, out _);
@@ -154,10 +154,72 @@ $@"<Workspace>
             var expectedMappedRanges = ImmutableArray.Create(TestSpanMapper.MappedFileLocation.Range, TestSpanMapper.MappedFileLocation.Range);
             var expectedMappedDocument = TestSpanMapper.MappedFileLocation.Uri;
 
-            var documentEdit = results.DocumentChanges.Value.First.Single();
+            var documentEdit = WorkspaceEditToFirstTextDocumentEdit(results);
             Assert.Equal(expectedMappedDocument, documentEdit.TextDocument.Uri);
             Assert.Equal(expectedMappedRanges, documentEdit.Edits.Select(edit => edit.Range));
             Assert.True(documentEdit.Edits.All(edit => edit.NewText == renameText));
+        }
+
+        [WpfFact, WorkItem(1231244, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1231244/")]
+        public async Task TestRenameFileAsync()
+        {
+            var markup =
+@"class {|caret:|}{|renamed:C|}
+{
+    void M()
+    {
+        var x = new {|renamed:C|}();
+    }
+}";
+
+            var workspaceXml =
+$@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj"" PreprocessorSymbols=""Proj1"">
+        <Document FilePath = ""C:\C.cs""><![CDATA[{markup}]]></Document>
+    </Project>
+</Workspace>";
+
+            using var workspace = CreateXmlTestWorkspace(workspaceXml, out var locations);
+            var renameLocation = locations["caret"].First();
+            var renameValue = "RENAME";
+            var expectedEdits = locations["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
+
+            var results = await RunRenameAsync(workspace.CurrentSolution, CreateRenameParams(renameLocation, renameValue));
+            AssertJsonEquals<System.Collections.Generic.IEnumerable<TextEdit>>(expectedEdits, WorkspaceEditToFirstTextDocumentEdit(results).Edits);
+
+            // Rename file
+            Assert.True(WorkspaceEditContainsRenameFileEdit(results));
+        }
+
+        [WpfFact, WorkItem(1231244, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1231244/")]
+        public async Task TestDoNotRenameFileAsync()
+        {
+            var markup =
+@"class {|caret:|}{|renamed:NotC|}
+{
+    void M()
+    {
+        var x = new {|renamed:NotC|}();
+    }
+}";
+
+            var workspaceXml =
+$@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj"" PreprocessorSymbols=""Proj1"">
+        <Document FilePath = ""C:\C.cs""><![CDATA[{markup}]]></Document>
+    </Project>
+</Workspace>";
+
+            using var workspace = CreateXmlTestWorkspace(workspaceXml, out var locations);
+            var renameLocation = locations["caret"].First();
+            var renameValue = "RENAME";
+            var expectedEdits = locations["renamed"].Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
+
+            var results = await RunRenameAsync(workspace.CurrentSolution, CreateRenameParams(renameLocation, renameValue));
+            AssertJsonEquals<System.Collections.Generic.IEnumerable<TextEdit>>(expectedEdits, WorkspaceEditToFirstTextDocumentEdit(results).Edits);
+
+            // Do not rename file
+            Assert.False(WorkspaceEditContainsRenameFileEdit(results));
         }
 
         private static LSP.RenameParams CreateRenameParams(LSP.Location location, string newName)
@@ -174,5 +236,11 @@ $@"<Workspace>
             return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.RenameParams, LSP.WorkspaceEdit>(queue, LSP.Methods.TextDocumentRenameName,
                           renameParams, new LSP.ClientCapabilities(), null, CancellationToken.None);
         }
+
+        private static TextDocumentEdit WorkspaceEditToFirstTextDocumentEdit(WorkspaceEdit results)
+            => results.DocumentChanges.Value.Second.Select(edit => edit.First).First();
+
+        private static bool WorkspaceEditContainsRenameFileEdit(WorkspaceEdit results)
+            => results.DocumentChanges.Value.Second.Any(edit => edit.TryGetThird(out var _));
     }
 }

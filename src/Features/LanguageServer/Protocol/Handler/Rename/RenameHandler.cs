@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var renameReplacementInfo = await renameLocationSet.GetReplacementsAsync(request.NewName, oldSolution.Workspace.Options, cancellationToken).ConfigureAwait(false);
 
             var renamedSolution = renameReplacementInfo.NewSolution;
+            if (renamedSolution == oldSolution)
+            {
+                return null;
+            }
+
             var solutionChanges = renamedSolution.GetChanges(oldSolution);
 
             // Linked files can correspond to multiple roslyn documents each with changes.  Merge the changes in the linked files so that all linked documents have the same text.
@@ -64,11 +69,57 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 .GroupBy(docId => renamedSolution.GetRequiredDocument(docId).FilePath, StringComparer.OrdinalIgnoreCase).Select(group => group.First());
 
             var textDiffService = renamedSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
-
             var documentEdits = await ProtocolConversions.ChangedDocumentsToTextDocumentEditsAsync(changedDocuments, renamedSolution.GetRequiredDocument, oldSolution.GetRequiredDocument,
                 textDiffService, cancellationToken).ConfigureAwait(false);
 
-            return new WorkspaceEdit { DocumentChanges = documentEdits };
+            using var _ = ArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>.GetInstance(out var edits);
+
+            // Add the document edits
+            foreach (var documentEdit in documentEdits)
+            {
+                edits.AddRange(documentEdit);
+            }
+
+            // Add an edit for renaming the file (if applicable)
+            if (renameInfo is IInlineRenameInfoWithFileRename renameInfoWithFileRename &&
+                renameInfoWithFileRename.GetFileRenameInfo() == InlineRenameFileRenameInfo.Allowed)
+            {
+                AddFileNameEdit(request.NewName, document, edits);
+            }
+
+            return new WorkspaceEdit { DocumentChanges = edits.ToArray() };
+        }
+
+        private static void AddFileNameEdit(
+            string newName,
+            Document document,
+            ArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> edits)
+        {
+            var fileInfo = new FileInfo(document.FilePath);
+
+            // If a file with the same name already exists within the project, generate a unique name.
+            var uniqueName = GenerateUniqueFileNameWithinProject(document.Project, newName, fileInfo.Extension);
+            var newPath = Path.Combine(fileInfo.DirectoryName, uniqueName);
+
+            edits.Add(new LSP.RenameFile
+            {
+                OldUri = document.GetURI(),
+                NewUri = ProtocolConversions.GetUriFromFilePath(newPath),
+                Options = new LSP.RenameFileOptions { IgnoreIfExists = true }
+            });
+
+            // Local functions
+            static string GenerateUniqueFileNameWithinProject(Project project, string newName, string extension)
+            {
+                var existingFileNames = project.Documents.Select(d => d.Name);
+                var fileNameWithExtension = newName + extension;
+                if (!existingFileNames.Contains(fileNameWithExtension))
+                {
+                    return fileNameWithExtension;
+                }
+
+                return NameGenerator.GenerateUniqueName(newName, extension, n => !existingFileNames.Contains(n));
+            }
         }
     }
 }
