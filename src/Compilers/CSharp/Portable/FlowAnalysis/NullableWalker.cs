@@ -5196,7 +5196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var (parameter, _, parameterAnnotations, _) = GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded);
 
                 // we disable nullable warnings on default arguments
-                _disableDiagnostics = defaultArgumentsOpt[i] ? true : previousDisableDiagnostics;
+                _disableDiagnostics = defaultArgumentsOpt[i] || previousDisableDiagnostics;
                 resultsBuilder.Add(VisitArgumentEvaluate(arguments[i], GetRefKind(refKindsOpt, i), parameterAnnotations));
                 visitedParameters.Add(parameter);
             }
@@ -5682,48 +5682,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private (ParameterSymbol? Parameter, TypeWithAnnotations Type, FlowAnalysisAnnotations Annotations, bool isExpandedParamsArgument) GetCorrespondingParameter(
             int argumentOrdinal,
-            ImmutableArray<ParameterSymbol> parameters,
+            ImmutableArray<ParameterSymbol> parametersOpt,
             ImmutableArray<int> argsToParamsOpt,
             bool expanded)
         {
-            if (parameters.IsDefault)
+            if (parametersOpt.IsDefault)
             {
                 return default;
             }
 
-            int n = parameters.Length;
-            ParameterSymbol? parameter;
-
-            if (argsToParamsOpt.IsDefault)
-            {
-                if (argumentOrdinal < n)
-                {
-                    parameter = parameters[argumentOrdinal];
-                }
-                else if (expanded)
-                {
-                    parameter = parameters[n - 1];
-                }
-                else
-                {
-                    parameter = null;
-                }
-            }
-            else
-            {
-                int parameterOrdinal = argsToParamsOpt[argumentOrdinal];
-
-                if (parameterOrdinal < n)
-                {
-                    parameter = parameters[parameterOrdinal];
-                }
-                else
-                {
-                    parameter = null;
-                    expanded = false;
-                }
-            }
-
+            var parameter = Binder.GetCorrespondingParameter(argumentOrdinal, parametersOpt, argsToParamsOpt, expanded);
             if (parameter is null)
             {
                 Debug.Assert(!expanded);
@@ -5731,7 +5699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var type = parameter.TypeWithAnnotations;
-            if (expanded && parameter.Ordinal == n - 1 && type.IsSZArray())
+            if (expanded && parameter.Ordinal == parametersOpt.Length - 1 && type.IsSZArray())
             {
                 type = ((ArrayTypeSymbol)type.Type).ElementTypeWithAnnotations;
                 return (parameter, type, FlowAnalysisAnnotations.None, isExpandedParamsArgument: true);

@@ -193,34 +193,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+
         private ConstantValue DefaultSyntaxValue
         {
             get
             {
-                if (state.HasComplete(CompletionPart.EndDefaultSyntaxValue))
+                if (state.NotePartComplete(CompletionPart.StartDefaultSyntaxValue))
                 {
-                    return _lazyDefaultSyntaxValue;
+                    var diagnostics = DiagnosticBag.GetInstance();
+                    var previousValue = Interlocked.CompareExchange(
+                        ref _lazyDefaultSyntaxValue,
+                        MakeDefaultExpression(diagnostics, out var binder, out var parameterEqualsValue),
+                        ConstantValue.Unset);
+                    Debug.Assert(previousValue == ConstantValue.Unset);
+
+                    var completedOnThisThread = state.NotePartComplete(CompletionPart.EndDefaultSyntaxValue);
+                    Debug.Assert(completedOnThisThread);
+
+                    if (binder is not null && parameterEqualsValue is not null && !_lazyDefaultSyntaxValue.IsBad)
+                    {
+                        NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, diagnostics);
+                        VerifyParamDefaultValueMatchesAttributeIfAny(_lazyDefaultSyntaxValue, parameterEqualsValue.Value.Syntax, diagnostics);
+                    }
+
+                    AddDeclarationDiagnostics(diagnostics);
+                    diagnostics.Free();
+
+                    completedOnThisThread = state.NotePartComplete(CompletionPart.EndDefaultSyntaxValueDiagnostics);
+                    Debug.Assert(completedOnThisThread);
                 }
 
-                if (!state.NotePartComplete(CompletionPart.StartDefaultSyntaxValue))
-                {
-                    // In certain recursive error scenarios we need to return a placeholder value.
-                    // e.g. `void F(object param = F()) { }`
-                    return ConstantValue.Unset;
-                }
-
-                var diagnostics = DiagnosticBag.GetInstance();
-                var previousValue = Interlocked.CompareExchange(
-                    ref _lazyDefaultSyntaxValue,
-                    MakeDefaultExpression(diagnostics),
-                    ConstantValue.Unset);
-                Debug.Assert(previousValue == ConstantValue.Unset);
-
-                AddDeclarationDiagnostics(diagnostics);
-
-                diagnostics.Free();
-                state.NotePartComplete(CompletionPart.EndDefaultSyntaxValue);
-
+#if DEBUG
+                // If we accidentally access DefaultSyntaxValue in a reentrant manner, and we use a cancellation token
+                // that never expires, then the failure mode will be to spin wait forever.
+                // For debug purposes let's instead use a token which expires after a modest amount of time
+                // to wait for the default syntax value to be available.
+                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                var token = cts.Token;
+#else
+                var token = CancellationToken.None;
+#endif
+                state.SpinWaitComplete(CompletionPart.EndDefaultSyntaxValue, token);
                 return _lazyDefaultSyntaxValue;
             }
         }
@@ -284,8 +298,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Free();
         }
 
-        private ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics)
+        // This method *must not* depend on attributes on the parameter symbol.
+        // Otherwise we will have cycles when binding usage of attributes whose constructors have optional parameters
+        private ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics, out Binder? binder, out BoundParameterEqualsValue? parameterEqualsValue)
         {
+            binder = null;
+            parameterEqualsValue = null;
+
             var parameterSyntax = this.CSharpSyntaxNode;
             if (parameterSyntax == null)
             {
@@ -298,12 +317,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ConstantValue.NotAvailable;
             }
 
-            var binder = GetBinder(defaultSyntax);
+            binder = GetBinder(defaultSyntax);
             Binder binderForDefault = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax);
             Debug.Assert(binderForDefault.InParameterDefaultValue);
             Debug.Assert(binderForDefault.ContainingMemberOrLambda == ContainingSymbol);
 
-            var parameterEqualsValue = binderForDefault.BindParameterDefaultValue(defaultSyntax, this, diagnostics, out var valueBeforeConversion);
+            parameterEqualsValue = binderForDefault.BindParameterDefaultValue(defaultSyntax, this, diagnostics, out var valueBeforeConversion);
             if (valueBeforeConversion.HasErrors)
             {
                 return ConstantValue.Bad;
@@ -329,13 +348,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, diagnostics);
-
             // represent default(struct) by a Null constant:
             var value = convertedExpression.ConstantValue ?? ConstantValue.Null;
-            VerifyParamDefaultValueMatchesAttributeIfAny(value, defaultSyntax.Value, diagnostics);
             return value;
         }
+
+#nullable disable
 
         public override string MetadataName
         {
@@ -754,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// (DefaultParameterValueAttribute, DateTimeConstantAttribute or DecimalConstantAttribute).
         /// If not, report ERR_ParamDefaultValueDiffersFromAttribute.
         /// </summary>
-        private void VerifyParamDefaultValueMatchesAttributeIfAny(ConstantValue value, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        private void VerifyParamDefaultValueMatchesAttributeIfAny(ConstantValue value, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
             var data = GetEarlyDecodedWellKnownAttributeData();
             if (data != null)

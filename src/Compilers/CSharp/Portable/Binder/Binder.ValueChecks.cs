@@ -169,15 +169,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (kind & BindValueKind.RefOrOut) == BindValueKind.RefOrOut;
         }
 
-        private BoundExpression BindIndexerDefaultArguments(BoundExpression expr, BindValueKind valueKind, DiagnosticBag diagnostics)
-        {
-            if (expr is not BoundIndexerAccess indexerAccess)
-            {
-                return expr;
-            }
+#nullable enable
 
+        private BoundIndexerAccess BindIndexerDefaultArguments(BoundIndexerAccess indexerAccess, BindValueKind valueKind, DiagnosticBag diagnostics)
+        {
             var useSetAccessor = valueKind == BindValueKind.Assignable && !indexerAccess.Indexer.ReturnsByRef;
-            MethodSymbol accessorForDefaultArguments = useSetAccessor
+            var accessorForDefaultArguments = useSetAccessor
                 ? indexerAccess.Indexer.GetOwnOrInheritedSetMethod()
                 : indexerAccess.Indexer.GetOwnOrInheritedGetMethod();
             if (accessorForDefaultArguments is not null)
@@ -185,10 +182,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(accessorForDefaultArguments.ParameterCount);
                 argumentsBuilder.AddRange(indexerAccess.Arguments);
 
-                ArrayBuilder<RefKind> refKindsBuilderOpt = ArrayBuilder<RefKind>.GetInstance(accessorForDefaultArguments.ParameterCount);
-                if (!indexerAccess.ArgumentRefKindsOpt.IsDefault)
+                ArrayBuilder<RefKind>? refKindsBuilderOpt;
+                if (!indexerAccess.ArgumentRefKindsOpt.IsDefaultOrEmpty)
                 {
+                    refKindsBuilderOpt = ArrayBuilder<RefKind>.GetInstance(accessorForDefaultArguments.ParameterCount);
                     refKindsBuilderOpt.AddRange(indexerAccess.ArgumentRefKindsOpt);
+                }
+                else
+                {
+                    refKindsBuilderOpt = null;
                 }
                 var argsToParams = indexerAccess.ArgsToParamsOpt;
 
@@ -198,27 +200,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (useSetAccessor)
                 {
                     parameters = parameters.RemoveAt(parameters.Length - 1);
-                    Debug.Assert(parameters.Length == indexerAccess.Indexer.Parameters.Length);
                 }
+                Debug.Assert(parameters.Length == indexerAccess.Indexer.Parameters.Length);
                 BindDefaultArguments(indexerAccess.Syntax, parameters, argumentsBuilder, refKindsBuilderOpt, ref argsToParams, out var defaultArgumentsOpt, indexerAccess.Expanded, enableCallerInfo: true, diagnostics);
 
-                expr = indexerAccess.Update(
+                indexerAccess = indexerAccess.Update(
                     indexerAccess.ReceiverOpt,
                     indexerAccess.Indexer,
                     argumentsBuilder.ToImmutableAndFree(),
                     indexerAccess.ArgumentNamesOpt,
-                    refKindsBuilderOpt.ToImmutableOrNull(),
+                    refKindsBuilderOpt?.ToImmutableOrNull() ?? default,
                     indexerAccess.Expanded,
                     argsToParams,
                     defaultArgumentsOpt,
                     indexerAccess.BinderOpt,
                     indexerAccess.Type);
 
-                refKindsBuilderOpt.Free();
+                refKindsBuilderOpt?.Free();
             }
 
-            return expr;
+            return indexerAccess;
         }
+
+#nullable disable
 
         /// <summary>
         /// Check the expression is of the required lvalue and rvalue specified by valueKind.
@@ -233,7 +237,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.PropertyGroup:
                     expr = BindIndexedPropertyAccess((BoundPropertyGroup)expr, mustHaveAllOptionalParameters: false, diagnostics: diagnostics);
-                    expr = BindIndexerDefaultArguments(expr, valueKind, diagnostics);
+                    if (expr is BoundIndexerAccess indexerAccess)
+                    {
+                        expr = BindIndexerDefaultArguments(indexerAccess, valueKind, diagnostics);
+                    }
                     break;
 
                 case BoundKind.Local:
@@ -250,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return expr;
 
                 case BoundKind.IndexerAccess:
-                    expr = BindIndexerDefaultArguments(expr, valueKind, diagnostics);
+                    expr = BindIndexerDefaultArguments((BoundIndexerAccess)expr, valueKind, diagnostics);
                     break;
 
                 case BoundKind.UnconvertedObjectCreationExpression:

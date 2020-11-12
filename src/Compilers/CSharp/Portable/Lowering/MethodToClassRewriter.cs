@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _placeholderMap.Remove(awaitablePlaceholder);
 
-            return node.Update(rewrittenPlaceholder, node.IsDynamic, getAwaiter, isCompleted, getResult, node.BinderOpt);
+            return node.Update(rewrittenPlaceholder, node.IsDynamic, getAwaiter, isCompleted, getResult);
         }
 
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
