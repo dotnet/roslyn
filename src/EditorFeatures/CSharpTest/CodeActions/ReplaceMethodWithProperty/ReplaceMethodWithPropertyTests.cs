@@ -2413,7 +2413,7 @@ index: 1);
 
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup,
-            ParseOptions parseOptions = null, int index = 0)
+            ParseOptions? parseOptions = null, int index = 0)
         {
             await TestAsync(
                 initialMarkup, expectedMarkup, parseOptions,
