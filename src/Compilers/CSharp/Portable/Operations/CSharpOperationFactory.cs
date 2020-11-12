@@ -501,11 +501,17 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.UsingLocalDeclarations:
                     {
                         var declarations = ((BoundMultipleLocalDeclarationsBase)declaration).LocalDeclarations;
-                        BoundTypeExpression? declaredTypeOpt = declarations[0].DeclaredTypeOpt;
-                        Debug.Assert(declarations.Length == 0 || declaredTypeOpt != null);
-                        var dimensions = declarations.Length > 0
-                            ? declaredTypeOpt!.BoundDimensionsOpt
-                            : ImmutableArray<BoundExpression>.Empty;
+                        ImmutableArray<BoundExpression> dimensions;
+                        if (declarations.Length > 0)
+                        {
+                            BoundTypeExpression? declaredTypeOpt = declarations[0].DeclaredTypeOpt;
+                            Debug.Assert(declaredTypeOpt != null);
+                            dimensions = declaredTypeOpt.BoundDimensionsOpt;
+                        }
+                        else
+                        {
+                            dimensions = ImmutableArray<BoundExpression>.Empty;
+                        }
                         return CreateFromArray<BoundExpression, IOperation>(dimensions);
                     }
                 default:

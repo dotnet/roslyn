@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 get
                 {
                     Debug.Assert((FirstBlock == null) == (LastBlock == null));
-#pragma warning disable CS8775
+#pragma warning disable CS8775 // LastBlock is null when exiting, verified equivalent to FirstBlock above
                     return FirstBlock == null;
 #pragma warning restore CS8775
                 }

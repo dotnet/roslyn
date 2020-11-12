@@ -256,16 +256,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 Interlocked.CompareExchange(ref _lazyLocalFunctionsGraphs, new ControlFlowGraph[LocalFunctions.Length], null);
             }
 
-            if (_lazyLocalFunctionsGraphs[info.ordinal] == null)
+            ref ControlFlowGraph? localFunctionGraph = ref _lazyLocalFunctionsGraphs[info.ordinal];
+            if (localFunctionGraph == null)
             {
                 Debug.Assert(localFunction == info.operation.Symbol);
                 ControlFlowGraph graph = ControlFlowGraphBuilder.Create(info.operation, this, info.enclosing, _captureIdDispenser);
                 Debug.Assert(graph.OriginalOperation == info.operation);
-                Interlocked.CompareExchange(ref _lazyLocalFunctionsGraphs[info.ordinal], graph, null);
+                Interlocked.CompareExchange(ref localFunctionGraph, graph, null);
             }
 
-            controlFlowGraph = _lazyLocalFunctionsGraphs[info.ordinal];
-            Debug.Assert(controlFlowGraph!.Parent == this);
+            controlFlowGraph = localFunctionGraph;
+            Debug.Assert(controlFlowGraph.Parent == this);
             return true;
         }
 
@@ -302,15 +303,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 Interlocked.CompareExchange(ref _lazyAnonymousFunctionsGraphs, new ControlFlowGraph[_anonymousFunctionsMap.Count], null);
             }
 
-            if (_lazyAnonymousFunctionsGraphs[info.ordinal] == null)
+            ref ControlFlowGraph? anonymousFlowGraph = ref _lazyAnonymousFunctionsGraphs[info.ordinal];
+            if (anonymousFlowGraph == null)
             {
                 var anonymous = (FlowAnonymousFunctionOperation)anonymousFunction;
                 ControlFlowGraph graph = ControlFlowGraphBuilder.Create(anonymous.Original, this, info.enclosing, _captureIdDispenser, in anonymous.Context);
                 Debug.Assert(graph.OriginalOperation == anonymous.Original);
-                Interlocked.CompareExchange(ref _lazyAnonymousFunctionsGraphs[info.ordinal], graph, null);
+                Interlocked.CompareExchange(ref anonymousFlowGraph, graph, null);
             }
 
-            controlFlowGraph = _lazyAnonymousFunctionsGraphs[info.ordinal];
+            controlFlowGraph = anonymousFlowGraph;
             Debug.Assert(controlFlowGraph!.Parent == this);
             return true;
         }
