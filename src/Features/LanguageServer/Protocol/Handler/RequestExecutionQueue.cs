@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -53,6 +54,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly AsyncQueue<QueueItem> _queue;
         private readonly CancellationTokenSource _cancelSource;
         private readonly DocumentChangeTracker _documentChangeTracker;
+
+        private readonly Dictionary<Workspace, Solution> _lastWorkspaceSolution = new();
+        private readonly Dictionary<Workspace, Solution> _lastLSPSolution = new();
 
         public CancellationToken CancellationToken => _cancelSource.Token;
 
@@ -180,10 +184,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
                         var ranToCompletion = await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
 
-                        // If the handling of the request failed, the exception will bubble back up to the caller, and we
-                        // request shutdown because we're in an invalid state
-                        if (!ranToCompletion)
+                        if (ranToCompletion)
                         {
+                            // We've had a successfully mutating request, so clear out our saved state to ensure its recalculated
+                            _lastLSPSolution.Remove(context.Solution.Workspace);
+                        }
+                        else
+                        {
+                            // If the handling of the request failed, the exception will bubble back up to the caller, and we
+                            // request shutdown because we're in an invalid state
                             OnRequestServerShutdown($"An error occured processing a mutating request and the solution is in an invalid state. Check LSP client logs for any error information.");
                             break;
                         }
@@ -253,14 +262,41 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // There are multiple possible solutions that we could be interested in, so we need to find the document
             // first and then get the solution from there. If we're not given a document, this will return the default
             // solution
-            var (documentId, solution) = _solutionProvider.GetDocumentAndSolution(queueItem.TextDocument, queueItem.ClientName);
+            var (documentId, workspaceSolution) = _solutionProvider.GetDocumentAndSolution(queueItem.TextDocument, queueItem.ClientName);
 
-            // Now we can update the solution to represent the LSP view of the world, with any text changes we received
-            solution = GetSolutionWithReplacedDocuments(solution);
+            var workspace = workspaceSolution.Workspace;
+
+            var recalculateSolution = false;
+            // if we don't have a cached LSP view of the world, we need to create a new one
+            if (!_lastLSPSolution.ContainsKey(workspace))
+            {
+                recalculateSolution = true;
+            }
+
+            // if the workspace has changed we need to recalculate, and save the current state as our starting point
+            if (!_lastWorkspaceSolution.TryGetValue(workspace, out var lastSolution) || lastSolution != workspaceSolution)
+            {
+                recalculateSolution = true;
+                _lastWorkspaceSolution[workspace] = workspaceSolution;
+            }
+
+            Solution lspSolution;
+            if (recalculateSolution)
+            {
+                // Now we can update the solution to represent the LSP view of the world, with any text changes we received
+                lspSolution = GetSolutionWithReplacedDocuments(workspaceSolution);
+
+                _lastLSPSolution[workspace] = lspSolution;
+            }
+            else
+            {
+                // Nothing has changed since the last LSP request, so we can reuse the solution from it
+                lspSolution = _lastLSPSolution[workspace];
+            }
 
             // If we got a document id back, we pull it out of our updated solution so the handler is operating on the latest
             // document text. If document id is null here, this will just return null
-            var document = solution.GetDocument(documentId);
+            var document = lspSolution.GetDocument(documentId);
 
             // Logically, if a mutating request fails we don't want to take its mutations, so giving it the "real"
             // tracker is a bad idea, but since we tear down the queue for any error anyway, the document tracker
@@ -269,7 +305,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 ? (IDocumentChangeTracker)_documentChangeTracker
                 : new NonMutatingDocumentChangeTracker(_documentChangeTracker);
 
-            return new RequestContext(solution, queueItem.ClientCapabilities, queueItem.ClientName, document, trackerToUse);
+            return new RequestContext(lspSolution, queueItem.ClientCapabilities, queueItem.ClientName, document, trackerToUse);
         }
 
         /// <summary>
