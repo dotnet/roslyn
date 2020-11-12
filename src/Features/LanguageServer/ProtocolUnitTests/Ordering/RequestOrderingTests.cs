@@ -183,6 +183,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             solution = await GetLSPSolution(NonMutatingRequestHandler.MethodName);
             Assert.Equal(expectedSolution, solution);
 
+            return;
+
             async Task<Solution> GetLSPSolution(string methodName)
             {
                 var request = new TestRequest(methodName);
