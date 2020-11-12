@@ -47,7 +47,7 @@ namespace Roslyn.Test.Utilities
         internal class TestLspSolutionProvider : ILspSolutionProvider
         {
             [DisallowNull]
-            private Solution? _currentSolution;
+            private TestWorkspace? _workspace;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -55,21 +55,20 @@ namespace Roslyn.Test.Utilities
             {
             }
 
-            public void UpdateSolution(Solution solution)
+            public void SetTestWorkspace(TestWorkspace workspace)
             {
-                _currentSolution = solution;
+                _workspace = workspace;
             }
 
             public Solution GetCurrentSolutionForMainWorkspace()
             {
-                Contract.ThrowIfNull(_currentSolution);
-                return _currentSolution;
+                Contract.ThrowIfNull(_workspace);
+                return _workspace.CurrentSolution;
             }
 
             public ImmutableArray<Document> GetDocuments(Uri documentUri)
             {
-                Contract.ThrowIfNull(_currentSolution);
-                return _currentSolution.GetDocuments(documentUri);
+                return GetCurrentSolutionForMainWorkspace().GetDocuments(documentUri);
             }
         }
 
@@ -301,6 +300,7 @@ namespace Roslyn.Test.Utilities
                 _ => throw new ArgumentException($"language name {languageName} is not valid for a test workspace"),
             };
 
+            SetSolutionProviderWorkspace(workspace);
             var solution = workspace.CurrentSolution;
 
             foreach (var document in workspace.Documents)
@@ -312,15 +312,14 @@ namespace Roslyn.Test.Utilities
 
             locations = GetAnnotatedLocations(workspace, solution);
 
-            UpdateSolutionProvider(workspace, solution);
             return workspace;
         }
 
         protected TestWorkspace CreateXmlTestWorkspace(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations)
         {
             var workspace = TestWorkspace.Create(xmlContent, composition: Composition);
+            SetSolutionProviderWorkspace(workspace);
             locations = GetAnnotatedLocations(workspace, workspace.CurrentSolution);
-            UpdateSolutionProvider(workspace, workspace.CurrentSolution);
             return workspace;
         }
 
@@ -333,13 +332,12 @@ namespace Roslyn.Test.Utilities
                 SourceCodeKind.Regular, loader, $"C:\\{TestSpanMapper.GeneratedFileName}", isGenerated: true, designTimeOnly: false, new TestSpanMapperProvider());
             var newSolution = workspace.CurrentSolution.AddDocument(generatedDocumentInfo);
             workspace.TryApplyChanges(newSolution);
-            UpdateSolutionProvider((TestWorkspace)workspace, newSolution);
         }
 
-        private protected static void UpdateSolutionProvider(TestWorkspace workspace, Solution solution)
+        private protected static void SetSolutionProviderWorkspace(TestWorkspace workspace)
         {
             var provider = (TestLspSolutionProvider)workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
-            provider.UpdateSolution(solution);
+            provider.SetTestWorkspace(workspace);
         }
 
         private static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(TestWorkspace workspace, Solution solution)
