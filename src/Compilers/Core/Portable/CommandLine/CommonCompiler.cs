@@ -997,7 +997,7 @@ namespace Microsoft.CodeAnalysis
                                     Directory.CreateDirectory(Path.GetDirectoryName(path));
                                 }
 
-                                var fileStream = OpenFile(path, diagnostics, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+                                var fileStream = OpenFile(path, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
                                 if (fileStream is object)
                                 {
                                     Debug.Assert(tree.Encoding is object);
@@ -1284,7 +1284,7 @@ namespace Microsoft.CodeAnalysis
                             }
                             if (refPeStreamProviderOpt != null)
                             {
-                                touchedFilesLogger.AddWritten(finalRefPeFilePath);
+                                touchedFilesLogger.AddWritten(finalRefPeFilePath!);
                             }
                             touchedFilesLogger.AddWritten(finalPeFilePath);
                         }

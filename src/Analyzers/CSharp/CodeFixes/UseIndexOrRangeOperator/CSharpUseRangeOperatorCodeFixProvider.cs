@@ -119,6 +119,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     return ElementBindingExpression(argumentList);
                 }
 
+                if (invocation.Expression is IdentifierNameSyntax)
+                {
+                    // Substring(...) -> this[...]
+                    return ElementAccessExpression(ThisExpression(), argumentList);
+                }
+
                 var expression = invocation.Expression is MemberAccessExpressionSyntax memberAccess
                     ? memberAccess.Expression // x.Substring(...) -> x[...]
                     : invocation.Expression;

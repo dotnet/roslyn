@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Common;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -46,14 +47,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Gets all the diagnostics for this event, respecting the callers setting on if they're getting it for pull
-        /// diagnostics or push diagnostics.  Most clients should use this to ensure they see the proper set of diagnostics
-        /// in their scenario (or an empty array if not in their scenario).q
+        /// diagnostics or push diagnostics.  Most clients should use this to ensure they see the proper set of
+        /// diagnostics in their scenario (or an empty array if not in their scenario).
         /// </summary>
-        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, bool forPullDiagnostics)
+        public ImmutableArray<DiagnosticData> GetPullDiagnostics(
+            Workspace workspace, Option2<DiagnosticMode> diagnosticMode)
         {
-            // If this is a pull client, but pull diagnostics is not on, then they get nothing.  Similarly, if this is a
-            // push client and pull diagnostics are on, they get nothing.
-            if (forPullDiagnostics != workspace.Options.GetOption(InternalDiagnosticsOptions.LspPullDiagnostics))
+            // If push diagnostics are on, they get nothing since they're asking for pull diagnostics.
+            if (workspace.Options.GetOption(diagnosticMode) == DiagnosticMode.Push)
+                return ImmutableArray<DiagnosticData>.Empty;
+
+            return _diagnostics;
+        }
+
+        /// <summary>
+        /// Gets all the diagnostics for this event, respecting the callers setting on if they're getting it for pull
+        /// diagnostics or push diagnostics.  Most clients should use this to ensure they see the proper set of
+        /// diagnostics in their scenario (or an empty array if not in their scenario).
+        /// </summary>
+        public ImmutableArray<DiagnosticData> GetPushDiagnostics(
+            Workspace workspace, Option2<DiagnosticMode> diagnosticMode)
+        {
+            // If pull diagnostics are on, they get nothing since they're asking for push diagnostics.
+            if (workspace.Options.GetOption(diagnosticMode) == DiagnosticMode.Pull)
                 return ImmutableArray<DiagnosticData>.Empty;
 
             return _diagnostics;

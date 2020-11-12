@@ -98,6 +98,18 @@ stages:
         arguments: '-sourceBranchName $(SourceBranchName) -prNumber $(PRNumber)'
       condition: and(succeeded(), ne(variables['PRNumber'], 'default'))
 
+    - task: tagBuildOrRelease@0
+      displayName: Tag master validation build
+      inputs:
+        type: 'Build'
+        tags: |
+          MasterValidationBuild
+      condition: and(succeeded(), eq(variables['SourceBranchName'], 'master'))
+
+    - powershell: git pull origin master-vs-deps
+      displayName: Merge master-vs-deps into source branch
+      condition: and(succeeded(), eq(variables['SourceBranchName'], 'master'))
+
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
 

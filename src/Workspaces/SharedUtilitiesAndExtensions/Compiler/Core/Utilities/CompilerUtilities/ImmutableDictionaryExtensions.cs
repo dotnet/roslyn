@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,9 +12,11 @@ namespace Roslyn.Utilities
     internal static class ImmutableDictionaryExtensions
     {
         public static ImmutableDictionary<K, ImmutableHashSet<V>> AddAll<K, V>(this ImmutableDictionary<K, ImmutableHashSet<V>> map, IEnumerable<K> keys, V value)
+            where K : notnull
             => keys.Aggregate(map, (m, k) => m.Add(k, value));
 
         public static ImmutableDictionary<K, ImmutableHashSet<V>> Add<K, V>(this ImmutableDictionary<K, ImmutableHashSet<V>> map, K key, V value)
+            where K : notnull
         {
             if (!map.TryGetValue(key, out var values))
             {
@@ -28,9 +28,11 @@ namespace Roslyn.Utilities
         }
 
         public static ImmutableDictionary<K, ImmutableHashSet<V>> RemoveAll<K, V>(this ImmutableDictionary<K, ImmutableHashSet<V>> map, IEnumerable<K> keys, V value)
+            where K : notnull
             => keys.Aggregate(map, (m, k) => m.Remove(k, value));
 
         public static ImmutableDictionary<K, ImmutableHashSet<V>> Remove<K, V>(this ImmutableDictionary<K, ImmutableHashSet<V>> map, K key, V value)
+            where K : notnull
         {
             if (map.TryGetValue(key, out var values))
             {
@@ -44,7 +46,6 @@ namespace Roslyn.Utilities
             return map.Remove(key);
         }
 
-#nullable enable
         public static ImmutableDictionary<TKey, TValue> ToImmutableDictionaryOrEmpty<TSource, TKey, TValue>(this IEnumerable<TSource>? source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector)
             where TKey : notnull
         {

@@ -44,7 +44,7 @@ jobs:
       displayName: Run Unit Tests
       inputs:
         filePath: eng/build.ps1
-        arguments: -ci -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -procdump
+        arguments: -ci -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps
 
     - task: PublishTestResults@2
       displayName: Publish xUnit Test Results

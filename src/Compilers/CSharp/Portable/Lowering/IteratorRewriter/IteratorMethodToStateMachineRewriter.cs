@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var stateMachineType = (IteratorStateMachine)F.CurrentType;
             var finallyMethod = new IteratorFinallyMethodSymbol(stateMachineType, GeneratedNames.MakeIteratorFinallyMethodName(state));
 
-            F.ModuleBuilderOpt.AddSynthesizedDefinition(stateMachineType, finallyMethod);
+            F.ModuleBuilderOpt.AddSynthesizedDefinition(stateMachineType, finallyMethod.GetCciAdapter());
             return finallyMethod;
         }
 

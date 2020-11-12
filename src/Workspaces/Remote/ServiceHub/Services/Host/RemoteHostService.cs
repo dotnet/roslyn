@@ -43,9 +43,11 @@ namespace Microsoft.CodeAnalysis.Remote
         // it is saved here more on debugging purpose.
         private static Func<FunctionId, bool> s_logChecker = _ => false;
 
+#if DEBUG
 #pragma warning disable IDE0052 // Remove unread private members
         private PerformanceReporter? _performanceReporter;
 #pragma warning restore
+#endif
 
         static RemoteHostService()
         {
@@ -119,6 +121,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     m["InstanceId"] = InstanceId;
                 }));
 
+#if DEBUG
                 // start performance reporter
                 var diagnosticAnalyzerPerformanceTracker = services.GetService<IPerformanceTrackerService>();
                 if (diagnosticAnalyzerPerformanceTracker != null)
@@ -126,6 +129,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var globalOperationNotificationService = services.GetService<IGlobalOperationNotificationService>();
                     _performanceReporter = new PerformanceReporter(Logger, telemetrySession, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, s_reportInterval, _shutdownCancellationSource.Token);
                 }
+#endif
             }, cancellationToken);
         }
 

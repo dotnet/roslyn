@@ -156,15 +156,17 @@ namespace Microsoft.CodeAnalysis
             internal sealed class AddAnalyzerReferencesAction : CompilationAndGeneratorDriverTranslationAction
             {
                 private readonly ImmutableArray<AnalyzerReference> _analyzerReferences;
+                private readonly string _language;
 
-                public AddAnalyzerReferencesAction(ImmutableArray<AnalyzerReference> analyzerReferences)
+                public AddAnalyzerReferencesAction(ImmutableArray<AnalyzerReference> analyzerReferences, string language)
                 {
                     _analyzerReferences = analyzerReferences;
+                    _language = language;
                 }
 
                 public override TrackedGeneratorDriver TransformGeneratorDriver(TrackedGeneratorDriver generatorDriver)
                 {
-                    var generators = _analyzerReferences.SelectMany(a => a.GetGenerators()).ToImmutableArray();
+                    var generators = _analyzerReferences.SelectMany(a => a.GetGenerators(_language)).ToImmutableArray();
                     return new TrackedGeneratorDriver(generatorDriver.GeneratorDriver?.AddGenerators(generators));
                 }
             }
@@ -172,15 +174,17 @@ namespace Microsoft.CodeAnalysis
             internal sealed class RemoveAnalyzerReferencesAction : CompilationAndGeneratorDriverTranslationAction
             {
                 private readonly ImmutableArray<AnalyzerReference> _analyzerReferences;
+                private readonly string _language;
 
-                public RemoveAnalyzerReferencesAction(ImmutableArray<AnalyzerReference> analyzerReferences)
+                public RemoveAnalyzerReferencesAction(ImmutableArray<AnalyzerReference> analyzerReferences, string language)
                 {
                     _analyzerReferences = analyzerReferences;
+                    _language = language;
                 }
 
                 public override TrackedGeneratorDriver TransformGeneratorDriver(TrackedGeneratorDriver generatorDriver)
                 {
-                    var generators = _analyzerReferences.SelectMany(a => a.GetGenerators()).ToImmutableArray();
+                    var generators = _analyzerReferences.SelectMany(a => a.GetGenerators(_language)).ToImmutableArray();
                     return new TrackedGeneratorDriver(generatorDriver.GeneratorDriver?.RemoveGenerators(generators));
                 }
             }

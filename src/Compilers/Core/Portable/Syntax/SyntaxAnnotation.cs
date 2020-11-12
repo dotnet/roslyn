@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis
             return left.Equals(right);
         }
 
-        public static bool operator !=(SyntaxAnnotation left, SyntaxAnnotation right) =>
+        public static bool operator !=(SyntaxAnnotation? left, SyntaxAnnotation? right) =>
             !(left == right);
 
         public override bool Equals(object? obj)

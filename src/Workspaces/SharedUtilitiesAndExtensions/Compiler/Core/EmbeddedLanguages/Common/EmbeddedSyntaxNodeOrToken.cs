@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 {
@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         where TSyntaxKind : struct
         where TSyntaxNode : EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode>
     {
-        public readonly TSyntaxNode Node;
+        public readonly TSyntaxNode? Node;
         public readonly EmbeddedSyntaxToken<TSyntaxKind> Token;
 
         private EmbeddedSyntaxNodeOrToken(TSyntaxNode node) : this()
         {
-            Debug.Assert(node != null);
+            RoslynDebug.AssertNotNull(node);
             Node = node;
         }
 
@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             Token = token;
         }
 
+        [MemberNotNullWhen(true, nameof(Node))]
         public bool IsNode => Node != null;
 
         public static implicit operator EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>(TSyntaxNode node)
