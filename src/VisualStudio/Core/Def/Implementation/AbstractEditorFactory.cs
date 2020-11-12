@@ -132,6 +132,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     }
                     catch
                     {
+                        // Only dispose the designer loader on failure to create a designer.
+                        // The IVSMDDesignerService.CreateDesigner() method in VS passes it into the DesignSurface that gets created
+                        // and is used to perform the actual load (and reloads -- which happen during normal designer operation).
+                        // http://index/?leftProject=Microsoft.VisualStudio.Design&leftSymbol=n8p1tszkfyz7&file=DesignerActivationService.cs&line=629
                         designerLoader.Dispose();
                         throw;
                     }
