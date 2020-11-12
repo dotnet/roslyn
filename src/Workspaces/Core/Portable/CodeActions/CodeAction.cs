@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <remarks>
         /// e.g. 'Add Await Code Action Provider'
         /// </remarks>
-        public virtual string? ProviderName => null;
+        internal virtual string? ProviderName => null;
 
         internal virtual bool IsInlinable => false;
 
@@ -363,14 +363,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             return new CodeActionWithNestedActions(title, nestedActions, isInlinable);
         }
-
-        /// <summary>
-        /// Creates a code action provider name.
-        /// </summary>
-        /// <param name="provider">Specific Code Action Provider (<see cref="CodeRefactoringProvider"/> or <see cref="CodeRefactoringProvider"/> implementation) of the <see cref="CodeAction"/> group.</param>
-        /// <param name="implementation">Specific Code Action implementation from the Code Action Provider.</param>
-        public static string CreateProviderName(string provider, string implementation)
-            => string.Join("|", provider, implementation);
 
         internal abstract class SimpleCodeAction : CodeAction
         {
