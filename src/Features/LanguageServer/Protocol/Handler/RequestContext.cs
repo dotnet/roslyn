@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Allows a mutating request to close a document and stop it being tracked.
         /// </summary>
         public void StopTracking(Uri documentUri)
-            => _documentChangeTracker.StopTracking(documentUri) ;
+            => _documentChangeTracker.StopTracking(documentUri);
 
         public bool IsTracking(Uri documentUri)
             => _documentChangeTracker.IsTracking(documentUri);
