@@ -5733,7 +5733,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (parameters.IsDefault)
             {
-                return default;
+                throw new ArgumentNullException(nameof(parameters));
+                //return default;
             }
 
             int n = parameters.Length;
