@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -14,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -31,8 +30,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var markup =
 @"class A {";
             using var workspace = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects);
-            var results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+
+            var queue = CreateRequestQueue(workspace.CurrentSolution);
+            var server = GetLanguageServer(workspace.CurrentSolution);
+
+            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(workspace, queue, server, document);
 
             Assert.Empty(results.Single().Diagnostics);
         }
@@ -47,8 +51,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             // Calling GetTextBuffer will effectively open the file.
             workspace.Documents.Single().GetTextBuffer();
 
+            var queue = CreateRequestQueue(workspace.CurrentSolution);
+            var server = GetLanguageServer(workspace.CurrentSolution);
+
+            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(queue, server, document);
+
             var results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+                workspace, queue, server, workspace.CurrentSolution.Projects.Single().Documents.Single());
 
             Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
         }
@@ -63,8 +74,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             // Calling GetTextBuffer will effectively open the file.
             workspace.Documents.Single().GetTextBuffer();
 
+            var queue = CreateRequestQueue(workspace.CurrentSolution);
+            var server = GetLanguageServer(workspace.CurrentSolution);
+
+            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(queue, server, document);
+
             var results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+                workspace, queue, server, document);
 
             Assert.Empty(results.Single().Diagnostics);
         }
@@ -86,6 +104,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var queue = CreateRequestQueue(solution);
             var server = GetLanguageServer(solution);
 
+            await OpenDocumentAsync(queue, server, document);
+
             await WaitForDiagnosticsAsync(workspace);
             var results = await server.ExecuteRequestAsync<DocumentDiagnosticsParams, DiagnosticReport[]>(
                 queue,
@@ -99,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             // Now remove the doc.
             workspace.OnDocumentRemoved(workspace.Documents.Single().Id);
-            UpdateSolutionProvider(workspace, workspace.CurrentSolution);
+            await CloseDocumentAsync(queue, server, document);
 
             // And get diagnostic again, using the same doc-id as before.
             await WaitForDiagnosticsAsync(workspace);
@@ -125,15 +145,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             // Calling GetTextBuffer will effectively open the file.
             workspace.Documents.Single().GetTextBuffer();
 
+            var queue = CreateRequestQueue(workspace.CurrentSolution);
+            var server = GetLanguageServer(workspace.CurrentSolution);
+
+            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(queue, server, document);
+
             var results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+                workspace, queue, server, document);
 
             Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
 
             var resultId = results.Single().ResultId;
             results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single(),
-                previousResultId: resultId);
+                workspace, queue, server, workspace.CurrentSolution.Projects.Single().Documents.Single(), previousResultId: resultId);
 
             Assert.Null(results.Single().Diagnostics);
             Assert.Equal(resultId, results.Single().ResultId);
@@ -149,15 +175,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             // Calling GetTextBuffer will effectively open the file.
             var buffer = workspace.Documents.Single().GetTextBuffer();
 
+            var queue = CreateRequestQueue(workspace.CurrentSolution);
+            var server = GetLanguageServer(workspace.CurrentSolution);
+
+            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(queue, server, document);
+
             var results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+                workspace, queue, server, document);
 
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
 
-            buffer.Insert(buffer.CurrentSnapshot.Length, "}");
+            await InsertTextAsync(queue, server, document, buffer.CurrentSnapshot.Length, "}");
 
             results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+                workspace, queue, server, workspace.CurrentSolution.Projects.Single().Documents.Single());
 
             Assert.Empty(results[0].Diagnostics);
         }
@@ -172,20 +205,95 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             // Calling GetTextBuffer will effectively open the file.
             var buffer = workspace.Documents.Single().GetTextBuffer();
 
-            var results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single());
+            var queue = CreateRequestQueue(workspace.CurrentSolution);
+            var server = GetLanguageServer(workspace.CurrentSolution);
+
+            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(queue, server, document);
+            var results = await RunGetDocumentPullDiagnosticsAsync(workspace, queue, server, document);
 
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
             Assert.Equal(new Position { Line = 0, Character = 9 }, results[0].Diagnostics.Single().Range.Start);
 
             buffer.Insert(0, " ");
+            await InsertTextAsync(queue, server, document, position: 0, text: " ");
 
             results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single(),
+                workspace, queue, server, workspace.CurrentSolution.Projects.Single().Documents.Single(),
                 previousResultId: results[0].ResultId);
 
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
             Assert.Equal(new Position { Line = 0, Character = 10 }, results[0].Diagnostics.Single().Range.Start);
+        }
+
+        private static async Task InsertTextAsync(
+            RequestExecutionQueue queue,
+            LanguageServerProtocol server,
+            Document document,
+            int position,
+            string text)
+        {
+            var sourceText = await document.GetTextAsync();
+            var lineInfo = sourceText.Lines.GetLinePositionSpan(new TextSpan(position, 0));
+
+            await server.ExecuteRequestAsync<DidChangeTextDocumentParams, object>(
+                queue,
+                Methods.TextDocumentDidChangeName,
+                new DidChangeTextDocumentParams
+                {
+                    TextDocument = ProtocolConversions.DocumentToVersionedTextDocumentIdentifier(document),
+                    ContentChanges = new TextDocumentContentChangeEvent[]
+                    {
+                        new TextDocumentContentChangeEvent
+                        {
+                            Range = new LSP.Range
+                            {
+                                Start = ProtocolConversions.LinePositionToPosition(lineInfo.Start),
+                                End  =ProtocolConversions.LinePositionToPosition(lineInfo.End),
+                            },
+                            Text = text,
+                        },
+                    },
+                },
+                new LSP.ClientCapabilities(),
+                clientName: null,
+                CancellationToken.None);
+        }
+
+        private static async Task OpenDocumentAsync(RequestExecutionQueue queue, LanguageServerProtocol server, Document document)
+        {
+            await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(
+                queue,
+                Methods.TextDocumentDidOpenName,
+                new DidOpenTextDocumentParams
+                {
+                    TextDocument = new TextDocumentItem
+                    {
+                        Uri = document.GetURI(),
+                        Text = document.GetTextSynchronously(CancellationToken.None).ToString(),
+                    }
+                },
+                new LSP.ClientCapabilities(),
+                clientName: null,
+                CancellationToken.None);
+        }
+
+        private static async Task CloseDocumentAsync(RequestExecutionQueue queue, LanguageServerProtocol server, Document document)
+        {
+            await server.ExecuteRequestAsync<DidCloseTextDocumentParams, object>(
+                queue,
+                Methods.TextDocumentDidCloseName,
+                new DidCloseTextDocumentParams
+                {
+                    TextDocument = new TextDocumentIdentifier
+                    {
+                        Uri = document.GetURI(),
+                    }
+                },
+                new LSP.ClientCapabilities(),
+                clientName: null,
+                CancellationToken.None);
         }
 
         [Fact]
@@ -198,9 +306,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             // Calling GetTextBuffer will effectively open the file.
             workspace.Documents.Single().GetTextBuffer();
 
+            var queue = CreateRequestQueue(workspace.CurrentSolution);
+            var server = GetLanguageServer(workspace.CurrentSolution);
+
+            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(queue, server, document);
+
             var progress = BufferedProgress.Create<DiagnosticReport>(null);
             var results = await RunGetDocumentPullDiagnosticsAsync(
-                workspace, workspace.CurrentSolution.Projects.Single().Documents.Single(), progress: progress);
+                workspace, queue, server, workspace.CurrentSolution.Projects.Single().Documents.Single(), progress: progress);
 
             Assert.Null(results);
             Assert.Equal("CS1513", progress.GetValues()!.Single().Diagnostics.Single().Code);
@@ -218,7 +333,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var markup2 = "";
             using var workspace = CreateTestWorkspaceWithDiagnostics(
                 new[] { markup1, markup2 }, BackgroundAnalysisScope.OpenFilesAndProjects);
-            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace);
+
+            var queue = CreateRequestQueue(workspace.CurrentSolution);
+            var server = GetLanguageServer(workspace.CurrentSolution);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace, queue, server);
 
             Assert.Empty(results);
         }
@@ -231,7 +350,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var markup2 = "";
             using var workspace = CreateTestWorkspaceWithDiagnostics(
                 new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution);
-            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace);
+
+            var queue = CreateRequestQueue(workspace.CurrentSolution);
+            var server = GetLanguageServer(workspace.CurrentSolution);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace, queue, server);
 
             Assert.Equal(2, results.Length);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
@@ -246,7 +369,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var markup2 = "";
             using var workspace = CreateTestWorkspaceWithDiagnostics(
                 new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, pullDiagnostics: false);
-            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace);
+
+            var queue = CreateRequestQueue(workspace.CurrentSolution);
+            var server = GetLanguageServer(workspace.CurrentSolution);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace, queue, server);
 
             Assert.Equal(2, results.Length);
             Assert.Empty(results[0].Diagnostics);
@@ -262,17 +389,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             using var workspace = CreateTestWorkspaceWithDiagnostics(
                 new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution);
 
-            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace);
+            var queue = CreateRequestQueue(workspace.CurrentSolution);
+            var server = GetLanguageServer(workspace.CurrentSolution);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace, queue, server);
 
             Assert.Equal(2, results.Length);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
             Assert.Empty(results[1].Diagnostics);
 
             workspace.OnDocumentRemoved(workspace.Documents.First().Id);
-            UpdateSolutionProvider(workspace, workspace.CurrentSolution);
 
             var results2 = await RunGetWorkspacePullDiagnosticsAsync(
-                workspace, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+                workspace, queue, server, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
             // First doc should show up as removed.
             Assert.Equal(2, results2.Length);
@@ -298,14 +427,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             using var workspace = CreateTestWorkspaceWithDiagnostics(
                  new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution);
 
-            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace);
+            var queue = CreateRequestQueue(workspace.CurrentSolution);
+            var server = GetLanguageServer(workspace.CurrentSolution);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace, queue, server);
 
             Assert.Equal(2, results.Length);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
             Assert.Empty(results[1].Diagnostics);
 
             var results2 = await RunGetWorkspacePullDiagnosticsAsync(
-                workspace, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+                workspace, queue, server, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
             Assert.Equal(2, results2.Length);
             Assert.Null(results2[0].Diagnostics);
@@ -324,7 +456,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             using var workspace = CreateTestWorkspaceWithDiagnostics(
                  new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution);
 
-            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace);
+            var queue = CreateRequestQueue(workspace.CurrentSolution);
+            var server = GetLanguageServer(workspace.CurrentSolution);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace, queue, server);
 
             Assert.Equal(2, results.Length);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
@@ -334,7 +469,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             buffer.Insert(buffer.CurrentSnapshot.Length, "}");
 
             var results2 = await RunGetWorkspacePullDiagnosticsAsync(
-                workspace, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+                workspace, queue, server, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
             Assert.Equal(2, results2.Length);
             Assert.Empty(results2[0].Diagnostics);
@@ -353,7 +488,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             using var workspace = CreateTestWorkspaceWithDiagnostics(
                  new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution);
 
-            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace);
+            var queue = CreateRequestQueue(workspace.CurrentSolution);
+            var server = GetLanguageServer(workspace.CurrentSolution);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace, queue, server);
 
             Assert.Equal(2, results.Length);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
@@ -364,7 +502,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var buffer = workspace.Documents.First().GetTextBuffer();
             buffer.Insert(0, " ");
 
-            var results2 = await RunGetWorkspacePullDiagnosticsAsync(workspace);
+            var document = workspace.CurrentSolution.Projects.Single().Documents.First();
+            var text = await document.GetTextAsync();
+
+            // Hacky, but we need to close the document manually since editing the text-buffer will open it in the
+            // test-workspace.
+            workspace.OnDocumentClosed(
+                document.Id, TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())));
+
+            var results2 = await RunGetWorkspacePullDiagnosticsAsync(workspace, queue, server);
 
             Assert.Equal("CS1513", results2[0].Diagnostics.Single().Code);
             Assert.Equal(new Position { Line = 0, Character = 10 }, results2[0].Diagnostics.Single().Range.Start);
@@ -382,14 +528,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             using var workspace = CreateTestWorkspaceWithDiagnostics(
                  new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution);
 
-            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace);
+            var queue = CreateRequestQueue(workspace.CurrentSolution);
+            var server = GetLanguageServer(workspace.CurrentSolution);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(workspace, queue, server);
 
             Assert.Equal(2, results.Length);
             Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
             Assert.Equal(new Position { Line = 0, Character = 9 }, results[0].Diagnostics.Single().Range.Start);
 
             var progress = BufferedProgress.Create<DiagnosticReport>(null);
-            results = await RunGetWorkspacePullDiagnosticsAsync(workspace, progress: progress);
+            results = await RunGetWorkspacePullDiagnosticsAsync(workspace, queue, server, progress: progress);
 
             Assert.Null(results);
             Assert.Equal("CS1513", progress.GetValues()![0].Diagnostics![0].Code);
@@ -398,14 +547,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         #endregion
 
         private static async Task<DiagnosticReport[]> RunGetDocumentPullDiagnosticsAsync(
-            TestWorkspace workspace, Document document,
+            TestWorkspace workspace,
+            RequestExecutionQueue queue,
+            LanguageServerProtocol server,
+            Document document,
             string? previousResultId = null,
             IProgress<DiagnosticReport[]>? progress = null)
         {
-            var solution = document.Project.Solution;
-            var queue = CreateRequestQueue(solution);
-            var server = GetLanguageServer(solution);
-
             await WaitForDiagnosticsAsync(workspace);
 
             var result = await server.ExecuteRequestAsync<DocumentDiagnosticsParams, DiagnosticReport[]>(
@@ -421,13 +569,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
         private static async Task<WorkspaceDiagnosticReport[]> RunGetWorkspacePullDiagnosticsAsync(
             TestWorkspace workspace,
+            RequestExecutionQueue queue,
+            LanguageServerProtocol server,
             DiagnosticParams[]? previousResults = null,
             IProgress<WorkspaceDiagnosticReport[]>? progress = null)
         {
-            var solution = workspace.CurrentSolution;
-            var queue = CreateRequestQueue(solution);
-            var server = GetLanguageServer(solution);
-
             await WaitForDiagnosticsAsync(workspace);
 
             var result = await server.ExecuteRequestAsync<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport[]>(
