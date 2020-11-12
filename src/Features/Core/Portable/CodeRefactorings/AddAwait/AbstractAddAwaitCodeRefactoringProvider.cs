@@ -46,15 +46,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
             context.RegisterRefactoring(
                 new MyCodeAction(
                     GetTitle(),
-                    c => AddAwaitAsync(document, awaitable, withConfigureAwait: false, c),
-                    CodeAction.CreateProviderName(PredefinedCodeRefactoringProviderNames.AddAwait, nameof(GetTitle))),
+                    c => AddAwaitAsync(document, awaitable, withConfigureAwait: false, c)),
                 awaitable.Span);
 
             context.RegisterRefactoring(
                 new MyCodeAction(
                     GetTitleWithConfigureAwait(),
-                    c => AddAwaitAsync(document, awaitable, withConfigureAwait: true, c),
-                    CodeAction.CreateProviderName(PredefinedCodeRefactoringProviderNames.AddAwait, nameof(GetTitleWithConfigureAwait))),
+                    c => AddAwaitAsync(document, awaitable, withConfigureAwait: true, c)),
                 awaitable.Span);
         }
 
@@ -108,8 +106,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string providerName)
-                : base(title, createChangedDocument, providerName: providerName)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument, providerName: PredefinedCodeRefactoringProviderNames.AddAwait)
             {
             }
         }
