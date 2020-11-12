@@ -678,10 +678,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 identifier.IsLeftSideOfAssignExpression() &&
                 identifier.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression))
             {
-                var objectInitializer = identifier.Parent.Parent;
-                if (objectInitializer.IsParentKind(SyntaxKind.ObjectCreationExpression))
+                var objectInitializer = identifier.Parent.GetRequiredParent();
+                if (objectInitializer.Parent is BaseObjectCreationExpressionSyntax)
                 {
-                    initializedInstance = objectInitializer.Parent!;
+                    initializedInstance = objectInitializer.Parent;
                     return true;
                 }
                 else if (objectInitializer.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax? assignment))
