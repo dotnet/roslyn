@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expanded: false,
                     invokedAsExtensionMethod: invokedAsExtensionMethod,
                     argsToParamsOpt: default(ImmutableArray<int>),
-                    defaultArgumentsOpt: default(BitVector),
+                    defaultArguments: default(BitVector),
                     resultKind: resultKind,
                     binderOpt: null,
                     type: type);
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol methodOrIndexer,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
-            BitVector defaultArgumentsOpt,
+            BitVector defaultArguments,
             bool invokedAsExtensionMethod)
         {
             // We need to do a fancy rewrite under the following circumstances:
@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int i = 0;
                 for (; i < parameters.Length; ++i)
                 {
-                    var argumentKind = defaultArgumentsOpt[i] ? ArgumentKind.DefaultValue : ArgumentKind.Explicit;
+                    var argumentKind = defaultArguments[i] ? ArgumentKind.DefaultValue : ArgumentKind.Explicit;
                     argumentsBuilder.Add(operationFactory.CreateArgumentOperation(argumentKind, parameters[i].GetPublicSymbol(), arguments[i]));
                 }
 
@@ -589,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //       https://github.com/dotnet/roslyn/issues/19673
                 for (; i < arguments.Length; ++i)
                 {
-                    var argumentKind = defaultArgumentsOpt[i] ? ArgumentKind.DefaultValue : ArgumentKind.Explicit;
+                    var argumentKind = defaultArguments[i] ? ArgumentKind.DefaultValue : ArgumentKind.Explicit;
                     argumentsBuilder.Add(operationFactory.CreateArgumentOperation(argumentKind, null, arguments[i]));
                 }
 
@@ -606,7 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodOrIndexer,
                 expanded,
                 argsToParamsOpt,
-                defaultArgumentsOpt,
+                defaultArguments,
                 arguments,
                 binder);
         }
@@ -755,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol methodOrIndexer,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
-            BitVector defaultArgumentsOpt,
+            BitVector defaultArguments,
             ImmutableArray<BoundExpression> arguments,
             Binder binder)
         {
@@ -778,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     visitedLastParam = p == parameters.Length - 1;
                 }
 
-                ArgumentKind kind = defaultArgumentsOpt[a] ? ArgumentKind.DefaultValue : ArgumentKind.Explicit;
+                ArgumentKind kind = defaultArguments[a] ? ArgumentKind.DefaultValue : ArgumentKind.Explicit;
 
                 if (IsBeginningOfParamArray(p, a, expanded, parameters.Length, arguments, argsToParamsOpt, out int paramArrayArgumentCount))
                 {
@@ -912,7 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expanded: false,
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: default(ImmutableArray<int>),
-                        defaultArgumentsOpt: default(BitVector),
+                        defaultArguments: default(BitVector),
                         resultKind: LookupResultKind.Viable,
                         binderOpt: null,
                         type: arrayEmpty.ReturnType);

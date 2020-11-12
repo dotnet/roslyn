@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded: false,
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
-                defaultArgumentsOpt: default(BitVector),
+                defaultArguments: default(BitVector),
                 resultKind: LookupResultKind.Viable,
                 binderOpt: null,
                 type: typeParameter);

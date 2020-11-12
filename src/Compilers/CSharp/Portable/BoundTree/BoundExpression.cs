@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKindsOpt: newRefKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
-                defaultArgumentsOpt: default(BitVector),
+                defaultArguments: default(BitVector),
                 constantValueOpt: ConstantValueOpt,
                 initializerExpressionOpt: newInitializerExpression,
                 binderOpt: BinderOpt,

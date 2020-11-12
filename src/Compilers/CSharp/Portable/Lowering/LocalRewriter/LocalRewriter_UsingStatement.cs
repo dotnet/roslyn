@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsBuilder,
                 refKindsBuilder,
                 ref argsToParams,
-                out var defaultArgumentsOpt,
+                out var defaultArguments,
                 expanded,
                 enableCallerInfo: false,
                 _diagnostics);

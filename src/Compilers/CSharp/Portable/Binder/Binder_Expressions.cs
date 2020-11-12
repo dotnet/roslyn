@@ -4037,7 +4037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var expanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
                     var argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
-                    BindDefaultArguments(nonNullSyntax, resultMember.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argsToParamsOpt, out var defaultArgumentsOpt, expanded, enableCallerInfo, diagnostics);
+                    BindDefaultArguments(nonNullSyntax, resultMember.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argsToParamsOpt, out var defaultArguments, expanded, enableCallerInfo, diagnostics);
 
                     var arguments = analyzedArguments.Arguments.ToImmutable();
                     var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
@@ -4065,7 +4065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expanded,
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: argsToParamsOpt,
-                        defaultArgumentsOpt: defaultArgumentsOpt,
+                        defaultArguments: defaultArguments,
                         resultKind: LookupResultKind.Viable,
                         binderOpt: this,
                         type: constructorReturnType,
@@ -4655,7 +4655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> argumentNamesOpt = default(ImmutableArray<string>);
             ImmutableArray<int> argsToParamsOpt = default(ImmutableArray<int>);
             ImmutableArray<RefKind> argumentRefKindsOpt = default(ImmutableArray<RefKind>);
-            BitVector defaultArgumentsOpt = default(BitVector);
+            BitVector defaultArguments = default(BitVector);
             bool expanded = false;
 
             switch (boundMemberKind)
@@ -4693,7 +4693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argumentNamesOpt = indexer.ArgumentNamesOpt;
                         argsToParamsOpt = indexer.ArgsToParamsOpt;
                         argumentRefKindsOpt = indexer.ArgumentRefKindsOpt;
-                        defaultArgumentsOpt = indexer.DefaultArgumentsOpt;
+                        defaultArguments = indexer.DefaultArguments;
                         expanded = indexer.Expanded;
 
                         break;
@@ -4737,7 +4737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKindsOpt,
                 expanded,
                 argsToParamsOpt,
-                defaultArgumentsOpt,
+                defaultArguments,
                 resultKind,
                 implicitReceiver.Type,
                 binder: this,
@@ -5087,7 +5087,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundCall.ReceiverOpt,
                     boundCall.Expanded,
                     boundCall.ArgsToParamsOpt,
-                    boundCall.DefaultArgumentsOpt,
+                    boundCall.DefaultArguments,
                     boundCall.InvokedAsExtensionMethod,
                     boundCall.ResultKind,
                     binderOpt: boundCall.BinderOpt,
@@ -5263,7 +5263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var expanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
                 var argToParams = memberResolutionResult.Result.ArgsToParamsOpt;
-                BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argToParams, out var defaultArgumentsOpt, expanded, enableCallerInfo: true, diagnostics);
+                BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
                 var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
@@ -5291,7 +5291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKinds,
                     expanded,
                     argToParams,
-                    defaultArgumentsOpt,
+                    defaultArguments,
                     constantValueOpt,
                     boundInitializerOpt,
                     wasTargetTyped,
@@ -5453,7 +5453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.ObjectCreationExpression:
                         var creation = (BoundObjectCreationExpression)classCreation;
                         return creation.Update(creation.Constructor, creation.ConstructorsGroup, creation.Arguments, creation.ArgumentNamesOpt,
-                                               creation.ArgumentRefKindsOpt, creation.Expanded, creation.ArgsToParamsOpt, creation.DefaultArgumentsOpt, creation.ConstantValueOpt,
+                                               creation.ArgumentRefKindsOpt, creation.Expanded, creation.ArgsToParamsOpt, creation.DefaultArguments, creation.ConstantValueOpt,
                                                creation.InitializerExpressionOpt, creation.BinderOpt, interfaceType);
 
                     case BoundKind.BadExpression:
@@ -7808,7 +7808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentRefKinds,
                     isExpanded,
                     argsToParams,
-                    defaultArgumentsOpt: default,
+                    defaultArguments: default,
                     this,
                     property.Type,
                     gotError);

@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 node.Expanded,
                 node.InvokedAsExtensionMethod,
                 node.ArgsToParamsOpt,
-                node.DefaultArgumentsOpt,
+                node.DefaultArguments,
                 node.ResultKind,
                 node.BinderOpt,
                 rewrittenType);
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     rewritten.ArgumentRefKindsOpt,
                     rewritten.Expanded,
                     rewritten.ArgsToParamsOpt,
-                    rewritten.DefaultArgumentsOpt,
+                    rewritten.DefaultArguments,
                     rewritten.ConstantValueOpt,
                     rewritten.InitializerExpressionOpt,
                     rewritten.BinderOpt,
@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArgumentsOpt, node.ResultKind, receiverType, node.Binder, type);
+            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, receiverType, node.Binder, type);
         }
 
         public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)

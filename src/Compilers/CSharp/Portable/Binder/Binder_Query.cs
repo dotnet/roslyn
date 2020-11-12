@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             argsToParams.AddRange(Enumerable.Range(0, n));
             argsToParams[n - 1] = n - 2;
             argsToParams[n - 2] = n - 1;
-            var defaultArguments = result.DefaultArgumentsOpt.Clone();
+            var defaultArguments = result.DefaultArguments.Clone();
             (defaultArguments[n - 1], defaultArguments[n - 2]) = (defaultArguments[n - 2], defaultArguments[n - 1]);
 
             return result.Update(

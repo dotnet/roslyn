@@ -1618,7 +1618,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                 ImmutableArray.Create(boundForEachStatement.Expression),
                                                                 argumentNamesOpt: default,
                                                                 argumentsToParametersOpt: default,
-                                                                defaultArgumentsOpt: default,
+                                                                defaultArguments: default,
                                                                 argumentRefKindsOpt: default,
                                                                 expanded: false,
                                                                 boundForEachStatement.Expression.Syntax,

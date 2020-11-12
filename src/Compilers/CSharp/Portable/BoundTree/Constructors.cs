@@ -92,12 +92,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             bool invokedAsExtensionMethod,
             ImmutableArray<int> argsToParamsOpt,
-            BitVector defaultArgumentsOpt,
+            BitVector defaultArguments,
             LookupResultKind resultKind,
             Binder? binderOpt,
             TypeSymbol type,
             bool hasErrors = false) :
-            this(syntax, receiverOpt, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, argsToParamsOpt, defaultArgumentsOpt, resultKind, originalMethodsOpt: default, binderOpt, type, hasErrors)
+            this(syntax, receiverOpt, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, argsToParamsOpt, defaultArguments, resultKind, originalMethodsOpt: default, binderOpt, type, hasErrors)
         {
         }
 
@@ -110,11 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 bool expanded,
                                 bool invokedAsExtensionMethod,
                                 ImmutableArray<int> argsToParamsOpt,
-                                BitVector defaultArgumentsOpt,
+                                BitVector defaultArguments,
                                 LookupResultKind resultKind,
                                 Binder? binderOpt,
                                 TypeSymbol type)
-            => Update(receiverOpt, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, argsToParamsOpt, defaultArgumentsOpt, resultKind, this.OriginalMethodsOpt, binderOpt, type);
+            => Update(receiverOpt, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, argsToParamsOpt, defaultArguments, resultKind, this.OriginalMethodsOpt, binderOpt, type);
 
         public static BoundCall ErrorCall(
             SyntaxNode node,
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded: false,
                 invokedAsExtensionMethod: invokedAsExtensionMethod,
                 argsToParamsOpt: default(ImmutableArray<int>),
-                defaultArgumentsOpt: default(BitVector),
+                defaultArguments: default(BitVector),
                 resultKind: resultKind,
                 originalMethodsOpt: originalMethods,
                 binderOpt: binder,
@@ -155,12 +155,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundCall Update(ImmutableArray<BoundExpression> arguments)
         {
-            return this.Update(ReceiverOpt, Method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ArgsToParamsOpt, DefaultArgumentsOpt, ResultKind, OriginalMethodsOpt, BinderOpt, Type);
+            return this.Update(ReceiverOpt, Method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ArgsToParamsOpt, DefaultArguments, ResultKind, OriginalMethodsOpt, BinderOpt, Type);
         }
 
         public BoundCall Update(BoundExpression? receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
         {
-            return this.Update(receiverOpt, method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ArgsToParamsOpt, DefaultArgumentsOpt, ResultKind, OriginalMethodsOpt, BinderOpt, Type);
+            return this.Update(receiverOpt, method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ArgsToParamsOpt, DefaultArguments, ResultKind, OriginalMethodsOpt, BinderOpt, Type);
         }
 
         public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method)
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expanded: false,
                     invokedAsExtensionMethod: false,
                     argsToParamsOpt: default(ImmutableArray<int>),
-                    defaultArgumentsOpt: default(BitVector),
+                    defaultArguments: default(BitVector),
                     resultKind: LookupResultKind.Viable,
                     originalMethodsOpt: default,
                     binderOpt: null,
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
-                defaultArgumentsOpt: default(BitVector),
+                defaultArguments: default(BitVector),
                 binderOpt: null,
                 originalIndexers,
                 type: indexer.Type,
@@ -248,11 +248,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
-            BitVector defaultArgumentsOpt,
+            BitVector defaultArguments,
             Binder? binderOpt,
             TypeSymbol type,
             bool hasErrors = false) :
-            this(syntax, receiverOpt, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArgumentsOpt, binderOpt, originalIndexersOpt: default, type, hasErrors)
+            this(syntax, receiverOpt, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, binderOpt, originalIndexersOpt: default, type, hasErrors)
         { }
 
         public BoundIndexerAccess Update(BoundExpression? receiverOpt,
@@ -262,10 +262,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                          ImmutableArray<RefKind> argumentRefKindsOpt,
                                          bool expanded,
                                          ImmutableArray<int> argsToParamsOpt,
-                                         BitVector defaultArgumentsOpt,
+                                         BitVector defaultArguments,
                                          Binder? binderOpt,
                                          TypeSymbol type)
-            => Update(receiverOpt, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArgumentsOpt, binderOpt, this.OriginalIndexersOpt, type);
+            => Update(receiverOpt, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, binderOpt, this.OriginalIndexersOpt, type);
     }
 
     internal sealed partial class BoundConversion

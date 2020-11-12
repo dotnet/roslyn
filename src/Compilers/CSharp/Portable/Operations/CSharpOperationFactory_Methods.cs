@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                     boundObjectInitializerMember.Arguments,
                                     boundObjectInitializerMember.ArgumentNamesOpt,
                                     boundObjectInitializerMember.ArgsToParamsOpt,
-                                    boundObjectInitializerMember.DefaultArgumentsOpt,
+                                    boundObjectInitializerMember.DefaultArguments,
                                     boundObjectInitializerMember.ArgumentRefKindsOpt,
                                     boundObjectInitializerMember.Expanded,
                                     boundObjectInitializerMember.Syntax);
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                                boundIndexer.Arguments,
                                                boundIndexer.ArgumentNamesOpt,
                                                boundIndexer.ArgsToParamsOpt,
-                                               boundIndexer.DefaultArgumentsOpt,
+                                               boundIndexer.DefaultArguments,
                                                boundIndexer.ArgumentRefKindsOpt,
                                                boundIndexer.Expanded,
                                                boundIndexer.Syntax);
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                                objectCreation.Arguments,
                                                objectCreation.ArgumentNamesOpt,
                                                objectCreation.ArgsToParamsOpt,
-                                               objectCreation.DefaultArgumentsOpt,
+                                               objectCreation.DefaultArguments,
                                                objectCreation.ArgumentRefKindsOpt,
                                                objectCreation.Expanded,
                                                objectCreation.Syntax);
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                                boundCall.Arguments,
                                                boundCall.ArgumentNamesOpt,
                                                boundCall.ArgsToParamsOpt,
-                                               boundCall.DefaultArgumentsOpt,
+                                               boundCall.DefaultArguments,
                                                boundCall.ArgumentRefKindsOpt,
                                                boundCall.Expanded,
                                                boundCall.Syntax,
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                                boundCollectionElementInitializer.Arguments,
                                                argumentNamesOpt: default,
                                                boundCollectionElementInitializer.ArgsToParamsOpt,
-                                               boundCollectionElementInitializer.DefaultArgumentsOpt,
+                                               boundCollectionElementInitializer.DefaultArguments,
                                                argumentRefKindsOpt: default,
                                                boundCollectionElementInitializer.Expanded,
                                                boundCollectionElementInitializer.Syntax,
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ImmutableArray<BoundExpression> boundArguments,
             ImmutableArray<string> argumentNamesOpt,
             ImmutableArray<int> argumentsToParametersOpt,
-            BitVector defaultArgumentsOpt,
+            BitVector defaultArguments,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
             SyntaxNode invocationSyntax,
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Operations
                  methodOrIndexer: methodOrIndexer,
                  expanded: expanded,
                  argsToParamsOpt: argumentsToParametersOpt,
-                 defaultArgumentsOpt: defaultArgumentsOpt,
+                 defaultArguments: defaultArguments,
                  invokedAsExtensionMethod: invokedAsExtensionMethod);
         }
 #nullable disable

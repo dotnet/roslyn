@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expanded: false,
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: ImmutableArray<int>.Empty,
-                        defaultArgumentsOpt: BitVector.Empty,
+                        defaultArguments: BitVector.Empty,
                         resultKind: LookupResultKind.Viable,
                         binderOpt: null,
                         type: objectType)

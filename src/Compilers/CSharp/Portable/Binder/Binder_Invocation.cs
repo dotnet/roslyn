@@ -1006,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
             var argsToParams = methodResult.Result.ArgsToParamsOpt;
 
-            BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argsToParams, out var defaultArgumentsOpt, expanded, enableCallerInfo: true, diagnostics);
+            BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
             // It is possible that overload resolution succeeded, but we have chosen an
             // instance method and we're in a static method. A careful reading of the
@@ -1142,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
                         expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
-                        argsToParamsOpt: argsToParams, defaultArgumentsOpt, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
+                        argsToParamsOpt: argsToParams, defaultArguments, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
         }
 
 #nullable enable
@@ -1346,7 +1346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundExpression> argumentsBuilder,
             ArrayBuilder<RefKind>? argumentRefKindsBuilder,
             ref ImmutableArray<int> argsToParamsOpt,
-            out BitVector defaultArgumentsOpt,
+            out BitVector defaultArguments,
             bool expanded,
             bool enableCallerInfo,
             DiagnosticBag diagnostics)
@@ -1365,7 +1365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // only proceed with binding default arguments if we know there is some optional parameter that has not been matched by an explicit argument
             if (!parameters.Any(static (param, visitedParameters) => !visitedParameters[param.Ordinal] && param.IsOptional, visitedParameters))
             {
-                defaultArgumentsOpt = default;
+                defaultArguments = default;
                 return;
             }
 
@@ -1377,7 +1377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var c => c
             };
 
-            defaultArgumentsOpt = BitVector.Create(parameters.Length);
+            defaultArguments = BitVector.Create(parameters.Length);
             ArrayBuilder<int>? argsToParamsBuilder = null;
             if (!argsToParamsOpt.IsDefault)
             {
@@ -1391,7 +1391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameter = parameters[i];
                 if (!visitedParameters[parameter.Ordinal] && parameter.IsOptional)
                 {
-                    defaultArgumentsOpt[argumentsBuilder.Count] = true;
+                    defaultArguments[argumentsBuilder.Count] = true;
                     argumentsBuilder.Add(BindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics));
 
                     if (argumentRefKindsBuilder is { Count: > 0 })

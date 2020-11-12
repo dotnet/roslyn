@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 expanded: false,
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
-                defaultArgumentsOpt: default(BitVector),
+                defaultArguments: default(BitVector),
                 resultKind: LookupResultKind.Viable,
                 binderOpt: null,
                 type: method.ReturnType)
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         expanded: false,
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: default(ImmutableArray<int>),
-                        defaultArgumentsOpt: default(BitVector),
+                        defaultArguments: default(BitVector),
                         resultKind: LookupResultKind.Viable,
                         binderOpt: binder,
                         type: userMain.ReturnType)

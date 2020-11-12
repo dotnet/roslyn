@@ -1057,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.Expanded,
                     node.InvokedAsExtensionMethod,
                     node.ArgsToParamsOpt,
-                    node.DefaultArgumentsOpt,
+                    node.DefaultArguments,
                     node.ResultKind,
                     node.BinderOpt,
                     type);

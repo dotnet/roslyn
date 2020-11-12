@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.ArgumentRefKindsOpt,
                 node.Expanded,
                 node.ArgsToParamsOpt,
-                node.DefaultArgumentsOpt,
+                node.DefaultArguments,
                 node.Type,
                 node,
                 isLeftOfAssignment);
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
-            BitVector defaultArgumentsOpt,
+            BitVector defaultArguments,
             TypeSymbol type,
             BoundIndexerAccess? oldNodeOpt,
             bool isLeftOfAssignment)
@@ -121,8 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
 
                 return oldNodeOpt != null ?
-                    oldNodeOpt.Update(rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArgumentsOpt, null, type) :
-                    new BoundIndexerAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArgumentsOpt, null, type);
+                    oldNodeOpt.Update(rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, null, type) :
+                    new BoundIndexerAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, null, type);
             }
             else
             {
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default,
                     expanded: false,
                     argsToParamsOpt: default,
-                    defaultArgumentsOpt: default,
+                    defaultArguments: default,
                     intIndexer.Type,
                     oldNodeOpt: null,
                     isLeftOfAssignment));

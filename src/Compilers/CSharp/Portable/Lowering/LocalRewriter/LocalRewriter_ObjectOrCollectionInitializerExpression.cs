@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_inExpressionLambda)
             {
-                return initializer.Update(addMethod, rewrittenArguments, rewrittenReceiver, expanded: false, argsToParamsOpt: default, defaultArgumentsOpt: default, initializer.InvokedAsExtensionMethod, initializer.ResultKind, initializer.BinderOpt, rewrittenType);
+                return initializer.Update(addMethod, rewrittenArguments, rewrittenReceiver, expanded: false, argsToParamsOpt: default, defaultArguments: default, initializer.InvokedAsExtensionMethod, initializer.ResultKind, initializer.BinderOpt, rewrittenType);
             }
 
             return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.InvokedAsExtensionMethod, initializer.ResultKind, addMethod.ReturnType, temps);
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 memberInit.ArgumentRefKindsOpt,
                                 memberInit.Expanded,
                                 memberInit.ArgsToParamsOpt,
-                                memberInit.DefaultArgumentsOpt,
+                                memberInit.DefaultArguments,
                                 memberInit.ResultKind,
                                 memberInit.ReceiverType,
                                 memberInit.Binder,
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             rewrittenLeft.ArgumentRefKindsOpt,
                             rewrittenLeft.Expanded,
                             rewrittenLeft.ArgsToParamsOpt,
-                            rewrittenLeft.DefaultArgumentsOpt,
+                            rewrittenLeft.DefaultArguments,
                             type: propertySymbol.Type,
                             oldNodeOpt: null,
                             isLeftOfAssignment: !isRhsNestedInitializer);

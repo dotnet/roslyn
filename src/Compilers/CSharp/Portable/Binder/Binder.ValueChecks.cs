@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     parameters = parameters.RemoveAt(parameters.Length - 1);
                 }
                 Debug.Assert(parameters.Length == indexerAccess.Indexer.Parameters.Length);
-                BindDefaultArguments(indexerAccess.Syntax, parameters, argumentsBuilder, refKindsBuilderOpt, ref argsToParams, out var defaultArgumentsOpt, indexerAccess.Expanded, enableCallerInfo: true, diagnostics);
+                BindDefaultArguments(indexerAccess.Syntax, parameters, argumentsBuilder, refKindsBuilderOpt, ref argsToParams, out var defaultArguments, indexerAccess.Expanded, enableCallerInfo: true, diagnostics);
 
                 indexerAccess = indexerAccess.Update(
                     indexerAccess.ReceiverOpt,
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKindsBuilderOpt?.ToImmutableOrNull() ?? default,
                     indexerAccess.Expanded,
                     argsToParams,
-                    defaultArgumentsOpt,
+                    defaultArguments,
                     indexerAccess.BinderOpt,
                     indexerAccess.Type);
 
