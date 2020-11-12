@@ -808,6 +808,24 @@ struct InsertionPoint
 }");
         }
 
+        [WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNotOnRecord()
+        {
+            await TestMissingAsync(
+@"
+record InsertionPoint(int level)
+{
+    InsertionPoint Up()
+    {
+        return this with
+        {
+            level [||]= level - 1,
+        };
+    }
+}");
+        }
+
         [WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestParenthesizedExpression()
