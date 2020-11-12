@@ -5329,11 +5329,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Note: for lambda arguments, they will be converted in the context/state we saved for that argument
                         if (conversion is { Kind: ConversionKind.ImplicitUserDefined })
                         {
-                            var argumentResultType = result.RValueType.Type;
-                            Debug.Assert(argumentResultType is not null);
+                            var argumentResultType = resultType.Type;
                             conversion = GenerateConversion(_conversions, argumentNoConversion, argumentResultType, parameterType.Type, fromExplicitCast: false, extensionMethodThisArgument: false);
                             if (!conversion.Exists && !argumentNoConversion.IsSuppressed)
                             {
+                                Debug.Assert(argumentResultType is not null);
                                 ReportNullabilityMismatchInArgument(argumentNoConversion.Syntax, argumentResultType, parameter, parameterType.Type, forOutput: false);
                             }
                         }
@@ -6399,17 +6399,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (targetSlot > 0)
             {
                 TrackNullableStateForAssignment(value, symbol!.GetTypeOrReturnType(), targetSlot, valueType, valueSlot);
-            }
-        }
-
-        private void TrackNullableStateOfNullableValue(BoundExpression node, BoundExpression operand, TypeSymbol convertedType, TypeWithAnnotations underlyingType)
-        {
-            int valueSlot = MakeSlot(operand);
-            if (valueSlot > 0)
-            {
-                int containingSlot = GetOrCreatePlaceholderSlot(node);
-                Debug.Assert(containingSlot > 0);
-                TrackNullableStateOfNullableValue(containingSlot, convertedType, operand, underlyingType.ToTypeWithState(), valueSlot);
             }
         }
 
