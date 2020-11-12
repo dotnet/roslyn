@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferNamespaceMatchFolderStructure),
             defaultValue: s_trueWithSuggestionEnforcement,
             storageLocations: new OptionStorageLocation2[] {
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_namespace_match_folder_structure_preference"),
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_namespace_match_folder_structure_preference", s_trueWithSuggestionEnforcement),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferNamespaceMatchFolderStructure)}")});
 #if false
 

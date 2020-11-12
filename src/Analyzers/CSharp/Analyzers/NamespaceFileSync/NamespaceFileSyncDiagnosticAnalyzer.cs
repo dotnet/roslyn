@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
         private static readonly LocalizableResourceString s_localizableInsideMessage = new LocalizableResourceString(
             nameof(CSharpAnalyzersResources.Namespace_must_match_folder_structure), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
-        private static readonly string s_rootnamespaceOption = "build_property.RootNamespace"; 
-        private static readonly string s_projectDirOption = "build_property.ProjectDir"; 
+        public const string RootNamespaceOption = "build_property.RootNamespace";
+        public const string ProjectDirOption = "build_property.ProjectDir";
 
         public NamespaceFileSyncDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.NamespaceSyncAnalyzerDiagnosticId,
@@ -44,8 +44,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
         private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
             //TODO: is this needed in Code_Style? if so, GlobalOptions support needs to be added in the package.
-            context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(s_rootnamespaceOption, out var rootNamespace);
-            context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(s_projectDirOption, out var projectDir);
+            if (!context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(RootNamespaceOption, out var rootNamespace)
+                || rootNamespace is null)
+            {
+                return;
+            }
+
+
+            if (!context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(ProjectDirOption, out var projectDir)
+                || projectDir is null or { Length: 0 })
+            {
+                return;
+            }
 
             if (context.Node is NamespaceDeclarationSyntax namespaceDecl &&
                 IsFileAndNamespaceValid(namespaceDecl, rootNamespace, projectDir, out var targetNamespace) &&
@@ -121,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
             NamespaceDeclarationSyntax namespaceDeclaration,
             string rootNamespace,
             string projectDir,
-            out string targetNamespace)
+            out string? targetNamespace)
         {
             var filePath = namespaceDeclaration.SyntaxTree.FilePath;
             if (!filePath.Contains(projectDir))
