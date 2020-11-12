@@ -2914,6 +2914,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 (LambdaSymbol l, NamedTypeSymbol n) _ when n.IsDelegateType() => AreLambdaAndNewDelegateSimilar(l, n),
                 (FieldSymbol { ContainingType: { IsTupleType: true }, TupleElementIndex: var oi } originalField, FieldSymbol { ContainingType: { IsTupleType: true }, TupleElementIndex: var ui } updatedField) =>
+                    // For tuples with their indexes being private fields, such as in `InferredName_ConditionalOperator_UseSite`, when we do reinference we don't end up inferring the resulting type correctly,
+                    // and end up with a tuple element index of -1. Correctly handling tuples is tracked by https://github.com/dotnet/roslyn/issues/35010.
                     originalField.Type.Equals(updatedField.Type, TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames) && oi == ui,
                 _ => original.Equals(updated, TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames)
             };
@@ -6049,7 +6051,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (symbol is TupleElementFieldSymbol)
+            if (symbol is TupleElementFieldSymbol or TupleErrorFieldSymbol)
             {
                 return symbol.SymbolAsMember(containingType);
             }

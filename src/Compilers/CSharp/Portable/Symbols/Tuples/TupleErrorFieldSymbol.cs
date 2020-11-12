@@ -177,5 +177,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _tupleElementIndex == other._tupleElementIndex &&
                 TypeSymbol.Equals(ContainingType, other.ContainingType, compareKind);
         }
+
+        internal override FieldSymbol AsMember(NamedTypeSymbol newOwner)
+        {
+            Debug.Assert(newOwner.IsTupleType && newOwner.TupleElementTypesWithAnnotations.Length > TupleElementIndex);
+            if (ReferenceEquals(newOwner, ContainingType))
+            {
+                return this;
+            }
+
+            return new TupleErrorFieldSymbol(
+                newOwner,
+                Name,
+                TupleElementIndex,
+                _locations.IsEmpty ? null : Locations[0],
+                newOwner.TupleElementTypesWithAnnotations[TupleElementIndex],
+                _useSiteDiagnosticInfo,
+                _isImplicitlyDeclared,
+                correspondingDefaultFieldOpt: default);
+        }
     }
 }

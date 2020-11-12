@@ -4860,5 +4860,89 @@ M();")]
 
             AssertEx.Equal("void M()", model.GetDeclaredSymbol(localFunction).ToTestDisplayString());
         }
+
+        [Fact]
+        public void TupleNames_DifferentTernaryBranches_PrivateTupleField()
+        {
+            var source = @"
+#nullable enable
+class C
+{
+    static void M(int a, int b, bool c)
+    {
+        var (x, y) = c ? ((object)1, a) : (b, 2);
+    }
+}
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        private T2 Item2;
+        public ValueTuple(T1 item1, T2 item2) => throw null;
+    }
+}
+";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Minimal);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var ternary = tree.GetRoot().DescendantNodes().OfType<ConditionalExpressionSyntax>().Single();
+            var operation = model.GetOperation(ternary);
+            AssertEx.Equal("(System.Object, System.Int32 a)", operation.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TupleNames_BadSignatures()
+        {
+            string source = @"
+class C
+{
+    static void M()
+    {
+        var x = (a: ""Alice"", b: ""Bob"");
+        System.Console.WriteLine($""{x.a}"");
+    }
+}
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public int Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item2 = 2;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, assemblyName: "comp", options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,39): error CS8128: Member 'Item1' was not found on type '(T1, T2)' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         System.Console.WriteLine($"{x.a}");
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "a").WithArguments("Item1", "(T1, T2)", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 39),
+                // (17,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                //         public ValueTuple(T1 item1, T2 item2)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(17, 16),
+                // (17,16): error CS0171: Field '(T1, T2).Item1' must be fully assigned before control is returned to the caller
+                //         public ValueTuple(T1 item1, T2 item2)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item1").WithLocation(17, 16),
+                // (17,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                //         public ValueTuple(T1 item1, T2 item2)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(17, 16),
+                // (19,18): error CS0229: Ambiguity between '(T1, T2).Item2' and '(T1, T2).Item2'
+                //             this.Item2 = 2;
+                Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(19, 18)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var tupleLiteral = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            AssertEx.Equal("(System.String a, System.String b)", model.GetTypeInfo(tupleLiteral).Type.ToTestDisplayString(includeNonNullable: false));
+        }
     }
 }
