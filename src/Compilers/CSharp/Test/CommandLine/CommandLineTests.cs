@@ -13175,75 +13175,6 @@ dotnet_diagnostic.Warning01.severity = error;
             CleanupAllGeneratedFiles(srcDirectory.Path);
         }
 
-        // can't load a coreclr targeting generator on net framework / mono
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestGeneratorsCantTargetNetFramework()
-        {
-            var directory = Temp.CreateDirectory();
-            var src = directory.CreateFile("test.cs").WriteAllText(@"
-class C
-{
-}");
-
-            // core
-            var coreGenerator = emitGenerator(".NETCoreApp,Version=v5.0");
-            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + coreGenerator });
-
-            //// netstandard
-            var nsGenerator = emitGenerator(".NETStandard,Version=v2.0");
-            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + nsGenerator });
-
-            // no target
-            var ntGenerator = emitGenerator(targetFramework: null);
-            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + ntGenerator });
-
-            // framework
-            var frameworkGenerator = emitGenerator(".NETFramework,Version=v4.7.2");
-            var output = VerifyOutput(directory, src, expectedWarningCount: 2, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + frameworkGenerator });
-            Assert.Contains("CS8850", output); // ref's net fx
-            Assert.Contains("CS8033", output); // no analyzers in assembly
-
-            // framework, suppressed
-            output = VerifyOutput(directory, src, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS8850", "/analyzer:" + frameworkGenerator });
-            Assert.Contains("CS8033", output);
-
-            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS8850,CS8033", "/analyzer:" + frameworkGenerator });
-
-            string emitGenerator(string targetFramework)
-            {
-                string targetFrameworkAttributeText = targetFramework is object
-                                                        ? $"[assembly: System.Runtime.Versioning.TargetFramework(\"{targetFramework}\")]"
-                                                        : string.Empty;
-
-                string generatorSource = $@"
-using Microsoft.CodeAnalysis;
-
-{targetFrameworkAttributeText}
-
-[Generator]
-public class Generator : ISourceGenerator
-{{
-            public void Execute(GeneratorExecutionContext context) {{ }}
-            public void Initialize(GeneratorInitializationContext context) {{ }}
- }}";
-
-                var directory = Temp.CreateDirectory();
-
-                var generatorPath = Path.Combine(directory.Path, "generator.dll");
-
-                var compilation = CSharpCompilation.Create($"generator_{targetFramework}",
-                                                           new[] { CSharpSyntaxTree.ParseText(generatorSource) },
-                                                           TargetFrameworkUtil.GetReferences(TargetFramework.Standard, new[] { MetadataReference.CreateFromAssemblyInternal(typeof(ISourceGenerator).Assembly) }),
-                                                           new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-                compilation.VerifyDiagnostics();
-                var result = compilation.Emit(generatorPath);
-                Assert.True(result.Success);
-
-                return generatorPath;
-            }
-        }
-
         [Theory]
         // "/warnaserror" tests
         [InlineData(/*analyzerConfigSeverity*/"warning", "/warnaserror", /*expectError*/true, /*expectWarning*/false)]
@@ -13342,6 +13273,73 @@ dotnet_diagnostic.{diagnosticId}.severity = {analyzerConfigSeverity}");
             else
             {
                 Assert.DoesNotContain(diagnosticId, output);
+            }
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly), Reason = "Can't load a coreclr targeting generator on net framework / mono")]
+        public void TestGeneratorsCantTargetNetFramework()
+        {
+            var directory = Temp.CreateDirectory();
+            var src = directory.CreateFile("test.cs").WriteAllText(@"
+class C
+{
+}");
+
+            // core
+            var coreGenerator = emitGenerator(".NETCoreApp,Version=v5.0");
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + coreGenerator });
+
+            // netstandard
+            var nsGenerator = emitGenerator(".NETStandard,Version=v2.0");
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + nsGenerator });
+
+            // no target
+            var ntGenerator = emitGenerator(targetFramework: null);
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + ntGenerator });
+
+            // framework
+            var frameworkGenerator = emitGenerator(".NETFramework,Version=v4.7.2");
+            var output = VerifyOutput(directory, src, expectedWarningCount: 2, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + frameworkGenerator });
+            Assert.Contains("CS8850", output); // ref's net fx
+            Assert.Contains("CS8033", output); // no analyzers in assembly
+
+            // framework, suppressed
+            output = VerifyOutput(directory, src, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS8850", "/analyzer:" + frameworkGenerator });
+            Assert.Contains("CS8033", output);
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS8850,CS8033", "/analyzer:" + frameworkGenerator });
+
+            string emitGenerator(string targetFramework)
+            {
+                string targetFrameworkAttributeText = targetFramework is object
+                                                        ? $"[assembly: System.Runtime.Versioning.TargetFramework(\"{targetFramework}\")]"
+                                                        : string.Empty;
+
+                string generatorSource = $@"
+using Microsoft.CodeAnalysis;
+
+{targetFrameworkAttributeText}
+
+[Generator]
+public class Generator : ISourceGenerator
+{{
+            public void Execute(GeneratorExecutionContext context) {{ }}
+            public void Initialize(GeneratorInitializationContext context) {{ }}
+ }}";
+
+                var directory = Temp.CreateDirectory();
+
+                var generatorPath = Path.Combine(directory.Path, "generator.dll");
+
+                var compilation = CSharpCompilation.Create($"generator_{targetFramework}",
+                                                           new[] { CSharpSyntaxTree.ParseText(generatorSource) },
+                                                           TargetFrameworkUtil.GetReferences(TargetFramework.Standard, new[] { MetadataReference.CreateFromAssemblyInternal(typeof(ISourceGenerator).Assembly) }),
+                                                           new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+                compilation.VerifyDiagnostics();
+                var result = compilation.Emit(generatorPath);
+                Assert.True(result.Success);
+
+                return generatorPath;
             }
         }
     }
