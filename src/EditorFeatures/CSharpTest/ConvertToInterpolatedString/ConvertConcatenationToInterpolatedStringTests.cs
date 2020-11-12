@@ -804,7 +804,7 @@ public class C
 {
     void M()
     {
-        var v = $""{1}{(""string"")}"";
+        var v = $""{1}{""string""}"";
     }
 }");
         }
