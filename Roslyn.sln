@@ -473,6 +473,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Test
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.TestSourceGenerator", "src\Workspaces\TestSourceGenerator\Microsoft.CodeAnalysis.TestSourceGenerator.csproj", "{21B50E65-D601-4D82-B98A-FFE6DE3B25DC}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.XunitHook", "src\EditorFeatures\XunitHook\Microsoft.CodeAnalysis.XunitHook.csproj", "{967A8F5E-7D18-436C-97ED-1DB303FE5DE0}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
@@ -1236,6 +1238,10 @@ Global
 		{21B50E65-D601-4D82-B98A-FFE6DE3B25DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21B50E65-D601-4D82-B98A-FFE6DE3B25DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21B50E65-D601-4D82-B98A-FFE6DE3B25DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{967A8F5E-7D18-436C-97ED-1DB303FE5DE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{967A8F5E-7D18-436C-97ED-1DB303FE5DE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{967A8F5E-7D18-436C-97ED-1DB303FE5DE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{967A8F5E-7D18-436C-97ED-1DB303FE5DE0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1454,6 +1460,7 @@ Global
 		{67F44564-759B-4643-BD86-407B010B0B74} = {EE97CB90-33BB-4F3A-9B3D-69375DEC6AC6}
 		{5D94ED65-EFA3-44EB-A5DA-62E85BAC9DD6} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{21B50E65-D601-4D82-B98A-FFE6DE3B25DC} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
+		{967A8F5E-7D18-436C-97ED-1DB303FE5DE0} = {EE97CB90-33BB-4F3A-9B3D-69375DEC6AC6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
