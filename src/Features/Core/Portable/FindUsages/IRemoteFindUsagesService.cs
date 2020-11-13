@@ -108,21 +108,25 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public ValueTask SetSearchTitleAsync(string title)
             => _context.SetSearchTitleAsync(title);
 
-        public ValueTask OnDefinitionFoundAsync(SerializableDefinitionItem definition)
+        public async ValueTask OnDefinitionFoundAsync(SerializableDefinitionItem definition)
         {
             var id = definition.Id;
-            var rehydrated = definition.Rehydrate(_solution);
+            var rehydrated = await definition.RehydrateAsync(_solution, _context.CancellationToken).ConfigureAwait(false);
 
             lock (_idToDefinition)
             {
                 _idToDefinition.Add(id, rehydrated);
             }
 
-            return _context.OnDefinitionFoundAsync(rehydrated);
+            await _context.OnDefinitionFoundAsync(rehydrated).ConfigureAwait(false);
         }
 
-        public ValueTask OnReferenceFoundAsync(SerializableSourceReferenceItem reference)
-            => _context.OnReferenceFoundAsync(reference.Rehydrate(_solution, GetDefinition(reference.DefinitionId)));
+        public async ValueTask OnReferenceFoundAsync(SerializableSourceReferenceItem reference)
+        {
+            var rehydrated = await reference.RehydrateAsync(_solution, GetDefinition(reference.DefinitionId), _context.CancellationToken).ConfigureAwait(false);
+
+            await _context.OnReferenceFoundAsync(rehydrated).ConfigureAwait(false);
+        }
 
         private DefinitionItem GetDefinition(int definitionId)
         {
@@ -152,8 +156,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public static SerializableDocumentSpan Dehydrate(DocumentSpan documentSpan)
             => new(documentSpan.Document.Id, documentSpan.SourceSpan);
 
-        public DocumentSpan Rehydrate(Solution solution)
-            => new(solution.GetRequiredDocument(DocumentId), SourceSpan);
+        public async ValueTask<DocumentSpan> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
+        {
+            var document = solution.GetDocument(DocumentId) ??
+                           await solution.GetSourceGeneratedDocumentAsync(DocumentId, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(document);
+            return new DocumentSpan(document, SourceSpan);
+        }
     }
 
     [DataContract]
@@ -219,16 +228,21 @@ namespace Microsoft.CodeAnalysis.FindUsages
                    item.DisplayableProperties,
                    item.DisplayIfNoReferences);
 
-        public DefinitionItem Rehydrate(Solution solution)
-            => new DefinitionItem.DefaultDefinitionItem(
+        public async ValueTask<DefinitionItem> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
+        {
+            var sourceSpansTasks = SourceSpans.SelectAsArray(ss => ss.RehydrateAsync(solution, cancellationToken).AsTask());
+            var sourceSpans = await Task.WhenAll(sourceSpansTasks).ConfigureAwait(false);
+
+            return new DefinitionItem.DefaultDefinitionItem(
                 Tags,
                 DisplayParts,
                 NameDisplayParts,
                 OriginationParts,
-                SourceSpans.SelectAsArray(ss => ss.Rehydrate(solution)),
+                sourceSpans.ToImmutableArray(),
                 Properties,
                 DisplayableProperties,
                 DisplayIfNoReferences);
+        }
     }
 
     [DataContract]
@@ -264,9 +278,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
                    item.SymbolUsageInfo,
                    item.AdditionalProperties);
 
-        public SourceReferenceItem Rehydrate(Solution solution, DefinitionItem definition)
+        public async Task<SourceReferenceItem> RehydrateAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)
             => new(definition,
-                   SourceSpan.Rehydrate(solution),
+                   await SourceSpan.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false),
                    SymbolUsageInfo,
                    AdditionalProperties.ToImmutableDictionary(t => t.Key, t => t.Value));
     }
