@@ -7615,7 +7615,7 @@ class C
 
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestCompleteMethodParenthesisForSymbolCompletionProviderUnderDelegateContext(showCompletionInArgumentLists As Boolean) As Task
+        Public Sub TestCompleteMethodParenthesisForSymbolCompletionProviderUnderDelegateContext(showCompletionInArgumentLists As Boolean)
             Using state = TestStateFactory.CreateCSharpTestState(
             <Document>
                 using System;
@@ -7645,7 +7645,7 @@ class C
                 state.SendTypeChars(";")
                 Assert.Equal(expectedText, state.GetDocumentText())
             End Using
-        End Function
+        End Sub
 
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
