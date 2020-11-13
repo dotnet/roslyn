@@ -2417,12 +2417,12 @@ public class Class1 : CppCli.CppBase2, CppCli.CppInterface1
                 OutputKind.DynamicallyLinkedLibrary, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             SynthesizedMetadataCompiler.ProcessSynthesizedMembers(libComp, module, default(CancellationToken));
 
-            var class1TypeDef = (Cci.ITypeDefinition)class1;
+            var class1TypeDef = (Cci.ITypeDefinition)class1.GetCciAdapter();
 
             var symbolSynthesized = class1.GetSynthesizedExplicitImplementations(CancellationToken.None);
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var cciExplicit = class1TypeDef.GetExplicitImplementationOverrides(context);
-            var cciMethods = class1TypeDef.GetMethods(context).Where(m => ((MethodSymbol)m).MethodKind != MethodKind.Constructor);
+            var cciMethods = class1TypeDef.GetMethods(context).Where(m => ((MethodSymbol)m.GetInternalSymbol()).MethodKind != MethodKind.Constructor);
 
             context.Diagnostics.Verify();
             var symbolsSynthesizedCount = symbolSynthesized.Length;

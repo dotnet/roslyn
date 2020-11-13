@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -27,7 +25,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static readonly Option2<bool> ProcessHiddenDiagnostics = new(nameof(InternalDiagnosticsOptions), nameof(ProcessHiddenDiagnostics), defaultValue: false,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Process Hidden Diagnostics"));
 
-        public static readonly Option2<bool> LspPullDiagnostics = new(nameof(InternalDiagnosticsOptions), nameof(LspPullDiagnostics), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Lsp Pull Diagnostics"));
+        public static readonly Option2<DiagnosticMode> NormalDiagnosticMode = new(nameof(InternalDiagnosticsOptions), nameof(NormalDiagnosticMode), defaultValue: DiagnosticMode.Push,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "NormalDiagnosticMode"));
+
+        public static readonly Option2<DiagnosticMode> RazorDiagnosticMode = new(nameof(InternalDiagnosticsOptions), nameof(RazorDiagnosticMode), defaultValue: DiagnosticMode.Push,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "RazorDiagnosticMode"));
     }
 }

@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis
                     // Now we run generators; if we don't have a generator driver at all, we must try create one
                     if (generatorDriver.GeneratorDriver == null)
                     {
-                        var generators = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetGenerators()).ToImmutableArray();
+                        var generators = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetGenerators(this.ProjectState.Language)).ToImmutableArray();
                         var additionalTexts = this.ProjectState.AdditionalDocumentStates.Values.SelectAsArray(a => (AdditionalText)new AdditionalTextWithState(a));
                         var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
 

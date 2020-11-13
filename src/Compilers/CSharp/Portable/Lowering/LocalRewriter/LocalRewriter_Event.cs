@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var module = this.EmitModule;
             if (module != null)
             {
-                module.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo(node.Event, node.Syntax, _diagnostics, isUsedForComAwareEventBinding: true);
+                module.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo(node.Event.GetCciAdapter(), node.Syntax, _diagnostics, isUsedForComAwareEventBinding: true);
             }
 
             if (result != null)

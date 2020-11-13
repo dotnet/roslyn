@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     newLocals,
                     (BoundExpression)this.Visit(node.ExceptionSourceOpt),
                     this.VisitType(node.ExceptionTypeOpt),
-                    (BoundBlock)this.Visit(node.ExceptionFilterPrologueOpt),
+                    (BoundStatementList)this.Visit(node.ExceptionFilterPrologueOpt),
                     (BoundExpression)this.Visit(node.ExceptionFilterOpt),
                     (BoundBlock)this.Visit(node.Body),
                     node.IsSynthesizedAsyncCatchAll);
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //  add the method to module
             if (this.CompilationState.Emitting)
             {
-                this.CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(containingType, wrapper);
+                this.CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(containingType, wrapper.GetCciAdapter());
             }
 
             Debug.Assert(wrapper.SynthesizesLoweredBoundBody);

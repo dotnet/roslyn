@@ -28,6 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _diagnosticFormatter = New CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, AddressOf GetAdditionalTextFiles)
             _additionalTextFiles = Nothing
             _tempDirectory = buildPaths.TempDirectory
+
+            Debug.Assert(Arguments.OutputFileName IsNot Nothing OrElse Arguments.Errors.Length > 0 OrElse parser.IsScriptCommandLineParser)
         End Sub
 
         Private Function GetAdditionalTextFiles() As ImmutableArray(Of AdditionalTextFile)
@@ -174,6 +176,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      WithSyntaxTreeOptionsProvider(syntaxTreeOptions))
         End Function
 
+        Protected Overrides Function GetOutputFileName(compilation As Compilation, cancellationToken As CancellationToken) As String
+            ' The only case this is Nothing is when there are errors during parsing in which case this should never get called
+            Debug.Assert(Arguments.OutputFileName IsNot Nothing)
+            Return Arguments.OutputFileName
+        End Function
+
         Private Sub PrintReferences(resolvedReferences As List(Of MetadataReference), consoleOutput As TextWriter)
             For Each reference In resolvedReferences
                 If reference.Properties.Kind = MetadataImageKind.Module Then
@@ -289,6 +297,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 embeddedFiles.Add(resolvedPath)
             Next
         End Sub
+
+        Private Protected Overrides Function RunGenerators(input As Compilation, parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText), diagnostics As DiagnosticBag) As Compilation
+            Dim driver = VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), analyzerConfigOptionsProvider)
+            Dim compilationOut As Compilation = Nothing, generatorDiagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver.RunGeneratorsAndUpdateCompilation(input, compilationOut, generatorDiagnostics)
+            diagnostics.AddRange(generatorDiagnostics)
+            Return compilationOut
+        End Function
+
     End Class
 End Namespace
-

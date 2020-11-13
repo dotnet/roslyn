@@ -3585,9 +3585,9 @@ public class MainClass
 
                 var ctorA = typeA.InstanceConstructors.First();
                 Assert.Equal(expectedMethodImplAttributes, ctorA.ImplementationAttributes);
-                Assert.True(((Cci.IMethodDefinition)ctorA).IsExternal);
+                Assert.True(((Cci.IMethodDefinition)ctorA.GetCciAdapter()).IsExternal);
 
-                var methodGoo = (Cci.IMethodDefinition)typeA.GetMember("Goo");
+                var methodGoo = (Cci.IMethodDefinition)typeA.GetMember("Goo").GetCciAdapter();
                 Assert.True(methodGoo.IsExternal);
             };
 

@@ -4174,6 +4174,68 @@ class Test
         }
 
         [Fact]
+        public void ParameterDefaultValue()
+        {
+            var source = @"
+class Test
+{
+    void M0(object obj = default) { } // 1
+    void M1(int i = default) { }
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,26): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     void M0(object obj = default) { } // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(4, 26));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var default0 = root.DescendantNodes().OfType<EqualsValueClauseSyntax>().ElementAt(0).Value;
+            Assert.Equal(PublicNullableFlowState.MaybeNull, model.GetTypeInfo(default0).Nullability.FlowState);
+
+            var default1 = root.DescendantNodes().OfType<EqualsValueClauseSyntax>().ElementAt(1).Value;
+            Assert.Equal(PublicNullableFlowState.NotNull, model.GetTypeInfo(default1).Nullability.FlowState);
+        }
+
+        [Fact]
+        public void AttributeDefaultValue()
+        {
+            var source = @"
+using System;
+
+class Attr : Attribute
+{
+    public Attr(object obj, int i) { }
+}
+
+[Attr(default, default)] // 1
+class Test
+{
+}
+";
+
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,7): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // [Attr(default, default)] // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(9, 7));
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var default0 = root.DescendantNodes().OfType<AttributeArgumentSyntax>().ElementAt(0).Expression;
+            Assert.Equal(PublicNullableFlowState.MaybeNull, model.GetTypeInfo(default0).Nullability.FlowState);
+
+            var default1 = root.DescendantNodes().OfType<AttributeArgumentSyntax>().ElementAt(1).Expression;
+            Assert.Equal(PublicNullableFlowState.NotNull, model.GetTypeInfo(default1).Nullability.FlowState);
+        }
+
+        [Fact]
         [WorkItem(38638, "https://github.com/dotnet/roslyn/issues/38638")]
         public void TypeParameter_Default()
         {
@@ -4609,7 +4671,7 @@ class Program
     static T F<T>(T t) => t;
     static T F1<T>(T? x1)
     {
-        T y1 = F(x1);
+        T y1 = F(x1); // 1
         if (x1 == null) throw null!;
         T z1 = F(x1);
         return z1;
@@ -4617,16 +4679,25 @@ class Program
     static T F2<T>(T x2)
     {
         T y2 = F(x2);
-        x2 = default;
-        T z2 = F(x2);
-        return z2; // 1
+        x2 = default; // 2
+        T z2 = F(x2); // 3
+        return z2; // 4
     }
 }";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
+                // (7,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T y1 = F(x1); // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "F(x1)").WithLocation(7, 16),
+                // (15,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x2 = default; // 2
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(15, 14),
+                // (16,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T z2 = F(x2); // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "F(x2)").WithLocation(16, 16),
                 // (17,16): warning CS8603: Possible null reference return.
-                //         return z2; // 1
+                //         return z2; // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "z2").WithLocation(17, 16));
 
             var syntaxTree = comp.SyntaxTrees[0];

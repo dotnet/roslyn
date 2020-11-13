@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSignatureToken(FunctionPointerTypeSymbol symbol, SyntaxNode syntaxNode)
         {
-            _builder.EmitToken(PEModuleBuilder.Translate(symbol).Signature, syntaxNode, _diagnostics);
+            _builder.EmitToken(_module.Translate(symbol).Signature, syntaxNode, _diagnostics);
         }
 
         private void EmitSequencePointStatement(BoundSequencePoint node)

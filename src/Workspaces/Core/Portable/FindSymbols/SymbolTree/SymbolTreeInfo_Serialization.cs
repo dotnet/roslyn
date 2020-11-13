@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -14,7 +15,6 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixMetadataSymbolTreeInfo = "<SymbolTreeInfo>";
-        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("20");
+        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("21");
 
         /// <summary>
         /// Loads the SpellChecker for a given assembly symbol (metadata or project).  If the
@@ -33,14 +33,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             Checksum checksum,
             string filePath,
-            string concatenatedNames,
             ImmutableArray<Node> sortedNodes)
         {
             var result = TryLoadOrCreateAsync(
                 solution,
                 checksum,
                 loadOnly: false,
-                createAsync: () => CreateSpellCheckerAsync(checksum, concatenatedNames, sortedNodes),
+                createAsync: () => CreateSpellCheckerAsync(checksum, sortedNodes),
                 keySuffix: "_SpellChecker_" + filePath,
                 tryReadObject: SpellChecker.TryReadFrom,
                 cancellationToken: CancellationToken.None);
@@ -138,14 +137,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public void WriteTo(ObjectWriter writer)
         {
-            writer.WriteString(_concatenatedNames);
-
             writer.WriteInt32(_nodes.Length);
-            foreach (var node in _nodes)
+            foreach (var group in GroupByName(_nodes.AsMemory()))
             {
-                writer.WriteInt32(node.NameSpan.Start);
-                writer.WriteInt32(node.NameSpan.Length);
-                writer.WriteInt32(node.ParentIndex);
+                writer.WriteString(group.Span[0].Name);
+                writer.WriteInt32(group.Length);
+                foreach (var item in group.Span)
+                {
+                    writer.WriteInt32(item.ParentIndex);
+                }
             }
 
             writer.WriteInt32(_inheritanceMap.Keys.Count);
@@ -181,26 +181,49 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
             }
+
+            // sortedNodes is an array of Node instances which is often sorted by Node.Name by the caller. This method
+            // produces a sequence of spans within sortedNodes for Node instances that all have the same Name, allowing
+            // serialization to record the string once followed by the remaining properties for the nodes in the group.
+            static IEnumerable<ReadOnlyMemory<Node>> GroupByName(ReadOnlyMemory<Node> sortedNodes)
+            {
+                if (sortedNodes.IsEmpty)
+                    yield break;
+
+                var startIndex = 0;
+                var currentName = sortedNodes.Span[0].Name;
+                for (var i = 1; i < sortedNodes.Length; i++)
+                {
+                    var node = sortedNodes.Span[i];
+                    if (node.Name != currentName)
+                    {
+                        yield return sortedNodes[startIndex..i];
+                        startIndex = i;
+                    }
+                }
+
+                yield return sortedNodes[startIndex..sortedNodes.Length];
+            }
         }
 
         private static SymbolTreeInfo TryReadSymbolTreeInfo(
             ObjectReader reader,
             Checksum checksum,
-            Func<string, ImmutableArray<Node>, Task<SpellChecker>> createSpellCheckerTask)
+            Func<ImmutableArray<Node>, Task<SpellChecker>> createSpellCheckerTask)
         {
             try
             {
-                var concatenatedNames = reader.ReadString();
-
                 var nodeCount = reader.ReadInt32();
                 var nodes = ArrayBuilder<Node>.GetInstance(nodeCount);
-                for (var i = 0; i < nodeCount; i++)
+                while (nodes.Count < nodeCount)
                 {
-                    var start = reader.ReadInt32();
-                    var length = reader.ReadInt32();
-                    var parentIndex = reader.ReadInt32();
-
-                    nodes.Add(new Node(new TextSpan(start, length), parentIndex));
+                    var name = reader.ReadString();
+                    var groupCount = reader.ReadInt32();
+                    for (var i = 0; i < groupCount; i++)
+                    {
+                        var parentIndex = reader.ReadInt32();
+                        nodes.Add(new Node(name, parentIndex));
+                    }
                 }
 
                 var inheritanceMap = new OrderPreservingMultiDictionary<int, int>();
@@ -244,9 +267,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 var nodeArray = nodes.ToImmutableAndFree();
-                var spellCheckerTask = createSpellCheckerTask(concatenatedNames, nodeArray);
+                var spellCheckerTask = createSpellCheckerTask(nodeArray);
                 return new SymbolTreeInfo(
-                    checksum, concatenatedNames, nodeArray, spellCheckerTask, inheritanceMap,
+                    checksum, nodeArray, spellCheckerTask, inheritanceMap,
                     receiverTypeNameToExtensionMethodMap);
             }
             catch
@@ -263,8 +286,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ObjectReader reader, Checksum checksum)
             {
                 return TryReadSymbolTreeInfo(reader, checksum,
-                    (names, nodes) => Task.FromResult(
-                        new SpellChecker(checksum, nodes.Select(n => new StringSlice(names, n.NameSpan)))));
+                    nodes => Task.FromResult(new SpellChecker(checksum, nodes.Select(n => n.Name.AsMemory()))));
             }
         }
     }
