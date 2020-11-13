@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../CSharpFeaturesResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../CSharpFeaturesResources.resx">
     <body>
       <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
         <source>Add await and ConfigureAwait(false)</source>
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
         <source>Apply file header preferences</source>
-        <target state="new">Apply file header preferences</target>
+        <target state="translated">套用檔案標題的喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">
