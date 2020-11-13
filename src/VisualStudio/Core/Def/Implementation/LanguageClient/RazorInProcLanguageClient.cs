@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     /// </summary>
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ClientName(ClientName)]
+    [RunOnContext(RunningContext.RunOnHost)]
     [Export(typeof(ILanguageClient))]
     internal class RazorInProcLanguageClient : AbstractInProcLanguageClient
     {
