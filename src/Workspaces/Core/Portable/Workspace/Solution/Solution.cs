@@ -235,6 +235,20 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
+        public ValueTask<SourceGeneratedDocument?> GetSourceGeneratedDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+        {
+            var project = GetProject(documentId.ProjectId);
+
+            if (project == null)
+            {
+                return new(result: null);
+            }
+            else
+            {
+                return project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken);
+            }
+        }
+
         /// <summary>
         /// Gets the document in this solution with the specified syntax tree.
         /// </summary>
