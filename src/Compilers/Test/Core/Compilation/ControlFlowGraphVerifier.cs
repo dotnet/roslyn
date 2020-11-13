@@ -1097,6 +1097,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             }
 
                             CSharpSyntaxNode parent = syntax.Parent;
+                            while (parent is PostfixUnaryExpressionSyntax { OperatorToken: { RawKind: (int)CSharp.SyntaxKind.ExclamationToken } })
+                            {
+                                syntax = parent;
+                                parent = parent.Parent;
+                            }
+
                             switch (parent?.Kind())
                             {
                                 case CSharp.SyntaxKind.ForEachStatement:
