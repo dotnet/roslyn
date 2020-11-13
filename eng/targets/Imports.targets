@@ -181,7 +181,8 @@
     <ItemGroup>
       <Analyzer Remove="@(Analyzer)"
                 Condition="'%(Filename)' == 'Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes'
-                  OR '%(Filename)' == 'Microsoft.VisualStudio.Threading.Analyzers.CodeFixes'"/>
+                  OR '%(Filename)' == 'Microsoft.VisualStudio.Threading.Analyzers.CodeFixes'
+                  OR '%(Filename)' == 'Microsoft.VisualStudio.SDK.Analyzers.CodeFixes'"/>
     </ItemGroup>
   </Target>
 
