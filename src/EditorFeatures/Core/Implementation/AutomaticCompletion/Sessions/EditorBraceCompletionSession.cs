@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion.Sessi
                 return null;
             }
 
-            return _braceCompletionService.GetTextChangeAfterReturnAsync(context, cancellationToken).WaitAndGetResult(cancellationToken);
+            return _braceCompletionService.GetTextChangeAfterReturnAsync(context, supportsVirtualSpace: true, cancellationToken).WaitAndGetResult(cancellationToken);
         }
 
         public virtual bool AllowOverType(IBraceCompletionSession session, CancellationToken cancellationToken)

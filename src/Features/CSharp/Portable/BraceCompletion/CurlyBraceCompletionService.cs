@@ -59,15 +59,18 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             }
 
             // The caret location should be at the start of the closing brace character.
-            return new BraceCompletionResult(ImmutableArray.Create(formattingChanges), newClosingPoint - 1);
+            return new BraceCompletionResult(formattingChanges, newClosingPoint - 1);
         }
 
-        public override async Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext context, CancellationToken cancellationToken, bool supportsVirtualSpace = true)
+        public override async Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext context, bool supportsVirtualSpace, CancellationToken cancellationToken)
         {
             var document = context.Document;
             var closingPoint = context.ClosingPoint;
             var openingPoint = context.OpeningPoint;
-            var originalDocumentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var documentSnapshotText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            // Create a new source text that is not based on an editor snapshot so we can take advantage
+            // of the multi-version text change merging in ChangedText instead of ChangedSnapshotText.
+            var originalDocumentText = SourceText.From(documentSnapshotText.ToString(), documentSnapshotText.Encoding, documentSnapshotText.ChecksumAlgorithm);
 
             // check whether shape of the braces are what we support
             // shape must be either "{|}" or "{ }". | is where caret is. otherwise, we don't do any special behavior
@@ -76,11 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return null;
             }
 
-            using var _ = ArrayBuilder<ImmutableArray<TextChange>>.GetInstance(out var changes);
-
             // Insert a new line between the braces.
             var newLineEdit = new TextChange(new TextSpan(closingPoint - 1, 0), Environment.NewLine);
-            var textWithNewLine = AddTextChanges(originalDocumentText, ImmutableArray.Create(newLineEdit), changes);
+            var textWithNewLine = originalDocumentText.WithChanges(newLineEdit);
 
             // Modify the closing point location to adjust for the newly inserted line.
             closingPoint += Environment.NewLine.Length;
@@ -94,8 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 rules: GetBraceFormattingRules(document),
                 cancellationToken).ConfigureAwait(false);
             closingPoint = newClosingPoint;
-
-            var formattedText = AddTextChanges(textWithNewLine, formattingChanges, changes);
+            var formattedText = textWithNewLine.WithChanges(formattingChanges);
 
             // Get the empty line between the curly braces.
             var desiredCaretLine = GetLineBetweenCurlys(closingPoint, formattedText);
@@ -103,7 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
             if (supportsVirtualSpace)
             {
-                return new BraceCompletionResult(changes.ToImmutable(), desiredCaretLine.Start);
+                var overallChanges = formattedText.GetTextChanges(originalDocumentText).ToImmutableArray();
+                return new BraceCompletionResult(overallChanges, desiredCaretLine.Start);
             }
             else
             {
@@ -115,19 +116,12 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
                 // Insert whitespace for the indentation.
                 var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var indentedTextChange = GetIndentTextChange(indentation, documentOptions);
-
-                var indentedText = AddTextChanges(formattedText, indentedTextChange, changes);
+                var indentedText = GetIndentedText(indentation, documentOptions, formattedText);
 
                 // The caret should be placed at the end of the indented line.
                 var caretLocation = indentedText.Lines[desiredCaretLine.LineNumber].End;
-                return new BraceCompletionResult(changes.ToImmutable(), caretLocation);
-            }
-
-            static SourceText AddTextChanges(SourceText originalText, ImmutableArray<TextChange> textChanges, ArrayBuilder<ImmutableArray<TextChange>> allChanges)
-            {
-                allChanges.Add(textChanges);
-                return originalText.WithChanges(textChanges);
+                var overallChanges = indentedText.GetTextChanges(originalDocumentText).ToImmutableArray();
+                return new BraceCompletionResult(overallChanges, caretLocation);
             }
 
             static TextLine GetLineBetweenCurlys(int closingPosition, SourceText text)
@@ -136,10 +130,11 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return text.Lines[closingBraceLineNumber - 1];
             }
 
-            static ImmutableArray<TextChange> GetIndentTextChange(IndentationResult indentation, DocumentOptionSet documentOptions)
+            static SourceText GetIndentedText(IndentationResult indentation, DocumentOptionSet documentOptions, SourceText originalText)
             {
                 var indentText = indentation.Offset.CreateIndentationString(documentOptions.GetOption(FormattingOptions.UseTabs), documentOptions.GetOption(FormattingOptions.TabSize));
-                return ImmutableArray.Create(new TextChange(new TextSpan(indentation.BasePosition, 0), indentText));
+                var indentTextChange = new TextChange(new TextSpan(indentation.BasePosition, 0), indentText);
+                return originalText.WithChanges(indentTextChange);
             }
         }
 

@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var (service, context) = serviceAndContext.Value;
-            var postReturnEdit = await service.GetTextChangeAfterReturnAsync(context, cancellationToken, supportsVirtualSpace: false).ConfigureAwait(false);
+            var postReturnEdit = await service.GetTextChangeAfterReturnAsync(context, supportsVirtualSpace: false, cancellationToken).ConfigureAwait(false);
             if (postReturnEdit == null)
             {
                 return null;
@@ -148,14 +148,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             static async Task<TextChange> GetCollapsedChangeAsync(BraceCompletionResult result, Document oldDocument, CancellationToken cancellationToken)
             {
                 var documentText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                foreach (var changesForVersion in result.TextChangesPerVersion)
-                {
-                    documentText = documentText.WithChanges(changesForVersion);
-                }
-
-                var newDocument = oldDocument.WithText(documentText);
-                var overallTextChanges = await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false);
-                return Collapse(documentText, overallTextChanges.ToImmutableArray());
+                documentText = documentText.WithChanges(result.TextChanges);
+                return Collapse(documentText, result.TextChanges);
             }
         }
 

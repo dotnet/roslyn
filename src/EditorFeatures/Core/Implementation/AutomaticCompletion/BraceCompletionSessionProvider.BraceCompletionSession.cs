@@ -354,29 +354,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
             private void ApplyBraceCompletionResult(BraceCompletionResult result)
             {
-                // Apply sets of edits incrementally and update the buffer on each set applied.
-                //
-                // The text changes need to be small and incremental to ensure that the
-                // opening and closing brace locations are not in the *middle* of a text change.
-                // Otherwise, the tracking points will move to the start/end
-                // of the text change span and no longer accurately reflect actual open and closing brace.
-                // That causes the brace completion session to close prematurely so overtyping and tab
-                // no longer work properly.
-                foreach (var changes in result.TextChangesPerVersion)
+                using var edit = SubjectBuffer.CreateEdit();
+                foreach (var change in result.TextChanges)
                 {
-                    using var edit = SubjectBuffer.CreateEdit();
-                    foreach (var change in changes)
-                    {
-                        edit.Replace(change.Span.ToSpan(), change.NewText);
-                    }
-
-                    edit.ApplyAndLogExceptions();
-
-                    Debug.Assert(SubjectBuffer.CurrentSnapshot[OpeningPoint.GetPosition(SubjectBuffer.CurrentSnapshot)] == OpeningBrace,
-                    "The opening point does not match the opening brace character");
-                    Debug.Assert(SubjectBuffer.CurrentSnapshot[ClosingPoint.GetPosition(SubjectBuffer.CurrentSnapshot) - 1] == ClosingBrace,
-                    "The closing point does not match the closing brace character");
+                    edit.Replace(change.Span.ToSpan(), change.NewText);
                 }
+
+                edit.ApplyAndLogExceptions();
+
+                Debug.Assert(SubjectBuffer.CurrentSnapshot[OpeningPoint.GetPosition(SubjectBuffer.CurrentSnapshot)] == OpeningBrace,
+                "The opening point does not match the opening brace character");
+                Debug.Assert(SubjectBuffer.CurrentSnapshot[ClosingPoint.GetPosition(SubjectBuffer.CurrentSnapshot) - 1] == ClosingBrace,
+                "The closing point does not match the closing brace character");
 
                 var snapshotPoint = SubjectBuffer.CurrentSnapshot.GetPoint(result.CaretLocation);
                 var line = snapshotPoint.GetContainingLine();

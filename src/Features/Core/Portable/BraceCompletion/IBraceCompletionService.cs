@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         /// <summary>
         /// Get any text changes that should be applied after the enter key is typed inside a brace completion context.
         /// </summary>
-        Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken, bool supportsVirtualSpace = true);
+        Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext braceCompletionContext, bool supportsVirtualSpace, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the brace completion context if the caret is located between an already completed
@@ -55,26 +55,21 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
     internal struct BraceCompletionResult
     {
         /// <summary>
-        /// A list of text changes that should be applied to the original input text in sequential order.
-        /// E.g. Apply the first set of text changes to original text to get a new text, then apply the 
-        /// the second set of text changes to the previous result text, and so on.
-        /// 
-        /// This is required for the editor's implementation of brace completion as they rely on tracking spans
-        /// to know if the brace completion session is active.  So to avoid trampling all over the tracking spans,
-        /// we need to apply the edits incrementally.  Can be removed once brace completion uses LSP locally.
+        /// The set of text changes that should be applied to the input text to retrieve the
+        /// brace completion result.
         /// </summary>
-        public ImmutableArray<ImmutableArray<TextChange>> TextChangesPerVersion { get; }
+        public ImmutableArray<TextChange> TextChanges { get; }
 
         /// <summary>
-        /// The caret location in the new text created by applying all <see cref="TextChangesPerVersion"/>
+        /// The caret location in the new text created by applying all <see cref="TextChanges"/>
         /// to the input text.
         /// </summary>
         public int CaretLocation { get; }
 
-        public BraceCompletionResult(ImmutableArray<ImmutableArray<TextChange>> textChangesPerVersion, int caretLocation)
+        public BraceCompletionResult(ImmutableArray<TextChange> textChanges, int caretLocation)
         {
             CaretLocation = caretLocation;
-            TextChangesPerVersion = textChangesPerVersion;
+            TextChanges = textChanges;
         }
     }
 
