@@ -301,11 +301,8 @@ install=false
 if [[ "$restore" == true || "$test_core_clr" == true ]]; then
   install=true
 fi
-
-echo "path before installing dotnet is: $PATH"
 InitializeDotNetCli $install
 if [[ "$restore" == true ]]; then
-  echo "path after installing dotnet is: $PATH"
   dotnet tool restore
 fi
 
