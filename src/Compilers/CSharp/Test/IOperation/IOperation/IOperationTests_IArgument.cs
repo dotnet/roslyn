@@ -1254,7 +1254,7 @@ IInvocationOperation (void C0.M0([System.String s = ""hello""])) (OperationKind.
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "C0.M0()").WithArguments("int", "string").WithLocation(6, 19)
             };
             var lib0 = CreateCompilation(source0).ToMetadataReference();
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(CreateCompilation(new[] { source1 }, references: new[] { lib0 }), expectedOperationTree, expectedDiagnostics1 );
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(CreateCompilation(new[] { source1 }, references: new[] { lib0 }), expectedOperationTree, expectedDiagnostics1);
 
             CreateCompilation(new[] { source1 }, references: new[] { lib0 }).VerifyEmitDiagnostics(expectedDiagnostics1);
         }
