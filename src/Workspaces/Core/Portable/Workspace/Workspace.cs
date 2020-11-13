@@ -1670,7 +1670,11 @@ namespace Microsoft.CodeAnalysis
                 doc.Name,
                 doc.Folders,
                 sourceDoc != null ? sourceDoc.SourceCodeKind : SourceCodeKind.Regular,
-                filePath: doc.FilePath);
+                loader: null,
+                filePath: doc.FilePath,
+                isGenerated: false,
+                designTimeOnly: false,
+                doc.Services);
         }
 
         /// <summary>

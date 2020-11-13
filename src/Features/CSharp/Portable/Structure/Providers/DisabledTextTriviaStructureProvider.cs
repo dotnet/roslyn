@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class DisabledTextTriviaStructureProvider : AbstractSyntaxTriviaStructureProvider
     {
         public override void CollectBlockSpans(
-            Document document,
             SyntaxTrivia trivia,
             ArrayBuilder<BlockSpan> spans,
+            BlockStructureOptionProvider optionProvider,
             CancellationToken cancellationToken)
         {
             CollectBlockSpans(trivia.SyntaxTree, trivia, spans, cancellationToken);

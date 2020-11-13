@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="AssemblyReferencesNetFramework">
         <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
-        <target state="new">The assembly containing type '{0}' references .NET Framework, which is not supported.</target>
+        <target state="translated">型 '{0}' を含むアセンブリが .NET Framework を参照しています。これはサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
@@ -51,7 +51,7 @@
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
         <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
-        <target state="new">Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
+        <target state="translated">追加ファイルは、基になる 'CompilationWithAnalyzers' に属していません。</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
@@ -126,7 +126,7 @@
       </trans-unit>
       <trans-unit id="SourceTextRequiresEncoding">
         <source>The provided SourceText must have an explicit encoding set.</source>
-        <target state="new">The provided SourceText must have an explicit encoding set.</target>
+        <target state="translated">指定する SourceText には明示的なエンコード セットを含める必要があります。</target>
         <note>'SourceText' is not localizable.</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
@@ -576,12 +576,12 @@
       </trans-unit>
       <trans-unit id="WRN_InvalidGlobalSectionName">
         <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
-        <target state="new">Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</target>
+        <target state="translated">グローバル アナライザー構成セクション名 '{0}' は、絶対パスではないため無効です。セクションは無視されます。セクションはファイル '{1}' で宣言されました。</target>
         <note>{0}: invalid section name, {1} path to global config</note>
       </trans-unit>
       <trans-unit id="WRN_InvalidGlobalSectionName_Title">
         <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
-        <target state="new">Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</target>
+        <target state="translated">グローバル アナライザー構成セクション名は、絶対パスではないため無効です。セクションは無視されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
@@ -853,7 +853,7 @@
       </trans-unit>
       <trans-unit id="NoAnalyzersFound">
         <source>No analyzers found</source>
-        <target state="translated">アナライザーが見つかりません。</target>
+        <target state="translated">アナライザーが見つかりません</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateAnalyzerInstances">
@@ -970,12 +970,12 @@
       </trans-unit>
       <trans-unit id="ElementIsExpected">
         <source>element is expected</source>
-        <target state="translated">要素が必要です。</target>
+        <target state="translated">要素が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="SeparatorIsExpected">
         <source>separator is expected</source>
-        <target state="translated">区切り記号が必要です。</target>
+        <target state="translated">区切り記号が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="TheStreamCannotBeReadFrom">
@@ -985,7 +985,7 @@
       </trans-unit>
       <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
         <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">{0}' の逆シリアル化のリーダーが、正しくない数の値を読み取りました。</target>
+        <target state="translated">'{0}' の逆シリアル化のリーダーが、正しくない数の値を読み取りました。</target>
         <note />
       </trans-unit>
       <trans-unit id="Stream_contains_invalid_data">

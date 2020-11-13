@@ -5,7 +5,6 @@
 #nullable disable
 
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.LanguageServices.CSharp;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
     internal partial class EventHookupCommandHandler :
         ICommandHandler<EscapeKeyCommandArgs>
     {
-        public string DisplayName => CSharpVSResources.Generate_Event_Subscription;
+        public string DisplayName => CSharpEditorResources.Generate_Event_Subscription;
 
         public bool ExecuteCommand(EscapeKeyCommandArgs args, CommandExecutionContext context)
         {

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -15,19 +16,17 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly ArrayBuilder<GeneratedSourceText> _sourcesAdded;
 
+        private readonly string _fileExtension;
+
         private const StringComparison _hintNameComparison = StringComparison.OrdinalIgnoreCase;
 
         private static readonly StringComparer s_hintNameComparer = StringComparer.OrdinalIgnoreCase;
 
-        internal AdditionalSourcesCollection()
+        internal AdditionalSourcesCollection(string fileExtension)
         {
+            Debug.Assert(fileExtension.Length > 0 && fileExtension[0] == '.');
             _sourcesAdded = ArrayBuilder<GeneratedSourceText>.GetInstance();
-        }
-
-        internal AdditionalSourcesCollection(ImmutableArray<GeneratedSourceText> existingSources)
-            : this()
-        {
-            _sourcesAdded.AddRange(existingSources);
+            _fileExtension = fileExtension;
         }
 
         public void Add(string hintName, SourceText source)
@@ -72,6 +71,8 @@ namespace Microsoft.CodeAnalysis
             _sourcesAdded.Add(new GeneratedSourceText(hintName, source));
         }
 
+        public void AddRange(ImmutableArray<GeneratedSourceText> texts) => _sourcesAdded.AddRange(texts);
+
         public void RemoveSource(string hintName)
         {
             hintName = AppendExtensionIfRequired(hintName);
@@ -100,11 +101,11 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<GeneratedSourceText> ToImmutableAndFree() => _sourcesAdded.ToImmutableAndFree();
 
-        private static string AppendExtensionIfRequired(string hintName)
+        private string AppendExtensionIfRequired(string hintName)
         {
-            if (!hintName.EndsWith(".cs", _hintNameComparison))
+            if (!hintName.EndsWith(_fileExtension, _hintNameComparison))
             {
-                hintName = string.Concat(hintName, ".cs");
+                hintName = string.Concat(hintName, _fileExtension);
             }
 
             return hintName;

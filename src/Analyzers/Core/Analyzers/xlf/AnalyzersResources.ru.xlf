@@ -239,7 +239,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression">
         <source>Remove unnecessary suppression</source>
-        <target state="new">Remove unnecessary suppression</target>
+        <target state="translated">Удалить ненужное подавление</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="Simplify_conditional_expression">
         <source>Simplify conditional expression</source>
-        <target state="new">Simplify conditional expression</target>
+        <target state="translated">Упростить условное выражение</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_interpolation">

@@ -34,12 +34,12 @@
       </trans-unit>
       <trans-unit id="Edit_color_scheme">
         <source>Edit color scheme</source>
-        <target state="new">Edit color scheme</target>
+        <target state="translated">Renk düzenini düzenle</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document">
         <source>Format document</source>
-        <target state="new">Format document</target>
+        <target state="translated">Belgeyi biçimlendir</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -51,11 +51,6 @@
         <source>General</source>
         <target state="translated">Genel</target>
         <note>Title of the control group on the General Formatting options page</note>
-      </trans-unit>
-      <trans-unit id="Generate_Event_Subscription">
-        <source>Generate Event Subscription</source>
-        <target state="translated">Olay Aboneliği Oluştur</target>
-        <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
@@ -79,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
-        <target state="new">Pattern matching preferences:</target>
+        <target state="translated">Desen eşleştirme tercihleri:</target>
         <note />
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
@@ -99,12 +94,12 @@
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>
-        <target state="new">Prefer pattern matching</target>
+        <target state="translated">Desen eşleştirmeyi tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching_over_mixed_type_check">
         <source>Prefer pattern matching over mixed type check</source>
-        <target state="new">Prefer pattern matching over mixed type check</target>
+        <target state="translated">Karışık tür denetimi yerine desen eşleştirmeyi tercih edin</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_switch_expression">

@@ -72,12 +72,12 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
         <source>Add project reference to '{0}'.</source>
-        <target state="translated">{0}' üzerine proje başvurusu ekleyin.</target>
+        <target state="translated">'{0}' üzerine proje başvurusu ekleyin.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_reference_to_0">
         <source>Add reference to '{0}'.</source>
-        <target state="translated">{0}' üzerine başvuru ekleyin.</target>
+        <target state="translated">'{0}' üzerine başvuru ekleyin.</target>
         <note />
       </trans-unit>
       <trans-unit id="Actions_can_not_be_empty">
@@ -347,7 +347,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
-        <target state="new">Extract base class...</target>
+        <target state="translated">Temel sınıfı ayıkla...</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_interface">
@@ -502,12 +502,12 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Inline_0">
         <source>Inline '{0}'</source>
-        <target state="new">Inline '{0}'</target>
+        <target state="translated">'{0}' öğesini satır içine al</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
-        <target state="new">Inline and keep '{0}'</target>
+        <target state="translated">'{0}' öğesini satır içine al ve koru</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -542,7 +542,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
-        <target state="new">Make class 'abstract'</target>
+        <target state="translated">Sınıfı 'abstract' yap</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_member_static">
@@ -607,17 +607,17 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
-        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</target>
+        <target state="translated">'{0}' gövdesinin değiştirilmesi, gövdede çok fazla deyim olduğundan hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</target>
+        <target state="translated">'{0}' gövdesinin değiştirilmesi, {1} iç hatası nedeniyle hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
         <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
-        <target state="new">Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</target>
+        <target state="translated">'{0}' kaynak dosyasının değiştirilmesi, dosya çok büyük olduğundan hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -642,7 +642,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">{0} kaynak dosyasının değiştirilmesi şu iç hata nedeniyle hata ayıklama oturumunun devam etmesini engeller: {1}.</target>
+        <target state="translated">'{0}' kaynak dosyasının değiştirilmesi, {1} iç hatası nedeniyle hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -682,7 +682,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Pull_members_up_to_new_base_class">
         <source>Pull member(s) up to new base class...</source>
-        <target state="new">Pull member(s) up to new base class...</target>
+        <target state="translated">Üyeleri yeni temel sınıfa çek...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -1013,7 +1013,7 @@ $ yer işareti \n ile eşleşir, ancak \r\n (satır başı ve yeni satır karakt
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="new">expression</target>
+        <target state="translated">ifade</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
@@ -1283,7 +1283,7 @@ $ yer işareti \n ile eşleşir, ancak \r\n (satır başı ve yeni satır karakt
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="new">name</target>
+        <target state="translated">ad</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
@@ -1383,7 +1383,7 @@ Two or more character ranges can be concatenated. For example, to specify the ra
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="new">no</target>
+        <target state="translated">hayır</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
@@ -1766,7 +1766,7 @@ ECMAScript uyumlu davranış belirtilmişse, \w [a-zA-Z_0-9] ile eşdeğerdir</t
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="new">yes</target>
+        <target state="translated">evet</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
@@ -1832,7 +1832,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Remove_async_modifier">
         <source>Remove 'async' modifier</source>
-        <target state="new">Remove 'async' modifier</target>
+        <target state="translated">'async' değiştiricisini kaldırın</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -2102,12 +2102,12 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
-        <target state="new">'{0}' is not null here.</target>
+        <target state="translated">'{0}' burada null değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
-        <target state="new">'{0}' may be null here.</target>
+        <target state="translated">'{0}' burada null olabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">
@@ -2662,12 +2662,12 @@ If the "M" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Add_optional_parameters_to_0">
         <source>Add optional parameters to '{0}'</source>
-        <target state="translated">{0}' öğesine isteğe bağlı parametreler ekle</target>
+        <target state="translated">'{0}' öğesine isteğe bağlı parametreler ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parameters_to_0">
         <source>Add parameters to '{0}'</source>
-        <target state="translated">{0}' öğesine parametre ekle</target>
+        <target state="translated">'{0}' öğesine parametre ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_delegating_constructor_0_1">
@@ -2702,7 +2702,7 @@ If the "M" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0">
         <source>Generate constructor in '{0}'</source>
-        <target state="translated">{0}' içinde oluşturucu üretin</target>
+        <target state="translated">'{0}' içinde oluşturucu üretin</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_all">
@@ -2777,22 +2777,22 @@ If the "M" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Introduce_field_for_0">
         <source>Introduce field for '{0}'</source>
-        <target state="translated">{0}' için alanı ortaya çıkar</target>
+        <target state="translated">'{0}' için alanı ortaya çıkar</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local_for_0">
         <source>Introduce local for '{0}'</source>
-        <target state="translated">{0}' için yereli ortaya çıkar</target>
+        <target state="translated">'{0}' için yereli ortaya çıkar</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_constant_for_0">
         <source>Introduce constant for '{0}'</source>
-        <target state="translated">{0}' için sabiti ortaya çıkar</target>
+        <target state="translated">'{0}' için sabiti ortaya çıkar</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local_constant_for_0">
         <source>Introduce local constant for '{0}'</source>
-        <target state="translated">{0}' için yerel sabiti ortaya çıkar</target>
+        <target state="translated">'{0}' için yerel sabiti ortaya çıkar</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_field_for_all_occurrences_of_0">
@@ -2822,7 +2822,7 @@ If the "M" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Introduce_query_variable_for_0">
         <source>Introduce query variable for '{0}'</source>
-        <target state="translated">{0}' için sorgu değişkenini ortaya çıkar</target>
+        <target state="translated">'{0}' için sorgu değişkenini ortaya çıkar</target>
         <note />
       </trans-unit>
       <trans-unit id="Anonymous_Types_colon">
@@ -2941,7 +2941,7 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Updating_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' öğesini güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <target state="translated">'{0}' öğesini güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing">
@@ -2961,12 +2961,12 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Ceasing_to_capture_variable_0_will_prevent_the_debug_session_from_continuing">
         <source>Ceasing to capture variable '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' değişkenini yakalamanın durdurulması hata ayıklama oturumunun devam etmesini engeller.</target>
+        <target state="translated">'{0}' değişkenini yakalamanın durdurulması hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_captured_variable_0_will_prevent_the_debug_session_from_continuing">
         <source>Deleting captured variable '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' yakalanan değişkeninin silinmesi hata ayıklama oturumunun devam etmesini engeller.</target>
+        <target state="translated">'{0}' yakalanan değişkeninin silinmesi hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_will_prevent_the_debug_session_from_continuing">
@@ -2976,22 +2976,22 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Changing_the_parameters_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing the parameters of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' parametrelerinin değiştirilmesi hata ayıklama oturumunun devam etmesini engeller.</target>
+        <target state="translated">'{0}' parametrelerinin değiştirilmesi hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_return_type_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing the return type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' dönüş türünün değiştirilmesi hata ayıklama oturumunun devam etmesini engeller.</target>
+        <target state="translated">'{0}' dönüş türünün değiştirilmesi hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing the type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' türünün değiştirilmesi hata ayıklama oturumunun devam etmesini engeller.</target>
+        <target state="translated">'{0}' türünün değiştirilmesi hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing the declaration scope of a captured variable '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' yakalanan değişkeninin bildirim kapsamının değiştirilmesi hata ayıklama oturumunun devam etmesini engeller.</target>
+        <target state="translated">'{0}' yakalanan değişkeninin bildirim kapsamının değiştirilmesi hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
       <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_will_prevent_the_debug_session_from_continuing">
@@ -3016,7 +3016,7 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Adding_0_into_a_1_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">{1}' içine '{0}' ekleme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <target state="translated">'{1}' içine '{0}' ekleme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_session_from_continuing">
@@ -3026,17 +3026,17 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Updating_the_modifiers_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the modifiers of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' öğesinin değiştiricilerini güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <target state="translated">'{0}' öğesinin değiştiricilerini güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the Handles clause of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' öğesinin Handles yan tümcesini güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <target state="translated">'{0}' öğesinin Handles yan tümcesini güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_with_the_Handles_clause_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' with the Handles clause will prevent the debug session from continuing.</source>
-        <target state="translated">{0}', Handles yan tümcesi ile eklendiğinde hata ayıklama oturumunun devam etmesini engeller.</target>
+        <target state="translated">'{0}', Handles yan tümcesi ile eklendiğinde hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_Implements_clause_of_a_0_will_prevent_the_debug_session_from_continuing">
@@ -3051,32 +3051,32 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' öğesinin farkını güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <target state="translated">'{0}' öğesinin farkını güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' öğesinin türünü güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <target state="translated">'{0}' öğesinin türünü güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_initializer_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the initializer of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' öğesinin başlatıcısını güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <target state="translated">'{0}' öğesinin başlatıcısını güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_size_of_a_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the size of a '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' öğesinin boyutunu güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <target state="translated">'{0}' öğesinin boyutunu güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_underlying_type_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the underlying type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' öğesinin temel alınan türünü güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <target state="translated">'{0}' öğesinin temel alınan türünü güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_base_class_and_or_base_interface_s_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the base class and/or base interface(s) of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' öğesinin temel sınıf ve/veya temel arabirimlerini güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <target state="translated">'{0}' öğesinin temel sınıf ve/veya temel arabirimlerini güncelleştirme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_field_to_an_event_or_vice_versa_will_prevent_the_debug_session_from_continuing">
@@ -3111,12 +3111,12 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Renaming_0_will_prevent_the_debug_session_from_continuing">
         <source>Renaming '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' öğesini yeniden adlandırma, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <target state="translated">'{0}' öğesini yeniden adlandırma, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' öğesini ekleme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <target state="translated">'{0}' öğesini ekleme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_an_abstract_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
@@ -3156,12 +3156,12 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Moving_0_will_prevent_the_debug_session_from_continuing">
         <source>Moving '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' öğesinin taşınması, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <target state="translated">'{0}' öğesinin taşınması, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
         <source>Deleting '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' öğesini silme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
+        <target state="translated">'{0}' öğesini silme, hata ayıklama oturumunun devam etmesini engelleyecek.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3281,7 +3281,7 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_will_prevent_the_debug_session_from_continuing">
         <source>Attribute '{0}' is missing. Updating an async method or an iterator will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' özniteliği eksik. Zaman uyumsuz bir metodun veya bir yineleyicinin güncelleştirilmesi, hata ayıklama oturumunun devam etmesini engeller.</target>
+        <target state="translated">'{0}' özniteliği eksik. Zaman uyumsuz bir metodun veya bir yineleyicinin güncelleştirilmesi, hata ayıklama oturumunun devam etmesini engeller.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unexpected_interface_member_kind_colon_0">
@@ -3311,7 +3311,7 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Requested_assembly_already_loaded_from_0">
         <source>Requested assembly already loaded from '{0}'.</source>
-        <target state="translated">{0}' kaynağından zaten yüklenmiş olan derleme istendi.</target>
+        <target state="translated">'{0}' kaynağından zaten yüklenmiş olan derleme istendi.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_symbol_does_not_have_an_icon">
@@ -3360,13 +3360,13 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="Analyzer_0_threw_an_exception_of_type_1_with_message_2">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
-        <target state="translated">{0}' çözümleyicisi '{2}' iletisiyle '{1}' türünde bir özel durum oluşturdu.</target>
+        <target state="translated">'{0}' çözümleyicisi '{2}' iletisiyle '{1}' türünde bir özel durum oluşturdu.</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzer_0_threw_the_following_exception_colon_1">
         <source>Analyzer '{0}' threw the following exception:
 '{1}'.</source>
-        <target state="translated">{0}' çözümleyicisi şu özel durumu oluşturdu:
+        <target state="translated">'{0}' çözümleyicisi şu özel durumu oluşturdu:
 '{1}'.</target>
         <note />
       </trans-unit>
@@ -3467,7 +3467,7 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer">
         <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
-        <target state="translated">{0}' kimliği ile bildirilen tanılama, çözümleyici tarafından desteklenmiyor.</target>
+        <target state="translated">'{0}' kimliği ile bildirilen tanılama, çözümleyici tarafından desteklenmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">
@@ -3740,12 +3740,12 @@ DateTimeOffset değerleri için "K" biçim belirticisi "zzz" biçim belirticisin
       </trans-unit>
       <trans-unit id="Replace_0_and_1_with_property">
         <source>Replace '{0}' and '{1}' with property</source>
-        <target state="translated">{0}' ve '{1}' öğesini özellikle değiştir</target>
+        <target state="translated">'{0}' ve '{1}' öğesini özellikle değiştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_property">
         <source>Replace '{0}' with property</source>
-        <target state="translated">{0}' öğesini özellikle değiştir</target>
+        <target state="translated">'{0}' öğesini özellikle değiştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Method_referenced_implicitly">
@@ -3755,7 +3755,7 @@ DateTimeOffset değerleri için "K" biçim belirticisi "zzz" biçim belirticisin
       </trans-unit>
       <trans-unit id="Generate_type_0">
         <source>Generate type '{0}'</source>
-        <target state="translated">{0}' türünü oluştur</target>
+        <target state="translated">'{0}' türünü oluştur</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_0_1">
@@ -3765,7 +3765,7 @@ DateTimeOffset değerleri için "K" biçim belirticisi "zzz" biçim belirticisin
       </trans-unit>
       <trans-unit id="Change_0_to_1">
         <source>Change '{0}' to '{1}'.</source>
-        <target state="translated">{0}' öğesini '{1}' olarak değiştirin.</target>
+        <target state="translated">'{0}' öğesini '{1}' olarak değiştirin.</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_invoked_method_cannot_be_replaced_with_property">
@@ -3821,7 +3821,7 @@ DateTimeOffset değerleri için "K" biçim belirticisi "zzz" biçim belirticisin
       <trans-unit id="Use_locally_installed_0_version_1_This_version_used_in_colon_2">
         <source>Use locally installed '{0}' version '{1}'
 This version used in: {2}</source>
-        <target state="translated">{0}' uygulamasının yerel olarak yüklü '{1}' sürümünü kullanın
+        <target state="translated">'{0}' uygulamasının yerel olarak yüklü '{1}' sürümünü kullanın
 Bu sürüm şurada kullanılır: {2}</target>
         <note />
       </trans-unit>
@@ -3842,12 +3842,12 @@ Bu sürüm şurada kullanılır: {2}</target>
       </trans-unit>
       <trans-unit id="Install_version_0">
         <source>Install version '{0}'</source>
-        <target state="translated">{0}' sürümünü yükle</target>
+        <target state="translated">'{0}' sürümünü yükle</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_variable_0">
         <source>Generate variable '{0}'</source>
-        <target state="translated">{0}' değişkenini oluştur</target>
+        <target state="translated">'{0}' değişkenini oluştur</target>
         <note />
       </trans-unit>
       <trans-unit id="Classes">
@@ -3932,12 +3932,12 @@ Bu sürüm şurada kullanılır: {2}</target>
       </trans-unit>
       <trans-unit id="Replace_0_with_method">
         <source>Replace '{0}' with method</source>
-        <target state="translated">{0}' yerine metot kullan</target>
+        <target state="translated">'{0}' yerine metot kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_methods">
         <source>Replace '{0}' with methods</source>
-        <target state="translated">{0}' yerine metotlar kullan</target>
+        <target state="translated">'{0}' yerine metotlar kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="Property_referenced_implicitly">
@@ -4002,7 +4002,7 @@ Bu sürüm şurada kullanılır: {2}</target>
       </trans-unit>
       <trans-unit id="Install_package_0">
         <source>Install package '{0}'</source>
-        <target state="translated">{0}' paketini yükle</target>
+        <target state="translated">'{0}' paketini yükle</target>
         <note />
       </trans-unit>
       <trans-unit id="project_0">
@@ -4012,12 +4012,12 @@ Bu sürüm şurada kullanılır: {2}</target>
       </trans-unit>
       <trans-unit id="Fully_qualify_0">
         <source>Fully qualify '{0}'</source>
-        <target state="translated">{0}' adını tam olarak belirtin</target>
+        <target state="translated">'{0}' adını tam olarak belirtin</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_reference_to_0">
         <source>Remove reference to '{0}'.</source>
-        <target state="translated">{0}' başvurusunu kaldırın.</target>
+        <target state="translated">'{0}' başvurusunu kaldırın.</target>
         <note />
       </trans-unit>
       <trans-unit id="Keywords">
@@ -4052,22 +4052,22 @@ Bu sürüm şurada kullanılır: {2}</target>
       </trans-unit>
       <trans-unit id="Remove_document_0">
         <source>Remove document '{0}'</source>
-        <target state="translated">{0}' belgesini kaldır</target>
+        <target state="translated">'{0}' belgesini kaldır</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_document_0">
         <source>Add document '{0}'</source>
-        <target state="translated">{0}' belgesini ekle</target>
+        <target state="translated">'{0}' belgesini ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_argument_name_0">
         <source>Add argument name '{0}'</source>
-        <target state="translated">{0}' bağımsız değişken adını ekle</target>
+        <target state="translated">'{0}' bağımsız değişken adını ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Take_0">
         <source>Take '{0}'</source>
-        <target state="translated">{0}' al</target>
+        <target state="translated">'{0}' al</target>
         <note />
       </trans-unit>
       <trans-unit id="Take_both">
@@ -4127,7 +4127,7 @@ Bu sürüm şurada kullanılır: {2}</target>
       </trans-unit>
       <trans-unit id="Add_parameter_to_0">
         <source>Add parameter to '{0}'</source>
-        <target state="translated">{0}' öğesine parametre ekle</target>
+        <target state="translated">'{0}' öğesine parametre ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor">
@@ -4172,12 +4172,12 @@ Bu sürüm şurada kullanılır: {2}</target>
       </trans-unit>
       <trans-unit id="Initialize_field_0">
         <source>Initialize field '{0}'</source>
-        <target state="translated">{0}' alanını başlat</target>
+        <target state="translated">'{0}' alanını başlat</target>
         <note />
       </trans-unit>
       <trans-unit id="Initialize_property_0">
         <source>Initialize property '{0}'</source>
-        <target state="translated">{0}' özelliğini başlat</target>
+        <target state="translated">'{0}' özelliğini başlat</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_null_checks">
@@ -4242,7 +4242,7 @@ Bu sürüm şurada kullanılır: {2}</target>
       </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">
         <source>Add argument name '{0}' (including trailing arguments)</source>
-        <target state="translated">{0}' bağımsız değişken adını ekle (sondaki bağımsız değişkenler dahil)</target>
+        <target state="translated">'{0}' bağımsız değişken adını ekle (sondaki bağımsız değişkenler dahil)</target>
         <note />
       </trans-unit>
       <trans-unit id="local_function">

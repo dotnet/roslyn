@@ -1234,9 +1234,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rewrittenNode;
         }
 
+        /// <summary>Analyzes a node in a "one-off" context, such as for attributes or parameter default values.</summary>
         internal static void AnalyzeIfNeeded(
             Binder binder,
-            BoundAttribute attribute,
+            BoundNode node,
             DiagnosticBag diagnostics)
         {
             var compilation = binder.Compilation;
@@ -1254,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Analyze(
                 compilation,
                 symbol: null,
-                attribute,
+                node,
                 binder,
                 binder.Conversions,
                 diagnostics,
@@ -2329,27 +2330,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         valueSlot: -1,
                         isDefaultValue: parameter.ExplicitDefaultConstantValue?.IsNull == true);
                 }
-
-                if (parameter.IsOptional)
-                {
-                    // When a parameter has a default value, we initialize its flow state by simulating an assignment of the default value to the parameter.
-                    var syntax = parameter.GetNonNullSyntaxNode();
-                    var rightSyntax = syntax is ParameterSyntax { Default: { Value: { } value } } ? value : syntax;
-                    var right = GetDefaultParameterValue(rightSyntax, parameter);
-
-                    var parameterAnnotations = GetParameterAnnotations(parameter);
-                    var parameterLValueType = ApplyLValueAnnotations(parameterType, parameterAnnotations);
-
-                    var previous = _disableNullabilityAnalysis;
-                    _disableNullabilityAnalysis = true;
-                    VisitOptionalImplicitConversion(right, parameterLValueType, useLegacyWarnings: true, trackMembers: true, assignmentKind: AssignmentKind.Assignment);
-                    _disableNullabilityAnalysis = previous;
-
-                    // If the LHS has annotations, we perform an additional check for nullable value types
-                    CheckDisallowedNullAssignment(ResultType, parameterAnnotations, right.Syntax.Location);
-                    TrackNullableStateForAssignment(right, parameterType, slot, ResultType, MakeSlot(right));
-                }
             }
+        }
+
+        public override BoundNode? VisitParameterEqualsValue(BoundParameterEqualsValue equalsValue)
+        {
+            var parameter = equalsValue.Parameter;
+            var parameterAnnotations = GetParameterAnnotations(parameter);
+            var parameterLValueType = ApplyLValueAnnotations(parameter.TypeWithAnnotations, parameterAnnotations);
+
+            var resultType = VisitOptionalImplicitConversion(
+                equalsValue.Value,
+                parameterLValueType,
+                useLegacyWarnings: false,
+                trackMembers: false,
+                assignmentKind: AssignmentKind.Assignment);
+
+            // If the LHS has annotations, we perform an additional check for nullable value types
+            CheckDisallowedNullAssignment(resultType, parameterAnnotations, equalsValue.Value.Syntax.Location);
+
+            return null;
         }
 
         private static TypeWithState GetParameterState(TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations)

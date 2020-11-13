@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Delete_the_0_statement1">
         <source>Delete the '{0}' statement.</source>
-        <target state="translated">{0}' ステートメントを削除します。</target>
+        <target state="translated">'{0}' ステートメントを削除します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_event_0_in_1">
@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
-        <target state="translated">{0}' ステートメントを行 {1} に移動します。</target>
+        <target state="translated">'{0}' ステートメントを行 {1} に移動します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Delete_the_0_statement2">
         <source>Delete the '{0}' statement.</source>
-        <target state="translated">{0}' ステートメントを削除します。</target>
+        <target state="translated">'{0}' ステートメントを削除します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Multiple_Types">
@@ -269,7 +269,7 @@
       </trans-unit>
       <trans-unit id="all_static_local_usages_defined_in_the_selection_must_be_included_in_the_selection">
         <source>all static local usages defined in the selection must be included in the selection</source>
-        <target state="translated">選択範囲で定義されているすべてのスタティック ローカルの使用法は、選択範囲に含める必要があります。</target>
+        <target state="translated">選択範囲で定義されているすべてのスタティック ローカルの使用法は、選択範囲に含める必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="Implicit_member_access_can_t_be_included_in_the_selection_without_containing_statement">
@@ -314,7 +314,7 @@
       </trans-unit>
       <trans-unit id="No_common_root_node_for_extraction">
         <source>No common root node for extraction</source>
-        <target state="translated">抽出するための一般的なルート ノードがありません。</target>
+        <target state="translated">抽出するための一般的なルート ノードがありません</target>
         <note />
       </trans-unit>
       <trans-unit id="Deprecated">
@@ -855,7 +855,7 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Performs_an_arithmetic_right_shift_on_a_bit_pattern">
         <source>Performs an arithmetic right shift on a bit pattern</source>
-        <target state="translated">ビット パターンに対して算術右シフトを実行します。</target>
+        <target state="translated">ビット パターンに対して算術右シフトを実行します</target>
         <note />
       </trans-unit>
       <trans-unit id="Declares_a_Set_property_procedure_that_is_used_to_assign_a_value_to_a_property">
@@ -1504,12 +1504,12 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Generate_narrowing_conversion_in_0">
         <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">{0}' で縮小変換を生成する</target>
+        <target state="translated">'{0}' で縮小変換を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_widening_conversion_in_0">
         <source>Generate widening conversion in '{0}'</source>
-        <target state="translated">{0}' で拡大変換を生成する</target>
+        <target state="translated">'{0}' で拡大変換を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">
@@ -1689,7 +1689,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Too_many_arguments_to_0">
         <source>Too many arguments to '{0}'.</source>
-        <target state="translated">{0}' の引数が多すぎます。</target>
+        <target state="translated">'{0}' の引数が多すぎます。</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_0_is_not_defined">
