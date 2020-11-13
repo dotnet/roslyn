@@ -297,7 +297,11 @@ function BuildSolution {
     $properties
 }
 
-InitializeDotNetCli [[ $restore == true || $test_core_clr == true ]]
+install=false
+if [[ "$restore" == true || "$test_core_clr" == true ]]; then
+  install=true
+fi
+InitializeDotNetCli $install
 if [[ "$restore" == true ]]; then
   dotnet tool restore
 fi
