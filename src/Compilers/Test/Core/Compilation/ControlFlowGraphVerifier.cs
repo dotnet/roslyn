@@ -309,7 +309,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     validateBranch(block, nextBranch);
                 }
 
-                validateLifetimeOfReferences(block);
 
                 if (currentRegion.LastBlockOrdinal == block.Ordinal && i != blocks.Length - 1)
                 {
@@ -355,9 +354,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
+            var finalGraph = stringBuilder.ToString();
             if (doCaptureVerification)
             {
-                verifyCaptures();
+                verifyCaptures(finalGraph);
+            }
+
+            foreach (var block in blocks)
+            {
+                validateLifetimeOfReferences(block, finalGraph);
             }
 
             regionMap.Free();
@@ -367,13 +372,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             referencedCaptureIds.Free();
             return;
 
-            void verifyCaptures()
+            void verifyCaptures(string finalGraph)
             {
                 var longLivedIds = PooledHashSet<CaptureId>.GetInstance();
                 var referencedIds = PooledHashSet<CaptureId>.GetInstance();
                 var entryStates = ArrayBuilder<PooledHashSet<CaptureId>>.GetInstance(blocks.Length, fillWithValue: null);
                 var regions = ArrayBuilder<ControlFlowRegion>.GetInstance();
-                var finalGraph = stringBuilder.ToString();
 
                 for (int i = 1; i < blocks.Length - 1; i++)
                 {
@@ -1597,7 +1601,7 @@ endRegion:
                 }
             }
 
-            void validateLifetimeOfReferences(BasicBlock block)
+            void validateLifetimeOfReferences(BasicBlock block, string finalGraph)
             {
                 referencedCaptureIds.Clear();
                 referencedLocalsAndMethods.Clear();
@@ -1636,12 +1640,13 @@ endRegion:
 
                 if (referencedLocalsAndMethods.Count != 0)
                 {
-                    Assert.True(false, $"Local/method without owning region {referencedLocalsAndMethods.First().ToTestDisplayString()} in [{getBlockId(block)}]");
+                    ISymbol symbol = referencedLocalsAndMethods.First();
+                    Assert.True(false, $"{(symbol.Kind == SymbolKind.Local ? "Symbol" : "Method")} without owning region {symbol.ToTestDisplayString()} in [{getBlockId(block)}]\n{finalGraph}");
                 }
 
                 if (referencedCaptureIds.Count != 0)
                 {
-                    Assert.True(false, $"Capture [{referencedCaptureIds.First().Value}] without owning region in [{getBlockId(block)}]");
+                    Assert.True(false, $"Capture [{referencedCaptureIds.First().Value}] without owning region in [{getBlockId(block)}]\n{finalGraph}");
                 }
             }
 

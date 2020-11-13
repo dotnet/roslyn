@@ -6296,5 +6296,330 @@ class C : IDisposable
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [Fact]
+        public void UsingDeclaration_LocalFunctionDefinedAfterUsingReferenceBeforeUsing()
+        {
+            var comp = CreateCompilation(@"
+using System;
+
+class C
+{
+    void M()
+    /*<bind>*/{
+        localFunc2();
+        static void localFunc() {}
+
+        using IDisposable i = null;
+        localFunc();
+
+        static void localFunc2() {}
+        localFunc3();
+
+        static void localFunc3() {}
+    }/*</bind>*/
+}
+");
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, @"
+IBlockOperation (7 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  Locals: Local_1: System.IDisposable i
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'localFunc2();')
+    Expression: 
+      IInvocationOperation (void localFunc2()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'localFunc2()')
+        Instance Receiver: 
+          null
+        Arguments(0)
+  ILocalFunctionOperation (Symbol: void localFunc()) (OperationKind.LocalFunction, Type: null) (Syntax: 'static void ... alFunc() {}')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{}')
+        ReturnedValue: 
+          null
+  IUsingDeclarationOperation(IsAsynchronous: False) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'using IDisp ... e i = null;')
+    DeclarationGroup: 
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'using IDisp ... e i = null;')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'IDisposable i = null')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: System.IDisposable i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = null')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= null')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, Constant: null, IsImplicit) (Syntax: 'null')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                      Operand: 
+                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+          Initializer: 
+            null
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'localFunc();')
+    Expression: 
+      IInvocationOperation (void localFunc()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'localFunc()')
+        Instance Receiver: 
+          null
+        Arguments(0)
+  ILocalFunctionOperation (Symbol: void localFunc2()) (OperationKind.LocalFunction, Type: null) (Syntax: 'static void ... lFunc2() {}')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{}')
+        ReturnedValue: 
+          null
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'localFunc3();')
+    Expression: 
+      IInvocationOperation (void localFunc3()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'localFunc3()')
+        Instance Receiver: 
+          null
+        Arguments(0)
+  ILocalFunctionOperation (Symbol: void localFunc3()) (OperationKind.LocalFunction, Type: null) (Syntax: 'static void ... lFunc3() {}')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+      IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '{}')
+        ReturnedValue: 
+          null
+", DiagnosticDescription.None);
+
+            VerifyFlowGraphForTest<BlockSyntax>(comp, @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [System.IDisposable i]
+    Methods: [void localFunc()] [void localFunc2()] [void localFunc3()]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'localFunc2();')
+              Expression: 
+                IInvocationOperation (void localFunc2()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'localFunc2()')
+                  Instance Receiver: 
+                    null
+                  Arguments(0)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.IDisposable, IsImplicit) (Syntax: 'i = null')
+              Left: 
+                ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.IDisposable, IsImplicit) (Syntax: 'i = null')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, Constant: null, IsImplicit) (Syntax: 'null')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (ImplicitReference)
+                  Operand: 
+                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (2)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'localFunc();')
+                  Expression: 
+                    IInvocationOperation (void localFunc()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'localFunc()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'localFunc3();')
+                  Expression: 
+                    IInvocationOperation (void localFunc3()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'localFunc3()')
+                      Instance Receiver: 
+                        null
+                      Arguments(0)
+            Next (Regular) Block[B6]
+                Finalizing: {R4}
+                Leaving: {R3} {R2} {R1}
+    }
+    .finally {R4}
+    {
+        Block[B3] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B5]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i = null')
+                  Operand: 
+                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.IDisposable, IsImplicit) (Syntax: 'i = null')
+            Next (Regular) Block[B4]
+        Block[B4] - Block
+            Predecessors: [B3]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'i = null')
+                  Instance Receiver: 
+                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.IDisposable, IsImplicit) (Syntax: 'i = null')
+                  Arguments(0)
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B3] [B4]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+    
+    {   void localFunc()
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+        Block[B1#0R1] - Exit
+            Predecessors: [B0#0R1]
+            Statements (0)
+    }
+    
+    {   void localFunc2()
+    
+        Block[B0#1R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#1R1]
+        Block[B1#1R1] - Exit
+            Predecessors: [B0#1R1]
+            Statements (0)
+    }
+    
+    {   void localFunc3()
+    
+        Block[B0#2R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#2R1]
+        Block[B1#2R1] - Exit
+            Predecessors: [B0#2R1]
+            Statements (0)
+    }
+}
+Block[B6] - Exit
+    Predecessors: [B2]
+    Statements (0)
+");
+        }
+
+        [Fact]
+        public void UsingDeclaration_LocalDefinedAfterUsingReferenceBeforeUsing()
+        {
+            var comp = CreateCompilation(@"
+using System;
+
+class C
+{
+    void M()
+    /*<bind>*/{
+        _ = local;
+        using IDisposable i = null;
+        object local = null;
+    }/*</bind>*/
+}
+");
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (8,13): error CS0841: Cannot use local variable 'local' before it is declared
+                //         _ = local;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "local").WithArguments("local").WithLocation(8, 13)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, @"
+IBlockOperation (3 statements, 2 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+  Locals: Local_1: System.IDisposable i
+    Local_2: System.Object local
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_ = local;')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: var, IsInvalid) (Syntax: '_ = local')
+        Left: 
+          IDiscardOperation (Symbol: var _) (OperationKind.Discard, Type: var) (Syntax: '_')
+        Right: 
+          ILocalReferenceOperation: local (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'local')
+  IUsingDeclarationOperation(IsAsynchronous: False) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'using IDisp ... e i = null;')
+    DeclarationGroup: 
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'using IDisp ... e i = null;')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'IDisposable i = null')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: System.IDisposable i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = null')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= null')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, Constant: null, IsImplicit) (Syntax: 'null')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                      Operand: 
+                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+          Initializer: 
+            null
+  IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'object local = null;')
+    IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'object local = null')
+      Declarators:
+          IVariableDeclaratorOperation (Symbol: System.Object local) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'local = null')
+            Initializer: 
+              IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= null')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                  Operand: 
+                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+      Initializer: 
+        null
+", expectedDiagnostics);
+
+            VerifyFlowGraphForTest<BlockSyntax>(comp, @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [System.IDisposable i] [System.Object local]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_ = local;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: var, IsInvalid) (Syntax: '_ = local')
+                  Left: 
+                    IDiscardOperation (Symbol: var _) (OperationKind.Discard, Type: var) (Syntax: '_')
+                  Right: 
+                    ILocalReferenceOperation: local (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'local')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.IDisposable, IsImplicit) (Syntax: 'i = null')
+              Left: 
+                ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.IDisposable, IsImplicit) (Syntax: 'i = null')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, Constant: null, IsImplicit) (Syntax: 'null')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (ImplicitReference)
+                  Operand: 
+                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+        Next (Regular) Block[B2]
+            Entering: {R2} {R3}
+    .try {R2, R3}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'local = null')
+                  Left: 
+                    ILocalReferenceOperation: local (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'local = null')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitReference)
+                      Operand: 
+                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+            Next (Regular) Block[B6]
+                Finalizing: {R4}
+                Leaving: {R3} {R2} {R1}
+    }
+    .finally {R4}
+    {
+        Block[B3] - Block
+            Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B5]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i = null')
+                  Operand: 
+                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.IDisposable, IsImplicit) (Syntax: 'i = null')
+            Next (Regular) Block[B4]
+        Block[B4] - Block
+            Predecessors: [B3]
+            Statements (1)
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'i = null')
+                  Instance Receiver: 
+                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.IDisposable, IsImplicit) (Syntax: 'i = null')
+                  Arguments(0)
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B3] [B4]
+            Statements (0)
+            Next (StructuredExceptionHandling) Block[null]
+    }
+}
+Block[B6] - Exit
+    Predecessors: [B2]
+    Statements (0)
+");
+        }
     }
 }

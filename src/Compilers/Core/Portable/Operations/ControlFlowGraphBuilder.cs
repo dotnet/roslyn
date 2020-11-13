@@ -1427,8 +1427,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             switch (operation)
             {
                 case IUsingDeclarationOperation usingDeclarationOperation:
-                    var followingStatements = ImmutableArray.Create(statements, startIndex + 1, statements.Length - startIndex - 1);
-                    VisitUsingVariableDeclarationOperation(usingDeclarationOperation, followingStatements);
+                    VisitUsingVariableDeclarationOperation(usingDeclarationOperation, statements.AsSpan()[(startIndex + 1)..]);
                     return true;
                 case ILabeledOperation { Operation: { } } labelOperation:
                     return visitPossibleUsingDeclarationInLabel(labelOperation);
@@ -6975,14 +6974,31 @@ oneMoreTime:
             return GetCaptureReference(captureOutput, operation);
         }
 
-        private void VisitUsingVariableDeclarationOperation(IUsingDeclarationOperation operation, ImmutableArray<IOperation> statements)
+        private void VisitUsingVariableDeclarationOperation(IUsingDeclarationOperation operation, ReadOnlySpan<IOperation> statements)
         {
             IOperation? saveCurrentStatement = _currentStatement;
             _currentStatement = operation;
             StartVisitingStatement(operation);
 
-            // a using statement introduces a 'logical' block after declaration, we synthesize one here in order to analyze it like a regular using 
-            BlockOperation logicalBlock = BlockOperation.CreateTemporaryBlock(statements, ((Operation)operation).OwningSemanticModel!, operation.Syntax);
+            // a using statement introduces a 'logical' block after declaration, we synthesize one here in order to analyze it like a regular using. Don't include
+            // local functions in this block: they still belong in the containing block. We'll visit any local functions in the list after we visit the statements
+            // in this block.
+            ArrayBuilder<IOperation> statementsBuilder = ArrayBuilder<IOperation>.GetInstance();
+            ArrayBuilder<IOperation>? localFunctionsBuilder = null;
+
+            foreach (var statement in statements)
+            {
+                if (statement.Kind == OperationKind.LocalFunction)
+                {
+                    (localFunctionsBuilder ??= ArrayBuilder<IOperation>.GetInstance()).Add(statement);
+                }
+                else
+                {
+                    statementsBuilder.Add(statement);
+                }
+            }
+
+            BlockOperation logicalBlock = BlockOperation.CreateTemporaryBlock(statementsBuilder.ToImmutableAndFree(), ((Operation)operation).OwningSemanticModel!, operation.Syntax);
 
             HandleUsingOperationParts(
                 resources: operation.DeclarationGroup,
@@ -6992,6 +7008,11 @@ oneMoreTime:
 
             FinishVisitingStatement(operation);
             _currentStatement = saveCurrentStatement;
+
+            if (localFunctionsBuilder != null)
+            {
+                VisitStatements(localFunctionsBuilder.ToImmutableAndFree());
+            }
         }
 
         public IOperation? Visit(IOperation? operation)
