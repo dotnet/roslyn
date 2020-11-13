@@ -572,14 +572,30 @@ public class GenC<T, U> where T : struct, U
 {
     public void Test(T t)
     {
-        T? nt = t;
+        /*<bind>*/T? nt = t;/*</bind>*/
         U valueUn = nt;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
                 // (7,21): error CS0029: Cannot implicitly convert type 'T?' to 'U'
                 //         U valueUn = nt;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "nt").WithArguments("T?", "U"));
+
+            VerifyOperationTreeForTest<LocalDeclarationStatementSyntax>(comp, @"
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'T? nt = t;')
+  IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'T? nt = t')
+    Declarators:
+        IVariableDeclaratorOperation (Symbol: T? nt) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'nt = t')
+          Initializer: 
+            IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= t')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: T?, IsImplicit) (Syntax: 't')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
+    Initializer: 
+      null
+");
         }
 
         [Fact, WorkItem(529280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529280"), WorkItem(546864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546864")]
