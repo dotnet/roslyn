@@ -9543,7 +9543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        [MemberNotNull("_awaitablePlaceholdersOpt")]
+        [MemberNotNull(nameof(_awaitablePlaceholdersOpt))]
         private void EnsureAwaitablePlaceholdersInitialized()
         {
             _awaitablePlaceholdersOpt ??= PooledDictionary<BoundAwaitableValuePlaceholder, (BoundExpression AwaitableExpression, VisitResult Result)>.GetInstance();
