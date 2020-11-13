@@ -523,12 +523,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override MethodSymbol? GetMethod
         {
-            get 
+            get
             {
                 if (_lazyGetMethod is null && (_propertyFlags & Flags.HasGetAccessor) != 0)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    bool isExplicitInterfaceImplementation = IsExplicitInterfaceImplementation; 
+                    bool isExplicitInterfaceImplementation = IsExplicitInterfaceImplementation;
                     var result = CreateGetAccessorSymbol(isAutoPropertyAccessor: IsAutoProperty, isExplicitInterfaceImplementation,
                                                          explicitlyImplementedPropertyOpt: isExplicitInterfaceImplementation ? ExplicitInterfaceImplementations.FirstOrDefault() : null,
                                                          diagnostics);
@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 Debug.Assert((_lazyGetMethod is object) == ((_propertyFlags & Flags.HasGetAccessor) != 0));
-                return _lazyGetMethod; 
+                return _lazyGetMethod;
             }
         }
 
@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 Debug.Assert((_lazySetMethod is object) == ((_propertyFlags & Flags.HasSetAccessor) != 0));
-                return _lazySetMethod; 
+                return _lazySetMethod;
             }
         }
 
@@ -590,8 +590,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations
         {
-            get 
-            { 
+            get
+            {
                 if (IsExplicitInterfaceImplementation)
                 {
                     EnsureSignature();
@@ -601,16 +601,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(_lazyExplicitInterfaceImplementations.IsEmpty);
                 }
 
-                return _lazyExplicitInterfaceImplementations; 
+                return _lazyExplicitInterfaceImplementations;
             }
         }
 
         public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
         {
-            get 
+            get
             {
                 EnsureSignature();
-                return _lazyRefCustomModifiers; 
+                return _lazyRefCustomModifiers;
             }
         }
 
