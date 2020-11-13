@@ -2772,13 +2772,13 @@ Block[B2] - Exit
                 });
             verifyFlowGraphs(analyzer.GetControlFlowGraphs());
 
-            void verifyFlowGraphs(ImmutableArray<ControlFlowGraph> flowGraphs)
+            void verifyFlowGraphs(ImmutableArray<(ControlFlowGraph Graph, ISymbol AssociatedSymbol)> flowGraphs)
             {
                 for (int i = 0; i < expectedFlowGraphs.Length; i++)
                 {
                     string expectedFlowGraph = expectedFlowGraphs[i];
-                    ControlFlowGraph actualFlowGraph = flowGraphs[i];
-                    ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, actualFlowGraph);
+                    (ControlFlowGraph actualFlowGraph, ISymbol associatedSymbol) = flowGraphs[i];
+                    ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, actualFlowGraph, associatedSymbol);
                 }
             }
         }
