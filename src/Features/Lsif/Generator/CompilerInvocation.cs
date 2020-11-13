@@ -6,14 +6,32 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
-    internal static class ProjectGenerator
+    internal class CompilerInvocation
     {
-        public static Project CreateProjectFromCompilerInvocationJson(string jsonContents)
+        public Compilation Compilation { get; }
+        public HostLanguageServices LanguageServices { get; }
+        public string ProjectFilePath { get; }
+        public OptionSet Options { get; }
+
+        public CompilerInvocation(Compilation compilation, HostLanguageServices languageServices, string projectFilePath, OptionSet options)
+        {
+            Compilation = compilation;
+            LanguageServices = languageServices;
+            ProjectFilePath = projectFilePath;
+            Options = options;
+        }
+
+        public static async Task<CompilerInvocation> CreateFromJsonAsync(string jsonContents)
         {
             var invocationInfo = JsonConvert.DeserializeObject<CompilerInvocationInfo>(jsonContents);
 
@@ -62,6 +80,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var commandLineParserService = languageServices.GetRequiredService<ICommandLineParserService>();
             var parsedCommandLine = commandLineParserService.Parse(splitCommandLine, Path.GetDirectoryName(invocationInfo.ProjectFilePath), isInteractive: false, sdkDirectory: null);
 
+            var analyzerLoader = new DefaultAnalyzerAssemblyLoader();
+
             var projectId = ProjectId.CreateNewId(invocationInfo.ProjectFilePath);
 
             var projectInfo = ProjectInfo.Create(
@@ -76,10 +96,15 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 parsedCommandLine.ParseOptions,
                 parsedCommandLine.SourceFiles.Select(s => CreateDocumentInfo(unmappedPath: s.Path)),
                 metadataReferences: parsedCommandLine.MetadataReferences.Select(r => MetadataReference.CreateFromFile(mapPath(r.Reference), r.Properties)),
-                additionalDocuments: parsedCommandLine.AdditionalFiles.Select(f => CreateDocumentInfo(unmappedPath: f.Path)))
+                additionalDocuments: parsedCommandLine.AdditionalFiles.Select(f => CreateDocumentInfo(unmappedPath: f.Path)),
+                analyzerReferences: parsedCommandLine.AnalyzerReferences.Select(r => new AnalyzerFileReference(r.FilePath, analyzerLoader)))
                 .WithAnalyzerConfigDocuments(parsedCommandLine.AnalyzerConfigPaths.Select(CreateDocumentInfo));
 
-            return workspace.AddProject(projectInfo);
+            workspace.AddProject(projectInfo);
+
+            var compilation = await workspace.CurrentSolution.GetProject(projectId)!.GetRequiredCompilationAsync(CancellationToken.None);
+
+            return new CompilerInvocation(compilation, languageServices, invocationInfo.ProjectFilePath, workspace.CurrentSolution.Options);
 
             // Local methods:
             DocumentInfo CreateDocumentInfo(string unmappedPath)

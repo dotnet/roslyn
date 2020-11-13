@@ -10,12 +10,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.MSBuild;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
@@ -121,12 +119,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 if (project.SupportsCompilation && project.FilePath != null)
                 {
                     var compilationCreationStopwatch = Stopwatch.StartNew();
-                    var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
+                    var compilation = (await project.GetCompilationAsync())!;
 
                     await logFile.WriteLineAsync($"Fetch of compilation for {project.FilePath} completed in {compilationCreationStopwatch.Elapsed.ToDisplayString()}.");
 
                     var generationForProjectStopwatch = Stopwatch.StartNew();
-                    lsifGenerator.GenerateForProject(project, compilation);
+                    lsifGenerator.GenerateForCompilation(compilation, project.FilePath, project.LanguageServices, project.Solution.Options);
                     generationForProjectStopwatch.Stop();
 
                     totalTimeInGenerationPhase += generationForProjectStopwatch.Elapsed;
@@ -144,16 +142,14 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             await logFile.WriteLineAsync($"Processing compiler invocation from {compilerInvocationFile.FullName}...");
 
             var compilerInvocationLoadStopwatch = Stopwatch.StartNew();
-            var project = ProjectGenerator.CreateProjectFromCompilerInvocationJson(File.ReadAllText(compilerInvocationFile.FullName));
-            var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
-
+            var compilerInvocation = await CompilerInvocation.CreateFromJsonAsync(File.ReadAllText(compilerInvocationFile.FullName));
             await logFile.WriteLineAsync($"Load of the project completed in {compilerInvocationLoadStopwatch.Elapsed.ToDisplayString()}.");
 
             var generationStopwatch = Stopwatch.StartNew();
             var lsifGenerator = new Generator(lsifWriter);
 
-            lsifGenerator.GenerateForProject(project, compilation);
-            await logFile.WriteLineAsync($"Generation for {project.FilePath} completed in {generationStopwatch.Elapsed.ToDisplayString()}.");
+            lsifGenerator.GenerateForCompilation(compilerInvocation.Compilation, compilerInvocation.ProjectFilePath, compilerInvocation.LanguageServices, compilerInvocation.Options);
+            await logFile.WriteLineAsync($"Generation for {compilerInvocation.ProjectFilePath} completed in {generationStopwatch.Elapsed.ToDisplayString()}.");
         }
     }
 }

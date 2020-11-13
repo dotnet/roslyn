@@ -2,33 +2,67 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     internal static class FoldingRangesHelper
     {
-        public static async Task<FoldingRange[]> GetFoldingRangesAsync(Document document, CancellationToken cancellationToken)
+        public static async Task<FoldingRange[]> GetFoldingRangesAsync(
+            Document document,
+            CancellationToken cancellationToken)
         {
-            var foldingRanges = ArrayBuilder<FoldingRange>.GetInstance();
-
             var blockStructureService = document.Project.LanguageServices.GetService<BlockStructureService>();
             if (blockStructureService == null)
             {
-                return foldingRanges.ToArrayAndFree();
+                return Array.Empty<FoldingRange>();
             }
 
             var blockStructure = await blockStructureService.GetBlockStructureAsync(document, cancellationToken).ConfigureAwait(false);
             if (blockStructure == null)
             {
-                return foldingRanges.ToArrayAndFree();
+                return Array.Empty<FoldingRange>();
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            return GetFoldingRanges(blockStructure, text);
+        }
+
+        public static FoldingRange[] GetFoldingRanges(
+            SyntaxTree syntaxTree,
+            HostLanguageServices languageServices,
+            OptionSet options,
+            bool isMetadataAsSource,
+            CancellationToken cancellationToken)
+        {
+            var blockStructureService = (BlockStructureServiceWithProviders)languageServices.GetRequiredService<BlockStructureService>();
+            var blockStructure = blockStructureService.GetBlockStructure(syntaxTree, options, isMetadataAsSource, cancellationToken);
+            if (blockStructure == null)
+            {
+                return Array.Empty<FoldingRange>();
+            }
+
+            var text = syntaxTree.GetText(cancellationToken);
+            return GetFoldingRanges(blockStructure, text);
+        }
+
+        private static FoldingRange[] GetFoldingRanges(BlockStructure blockStructure, SourceText text)
+        {
+            if (blockStructure.Spans.IsEmpty)
+            {
+                return Array.Empty<FoldingRange>();
+            }
+
+            using var _ = ArrayBuilder<FoldingRange>.GetInstance(out var foldingRanges);
 
             foreach (var span in blockStructure.Spans)
             {
@@ -59,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 });
             }
 
-            return foldingRanges.ToArrayAndFree();
+            return foldingRanges.ToArray();
         }
     }
 }

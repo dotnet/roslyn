@@ -12,24 +12,23 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             ' PortableExecutableReference.CreateFromFile implicitly reads the file so the file must exist.
             Dim referencePath = GetType(Object).Assembly.Location
 
-            Dim project = ProjectGenerator.CreateProjectFromCompilerInvocationJson("
+            Dim compilerInvocation = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
                 {
                     ""tool"": ""csc"",
                     ""arguments"": ""/noconfig /nowarn:1701,1702 /fullpaths /define:DEBUG /reference:" + referencePath.Replace("\", "\\") + " Z:\\SourceFile.cs /target:library /out:Z:\\Output.dll"",
                     ""projectFilePath"": ""Z:\\Project.csproj"",
                     ""sourceRootPath"": ""Z:\\""
                 }")
-            Dim compilation = Await project.GetCompilationAsync()
 
-            Assert.Equal(LanguageNames.CSharp, compilation.Language)
-            Assert.Equal("Z:\Project.csproj", project.FilePath)
-            Assert.Equal(OutputKind.DynamicallyLinkedLibrary, compilation.Options.OutputKind)
+            Assert.Equal(LanguageNames.CSharp, compilerInvocation.Compilation.Language)
+            Assert.Equal("Z:\Project.csproj", compilerInvocation.ProjectFilePath)
+            Assert.Equal(OutputKind.DynamicallyLinkedLibrary, compilerInvocation.Compilation.Options.OutputKind)
 
-            Dim syntaxTree = Assert.Single(compilation.SyntaxTrees)
+            Dim syntaxTree = Assert.Single(compilerInvocation.Compilation.SyntaxTrees)
             Assert.Equal("Z:\SourceFile.cs", syntaxTree.FilePath)
             Assert.Equal("DEBUG", Assert.Single(syntaxTree.Options.PreprocessorSymbolNames))
 
-            Dim metadataReference = Assert.Single(compilation.References)
+            Dim metadataReference = Assert.Single(compilerInvocation.Compilation.References)
 
             Assert.Equal(referencePath, DirectCast(metadataReference, PortableExecutableReference).FilePath)
         End Function
@@ -39,24 +38,23 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             ' PortableExecutableReference.CreateFromFile implicitly reads the file so the file must exist.
             Dim referencePath = GetType(Object).Assembly.Location
 
-            Dim project = ProjectGenerator.CreateProjectFromCompilerInvocationJson("
+            Dim compilerInvocation = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
                 {
                     ""tool"": ""vbc"",
                     ""arguments"": ""/noconfig /nowarn:1701,1702 /fullpaths /define:DEBUG /reference:" + referencePath.Replace("\", "\\") + " Z:\\SourceFile.vb /target:library /out:Z:\\Output.dll"",
                     ""projectFilePath"": ""Z:\\Project.vbproj"",
                     ""sourceRootPath"": ""Z:\\""
                 }")
-            Dim compilation = Await project.GetCompilationAsync()
 
-            Assert.Equal(LanguageNames.VisualBasic, Compilation.Language)
-            Assert.Equal("Z:\Project.vbproj", project.FilePath)
-            Assert.Equal(OutputKind.DynamicallyLinkedLibrary, Compilation.Options.OutputKind)
+            Assert.Equal(LanguageNames.VisualBasic, compilerInvocation.Compilation.Language)
+            Assert.Equal("Z:\Project.vbproj", compilerInvocation.ProjectFilePath)
+            Assert.Equal(OutputKind.DynamicallyLinkedLibrary, compilerInvocation.Compilation.Options.OutputKind)
 
-            Dim syntaxTree = Assert.Single(Compilation.SyntaxTrees)
+            Dim syntaxTree = Assert.Single(compilerInvocation.Compilation.SyntaxTrees)
             Assert.Equal("Z:\SourceFile.vb", syntaxTree.FilePath)
             Assert.Contains("DEBUG", syntaxTree.Options.PreprocessorSymbolNames)
 
-            Dim metadataReference = Assert.Single(Compilation.References)
+            Dim metadataReference = Assert.Single(compilerInvocation.Compilation.References)
 
             Assert.Equal(referencePath, DirectCast(metadataReference, PortableExecutableReference).FilePath)
         End Function
@@ -64,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         <Theory>
         <CombinatorialData>
         Public Async Function TestSourceFilePathMappingWithDriveLetters(<CombinatorialValues("F:", "F:\")> from As String, <CombinatorialValues("T:", "T:\")> [to] As String) As Task
-            Dim project = ProjectGenerator.CreateProjectFromCompilerInvocationJson("
+            Dim compilerInvocation = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
                 {
                     ""tool"": ""csc"",
                     ""arguments"": ""/noconfig /nowarn:1701,1702 /fullpaths /define:DEBUG F:\\SourceFile.cs /target:library /out:F:\\Output.dll"",
@@ -76,16 +74,15 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                              ""to"": """ + [to].Replace("\", "\\") + """
                          }]
                 }")
-            Dim compilation = Await project.GetCompilationAsync()
 
-            Dim syntaxTree = Assert.Single(compilation.SyntaxTrees)
+            Dim syntaxTree = Assert.Single(compilerInvocation.Compilation.SyntaxTrees)
 
             Assert.Equal("T:\SourceFile.cs", syntaxTree.FilePath)
         End Function
 
         <Fact>
         Public Async Function TestSourceFilePathMappingWithSubdirectoriesWithoutTrailingSlashes() As Task
-            Dim project = ProjectGenerator.CreateProjectFromCompilerInvocationJson("
+            Dim compilerInvocation = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
                 {
                     ""tool"": ""csc"",
                     ""arguments"": ""/noconfig /nowarn:1701,1702 /fullpaths /define:DEBUG F:\\Directory\\SourceFile.cs /target:library /out:F:\\Output.dll"",
@@ -97,16 +94,15 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                              ""to"": ""T:\\Directory""
                          }]
                 }")
-            Dim compilation = Await project.GetCompilationAsync()
 
-            Dim syntaxTree = Assert.Single(compilation.SyntaxTrees)
+            Dim syntaxTree = Assert.Single(compilerInvocation.Compilation.SyntaxTrees)
 
             Assert.Equal("T:\Directory\SourceFile.cs", syntaxTree.FilePath)
         End Function
 
         <Fact>
         Public Async Function TestSourceFilePathMappingWithSubdirectoriesWithDoubleSlashesInFilePath() As Task
-            Dim project = ProjectGenerator.CreateProjectFromCompilerInvocationJson("
+            Dim compilerInvocation = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
                 {
                     ""tool"": ""csc"",
                     ""arguments"": ""/noconfig /nowarn:1701,1702 /fullpaths /define:DEBUG F:\\Directory\\\\SourceFile.cs /target:library /out:F:\\Output.dll"",
@@ -118,9 +114,8 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                              ""to"": ""T:\\Directory""
                          }]
                 }")
-            Dim compilation = Await project.GetCompilationAsync()
 
-            Dim syntaxTree = Assert.Single(compilation.SyntaxTrees)
+            Dim syntaxTree = Assert.Single(compilerInvocation.Compilation.SyntaxTrees)
 
             Assert.Equal("T:\Directory\SourceFile.cs", syntaxTree.FilePath)
         End Function
@@ -138,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                 ruleSet.WriteAllText(RuleSetContents)
 
                 ' We will test that if we redirect the ruleset to the temporary file that we wrote that the values are still read.
-                Dim project = ProjectGenerator.CreateProjectFromCompilerInvocationJson("
+                Dim compilerInvocation = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
                     {
                         ""tool"": ""csc"",
                         ""arguments"": ""/noconfig /nowarn:1701,1702 /fullpaths /define:DEBUG /ruleset:F:\\Ruleset.ruleset /out:Output.dll"",
@@ -150,9 +145,8 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                                  ""to"": """ + ruleSet.Path.Replace("\", "\\") + """
                              }]
                     }")
-                Dim compilation = Await project.GetCompilationAsync()
 
-                Assert.Equal(ReportDiagnostic.Warn, compilation.Options.SpecificDiagnosticOptions("CA1001"))
+                Assert.Equal(ReportDiagnostic.Warn, compilerInvocation.Compilation.Options.SpecificDiagnosticOptions("CA1001"))
             End Using
         End Function
     End Class
