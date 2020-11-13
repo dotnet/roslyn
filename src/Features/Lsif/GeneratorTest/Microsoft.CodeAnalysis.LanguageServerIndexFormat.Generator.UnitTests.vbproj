@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\TestSourceGenerator\Microsoft.CodeAnalysis.TestSourceGenerator.csproj" />
     <ProjectReference Include="..\Generator\Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.csproj" />
 
     <!-- Below is the transitive closure of the project references above to placate BuildBoss. If changes are made above this line,
