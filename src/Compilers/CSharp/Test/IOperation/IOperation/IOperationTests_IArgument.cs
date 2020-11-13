@@ -2843,7 +2843,7 @@ IInvocationOperation (void P.M2(System.Int32 x, [S s = null])) (OperationKind.In
             };
 
             var comp = CreateCompilation(source);
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeForTest<InvocationExpressionSyntax>(comp, expectedOperationTree);
             comp.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
@@ -2889,7 +2889,7 @@ IObjectCreationOperation (Constructor: P..ctor(System.Int32 x, [S s = null])) (O
             };
 
             var comp = CreateCompilation(source);
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeForTest<ObjectCreationExpressionSyntax>(comp, expectedOperationTree);
             comp.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
@@ -2938,7 +2938,7 @@ IPropertyReferenceOperation: System.Int32 P.this[System.Int32 index, [S s = null
             };
 
             var comp = CreateCompilation(source);
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeForTest<ElementAccessExpressionSyntax>(comp, expectedOperationTree);
             comp.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
@@ -3993,7 +3993,7 @@ IObjectCreationOperation (Constructor: P..ctor()) (OperationKind.ObjectCreation,
             };
 
             var comp = CreateCompilation(source);
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeForTest<ObjectCreationExpressionSyntax>(comp, expectedOperationTree);
             comp.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
@@ -4031,7 +4031,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
             };
 
             var comp = CreateCompilation(source);
-            VerifyOperationTreeAndDiagnosticsForTest<StatementSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeForTest<StatementSyntax>(comp, expectedOperationTree);
             comp.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
