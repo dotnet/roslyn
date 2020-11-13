@@ -40,7 +40,7 @@ Friend Class ParenthesisBraceCompletionService
         Return token.IsKind(SyntaxKind.CloseParenToken)
     End Function
 
-    Protected Overrides Function CheckOpeningPointAsync(token As SyntaxToken, position As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
+    Protected Overrides Function IsValidOpenBraceTokenAtPositionAsync(token As SyntaxToken, position As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
         If Not IsValidOpeningBraceToken(token) OrElse
                position <> token.SpanStart Then
             Return SpecializedTasks.False

@@ -44,7 +44,7 @@ Friend Class BracketBraceCompletionService
         Return token.IsKind(SyntaxKind.CloseBraceToken)
     End Function
 
-    Protected Overrides Function CheckOpeningPointAsync(token As SyntaxToken, position As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
+    Protected Overrides Function IsValidOpenBraceTokenAtPositionAsync(token As SyntaxToken, position As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
         If position = token.SpanStart AndAlso
                token.Kind = SyntaxKind.BadToken AndAlso
                token.ToString() = Bracket.OpenCharacter Then

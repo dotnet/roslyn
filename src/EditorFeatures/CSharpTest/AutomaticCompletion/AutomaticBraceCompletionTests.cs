@@ -209,6 +209,26 @@ $$
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void ValidLocation_InterpolatedString7()
+        {
+            var code = @"class C
+{
+    string s = $""{}$$
+}";
+
+            var expected = @"class C
+{
+    string s = $""{}{
+}
+}";
+
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 0, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void InvalidLocation_InterpolatedString1()
         {
             var code = @"class C

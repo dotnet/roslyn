@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         protected override bool IsValidClosingBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.CloseParenToken);
 
-        protected override async Task<bool> CheckOpeningPointAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
+        protected override async Task<bool> IsValidOpenBraceTokenAtPositionAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
             // check token at the opening point first

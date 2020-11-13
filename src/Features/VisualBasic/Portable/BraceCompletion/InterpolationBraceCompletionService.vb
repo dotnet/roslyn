@@ -31,7 +31,7 @@ Friend Class InterpolationBraceCompletionService
         End Get
     End Property
 
-    Protected Overrides Function CheckOpeningPointAsync(token As SyntaxToken, position As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
+    Protected Overrides Function IsValidOpenBraceTokenAtPositionAsync(token As SyntaxToken, position As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
         Return Task.FromResult(IsValidOpeningBraceToken(token))
     End Function
 
@@ -40,7 +40,7 @@ Friend Class InterpolationBraceCompletionService
     End Function
 
     Public Overrides Async Function IsValidForBraceCompletionAsync(brace As Char, openingPosition As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
-        Return OpeningBrace = brace And Await IsContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(False)
+        Return OpeningBrace = brace And Await IsPositionInInterpolationContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(False)
     End Function
 
     Protected Overrides Function IsValidOpeningBraceToken(token As SyntaxToken) As Boolean
@@ -52,7 +52,7 @@ Friend Class InterpolationBraceCompletionService
         Return token.IsKind(SyntaxKind.CloseBraceToken)
     End Function
 
-    Public Shared Async Function IsContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of Boolean)
+    Public Shared Async Function IsPositionInInterpolationContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of Boolean)
         If position = 0 Then
             Return False
         End If

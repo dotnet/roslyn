@@ -37,7 +37,7 @@ Friend Class CurlyBraceCompletionService
     End Function
 
     Public Overrides Async Function IsValidForBraceCompletionAsync(brace As Char, openingPosition As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
-        If OpeningBrace = brace And Await InterpolationBraceCompletionService.IsContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(False) Then
+        If OpeningBrace = brace And Await InterpolationBraceCompletionService.IsPositionInInterpolationContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(False) Then
             Return False
         End If
 

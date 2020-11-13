@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         protected override bool IsValidClosingBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.GreaterThanToken);
 
-        protected override async Task<bool> CheckOpeningPointAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
+        protected override async Task<bool> IsValidOpenBraceTokenAtPositionAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
         {
             // check what parser thinks about the newly typed "<" and only proceed if parser thinks it is "<" of 
             // type argument or parameter list

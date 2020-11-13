@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                     return;
                 }
 
-                using var caretPreservingTransaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Brace_Completion, TextView, _undoHistory, _editorOperations);
+                using var caretPreservingTransaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Brace_Completion, _undoHistory, _editorOperations);
 
                 // Apply the change to complete the brace.
                 ApplyBraceCompletionResult(braceResult.Value);
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                         var changesAfterReturn = _session.GetChangesAfterReturn(this, CancellationToken.None);
                         if (changesAfterReturn != null)
                         {
-                            using var caretPreservingTransaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Brace_Completion, TextView, _undoHistory, _editorOperations);
+                            using var caretPreservingTransaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Brace_Completion, _undoHistory, _editorOperations);
                             ApplyBraceCompletionResult(changesAfterReturn.Value);
                             caretPreservingTransaction.Complete();
                         }

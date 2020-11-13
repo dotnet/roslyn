@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
             => SpecializedTasks.True;
 
-        protected override Task<bool> CheckOpeningPointAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
+        public override async Task<bool> IsValidForBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
+            => OpeningBrace == brace && await IsPositionInInterpolationContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(false);
+
+        protected override Task<bool> IsValidOpenBraceTokenAtPositionAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
         {
             return Task.FromResult(IsValidOpeningBraceToken(token)
                 && token.SpanStart == position);
         }
-
-        public override async Task<bool> IsValidForBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
-            => OpeningBrace == brace && await IsCurlyBraceInInterpolationContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(false);
 
         protected override bool IsValidOpeningBraceToken(SyntaxToken token)
             => token.IsKind(SyntaxKind.OpenBraceToken) && token.Parent.IsKind(SyntaxKind.Interpolation);
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override bool IsValidClosingBraceToken(SyntaxToken token)
             => token.IsKind(SyntaxKind.CloseBraceToken);
 
-        public static async Task<bool> IsCurlyBraceInInterpolationContextAsync(Document document, int position, CancellationToken cancellationToken)
+        public static async Task<bool> IsPositionInInterpolationContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
             // First, check to see if the character to the left of the position is an open curly. If it is,
             // we shouldn't complete because the user may be trying to escape a curly.
@@ -73,12 +73,18 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
             // Next, check to see if we're typing in an interpolated string
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
             var token = root.FindTokenOnLeftOfPosition(position);
 
             if (!token.Span.IntersectsWith(position))
             {
                 return false;
+            }
+
+            // For the case: string s = $"{}$$
+            // Here the token to the left is a close brace token inside an interpolation.
+            if (token.IsKind(SyntaxKind.CloseBraceToken) && token.Parent.IsKind(SyntaxKind.Interpolation))
+            {
+                return true;
             }
 
             return token.IsKind(

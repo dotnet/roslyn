@@ -36,7 +36,7 @@ Friend Class StringLiteralBraceCompletionService
     End Function
 
     Public Overrides Async Function IsValidForBraceCompletionAsync(brace As Char, openingPosition As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
-        If (OpeningBrace = brace And Await InterpolatedStringBraceCompletionService.IsContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(False)) Then
+        If (OpeningBrace = brace And Await InterpolatedStringBraceCompletionService.IsPositionInInterpolatedStringContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(False)) Then
             Return False
         End If
 

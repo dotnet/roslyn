@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         public override async Task<bool> IsValidForBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
         {
             // Only potentially valid for string literal completion if not in an interpolated string brace completion context.
-            if (OpeningBrace == brace && await InterpolatedStringBraceCompletionService.IsInInterpolatedStringContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(false))
+            if (OpeningBrace == brace && await InterpolatedStringBraceCompletionService.IsPositionInInterpolatedStringContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(false))
             {
                 return false;
             }
@@ -45,8 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         protected override bool IsValidClosingBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.StringLiteralToken);
 
-
-        protected override Task<bool> CheckOpeningPointAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
+        protected override Task<bool> IsValidOpenBraceTokenAtPositionAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (!IsParentSkippedTokensTrivia(syntaxFactsService, token) || !IsValidOpeningBraceToken(token))

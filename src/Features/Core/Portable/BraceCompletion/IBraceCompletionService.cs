@@ -55,13 +55,6 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
     internal struct BraceCompletionResult
     {
         /// <summary>
-        /// The source text after applying all the relevant brace completion changes.
-        /// This is the same as the result of applying <see cref="TextChangesPerVersion"/>
-        /// in sequential order to the input text.
-        /// </summary>
-        public SourceText SourceText { get; }
-
-        /// <summary>
         /// A list of text changes that should be applied to the original input text in sequential order.
         /// E.g. Apply the first set of text changes to original text to get a new text, then apply the 
         /// the second set of text changes to the previous result text, and so on.
@@ -73,13 +66,13 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         public ImmutableArray<ImmutableArray<TextChange>> TextChangesPerVersion { get; }
 
         /// <summary>
-        /// The caret location in the new text <see cref="SourceText"/>
+        /// The caret location in the new text created by applying all <see cref="TextChangesPerVersion"/>
+        /// to the input text.
         /// </summary>
         public int CaretLocation { get; }
 
-        public BraceCompletionResult(SourceText sourceText, ImmutableArray<ImmutableArray<TextChange>> textChangesPerVersion, int caretLocation)
+        public BraceCompletionResult(ImmutableArray<ImmutableArray<TextChange>> textChangesPerVersion, int caretLocation)
         {
-            SourceText = sourceText;
             CaretLocation = caretLocation;
             TextChangesPerVersion = textChangesPerVersion;
         }

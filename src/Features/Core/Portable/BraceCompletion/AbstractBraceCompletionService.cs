@@ -18,12 +18,20 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
 
         protected abstract char ClosingBrace { get; }
 
+        /// <summary>
+        /// Returns if the token is a valid opening token kind for this brace completion service.
+        /// </summary>
         protected abstract bool IsValidOpeningBraceToken(SyntaxToken token);
 
+        /// <summary>
+        /// Returns if the token is a valid closing token kind for this brace completion service.
+        /// </summary>
         protected abstract bool IsValidClosingBraceToken(SyntaxToken token);
 
+        ///<inheritdoc cref="IBraceCompletionService.AllowOverTypeAsync(BraceCompletionContext, CancellationToken)"/>
         public abstract Task<bool> AllowOverTypeAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken);
 
+        ///<inheritdoc cref="IBraceCompletionService.GetBraceCompletionAsync(BraceCompletionContext, CancellationToken)"/>
         public async Task<BraceCompletionResult?> GetBraceCompletionAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken)
         {
             var closingPoint = braceCompletionContext.ClosingPoint;
@@ -43,24 +51,26 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(openingPoint, findInsideTrivia: true);
-            var validOpeningPoint = await CheckOpeningPointAsync(token, openingPoint, document, cancellationToken).ConfigureAwait(false);
+            var validOpeningPoint = await IsValidOpenBraceTokenAtPositionAsync(token, openingPoint, document, cancellationToken).ConfigureAwait(false);
             if (!validOpeningPoint)
             {
                 return null;
             }
 
             var braceTextEdit = new TextChange(TextSpan.FromBounds(closingPoint, closingPoint), ClosingBrace.ToString());
-            var newText = sourceText.WithChanges(braceTextEdit);
             // The caret location should be right before where the closing brace was inserted.
-            return new BraceCompletionResult(newText, ImmutableArray.Create(ImmutableArray.Create(braceTextEdit)), caretLocation: openingPoint + 1);
+            return new BraceCompletionResult(ImmutableArray.Create(ImmutableArray.Create(braceTextEdit)), caretLocation: openingPoint + 1);
         }
 
+        ///<inheritdoc cref="IBraceCompletionService.GetTextChangesAfterCompletionAsync(BraceCompletionContext, CancellationToken)"/>
         public virtual Task<BraceCompletionResult?> GetTextChangesAfterCompletionAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken)
             => SpecializedTasks.Default<BraceCompletionResult?>();
 
+        ///<inheritdoc cref="IBraceCompletionService.GetTextChangeAfterReturnAsync(BraceCompletionContext, CancellationToken, bool)"/>
         public virtual Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken, bool supportsVirtualSpace = true)
             => SpecializedTasks.Default<BraceCompletionResult?>();
 
+        ///<inheritdoc cref="IBraceCompletionService.IsValidForBraceCompletionAsync(char, int, Document, CancellationToken)"/>
         public virtual async Task<bool> IsValidForBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
         {
             // check that the user is not typing in a string literal or comment
@@ -70,6 +80,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             return OpeningBrace == brace && !syntaxFactsService.IsInNonUserCode(tree, openingPosition, cancellationToken);
         }
 
+        ///<inheritdoc cref="IBraceCompletionService.IsInsideCompletedBraces(int, SyntaxNode, Document)"/>
         public BraceCompletionContext? IsInsideCompletedBraces(int caretLocation, SyntaxNode root, Document document)
         {
             var leftToken = root.FindTokenOnLeftOfPosition(caretLocation);
@@ -83,7 +94,10 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             return null;
         }
 
-        protected virtual Task<bool> CheckOpeningPointAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
+        /// <summary>
+        /// Checks if the already inserted token is a valid opening token at the position in the document.
+        /// </summary>
+        protected virtual Task<bool> IsValidOpenBraceTokenAtPositionAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (!IsParentSkippedTokensTrivia(syntaxFactsService, token))
@@ -94,6 +108,10 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             return Task.FromResult(IsValidOpeningBraceToken(token) && token.SpanStart == position);
         }
 
+        /// <summary>
+        /// Checks that the current position is a valid location.
+        /// Used to determine if overtype should be allowed.
+        /// </summary>
         protected static async Task<bool> CheckCurrentPositionAsync(Document document, int? currentPosition, CancellationToken cancellationToken)
         {
             // make sure auto closing is called from a valid position
@@ -110,6 +128,9 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         protected static bool IsParentSkippedTokensTrivia(ISyntaxFactsService syntaxFactsService, SyntaxToken token)
             => token.Parent != null && !syntaxFactsService.IsSkippedTokensTrivia(token.Parent);
 
+        /// <summary>
+        /// Checks that the token at the closing position is a valid closing token.
+        /// </summary>
         protected async Task<bool> CheckClosingTokenKindAsync(Document document, int closingPosition, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

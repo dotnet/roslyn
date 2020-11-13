@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             => SpecializedTasks.True;
 
         public override async Task<bool> IsValidForBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
-            => OpeningBrace == brace && await IsInInterpolatedStringContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(false);
+            => OpeningBrace == brace && await IsPositionInInterpolatedStringContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(false);
 
         protected override bool IsValidOpeningBraceToken(SyntaxToken leftToken)
             => leftToken.IsKind(SyntaxKind.InterpolatedStringStartToken) || leftToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override bool IsValidClosingBraceToken(SyntaxToken rightToken)
             => rightToken.IsKind(SyntaxKind.InterpolatedStringEndToken);
 
-        protected override Task<bool> CheckOpeningPointAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
+        protected override Task<bool> IsValidOpenBraceTokenAtPositionAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
         {
             return Task.FromResult(IsValidOpeningBraceToken(token)
                 && token.Span.End - 1 == position);
         }
 
-        public static async Task<bool> IsInInterpolatedStringContextAsync(Document document, int position, CancellationToken cancellationToken)
+        public static async Task<bool> IsPositionInInterpolatedStringContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
             // Check to see if we're to the right of an $ or an @$
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
