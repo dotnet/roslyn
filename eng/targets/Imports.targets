@@ -49,15 +49,15 @@
   </PropertyGroup>
 
   <!--
-    PERF: Set default value for 'UseRoslynAnalyzers' to determine if analyzers should be executed.
+    PERF: Set default value for 'RunAnalyzersDuringBuild' to determine if analyzers should be executed.
           Default to 'false' in all non-CI builds to improve local build time (i.e. csc/vbc invocations both inside Visual Studio and from command line prompt), except if:
             1. We are enforcing code style, i.e. '$(RoslynEnforceCodeStyle)' == 'true' OR
             2. We are explicitly running code analysis via "Run Code Analysis" command, i.e. '$(RunCodeAnalysis)' == 'true'.
           Otherwise, default to 'true'.
   -->
-  <PropertyGroup Condition="'$(UseRoslynAnalyzers)' == ''">
-    <UseRoslynAnalyzers Condition="'$(DesignTimeBuild)' != 'true' AND '$(ContinuousIntegrationBuild)' != 'true' AND !('$(RoslynEnforceCodeStyle)' == 'true' OR '$(RunCodeAnalysis)' == 'true')">false</UseRoslynAnalyzers>
-    <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
+  <PropertyGroup Condition="'$(RunAnalyzersDuringBuild)' == ''">
+    <RunAnalyzersDuringBuild Condition="'$(DesignTimeBuild)' != 'true' AND '$(ContinuousIntegrationBuild)' != 'true' AND !('$(RoslynEnforceCodeStyle)' == 'true' OR '$(RunCodeAnalysis)' == 'true')">false</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringBuild Condition="'$(RunAnalyzersDuringBuild)' == ''">true</RunAnalyzersDuringBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DisableNullableWarnings)' == 'true'">
@@ -168,24 +168,13 @@
                  Condition="$(_VersionComparisonResult) &lt; 0"/>
   </Target> 
 
-  <Target Name="DisableAnalyzers"
-          BeforeTargets="CoreCompile"
-          Condition="'$(UseRoslynAnalyzers)' == 'false'">
-    <!--
-      Disable analyzers via an MSBuild property settable on the command line.
-    -->
-    <ItemGroup>
-      <Analyzer Remove="@(Analyzer)" />
-    </ItemGroup>
-  </Target>
-
   <!--
     Work around missing code fix references causing VBCSCompiler.exe to reject compilations.
     https://github.com/dotnet/roslyn/issues/46684
   -->
   <Target Name="ExcludeCodeFixes"
           BeforeTargets="CoreCompile"
-          Condition="'$(UseRoslynAnalyzers)' != 'false' AND '$(BuildingProject)' == 'true'">
+          Condition="'$(BuildingProject)' == 'true'">
     <!--
       Disable analyzers that only provide code fixes.
     -->
