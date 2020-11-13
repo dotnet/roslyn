@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -127,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
                 // Namespace can't be changed if we can't construct a valid qualified identifier from folder names.
                 // In this case, we might still be able to provide refactoring to move file to new location.
-                var namespaceFromFolders = WorkspacePathUtilities.TryBuildNamespaceFromFolders(document.Folders, syntaxFacts);
+                var namespaceFromFolders = SharedWorkspacePathUtilities.TryBuildNamespaceFromFolders(document.Folders, syntaxFacts);
                 var targetNamespace = namespaceFromFolders == null
                     ? null
                     : ConcatNamespace(defaultNamespace, namespaceFromFolders);

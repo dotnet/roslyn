@@ -3,14 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync.NamespaceFileSyncDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.CSharp.CodeFixes.NamespaceSync.CSharpNamespaceSyncCodeFixProvider>;
-using Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync;
-using Microsoft.CodeAnalysis.Options;
 using System.IO;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.NamespaceFileSync

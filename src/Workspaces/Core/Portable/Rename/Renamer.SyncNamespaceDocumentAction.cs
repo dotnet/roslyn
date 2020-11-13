@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (document.Project.Language == LanguageNames.CSharp)
                 {
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                    var targetNamespace = WorkspacePathUtilities.TryBuildNamespaceFromFolders(newFolders, syntaxFacts);
+                    var targetNamespace = SharedWorkspacePathUtilities.TryBuildNamespaceFromFolders(newFolders, syntaxFacts);
 
                     if (targetNamespace is null)
                     {
