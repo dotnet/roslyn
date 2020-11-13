@@ -39,7 +39,7 @@
          repository. This must be lower than MicrosoftNetCompilersToolsetVersion,
          but not higher than our minimum dogfoodable Visual Studio version, or else
          the generators we build would load on the command line but not load in IDEs. -->
-    <SourceGeneratorMicrosoftCodeAnalysisVersion>3.8.0-3.final</SourceGeneratorMicrosoftCodeAnalysisVersion>
+    <SourceGeneratorMicrosoftCodeAnalysisVersion>3.8.0</SourceGeneratorMicrosoftCodeAnalysisVersion>
   </PropertyGroup>
   <!--
     Dependency versions
