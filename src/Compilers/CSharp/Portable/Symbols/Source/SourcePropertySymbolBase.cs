@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (!diagnostics.IsEmptyWithoutResolution)
             {
-                DiagnosticBag destination = _lazyDiagnosticBag;
+                DiagnosticBag? destination = _lazyDiagnosticBag;
                 if (destination is null)
                 {
                     var newBag = new DiagnosticBag();
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PropertySymbol? explicitlyImplementedPropertyOpt,
             DiagnosticBag diagnostics);
 
-        public sealed override MethodSymbol GetMethod
+        public sealed override MethodSymbol? GetMethod
         {
             get 
             {
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override MethodSymbol SetMethod
+        public sealed override MethodSymbol? SetMethod
         {
             get
             {
@@ -724,6 +724,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (hasGetAccessor && hasSetAccessor)
                 {
+                    Debug.Assert(_lazyGetMethod is object);
+                    Debug.Assert(_lazySetMethod is object);
+
                     if (_refKind != RefKind.None)
                     {
                         diagnostics.Add(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, _lazySetMethod.Locations[0], _lazySetMethod);

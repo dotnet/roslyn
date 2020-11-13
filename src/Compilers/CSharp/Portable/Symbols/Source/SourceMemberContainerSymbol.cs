@@ -3320,6 +3320,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         existingOrAddedMembers.Add(property);
                         members.Add(property);
+                        Debug.Assert(property.GetMethod is object);
+                        Debug.Assert(property.SetMethod is object);
                         members.Add(property.GetMethod);
                         members.Add(property.SetMethod);
                         members.Add(property.BackingField);
