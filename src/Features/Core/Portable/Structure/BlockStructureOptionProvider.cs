@@ -5,10 +5,6 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#endif
-
 namespace Microsoft.CodeAnalysis.Structure
 {
     internal sealed class BlockStructureOptionProvider
@@ -24,13 +20,6 @@ namespace Microsoft.CodeAnalysis.Structure
         public bool IsMetadataAsSource { get; }
 
         public T GetOption<T>(PerLanguageOption2<T> option, string language)
-        {
-#if CODE_STYLE
-            _options.TryGetEditorConfigOptionOrDefault<T>(option, out var value);
-            return value;
-#else
-            return _options.GetOption(option, language);
-#endif
-        }
+            => _options.GetOption(option, language);
     }
 }

@@ -5,14 +5,77 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
-    internal static class BlockStructureHelpers
+    internal abstract class BlockStructureServiceWithProviders : BlockStructureService
     {
-        public static async Task<BlockStructure> GetBlockStructureAsync(
+        private readonly Workspace _workspace;
+        private readonly ImmutableArray<BlockStructureProvider> _providers;
+
+        protected BlockStructureServiceWithProviders(Workspace workspace)
+        {
+            _workspace = workspace;
+            _providers = GetBuiltInProviders().Concat(GetImportedProviders());
+        }
+
+        /// <summary>
+        /// Returns the providers always available to the service.
+        /// This does not included providers imported via MEF composition.
+        /// </summary>
+        protected virtual ImmutableArray<BlockStructureProvider> GetBuiltInProviders()
+            => ImmutableArray<BlockStructureProvider>.Empty;
+
+        private ImmutableArray<BlockStructureProvider> GetImportedProviders()
+        {
+            var language = Language;
+            var mefExporter = (IMefHostExportProvider)_workspace.Services.HostServices;
+
+            var providers = mefExporter.GetExports<BlockStructureProvider, LanguageMetadata>()
+                                       .Where(lz => lz.Metadata.Language == language)
+                                       .Select(lz => lz.Value);
+
+            return providers.ToImmutableArray();
+        }
+
+        public override async Task<BlockStructure> GetBlockStructureAsync(
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            var context = await CreateContextAsync(document, cancellationToken).ConfigureAwait(false);
+            return await GetBlockStructureAsync(context).ConfigureAwait(false);
+        }
+
+        public override BlockStructure GetBlockStructure(
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            var context = CreateContextAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+            return GetBlockStructure(context);
+        }
+
+        public async Task<BlockStructure> GetBlockStructureAsync(BlockStructureContext context)
+            => await GetBlockStructureAsync(context, _providers).ConfigureAwait(false);
+
+        public BlockStructure GetBlockStructure(BlockStructureContext context)
+            => GetBlockStructure(context, _providers);
+
+        private static async Task<BlockStructureContext> CreateContextAsync(Document document, CancellationToken cancellationToken)
+        {
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var options = document.Project.Solution.Options;
+            var isMetadataAsSource = document.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
+            var optionProvider = new BlockStructureOptionProvider(options, isMetadataAsSource);
+            return new BlockStructureContext(syntaxTree, optionProvider, cancellationToken);
+        }
+
+        private static async Task<BlockStructure> GetBlockStructureAsync(
             BlockStructureContext context,
             ImmutableArray<BlockStructureProvider> providers)
         {
@@ -24,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Structure
             return CreateBlockStructure(context);
         }
 
-        public static BlockStructure GetBlockStructure(
+        private static BlockStructure GetBlockStructure(
             BlockStructureContext context,
             ImmutableArray<BlockStructureProvider> providers)
         {
