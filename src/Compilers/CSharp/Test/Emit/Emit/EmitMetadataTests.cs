@@ -1294,7 +1294,7 @@ class C : B<string>
             {
                 if (property is SourcePropertySymbol sourceProperty)
                 {
-                    Assert.True(sourceProperty.IsAutoProperty);
+                    Assert.True(sourceProperty.IsAutoPropertyWithGetAccessor);
                 }
             }
             else
