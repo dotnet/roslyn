@@ -32,25 +32,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     // Overwrite the compiled method to just return
 
-                    var offset = 0;
-
-                    // push ebp
-                    Marshal.WriteByte(functionPointer, offset++, 0x55);
-
-                    // mov ebp,esp
-                    Marshal.WriteByte(functionPointer, offset++, 0x8B);
-                    Marshal.WriteByte(functionPointer, offset++, 0xEC);
-
-                    // lea esp,[ebp-8]
-                    Marshal.WriteByte(functionPointer, offset++, 0x8D);
-                    Marshal.WriteByte(functionPointer, offset++, 0x65);
-                    Marshal.WriteByte(functionPointer, offset++, 0xF8);
-
-                    // pop ebp
-                    Marshal.WriteByte(functionPointer, offset++, 0x5D);
-
                     // ret
-                    Marshal.WriteByte(functionPointer, offset++, 0xC3);
+                    Marshal.WriteByte(functionPointer, 0xC3);
                 }
                 else
                 {
