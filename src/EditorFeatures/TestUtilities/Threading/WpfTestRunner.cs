@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,7 +29,7 @@ namespace Roslyn.Test.Utilities
     public sealed class WpfTestRunner : XunitTestRunner
     {
         private static readonly ImmutableDictionary<string, TestInfo> _passedTests;
-        private static string s_wpfFactRequirementReason;
+        private static string? s_wpfFactRequirementReason;
 
         public WpfTestSharedData SharedData { get; }
 
@@ -61,35 +59,31 @@ namespace Roslyn.Test.Utilities
             var sta = StaTaskScheduler.DefaultSta;
             var task = Task.Factory.StartNew(async () =>
             {
-                Debug.Assert(sta.StaThread == Thread.CurrentThread);
+                using var _ = await SharedData.TestSerializationGate.DisposableWaitAsync(CancellationToken.None);
 
-                using (await SharedData.TestSerializationGate.DisposableWaitAsync(CancellationToken.None))
+                // Reset our flag ensuring that part of this test actually needs WpfFact
+                s_wpfFactRequirementReason = null;
+
+                if (_passedTests.TryGetValue(Test.DisplayName, out var info))
                 {
-                    try
+                    return info.Time;
+                }
+                else
+                {
+                    var tcs = new TaskCompletionSource<decimal>();
+                    sta.Post(() =>
                     {
+                        Debug.Assert(sta.StaThread == Thread.CurrentThread);
                         Debug.Assert(SynchronizationContext.Current is DispatcherSynchronizationContext);
 
-                        // Reset our flag ensuring that part of this test actually needs WpfFact
-                        s_wpfFactRequirementReason = null;
+                        // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
+                        var invoker = new XunitTestInvoker(Test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, BeforeAfterAttributes, aggregator, CancellationTokenSource);
+                        tcs.SetResult(invoker.RunAsync().JoinUsingDispatcher(CancellationTokenSource.Token));
+                    });
 
-                        if (_passedTests.TryGetValue(Test.DisplayName, out var info))
-                        {
-                            return info.Time;
-                        }
-                        else
-                        {
-                            // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
-                            var invoker = new XunitTestInvoker(Test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, BeforeAfterAttributes, aggregator, CancellationTokenSource);
-                            return invoker.RunAsync().JoinUsingDispatcher(CancellationTokenSource.Token);
-                        }
-                    }
-                    finally
-                    {
-                        // Cleanup the synchronization context even if the test is failing exceptionally
-                        SynchronizationContext.SetSynchronizationContext(null);
-                    }
+                    return await tcs.Task;
                 }
-            }, CancellationTokenSource.Token, TaskCreationOptions.None, new SynchronizationContextTaskScheduler(sta.DispatcherSynchronizationContext));
+            }, CancellationTokenSource.Token, TaskCreationOptions.None, TaskScheduler.Default);
 
             return task.Unwrap();
         }
