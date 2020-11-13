@@ -60,22 +60,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        protected override async Task<bool> ShouldProvideParenthesisCompletionAsync(
+        protected override Task<bool> ShouldProvideParenthesisCompletionAsync(
             Document document,
-            int position,
-            ISymbol? symbol,
+            CompletionItem item,
             char? commitKey,
             CancellationToken cancellationToken)
-        {
-            if (commitKey == ';')
-            {
-                var typeInferenceService = document.GetRequiredLanguageService<ITypeInferenceService>();
-                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-                var inferredTypes = typeInferenceService.InferTypes(semanticModel, position, cancellationToken);
-                return !inferredTypes.Any(type => type.IsDelegateType());
-            }
-
-            return false;
-        }
+        // Ideally we should check if the inferred type for this location is delegate to decide whether to add parenthesis or not
+        // However, for an extension method like
+        // static class C { public static int ToInt(this Bar b) => 1; }
+        // it can only be used as like: bar.ToInt();
+        // bar.ToInt is illegal since it can't be assign to delegate.
+        // Therefore at here we always assume the user always wants to add parenthesis.
+            => Task.FromResult(commitKey == ';');
     }
 }

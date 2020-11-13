@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return isGeneric ? item.AddProperty("IsGeneric", isGeneric.ToString()) : item;
         }
 
-        public static CompletionItem AddShouldProvideParenthesisCompletion(CompletionItem item, bool value)
-            => value ? item.AddProperty("ShouldProvideParenthesisCompletion", true.ToString()) : item;
+        public static CompletionItem AddShouldProvideParenthesisCompletion(CompletionItem item)
+            => item.AddProperty("ShouldProvideParenthesisCompletion", true.ToString());
 
         public static bool GetShouldProvideParenthesisCompletion(CompletionItem item)
         {

@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var isInferredTypeDelegate = context.InferredTypes.Any(type => type.IsDelegateType());
                 if (!isInferredTypeDelegate)
                 {
-                    item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item, true);
+                    item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
                 }
             }
             else if (symbol.IsKind(SymbolKind.NamedType) || symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.IsType)
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (isObjectCreationTypeContext)
                 {
-                    item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item, true);
+                    item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
                 }
             }
 

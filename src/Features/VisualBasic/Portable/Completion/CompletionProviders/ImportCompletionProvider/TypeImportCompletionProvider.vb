@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return False
         End Function
 
-        Protected Overrides Function ShouldProvideParenthesisCompletionAsync(document As Document, position As Integer, symbol As ISymbol, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of Boolean)
+        Protected Overrides Function ShouldProvideParenthesisCompletionAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of Boolean)
             Return Task.FromResult(False)
         End Function
     End Class

@@ -129,12 +129,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return CompletionDescription.Empty;
         }
 
-        public static ISymbol? GetSymbol(CompletionItem item, Compilation compilation)
-        {
-            var (symbol, _) = GetSymbolAndOverloadCount(item, compilation);
-            return symbol;
-        }
-
         private static string GetFullyQualifiedName(string namespaceName, string typeName)
             => namespaceName.Length == 0 ? typeName : namespaceName + "." + typeName;
 

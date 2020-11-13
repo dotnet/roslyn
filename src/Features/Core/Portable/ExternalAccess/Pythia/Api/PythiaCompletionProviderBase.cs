@@ -53,6 +53,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
         public static CompletionDescription GetDescription(CompletionItem item)
             => CommonCompletionItem.GetDescription(item);
 
+        public static bool GetShouldProvideParenthesisCompletion(CompletionItem item)
+            => SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item);
+
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
             => base.GetChangeAsync(document, item, commitKey, cancellationToken);
     }

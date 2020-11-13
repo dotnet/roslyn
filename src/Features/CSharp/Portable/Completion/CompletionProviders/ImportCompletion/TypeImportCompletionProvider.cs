@@ -57,11 +57,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        protected override async Task<bool> ShouldProvideParenthesisCompletionAsync(Document document, int position, ISymbol? symbol, char? commitKey, CancellationToken cancellationToken)
+        protected override async Task<bool> ShouldProvideParenthesisCompletionAsync(
+            Document document,
+            CompletionItem item,
+            char? commitKey,
+            CancellationToken cancellationToken)
         {
             if (commitKey == ';')
             {
                 // Only consider add '()' if the type is used under object creation context
+                var position = item.Span.Start;
                 var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
                 return syntaxTree.IsObjectCreationTypeContext(position, leftToken, cancellationToken);

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext);
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken);
         protected abstract bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token);
-        protected abstract Task<bool> ShouldProvideParenthesisCompletionAsync(Document document, int position, ISymbol? symbol, char? commitKey, CancellationToken cancellationToken);
+        protected abstract Task<bool> ShouldProvideParenthesisCompletionAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken);
 
         // For telemetry reporting
         protected abstract void LogCommit();
@@ -109,15 +109,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             LogCommit();
             var containingNamespace = ImportCompletionItem.GetContainingNamespace(completionItem);
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var symbol = ImportCompletionItem.GetSymbol(completionItem, compilation);
-
             var provideParenthesisCompletion = await ShouldProvideParenthesisCompletionAsync(
                 document,
-                completionItem.Span.Start,
-                symbol,
+                completionItem,
                 commitKey,
                 cancellationToken).ConfigureAwait(false);
+
             var insertText = provideParenthesisCompletion
                 ? completionItem.DisplayText + "()"
                 : completionItem.DisplayText;
@@ -141,6 +138,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var allowInHiddenRegions = document.CanAddImportsInHiddenRegions();
             var importNode = CreateImport(document, containingNamespace);
 
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode!, importNode, generator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
             var documentWithImport = document.WithSyntaxRoot(rootWithImport);
             // This only formats the annotated import we just added, not the entire document.
