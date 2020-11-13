@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Structure
         {
             try
             {
-                var syntaxRoot = context.Document.GetSyntaxRootSynchronously(context.CancellationToken);
+                var syntaxRoot = context.SyntaxTree.GetRoot(context.CancellationToken);
 
                 ProvideBlockStructureWorker(context, syntaxRoot);
             }
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Structure
         {
             try
             {
-                var syntaxRoot = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+                var syntaxRoot = await context.SyntaxTree.GetRootAsync(context.CancellationToken).ConfigureAwait(false);
 
                 ProvideBlockStructureWorker(context, syntaxRoot);
             }
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Structure
         {
             using var _ = ArrayBuilder<BlockSpan>.GetInstance(out var spans);
             BlockSpanCollector.CollectBlockSpans(
-                context.Document, syntaxRoot, _nodeProviderMap, _triviaProviderMap, spans, context.CancellationToken);
+                syntaxRoot, context.OptionProvider, _nodeProviderMap, _triviaProviderMap, spans, context.CancellationToken);
 
             foreach (var span in spans)
             {

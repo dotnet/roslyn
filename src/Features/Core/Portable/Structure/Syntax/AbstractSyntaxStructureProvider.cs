@@ -12,15 +12,15 @@ namespace Microsoft.CodeAnalysis.Structure
     internal abstract class AbstractSyntaxStructureProvider
     {
         public abstract void CollectBlockSpans(
-            Document document,
             SyntaxNode node,
             ArrayBuilder<BlockSpan> spans,
+            BlockStructureOptionProvider optionProvider,
             CancellationToken cancellationToken);
 
         public abstract void CollectBlockSpans(
-            Document document,
             SyntaxTrivia trivia,
             ArrayBuilder<BlockSpan> spans,
+            BlockStructureOptionProvider optionProvider,
             CancellationToken cancellationToken);
     }
 }
