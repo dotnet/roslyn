@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class ControlFlowGraphVerifier
     {
-        public static ControlFlowGraph GetControlFlowGraph(SyntaxNode syntaxNode, SemanticModel model)
+        public static (ControlFlowGraph graph, ISymbol associatedSymbol) GetControlFlowGraph(SyntaxNode syntaxNode, SemanticModel model)
         {
             IOperation operationRoot = model.GetOperation(syntaxNode);
 
@@ -65,17 +65,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     break;
 
                 default:
-                    return null;
+                    return default;
             }
 
             Assert.NotNull(graph);
             Assert.Same(operationRoot, graph.OriginalOperation);
-            return graph;
+            var declaredSymbol = model.GetDeclaredSymbol(operationRoot.Syntax);
+            return (graph, declaredSymbol);
         }
 
-        public static void VerifyGraph(Compilation compilation, string expectedFlowGraph, ControlFlowGraph graph)
+        public static void VerifyGraph(Compilation compilation, string expectedFlowGraph, ControlFlowGraph graph, ISymbol associatedSymbol)
         {
-            var actualFlowGraph = GetFlowGraph(compilation, graph);
+            var actualFlowGraph = GetFlowGraph(compilation, graph, associatedSymbol);
             OperationTreeVerifier.Verify(expectedFlowGraph, actualFlowGraph);
 
             // Basic block reachability analysis verification using a test-only dataflow analyzer
@@ -89,18 +90,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public static string GetFlowGraph(Compilation compilation, ControlFlowGraph graph)
+        public static string GetFlowGraph(Compilation compilation, ControlFlowGraph graph, ISymbol associatedSymbol)
         {
             var pooledBuilder = PooledObjects.PooledStringBuilder.GetInstance();
             var stringBuilder = pooledBuilder.Builder;
 
-            GetFlowGraph(pooledBuilder.Builder, compilation, graph, enclosing: null, idSuffix: "", indent: 0);
+            GetFlowGraph(pooledBuilder.Builder, compilation, graph, enclosing: null, idSuffix: "", indent: 0, associatedSymbol);
 
             return pooledBuilder.ToStringAndFree();
         }
 
         private static void GetFlowGraph(System.Text.StringBuilder stringBuilder, Compilation compilation, ControlFlowGraph graph,
-                                         ControlFlowRegion enclosing, string idSuffix, int indent)
+                                         ControlFlowRegion enclosing, string idSuffix, int indent, ISymbol associatedSymbol)
         {
             ImmutableArray<BasicBlock> blocks = graph.Blocks;
 
@@ -1480,7 +1481,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     var g = graph.GetLocalFunctionControlFlowGraph(method);
                     localFunctionsMap.Add(method, g);
                     Assert.Equal(OperationKind.LocalFunction, g.OriginalOperation.Kind);
-                    GetFlowGraph(stringBuilder, compilation, g, region, $"#{i}{regionId}", indent + 4);
+                    GetFlowGraph(stringBuilder, compilation, g, region, $"#{i}{regionId}", indent + 4, associatedSymbol);
                     appendLine("}");
                 }
 
@@ -1656,30 +1657,54 @@ endRegion:
                 {
                     IMethodSymbol method;
 
-                    switch (node.Kind)
+                    switch (node)
                     {
-                        case OperationKind.LocalReference:
-                            referencedLocalsAndMethods.Add(((ILocalReferenceOperation)node).Local);
+                        case ILocalReferenceOperation localReference:
+                            if (localReference.Local.ContainingSymbol.IsTopLevelMainMethod() && !associatedSymbol.IsTopLevelMainMethod())
+                            {
+                                // Top-level locals can be referenced from locations in the same file that are not actually the top
+                                // level main. For these cases, we want to treat them like fields for the purposes of references,
+                                // as they are not declared in this method and have no owning region
+                                break;
+                            }
+
+                            referencedLocalsAndMethods.Add(localReference.Local);
                             break;
-                        case OperationKind.MethodReference:
-                            method = ((IMethodReferenceOperation)node).Method;
+                        case IMethodReferenceOperation methodReference:
+                            method = methodReference.Method;
                             if (method.MethodKind == MethodKind.LocalFunction)
                             {
+                                if (method.ContainingSymbol.IsTopLevelMainMethod() && !associatedSymbol.IsTopLevelMainMethod())
+                                {
+                                    // Top-level local functions can be referenced from locations in the same file that are not actually the top
+                                    // level main. For these cases, we want to treat them like class methods for the purposes of references,
+                                    // as they are not declared in this method and have no owning region
+                                    break;
+                                }
+
                                 referencedLocalsAndMethods.Add(method.OriginalDefinition);
                             }
                             break;
-                        case OperationKind.Invocation:
-                            method = ((IInvocationOperation)node).TargetMethod;
+                        case IInvocationOperation invocation:
+                            method = invocation.TargetMethod;
                             if (method.MethodKind == MethodKind.LocalFunction)
                             {
+                                if (method.ContainingSymbol.IsTopLevelMainMethod() && !associatedSymbol.IsTopLevelMainMethod())
+                                {
+                                    // Top-level local functions can be referenced from locations in the same file that are not actually the top
+                                    // level main. For these cases, we want to treat them like class methods for the purposes of references,
+                                    // as they are not declared in this method and have no owning region
+                                    break;
+                                }
+
                                 referencedLocalsAndMethods.Add(method.OriginalDefinition);
                             }
                             break;
-                        case OperationKind.FlowCapture:
-                            referencedCaptureIds.Add(((IFlowCaptureOperation)node).Id);
+                        case IFlowCaptureOperation flowCapture:
+                            referencedCaptureIds.Add(flowCapture.Id);
                             break;
-                        case OperationKind.FlowCaptureReference:
-                            referencedCaptureIds.Add(((IFlowCaptureReferenceOperation)node).Id);
+                        case IFlowCaptureReferenceOperation flowCaptureReference:
+                            referencedCaptureIds.Add(flowCaptureReference.Id);
                             break;
                     }
                 }
@@ -1697,7 +1722,7 @@ endRegion:
 
             string getOperationTree(IOperation operation)
             {
-                var walker = new OperationTreeSerializer(graph, currentRegion, idSuffix, anonymousFunctionsMap, compilation, operation, initialIndent: 8 + indent);
+                var walker = new OperationTreeSerializer(graph, currentRegion, idSuffix, anonymousFunctionsMap, compilation, operation, initialIndent: 8 + indent, associatedSymbol);
                 walker.Visit(operation);
                 return walker.Builder.ToString();
             }
@@ -1709,16 +1734,18 @@ endRegion:
             private readonly ControlFlowRegion _region;
             private readonly string _idSuffix;
             private readonly Dictionary<IFlowAnonymousFunctionOperation, ControlFlowGraph> _anonymousFunctionsMap;
+            private readonly ISymbol _associatedSymbol;
 
             public OperationTreeSerializer(ControlFlowGraph graph, ControlFlowRegion region, string idSuffix,
                                            Dictionary<IFlowAnonymousFunctionOperation, ControlFlowGraph> anonymousFunctionsMap,
-                                           Compilation compilation, IOperation root, int initialIndent) :
+                                           Compilation compilation, IOperation root, int initialIndent, ISymbol associatedSymbol) :
                 base(compilation, root, initialIndent)
             {
                 _graph = graph;
                 _region = region;
                 _idSuffix = idSuffix;
                 _anonymousFunctionsMap = anonymousFunctionsMap;
+                _associatedSymbol = associatedSymbol;
             }
 
             public System.Text.StringBuilder Builder => _builder;
@@ -1733,7 +1760,7 @@ endRegion:
                 int id = _anonymousFunctionsMap.Count;
                 _anonymousFunctionsMap.Add(operation, g);
                 Assert.Equal(OperationKind.AnonymousFunction, g.OriginalOperation.Kind);
-                GetFlowGraph(_builder, _compilation, g, _region, $"#A{id}{_idSuffix}", _currentIndent.Length + 4);
+                GetFlowGraph(_builder, _compilation, g, _region, $"#A{id}{_idSuffix}", _currentIndent.Length + 4, _associatedSymbol);
                 LogString("}");
                 LogNewLine();
             }

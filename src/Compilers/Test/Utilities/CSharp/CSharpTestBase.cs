@@ -1803,8 +1803,8 @@ namespace System.Runtime.CompilerServices
         protected static void VerifyFlowGraph(CSharpCompilation compilation, SyntaxNode syntaxNode, string expectedFlowGraph)
         {
             var model = compilation.GetSemanticModel(syntaxNode.SyntaxTree);
-            ControlFlowGraph graph = ControlFlowGraphVerifier.GetControlFlowGraph(syntaxNode, model);
-            ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, graph);
+            (ControlFlowGraph graph, ISymbol associatedSymbol) = ControlFlowGraphVerifier.GetControlFlowGraph(syntaxNode, model);
+            ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, graph, associatedSymbol);
         }
 
         protected static void VerifyOperationTreeForTest<TSyntaxNode>(
