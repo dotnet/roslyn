@@ -33,7 +33,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.SolutionExplorer.AddAnalyzerReference(typeof(HelloWorldGenerator).Assembly.Location, new ProjectUtils.Project(ProjectName));
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/47255"), Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
         public void GoToDefinitionOpensGeneratedFile()
         {
             VisualStudio.Editor.SetText(@"using System;
