@@ -17,10 +17,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         /// <summary>
         /// If there are no constraints, returns an empty immutable array. Otherwise, returns an immutable
-        /// array of clauses, indexed by the constrained type parameter in <see cref="MethodSymbol.TypeParameters"/>.
-        /// If a type parameter does not have constraints, the corresponding entry in the array is null.
+        /// array of types, indexed by the constrained type parameter in <see cref="MethodSymbol.TypeParameters"/>.
         /// </summary>
-        public abstract ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canIgnoreNullableContext);
+        public abstract ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes();
+
+        /// <summary>
+        /// If there are no constraints, returns an empty immutable array. Otherwise, returns an immutable
+        /// array of kinds, indexed by the constrained type parameter in <see cref="MethodSymbol.TypeParameters"/>.
+        /// </summary>
+        public abstract ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds();
 
         protected static void ReportBadRefToken(TypeSyntax returnTypeSyntax, DiagnosticBag diagnostics)
         {

@@ -1934,7 +1934,7 @@ _Default:
                                   results As ArrayBuilder(Of Symbol))
             Debug.Assert(results IsNot Nothing)
 
-            Dim uniqueSymbols = New HashSet(Of Symbol)()
+            Dim uniqueSymbols = PooledHashSet(Of Symbol).GetInstance()
             Dim tempResults = ArrayBuilder(Of Symbol).GetInstance(arities.Count)
 
             For Each knownArity In arities
@@ -1949,6 +1949,7 @@ _Default:
             tempResults.Free()
 
             results.AddRange(uniqueSymbols)
+            uniqueSymbols.Free()
         End Sub
 
         Private Shadows Sub LookupSymbols(binder As Binder,
@@ -1981,7 +1982,7 @@ _Default:
                 If result.HasDiagnostic Then
                     ' In the ambiguous symbol case, we have a good symbol with a diagnostics that
                     ' mentions the other symbols. Union everything together with a set to prevent dups.
-                    Dim symbolSet As New HashSet(Of Symbol)
+                    Dim symbolSet = PooledHashSet(Of Symbol).GetInstance()
                     Dim symBuilder = ArrayBuilder(Of Symbol).GetInstance()
                     AddSymbolsFromDiagnosticInfo(symBuilder, result.Diagnostic)
                     symbolSet.UnionWith(symBuilder)
@@ -1989,7 +1990,7 @@ _Default:
                     symBuilder.Free()
 
                     results.AddRange(symbolSet)
-
+                    symbolSet.Free()
                 ElseIf result.HasSingleSymbol AndAlso result.SingleSymbol.Kind = SymbolKind.Namespace AndAlso
                        DirectCast(result.SingleSymbol, NamespaceSymbol).NamespaceKind = NamespaceKindNamespaceGroup Then
                     results.AddRange(DirectCast(result.SingleSymbol, NamespaceSymbol).ConstituentNamespaces)
