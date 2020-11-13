@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (document.Project.Language == LanguageNames.CSharp)
                 {
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                    var targetNamespace = SharedWorkspacePathUtilities.TryBuildNamespaceFromFolders(newFolders, syntaxFacts);
+                    var targetNamespace = PathMetadataUtilities.TryBuildNamespaceFromFolders(newFolders, syntaxFacts);
 
                     if (targetNamespace is null)
                     {

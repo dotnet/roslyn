@@ -4,12 +4,15 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
 {
@@ -131,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
             NamespaceDeclarationSyntax namespaceDeclaration,
             string rootNamespace,
             string projectDir,
-            out string? targetNamespace)
+            [NotNullWhen(returnValue: true)] out string? targetNamespace)
         {
             var filePath = namespaceDeclaration.SyntaxTree.FilePath;
             if (!filePath.Contains(projectDir))
@@ -142,10 +145,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
             }
 
             var relativeFilePath = filePath.Substring(projectDir.Length);
-            var namespaceElements = Path.ChangeExtension(relativeFilePath, null).Split(Path.DirectorySeparatorChar).Where(e => e.Length > 0);
-            var expectedNamespace = $"{rootNamespace}.{string.Join(".", namespaceElements)}";
+            var folders = Path.ChangeExtension(relativeFilePath, null).Split(Path.DirectorySeparatorChar).Where(e => e.Length > 0);
+            var expectedNamespace = PathMetadataUtilities.TryBuildNamespaceFromFolders(folders, CSharpSyntaxFacts.Instance, rootNamespace);
 
-            if (expectedNamespace.Equals(namespaceDeclaration.Name.ToString()))
+            if (expectedNamespace is null || expectedNamespace.Equals(namespaceDeclaration.Name.ToString()))
             {
                 // The namespace currently matches the folder structure
                 targetNamespace = null;
