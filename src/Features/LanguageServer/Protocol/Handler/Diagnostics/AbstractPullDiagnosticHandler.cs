@@ -233,8 +233,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             lock (_gate)
             {
                 // Keep track of the diagnostics we reported here so that we can short-circuit producing diagnostics for
-                // the same diagnostic set in the future.
-                var resultId = _nextDocumentResultId++.ToString();
+                // the same diagnostic set in the future.  Use a custom result-id per type (doc diagnostics or workspace
+                // diagnostics) so that clients of one don't errantly call into the other.  For example, a client
+                // getting document diagnostics should not ask for workspace diagnostics with the result-ids it got for
+                // doc-diagnostics.  The two systems are different and cannot share results, or do things like report
+                // what changed between each other.
+                var resultId = $"{GetType().Name}:{_nextDocumentResultId++}";
                 _documentIdToLastResultId[(document.Project.Solution.Workspace, document.Id)] = resultId;
                 return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), diagnostics, resultId);
             }
