@@ -147,8 +147,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             var queue = CreateRequestQueue(workspace.CurrentSolution);
             var languageServer = GetLanguageServer(workspace.CurrentSolution);
 
-            UpdateSolutionProvider(workspace, workspace.CurrentSolution);
-
             var expectedSolution = workspace.CurrentSolution;
 
             // solution should be the same because no mutations have happened
