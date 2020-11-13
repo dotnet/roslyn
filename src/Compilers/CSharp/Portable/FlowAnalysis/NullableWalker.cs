@@ -5327,6 +5327,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.In:
                     {
                         // Note: for lambda arguments, they will be converted in the context/state we saved for that argument
+                        if (conversion is { Kind: ConversionKind.ImplicitUserDefined })
+                        {
+                            var argumentResultType = resultType.Type;
+                            conversion = GenerateConversion(_conversions, argumentNoConversion, argumentResultType, parameterType.Type, fromExplicitCast: false, extensionMethodThisArgument: false);
+                            if (!conversion.Exists && !argumentNoConversion.IsSuppressed)
+                            {
+                                Debug.Assert(argumentResultType is not null);
+                                ReportNullabilityMismatchInArgument(argumentNoConversion.Syntax, argumentResultType, parameter, parameterType.Type, forOutput: false);
+                            }
+                        }
+
                         var stateAfterConversion = VisitConversion(
                             conversionOpt: conversionOpt,
                             conversionOperand: argumentNoConversion,
@@ -7050,16 +7061,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversion.Kind == ConversionKind.ExplicitUserDefined || conversion.Kind == ConversionKind.ImplicitUserDefined);
 
             TypeSymbol targetType = targetTypeWithNullability.Type;
-
-            if (parameterOpt is not null)
-            {
-                conversion = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetTypeWithNullability.Type, fromExplicitCast: false, extensionMethodThisArgument: false);
-                if (!conversion.Exists && !conversionOperand.IsSuppressed)
-                {
-                    Debug.Assert(operandType.Type is not null);
-                    ReportNullabilityMismatchInArgument(conversionOperand.Syntax, operandType.Type, parameterOpt, targetTypeWithNullability.Type, forOutput: false);
-                }
-            }
 
             // cf. Binder.CreateUserDefinedConversion
             if (!conversion.IsValid)
