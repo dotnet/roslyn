@@ -3073,7 +3073,7 @@ namespace System.Collections
             Assert.Equal(SpecialType.System_Char, boundNode.IterationVariables.Single().Type.SpecialType);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/49267")]
         public void TestPatternDisposeRefStruct()
         {
             var text = @"
