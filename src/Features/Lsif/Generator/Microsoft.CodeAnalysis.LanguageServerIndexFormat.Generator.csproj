@@ -42,10 +42,6 @@
   </Target>
 
   <ItemGroup>
-    <Compile Include="..\..\LanguageServer\Protocol\Handler\FoldingRanges\FoldingRangesHelper.cs" Link="FoldingRangesHelper.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="System.CommandLine.Experimental" Version="$(SystemCommandLineExperimentalVersion)" />
