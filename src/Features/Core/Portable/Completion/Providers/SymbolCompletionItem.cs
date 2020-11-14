@@ -79,10 +79,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static bool GetShouldProvideParenthesisCompletion(CompletionItem item)
         {
-            if (item.Properties.TryGetValue("ShouldProvideParenthesisCompletion", out var value)
-                && bool.TryParse(value, out var result))
+            if (item.Properties.TryGetValue("ShouldProvideParenthesisCompletion", out _))
             {
-                return result;
+                return true;
             }
 
             return false;

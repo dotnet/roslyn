@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         // However, for an extension method like
         // static class C { public static int ToInt(this Bar b) => 1; }
         // it can only be used as like: bar.ToInt();
-        // bar.ToInt is illegal since it can't be assign to delegate.
+        // Func<int> x = bar.ToInt or Func<Bar, int> x = bar.ToInt is illegal. It can't be assign to delegate.
         // Therefore at here we always assume the user always wants to add parenthesis.
             => Task.FromResult(commitKey == ';');
     }
