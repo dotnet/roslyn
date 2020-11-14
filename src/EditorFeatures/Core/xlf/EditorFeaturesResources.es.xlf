@@ -39,12 +39,12 @@
       </trans-unit>
       <trans-unit id="Error_creating_instance_of_CodeFixProvider">
         <source>Error creating instance of CodeFixProvider</source>
-        <target state="new">Error creating instance of CodeFixProvider</target>
+        <target state="translated">Error al crear la instancia de CodeFixProvider</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
         <source>Error creating instance of CodeFixProvider '{0}'</source>
-        <target state="new">Error creating instance of CodeFixProvider '{0}'</target>
+        <target state="translated">Error al crear la instancia de CodeFixProvider "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Expander_display_text">
@@ -1100,7 +1100,7 @@
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="translated">Podemos arreglar el error si no hacemos parámetro(s) de estructura "out/ref". 
+        <target state="translated">Podemos arreglar el error si no hacemos parámetro(s) de estructura "out/ref".
 ¿Quiere continuar?</target>
         <note />
       </trans-unit>

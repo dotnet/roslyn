@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracki
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
@@ -89,7 +91,21 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var syntaxFactsService = languageServices.GetRequiredService<ISyntaxFactsService>();
             var semanticFactsService = languageServices.GetRequiredService<ISemanticFactsService>();
 
-            var documentVertex = new Graph.LsifDocument(new Uri(syntaxTree.FilePath), GetLanguageKind(semanticModel.Language), idFactory);
+            string? contentBase64Encoded = null;
+
+            // TODO: move to checking the enum member mentioned in https://github.com/dotnet/roslyn/issues/49326 when that
+            // is implemented. In the mean time, we'll use a heuristic of the path being a relative path as a way to indicate
+            // this is a source generated file.
+            if (!PathUtilities.IsAbsolute(syntaxTree.FilePath))
+            {
+                var text = semanticModel.SyntaxTree.GetText();
+
+                // We always use UTF-8 encoding when writing out file contents, as that's expected by LSIF implementations.
+                // TODO: when we move to .NET Core, is there a way to reduce allocatios here?
+                contentBase64Encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(text.ToString()));
+            }
+
+            var documentVertex = new Graph.LsifDocument(new Uri(syntaxTree.FilePath, UriKind.RelativeOrAbsolute), GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
 
             lsifJsonWriter.Write(documentVertex);
             lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));
