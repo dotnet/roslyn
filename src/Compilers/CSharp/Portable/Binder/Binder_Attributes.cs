@@ -180,10 +180,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var constructorArguments = analyzedArguments.ConstructorArguments;
-            ImmutableArray<BoundExpression> boundConstructorArguments = constructorArguments.Arguments.ToImmutableAndFree();
+
+            // If the arguments didn't have a natural type, they're not constants, and so would already have diagnostics from the rest of binding.
+            var ignoredDiagnostics = new DiagnosticBag();
+            ImmutableArray<BoundExpression> boundConstructorArguments = constructorArguments.Arguments.SelectAsArray(
+                (arg, thisAndDiagnostics) => thisAndDiagnostics.@this.BindToNaturalType(arg, thisAndDiagnostics.ignoredDiagnostics),
+                (@this: this, ignoredDiagnostics));
             ImmutableArray<string> boundConstructorArgumentNamesOpt = constructorArguments.GetNames();
-            ImmutableArray<BoundExpression> boundNamedArguments = analyzedArguments.NamedArguments;
+            ImmutableArray<BoundExpression> boundNamedArguments = analyzedArguments.NamedArguments.SelectAsArray(
+                (namedArg, thisAndDiagnostics) => thisAndDiagnostics.@this.BindToNaturalType(namedArg, thisAndDiagnostics.ignoredDiagnostics),
+                (@this: this, ignoredDiagnostics));
             constructorArguments.Free();
+
+            Debug.Assert(ignoredDiagnostics.Count == 0 || diagnostics.HasAnyResolvedErrors());
 
             return new BoundAttribute(node, attributeConstructor, boundConstructorArguments, boundConstructorArgumentNamesOpt, argsToParamsOpt, expanded,
                 boundNamedArguments, resultKind, attributeType, hasErrors: resultKind != LookupResultKind.Viable);
