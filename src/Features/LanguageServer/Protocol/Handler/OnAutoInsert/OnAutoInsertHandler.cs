@@ -162,21 +162,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _ => throw new ArgumentException($"Language {document.Project.Language} is not recognized for OnAutoInsert")
             };
 
-            var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return servicesForDocument
-                .Select(service => GetContext(caretLocation, syntaxRoot, document, service))
-                .SingleOrDefault(serviceAndContext => serviceAndContext != null);
-
-            static (IBraceCompletionService Service, BraceCompletionContext Context)? GetContext(int caretLocation, SyntaxNode root, Document document, IBraceCompletionService service)
+            foreach (var service in servicesForDocument)
             {
-                var context = service.IsInsideCompletedBraces(caretLocation, root, document);
-                if (context == null)
+                var context = await service.IsInsideCompletedBracesAsync(caretLocation, document, cancellationToken).ConfigureAwait(false);
+                if (context != null)
                 {
-                    return null;
+                    return (service, context);
                 }
-
-                return (service, context);
             }
+
+            return null;
         }
     }
 }

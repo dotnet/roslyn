@@ -80,9 +80,10 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             return OpeningBrace == brace && !syntaxFactsService.IsInNonUserCode(tree, openingPosition, cancellationToken);
         }
 
-        ///<inheritdoc cref="IBraceCompletionService.IsInsideCompletedBraces(int, SyntaxNode, Document)"/>
-        public BraceCompletionContext? IsInsideCompletedBraces(int caretLocation, SyntaxNode root, Document document)
+        ///<inheritdoc cref="IBraceCompletionService.IsInsideCompletedBracesAsync(int, Document, CancellationToken)"/>
+        public async Task<BraceCompletionContext?> IsInsideCompletedBracesAsync(int caretLocation, Document document, CancellationToken cancellationToken)
         {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var leftToken = root.FindTokenOnLeftOfPosition(caretLocation);
             var rightToken = root.FindTokenOnRightOfPosition(caretLocation);
 

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         /// Returns the brace completion context if the caret is located between an already completed
         /// set of braces with only whitespace in between.
         /// </summary>
-        BraceCompletionContext? IsInsideCompletedBraces(int caretLocation, SyntaxNode root, Document document);
+        Task<BraceCompletionContext?> IsInsideCompletedBracesAsync(int caretLocation, Document document, CancellationToken cancellationToken);
 
         /// <summary>
         /// Whether or not overtype should be allowed given a brace completion context.
