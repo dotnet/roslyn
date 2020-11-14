@@ -349,7 +349,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "Timeouts")]
         [WorkItem(48886, "https://github.com/dotnet/roslyn/issues/48886")]
         public void ArrayInitializationAnonymousTypes()
         {

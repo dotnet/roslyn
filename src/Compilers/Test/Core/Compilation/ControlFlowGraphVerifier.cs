@@ -1160,6 +1160,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                         return true;
                                     }
                                     break;
+
+                                case CSharp.SyntaxKind.ConditionalAccessExpression:
+                                    if (((CSharp.Syntax.ConditionalAccessExpressionSyntax)syntax.Parent).Expression == syntax)
+                                    {
+                                        return true;
+                                    }
+                                    break;
                             }
                         }
 
