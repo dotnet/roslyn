@@ -2739,7 +2739,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
         {
             DeclareLocals(node.IterationVariables);
-            Visit(node.AwaitOpt);
             return base.VisitForEachStatement(node);
         }
 
@@ -5283,6 +5282,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.In:
                     {
                         // Note: for lambda arguments, they will be converted in the context/state we saved for that argument
+                        if (conversion is { Kind: ConversionKind.ImplicitUserDefined })
+                        {
+                            var argumentResultType = resultType.Type;
+                            conversion = GenerateConversion(_conversions, argumentNoConversion, argumentResultType, parameterType.Type, fromExplicitCast: false, extensionMethodThisArgument: false);
+                            if (!conversion.Exists && !argumentNoConversion.IsSuppressed)
+                            {
+                                Debug.Assert(argumentResultType is not null);
+                                ReportNullabilityMismatchInArgument(argumentNoConversion.Syntax, argumentResultType, parameter, parameterType.Type, forOutput: false);
+                            }
+                        }
+
                         var stateAfterConversion = VisitConversion(
                             conversionOpt: conversionOpt,
                             conversionOperand: argumentNoConversion,
@@ -6312,17 +6322,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (targetSlot > 0)
             {
                 TrackNullableStateForAssignment(value, symbol!.GetTypeOrReturnType(), targetSlot, valueType, valueSlot);
-            }
-        }
-
-        private void TrackNullableStateOfNullableValue(BoundExpression node, BoundExpression operand, TypeSymbol convertedType, TypeWithAnnotations underlyingType)
-        {
-            int valueSlot = MakeSlot(operand);
-            if (valueSlot > 0)
-            {
-                int containingSlot = GetOrCreatePlaceholderSlot(node);
-                Debug.Assert(containingSlot > 0);
-                TrackNullableStateOfNullableValue(containingSlot, convertedType, operand, underlyingType.ToTypeWithState(), valueSlot);
             }
         }
 
@@ -8495,6 +8494,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                 currentPropertyGetterTypeWithState = ApplyUnconditionalAnnotations(
                     currentPropertyGetter.ReturnTypeWithAnnotations.ToTypeWithState(),
                     currentPropertyGetter.ReturnTypeFlowAnalysisAnnotations);
+
+                // Analyze `await MoveNextAsync()`
+                if (node.AwaitOpt is { AwaitableInstancePlaceholder: BoundAwaitableValuePlaceholder moveNextPlaceholder } awaitMoveNextInfo)
+                {
+                    var moveNextAsyncMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.MoveNextMethod);
+
+                    EnsureAwaitablePlaceholdersInitialized();
+                    var result = new VisitResult(GetReturnTypeWithState(moveNextAsyncMethod), moveNextAsyncMethod.ReturnTypeWithAnnotations);
+                    _awaitablePlaceholdersOpt.Add(moveNextPlaceholder, (moveNextPlaceholder, result));
+                    Visit(awaitMoveNextInfo);
+                    _awaitablePlaceholdersOpt.Remove(moveNextPlaceholder);
+                }
+
+                // Analyze `await DisposeAsync()`
+                if (node.EnumeratorInfoOpt is { NeedsDisposal: true, DisposeAwaitableInfo: BoundAwaitableInfo awaitDisposalInfo })
+                {
+                    var disposalPlaceholder = awaitDisposalInfo.AwaitableInstancePlaceholder;
+                    bool addedPlaceholder = false;
+                    if (node.EnumeratorInfoOpt.DisposeMethod is not null) // no statically known Dispose method if doing a runtime check
+                    {
+                        Debug.Assert(disposalPlaceholder is not null);
+                        var disposeAsyncMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.DisposeMethod);
+                        EnsureAwaitablePlaceholdersInitialized();
+                        var result = new VisitResult(GetReturnTypeWithState(disposeAsyncMethod), disposeAsyncMethod.ReturnTypeWithAnnotations);
+                        _awaitablePlaceholdersOpt.Add(disposalPlaceholder, (disposalPlaceholder, result));
+                        addedPlaceholder = true;
+                    }
+
+                    Visit(awaitDisposalInfo);
+
+                    if (addedPlaceholder)
+                    {
+                        _awaitablePlaceholdersOpt!.Remove(disposalPlaceholder!);
+                    }
+                }
             }
 
             SetResultType(expression: null, currentPropertyGetterTypeWithState);
@@ -8845,7 +8879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var placeholder = awaitableInfo.AwaitableInstancePlaceholder;
             Debug.Assert(placeholder is object);
 
-            _awaitablePlaceholdersOpt ??= PooledDictionary<BoundAwaitableValuePlaceholder, (BoundExpression AwaitableExpression, VisitResult Result)>.GetInstance();
+            EnsureAwaitablePlaceholdersInitialized();
             _awaitablePlaceholdersOpt.Add(placeholder, (node.Expression, _visitResult));
             Visit(awaitableInfo);
             _awaitablePlaceholdersOpt.Remove(placeholder);
@@ -9434,6 +9468,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SetNotNullResult(node);
             return null;
+        }
+
+        [MemberNotNull(nameof(_awaitablePlaceholdersOpt))]
+        private void EnsureAwaitablePlaceholdersInitialized()
+        {
+            _awaitablePlaceholdersOpt ??= PooledDictionary<BoundAwaitableValuePlaceholder, (BoundExpression AwaitableExpression, VisitResult Result)>.GetInstance();
         }
 
         public override BoundNode? VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
