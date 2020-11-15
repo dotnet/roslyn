@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -20,6 +21,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -259,5 +261,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         protected override CompletionItemSelectionBehavior PreselectedItemSelectionBehavior => CompletionItemSelectionBehavior.HardSelection;
+
+        protected override CompletionItem CreateItem(
+            CompletionContext completionContext,
+            string displayText,
+            string displayTextSuffix,
+            string insertionText,
+            List<ISymbol> symbols,
+            SyntaxContext context,
+            bool preselect,
+            SupportedPlatformData supportedPlatformData)
+        {
+            var item = base.CreateItem(
+                completionContext,
+                displayText,
+                displayTextSuffix,
+                insertionText,
+                symbols,
+                context,
+                preselect,
+                supportedPlatformData);
+
+            var symbol = symbols[0];
+            if (symbol.IsKind(SymbolKind.Method))
+            {
+                var isInferredTypeDelegate = context.InferredTypes.Any(type => type.IsDelegateType());
+                if (!isInferredTypeDelegate)
+                {
+                    item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
+                }
+            }
+            else if (symbol.IsKind(SymbolKind.NamedType) || symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.IsType)
+            {
+                var isObjectCreationTypeContext = context switch
+                {
+                    CSharpSyntaxContext csharpSyntaxContext => csharpSyntaxContext.IsObjectCreationTypeContext,
+                    _ => false
+                };
+
+                if (isObjectCreationTypeContext)
+                {
+                    item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
+                }
+            }
+
+            return item;
+        }
+
+        protected override string GetInsertionText(CompletionItem item, char ch)
+        {
+            if (ch == ';' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
+            {
+                var insertionText = SymbolCompletionItem.GetInsertionText(item);
+                return insertionText + "()";
+            }
+
+            return base.GetInsertionText(item, ch);
+        }
     }
 }

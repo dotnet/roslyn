@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
         <source>Found '{0}' assemblies for '{1}':</source>
-        <target state="translated">'{1}' の '{0}' 個のアセンブリが見つかりました。</target>
+        <target state="translated">'{1}' の '{0}' 個のアセンブリが見つかりました:</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_exact_match_0">
@@ -52,9 +52,14 @@
         <target state="translated">読み込み元: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">イベント サブスクリプションの生成</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Module_not_found">
         <source>Module not found!</source>
-        <target state="translated">モジュールが見つかりません。</target>
+        <target state="translated">モジュールが見つかりません</target>
         <note />
       </trans-unit>
       <trans-unit id="Press_TAB_to_insert">

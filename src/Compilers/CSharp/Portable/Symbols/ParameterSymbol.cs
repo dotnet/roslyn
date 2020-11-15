@@ -232,6 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         /// <summary>
         /// Returns the default value constant of the parameter, 
         /// or null if the parameter doesn't have a default value or 
@@ -243,7 +244,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This is used for emitting.  It does not reflect the language semantics
         /// (i.e. even non-optional parameters can have default values).
         /// </remarks>
-        internal abstract ConstantValue ExplicitDefaultConstantValue { get; }
+        internal abstract ConstantValue? ExplicitDefaultConstantValue { get; }
+#nullable disable
 
         /// <summary>
         /// Gets the kind of this symbol.

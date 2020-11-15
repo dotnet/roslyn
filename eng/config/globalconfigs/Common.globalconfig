@@ -42,6 +42,8 @@ dotnet_diagnostic.RS0024.severity = error
 dotnet_diagnostic.RS0025.severity = error
 dotnet_diagnostic.RS0026.severity = error
 dotnet_diagnostic.RS0027.severity = error
+# RS0037: PublicAPI.txt is missing '#nullable enable'
+dotnet_diagnostic.RS0037.severity = none
 # RS0040: Defaultable types should have defaultable fields
 dotnet_diagnostic.RS0040.severity = none
 # RS0046: Avoid the 'Opt' suffix in nullable-enabled code (too noisy right now)

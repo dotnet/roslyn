@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../FeaturesResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../FeaturesResources.resx">
     <body>
       <trans-unit id="AM_PM_abbreviated">
         <source>AM/PM (abbreviated)</source>
@@ -162,7 +162,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
         <source>&lt;infer&gt;</source>
-        <target state="translated">&lt;infer&gt;</target>
+        <target state="translated">&lt;推断&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
@@ -347,7 +347,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
-        <target state="new">Extract base class...</target>
+        <target state="translated">提取基类...</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_interface">
@@ -502,12 +502,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Inline_0">
         <source>Inline '{0}'</source>
-        <target state="new">Inline '{0}'</target>
+        <target state="translated">内联“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
-        <target state="new">Inline and keep '{0}'</target>
+        <target state="translated">内联并保留“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -607,17 +607,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
-        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</target>
+        <target state="translated">修改“{0}”的主体将阻止调试会话继续，因为主体包含的语句过多。</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</target>
+        <target state="translated">修改“{0}”的主体将防止调试会话继续，原因是出现内部错误: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
         <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
-        <target state="new">Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</target>
+        <target state="translated">修改源文件“{0}”将阻止调试会话继续，因为该文件太大。</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -642,7 +642,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">修改源文件 {0} 将防止调试会话因内部错误 {1} 而继续进行。</target>
+        <target state="translated">修改源文件“{0}”将防止调试会话继续，原因是出现内部错误: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -682,7 +682,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Pull_members_up_to_new_base_class">
         <source>Pull member(s) up to new base class...</source>
-        <target state="new">Pull member(s) up to new base class...</target>
+        <target state="translated">将成员拉取到新的基类...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -825,8 +825,8 @@ This option is recommended if you know that backtracking will not succeed. Preve
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="translated">均衡组定义删除以前定义的组的定义，并在当前组中存储以前定义的组和当前组之间的时间间隔。
-    
+        <target state="needs-review-translation">均衡组定义删除以前定义的组的定义，并在当前组中存储以前定义的组和当前组之间的时间间隔。
+
 "name1" 是当前组(可选)，"name2" 是以前定义的组，而 "subexpression" 是任何有效的正则表达式模式。均衡组定义将删除 name2 的定义，并在 name1 中存储 name2 和 name1 之间的间隔。如果未定义 name2 组，则匹配回溯。由于删除 name2 的最后一个定义会发现 name2 的上一个定义，此构造使你能够使用作为计数器的组的捕获堆栈来跟踪嵌套构造(如括号)或左括号和右括号。
 
 均衡组定义使用 "name2" 作为堆栈。每个嵌套构造的开始字符都放在该组中并位于其组中。捕获集合。匹配结束字符时，将从组中删除其相应的左符号，并减小捕获集合 1。在所有嵌套构造的开始和结束字符都匹配后，"name1" 为空。</target>
@@ -1013,7 +1013,7 @@ $ 定位点匹配 \n，但不匹配 \r\n (回车符和换行符的组合，或 C
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="new">expression</target>
+        <target state="translated">表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
@@ -1283,7 +1283,7 @@ $ 定位点匹配 \n，但不匹配 \r\n (回车符和换行符的组合，或 C
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="new">name</target>
+        <target state="translated">名称</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
@@ -1383,7 +1383,7 @@ Two or more character ranges can be concatenated. For example, to specify the ra
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="new">no</target>
+        <target state="translated">否</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
@@ -1766,7 +1766,7 @@ If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]<
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="new">yes</target>
+        <target state="translated">是</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
@@ -2102,12 +2102,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
-        <target state="new">'{0}' is not null here.</target>
+        <target state="translated">“{0}”在此处不为 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
-        <target state="new">'{0}' may be null here.</target>
+        <target state="translated">“{0}”可能在此处为 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">
@@ -2926,7 +2926,7 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="generating_source_for_symbols_of_this_type_is_not_supported">
         <source>generating source for symbols of this type is not supported</source>
-        <target state="translated">不支持为此类型符号生成源。</target>
+        <target state="translated">不支持为此类型符号生成源</target>
         <note />
       </trans-unit>
       <trans-unit id="Assembly">
@@ -3595,7 +3595,7 @@ Strings that are passed to the Parse, TryParse, ParseExact, and TryParseExact me
 
 "O" 或 "o" 标准格式说明符对应于 DateTime 值的 "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK" 自定义格式字符串和 DateTimeOffset 值的 "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffzzz" 自定义格式字符串。在此字符串中，分隔单个字符的单引号标记对(如连字符、冒号和字母 "T")指示单个字符是不能更改的文本。撇号不会出现在输出字符串中。
 
-"O" 或 "o" 标准格式说明符(以及 "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK" 自定义格式字符串)利用 ISO 8601 表示时区信息的三种方式保留日期时间值的 Kind 属性: 
+"O" 或 "o" 标准格式说明符(以及 "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK" 自定义格式字符串)利用 ISO 8601 表示时区信息的三种方式保留日期时间值的 Kind 属性:
 
 DateTimeKind 日期和时间值的时区部分是相对于 UTC 的偏移量(例如 +01:00, -07:00)。所有 DateTimeOffset 值也以这种格式表示。
 
@@ -3710,7 +3710,7 @@ If the ":" format specifier is used without other custom format specifiers, it's
 For DateTimeOffset values, the "K" format specifier is equivalent to the "zzz" format specifier, and produces a result string containing the DateTimeOffset value's offset from UTC.
 
 If the "K" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</source>
-        <target state="translated">"K" 自定义格式说明符表示日期和时间值的时区信息。将此格式说明符与 DateTime 值一起使用时，结果字符串由 DateTime.Kind 属性的值定义: 
+        <target state="translated">"K" 自定义格式说明符表示日期和时间值的时区信息。将此格式说明符与 DateTime 值一起使用时，结果字符串由 DateTime.Kind 属性的值定义:
 
 对于本地时区(DateTimeKind.Local 的 DateTime.Kind 属性值)，此说明符等效于 "zzz" 说明符，并生成包含协调世界时(UTC)的本地偏移量的结果字符串；例如 "-07:00"。
 

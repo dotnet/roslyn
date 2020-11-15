@@ -97,7 +97,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' をインターフェイスに追加すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' をインターフェイスに追加すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
@@ -162,7 +162,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
         <source>&lt;infer&gt;</source>
-        <target state="translated">&lt;infer&gt;</target>
+        <target state="translated">&lt;推測する&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
@@ -172,7 +172,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterOmitValue">
         <source>&lt;omit&gt;</source>
-        <target state="translated">&lt;omit&gt;</target>
+        <target state="translated">&lt;省略&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_0">
@@ -347,7 +347,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
-        <target state="new">Extract base class...</target>
+        <target state="translated">基底クラスの抽出...</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_interface">
@@ -372,7 +372,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Fix_formatting">
         <source>Fix formatting</source>
-        <target state="translated">書式設定を修正します。</target>
+        <target state="translated">書式設定を修正します</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
@@ -502,12 +502,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Inline_0">
         <source>Inline '{0}'</source>
-        <target state="new">Inline '{0}'</target>
+        <target state="translated">インライン '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
-        <target state="new">Inline and keep '{0}'</target>
+        <target state="translated">インラインおよび '{0}' の保持</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -542,7 +542,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
-        <target state="new">Make class 'abstract'</target>
+        <target state="translated">クラスを 'abstract' にしてください</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_member_static">
@@ -607,17 +607,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
-        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</target>
+        <target state="translated">'{0}' の本体を変更すると、本体のステートメントが多くなりすぎるため、デバッグ セッションを続行できなくなります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</target>
+        <target state="translated">'{0}' の本体を変更すると、デバッグ セッションが内部エラーのため続行できなくなります: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
         <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
-        <target state="new">Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</target>
+        <target state="translated">ソース ファイル '{0}' を変更すると、ファイルが大きくなりすぎるため、デバッグ セッションを続行できなくなります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -642,7 +642,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">ソース ファイル {0} を変更すると、デバッグ セッションが内部エラーのため続行できなくなります: {1}。</target>
+        <target state="translated">ソース ファイル '{0}' を変更すると、デバッグ セッションが内部エラーのため続行できなくなります: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -682,7 +682,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Pull_members_up_to_new_base_class">
         <source>Pull member(s) up to new base class...</source>
-        <target state="new">Pull member(s) up to new base class...</target>
+        <target state="translated">メンバーを新しい基底クラスに引き上げます...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -1013,7 +1013,7 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="new">expression</target>
+        <target state="translated">式</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
@@ -1283,7 +1283,7 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="new">name</target>
+        <target state="translated">名前</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
@@ -1383,7 +1383,7 @@ Two or more character ranges can be concatenated. For example, to specify the ra
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="new">no</target>
+        <target state="translated">いいえ</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
@@ -1766,7 +1766,7 @@ ECMAScript 準拠の動作が指定されている場合、\w は [a-zA-Z_0-9] �
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="new">yes</target>
+        <target state="translated">はい</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
@@ -1832,7 +1832,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Remove_async_modifier">
         <source>Remove 'async' modifier</source>
-        <target state="new">Remove 'async' modifier</target>
+        <target state="translated">'async' 修飾子を削除してください</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -2102,12 +2102,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
-        <target state="new">'{0}' is not null here.</target>
+        <target state="translated">ここでは、'{0}' は null ではありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
-        <target state="new">'{0}' may be null here.</target>
+        <target state="translated">ここでは、'{0}' は null である可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">
@@ -2702,7 +2702,7 @@ If the "M" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0">
         <source>Generate constructor in '{0}'</source>
-        <target state="translated">{0}' にコンストラクターを生成します</target>
+        <target state="translated">'{0}' にコンストラクターを生成します</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_all">
@@ -2767,62 +2767,62 @@ If the "M" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Implement_interface_through_0">
         <source>Implement interface through '{0}'</source>
-        <target state="translated">{0}' を通じてインターフェイスを実装します</target>
+        <target state="translated">'{0}' を通じてインターフェイスを実装します</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_interface">
         <source>Implement interface</source>
-        <target state="translated">インターフェイスを実装します。</target>
+        <target state="translated">インターフェイスを実装します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_field_for_0">
         <source>Introduce field for '{0}'</source>
-        <target state="translated">{0}' に対してフィールドを導入します</target>
+        <target state="translated">'{0}' に対してフィールドを導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local_for_0">
         <source>Introduce local for '{0}'</source>
-        <target state="translated">{0}' に対してローカルを導入します</target>
+        <target state="translated">'{0}' に対してローカルを導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_constant_for_0">
         <source>Introduce constant for '{0}'</source>
-        <target state="translated">{0}' に対して定数を導入します</target>
+        <target state="translated">'{0}' に対して定数を導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local_constant_for_0">
         <source>Introduce local constant for '{0}'</source>
-        <target state="translated">{0}' に対してローカル定数を導入します</target>
+        <target state="translated">'{0}' に対してローカル定数を導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_field_for_all_occurrences_of_0">
         <source>Introduce field for all occurrences of '{0}'</source>
-        <target state="translated">{0}' のすべての発生に対してフィールドを導入します</target>
+        <target state="translated">'{0}' のすべての発生に対してフィールドを導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local_for_all_occurrences_of_0">
         <source>Introduce local for all occurrences of '{0}'</source>
-        <target state="translated">{0}' のすべての発生に対してローカルを導入します</target>
+        <target state="translated">'{0}' のすべての発生に対してローカルを導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_constant_for_all_occurrences_of_0">
         <source>Introduce constant for all occurrences of '{0}'</source>
-        <target state="translated">{0}' のすべての発生に対して定数を導入します</target>
+        <target state="translated">'{0}' のすべての発生に対して定数を導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local_constant_for_all_occurrences_of_0">
         <source>Introduce local constant for all occurrences of '{0}'</source>
-        <target state="translated">{0}' のすべての発生に対してローカル定数を導入します</target>
+        <target state="translated">'{0}' のすべての発生に対してローカル定数を導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_query_variable_for_all_occurrences_of_0">
         <source>Introduce query variable for all occurrences of '{0}'</source>
-        <target state="translated">{0}' のすべての発生に対してクエリ変数を導入します</target>
+        <target state="translated">'{0}' のすべての発生に対してクエリ変数を導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_query_variable_for_0">
         <source>Introduce query variable for '{0}'</source>
-        <target state="translated">{0}' に対してクエリ変数を導入します</target>
+        <target state="translated">'{0}' に対してクエリ変数を導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Anonymous_Types_colon">
@@ -2941,7 +2941,7 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Updating_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' を更新すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' を更新すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing">
@@ -2976,17 +2976,17 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Changing_the_parameters_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing the parameters of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' のパラメーターを変更すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' のパラメーターを変更すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_return_type_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing the return type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の戻り値の型を変更すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' の戻り値の型を変更すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing the type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の型を変更すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' の型を変更すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_will_prevent_the_debug_session_from_continuing">
@@ -3016,32 +3016,32 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Adding_0_into_a_1_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' を '{1}' に追加すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' を '{1}' に追加すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into a class with explicit or sequential layout will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' を明示的なレイアウトまたはシーケンシャル レイアウトがあるクラスに追加すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' を明示的なレイアウトまたはシーケンシャル レイアウトがあるクラスに追加すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_modifiers_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the modifiers of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の修飾子を更新すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' の修飾子を更新すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the Handles clause of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' のHandles 句を更新すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' のHandles 句を更新すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_with_the_Handles_clause_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' with the Handles clause will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' をハンドル句に追加すると、デバッグ セッションが続行できなくなります。</target>
+        <target state="translated">'{0}' をハンドル句に追加すると、デバッグ セッションが続行できなくなります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_Implements_clause_of_a_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the Implements clause of a '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の Implements 句を更新すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' の Implements 句を更新すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing">
@@ -3051,32 +3051,32 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の変性を更新すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' の変性を更新すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の型を更新すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' の型を更新すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_initializer_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the initializer of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の初期化子を更新すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' の初期化子を更新すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_size_of_a_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the size of a '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' のサイズを更新すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' のサイズを更新すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_underlying_type_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the underlying type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の基になる型を更新すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' の基になる型を更新すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_base_class_and_or_base_interface_s_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the base class and/or base interface(s) of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の基本クラスおよび基底インターフェイスを更新すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' の基本クラスおよび基底インターフェイスを更新すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_field_to_an_event_or_vice_versa_will_prevent_the_debug_session_from_continuing">
@@ -3111,12 +3111,12 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Renaming_0_will_prevent_the_debug_session_from_continuing">
         <source>Renaming '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の名前を変更すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' の名前を変更すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' を追加すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' を追加すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_an_abstract_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
@@ -3156,12 +3156,12 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Moving_0_will_prevent_the_debug_session_from_continuing">
         <source>Moving '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' を移動すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' を移動すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
         <source>Deleting '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' を削除すると、デバッグ セッションは続行されません。</target>
+        <target state="translated">'{0}' を削除すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3740,12 +3740,12 @@ UTC 時刻の場合 (DateTime.Kind プロパティ値が DateTimeKind.Utc)、書
       </trans-unit>
       <trans-unit id="Replace_0_and_1_with_property">
         <source>Replace '{0}' and '{1}' with property</source>
-        <target state="translated">{0}' および '{1}' をプロパティと置換する</target>
+        <target state="translated">'{0}' および '{1}' をプロパティと置換する</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_property">
         <source>Replace '{0}' with property</source>
-        <target state="translated">{0}' をプロパティを置換する</target>
+        <target state="translated">'{0}' をプロパティを置換する</target>
         <note />
       </trans-unit>
       <trans-unit id="Method_referenced_implicitly">
@@ -3765,7 +3765,7 @@ UTC 時刻の場合 (DateTime.Kind プロパティ値が DateTimeKind.Utc)、書
       </trans-unit>
       <trans-unit id="Change_0_to_1">
         <source>Change '{0}' to '{1}'.</source>
-        <target state="translated">{0}' を '{1}' に変更します。</target>
+        <target state="translated">'{0}' を '{1}' に変更します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_invoked_method_cannot_be_replaced_with_property">
@@ -3795,7 +3795,7 @@ UTC 時刻の場合 (DateTime.Kind プロパティ値が DateTimeKind.Utc)、書
       </trans-unit>
       <trans-unit id="Unable_to_load_Analyzer_assembly_0_colon_1">
         <source>Unable to load Analyzer assembly {0}: {1}</source>
-        <target state="translated">アナライザーのアセンブリ {0}: {1} を読み込むことができません。</target>
+        <target state="translated">アナライザーのアセンブリ {0}: {1} を読み込むことができません</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_method_synchronous">
@@ -3827,7 +3827,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Find_and_install_latest_version_of_0">
         <source>Find and install latest version of '{0}'</source>
-        <target state="translated">{0}' の最新バージョンの検索とインストール</target>
+        <target state="translated">'{0}' の最新バージョンの検索とインストール</target>
         <note />
       </trans-unit>
       <trans-unit id="Install_with_package_manager">
@@ -3932,12 +3932,12 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Replace_0_with_method">
         <source>Replace '{0}' with method</source>
-        <target state="translated">{0}' をメソッドに置換します</target>
+        <target state="translated">'{0}' をメソッドに置換します</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_methods">
         <source>Replace '{0}' with methods</source>
-        <target state="translated">{0}' をメソッドに置換します</target>
+        <target state="translated">'{0}' をメソッドに置換します</target>
         <note />
       </trans-unit>
       <trans-unit id="Property_referenced_implicitly">
@@ -4017,7 +4017,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Remove_reference_to_0">
         <source>Remove reference to '{0}'.</source>
-        <target state="translated">{0}' への参照を削除します。</target>
+        <target state="translated">'{0}' への参照を削除します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Keywords">
@@ -4067,7 +4067,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Take_0">
         <source>Take '{0}'</source>
-        <target state="translated">{0}' を取る</target>
+        <target state="translated">'{0}' を取る</target>
         <note />
       </trans-unit>
       <trans-unit id="Take_both">

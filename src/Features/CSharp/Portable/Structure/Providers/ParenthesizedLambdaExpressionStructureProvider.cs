@@ -6,7 +6,6 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 
@@ -17,8 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             ParenthesizedLambdaExpressionSyntax lambdaExpression,
             ArrayBuilder<BlockSpan> spans,
-            bool isMetadataAsSource,
-            OptionSet options,
+            BlockStructureOptionProvider optionProvider,
             CancellationToken cancellationToken)
         {
             // fault tolerance

@@ -115,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Visit(node.IterationVariableType);
                 Visit(node.AwaitOpt);
+                Visit(node.EnumeratorInfoOpt?.DisposeAwaitableInfo);
                 Visit(node.Expression);
                 // https://github.com/dotnet/roslyn/issues/35010: handle the deconstruction
                 //this.Visit(node.DeconstructionOpt);

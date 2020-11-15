@@ -300,7 +300,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                 }
 
-                if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
+                if (symbol.NullableAnnotation == NullableAnnotation.Annotated &&
+                    !symbol.IsValueType)
                 {
                     typeSyntax = AddInformationTo(SyntaxFactory.NullableType(typeSyntax), symbol);
                 }
