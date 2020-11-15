@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                     else
                     {
-                        var container = symbol.ContainingNamespace.Accept(this);
+                        var container = symbol.ContainingNamespace.Accept(this)!; // TODO2
                         typeSyntax = AddInformationTo(SyntaxFactory.QualifiedName(
                             (NameSyntax)container,
                             simpleNameSyntax), symbol);
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
                 else
                 {
-                    var container = symbol.ContainingNamespace.Accept(this);
+                    var container = symbol.ContainingNamespace.Accept(this)!; // TODO2
                     return AddInformationTo(SyntaxFactory.QualifiedName(
                         (NameSyntax)container,
                         syntax), symbol);

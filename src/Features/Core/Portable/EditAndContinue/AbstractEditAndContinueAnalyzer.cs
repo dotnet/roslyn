@@ -3088,7 +3088,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     foreach (var newQueryClause in from clause in lazyNewErroneousClauses
                                                    orderby clause.SpanStart
-                                                   group clause by GetContainingQueryExpression(clause) into clausesByQuery
+                                                   group clause by GetContainingQueryExpression(clause)! into clausesByQuery // TODO2
                                                    select clausesByQuery.First())
                     {
                         diagnostics.Add(new RudeEditDiagnostic(

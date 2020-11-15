@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             public override ExpressionSyntax DefaultVisit(ISymbol symbol)
-                => symbol.Accept(TypeSyntaxGeneratorVisitor.Create());
+                => symbol.Accept(TypeSyntaxGeneratorVisitor.Create())!; // TODO2
 
             private static TExpressionSyntax AddInformationTo<TExpressionSyntax>(TExpressionSyntax syntax, ISymbol symbol)
                 where TExpressionSyntax : ExpressionSyntax
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                     else
                     {
-                        var container = symbol.ContainingType.Accept(this);
+                        var container = symbol.ContainingType.Accept(this)!; // TODO2
                         return CreateMemberAccessExpression(symbol, container, simpleNameSyntax);
                     }
                 }
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                     else
                     {
-                        var container = symbol.ContainingNamespace.Accept(this);
+                        var container = symbol.ContainingNamespace.Accept(this)!; // TODO2
                         return CreateMemberAccessExpression(symbol, container, simpleNameSyntax);
                     }
                 }
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
                 else
                 {
-                    var container = symbol.ContainingNamespace.Accept(this);
+                    var container = symbol.ContainingNamespace.Accept(this)!; // TODO2
                     return CreateMemberAccessExpression(symbol, container, syntax);
                 }
             }

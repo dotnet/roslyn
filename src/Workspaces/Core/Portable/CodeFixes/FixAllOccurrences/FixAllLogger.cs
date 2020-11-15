@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public static void LogState(FixAllState fixAllState, bool isInternalCodeFixProvider)
         {
+            // TODO2 using the KeyValueLogMessage API is painful
+#nullable disable
             Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesContext, KeyValueLogMessage.Create(m =>
             {
                 m[CorrelationId] = fixAllState.CorrelationId;
@@ -69,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         break;
                 }
             }));
+#nullable enable
         }
 
         public static void LogComputationResult(int correlationId, bool completed, bool timedOut = false)

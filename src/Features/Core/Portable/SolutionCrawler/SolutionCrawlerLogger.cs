@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             Logger.Log(FunctionId.WorkCoordinatorRegistrationService_Register, KeyValueLogMessage.Create(m =>
             {
                 m[Id] = correlationId;
-                m[Kind] = workspace.Kind;
+                m[Kind] = workspace.Kind!; // TODO2
             }));
         }
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             Logger.Log(FunctionId.WorkCoordinatorRegistrationService_Reanalyze, KeyValueLogMessage.Create(m =>
             {
                 m[Id] = correlationId;
-                m[Analyzer] = analyzer.ToString();
+                m[Analyzer] = analyzer.ToString()!; // TODO2
                 m[DocumentCount] = documentCount;
                 m[HighPriority] = highPriority;
                 m[Languages] = languages;
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 Logger.Log(analyzerId, KeyValueLogMessage.Create(m =>
                 {
                     m[Id] = correlationId;
-                    m[Analyzer] = analyzer.ToString();
+                    m[Analyzer] = analyzer.ToString()!; // TODO2
                 }));
             }
         }

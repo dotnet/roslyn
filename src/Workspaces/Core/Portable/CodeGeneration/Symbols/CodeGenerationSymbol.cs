@@ -173,7 +173,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public abstract void Accept(SymbolVisitor visitor);
 
-        public abstract TResult Accept<TResult>(SymbolVisitor<TResult> visitor);
+#nullable enable
+        public abstract TResult? Accept<TResult>(SymbolVisitor<TResult> visitor);
+#nullable disable
 
         public string GetDocumentationCommentId()
             => null;
