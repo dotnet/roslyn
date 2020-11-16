@@ -773,6 +773,11 @@ namespace Microsoft.CodeAnalysis
                 return Failed;
             }
 
+            if (ReportDiagnostics(TimeBomb.GetExplosionDiagnostics(), consoleOutput, errorLogger))
+            {
+                return Failed;
+            }
+
             var touchedFilesLogger = (Arguments.TouchedFilesPath != null) ? new TouchedFileLogger() : null;
 
             var diagnostics = DiagnosticBag.GetInstance();

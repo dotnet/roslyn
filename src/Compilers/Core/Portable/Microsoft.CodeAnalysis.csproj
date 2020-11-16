@@ -21,6 +21,11 @@
     </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
+    <AssemblyAttribute Include="RoslynEx.TimeBomb.AssemblyBuildDate">
+      <_Parameter1>$([System.DateTime]::UtcNow.ToString(o))</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
     <None Include="Operations\OperationInterfaces.xml" />
   </ItemGroup>
   <ItemGroup>
