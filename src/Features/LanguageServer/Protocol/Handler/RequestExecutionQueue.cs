@@ -55,12 +55,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly CancellationTokenSource _cancelSource;
         private readonly DocumentChangeTracker _documentChangeTracker;
 
-        // These two dictionaries are used to cache our forked LSP solution so we don't have to
+        // This dictionary is used to cache our forked LSP solution so we don't have to
         // recompute it for each request. We don't need to worry about threading because they are only
         // used when preparing to handle a request, which happens in a single thread in the ProcessQueueAsync
         // method.
-        private readonly Dictionary<Workspace, Solution> _lastWorkspaceSolution = new();
-        private readonly Dictionary<Workspace, Solution> _lastLSPSolution = new();
+        private readonly Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)> _lspSolutionCache = new();
 
         public CancellationToken CancellationToken => _cancelSource.Token;
 
@@ -189,7 +188,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         var ranToCompletion = await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
 
                         // Now that we've mutated our solution, clear out our saved state to ensure it gets recalculated
-                        _lastLSPSolution.Remove(context.Solution.Workspace);
+                        _lspSolutionCache.Remove(context.Solution.Workspace);
 
                         if (!ranToCompletion)
                         {
@@ -287,35 +286,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             var workspace = workspaceSolution.Workspace;
 
-            var recalculateSolution = false;
-            // if we don't have a cached LSP view of the world, we need to create a new one
-            if (!_lastLSPSolution.ContainsKey(workspace))
+            // If we have a cached solution we can use it, unless the workspace solution it was based on
+            // is not the current one. 
+            if (!_lspSolutionCache.TryGetValue(workspace, out var cacheInfo) ||
+                workspaceSolution != cacheInfo.workspaceSolution)
             {
-                recalculateSolution = true;
+                var lspSolution = GetSolutionWithReplacedDocuments(workspaceSolution);
+                                _lspSolutionCache[workspace] = (workspaceSolution, lspSolution);
+
+                return lspSolution;
             }
 
-            // if the workspace has changed we need to recalculate, and save the current state as our starting point
-            if (!_lastWorkspaceSolution.TryGetValue(workspace, out var lastSolution) || lastSolution != workspaceSolution)
-            {
-                recalculateSolution = true;
-                _lastWorkspaceSolution[workspace] = workspaceSolution;
-            }
-
-            Solution lspSolution;
-            if (recalculateSolution)
-            {
-                // Now we can update the solution to represent the LSP view of the world, with any text changes we received
-                lspSolution = GetSolutionWithReplacedDocuments(workspaceSolution);
-
-                _lastLSPSolution[workspace] = lspSolution;
-            }
-            else
-            {
-                // Nothing has changed since the last LSP request, so we can reuse the solution from it
-                lspSolution = _lastLSPSolution[workspace];
-            }
-
-            return lspSolution;
+            return cacheInfo.lspSolution;
         }
 
         /// <summary>
