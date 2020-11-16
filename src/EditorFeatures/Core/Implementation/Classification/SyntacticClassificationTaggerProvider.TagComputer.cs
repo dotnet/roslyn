@@ -266,6 +266,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
             }
 
+            /// <summary>
+            /// Force computation of up to date tags.
+            /// This is called by the editor for scenarios such as print or rich text copy with classifications enabled.
+            /// Note that the editor will block the UI until results are returned.
+            /// </summary>
+            public IEnumerable<ITagSpan<IClassificationTag>> GetAllTags(NormalizedSnapshotSpanCollection spans, CancellationToken cancellationToken)
+            {
+                if (spans.IsEmpty() || _workspace == null)
+                {
+                    return SpecializedCollections.EmptyEnumerable<ITagSpan<IClassificationTag>>();
+                }
+
+                var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var classificationService = document?.Project.LanguageServices.GetService<IClassificationService>();
+                if (classificationService == null)
+                {
+                    return SpecializedCollections.EmptyEnumerable<ITagSpan<IClassificationTag>>();
+                }
+
+                var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
+                foreach (var span in spans)
+                {
+                    classificationService.AddSyntacticClassificationsAsync(
+                        document, span.Span.ToTextSpan(), classifiedSpans, cancellationToken).Wait(cancellationToken);
+                }
+
+                return ClassificationUtilities.ConvertAndReturnList(
+                    _typeMap, _subjectBuffer.CurrentSnapshot, classifiedSpans);
+            }
+
             private IEnumerable<ITagSpan<IClassificationTag>> GetTags(
                 NormalizedSnapshotSpanCollection spans, HostLanguageServices languageServices)
             {
