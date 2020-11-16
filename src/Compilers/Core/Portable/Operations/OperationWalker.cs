@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Operations
@@ -29,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Visit(operation);
         }
 
-        public override void Visit(IOperation operation)
+        public override void Visit(IOperation? operation)
         {
             if (operation != null)
             {

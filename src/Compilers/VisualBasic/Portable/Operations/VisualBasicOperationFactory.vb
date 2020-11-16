@@ -1170,12 +1170,10 @@ Namespace Microsoft.CodeAnalysis.Operations
             If operatorsOpt IsNot Nothing Then
                 RecordParent(operatorsOpt.LeftOperandPlaceholder, boundForToStatement)
                 RecordParent(operatorsOpt.RightOperandPlaceholder, boundForToStatement)
-                userDefinedInfo = New ForToLoopOperationUserDefinedInfo(New Lazy(Of IBinaryOperation)(Function() DirectCast(Operation.SetParentOperation(Create(operatorsOpt.Addition), Nothing),
-                                                                                                                            IBinaryOperation)),
-                                                                        New Lazy(Of IBinaryOperation)(Function() DirectCast(Operation.SetParentOperation(Create(operatorsOpt.Subtraction), Nothing),
-                                                                                                                            IBinaryOperation)),
-                                                                        New Lazy(Of IOperation)(Function() Operation.SetParentOperation(Create(operatorsOpt.LessThanOrEqual), Nothing)),
-                                                                        New Lazy(Of IOperation)(Function() Operation.SetParentOperation(Create(operatorsOpt.GreaterThanOrEqual), Nothing)))
+                userDefinedInfo = New ForToLoopOperationUserDefinedInfo(DirectCast(Operation.SetParentOperation(Create(operatorsOpt.Addition), Nothing), IBinaryOperation),
+                                                                        DirectCast(Operation.SetParentOperation(Create(operatorsOpt.Subtraction), Nothing), IBinaryOperation),
+                                                                        Operation.SetParentOperation(Create(operatorsOpt.LessThanOrEqual), Nothing),
+                                                                        Operation.SetParentOperation(Create(operatorsOpt.GreaterThanOrEqual), Nothing))
             End If
 
             Return New ForToLoopOperation(loopControlVariable, initialValue, limitValue, stepValue, boundForToStatement.Checked, nextVariables, (loopObj, userDefinedInfo),

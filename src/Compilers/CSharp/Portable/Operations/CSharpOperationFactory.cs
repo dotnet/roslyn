@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -34,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Operations
             _cachedCreateInternal = CreateInternal;
         }
 
-#nullable enable
         [return: NotNullIfNotNull("boundNode")]
         public IOperation? Create(BoundNode? boundNode)
         {
@@ -67,7 +64,6 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             return builder.ToImmutableAndFree();
         }
-#nullable disable
 
         internal IOperation CreateInternal(BoundNode boundNode)
         {
@@ -334,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.TypeOrValueExpression:
                 case BoundKind.IndexOrRangePatternIndexerAccess:
 
-                    ConstantValue constantValue = (boundNode as BoundExpression)?.ConstantValue;
+                    ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValue;
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
                     if (!isImplicit)
@@ -355,7 +351,6 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-#nullable enable
         private IMethodBodyOperation CreateMethodBodyOperation(BoundNonConstructorMethodBody boundNode)
         {
             return new MethodBodyOperation(
@@ -378,9 +373,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 isImplicit: boundNode.WasCompilerGenerated);
         }
 
-        internal ImmutableArray<IOperation> GetIOperationChildren(BoundNode boundNode)
+        internal ImmutableArray<IOperation> GetIOperationChildren(IBoundNodeWithIOperationChildren boundNodeWithChildren)
         {
-            var boundNodeWithChildren = (IBoundNodeWithIOperationChildren)boundNode;
             var children = boundNodeWithChildren.Children;
             if (children.IsDefaultOrEmpty)
             {
@@ -437,7 +431,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private IDeconstructionAssignmentOperation CreateBoundDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator boundDeconstructionAssignmentOperator)
         {
             IOperation target = Create(boundDeconstructionAssignmentOperator.Left);
-            // Skip the synthetic deconstruction conversion wrapping the right operand.
+            // Skip the synthetic deconstruction conversion wrapping the right operand. This is a compiler-generated conversion that we don't want to reflect
+            // in the public API because it's an implementation detail.
             IOperation value = Create(boundDeconstructionAssignmentOperator.Right.Operand);
             SyntaxNode syntax = boundDeconstructionAssignmentOperator.Syntax;
             ITypeSymbol? type = boundDeconstructionAssignmentOperator.GetPublicTypeSymbol();
@@ -482,7 +477,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new NoneOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
         }
 
-#nullable disable
         private IOperation CreateBoundUnconvertedAddressOfOperatorOperation(BoundUnconvertedAddressOfOperator boundUnconvertedAddressOf)
         {
             return new AddressOfOperation(
@@ -499,15 +493,25 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 case BoundKind.LocalDeclaration:
                     {
-                        return CreateFromArray<BoundExpression, IOperation>(((BoundLocalDeclaration)declaration).DeclaredTypeOpt.BoundDimensionsOpt);
+                        BoundTypeExpression? declaredTypeOpt = ((BoundLocalDeclaration)declaration).DeclaredTypeOpt;
+                        Debug.Assert(declaredTypeOpt != null);
+                        return CreateFromArray<BoundExpression, IOperation>(declaredTypeOpt.BoundDimensionsOpt);
                     }
                 case BoundKind.MultipleLocalDeclarations:
                 case BoundKind.UsingLocalDeclarations:
                     {
                         var declarations = ((BoundMultipleLocalDeclarationsBase)declaration).LocalDeclarations;
-                        var dimensions = declarations.Length > 0
-                            ? declarations[0].DeclaredTypeOpt.BoundDimensionsOpt
-                            : ImmutableArray<BoundExpression>.Empty;
+                        ImmutableArray<BoundExpression> dimensions;
+                        if (declarations.Length > 0)
+                        {
+                            BoundTypeExpression? declaredTypeOpt = declarations[0].DeclaredTypeOpt;
+                            Debug.Assert(declaredTypeOpt != null);
+                            dimensions = declaredTypeOpt.BoundDimensionsOpt;
+                        }
+                        else
+                        {
+                            dimensions = ImmutableArray<BoundExpression>.Empty;
+                        }
                         return CreateFromArray<BoundExpression, IOperation>(dimensions);
                     }
                 default:
@@ -515,7 +519,6 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-#nullable enable
         internal IOperation CreateBoundLocalOperation(BoundLocal boundLocal, bool createDeclaration = true)
         {
             ILocalSymbol local = boundLocal.LocalSymbol.GetPublicSymbol();
@@ -902,7 +905,7 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         private IDynamicMemberReferenceOperation CreateBoundDynamicMemberAccessOperation(
-            BoundExpression? receiverOpt,
+            BoundExpression? receiver,
             ImmutableArray<TypeSymbol> typeArgumentsOpt,
             string memberName,
             SyntaxNode syntaxNode,
@@ -910,10 +913,10 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit)
         {
             ITypeSymbol? containingType = null;
-            if (receiverOpt?.Kind == BoundKind.TypeExpression)
+            if (receiver?.Kind == BoundKind.TypeExpression)
             {
-                containingType = receiverOpt.GetPublicTypeSymbol();
-                receiverOpt = null;
+                containingType = receiver.GetPublicTypeSymbol();
+                receiver = null;
             }
 
             ImmutableArray<ITypeSymbol> typeArguments = ImmutableArray<ITypeSymbol>.Empty;
@@ -922,7 +925,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 typeArguments = typeArgumentsOpt.GetPublicSymbols();
             }
 
-            IOperation? instance = Create(receiverOpt);
+            IOperation? instance = Create(receiver);
             return new DynamicMemberReferenceOperation(instance, memberName, typeArguments, containingType, _semanticModel, syntaxNode, type, isImplicit);
         }
 
@@ -2243,7 +2246,6 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundQueryClause.WasCompilerGenerated;
             return new TranslatedQueryOperation(operation, _semanticModel, syntax, type, isImplicit);
         }
-#nullable disable
 
         private IOperation CreateBoundRangeVariableOperation(BoundRangeVariable boundRangeVariable)
         {
@@ -2251,7 +2253,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return Create(boundRangeVariable.Value);
         }
 
-#nullable enable
         private IOperation CreateBoundDiscardExpressionOperation(BoundDiscardExpression boundNode)
         {
             return new DiscardOperation(

@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class IsNullOperation
     {
-        public IsNullOperation(SyntaxNode syntax, IOperation operand, ITypeSymbol type, ConstantValue constantValue) :
+        public IsNullOperation(SyntaxNode syntax, IOperation operand, ITypeSymbol type, ConstantValue? constantValue) :
             this(operand, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
         {
             Debug.Assert(operand != null);
