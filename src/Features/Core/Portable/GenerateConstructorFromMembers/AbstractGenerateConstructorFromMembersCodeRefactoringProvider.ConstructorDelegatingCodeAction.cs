@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,6 +25,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             private readonly Document _document;
             private readonly State _state;
             private readonly bool _addNullChecks;
+
+            internal override string ProviderName => PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers;
 
             public ConstructorDelegatingCodeAction(
                 AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,

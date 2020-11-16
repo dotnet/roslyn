@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             protected readonly State State;
             protected readonly AbstractImplementInterfaceService Service;
             private readonly string _equivalenceKey;
-
+            internal override string ProviderName => PredefinedCodeFixProviderNames.ImplementInterface;
             internal ImplementInterfaceCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,

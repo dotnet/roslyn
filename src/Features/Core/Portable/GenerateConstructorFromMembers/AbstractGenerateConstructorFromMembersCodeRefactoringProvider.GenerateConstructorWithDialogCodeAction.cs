@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -28,6 +29,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             private readonly ImmutableArray<PickMembersOption> _pickMembersOptions;
 
             private bool? _addNullCheckOptionValue;
+
+            internal override string ProviderName => PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers;
 
             public override string Title => FeaturesResources.Generate_constructor;
 

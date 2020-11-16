@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             public sealed override string Title { get; }
             public sealed override string? EquivalenceKey { get; }
-            public sealed override string? ProviderName { get; }
+            internal sealed override string? ProviderName { get; }
         }
 
         internal class CodeActionWithNestedActions : SimpleCodeAction
