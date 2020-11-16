@@ -2032,6 +2032,11 @@
         <target state="new">The '&amp;' operator should not be used on parameters or local variables in async methods.</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNameofAccessInstanceMembersInAllContexts">
+        <source>nameof can access instance members in all contexts</source>
+        <target state="new">nameof can access instance members in all contexts</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">L'assembly '{0}' contenant le type '{1}' référence le .NET Framework, ce qui n'est pas pris en charge.</target>
