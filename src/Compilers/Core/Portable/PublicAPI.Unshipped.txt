@@ -13,14 +13,18 @@ RoslynEx.TransformerOrderAttribute
 RoslynEx.TransformerOrderAttribute.TransformerNames.get -> string[]
 RoslynEx.TransformerOrderAttribute.TransformerOrderAttribute(params string[] transformerNames) -> void
 RoslynEx.Intrinsics
+RoslynEx.ResourceDescriptionExtensions
 RoslynEx.RoslynExInfo
 RoslynEx.TransformerContext
-RoslynEx.TransformerContext.AddManifestResource(Microsoft.CodeAnalysis.ResourceDescription resource) -> void
 RoslynEx.TransformerContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
 RoslynEx.TransformerContext.GlobalOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
 RoslynEx.TransformerContext.LoadReferencedAssembly(Microsoft.CodeAnalysis.IAssemblySymbol assemblySymbol) -> System.Reflection.Assembly
+RoslynEx.TransformerContext.ManifestResources.get -> System.Collections.Generic.IList<Microsoft.CodeAnalysis.ResourceDescription>
 RoslynEx.TransformerContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
 static RoslynEx.Intrinsics.GetRuntimeFieldHandle(string documentationId) -> System.RuntimeFieldHandle
 static RoslynEx.Intrinsics.GetRuntimeMethodHandle(string documentationId) -> System.RuntimeMethodHandle
 static RoslynEx.Intrinsics.GetRuntimeTypeHandle(string documentationId) -> System.RuntimeTypeHandle
+static RoslynEx.ResourceDescriptionExtensions.GetFileName(this Microsoft.CodeAnalysis.ResourceDescription resource) -> string
+static RoslynEx.ResourceDescriptionExtensions.GetResourceName(this Microsoft.CodeAnalysis.ResourceDescription resource) -> string
+static RoslynEx.ResourceDescriptionExtensions.IsPublic(this Microsoft.CodeAnalysis.ResourceDescription resource) -> bool
 static RoslynEx.RoslynExInfo.IsActive.get -> bool

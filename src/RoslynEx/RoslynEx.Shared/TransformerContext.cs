@@ -16,20 +16,19 @@ namespace RoslynEx
     /// </summary>
     public class TransformerContext
     {
-        internal List<ResourceDescription> ManifestResources { get; }
-
 #if !ROSLYNEX_INTERFACE
         private readonly DiagnosticBag _diagnostics;
         private readonly IAnalyzerAssemblyLoader _assemblyLoader;
 
         internal TransformerContext(
-            Compilation compilation, AnalyzerConfigOptions globalOptions, DiagnosticBag diagnostics, IAnalyzerAssemblyLoader assemblyLoader)
+            Compilation compilation, AnalyzerConfigOptions globalOptions, IList<ResourceDescription> manifestResources, DiagnosticBag diagnostics,
+            IAnalyzerAssemblyLoader assemblyLoader)
         {
             Compilation = compilation;
             GlobalOptions = globalOptions;
+            ManifestResources = manifestResources;
             _diagnostics = diagnostics;
             _assemblyLoader = assemblyLoader;
-            ManifestResources = new List<ResourceDescription>();
         }
 #endif
 
@@ -45,9 +44,11 @@ namespace RoslynEx
         public AnalyzerConfigOptions GlobalOptions { get; }
 
         /// <summary>
-        /// Adds a managed resource to the assembly.
+        /// Can be used to inspect or modify (usually, add) resources of the assembly.
+        /// 
+        /// To inspect existing resources, use extension method from <see cref="ResourceDescriptionExtensions "/>.
         /// </summary>
-        public void AddManifestResource(ResourceDescription resource) => ManifestResources.Add(resource);
+        public IList<ResourceDescription> ManifestResources { get; }
 
         /// <summary>
         /// Adds a <see cref="Diagnostic"/> to the user's compilation.

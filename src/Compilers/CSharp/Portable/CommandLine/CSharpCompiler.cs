@@ -391,15 +391,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private protected override Compilation RunTransformers(
-            ref Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics) =>
-            RunTransformers(
-                ref input, transformers, analyzerConfigProvider, diagnostics,
-                resources => Arguments.ManifestResources = Arguments.ManifestResources.AddRange(resources), AssemblyLoader);
+            ref Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics)
+        {
+            var resources = Arguments.ManifestResources.ToList();
 
+            var result = RunTransformers(ref input, transformers, analyzerConfigProvider, diagnostics, resources, AssemblyLoader);
+
+            Arguments.ManifestResources = resources.ToImmutableArray();
+
+            return result;
+        }
 
         internal static Compilation RunTransformers(
             ref Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics,
-            Action<IEnumerable<ResourceDescription>>? addManifestResources, IAnalyzerAssemblyLoader assemblyLoader)
+            IList<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader)
         {
             if (!ShouldDebugTransformedCode(analyzerConfigProvider))
             {
@@ -416,9 +421,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 try
                 {
-                    var context = new TransformerContext(compilation, analyzerConfigProvider.GlobalOptions, diagnostics, assemblyLoader);
+                    var context = new TransformerContext(compilation, analyzerConfigProvider.GlobalOptions, manifestResources, diagnostics, assemblyLoader);
                     compilation = transformer.Execute(context);
-                    addManifestResources?.Invoke(context.ManifestResources);
                 }
                 catch (Exception ex)
                 {
