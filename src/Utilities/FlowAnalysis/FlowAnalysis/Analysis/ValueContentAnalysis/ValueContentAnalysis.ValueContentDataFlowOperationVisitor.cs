@@ -177,7 +177,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 _ = base.DefaultVisit(operation, argument);
                 if (operation.Type == null)
                 {
-                    return ValueContentAbstractValue.ContainsNullLiteralState;
+                    return operation.Kind == OperationKind.None ?
+                        ValueContentAbstractValue.MayBeContainsNonLiteralState :
+                        ValueContentAbstractValue.ContainsNullLiteralState;
                 }
 
                 if (ValueContentAbstractValue.IsSupportedType(operation.Type, out var valueTypeSymbol))

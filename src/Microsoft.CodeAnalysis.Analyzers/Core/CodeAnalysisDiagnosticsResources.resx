@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
+  <!--
+    Microsoft ResX Schema
+
     Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
     associated with the data types.
-    
+
     Example:
-    
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-                
-    There are any number of "resheader" rows that contain simple 
+
+    There are any number of "resheader" rows that contain simple
     name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
     mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
-    
+
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
+    value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -257,7 +257,7 @@
     <value>'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</value>
   </data>
   <data name="OverrideGetFixAllProviderDescription" xml:space="preserve">
-    <value>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</value>
+    <value>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</value>
   </data>
   <data name="OverrideGetFixAllProviderCodeFixTitle" xml:space="preserve">
     <value>Override GetFixAllProvider.</value>
@@ -338,7 +338,7 @@
     <value>Upgrade MSBuildWorkspace</value>
   </data>
   <data name="CompareSymbolsCorrectlyDescription" xml:space="preserve">
-    <value>Symbols should be compared for equality, not identity.</value>
+    <value>Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.</value>
   </data>
   <data name="CompareSymbolsCorrectlyMessage" xml:space="preserve">
     <value>Compare symbols correctly</value>
@@ -401,10 +401,10 @@
     <value>Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer</value>
   </data>
   <data name="DeclareDiagnosticIdInAnalyzerReleaseTitle" xml:space="preserve">
-    <value>Add analyzer diagnostic IDs to analyzer release.</value>
+    <value>Add analyzer diagnostic IDs to analyzer release</value>
   </data>
   <data name="DeclareDiagnosticIdInAnalyzerReleaseMessage" xml:space="preserve">
-    <value>Rule '{0}' is not part of any analyzer release.</value>
+    <value>Rule '{0}' is not part of any analyzer release</value>
   </data>
   <data name="DeclareDiagnosticIdInAnalyzerReleaseDescription" xml:space="preserve">
     <value>All supported analyzer diagnostic IDs should be part of an analyzer release.</value>
@@ -413,7 +413,7 @@
     <value>Add rule entry to unshipped release file</value>
   </data>
   <data name="UpdateDiagnosticIdInAnalyzerReleaseTitle" xml:space="preserve">
-    <value>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</value>
+    <value>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release</value>
   </data>
   <data name="UpdateDiagnosticIdInAnalyzerReleaseMessage" xml:space="preserve">
     <value>Rule '{0}' has a changed 'Category' or 'Severity' from the last release. Either revert the update(s) in source or add a new up-to-date entry to unshipped release file.</value>
@@ -425,16 +425,16 @@
     <value>Update rule entry in unshipped release file</value>
   </data>
   <data name="RemoveUnshippedDeletedDiagnosticIdTitle" xml:space="preserve">
-    <value>Do not add removed analyzer diagnostic IDs to unshipped analyzer release.</value>
+    <value>Do not add removed analyzer diagnostic IDs to unshipped analyzer release</value>
   </data>
   <data name="RemoveUnshippedDeletedDiagnosticIdMessage" xml:space="preserve">
-    <value>Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer.</value>
+    <value>Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer</value>
   </data>
   <data name="RemoveUnshippedDeletedDiagnosticIdDescription" xml:space="preserve">
     <value>Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.</value>
   </data>
   <data name="RemoveShippedDeletedDiagnosticIdTitle" xml:space="preserve">
-    <value>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</value>
+    <value>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file</value>
   </data>
   <data name="RemoveShippedDeletedDiagnosticIdMessage" xml:space="preserve">
     <value>Rule '{0}' was shipped in analyzer release '{1}', but is no longer a supported diagnostic for any analyzer. Add an entry for this rule in a 'Removed Rules' table to unshipped file.</value>
@@ -443,43 +443,43 @@
     <value>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</value>
   </data>
   <data name="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle" xml:space="preserve">
-    <value>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</value>
+    <value>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers</value>
   </data>
   <data name="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage" xml:space="preserve">
-    <value>Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported.</value>
+    <value>Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported</value>
   </data>
   <data name="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription" xml:space="preserve">
     <value>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</value>
   </data>
   <data name="RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle" xml:space="preserve">
-    <value>Remove duplicate entries for diagnostic ID in the same analyzer release.</value>
+    <value>Remove duplicate entries for diagnostic ID in the same analyzer release</value>
   </data>
   <data name="RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage" xml:space="preserve">
-    <value>Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'.</value>
+    <value>Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'</value>
   </data>
   <data name="RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription" xml:space="preserve">
     <value>Remove duplicate entries for diagnostic ID in the same analyzer release.</value>
   </data>
   <data name="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle" xml:space="preserve">
-    <value>Remove duplicate entries for diagnostic ID between analyzer releases.</value>
+    <value>Remove duplicate entries for diagnostic ID between analyzer releases</value>
   </data>
   <data name="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage" xml:space="preserve">
-    <value>Rule '{0}' has duplicate entry between release '{1}' and release '{2}'.</value>
+    <value>Rule '{0}' has duplicate entry between release '{1}' and release '{2}'</value>
   </data>
   <data name="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleDescription" xml:space="preserve">
     <value>Remove duplicate entries for diagnostic ID between analyzer releases.</value>
   </data>
   <data name="InvalidEntryInAnalyzerReleasesFileRuleTitle" xml:space="preserve">
-    <value>Invalid entry in analyzer release file.</value>
+    <value>Invalid entry in analyzer release file</value>
   </data>
   <data name="InvalidEntryInAnalyzerReleasesFileRuleMessage" xml:space="preserve">
-    <value>Analyzer release file '{0}' has an invalid entry '{1}'.</value>
+    <value>Analyzer release file '{0}' has an invalid entry '{1}'</value>
   </data>
   <data name="InvalidHeaderInAnalyzerReleasesFileRuleMessage" xml:space="preserve">
-    <value>Analyzer release file '{0}' has a missing or invalid release header '{1}'.</value>
+    <value>Analyzer release file '{0}' has a missing or invalid release header '{1}'</value>
   </data>
   <data name="InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage" xml:space="preserve">
-    <value>Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'.</value>
+    <value>Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'</value>
   </data>
   <data name="InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage" xml:space="preserve">
     <value>Analyzer release file '{0}' has an invalid '{1}' entry without a prior shipped release for the rule '{2}'. Instead, add a separate '{1}' entry for the rule in unshipped release file.</value>
@@ -513,5 +513,8 @@
   </data>
   <data name="DefineDiagnosticDescriptionCorrectlyTitle" xml:space="preserve">
     <value>Define diagnostic description correctly</value>
+  </data>
+  <data name="CompareSymbolsCorrectlyDescriptionGetHashCode" xml:space="preserve">
+    <value>Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</value>
   </data>
 </root>

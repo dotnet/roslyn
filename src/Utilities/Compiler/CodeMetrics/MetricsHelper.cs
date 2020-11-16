@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable disable warnings
+
 #if HAS_IOPERATION
 
 using System;
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 }
                 else
                 {
-                    // Ensure that we do not count the leading and trailing emtpy new lines.
+                    // Ensure that we do not count the leading and trailing empty new lines.
                     var additionalNewLines = Math.Max(0, GetNewlineCount(declSyntax.GetLeadingTrivia(), leading: true) + GetNewlineCount(declSyntax.GetTrailingTrivia(), leading: false) - 1);
                     delta -= additionalNewLines;
                 }

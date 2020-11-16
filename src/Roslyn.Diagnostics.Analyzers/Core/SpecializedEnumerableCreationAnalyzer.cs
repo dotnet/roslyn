@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable disable warnings
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -141,7 +143,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 if (semanticModel.GetSymbolInfo(name, cancellationToken).Symbol is IMethodSymbol methodSymbol &&
                     Equals(methodSymbol.OriginalDefinition, _genericEmptyEnumerableSymbol))
                 {
-                    addDiagnostic(Diagnostic.Create(UseEmptyEnumerableRule, name.Parent.GetLocation()));
+                    addDiagnostic(name.Parent.CreateDiagnostic(UseEmptyEnumerableRule));
                 }
             }
 
@@ -149,11 +151,11 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 if (length == 0)
                 {
-                    addDiagnostic(Diagnostic.Create(UseEmptyEnumerableRule, arrayCreationExpression.GetLocation()));
+                    addDiagnostic(arrayCreationExpression.CreateDiagnostic(UseEmptyEnumerableRule));
                 }
                 else if (length == 1)
                 {
-                    addDiagnostic(Diagnostic.Create(UseSingletonEnumerableRule, arrayCreationExpression.GetLocation()));
+                    addDiagnostic(arrayCreationExpression.CreateDiagnostic(UseSingletonEnumerableRule));
                 }
             }
         }
