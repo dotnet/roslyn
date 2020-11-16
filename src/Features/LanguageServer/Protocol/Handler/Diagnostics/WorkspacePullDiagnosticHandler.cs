@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             => null;
 
         protected override WorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
-            => new()
+            => new WorkspaceDiagnosticReport
             {
                 TextDocument = identifier,
                 Diagnostics = diagnostics,

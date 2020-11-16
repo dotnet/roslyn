@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             => diagnosticsParams.TextDocument;
 
         protected override DiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
-            => new()
+            => new DiagnosticReport
             {
                 Diagnostics = diagnostics,
                 ResultId = resultId,
