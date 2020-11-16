@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -164,23 +161,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var compilationWithGenerator = await solution.GetRequiredProject(projectIdWithGenerator).GetRequiredCompilationAsync(CancellationToken.None);
 
             Assert.Same(compilationWithGenerator, compilationReference.Compilation);
-        }
-
-        private sealed class TestGeneratorReference : AnalyzerReference
-        {
-            private readonly ISourceGenerator _generator;
-
-            public TestGeneratorReference(ISourceGenerator generator)
-            {
-                _generator = generator;
-            }
-
-            public override string? FullPath => null;
-            public override object Id => this;
-
-            public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language) => ImmutableArray<DiagnosticAnalyzer>.Empty;
-            public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages() => ImmutableArray<DiagnosticAnalyzer>.Empty;
-            public override ImmutableArray<ISourceGenerator> GetGenerators() => ImmutableArray.Create(_generator);
         }
 
         private sealed class GenerateFileForEachAdditionalFileWithContentsCommented : ISourceGenerator

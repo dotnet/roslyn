@@ -4,7 +4,6 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
@@ -15,11 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             IndexerDeclarationSyntax indexerDeclaration,
             ref TemporaryArray<BlockSpan> spans,
-            bool isMetadataAsSource,
-            OptionSet options,
+            BlockStructureOptionProvider optionProvider,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(indexerDeclaration, ref spans, isMetadataAsSource);
+            CSharpStructureHelpers.CollectCommentBlockSpans(indexerDeclaration, ref spans, optionProvider);
 
             // fault tolerance
             if (indexerDeclaration.AccessorList == null ||
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // Check IsNode to compress blank lines after this node if it is the last child of the parent.
             //
             // Indexers are grouped together with properties in Metadata as Source.
-            var compressEmptyLines = isMetadataAsSource
+            var compressEmptyLines = optionProvider.IsMetadataAsSource
                 && (!nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.IndexerDeclaration) || nextSibling.IsKind(SyntaxKind.PropertyDeclaration));
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(

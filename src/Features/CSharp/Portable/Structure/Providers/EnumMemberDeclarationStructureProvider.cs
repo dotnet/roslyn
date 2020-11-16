@@ -4,7 +4,6 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
@@ -15,11 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             EnumMemberDeclarationSyntax enumMemberDeclaration,
             ref TemporaryArray<BlockSpan> spans,
-            bool isMetadataAsSource,
-            OptionSet options,
+            BlockStructureOptionProvider optionProvider,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(enumMemberDeclaration, ref spans, isMetadataAsSource);
+            CSharpStructureHelpers.CollectCommentBlockSpans(enumMemberDeclaration, ref spans, optionProvider);
         }
     }
 }

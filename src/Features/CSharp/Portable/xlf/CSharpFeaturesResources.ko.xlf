@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
         <source>Apply file header preferences</source>
-        <target state="new">Apply file header preferences</target>
+        <target state="translated">파일 헤더 기본 설정 적용</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">
@@ -274,7 +274,7 @@
       </trans-unit>
       <trans-unit id="Simplify_name_0">
         <source>Simplify name '{0}'</source>
-        <target state="translated">{0}' 이름 단순화</target>
+        <target state="translated">'{0}' 이름 단순화</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_member_access_0">
@@ -419,12 +419,12 @@
       </trans-unit>
       <trans-unit id="Generate_explicit_conversion_operator_in_0">
         <source>Generate explicit conversion operator in '{0}'</source>
-        <target state="translated">{0}'에서 명시적 변환 연산자 생성</target>
+        <target state="translated">'{0}'에서 명시적 변환 연산자 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_implicit_conversion_operator_in_0">
         <source>Generate implicit conversion operator in '{0}'</source>
-        <target state="translated">{0}'에서 암시적 변환 연산자 생성</target>
+        <target state="translated">'{0}'에서 암시적 변환 연산자 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

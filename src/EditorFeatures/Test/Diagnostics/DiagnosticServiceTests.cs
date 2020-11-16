@@ -46,16 +46,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var id = Tuple.Create(workspace, document);
             var diagnostic = RaiseDiagnosticEvent(mutex, source, workspace, document.Project.Id, document.Id, id);
 
-            var data1 = diagnosticService.GetDiagnostics(workspace, null, null, null, includeSuppressedDiagnostics: false, forPullDiagnostics: false, CancellationToken.None);
+            var data1 = diagnosticService.GetPushDiagnostics(workspace, null, null, null, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
             Assert.Equal(diagnostic, data1.Single());
 
-            var data2 = diagnosticService.GetDiagnostics(workspace, document.Project.Id, null, null, includeSuppressedDiagnostics: false, forPullDiagnostics: false, CancellationToken.None);
+            var data2 = diagnosticService.GetPushDiagnostics(workspace, document.Project.Id, null, null, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
             Assert.Equal(diagnostic, data2.Single());
 
-            var data3 = diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, null, includeSuppressedDiagnostics: false, forPullDiagnostics: false, CancellationToken.None);
+            var data3 = diagnosticService.GetPushDiagnostics(workspace, document.Project.Id, document.Id, null, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
             Assert.Equal(diagnostic, data3.Single());
 
-            var data4 = diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, id, includeSuppressedDiagnostics: false, forPullDiagnostics: false, CancellationToken.None);
+            var data4 = diagnosticService.GetPushDiagnostics(workspace, document.Project.Id, document.Id, id, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
             Assert.Equal(diagnostic, data4.Single());
         }
 
@@ -85,19 +85,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             RaiseDiagnosticEvent(mutex, source, workspace, document.Project.Id, null, id3);
             RaiseDiagnosticEvent(mutex, source, workspace, null, null, Tuple.Create(workspace));
 
-            var data1 = diagnosticService.GetDiagnostics(workspace, null, null, null, includeSuppressedDiagnostics: false, forPullDiagnostics: false, CancellationToken.None);
+            var data1 = diagnosticService.GetPushDiagnostics(workspace, null, null, null, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
             Assert.Equal(5, data1.Count());
 
-            var data2 = diagnosticService.GetDiagnostics(workspace, document.Project.Id, null, null, includeSuppressedDiagnostics: false, forPullDiagnostics: false, CancellationToken.None);
+            var data2 = diagnosticService.GetPushDiagnostics(workspace, document.Project.Id, null, null, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
             Assert.Equal(4, data2.Count());
 
-            var data3 = diagnosticService.GetDiagnostics(workspace, document.Project.Id, null, id3, includeSuppressedDiagnostics: false, forPullDiagnostics: false, CancellationToken.None);
+            var data3 = diagnosticService.GetPushDiagnostics(workspace, document.Project.Id, null, id3, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
             Assert.Equal(1, data3.Count());
 
-            var data4 = diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, null, includeSuppressedDiagnostics: false, forPullDiagnostics: false, CancellationToken.None);
+            var data4 = diagnosticService.GetPushDiagnostics(workspace, document.Project.Id, document.Id, null, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
             Assert.Equal(2, data4.Count());
 
-            var data5 = diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, id, includeSuppressedDiagnostics: false, forPullDiagnostics: false, CancellationToken.None);
+            var data5 = diagnosticService.GetPushDiagnostics(workspace, document.Project.Id, document.Id, id, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
             Assert.Equal(1, data5.Count());
         }
 
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             RaiseDiagnosticEvent(mutex, source2, workspace, null, null, Tuple.Create(workspace));
 
             // confirm data is there.
-            var data1 = diagnosticService.GetDiagnostics(workspace, null, null, null, includeSuppressedDiagnostics: false, forPullDiagnostics: false, CancellationToken.None);
+            var data1 = diagnosticService.GetPushDiagnostics(workspace, null, null, null, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
             Assert.Equal(5, data1.Count());
 
             diagnosticService.DiagnosticsUpdated -= MarkSet;
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             mutex.WaitOne();
 
             // confirm there are 2 data left
-            var data2 = diagnosticService.GetDiagnostics(workspace, null, null, null, includeSuppressedDiagnostics: false, forPullDiagnostics: false, CancellationToken.None);
+            var data2 = diagnosticService.GetPushDiagnostics(workspace, null, null, null, includeSuppressedDiagnostics: false, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
             Assert.Equal(2, data2.Count());
 
             void MarkCalled(object sender, DiagnosticsUpdatedArgs args)

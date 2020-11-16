@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.[Shared].Collections
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
@@ -16,9 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Protected Overrides Sub CollectBlockSpans(node As CollectionInitializerSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
-                                                  isMetadataAsSource As Boolean,
-                                                  options As OptionSet,
-                                                  CancellationToken As CancellationToken)
+                                                  optionProvider As BlockStructureOptionProvider,
+                                                  cancellationToken As CancellationToken)
 
             ' We don't want to make a span for the "{ ... }" in "From { ... }".  The latter
             ' is already handled by ObjectCreationInitializerStructureProvider

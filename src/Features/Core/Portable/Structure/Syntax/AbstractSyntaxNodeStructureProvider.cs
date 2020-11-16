@@ -4,7 +4,6 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.Structure
@@ -13,40 +12,28 @@ namespace Microsoft.CodeAnalysis.Structure
         where TSyntaxNode : SyntaxNode
     {
         public sealed override void CollectBlockSpans(
-            Document document,
-            SyntaxNode node,
-            ref TemporaryArray<BlockSpan> spans,
-            CancellationToken cancellationToken)
-        {
-            var isMetadataAsSource = document.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
-            var options = document.Project.Solution.Options;
-            CollectBlockSpans(node, ref spans, isMetadataAsSource, options, cancellationToken);
-        }
-
-        public sealed override void CollectBlockSpans(
-            Document document,
             SyntaxTrivia trivia,
             ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptionProvider optionProvider,
             CancellationToken cancellationToken)
         {
             throw new NotSupportedException();
         }
 
-        private void CollectBlockSpans(
+        public sealed override void CollectBlockSpans(
             SyntaxNode node,
             ref TemporaryArray<BlockSpan> spans,
-            bool isMetadataAsSource,
-            OptionSet options,
+            BlockStructureOptionProvider optionProvider,
             CancellationToken cancellationToken)
         {
             if (node is TSyntaxNode tSyntax)
             {
-                CollectBlockSpans(tSyntax, ref spans, isMetadataAsSource, options, cancellationToken);
+                CollectBlockSpans(tSyntax, ref spans, optionProvider, cancellationToken);
             }
         }
 
         protected abstract void CollectBlockSpans(
             TSyntaxNode node, ref TemporaryArray<BlockSpan> spans,
-            bool isMetadataAsSource, OptionSet options, CancellationToken cancellationToken);
+            BlockStructureOptionProvider optionProvider, CancellationToken cancellationToken);
     }
 }

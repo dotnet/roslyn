@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -783,6 +781,44 @@ struct InsertionPoint
     InsertionPoint Up()
     {
         return new InsertionPoint
+        {
+            level [||]= level - 1,
+        };
+    }
+}");
+        }
+
+        [WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNotOnImplicitObjectInitializer()
+        {
+            await TestMissingAsync(
+@"
+struct InsertionPoint
+{
+    int level;
+    
+    InsertionPoint Up()
+    {
+        return new()
+        {
+            level [||]= level - 1,
+        };
+    }
+}");
+        }
+
+        [WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNotOnRecord()
+        {
+            await TestMissingAsync(
+@"
+record InsertionPoint(int level)
+{
+    InsertionPoint Up()
+    {
+        return this with
         {
             level [||]= level - 1,
         };

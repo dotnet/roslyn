@@ -2991,6 +2991,60 @@ public class C
 }");
         }
 
+        [Fact, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]
+        public void TestInsertMembersOnRecord_SemiColon()
+        {
+            var comp = Compile(
+@"public record C;
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
+@"public record C
+{
+    T A;
+}");
+        }
+
+        [Fact, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]
+        public void TestInsertMembersOnRecord_Braces()
+        {
+            var comp = Compile(
+@"public record C { }
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
+@"public record C
+{
+    T A;
+}");
+        }
+
+        [Fact, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]
+        public void TestInsertMembersOnRecord_BracesAndSemiColon()
+        {
+            var comp = Compile(
+@"public record C { };
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
+@"public record C
+{
+    T A;
+}");
+        }
+
         [Fact]
         public void TestMultiAttributeDeclarations()
         {

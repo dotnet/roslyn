@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">{0}' を '{1}' に名前変更</target>
+        <target state="translated">'{0}' を '{1}' に名前変更</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
@@ -629,7 +629,7 @@
       </trans-unit>
       <trans-unit id="The_position_is_not_within_the_symbol_s_declaration">
         <source>The position is not within the symbol's declaration</source>
-        <target state="translated">シンボルの宣言内に配置されていません。</target>
+        <target state="translated">シンボルの宣言内に配置されていません</target>
         <note />
       </trans-unit>
       <trans-unit id="The_symbol_0_cannot_be_located_within_the_current_solution">
@@ -704,7 +704,7 @@
       </trans-unit>
       <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
         <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">{0}' の逆シリアル化のリーダーが、正しくない数の値を読み取りました。</target>
+        <target state="translated">'{0}' の逆シリアル化のリーダーが、正しくない数の値を読み取りました。</target>
         <note />
       </trans-unit>
       <trans-unit id="Async_Method">

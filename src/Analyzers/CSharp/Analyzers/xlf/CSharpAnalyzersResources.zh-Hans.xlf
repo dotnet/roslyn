@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpAnalyzersResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../CSharpAnalyzersResources.resx">
     <body>
       <trans-unit id="Add_braces">
         <source>Add braces</source>
@@ -25,6 +25,11 @@
       <trans-unit id="Delegate_invocation_can_be_simplified">
         <source>Delegate invocation can be simplified.</source>
         <target state="translated">可简化委托调用。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Discard_can_be_removed">
+        <source>Discard can be removed</source>
+        <target state="new">Discard can be removed</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -80,6 +85,11 @@
       <trans-unit id="Remove_unnecessary_suppression_operator">
         <source>Remove unnecessary suppression operator</source>
         <target state="translated">请删除不必要的忽略运算符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnessary_discard">
+        <source>Remove unnecessary discard</source>
+        <target state="new">Remove unnecessary discard</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_default_expression">

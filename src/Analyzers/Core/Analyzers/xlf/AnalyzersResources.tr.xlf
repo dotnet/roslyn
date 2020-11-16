@@ -219,7 +219,7 @@
       </trans-unit>
       <trans-unit id="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked">
         <source>Private property '{0}' can be converted to a method as its get accessor is never invoked.</source>
-        <target state="translated">{0}' özel özelliği, bu özelliğin get erişimcisi hiçbir zaman çağrılmadığı için bir yönteme dönüştürülebilir.</target>
+        <target state="translated">'{0}' özel özelliği, bu özelliğin get erişimcisi hiçbir zaman çağrılmadığı için bir yönteme dönüştürülebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Cast">
@@ -239,7 +239,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression">
         <source>Remove unnecessary suppression</source>
-        <target state="new">Remove unnecessary suppression</target>
+        <target state="translated">Gereksiz gizlemeyi kaldırın</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="Simplify_conditional_expression">
         <source>Simplify conditional expression</source>
-        <target state="new">Simplify conditional expression</target>
+        <target state="translated">Koşullu ifadeyi basitleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_interpolation">

@@ -30,10 +30,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </remarks>
     public sealed class AnalyzerFileReference : AnalyzerReference, IEquatable<AnalyzerReference>
     {
-        private static readonly string s_diagnosticAnalyzerAttributeNamespace = typeof(DiagnosticAnalyzerAttribute).Namespace!;
-        private static readonly string s_generatorAttributeNamespace = typeof(GeneratorAttribute).Namespace!;
-
-        private delegate bool AttributePredicate(PEModule module, CustomAttributeHandle attribute);
         private delegate IEnumerable<string> AttributeLanguagesFunc(PEModule module, CustomAttributeHandle attribute);
 
         public override string FullPath { get; }
@@ -60,8 +56,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             FullPath = fullPath;
             _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
 
-            _diagnosticAnalyzers = new Extensions<DiagnosticAnalyzer>(this, IsDiagnosticAnalyzerAttribute, GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: true);
-            _generators = new Extensions<ISourceGenerator>(this, IsGeneratorAttribute, GetGeneratorsSupportedLanguages, allowNetFramework: false);
+            _diagnosticAnalyzers = new(this, typeof(DiagnosticAnalyzerAttribute), GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: true);
+            _generators = new(this, typeof(GeneratorAttribute), GetGeneratorSupportedLanguages, allowNetFramework: false);
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
@@ -111,7 +107,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
         {
-            return _diagnosticAnalyzers.GetExtensionsForAllLanguages();
+            // This API returns duplicates of analyzers that support multiple languages.
+            // We explicitly retain this behaviour to ensure back compat
+            return _diagnosticAnalyzers.GetExtensionsForAllLanguages(includeDuplicates: true);
         }
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
@@ -119,9 +117,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _diagnosticAnalyzers.GetExtensions(language);
         }
 
+        public override ImmutableArray<ISourceGenerator> GetGeneratorsForAllLanguages()
+        {
+            return _generators.GetExtensionsForAllLanguages(includeDuplicates: false);
+        }
+
+        [Obsolete("Use GetGenerators(string language) or GetGeneratorsForAllLanguages()")]
         public override ImmutableArray<ISourceGenerator> GetGenerators()
         {
-            return _generators.GetExtensionsForAllLanguages();
+            return _generators.GetExtensions(LanguageNames.CSharp);
+        }
+
+        public override ImmutableArray<ISourceGenerator> GetGenerators(string language)
+        {
+            return _generators.GetExtensions(language);
         }
 
         public override string Display
@@ -213,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <exception cref="BadImageFormatException">The PE image format is invalid.</exception>
         /// <exception cref="IOException">IO error reading the metadata.</exception>
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30449")]
-        private static ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap(string fullPath, AttributePredicate attributePredicate, AttributeLanguagesFunc languagesFunc)
+        private static ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap(string fullPath, Type attributeType, AttributeLanguagesFunc languagesFunc)
         {
             using var assembly = AssemblyMetadata.CreateFromFile(fullPath);
 
@@ -223,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var typeNameMap = from module in assembly.GetModules()
                               from typeDefHandle in module.MetadataReader.TypeDefinitions
                               let typeDef = module.MetadataReader.GetTypeDefinition(typeDefHandle)
-                              let supportedLanguages = GetSupportedLanguages(typeDef, module.Module, attributePredicate, languagesFunc)
+                              let supportedLanguages = GetSupportedLanguages(typeDef, module.Module, attributeType, languagesFunc)
                               where supportedLanguages.Any()
                               let typeName = GetFullyQualifiedTypeName(typeDef, module.Module)
                               from supportedLanguage in supportedLanguages
@@ -232,29 +241,52 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return typeNameMap.ToImmutableDictionary(g => g.Key, g => g.ToImmutableHashSet());
         }
 
-        private static IEnumerable<string> GetSupportedLanguages(TypeDefinition typeDef, PEModule peModule, AttributePredicate attributePredicate, AttributeLanguagesFunc languagesFunc)
+        private static IEnumerable<string> GetSupportedLanguages(TypeDefinition typeDef, PEModule peModule, Type attributeType, AttributeLanguagesFunc languagesFunc)
         {
-            var attributeLanguagesList = from customAttrHandle in typeDef.GetCustomAttributes()
-                                         where attributePredicate(peModule, customAttrHandle)
-                                         let attributeSupportedLanguages = languagesFunc(peModule, customAttrHandle)
-                                         where attributeSupportedLanguages != null
-                                         select attributeSupportedLanguages;
-
-            return attributeLanguagesList.SelectMany(x => x);
-        }
-
-        private static bool IsDiagnosticAnalyzerAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
-        {
-            return peModule.IsTargetAttribute(customAttrHandle, s_diagnosticAnalyzerAttributeNamespace, nameof(DiagnosticAnalyzerAttribute), ctor: out _);
+            foreach (CustomAttributeHandle customAttrHandle in typeDef.GetCustomAttributes())
+            {
+                if (peModule.IsTargetAttribute(customAttrHandle, attributeType.Namespace!, attributeType.Name, ctor: out _))
+                {
+                    IEnumerable<string>? attributeSupportedLanguages = languagesFunc(peModule, customAttrHandle);
+                    if (attributeSupportedLanguages != null)
+                    {
+                        foreach (string item in attributeSupportedLanguages)
+                        {
+                            yield return item;
+                        }
+                    }
+                }
+            }
         }
 
         private static IEnumerable<string> GetDiagnosticsAnalyzerSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle)
         {
             // The DiagnosticAnalyzerAttribute has one constructor, which has a string parameter for the
-            // first supported language and an array parameter for addition supported languages.
+            // first supported language and an array parameter for additional supported languages.
             // Parse the argument blob to extract the languages.
             BlobReader argsReader = peModule.GetMemoryReaderOrThrow(peModule.GetCustomAttributeValueOrThrow(customAttrHandle));
+            return ReadLanguagesFromAttribute(ref argsReader);
+        }
 
+        private static IEnumerable<string> GetGeneratorSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle)
+        {
+            // The GeneratorAttribute has two constructors: one default, and one with a string parameter for the
+            // first supported language and an array parameter for additional supported languages.
+            BlobReader argsReader = peModule.GetMemoryReaderOrThrow(peModule.GetCustomAttributeValueOrThrow(customAttrHandle));
+            if (argsReader.Length == 4)
+            {
+                // default ctor
+                return ImmutableArray.Create(LanguageNames.CSharp);
+            }
+            else
+            {
+                // Parse the argument blob to extract the languages.
+                return ReadLanguagesFromAttribute(ref argsReader);
+            }
+        }
+
+        private static IEnumerable<string> ReadLanguagesFromAttribute(ref BlobReader argsReader)
+        {
             if (argsReader.Length > 4)
             {
                 // Arguments are present--check prologue.
@@ -278,16 +310,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
             }
-
             return SpecializedCollections.EmptyEnumerable<string>();
         }
 
-        private static bool IsGeneratorAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
-        {
-            return peModule.IsTargetAttribute(customAttrHandle, s_generatorAttributeNamespace, nameof(GeneratorAttribute), ctor: out _);
-        }
-
-        private static IEnumerable<string> GetGeneratorsSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle) => ImmutableArray.Create(LanguageNames.CSharp);
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
         {
@@ -305,37 +330,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private sealed class Extensions<TExtension> where TExtension : class
+        private sealed class Extensions<TExtension>
+            where TExtension : class
         {
             private readonly AnalyzerFileReference _reference;
-            private readonly AttributePredicate _attributePredicate;
+            private readonly Type _attributeType;
             private readonly AttributeLanguagesFunc _languagesFunc;
             private readonly bool _allowNetFramework;
             private ImmutableArray<TExtension> _lazyAllExtensions;
             private ImmutableDictionary<string, ImmutableArray<TExtension>> _lazyExtensionsPerLanguage;
             private ImmutableDictionary<string, ImmutableHashSet<string>>? _lazyExtensionTypeNameMap;
 
-            internal Extensions(AnalyzerFileReference reference, AttributePredicate attributePredicate, AttributeLanguagesFunc languagesFunc, bool allowNetFramework)
+            internal Extensions(AnalyzerFileReference reference, Type attributeType, AttributeLanguagesFunc languagesFunc, bool allowNetFramework)
             {
                 _reference = reference;
-                _attributePredicate = attributePredicate;
+                _attributeType = attributeType;
                 _languagesFunc = languagesFunc;
                 _allowNetFramework = allowNetFramework;
                 _lazyAllExtensions = default;
                 _lazyExtensionsPerLanguage = ImmutableDictionary<string, ImmutableArray<TExtension>>.Empty;
             }
 
-            internal ImmutableArray<TExtension> GetExtensionsForAllLanguages()
+            internal ImmutableArray<TExtension> GetExtensionsForAllLanguages(bool includeDuplicates)
             {
                 if (_lazyAllExtensions.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyAllExtensions, CreateExtensionsForAllLanguages(this));
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyAllExtensions, CreateExtensionsForAllLanguages(this, includeDuplicates));
                 }
 
                 return _lazyAllExtensions;
             }
 
-            private static ImmutableArray<TExtension> CreateExtensionsForAllLanguages(Extensions<TExtension> extensions)
+            private static ImmutableArray<TExtension> CreateExtensionsForAllLanguages(Extensions<TExtension> extensions, bool includeDuplicates)
             {
                 // Get all analyzers in the assembly.
                 var map = ImmutableDictionary.CreateBuilder<string, ImmutableArray<TExtension>>();
@@ -344,10 +370,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var builder = ImmutableArray.CreateBuilder<TExtension>();
                 foreach (var analyzers in map.Values)
                 {
-                    builder.AddRange(analyzers);
+                    foreach (var analyzer in analyzers)
+                    {
+                        builder.Add(analyzer);
+                    }
                 }
 
-                return builder.ToImmutable();
+                if (includeDuplicates)
+                {
+                    return builder.ToImmutable();
+                }
+                else
+                {
+                    return builder.Distinct(ExtTypeComparer.Instance).ToImmutableArray();
+                }
+            }
+
+            private class ExtTypeComparer : IEqualityComparer<TExtension>
+            {
+                public static readonly ExtTypeComparer Instance = new();
+
+                public bool Equals(TExtension? x, TExtension? y) => object.Equals(x?.GetType(), y?.GetType());
+
+                public int GetHashCode(TExtension obj) => obj.GetType().GetHashCode();
             }
 
             internal ImmutableArray<TExtension> GetExtensions(string language)
@@ -372,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (_lazyExtensionTypeNameMap == null)
                 {
-                    var analyzerTypeNameMap = GetAnalyzerTypeNameMap(_reference.FullPath, _attributePredicate, _languagesFunc);
+                    var analyzerTypeNameMap = GetAnalyzerTypeNameMap(_reference.FullPath, _attributeType, _languagesFunc);
                     Interlocked.CompareExchange(ref _lazyExtensionTypeNameMap, analyzerTypeNameMap, null);
                 }
 

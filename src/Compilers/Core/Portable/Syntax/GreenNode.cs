@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        public bool HasAnnotation(SyntaxAnnotation annotation)
+        public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
         {
             var annotations = this.GetAnnotations();
             if (annotations == s_noAnnotations)

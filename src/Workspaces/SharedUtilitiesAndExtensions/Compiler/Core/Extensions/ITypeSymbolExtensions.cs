@@ -614,10 +614,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static bool IsEnumType(this ITypeSymbol type)
+        public static bool IsEnumType([NotNullWhen(true)] this ITypeSymbol? type)
             => IsEnumType(type, out _);
 
-        public static bool IsEnumType(this ITypeSymbol type, [NotNullWhen(true)] out INamedTypeSymbol? enumType)
+        public static bool IsEnumType([NotNullWhen(true)] this ITypeSymbol? type, [NotNullWhen(true)] out INamedTypeSymbol? enumType)
         {
             if (type != null && type.IsValueType && type.TypeKind == TypeKind.Enum)
             {
