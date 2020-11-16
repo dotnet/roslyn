@@ -31,7 +31,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             => null;
 
         protected override WorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
-            => new WorkspaceDiagnosticReport { TextDocument = identifier, Diagnostics = diagnostics, ResultId = resultId };
+            => new()
+            {
+                TextDocument = identifier,
+                Diagnostics = diagnostics,
+                ResultId = resultId,
+                // Mark these diagnostics as having come from us.  They were be superseded by any diagnostics for the
+                // same file produced by the DocumentPullDiagnosticHandler.
+                Identifier = WorkspaceDiagnosticIdentifier,
+            };
 
         protected override IProgress<WorkspaceDiagnosticReport[]>? GetProgress(WorkspaceDocumentDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.PartialResultToken;

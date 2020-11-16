@@ -24,6 +24,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : IRequestHandler<TDiagnosticsParams, TReport[]?>
         where TReport : DiagnosticReport
     {
+        /// <summary>
+        /// Special value we use to designate workspace diagnostics vs document diagnostics.  Document diagnostics
+        /// should always <see cref="DiagnosticReport.Supersedes"/> a workspace diagnostic as the former are 'live'
+        /// while the latter are cached and may be stale.
+        /// </summary>
+        protected const int WorkspaceDiagnosticIdentifier = 1;
+
         protected readonly IDiagnosticService DiagnosticService;
 
         /// <summary>
