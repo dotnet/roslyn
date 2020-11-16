@@ -413,8 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var inputDagTemp = BoundDagTemp.ForOriginalInput(loweredInput);
                 if ((loweredInput.Kind == BoundKind.Local || loweredInput.Kind == BoundKind.Parameter)
                     && loweredInput.GetRefKind() == RefKind.None &&
-                    !anyWhenClause &&
-                    !decisionDag.TopologicallySortedNodes.Any(node => isNotClause(node)))
+                    !anyWhenClause)
                 {
                     // If we're switching on a local variable and there is no when clause,
                     // we assume the value of the local variable does not change during the execution of the
@@ -473,9 +472,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 static bool isWhenClause(BoundDecisionDagNode node) =>
                     node is BoundWhenDecisionDagNode { WhenExpression: { ConstantValue: null } };
-
-                static bool isNotClause(BoundDecisionDagNode node) =>
-                    node is BoundTestDecisionDagNode { WhenFalse: BoundWhenDecisionDagNode { } };
 
                 static bool usesOriginalInput(BoundDecisionDagNode node)
                 {

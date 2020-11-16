@@ -6409,7 +6409,7 @@ class Program
         }
 
         [Fact, WorkItem(20103, "https://github.com/dotnet/roslyn/issues/20103")]
-        public void TestNullInInPattern()
+        public void TestNullInIsPattern()
         {
             var source =
 @"using System;
