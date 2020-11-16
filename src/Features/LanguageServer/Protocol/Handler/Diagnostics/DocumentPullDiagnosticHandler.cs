@@ -51,6 +51,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected override IProgress<DiagnosticReport[]>? GetProgress(DocumentDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.PartialResultToken;
 
+        protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
+            => ConvertTags(diagnosticData, potentialDuplicate: false);
+
         protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
         {
             // For the single document case, that is the only doc we want to process.

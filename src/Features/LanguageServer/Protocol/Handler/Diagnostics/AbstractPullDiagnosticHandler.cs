@@ -85,6 +85,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// </summary>
         protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Generate the right diagnostic tags for a particular diagnostic.
+        /// </summary>
+        protected abstract DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData);
+
         private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs updateArgs)
         {
             if (updateArgs.DocumentId == null)
@@ -297,7 +302,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// If you make change in this method, please also update the corresponding file in
         /// src\VisualStudio\Xaml\Impl\Implementation\LanguageServer\Handler\Diagnostics\AbstractPullDiagnosticHandler.cs
         /// </summary>
-        private static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
+        protected DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool potentialDuplicate)
         {
             using var _ = ArrayBuilder<DiagnosticTag>.GetInstance(out var result);
 
@@ -311,6 +316,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 result.Add(VSDiagnosticTags.VisibleInErrorList);
             }
+
+            if (potentialDuplicate)
+                result.Add(VSDiagnosticTags.PotentialDuplicate);
 
             result.Add(diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Build)
                 ? VSDiagnosticTags.BuildError
