@@ -62,6 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 DocumentHighlightProvider = true,
                 ReferencesProvider = true,
                 ProjectContextProvider = true,
+                FoldingRangeProvider = true,
                 SemanticTokensOptions = new SemanticTokensOptions
                 {
                     DocumentProvider = new SemanticTokensDocumentProviderOptions { Edits = true },
@@ -75,13 +76,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 ExecuteCommandProvider = new ExecuteCommandOptions(),
                 TextDocumentSync = new TextDocumentSyncOptions
                 {
-                    Change = TextDocumentSyncKind.None
+                    Change = TextDocumentSyncKind.Incremental,
+                    OpenClose = true
                 },
+
                 // Always support hover - if any LSP client for a content type advertises support,
                 // then the liveshare provider is disabled.  So we must provide for both C# and razor
                 // until https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1106064/ is fixed
                 // or we have different content types.
                 HoverProvider = true,
+
+                // Diagnostic requests are only supported from PullDiagnosticsInProcLanguageClient.
+                SupportsDiagnosticRequests = false,
             };
         }
     }

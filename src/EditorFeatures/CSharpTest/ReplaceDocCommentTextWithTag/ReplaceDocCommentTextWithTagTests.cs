@@ -450,5 +450,41 @@ class C
     void WriteLine<TKey>(TKey value) { }
 }");
         }
+
+        [WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        public async Task TestBaseKeyword()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+/// Testing keyword [||]base.
+class C<TKey>
+{
+}",
+
+@"
+/// Testing keyword <see langword=""base""/>.
+class C<TKey>
+{
+}");
+        }
+
+        [WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        public async Task TestThisKeyword()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+/// Testing keyword [||]this.
+class C<TKey>
+{
+}",
+
+@"
+/// Testing keyword <see langword=""this""/>.
+class C<TKey>
+{
+}");
+        }
     }
 }

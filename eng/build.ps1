@@ -36,7 +36,7 @@ param (
   [switch][Alias('bl')]$binaryLog,
   [switch]$buildServerLog,
   [switch]$ci,
-  [switch]$procdump,
+  [switch]$collectDumps,
   [switch][Alias('a')]$runAnalyzers,
   [switch][Alias('d')]$deployExtensions,
   [switch]$prepareMachine,
@@ -98,7 +98,7 @@ function Print-Usage() {
   Write-Host "  -bootstrap                Build using a bootstrap compilers"
   Write-Host "  -bootstrapConfiguration   Build configuration for bootstrap compiler: 'Debug' or 'Release'"
   Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
-  Write-Host "  -procdump                 Monitor test runs with procdump"
+  Write-Host "  -collectDumps             Collect dumps from test runs"
   Write-Host "  -runAnalyzers             Run analyzers during build operations (short: -a)"
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
@@ -151,7 +151,7 @@ function Process-Arguments() {
 
   if ($officialBuildId) {
     $script:useGlobalNuGetCache = $false
-    $script:procdump = $true
+    $script:collectDumps = $true
     $script:testDesktop = ![System.Boolean]::Parse($officialSkipTests)
     $script:applyOptimizationData = ![System.Boolean]::Parse($officialSkipApplyOptimizationData)
   } else {
@@ -248,7 +248,7 @@ function BuildSolution() {
       /p:Publish=$publish `
       /p:ContinuousIntegrationBuild=$ci `
       /p:OfficialBuildId=$officialBuildId `
-      /p:UseRoslynAnalyzers=$runAnalyzers `
+      /p:RunAnalyzersDuringBuild=$runAnalyzers `
       /p:BootstrapBuildPath=$bootstrapDir `
       /p:TestTargetFrameworks=$testTargetFrameworks `
       /p:TreatWarningsAsErrors=$warnAsError `
@@ -328,12 +328,6 @@ function TestUsingOptimizedRunner() {
       # Minimize all windows to avoid interference during integration test runs
       $shell = New-Object -ComObject "Shell.Application"
       $shell.MinimizeAll()
-
-      # Set registry to take dump automatically when test process crashes
-      reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f
-      reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f /v DumpType /t REG_DWORD /d 2
-      reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f /v DumpCount /t REG_DWORD /d 2
-      reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps" /f /v DumpFolder /t REG_SZ /d "$LogDir"
     }
   }
 
@@ -341,8 +335,6 @@ function TestUsingOptimizedRunner() {
     $env:ROSLYN_TEST_IOPERATION = "true"
   }
 
-  $secondaryLogDir = Join-Path (Join-Path $ArtifactsDir "log2") $configuration
-  Create-Directory $secondaryLogDir
   $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
   $binDir = Join-Path $ArtifactsDir "bin" 
   $runTests = GetProjectOutputBinary "RunTests.exe"
@@ -352,12 +344,11 @@ function TestUsingOptimizedRunner() {
     ExitWithExitCode 1
   }
 
-  $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net472"
-  $args = "`"$xunitDir`""
-  $args += " `"-out:$testResultsDir`""
-  $args += " `"-logs:$LogDir`""
-  $args += " `"-secondaryLogs:$secondaryLogDir`""
-  $args += " -tfm:net472"
+  $dotnetExe = Join-Path $dotnet "dotnet.exe"
+  $args += " --dotnet `"$dotnetExe`""
+  $args += " --out `"$testResultsDir`""
+  $args += " --logs `"$LogDir`""
+  $args += " --tfm net472"
 
   if ($testDesktop -or $testIOperation) {
     if ($test32) {
@@ -370,13 +361,14 @@ function TestUsingOptimizedRunner() {
     # integration tests in CI.
     if ($ci) {
       $dlls += @(Get-Item (GetProjectOutputBinary "Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.dll"))
+      $args += " --retry"
     }
 
     $dlls += @(Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir)
-    $args += " -testVsi"
+    $args += " --testvsi"
   } else {
     $dlls = Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir
-    $args += " -trait:Feature=NetCore"
+    $args += " --trait:Feature=NetCore"
   }
 
   # Exclude out the multi-targetted netcore app projects
@@ -396,26 +388,31 @@ function TestUsingOptimizedRunner() {
   $dlls = $dlls | ?{ -not (($_.FullName -match ".*\\$excludedConfiguration\\.*") -or ($_.FullName -match ".*/$excludedConfiguration/.*")) }
 
   if ($ci) {
-    $args += " -xml"
     if ($testVsi) {
-      $args += " -timeout:110"
+      $args += " --timeout 110"
     } else {
-      $args += " -timeout:90"
+      $args += " --timeout 90"
     }
   }
+  else {
+    $args += " --html"
+  }
 
-  $procdumpPath = Ensure-ProcDump
-  $args += " -procdumppath:$procDumpPath"
-  if ($procdump) {
-    $args += " -useprocdump";
+  if ($collectDumps) {
+    $procdumpFilePath = Ensure-ProcDump
+    $args += " --procdumppath $procDumpFilePath"
+    $args += " --collectdumps";
   }
 
   if ($test64) {
-    $args += " -test64"
+    $args += " --platform x64"
+  }
+  else {
+    $args += " --platform x86"
   }
 
   if ($sequential) {
-    $args += " -sequential"
+    $args += " --sequential"
   }
 
   foreach ($dll in $dlls) {
@@ -525,7 +522,7 @@ function Ensure-ProcDump() {
     Unzip $zipFilePath $outDir
   }
 
-  return $outDir
+  return $filePath
 }
 
 # Setup the CI machine for running our integration tests.
@@ -578,6 +575,7 @@ function Prepare-TempDir() {
   $env:TMP=$TempDir
 
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
+  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\global.json") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.rsp") $TempDir

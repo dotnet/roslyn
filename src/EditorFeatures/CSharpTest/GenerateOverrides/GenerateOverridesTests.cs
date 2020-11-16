@@ -86,11 +86,6 @@ record C[||];
 ", @"
 record C
 {
-    public override bool Equals(object obj)
-    {
-        return base.Equals(obj);
-    }
-
     public override int GetHashCode()
     {
         return base.GetHashCode();
@@ -101,7 +96,7 @@ record C
         return base.ToString();
     }
 }
-", new[] { "Equals", "GetHashCode", "ToString" });
+", new[] { "GetHashCode", "ToString" });
         }
 
         [WorkItem(17698, "https://github.com/dotnet/roslyn/issues/17698")]

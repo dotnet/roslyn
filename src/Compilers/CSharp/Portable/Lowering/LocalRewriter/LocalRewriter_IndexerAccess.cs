@@ -95,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.ArgumentRefKindsOpt,
                 node.Expanded,
                 node.ArgsToParamsOpt,
+                node.DefaultArguments,
                 node.Type,
                 node,
                 isLeftOfAssignment);
@@ -109,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
+            BitVector defaultArguments,
             TypeSymbol type,
             BoundIndexerAccess? oldNodeOpt,
             bool isLeftOfAssignment)
@@ -119,8 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
 
                 return oldNodeOpt != null ?
-                    oldNodeOpt.Update(rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, null, isLeftOfAssignment, type) :
-                    new BoundIndexerAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, null, isLeftOfAssignment, type);
+                    oldNodeOpt.Update(rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, null, type) :
+                    new BoundIndexerAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, null, type);
             }
             else
             {
@@ -134,7 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     rewrittenArguments,
                     indexer,
-                    getMethod,
                     expanded,
                     argsToParamsOpt,
                     ref argumentRefKindsOpt,
@@ -251,6 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default,
                     expanded: false,
                     argsToParamsOpt: default,
+                    defaultArguments: default,
                     intIndexer.Type,
                     oldNodeOpt: null,
                     isLeftOfAssignment));

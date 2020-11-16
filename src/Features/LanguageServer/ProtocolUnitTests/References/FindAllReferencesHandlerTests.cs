@@ -5,11 +5,11 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References
 {
     public class FindAllReferencesHandlerTests : AbstractLanguageServerProtocolTests
     {
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/43063")]
+        [WpfFact]
         public async Task TestFindAllReferencesAsync()
         {
             var markup =
@@ -44,15 +44,64 @@ class B
             var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First());
             AssertLocationsEqual(locations["reference"], results.Select(result => result.Location));
 
-            Assert.Equal("A", results[0].ContainingType);
-            Assert.Equal("B", results[2].ContainingType);
-            Assert.Equal("M", results[1].ContainingMember);
-            Assert.Equal("M2", results[3].ContainingMember);
+            // Results are returned in a non-deterministic order, so we order them by location
+            var orderedResults = results.OrderBy(r => r.Location, new OrderLocations()).ToArray();
+            Assert.Equal("A", orderedResults[0].ContainingType);
+            Assert.Equal("B", orderedResults[2].ContainingType);
+            Assert.Equal("M", orderedResults[1].ContainingMember);
+            Assert.Equal("M2", orderedResults[3].ContainingMember);
 
             AssertValidDefinitionProperties(results, 0, Glyph.FieldPublic);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/43063")]
+        [WpfFact]
+        public async Task TestFindAllReferencesAsync_Streaming()
+        {
+            var markup =
+@"class A
+{
+    public int {|reference:someInt|} = 1;
+    void M()
+    {
+        var i = {|reference:someInt|} + 1;
+    }
+}
+class B
+{
+    int someInt = A.{|reference:someInt|} + 1;
+    void M2()
+    {
+        var j = someInt + A.{|caret:|}{|reference:someInt|};
+    }
+}";
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+
+            using var progress = BufferedProgress.Create<object>(null);
+
+            var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First(), progress);
+
+            Assert.Null(results);
+
+            // BufferedProgress wraps individual elements in an array, so when they are nested them like this,
+            // with the test creating one, and the handler another, we have to unwrap.
+            results = progress.GetValues().Cast<LSP.VSReferenceItem>().ToArray();
+
+            Assert.NotNull(results);
+            Assert.NotEmpty(results);
+
+            AssertLocationsEqual(locations["reference"], results.Select(result => result.Location));
+
+            // Results are returned in a non-deterministic order, so we order them by location
+            var orderedResults = results.OrderBy(r => r.Location, new OrderLocations()).ToArray();
+            Assert.Equal("A", orderedResults[0].ContainingType);
+            Assert.Equal("B", orderedResults[2].ContainingType);
+            Assert.Equal("M", orderedResults[1].ContainingMember);
+            Assert.Equal("M2", orderedResults[3].ContainingMember);
+
+            AssertValidDefinitionProperties(results, 0, Glyph.FieldPublic);
+        }
+
+        [WpfFact]
         public async Task TestFindAllReferencesAsync_Class()
         {
             var markup =
@@ -82,14 +131,17 @@ class B
             var actualText = string.Concat(textElement.Runs.Select(r => r.Text));
 
             Assert.Equal("class A", actualText);
-            Assert.Equal("B", results[1].ContainingType);
-            Assert.Equal("B", results[2].ContainingType);
-            Assert.Equal("M2", results[2].ContainingMember);
+
+            // Results are returned in a non-deterministic order, so we order them by location
+            var orderedResults = results.OrderBy(r => r.Location, new OrderLocations()).ToArray();
+            Assert.Equal("B", orderedResults[1].ContainingType);
+            Assert.Equal("B", orderedResults[2].ContainingType);
+            Assert.Equal("M2", orderedResults[2].ContainingMember);
 
             AssertValidDefinitionProperties(results, 0, Glyph.ClassInternal);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/43063")]
+        [WpfFact]
         public async Task TestFindAllReferencesAsync_MultipleDocuments()
         {
             var markups = new string[] {
@@ -116,10 +168,12 @@ class B
             var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First());
             AssertLocationsEqual(locations["reference"], results.Select(result => result.Location));
 
-            Assert.Equal("A", results[0].ContainingType);
-            Assert.Equal("B", results[2].ContainingType);
-            Assert.Equal("M", results[1].ContainingMember);
-            Assert.Equal("M2", results[3].ContainingMember);
+            // Results are returned in a non-deterministic order, so we order them by location
+            var orderedResults = results.OrderBy(r => r.Location, new OrderLocations()).ToArray();
+            Assert.Equal("A", orderedResults[0].ContainingType);
+            Assert.Equal("B", orderedResults[2].ContainingType);
+            Assert.Equal("M", orderedResults[1].ContainingMember);
+            Assert.Equal("M2", orderedResults[3].ContainingMember);
 
             AssertValidDefinitionProperties(results, 0, Glyph.FieldPublic);
         }
@@ -138,7 +192,7 @@ class B
             Assert.Empty(results);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/43063")]
+        [WpfFact]
         public async Task TestFindAllReferencesMetadataDefinitionAsync()
         {
             var markup =
@@ -157,6 +211,34 @@ class A
             Assert.NotNull(results[0].Location.Uri);
         }
 
+        [WpfFact, WorkItem(1240061, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1240061/")]
+        public async Task TestFindAllReferencesAsync_Namespace()
+        {
+            var markup =
+@"namespace {|caret:|}{|reference:N|}
+{
+    class C
+    {
+        void M()
+        {
+            var x = new {|reference:N|}.C();
+        }
+    }
+}
+";
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+
+            var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First());
+
+            // Namespace definitions should not have a location
+            Assert.True(results.Any(r => r.DefinitionText != null && r.Location == null));
+
+            // Namespace references should have a location
+            Assert.True(results.Any(r => r.DefinitionText == null && r.Location != null));
+
+            AssertValidDefinitionProperties(results, 0, Glyph.Namespace);
+        }
+
         private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress) =>
             new LSP.ReferenceParams()
             {
@@ -166,20 +248,22 @@ class A
                 PartialResultToken = progress
             };
 
-        private static async Task<LSP.VSReferenceItem[]> RunFindAllReferencesAsync(Solution solution, LSP.Location caret)
+        private static async Task<LSP.VSReferenceItem[]> RunFindAllReferencesAsync(Solution solution, LSP.Location caret, IProgress<object> progress = null)
+        {
+            var queue = CreateRequestQueue(solution);
+
+            return await RunFindAllReferencesAsync(queue, solution, caret, progress);
+        }
+
+        internal static async Task<LSP.VSReferenceItem[]> RunFindAllReferencesAsync(Handler.RequestExecutionQueue queue, Solution solution, LSP.Location caret, IProgress<object> progress = null)
         {
             var vsClientCapabilities = new LSP.VSClientCapabilities
             {
                 SupportsVisualStudioExtensions = true
             };
 
-            var progress = new ProgressCollector<LSP.VSReferenceItem>();
-
-            var queue = CreateRequestQueue(solution);
-            await GetLanguageServer(solution).ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSReferenceItem[]>(queue, LSP.Methods.TextDocumentReferencesName,
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSReferenceItem[]>(queue, LSP.Methods.TextDocumentReferencesName,
                 CreateReferenceParams(caret, progress), vsClientCapabilities, null, CancellationToken.None);
-
-            return progress.GetItems();
         }
 
         private static void AssertValidDefinitionProperties(LSP.VSReferenceItem[] referenceItems, int definitionIndex, Glyph definitionGlyph)
@@ -201,18 +285,6 @@ class A
                 Assert.Equal(0, referenceItems[i].DefinitionIcon.ImageId.Id);
                 Assert.Equal(definitionId, referenceItems[i].DefinitionId);
                 Assert.NotEqual(definitionId, referenceItems[i].Id);
-            }
-        }
-
-        private sealed class ProgressCollector<T> : IProgress<object>
-        {
-            private readonly List<T> _items = new List<T>();
-
-            public T[] GetItems() => _items.ToArray();
-
-            public void Report(object value)
-            {
-                _items.AddRange((T[])value);
             }
         }
     }

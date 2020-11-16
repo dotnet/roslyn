@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string StringEscapeCharacter = "string - escape character";
 
         public const string ClassName = "class name";
+        public const string RecordName = "record name";
         public const string DelegateName = "delegate name";
         public const string EnumName = "enum name";
         public const string InterfaceName = "interface name";

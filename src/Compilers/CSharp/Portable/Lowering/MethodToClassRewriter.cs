@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     newLocals,
                     (BoundExpression)this.Visit(node.ExceptionSourceOpt),
                     this.VisitType(node.ExceptionTypeOpt),
-                    (BoundBlock)this.Visit(node.ExceptionFilterPrologueOpt),
+                    (BoundStatementList)this.Visit(node.ExceptionFilterPrologueOpt),
                     (BoundExpression)this.Visit(node.ExceptionFilterOpt),
                     (BoundBlock)this.Visit(node.Body),
                     node.IsSynthesizedAsyncCatchAll);
@@ -255,6 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 node.Expanded,
                 node.InvokedAsExtensionMethod,
                 node.ArgsToParamsOpt,
+                node.DefaultArguments,
                 node.ResultKind,
                 node.BinderOpt,
                 rewrittenType);
@@ -301,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //  add the method to module
             if (this.CompilationState.Emitting)
             {
-                this.CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(containingType, wrapper);
+                this.CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(containingType, wrapper.GetCciAdapter());
             }
 
             Debug.Assert(wrapper.SynthesizesLoweredBoundBody);
@@ -483,6 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     rewritten.ArgumentRefKindsOpt,
                     rewritten.Expanded,
                     rewritten.ArgsToParamsOpt,
+                    rewritten.DefaultArguments,
                     rewritten.ConstantValueOpt,
                     rewritten.InitializerExpressionOpt,
                     rewritten.BinderOpt,
@@ -619,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, receiverType, node.Binder, type);
+            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, receiverType, node.Binder, type);
         }
 
         public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)

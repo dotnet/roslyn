@@ -1782,6 +1782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ParameterDisallowsNull = 8777,
         WRN_ConstOutOfRangeChecked = 8778,
 
+        ERR_DuplicateInterfaceWithDifferencesInBaseList = 8779,
         ERR_DesignatorBeneathPatternCombinator = 8780,
         ERR_UnsupportedTypeForRelationalPattern = 8781,
         ERR_RelationalPatternWithNaN = 8782,
@@ -1920,6 +1921,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_UnexpectedVarianceStaticMember = 8904,
         ERR_FunctionPointersCannotBeCalledWithNamedArguments = 8905,
+
+        ERR_EqualityContractRequiresGetter = 8906,
+        WRN_UnreadRecordParameter = 8907,
+        ERR_BadFieldTypeInRecord = 8908,
 
         #endregion diagnostics introduced for C# 9.0
 

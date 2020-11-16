@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             INamedTypeSymbol symbol,
             Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             INamedTypeSymbol symbol,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             return FindReferencesInDocumentAsync(document, semanticModel, t =>
                 IsPotentialReference(predefinedType, syntaxFacts, t),
-                (t, m) => new ValueTask<(bool matched, CandidateReason reason)>((matched: true, reason: CandidateReason.None)),
+                (t, m) => ValueTaskFactory.FromResult((matched: true, reason: CandidateReason.None)),
                 docCommentId: null,
                 findInGlobalSuppressions: false,
                 cancellationToken);

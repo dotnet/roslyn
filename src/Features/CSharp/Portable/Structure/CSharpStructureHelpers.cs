@@ -244,14 +244,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         public static void CollectCommentBlockSpans(
             SyntaxNode node,
             ArrayBuilder<BlockSpan> spans,
-            bool isMetadataAsSource)
+            BlockStructureOptionProvider optionProvider)
         {
             if (node == null)
             {
                 throw new ArgumentNullException(nameof(node));
             }
 
-            if (isMetadataAsSource && TryGetLeadingCollapsibleSpan(node, out var span))
+            if (optionProvider.IsMetadataAsSource && TryGetLeadingCollapsibleSpan(node, out var span))
             {
                 spans.Add(span);
             }

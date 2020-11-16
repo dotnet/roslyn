@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -446,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                disposeCall = MakeCallWithNoExplicitArgument(syntax, disposedExpression, methodOpt);
+                disposeCall = MakeCallWithNoExplicitArgument(_compilation.GetBinder((CSharpSyntaxNode)syntax), syntax, disposedExpression, methodOpt);
 
                 if (awaitOpt is object)
                 {
@@ -464,24 +465,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Synthesize a call `expression.Method()`, but with some extra smarts to handle extension methods, and to fill-in optional and params parameters.
         /// </summary>
-        private BoundExpression MakeCallWithNoExplicitArgument(SyntaxNode syntax, BoundExpression expression, MethodSymbol method)
+        private BoundExpression MakeCallWithNoExplicitArgument(Binder binder, SyntaxNode syntax, BoundExpression expression, MethodSymbol method)
         {
             var receiver = method.IsExtensionMethod ? null : expression;
 
-            var args = method.IsExtensionMethod
-                ? ImmutableArray.Create(expression)
-                : ImmutableArray<BoundExpression>.Empty;
+            var argsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+            if (method.IsExtensionMethod)
+            {
+                argsBuilder.Add(expression);
+            }
 
             Debug.Assert(!method.IsExtensionMethod || method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds[0] != RefKind.Ref);
+
+            var expanded = method.HasParamsParameter();
+
+            var argsToParams = default(ImmutableArray<int>);
+            var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance();
+            binder.BindDefaultArguments(
+                syntax,
+                method.Parameters,
+                argsBuilder,
+                refKindsBuilder,
+                ref argsToParams,
+                out var defaultArguments,
+                expanded,
+                enableCallerInfo: false,
+                _diagnostics);
 
             BoundExpression disposeCall = MakeCall(syntax: syntax,
                 rewrittenReceiver: receiver,
                 method: method,
-                rewrittenArguments: args,
-                argumentRefKindsOpt: default,
-                expanded: method.HasParamsParameter(),
+                rewrittenArguments: argsBuilder.ToImmutableAndFree(),
+                argumentRefKindsOpt: refKindsBuilder.ToImmutableOrNull(),
+                expanded,
                 invokedAsExtensionMethod: method.IsExtensionMethod,
-                argsToParamsOpt: default,
+                argsToParamsOpt: argsToParams,
                 resultKind: LookupResultKind.Viable,
                 type: method.ReturnType);
 

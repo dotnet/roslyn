@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -33,6 +32,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     {
         public const string ClientName = "RazorCSharp";
 
+        private readonly IGlobalOptionService _globalOptionService;
         private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
 
         /// <summary>
@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RazorInProcLanguageClient(
+            IGlobalOptionService globalOptionService,
             LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
@@ -51,10 +52,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
             DefaultCapabilitiesProvider defaultCapabilitiesProvider)
             : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, ClientName)
         {
+            _globalOptionService = globalOptionService;
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
         protected internal override VSServerCapabilities GetCapabilities()
-            => _defaultCapabilitiesProvider.GetCapabilities();
+        {
+            var capabilities = _defaultCapabilitiesProvider.GetCapabilities();
+            capabilities.SupportsDiagnosticRequests = _globalOptionService.GetOption(InternalDiagnosticsOptions.RazorDiagnosticMode) == DiagnosticMode.Pull;
+            // Razor doesn't use workspace symbols, so disable to prevent duplicate results (with LiveshareLanguageClient) in liveshare.
+            capabilities.WorkspaceSymbolProvider = false;
+            return capabilities;
+        }
     }
 }

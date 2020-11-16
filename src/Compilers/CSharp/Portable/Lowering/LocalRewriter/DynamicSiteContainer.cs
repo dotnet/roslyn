@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { throw ExceptionUtilities.Unreachable; }
         }
 
+        internal override bool IsRecord => false;
+        internal override bool HasPossibleWellKnownCloneMethod() => false;
+
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
         {
             get { return true; }

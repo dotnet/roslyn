@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // It is only valid to call this on a bound node factory with a module builder.
             Debug.Assert(ModuleBuilderOpt is { });
-            ModuleBuilderOpt.AddSynthesizedDefinition(CurrentType, nestedType);
+            ModuleBuilderOpt.AddSynthesizedDefinition(CurrentType, nestedType.GetCciAdapter());
         }
 
         public void OpenNestedType(NamedTypeSymbol nestedType)
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // It is only valid to call this on a bound node factory with a module builder.
             Debug.Assert(ModuleBuilderOpt is { });
-            ModuleBuilderOpt.AddSynthesizedDefinition(containingType, field);
+            ModuleBuilderOpt.AddSynthesizedDefinition(containingType, field.GetCciAdapter());
         }
 
         public GeneratedLabelSymbol GenerateLabel(string prefix)
@@ -736,7 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 Syntax, receiver, method, args,
                 default(ImmutableArray<String>), method.ParameterRefKinds, false, false, false,
-                default(ImmutableArray<int>), LookupResultKind.Viable, null, method.ReturnType,
+                default(ImmutableArray<int>), default(BitVector), LookupResultKind.Viable, null, method.ReturnType,
                 hasErrors: method.OriginalDefinition is ErrorMethodSymbol)
             { WasCompilerGenerated = true };
         }
@@ -747,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 Syntax, receiver, method, args,
                 default(ImmutableArray<String>), refKinds, false, false, false,
-                ImmutableArray<int>.Empty, LookupResultKind.Viable, null, method.ReturnType)
+                ImmutableArray<int>.Empty, default(BitVector), LookupResultKind.Viable, null, method.ReturnType)
             { WasCompilerGenerated = true };
         }
 

@@ -6,7 +6,6 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 
@@ -14,7 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
 {
     internal sealed class StringLiteralExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<LiteralExpressionSyntax>
     {
-        protected override void CollectBlockSpans(LiteralExpressionSyntax node, ArrayBuilder<BlockSpan> spans, bool isMetadataAsSource, OptionSet options, CancellationToken cancellationToken)
+        protected override void CollectBlockSpans(
+            LiteralExpressionSyntax node,
+            ArrayBuilder<BlockSpan> spans,
+            BlockStructureOptionProvider optionProvider,
+            CancellationToken cancellationToken)
         {
             if (node.IsKind(SyntaxKind.StringLiteralExpression) &&
                 !node.ContainsDiagnostics)
