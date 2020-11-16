@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="AssemblyReferencesNetFramework">
         <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
-        <target state="new">The assembly containing type '{0}' references .NET Framework, which is not supported.</target>
+        <target state="translated">El ensamblado que contiene el tipo "{0}" hace referencia a .NET Framework, lo cual no se admite.</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
@@ -51,7 +51,7 @@
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
         <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
-        <target state="new">Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
+        <target state="translated">El archivo adicional no pertenece al elemento "CompilationWithAnalyzers" subyacente.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
@@ -126,7 +126,7 @@
       </trans-unit>
       <trans-unit id="SourceTextRequiresEncoding">
         <source>The provided SourceText must have an explicit encoding set.</source>
-        <target state="new">The provided SourceText must have an explicit encoding set.</target>
+        <target state="translated">El elemento SourceText proporcionado debe tener un conjunto de codificación explícito.</target>
         <note>'SourceText' is not localizable.</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
@@ -576,12 +576,12 @@
       </trans-unit>
       <trans-unit id="WRN_InvalidGlobalSectionName">
         <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
-        <target state="new">Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</target>
+        <target state="translated">El nombre de la sección de configuración "{0}" del analizador global no es válido porque no es una ruta de acceso absoluta. La sección se ignorará; esta se declaró en el archivo "{1}"</target>
         <note>{0}: invalid section name, {1} path to global config</note>
       </trans-unit>
       <trans-unit id="WRN_InvalidGlobalSectionName_Title">
         <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
-        <target state="new">Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</target>
+        <target state="translated">El nombre de la sección de configuración del analizador global no es válido porque no es una ruta de acceso absoluta. La sección se ignorará.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">

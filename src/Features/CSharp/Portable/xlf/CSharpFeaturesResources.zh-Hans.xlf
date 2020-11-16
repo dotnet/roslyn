@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpFeaturesResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../CSharpFeaturesResources.resx">
     <body>
       <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
         <source>Add await and ConfigureAwait(false)</source>
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
         <source>Apply file header preferences</source>
-        <target state="new">Apply file header preferences</target>
+        <target state="translated">应用文件头首选项</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">
@@ -644,7 +644,7 @@
       </trans-unit>
       <trans-unit id="_0_does_not_contain_a_constructor_that_takes_that_many_arguments">
         <source>'{0}' does not contain a constructor that takes that many arguments.</source>
-        <target state="translated">'“{0}”不包含采用许多参数的构造函数。</target>
+        <target state="translated">“{0}”不包含采用许多参数的构造函数。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_name_0_does_not_exist_in_the_current_context">

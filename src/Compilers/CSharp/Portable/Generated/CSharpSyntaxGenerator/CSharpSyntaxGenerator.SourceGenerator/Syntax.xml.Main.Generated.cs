@@ -2103,6 +2103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public static partial class SyntaxFactory
     {
+
         /// <summary>Creates a new IdentifierNameSyntax instance.</summary>
         public static IdentifierNameSyntax IdentifierName(SyntaxToken identifier)
         {

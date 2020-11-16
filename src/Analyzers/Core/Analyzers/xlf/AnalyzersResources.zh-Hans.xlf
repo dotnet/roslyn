@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../AnalyzersResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../AnalyzersResources.resx">
     <body>
       <trans-unit id="A_source_file_contains_a_header_that_does_not_match_the_required_text">
         <source>A source file contains a header that does not match the required text</source>
@@ -159,7 +159,7 @@
       </trans-unit>
       <trans-unit id="Null_check_can_be_simplified">
         <source>Null check can be simplified</source>
-        <target state="translated">可以简化 Null 检查。</target>
+        <target state="translated">可以简化 Null 检查</target>
         <note />
       </trans-unit>
       <trans-unit id="Order_modifiers">
@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="Simplify_conditional_expression">
         <source>Simplify conditional expression</source>
-        <target state="new">Simplify conditional expression</target>
+        <target state="translated">简化条件表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_interpolation">

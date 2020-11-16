@@ -138,8 +138,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canIgnoreNullableContext)
-            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
+
+        public override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+            => ImmutableArray<TypeParameterConstraintKind>.Empty;
 
         public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
