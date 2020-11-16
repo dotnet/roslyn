@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 workspaceSolution != cacheInfo.workspaceSolution)
             {
                 var lspSolution = GetSolutionWithReplacedDocuments(workspaceSolution);
-                                _lspSolutionCache[workspace] = (workspaceSolution, lspSolution);
+                _lspSolutionCache[workspace] = (workspaceSolution, lspSolution);
 
                 return lspSolution;
             }
