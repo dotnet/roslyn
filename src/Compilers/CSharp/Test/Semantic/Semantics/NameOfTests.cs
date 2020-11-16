@@ -1509,7 +1509,6 @@ public class C
             CreateCompilation(source, options: option).VerifyDiagnostics();
         }
 
-
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
         public void TestCanReferenceInstanceMembersFromStaticMemberInNameof()
         {
@@ -1519,7 +1518,7 @@ public class C
     public string S { get; }
     public static string M() => nameof(S.Length);
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1530,7 +1529,7 @@ public class C
 {
     public string S { get; } = nameof(S.Length);
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1543,7 +1542,7 @@ public class C
     public int P { get; }
     public string S { get; }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1556,7 +1555,7 @@ public class C
     public C() : this(nameof(S.Length)){}
     public string S { get; }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1573,7 +1572,88 @@ public struct S
         Func<string> func = () => nameof(P.Length);
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCannotReferenceInstanceMembersFromStaticMemberInNameofInCSharp9()
+        {
+            var source = @"
+public class C
+{
+    public string S { get; }
+    public static string M() => nameof(S.Length);
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (5,40): error CS8652: The feature 'nameof can access instance members in all contexts' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static string M() => nameof(S.Length);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("nameof can access instance members in all contexts").WithLocation(5, 40));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCannotReferenceInstanceMembersFromFieldInitializerInNameofInCSharp9()
+        {
+            var source = @"
+public class C
+{
+    public string S { get; } = nameof(S.Length);
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (4,39): error CS8652: The feature 'nameof can access instance members in all contexts' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public string S { get; } = nameof(S.Length);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("nameof can access instance members in all contexts").WithLocation(4, 39));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCannotReferenceInstanceMembersFromAttributeInNameofInCSharp9()
+        {
+            var source = @"
+public class C
+{
+    [System.Obsolete(nameof(S.Length))]
+    public int P { get; }
+    public string S { get; }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (4,29): error CS8652: The feature 'nameof can access instance members in all contexts' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     [System.Obsolete(nameof(S.Length))]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("nameof can access instance members in all contexts").WithLocation(4, 29));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCannotReferenceInstanceMembersFromConstructorInitializersInNameofInCSharp9()
+        {
+            var source = @"
+public class C
+{
+    public C(string s){}
+    public C() : this(nameof(S.Length)){}
+    public string S { get; }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (5,30): error CS8652: The feature 'nameof can access instance members in all contexts' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public C() : this(nameof(S.Length)){}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("nameof can access instance members in all contexts").WithLocation(5, 30));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCannotAccessStructInstancePropertyInLambdaInNameofInCSharp9()
+        {
+            var source = @"
+using System;
+
+public struct S
+{
+    public string P { get; }
+    public void M(ref string x)
+    {
+        Func<string> func = () => nameof(P.Length);
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (9,42): error CS8652: The feature 'nameof can access instance members in all contexts' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Func<string> func = () => nameof(P.Length);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("nameof can access instance members in all contexts").WithLocation(9, 42));
         }
 
         [Fact]

@@ -947,6 +947,11 @@
         <target state="translated">abandons</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNameofAccessInstanceMembersInAllContexts">
+        <source>nameof can access instance members in all contexts</source>
+        <target state="new">nameof can access instance members in all contexts</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>

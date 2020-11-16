@@ -214,6 +214,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Parameter = MessageBase + 12789,
         IDS_Return = MessageBase + 12790,
         IDS_FeatureVarianceSafetyForStaticInterfaceMembers = MessageBase + 12791,
+
+        IDS_FeatureNameofAccessInstanceMembersInAllContexts = MessageBase + 12792,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -320,6 +322,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // preview features.
+                case MessageID.IDS_FeatureNameofAccessInstanceMembersInAllContexts:
+                    return LanguageVersion.Preview;
+
                 // C# 9.0 features.
                 case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
                 case MessageID.IDS_FeatureFunctionPointers:

@@ -1891,18 +1891,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (currentType.IsInterface && (declaringType.IsObjectType() || currentType.AllInterfacesNoUseSiteDiagnostics.Contains(declaringType))))
             {
                 bool hasErrors = false;
-                if (!IsInsideNameof)
+                if (!IsInsideNameof || EnclosingNameofArgument != node && !((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeatureNameofAccessInstanceMembersInAllContexts))
                 {
+                    var diagnosticsTemp = IsInsideNameof ? new DiagnosticBag() : diagnostics;
                     if (InFieldInitializer && !currentType.IsScriptClass)
                     {
                         //can't access "this" in field initializers
-                        Error(diagnostics, ErrorCode.ERR_FieldInitRefNonstatic, node, member);
+                        Error(diagnosticsTemp, ErrorCode.ERR_FieldInitRefNonstatic, node, member);
                         hasErrors = true;
                     }
                     else if (InConstructorInitializer || InAttributeArgument)
                     {
                         //can't access "this" in constructor initializers or attribute arguments
-                        Error(diagnostics, ErrorCode.ERR_ObjectRequired, node, member);
+                        Error(diagnosticsTemp, ErrorCode.ERR_ObjectRequired, node, member);
                         hasErrors = true;
                     }
                     else
@@ -1915,12 +1916,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!locationIsInstanceMember)
                         {
                             // error CS0120: An object reference is required for the non-static field, method, or property '{0}'
-                            Error(diagnostics, ErrorCode.ERR_ObjectRequired, node, member);
+                            Error(diagnosticsTemp, ErrorCode.ERR_ObjectRequired, node, member);
                             hasErrors = true;
                         }
                     }
 
-                    hasErrors = hasErrors || IsRefOrOutThisParameterCaptured(node, diagnostics);
+                    hasErrors = hasErrors || IsRefOrOutThisParameterCaptured(node, diagnosticsTemp);
+
+                    if (hasErrors && IsInsideNameof)
+                    {
+                        CheckFeatureAvailability(node, MessageID.IDS_FeatureNameofAccessInstanceMembersInAllContexts, diagnostics);
+                    }
                 }
 
                 return ThisReference(node, currentType, hasErrors, wasCompilerGenerated: true);
