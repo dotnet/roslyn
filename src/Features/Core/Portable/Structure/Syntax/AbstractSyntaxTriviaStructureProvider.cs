@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Structure
     internal abstract class AbstractSyntaxTriviaStructureProvider : AbstractSyntaxStructureProvider
     {
         public sealed override void CollectBlockSpans(
-            Document document,
             SyntaxNode node,
             ArrayBuilder<BlockSpan> spans,
+            BlockStructureOptionProvider optionProvider,
             CancellationToken cancellationToken)
         {
             throw new NotSupportedException();

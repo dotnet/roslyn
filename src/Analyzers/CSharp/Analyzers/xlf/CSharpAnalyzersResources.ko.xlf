@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Add_braces_to_0_statement">
         <source>Add braces to '{0}' statement.</source>
-        <target state="translated">{0}' 문에 중괄호를 추가합니다.</target>
+        <target state="translated">'{0}' 문에 중괄호를 추가합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
@@ -284,7 +284,7 @@
       </trans-unit>
       <trans-unit id="typeof_can_be_converted_ to_nameof">
         <source>'typeof' can be converted  to 'nameof'</source>
-        <target state="new">'typeof' can be converted  to 'nameof'</target>
+        <target state="translated">'typeof'를 'nameof'로 변환할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">

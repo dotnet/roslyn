@@ -11,8 +11,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class DisabledTextTriviaStructureProvider
         Inherits AbstractSyntaxTriviaStructureProvider
 
-        Public Overrides Sub CollectBlockSpans(document As Document, trivia As SyntaxTrivia,
+        Public Overrides Sub CollectBlockSpans(trivia As SyntaxTrivia,
                                                spans As ArrayBuilder(Of BlockSpan),
+                                               optionProvider As BlockStructureOptionProvider,
                                                cancellationToken As CancellationToken)
             If trivia.Kind = SyntaxKind.DisabledTextTrivia Then
                 ' Don't include trailing line breaks in spanToCollapse

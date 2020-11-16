@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../VBFeaturesResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../VBFeaturesResources.resx">
     <body>
       <trans-unit id="Add_Await">
         <source>Add Await</source>
@@ -274,7 +274,7 @@
       </trans-unit>
       <trans-unit id="Implicit_member_access_can_t_be_included_in_the_selection_without_containing_statement">
         <source>Implicit member access can't be included in the selection without containing statement</source>
-        <target state="translated">沒有包含陳述式的選取範圍中，不可包含隱含成員存取。</target>
+        <target state="translated">沒有包含陳述式的選取範圍中，不可包含隱含成員存取</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_must_be_part_of_executable_statements">
@@ -1689,7 +1689,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Too_many_arguments_to_0">
         <source>Too many arguments to '{0}'.</source>
-        <target state="translated">{0}' 的引數太多。</target>
+        <target state="translated">'{0}' 的引數太多。</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_0_is_not_defined">

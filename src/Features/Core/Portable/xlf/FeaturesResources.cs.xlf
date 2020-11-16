@@ -162,7 +162,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
         <source>&lt;infer&gt;</source>
-        <target state="translated">&lt;infer&gt;</target>
+        <target state="translated">&lt;vyvodit&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
@@ -172,7 +172,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterOmitValue">
         <source>&lt;omit&gt;</source>
-        <target state="translated">&lt;omit&gt;</target>
+        <target state="translated">&lt;vynechat&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_0">
@@ -347,7 +347,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
-        <target state="new">Extract base class...</target>
+        <target state="translated">Extrahovat základní třídu...</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_interface">
@@ -502,12 +502,12 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Inline_0">
         <source>Inline '{0}'</source>
-        <target state="new">Inline '{0}'</target>
+        <target state="translated">Inline refaktoring metody {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
-        <target state="new">Inline and keep '{0}'</target>
+        <target state="translated">Inline refaktoring metody {0} se zachováním deklarace</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -607,17 +607,17 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
-        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</target>
+        <target state="translated">Když se upraví tělo funkce {0}, ladicí relace nebude moct pokračovat, protože tělo má příliš mnoho příkazů.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</target>
+        <target state="translated">Po změně těla funkce {0} nebude moct ladicí relace pokračovat z důvodu interní chyby: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
         <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
-        <target state="new">Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</target>
+        <target state="translated">Když se upraví zdrojový soubor {0}, ladicí relace nebude moct pokračovat, protože soubor je příliš velký.</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -642,7 +642,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">Po změně zdrojového souboru {0} nebude moct ladicí relace pokračovat z důvodu interní chyby: {1}.</target>
+        <target state="translated">Když se upraví zdrojový soubor {0}, ladicí relace nebude moct pokračovat kvůli vnitřní chybě: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -682,7 +682,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Pull_members_up_to_new_base_class">
         <source>Pull member(s) up to new base class...</source>
-        <target state="new">Pull member(s) up to new base class...</target>
+        <target state="translated">Načíst členy do nové základní třídy...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -1013,7 +1013,7 @@ Ukotvení $ najde shodu s \n, ale nenajde shodu s \r\n (kombinace znaků návrat
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="new">expression</target>
+        <target state="translated">výraz</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
@@ -1283,7 +1283,7 @@ Ukotvení $ najde shodu s \n, ale nenajde shodu s \r\n (kombinace znaků návrat
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="new">name</target>
+        <target state="translated">název</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
@@ -1383,7 +1383,7 @@ Je možné zřetězit dva nebo více rozsahů znaků. Pokud chcete například z
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="new">no</target>
+        <target state="translated">ne</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
@@ -1766,7 +1766,7 @@ Pokud je zadané chování kompatibilní s ECMAScriptem, je \w ekvivalentem [a-z
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="new">yes</target>
+        <target state="translated">ano</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
@@ -2102,12 +2102,12 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
-        <target state="new">'{0}' is not null here.</target>
+        <target state="translated">{0} tady není null.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
-        <target state="new">'{0}' may be null here.</target>
+        <target state="translated">{0} tady může být null.</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">
