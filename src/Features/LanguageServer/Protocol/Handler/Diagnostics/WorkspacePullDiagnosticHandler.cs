@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 TextDocument = identifier,
                 Diagnostics = diagnostics,
                 ResultId = resultId,
-                // Mark these diagnostics as having come from us.  They were be superseded by any diagnostics for the
+                // Mark these diagnostics as having come from us.  They will be superseded by any diagnostics for the
                 // same file produced by the DocumentPullDiagnosticHandler.
                 Identifier = WorkspaceDiagnosticIdentifier,
             };
