@@ -9,7 +9,7 @@ try {
   Push-Location $RepoRoot
 
   $dotnet = Ensure-DotnetSdk
-  Exec-Console $dotnet "run --project src\Tools\PrepareTests\PrepareTests.csproj $RepoRoot\artifacts\bin $RepoRoot\artifacts\testPayload"
+  Exec-Console $dotnet "run --project src\Tools\PrepareTests\PrepareTests.csproj $RepoRoot $RepoRoot\artifacts\testPayload"
   exit 0
 }
 catch {
