@@ -1646,6 +1646,40 @@ namespace Microsoft.CodeAnalysis.Operations
                 HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
                 var compilation = (CSharpCompilation)_semanticModel.Compilation;
 
+                ImmutableArray<IArgumentOperation> getEnumeratorArguments;
+                if (enumeratorInfoOpt.GetEnumeratorMethod is { IsExtensionMethod: true } enumeratorMethod)
+                {
+                    var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(enumeratorMethod.ParameterCount);
+                    argumentsBuilder.Add(boundForEachStatement.Expression);
+                    ImmutableArray<int> argsToParams = default;
+                    BitVector defaultArguments = default;
+
+                    if (enumeratorMethod.ParameterCount > 1)
+                    {
+                        var ignoredDiagnostics = new DiagnosticBag();
+                        enumeratorInfoOpt.Binder.BindDefaultArguments(boundForEachStatement.Expression.Syntax, enumeratorMethod.Parameters, argumentsBuilder, argumentRefKindsBuilder: null, ref argsToParams, out defaultArguments, expanded: true, enableCallerInfo: true, ignoredDiagnostics);
+                    }
+
+                    getEnumeratorArguments = Operation.SetParentOperation(
+                        DeriveArguments(
+                            boundForEachStatement,
+                            enumeratorInfoOpt.Binder,
+                            enumeratorMethod,
+                            argumentsBuilder.ToImmutableAndFree(),
+                            argumentNamesOpt: default,
+                            argsToParams,
+                            defaultArguments,
+                            argumentRefKindsOpt: default,
+                            expanded: enumeratorMethod.Parameters.Any(p => p.IsParams),
+                            boundForEachStatement.Expression.Syntax,
+                            invokedAsExtensionMethod: true),
+                        null);
+                }
+                else
+                {
+                    getEnumeratorArguments = default;
+                }
+
                 info = new ForEachLoopOperationInfo(enumeratorInfoOpt.ElementType.GetPublicSymbol(),
                                                     enumeratorInfoOpt.GetEnumeratorMethod.GetPublicSymbol(),
                                                     ((PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol).GetPublicSymbol(),
@@ -1660,22 +1694,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                      false,
                                                     enumeratorInfoOpt.CurrentConversion,
                                                     boundForEachStatement.ElementConversion,
-                                                    getEnumeratorArguments: enumeratorInfoOpt.GetEnumeratorMethod is { IsExtensionMethod: true } enumeratorMethod
-                                                        ? Operation.SetParentOperation(
-                                                            DeriveArguments(
-                                                                boundForEachStatement,
-                                                                enumeratorInfoOpt.Binder,
-                                                                enumeratorMethod,
-                                                                ImmutableArray.Create(boundForEachStatement.Expression),
-                                                                argumentNamesOpt: default,
-                                                                argumentsToParametersOpt: default,
-                                                                defaultArguments: default,
-                                                                argumentRefKindsOpt: default,
-                                                                expanded: enumeratorMethod.Parameters.Any(p => p.IsParams),
-                                                                boundForEachStatement.Expression.Syntax,
-                                                                invokedAsExtensionMethod: true),
-                                                            null)
-                                                        : default);
+                                                    getEnumeratorArguments);
             }
             else
             {
