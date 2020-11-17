@@ -79,17 +79,10 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var expectedFileHeader = fileHeaderTemplate.Replace("{fileName}", Path.GetFileName(document.FilePath));
 
             var fileHeader = fileHeaderHelper.ParseFileHeader(root);
-            SyntaxNode newSyntaxRoot;
-            if (fileHeader.IsMissing)
-            {
-                newSyntaxRoot = AddHeader(syntaxFacts, fileHeaderHelper, newLineTrivia, root, expectedFileHeader);
-            }
-            else
-            {
-                newSyntaxRoot = ReplaceHeader(syntaxFacts, fileHeaderHelper, newLineTrivia, root, expectedFileHeader);
-            }
-
-            return newSyntaxRoot;
+            
+            return fileHeader.IsMissing
+                ? AddHeader(syntaxFacts, fileHeaderHelper, newLineTrivia, root, expectedFileHeader)
+                : ReplaceHeader(syntaxFacts, fileHeaderHelper, newLineTrivia, root, expectedFileHeader);
         }
 
         private static SyntaxNode ReplaceHeader(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
