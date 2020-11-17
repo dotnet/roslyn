@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 try
                 {
                     throw new InvalidOperationException(
-                        $@"Syntax trees should have been equivalent.
+                        $@"Syntax trees should have had top-level equivalency.
 ---
 {previousSyntaxTree.GetText(cancellationToken)}
 ---
