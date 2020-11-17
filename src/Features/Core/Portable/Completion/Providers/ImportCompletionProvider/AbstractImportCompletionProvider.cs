@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 commitKey,
                 cancellationToken).ConfigureAwait(false);
 
-            string insertText = completionItem.DisplayText;
+            var insertText = completionItem.DisplayText;
             if (provideParenthesisCompletion)
             {
                 insertText += "()";
