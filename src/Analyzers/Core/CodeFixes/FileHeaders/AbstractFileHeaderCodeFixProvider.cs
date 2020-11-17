@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var expectedFileHeader = fileHeaderTemplate.Replace("{fileName}", Path.GetFileName(document.FilePath));
 
             var fileHeader = fileHeaderHelper.ParseFileHeader(root);
-            
+
             return fileHeader.IsMissing
                 ? AddHeader(syntaxFacts, fileHeaderHelper, newLineTrivia, root, expectedFileHeader)
                 : ReplaceHeader(syntaxFacts, fileHeaderHelper, newLineTrivia, root, expectedFileHeader);
