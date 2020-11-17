@@ -23,6 +23,11 @@ file_header_template = Copyright (c) SomeCorp. All rights reserved.\nLicensed un
 file_header_template = \nCopyright (c) SomeCorp. All rights reserved.\n\nLicensed under the ??? license. See LICENSE file in the project root for full license information.\n
 ";
 
+        private const string TestSettingsWithSingleLineComment = @"
+[*.cs]
+file_header_template = //\n// Copyright (c) SomeCorp. All rights reserved.\n//\n// Licensed under the ??? license. See LICENSE file in the project root for full license information.\n
+";
+
         /// <summary>
         /// Verifies that the analyzer will not report a diagnostic when the file header is not configured.
         /// </summary>
@@ -596,6 +601,40 @@ namespace Bar
                 TestCode = testCode,
                 FixedCode = fixedCode,
                 EditorConfig = TestSettingsWithEmptyLines,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNoFileHeaderWithSingleLineCommentsInEditorConfig()
+        {
+            var testCode = @"[||]
+namespace Bar
+{
+}
+";
+            var fixedCode = @"//
+// Copyright (c) SomeCorp. All rights reserved.
+//
+// Licensed under the ??? license. See LICENSE file in the project root for full license information.
+//
+
+namespace Bar
+{
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { testCode } },
+                FixedState = {
+                    Sources = { fixedCode },
+                    ExpectedDiagnostics =
+                    {
+                        // /0/Test0.cs(1,1): hidden IDE0073: Header mismatch.
+                        new DiagnosticResult("IDE0073", DiagnosticSeverity.Hidden).WithSpan(1,1,1,3),
+                    },
+                },
+                EditorConfig = TestSettingsWithSingleLineComment,
             }.RunAsync();
         }
     }
