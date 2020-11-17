@@ -47,6 +47,11 @@
         <target state="translated">Znaleziono pojedynczy zestaw: „{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">Generuj subskrypcję zdarzenia</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Load_from_0">
         <source>Load from: '{0}'</source>
         <target state="translated">Załaduj z: „{0}”</target>

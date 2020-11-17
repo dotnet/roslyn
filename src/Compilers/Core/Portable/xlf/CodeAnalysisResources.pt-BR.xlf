@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="AssemblyReferencesNetFramework">
         <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
-        <target state="new">The assembly containing type '{0}' references .NET Framework, which is not supported.</target>
+        <target state="translated">O assembly contendo o tipo '{0}' faz referência a .NET Framework, mas não há suporte para isso.</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
@@ -51,7 +51,7 @@
       </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
         <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
-        <target state="new">Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</target>
+        <target state="translated">O arquivo adicional não pertence ao 'CompilationWithAnalyzers' subjacente.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
@@ -126,7 +126,7 @@
       </trans-unit>
       <trans-unit id="SourceTextRequiresEncoding">
         <source>The provided SourceText must have an explicit encoding set.</source>
-        <target state="new">The provided SourceText must have an explicit encoding set.</target>
+        <target state="translated">O SourceText fornecido precisa ter um conjunto de codificação explícito.</target>
         <note>'SourceText' is not localizable.</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
@@ -446,12 +446,12 @@
       </trans-unit>
       <trans-unit id="StartMustNotBeNegative">
         <source>'start' must not be negative</source>
-        <target state="translated">'"início" não deve ser negativo</target>
+        <target state="translated">"início" não deve ser negativo</target>
         <note />
       </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'</source>
-        <target state="translated">'"fim" não deve ser menor que "início"</target>
+        <target state="translated">"fim" não deve ser menor que "início"</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidContentType">
@@ -576,12 +576,12 @@
       </trans-unit>
       <trans-unit id="WRN_InvalidGlobalSectionName">
         <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
-        <target state="new">Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</target>
+        <target state="translated">O nome da seção de configuração do analisador global '{0}' é inválido porque não é um caminho absoluto. A seção será ignorada. A seção foi declarada no arquivo: '{1}'</target>
         <note>{0}: invalid section name, {1} path to global config</note>
       </trans-unit>
       <trans-unit id="WRN_InvalidGlobalSectionName_Title">
         <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
-        <target state="new">Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</target>
+        <target state="translated">O nome da seção de configuração do analisador global é inválido porque não é um caminho absoluto. A seção será ignorada.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">

@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 return;
             }
 
-            if (syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(
+            if (syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(
                     expression, out var initializedObject))
             {
                 typeToGenerateIn = semanticModel.GetTypeInfo(initializedObject, cancellationToken).Type as INamedTypeSymbol;

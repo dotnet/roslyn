@@ -1019,7 +1019,7 @@ class C
     }
 }
 ";
-            var comp = CreateNullableCompilation(source);
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (15,9): warning CS8602: Dereference of a possibly null reference.
                 //         t1.ToString(); // 1
@@ -2068,7 +2068,12 @@ class C
 }
 ");
             c.VerifyDiagnostics(
-                );
+                // (13,17): warning CS8602: Dereference of a possibly null reference.
+                //                 c.c.c.c.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.c.c").WithLocation(13, 17),
+                // (13,17): warning CS8602: Dereference of a possibly null reference.
+                //                 c.c.c.c.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.c.c.c").WithLocation(13, 17));
         }
 
         [Fact]

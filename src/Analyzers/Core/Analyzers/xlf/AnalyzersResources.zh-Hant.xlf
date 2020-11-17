@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../AnalyzersResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../AnalyzersResources.resx">
     <body>
       <trans-unit id="A_source_file_contains_a_header_that_does_not_match_the_required_text">
         <source>A source file contains a header that does not match the required text</source>
@@ -239,7 +239,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression">
         <source>Remove unnecessary suppression</source>
-        <target state="new">Remove unnecessary suppression</target>
+        <target state="translated">移除非必要的隱藏項目</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="Simplify_conditional_expression">
         <source>Simplify conditional expression</source>
-        <target state="new">Simplify conditional expression</target>
+        <target state="translated">簡化條件運算式</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_interpolation">

@@ -39,12 +39,12 @@
       </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
-        <target state="translated">{0}' öğesini ekleyin.</target>
+        <target state="translated">'{0}' öğesini ekleyin.</target>
         <note />
       </trans-unit>
       <trans-unit id="Delete_the_0_statement1">
         <source>Delete the '{0}' statement.</source>
-        <target state="translated">{0}' deyimini silin.</target>
+        <target state="translated">'{0}' deyimini silin.</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_event_0_in_1">
@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
-        <target state="translated">{0}' deyimini {1} satırına taşıyın.</target>
+        <target state="translated">'{0}' deyimini {1} satırına taşıyın.</target>
         <note />
       </trans-unit>
       <trans-unit id="Delete_the_0_statement2">
         <source>Delete the '{0}' statement.</source>
-        <target state="translated">{0}' deyimini silin.</target>
+        <target state="translated">'{0}' deyimini silin.</target>
         <note />
       </trans-unit>
       <trans-unit id="Multiple_Types">
@@ -209,12 +209,12 @@
       </trans-unit>
       <trans-unit id="Simplify_name_0">
         <source>Simplify name '{0}'</source>
-        <target state="translated">{0}' adını basitleştir</target>
+        <target state="translated">'{0}' adını basitleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_member_access_0">
         <source>Simplify member access '{0}'</source>
-        <target state="translated">{0}' üye erişimini basitleştir</target>
+        <target state="translated">'{0}' üye erişimini basitleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Me_qualification">
@@ -1170,7 +1170,7 @@ Option Explicit {On | Off}</target>
       </trans-unit>
       <trans-unit id="Use_Group_to_specify_that_a_group_named_0_should_be_created">
         <source>Use 'Group' to specify that a group named '{0}' should be created.</source>
-        <target state="translated">{0}' adında bir grubun oluşturulması gerektiğini belirtmek için 'Group' kullanın.</target>
+        <target state="translated">'{0}' adında bir grubun oluşturulması gerektiğini belirtmek için 'Group' kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_Group_to_specify_that_a_group_named_Group_should_be_created">
@@ -1509,7 +1509,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Generate_widening_conversion_in_0">
         <source>Generate widening conversion in '{0}'</source>
-        <target state="translated">{0}' öğesinde genişletme dönüşümü oluştur</target>
+        <target state="translated">'{0}' öğesinde genişletme dönüşümü oluştur</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">
@@ -1689,12 +1689,12 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Too_many_arguments_to_0">
         <source>Too many arguments to '{0}'.</source>
-        <target state="translated">{0}' için çok fazla bağımsız değişken var.</target>
+        <target state="translated">'{0}' için çok fazla bağımsız değişken var.</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_0_is_not_defined">
         <source>Type '{0}' is not defined.</source>
-        <target state="translated">{0}' türü tanımlı değil.</target>
+        <target state="translated">'{0}' türü tanımlı değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Overloads">

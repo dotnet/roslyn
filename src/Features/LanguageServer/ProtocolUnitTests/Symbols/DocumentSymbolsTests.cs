@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var expected = new LSP.SymbolInformation[]
             {
-                CreateSymbolInformation(LSP.SymbolKind.Class, "A", locations["class"].Single()),
-                CreateSymbolInformation(LSP.SymbolKind.Method, "M()", locations["method"].Single(), "A")
+                CreateSymbolInformation(LSP.SymbolKind.Class, "A", locations["class"].Single(), Glyph.ClassInternal),
+                CreateSymbolInformation(LSP.SymbolKind.Method, "M()", locations["method"].Single(), Glyph.MethodPrivate, "A")
             };
 
             var results = await RunGetDocumentSymbolsAsync(workspace.CurrentSolution, false);

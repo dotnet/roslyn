@@ -12,10 +12,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -102,9 +104,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return Create(item, location.SourceSpan, containerName, document, text);
 
-            static SymbolInformation Create(NavigationBarItem item, TextSpan span, string containerName, Document document, SourceText text)
+            static VSSymbolInformation Create(NavigationBarItem item, TextSpan span, string containerName, Document document, SourceText text)
             {
-                return new SymbolInformation
+                return new VSSymbolInformation
                 {
                     Name = item.Text,
                     Location = new LSP.Location
@@ -114,6 +116,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     },
                     Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph),
                     ContainerName = containerName,
+                    Icon = new ImageElement(item.Glyph.GetImageId()),
                 };
             }
         }

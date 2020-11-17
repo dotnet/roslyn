@@ -13,6 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
+    [Obsolete]
     internal readonly struct UnitTestingRemoteHostClientWrapper
     {
         internal UnitTestingRemoteHostClientWrapper(RemoteHostClient underlyingObject)

@@ -539,9 +539,6 @@
   <data name="Show_name_suggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>
   </data>
-  <data name="Generate_Event_Subscription" xml:space="preserve">
-    <value>Generate Event Subscription</value>
-  </data>
   <data name="Remove_unnecessary_usings" xml:space="preserve">
     <value>Remove unnecessary usings</value>
   </data>
@@ -577,7 +574,7 @@
     <value>When on multiple lines</value>
   </data>
   <data name="Show_items_from_unimported_namespaces" xml:space="preserve">
-    <value>Show items from unimported namespaces (experimental)</value>
+    <value>Show items from unimported namespaces</value>
   </data>
   <data name="Inside_namespace" xml:space="preserve">
     <value>Inside namespace</value>

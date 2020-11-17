@@ -312,5 +312,28 @@ class A
 
             Await VerifyTypeHints(input, ephemeral:=True)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WorkItem(48941, "https://github.com/dotnet/roslyn/issues/48941")>
+        Public Async Function TestNotWithStronglyTypedDeclarationExpression() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main(string[] args) 
+    {
+        if (int.TryParse("", out int x))
+        {
+        }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input)
+        End Function
     End Class
 End Namespace

@@ -130,6 +130,11 @@
     <PackageReference Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" Version="$(MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion)" PrivateAssets="all" />
   </ItemGroup>
 
+  <!-- Disable SDK supplied netanalyzers as we reference them from nugets instead -->
+  <PropertyGroup>
+    <EnableNetAnalyzers>false</EnableNetAnalyzers>
+  </PropertyGroup>
+
   <!-- 
      Code indexing targets to help generating LSIF from indexing builds.
   -->

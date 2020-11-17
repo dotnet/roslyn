@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../VSPackage.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../VSPackage.resx">
     <body>
       <trans-unit id="101">
         <source>Visual Basic</source>
@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="10160">
         <source>Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;Use enhanced colors;Editor Color Scheme;</source>
-        <target state="new">Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;Use enhanced colors;Editor Color Scheme;</target>
+        <target state="needs-review-translation">顯示內嵌參數名稱提示;自動插入 End 建構;變更美化排列設定;變更大綱模式;自動插入 Interface 和 MustOverride 成員;顯示或隱藏程序行分隔符號;開啟或關閉錯誤修正建議;開啟或關閉參考及關鍵字的醒目提示;Regex;為規則運算式標示色彩;醒目提示資料指標下的相關元件;回報無效的規則運算式;regex;規則運算式;使用進階色彩;編輯器色彩配置;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

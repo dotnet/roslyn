@@ -296,7 +296,7 @@
     <value>Unused local</value>
   </data>
   <data name="Show_items_from_unimported_namespaces" xml:space="preserve">
-    <value>Show items from unimported namespaces (experimental)</value>
+    <value>Show items from unimported namespaces</value>
   </data>
   <data name="Show_remarks_in_Quick_Info" xml:space="preserve">
     <value>Show remarks in Quick Info</value>

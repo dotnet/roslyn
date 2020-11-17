@@ -474,7 +474,7 @@ namespace Roslyn.Utilities
         /// not have "goo" as a component. That's because here "goo" is the server name portion
         /// of the UNC path, and not an actual directory or file name.
         /// </summary>
-        public static bool ContainsPathComponent(string path, string component, bool ignoreCase)
+        public static bool ContainsPathComponent(string? path, string component, bool ignoreCase)
         {
             var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
             if (path?.IndexOf(component, comparison) >= 0)

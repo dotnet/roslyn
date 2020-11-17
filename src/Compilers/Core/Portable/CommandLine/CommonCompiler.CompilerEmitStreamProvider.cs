@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly CommonCompiler _compiler;
             private readonly string _filePath;
-            private Stream _streamToDispose;
+            private Stream? _streamToDispose;
 
             internal CompilerEmitStreamProvider(
                 CommonCompiler compiler,
@@ -47,9 +45,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public override Stream Stream => null;
+            public override Stream? Stream => null;
 
-            public override Stream CreateStream(DiagnosticBag diagnostics)
+            protected override Stream? CreateStream(DiagnosticBag diagnostics)
             {
                 Debug.Assert(_streamToDispose == null);
 
@@ -81,7 +79,7 @@ namespace Microsoft.CodeAnalysis
                             else if (e.HResult == eWin32SharingViolation)
                             {
                                 // On Windows File.Delete only marks the file for deletion, but doesn't remove it from the directory.
-                                var newFilePath = Path.Combine(Path.GetDirectoryName(_filePath), Guid.NewGuid().ToString() + "_" + Path.GetFileName(_filePath));
+                                var newFilePath = Path.Combine(Path.GetDirectoryName(_filePath)!, Guid.NewGuid().ToString() + "_" + Path.GetFileName(_filePath));
 
                                 // Try to rename the existing file. This fails unless the file is open with FileShare.Delete.
                                 File.Move(_filePath, newFilePath);

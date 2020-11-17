@@ -39,12 +39,12 @@
       </trans-unit>
       <trans-unit id="Insert_0">
         <source>Insert '{0}'.</source>
-        <target state="translated">{0}'을(를) 삽입합니다.</target>
+        <target state="translated">'{0}'을(를) 삽입합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Delete_the_0_statement1">
         <source>Delete the '{0}' statement.</source>
-        <target state="translated">{0}' 문을 삭제합니다.</target>
+        <target state="translated">'{0}' 문을 삭제합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_event_0_in_1">
@@ -84,12 +84,12 @@
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
-        <target state="translated">{0}' 문을 {1} 줄로 이동합니다.</target>
+        <target state="translated">'{0}' 문을 {1} 줄로 이동합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Delete_the_0_statement2">
         <source>Delete the '{0}' statement.</source>
-        <target state="translated">{0}' 문을 삭제합니다.</target>
+        <target state="translated">'{0}' 문을 삭제합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Multiple_Types">
@@ -209,7 +209,7 @@
       </trans-unit>
       <trans-unit id="Simplify_name_0">
         <source>Simplify name '{0}'</source>
-        <target state="translated">{0}' 이름 단순화</target>
+        <target state="translated">'{0}' 이름 단순화</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_member_access_0">
@@ -1504,12 +1504,12 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Generate_narrowing_conversion_in_0">
         <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">{0}'에서 축소 변환 생성</target>
+        <target state="translated">'{0}'에서 축소 변환 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_widening_conversion_in_0">
         <source>Generate widening conversion in '{0}'</source>
-        <target state="translated">{0}'에서 확대 변환 생성</target>
+        <target state="translated">'{0}'에서 확대 변환 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">
@@ -1689,12 +1689,12 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Too_many_arguments_to_0">
         <source>Too many arguments to '{0}'.</source>
-        <target state="translated">{0}'에 대한 인수가 너무 많습니다.</target>
+        <target state="translated">'{0}'에 대한 인수가 너무 많습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_0_is_not_defined">
         <source>Type '{0}' is not defined.</source>
-        <target state="translated">{0}' 형식이 정의되지 않았습니다.</target>
+        <target state="translated">'{0}' 형식이 정의되지 않았습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Overloads">

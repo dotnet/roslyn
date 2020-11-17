@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -65,9 +64,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return symbol.GetSymbolType();
         }
 
-        protected override CompletionItem CreateItem(CompletionContext completionContext,
-            string displayText, string displayTextSuffix, string insertionText,
-            List<ISymbol> symbols, SyntaxContext context, bool preselect, SupportedPlatformData supportedPlatformData)
+        protected override CompletionItem CreateItem(
+            CompletionContext completionContext,
+            string displayText,
+            string displayTextSuffix,
+            string insertionText,
+            List<ISymbol> symbols,
+            SyntaxContext context,
+            bool preselect,
+            SupportedPlatformData supportedPlatformData)
         {
             var rules = GetCompletionItemRules(symbols, context, preselect);
             var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0]) : MatchPriority.Default;

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -31,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
         {
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpImplementInterfaceCodeFixProvider());
 
         private OptionsCollection AllOptionsOff
@@ -118,7 +116,7 @@ namespace System.Diagnostics.CodeAnalysis
 
         internal async Task TestWithAllCodeStyleOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, ParseOptions parseOptions = null)
+            int index = 0, ParseOptions? parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
                 index, options: AllOptionsOff);
@@ -126,7 +124,7 @@ namespace System.Diagnostics.CodeAnalysis
 
         internal async Task TestWithAllCodeStyleOptionsOnAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, ParseOptions parseOptions = null)
+            int index = 0, ParseOptions? parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
                 index, options: AllOptionsOn);
@@ -134,7 +132,7 @@ namespace System.Diagnostics.CodeAnalysis
 
         internal async Task TestWithAccessorCodeStyleOptionsOnAsync(
             string initialMarkup, string expectedMarkup,
-            int index = 0, ParseOptions parseOptions = null)
+            int index = 0, ParseOptions? parseOptions = null)
         {
             await TestAsync(initialMarkup, expectedMarkup, parseOptions, null,
                 index, options: AccessorOptionsOn);
@@ -8746,6 +8744,194 @@ interface I
 record C : [|I|] // hello
 {
     public void M1()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(49019, "https://github.com/dotnet/roslyn/issues/49019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUnconstrainedGenericInstantiatedWithValueType()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface IGoo<T>
+{
+    void Bar(T? x);
+}
+
+class C : [|IGoo<int>|]
+{
+}
+",
+@"
+interface IGoo<T>
+{
+    void Bar(T? x);
+}
+
+class C : IGoo<int>
+{
+    public void Bar(int x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(49019, "https://github.com/dotnet/roslyn/issues/49019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestConstrainedGenericInstantiatedWithValueType()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface IGoo<T> where T : struct
+{
+    void Bar(T? x);
+}
+
+class C : [|IGoo<int>|]
+{
+}
+",
+@"
+interface IGoo<T> where T : struct
+{
+    void Bar(T? x);
+}
+
+class C : IGoo<int>
+{
+    public void Bar(int? x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(49019, "https://github.com/dotnet/roslyn/issues/49019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUnconstrainedGenericInstantiatedWithReferenceType()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface IGoo<T>
+{
+    void Bar(T? x);
+}
+
+class C : [|IGoo<string>|]
+{
+}
+",
+@"
+interface IGoo<T>
+{
+    void Bar(T? x);
+}
+
+class C : IGoo<string>
+{
+    public void Bar(string x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(49019, "https://github.com/dotnet/roslyn/issues/49019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUnconstrainedGenericInstantiatedWithReferenceType_NullableEnable()
+        {
+            await TestInRegularAndScriptAsync(@"
+#nullable enable
+
+interface IGoo<T>
+{
+    void Bar(T? x);
+}
+
+class C : [|IGoo<string>|]
+{
+}
+",
+@"
+#nullable enable
+
+interface IGoo<T>
+{
+    void Bar(T? x);
+}
+
+class C : IGoo<string>
+{
+    public void Bar(string? x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(49019, "https://github.com/dotnet/roslyn/issues/49019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestConstrainedGenericInstantiatedWithReferenceType()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface IGoo<T> where T : class
+{
+    void Bar(T? x);
+}
+
+class C : [|IGoo<string>|]
+{
+}
+",
+@"
+interface IGoo<T> where T : class
+{
+    void Bar(T? x);
+}
+
+class C : IGoo<string>
+{
+    public void Bar(string x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+");
+        }
+
+        [WorkItem(49019, "https://github.com/dotnet/roslyn/issues/49019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestConstrainedGenericInstantiatedWithReferenceType_NullableEnable()
+        {
+            await TestInRegularAndScriptAsync(@"
+#nullable enable
+
+interface IGoo<T> where T : class
+{
+    void Bar(T? x);
+}
+
+class C : [|IGoo<string>|]
+{
+}
+",
+@"
+#nullable enable
+
+interface IGoo<T> where T : class
+{
+    void Bar(T? x);
+}
+
+class C : IGoo<string>
+{
+    public void Bar(string? x)
     {
         throw new System.NotImplementedException();
     }

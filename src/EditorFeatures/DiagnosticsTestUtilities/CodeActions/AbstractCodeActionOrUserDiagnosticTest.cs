@@ -11,12 +11,14 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -115,9 +117,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         protected internal abstract string GetLanguage();
         protected ParenthesesOptionsProvider ParenthesesOptionsProvider => new ParenthesesOptionsProvider(this.GetLanguage());
         protected abstract ParseOptions GetScriptOptions();
-        protected virtual TestComposition GetComposition() => EditorTestCompositions.EditorFeatures
-            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
-            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+
+        private protected virtual IDocumentServiceProvider GetDocumentServiceProvider()
+            => null;
+
+        protected virtual TestComposition GetComposition()
+            => EditorTestCompositions.EditorFeatures
+                .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
+                .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
 
         protected virtual void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
         {
@@ -132,9 +139,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             parameters = SetParameterDefaults(parameters);
 
-            var workspace = TestWorkspace.IsWorkspaceElement(workspaceMarkupOrCode) ?
-                TestWorkspace.Create(workspaceMarkupOrCode, openDocuments: false, composition: composition) :
-                TestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files: new[] { workspaceMarkupOrCode }, composition: composition);
+            var documentServiceProvider = GetDocumentServiceProvider();
+            var workspace = TestWorkspace.IsWorkspaceElement(workspaceMarkupOrCode)
+                ? TestWorkspace.Create(XElement.Parse(workspaceMarkupOrCode), openDocuments: false, composition: composition, documentServiceProvider: documentServiceProvider)
+                : TestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files: new[] { workspaceMarkupOrCode }, composition: composition, documentServiceProvider: documentServiceProvider);
 
 #if !CODE_STYLE
             if (parameters.testHost == TestHost.OutOfProcess && _logger != null)
@@ -247,21 +255,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected async Task TestMissingInRegularAndScriptAsync(
             string initialMarkup,
-            TestParameters parameters = default)
+            TestParameters parameters = default,
+            int codeActionIndex = 0)
         {
-            await TestMissingAsync(initialMarkup, WithRegularOptions(parameters));
-            await TestMissingAsync(initialMarkup, WithScriptOptions(parameters));
+            await TestMissingAsync(initialMarkup, WithRegularOptions(parameters), codeActionIndex);
+            await TestMissingAsync(initialMarkup, WithScriptOptions(parameters), codeActionIndex);
         }
 
         protected async Task TestMissingAsync(
             string initialMarkup,
-            TestParameters parameters = default)
+            TestParameters parameters = default,
+            int codeActionIndex = 0)
         {
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
                 var offeredActions = Environment.NewLine + string.Join(Environment.NewLine, actions.Select(action => action.Title));
-                Assert.True(actions.Length == 0, "An action was offered when none was expected. Offered actions:" + offeredActions);
+
+                if (codeActionIndex == 0)
+                {
+                    Assert.True(actions.Length == 0, "An action was offered when none was expected. Offered actions:" + offeredActions);
+                }
+                else
+                {
+                    Assert.True(actions.Length <= codeActionIndex, "An action was offered at the specified index when none was expected. Offered actions:" + offeredActions);
+                }
             }
         }
 

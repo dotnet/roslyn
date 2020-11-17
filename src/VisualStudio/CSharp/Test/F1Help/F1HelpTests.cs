@@ -8,11 +8,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
+using Microsoft.VisualStudio.LanguageServices.UnitTests;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -24,9 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
     {
         private static async Task TestAsync(string markup, string expectedText)
         {
-            // TODO: Using VisualStudioTestComposition.LanguageServices fails with "Failed to clean up listeners in a timely manner. WorkspaceChanged TaskQueue.cs 38"
-            // https://github.com/dotnet/roslyn/issues/46250
-            using var workspace = TestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(CSharpHelpContextService)));
+            using var workspace = TestWorkspace.CreateCSharp(markup, composition: VisualStudioTestCompositions.LanguageServices);
             var caret = workspace.Documents.First().CursorPosition;
 
             var service = Assert.IsType<CSharpHelpContextService>(workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<IHelpContextService>());
@@ -1164,6 +1162,23 @@ static class C
 
     sta[||]tic void Method() {}
 }", "static");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestWithKeyword()
+        {
+            await Test_KeywordAsync(
+@"
+public record Point(int X, int Y);
+
+public static class Program
+{ 
+    public static void Main()
+    {
+        var p1 = new Point(0, 0);
+        var p2 = p1 w[||]ith { X = 5 };
+    }
+}", "with");
         }
     }
 }

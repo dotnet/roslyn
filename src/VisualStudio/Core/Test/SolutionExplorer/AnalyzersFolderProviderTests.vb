@@ -5,7 +5,6 @@
 Imports System.Collections.ObjectModel
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.Internal.VisualStudio.PlatformUI
-Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.VisualBasicHelpers
@@ -20,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Sub CreateCollectionSource_NullItem()
             Using environment = New TestEnvironment()
                 Dim provider As IAttachedCollectionSourceProvider =
-                New AnalyzersFolderItemProvider(environment.ServiceProvider, Nothing)
+                    New AnalyzersFolderItemProvider(environment.Workspace, Nothing)
 
                 Dim collectionSource = provider.CreateCollectionSource(Nothing, KnownRelationships.Contains)
 
@@ -32,7 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Sub CreateCollectionSource_NullHierarchyIdentity()
             Using environment = New TestEnvironment()
                 Dim provider As IAttachedCollectionSourceProvider =
-                New AnalyzersFolderItemProvider(environment.ServiceProvider, Nothing)
+                    New AnalyzersFolderItemProvider(environment.Workspace, Nothing)
 
                 Dim hierarchyItem = New MockHierarchyItem With {.HierarchyIdentity = Nothing}
 
@@ -63,9 +62,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     }
                 }
 
-                Dim mapper = New HierarchyItemToProjectIdMap(environment.Workspace)
-
-                Dim provider As IAttachedCollectionSourceProvider = New AnalyzersFolderItemProvider(mapper, environment.Workspace, New FakeAnalyzersCommandHandler)
+                Dim provider As IAttachedCollectionSourceProvider = New AnalyzersFolderItemProvider(environment.Workspace, New FakeAnalyzersCommandHandler)
 
                 Dim collectionSource = provider.CreateCollectionSource(hierarchyItem, KnownRelationships.Contains)
 

@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Private ReadOnly Property ISpecializedMethodReferenceUnspecializedVersion As Microsoft.Cci.IMethodReference Implements Microsoft.Cci.ISpecializedMethodReference.UnspecializedVersion
             Get
-                Return m_UnderlyingMethod.OriginalDefinition
+                Return m_UnderlyingMethod.OriginalDefinition.GetCciAdapter()
             End Get
         End Property
 
