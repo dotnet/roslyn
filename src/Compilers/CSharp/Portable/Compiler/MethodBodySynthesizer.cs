@@ -287,7 +287,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 receiverOpt: null,
                 method: getOrCreateMethod,
-                arg0: fieldAccess);
+                arg0: fieldAccess,
+                binder: null);
 
             // value
             BoundParameter parameterAccess = new BoundParameter(
@@ -299,7 +300,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 receiverOpt: getOrCreateCall,
                 method: processHandlerMethod,
-                arg0: parameterAccess);
+                arg0: parameterAccess,
+                binder: null);
 
             if (isAddMethod)
             {
@@ -395,7 +397,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     operand: BoundCall.Synthesized(syntax,
                         receiverOpt: null,
                         method: updateMethod,
-                        arguments: ImmutableArray.Create<BoundExpression>(boundBackingField, boundParameter)),
+                        arguments: ImmutableArray.Create<BoundExpression>(boundBackingField, boundParameter),
+                        binder: null),
                     conversion: Conversion.ExplicitReference,
                     type: delegateType);
 
@@ -459,7 +462,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operand: BoundCall.Synthesized(syntax,
                     receiverOpt: null,
                     method: updateMethod,
-                    arguments: ImmutableArray.Create<BoundExpression>(boundTmps[1], boundParameter)),
+                    arguments: ImmutableArray.Create<BoundExpression>(boundTmps[1], boundParameter),
+                    binder: null),
                 conversion: Conversion.ExplicitReference,
                 type: delegateType);
 
@@ -476,7 +480,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression compareExchange = BoundCall.Synthesized(syntax,
                 receiverOpt: null,
                 method: compareExchangeMethod,
-                arguments: ImmutableArray.Create<BoundExpression>(boundBackingField, boundTmps[2], boundTmps[1]));
+                arguments: ImmutableArray.Create<BoundExpression>(boundBackingField, boundTmps[2], boundTmps[1]),
+                binder: null);
 
             // tmp0 = Interlocked.CompareExchange<DelegateType>(ref _event, tmp2, tmp1);
             BoundStatement tmp0Update = new BoundExpressionStatement(syntax,
@@ -540,7 +545,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             syntax,
                             method.ContainingType)
                         { WasCompilerGenerated = true },
-                        baseTypeFinalize))
+                        baseTypeFinalize,
+                        binder: null))
                 { WasCompilerGenerated = true };
 
                 if (syntax.Kind() == SyntaxKind.Block)

@@ -63,9 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 exitCallExpr = BoundCall.Synthesized(
                     lockSyntax,
-                    null,
+                    receiverOpt: null,
                     exitMethod,
-                    boundLockTemp);
+                    boundLockTemp,
+                    binder: null);
             }
             else
             {
@@ -108,10 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lockSyntax,
                     BoundCall.Synthesized(
                         lockSyntax,
-                        null,
+                        receiverOpt: null,
                         enterMethod,
                         boundLockTemp,
-                        boundLockTakenTemp));
+                        boundLockTakenTemp,
+                        binder: null));
 
                 exitCall = RewriteIfStatement(
                     lockSyntax,
@@ -157,9 +159,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     enterCallExpr = BoundCall.Synthesized(
                         lockSyntax,
-                        null,
+                        receiverOpt: null,
                         enterMethod,
-                        boundLockTemp);
+                        boundLockTemp,
+                        binder: null);
                 }
                 else
                 {

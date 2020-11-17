@@ -344,7 +344,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     rewrittenReceiver,
                     setMethod,
-                    AppendToPossibleNull(rewrittenArguments, rhsAssignment));
+                    AppendToPossibleNull(rewrittenArguments, rhsAssignment),
+                    binder: null);
 
                 return new BoundSequence(
                     syntax,
@@ -359,7 +360,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     rewrittenReceiver,
                     setMethod,
-                    AppendToPossibleNull(rewrittenArguments, rewrittenRight));
+                    AppendToPossibleNull(rewrittenArguments, rewrittenRight),
+                    binder: null);
 
                 if (argTemps.IsDefaultOrEmpty)
                 {
