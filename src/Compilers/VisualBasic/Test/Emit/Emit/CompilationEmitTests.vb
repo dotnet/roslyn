@@ -2935,8 +2935,8 @@ end namespace
                     Dim assembly = [module].ContainingAssembly
                     Dim ns = DirectCast([module].GlobalNamespace.GetMembers("N").Single, NamespaceSymbol)
                     Dim namedType = DirectCast(ns.GetMembers("C1").Single, NamedTypeSymbol)
-                    Dim type = DirectCast(namedType, Microsoft.Cci.ITypeDefinition)
-                    Dim method = DirectCast(namedType.GetMembers("goo1").Single, Microsoft.Cci.IMethodDefinition)
+                    Dim type = DirectCast(namedType.GetCciAdapter(), Microsoft.Cci.ITypeDefinition)
+                    Dim method = DirectCast(namedType.GetMembers("goo1").Single.GetCciAdapter(), Microsoft.Cci.IMethodDefinition)
 
                     Dim sourceAssembly = DirectCast(assembly, SourceAssemblySymbol)
                     Dim compilation = sourceAssembly.DeclaringCompilation

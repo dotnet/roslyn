@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
         <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
-        <target state="translated">'{0}' 파일 처리 시 Msbuild에서 실패했습니다. 메시지: {1}</target>
+        <target state="translated">ファイル '{0}' の処理中に MSBuild が次のメッセージで失敗しました: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_does_not_contain_0_target">

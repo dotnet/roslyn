@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -76,9 +78,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var mock = new MockLogService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            using var connection = await client.CreateConnectionAsync<IRemoteSymbolSearchUpdateService>(callbackTarget: mock, CancellationToken.None);
+            using var connection = client.CreateConnection<IRemoteSymbolSearchUpdateService>(callbackTarget: mock);
             Assert.True(await connection.TryInvokeAsync(
-                (service, cancellationToken) => service.UpdateContinuouslyAsync("emptySource", Path.GetTempPath(), cancellationToken),
+                (service, callbackId, cancellationToken) => service.UpdateContinuouslyAsync(callbackId, "emptySource", Path.GetTempPath(), cancellationToken),
                 CancellationToken.None));
         }
 

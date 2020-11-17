@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -20,14 +21,15 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         [ExportWorkspaceServiceFactory(typeof(IRemoteHostClientProvider), ServiceLayer.Test), Shared, PartNotDiscoverable]
         internal sealed class Factory : IWorkspaceServiceFactory
         {
+            private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
+
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory()
-            {
-            }
+            public Factory([ImportMany] IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>> callbackDispatchers)
+                => _callbackDispatchers = new RemoteServiceCallbackDispatcherRegistry(callbackDispatchers);
 
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new InProcRemoteHostClientProvider(workspaceServices);
+                => new InProcRemoteHostClientProvider(workspaceServices, _callbackDispatchers);
         }
 
         private sealed class WorkspaceManager : RemoteWorkspaceManager
@@ -51,8 +53,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
         public SolutionAssetCache? RemoteAssetStorage { get; }
         public Type[]? AdditionalRemoteParts { get; }
+        public TraceListener? TraceListener { get; set; }
 
-        public InProcRemoteHostClientProvider(HostWorkspaceServices services)
+        public InProcRemoteHostClientProvider(HostWorkspaceServices services, RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
         {
             _services = services;
 
@@ -60,6 +63,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             _lazyClient = new AsyncLazy<RemoteHostClient>(
                 cancellationToken => InProcRemoteHostClient.CreateAsync(
                     _services,
+                    callbackDispatchers,
+                    TraceListener,
                     new RemoteHostTestData(_lazyManager.Value, isInProc: true)),
                 cacheResult: true);
         }

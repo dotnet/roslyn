@@ -226,14 +226,9 @@ function BuildSolution {
     bl="/bl:\"$log_dir/Build.binlog\""
   fi
   
-  local projects="$repo_root/$solution" 
-  
-  # https://github.com/dotnet/roslyn/issues/23736
-  UNAME="$(uname)"
-  if [[ "$UNAME" == "Darwin" ]]; then
-    run_analyzers=false
-  fi
+  local projects="$repo_root/$solution"
 
+  UNAME="$(uname)"
   # NuGet often exceeds the limit of open files on Mac and Linux
   # https://github.com/NuGet/Home/issues/2163
   if [[ "$UNAME" == "Darwin" || "$UNAME" == "Linux" ]]; then
@@ -285,7 +280,7 @@ function BuildSolution {
     /p:Test=$test \
     /p:Pack=$pack \
     /p:Publish=$publish \
-    /p:UseRoslynAnalyzers=$run_analyzers \
+    /p:RunAnalyzersDuringBuild=$run_analyzers \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \

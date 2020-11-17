@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -1844,13 +1846,13 @@ class Program
 
     static void Main()
     {
-        Goo();
+        Goo(); // 1
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (13,9): error CS0029: Cannot implicitly convert type 'int' to 'Enum'
-                //         Goo();
+            comp.VerifyDiagnostics(
+                // (13,9): error CS0029: Cannot implicitly convert type 'int' to 'System.Enum'
+                //         Goo(); // 1
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "Goo()").WithArguments("int", "System.Enum").WithLocation(13, 9));
         }
 
@@ -3583,9 +3585,9 @@ public class MainClass
 
                 var ctorA = typeA.InstanceConstructors.First();
                 Assert.Equal(expectedMethodImplAttributes, ctorA.ImplementationAttributes);
-                Assert.True(((Cci.IMethodDefinition)ctorA).IsExternal);
+                Assert.True(((Cci.IMethodDefinition)ctorA.GetCciAdapter()).IsExternal);
 
-                var methodGoo = (Cci.IMethodDefinition)typeA.GetMember("Goo");
+                var methodGoo = (Cci.IMethodDefinition)typeA.GetMember("Goo").GetCciAdapter();
                 Assert.True(methodGoo.IsExternal);
             };
 
@@ -8197,7 +8199,7 @@ class C
             var diag = diags.Single();
             Assert.Equal("TEST1", diag.Id);
             Assert.Equal(ErrorCode.WRN_DeprecatedSymbol, (ErrorCode)diag.Code);
-            Assert.Equal(string.Empty, diag.Descriptor.HelpLinkUri);
+            Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
 
             diags.Verify(
                 // (12,9): warning TEST1: 'C.M1()' is obsolete
@@ -8259,7 +8261,7 @@ class C
             var diags = comp.GetDiagnostics();
 
             var diag = diags.Single();
-            Assert.Equal("", diag.Descriptor.HelpLinkUri);
+            Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
 
             diags.Verify(
                 // (12,9): warning CS0612: 'C.M1()' is obsolete
@@ -8649,7 +8651,7 @@ class C2 : C1
                 var diags = comp2.GetDiagnostics();
 
                 var diag = diags.Single();
-                Assert.Equal("", diag.Descriptor.HelpLinkUri);
+                Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
 
                 diags.Verify(
                     // (6,9): warning CS0612: 'C1.M1()' is obsolete
@@ -8855,7 +8857,7 @@ class C2 : C1
                     Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
 
                 var diag = diags.Single();
-                Assert.Equal("", diag.Descriptor.HelpLinkUri);
+                Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
             }
         }
 
@@ -9038,7 +9040,7 @@ class C2 : C1
                     Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
 
                 var diag = diags.Single();
-                Assert.Equal("", diag.Descriptor.HelpLinkUri);
+                Assert.Equal($"https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
             }
         }
 
@@ -9089,7 +9091,7 @@ class C2 : C1
                     Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
 
                 var diag = diags.Single();
-                Assert.Equal("", diag.Descriptor.HelpLinkUri);
+                Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
             }
         }
 
@@ -9368,7 +9370,7 @@ class C2 : C1
                 Diagnostic("A", "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
 
             var diag = diags.Single();
-            Assert.Equal("", diag.Descriptor.HelpLinkUri);
+            Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
         }
 
         [Fact, WorkItem(42119, "https://github.com/dotnet/roslyn/issues/42119")]
@@ -9418,7 +9420,7 @@ class C2 : C1
                     Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "M1()").WithArguments("C1.M1()").WithLocation(6, 9));
 
                 var diag = diags.Single();
-                Assert.Equal("", diag.Descriptor.HelpLinkUri);
+                Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0612)", diag.Descriptor.HelpLinkUri);
             }
         }
 

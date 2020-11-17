@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -445,7 +443,7 @@ namespace Microsoft.CodeAnalysis
                         return compilation;
                     }
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -488,7 +486,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -553,7 +551,7 @@ namespace Microsoft.CodeAnalysis
                     // null and then we'll have to create a generator inside the finalization process.
                     return await FinalizeCompilationAsync(solution, compilation, new TrackedGeneratorDriver(null), cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -583,7 +581,7 @@ namespace Microsoft.CodeAnalysis
                     WriteState(new FullDeclarationState(compilation, new TrackedGeneratorDriver(generatorDriver: null)), solutionServices);
                     return compilation;
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -616,7 +614,7 @@ namespace Microsoft.CodeAnalysis
                     var (compilation, generatorDriver) = await BuildDeclarationCompilationFromInProgressAsync(solution.Services, state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
                     return await FinalizeCompilationAsync(solution, compilation, generatorDriver, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -644,7 +642,7 @@ namespace Microsoft.CodeAnalysis
 
                     return (inProgressCompilation, inProgressGeneratorDriver);
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -731,7 +729,7 @@ namespace Microsoft.CodeAnalysis
                     // Now we run generators; if we don't have a generator driver at all, we must try create one
                     if (generatorDriver.GeneratorDriver == null)
                     {
-                        var generators = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetGenerators()).ToImmutableArray();
+                        var generators = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetGenerators(this.ProjectState.Language)).ToImmutableArray();
                         var additionalTexts = this.ProjectState.AdditionalDocumentStates.Values.SelectAsArray(a => (AdditionalText)new AdditionalTextWithState(a));
                         var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
 
@@ -768,7 +766,7 @@ namespace Microsoft.CodeAnalysis
 
                     return new CompilationInfo(compilation, hasSuccessfullyLoaded, generatorDriver.GeneratorDriver?.GetRunResult());
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -824,7 +822,7 @@ namespace Microsoft.CodeAnalysis
                         return await this.GetMetadataOnlyImageReferenceAsync(solution, projectReference, cancellationToken).ConfigureAwait(false);
                     }
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -888,7 +886,7 @@ namespace Microsoft.CodeAnalysis
                         return reference;
                     }
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

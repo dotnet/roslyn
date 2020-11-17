@@ -118,7 +118,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <ConditionalWpfFact(GetType(x86), Skip:="https://github.com/dotnet/roslyn/issues/48870")>
+        <Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function ExecutedUnexecutedLocals() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -389,7 +390,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <ConditionalWpfFact(GetType(x86), Skip:="https://github.com/dotnet/roslyn/issues/48870")>
+        <Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function InstructionPointerInForeach() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">

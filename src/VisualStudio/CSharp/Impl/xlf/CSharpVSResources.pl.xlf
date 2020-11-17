@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="translated">Automatycznie pokaż listę uzupełniania na listach argumentów (eksperymentalne)</target>
+        <target state="needs-review-translation">Automatycznie pokaż listę uzupełniania na listach argumentów (eksperymentalne)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -34,12 +34,12 @@
       </trans-unit>
       <trans-unit id="Edit_color_scheme">
         <source>Edit color scheme</source>
-        <target state="new">Edit color scheme</target>
+        <target state="translated">Edytuj schemat kolorów</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document">
         <source>Format document</source>
-        <target state="new">Format document</target>
+        <target state="translated">Formatuj dokument</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -52,15 +52,15 @@
         <target state="translated">Ogólne</target>
         <note>Title of the control group on the General Formatting options page</note>
       </trans-unit>
-      <trans-unit id="Generate_Event_Subscription">
-        <source>Generate Event Subscription</source>
-        <target state="translated">Generuj subskrypcję zdarzenia</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
         <target state="translated">W operatorach relacyjnych:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
         <note>'is' and 'as' are C# keywords and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
+        <source>Insert // at the start of new lines when writing // comments</source>
+        <target state="new">Insert // at the start of new lines when writing // comments</target>
+        <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">
         <source>Inside namespace</source>
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
-        <target state="new">Pattern matching preferences:</target>
+        <target state="translated">Preferencje dopasowywania wzorca:</target>
         <note />
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>
-        <target state="new">Prefer pattern matching</target>
+        <target state="translated">Preferuj dopasowywanie do wzorca</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching_over_mixed_type_check">
         <source>Prefer pattern matching over mixed type check</source>
-        <target state="new">Prefer pattern matching over mixed type check</target>
+        <target state="translated">Preferuj sprawdzanie dopasowania wzorca do typów mieszanych</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_switch_expression">
@@ -117,9 +117,14 @@
         <target state="translated">Usuń niepotrzebne użycia</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_new_expressions">
+        <source>Show hints for 'new' expressions</source>
+        <target state="new">Show hints for 'new' expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces (experimental)</source>
-        <target state="translated">Pokaż elementy z nieimportowanych przestrzeni nazw (eksperymentalne)</target>
+        <source>Show items from unimported namespaces</source>
+        <target state="needs-review-translation">Pokaż elementy z nieimportowanych przestrzeni nazw (eksperymentalne)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

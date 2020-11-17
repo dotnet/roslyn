@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -467,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
                 else if (memberSymbol.IsOverride)
                 {
-                    return memberSymbol.OverriddenMember();
+                    return memberSymbol.GetOverriddenMember();
                 }
 
                 if (memberSymbol is IMethodSymbol methodSymbol)
@@ -669,11 +667,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             foreach (var symbol in symbols)
             {
-                var overriddenMember = symbol.OverriddenMember();
+                var overriddenMember = symbol.GetOverriddenMember();
                 if (overriddenMember != null && !overriddenSymbols.Contains(overriddenMember))
-                {
                     overriddenSymbols.Add(overriddenMember);
-                }
             }
 
             return symbols.WhereAsArray(s => !overriddenSymbols.Contains(s));

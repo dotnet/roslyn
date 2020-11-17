@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -114,13 +116,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static readonly CompletionItemRules s_objectRules =
             CompletionItemRules.Create(
-                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[')),
+                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', ';')),
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
         private static readonly CompletionItemRules s_defaultRules =
             CompletionItemRules.Create(
-                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '{')),
+                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '{', ';')),
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
@@ -142,6 +144,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return s_defaultRules;
+        }
+
+        protected override string GetInsertionText(CompletionItem item, char ch)
+        {
+            if (ch == ';')
+            {
+                var insertionText = SymbolCompletionItem.GetInsertionText(item);
+                return insertionText + "()";
+            }
+
+            return base.GetInsertionText(item, ch);
         }
     }
 }

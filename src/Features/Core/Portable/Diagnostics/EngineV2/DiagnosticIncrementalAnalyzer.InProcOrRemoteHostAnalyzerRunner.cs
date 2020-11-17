@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -146,10 +144,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 _ = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
                     (service, cancellationToken) => service.ReportAnalyzerPerformanceAsync(performanceInfo, count, cancellationToken),
-                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
             {
                 // ignore all, this is fire and forget method
             }
@@ -197,7 +194,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, SerializableDiagnosticAnalysisResults>(
                 solution,
                 invocation: (service, solutionInfo, cancellationToken) => service.CalculateDiagnosticsAsync(solutionInfo, argument, cancellationToken),
-                callbackTarget: null,
                 cancellationToken).ConfigureAwait(false);
 
             if (!result.HasValue)

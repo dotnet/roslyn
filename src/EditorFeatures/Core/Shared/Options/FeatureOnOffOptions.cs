@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -37,17 +35,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool> FormatOnPaste = new(nameof(FeatureOnOffOptions), nameof(FormatOnPaste), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.FormatOnPaste"));
 
-        public static readonly PerLanguageOption2<bool> AutoXmlDocCommentGeneration = new(nameof(FeatureOnOffOptions), nameof(AutoXmlDocCommentGeneration), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.AutoComment" : "TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation"));
-
         public static readonly PerLanguageOption2<bool> AutoInsertBlockCommentStartString = new(nameof(FeatureOnOffOptions), nameof(AutoInsertBlockCommentStartString), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Insert Block Comment Start String"));
 
         public static readonly PerLanguageOption2<bool> PrettyListing = new(nameof(FeatureOnOffOptions), nameof(PrettyListing), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PrettyListing"));
-
-        public static readonly PerLanguageOption2<bool> InlineParameterNameHints = new(nameof(FeatureOnOffOptions), nameof(InlineParameterNameHints), defaultValue: false,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints"));
 
         public static readonly PerLanguageOption2<bool> AutoFormattingOnTyping = new(
             nameof(FeatureOnOffOptions), nameof(AutoFormattingOnTyping), defaultValue: true,
@@ -110,10 +102,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.KeywordHighlighting,
             FeatureOnOffOptions.ReferenceHighlighting,
             FeatureOnOffOptions.FormatOnPaste,
-            FeatureOnOffOptions.AutoXmlDocCommentGeneration,
             FeatureOnOffOptions.AutoInsertBlockCommentStartString,
             FeatureOnOffOptions.PrettyListing,
-            FeatureOnOffOptions.InlineParameterNameHints,
             FeatureOnOffOptions.AutoFormattingOnTyping,
             FeatureOnOffOptions.AutoFormattingOnCloseBrace,
             FeatureOnOffOptions.AutoFormattingOnSemicolon,

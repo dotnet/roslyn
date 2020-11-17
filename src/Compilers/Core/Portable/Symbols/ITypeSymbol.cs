@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -127,6 +125,11 @@ namespace Microsoft.CodeAnalysis
         /// True if the type is readonly.
         /// </summary>
         bool IsReadOnly { get; }
+
+        /// <summary>
+        /// True if the type is a record.
+        /// </summary>
+        bool IsRecord { get; }
 
         /// <summary>
         /// Converts an <c>ITypeSymbol</c> and a nullable flow state to a string representation.

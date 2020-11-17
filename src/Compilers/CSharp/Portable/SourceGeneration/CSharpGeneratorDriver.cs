@@ -13,8 +13,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-
-#nullable enable
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -64,5 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override GeneratorDriver FromState(GeneratorDriverState state) => new CSharpGeneratorDriver(state);
 
         internal override CommonMessageProvider MessageProvider => CSharp.MessageProvider.Instance;
+
+        internal override AdditionalSourcesCollection CreateSourcesCollection() => new AdditionalSourcesCollection(".cs");
     }
 }

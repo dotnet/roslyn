@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -77,6 +79,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         StartMethodChecks = 1 << 13,
         FinishMethodChecks = 1 << 14,
         MethodSymbolAll = Attributes | ReturnTypeAttributes | Parameters | Type | TypeParameters | StartMethodChecks | FinishMethodChecks | StartAsyncMethodChecks | FinishAsyncMethodChecks,
+
+        // For complex parameter symbols
+        StartDefaultSyntaxValue = 1 << 11,
+        EndDefaultSyntaxValue = 1 << 12,
+        EndDefaultSyntaxValueDiagnostics = 1 << 13,
+        ComplexParameterSymbolAll = Attributes | StartDefaultSyntaxValue | EndDefaultSyntaxValue | EndDefaultSyntaxValueDiagnostics,
 
         // For type parameter symbols
         TypeParameterConstraints = 1 << 11,

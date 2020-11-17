@@ -2,20 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
@@ -23,7 +22,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
@@ -160,11 +158,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 document.CloseTextView();
             }
 
-            if (SynchronizationContext.Current != null)
-            {
-                Dispatcher.CurrentDispatcher.DoEvents();
-            }
-
             if (_backgroundParser != null)
             {
                 _backgroundParser.CancelAllParses();
@@ -215,6 +208,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public new void OnParseOptionsChanged(ProjectId projectId, ParseOptions parseOptions)
             => base.OnParseOptionsChanged(projectId, parseOptions);
+
+        public new void OnAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)
+            => base.OnAnalyzerReferenceAdded(projectId, analyzerReference);
 
         public void OnDocumentRemoved(DocumentId documentId, bool closeDocument = false)
         {
@@ -313,7 +309,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var hostProject = this.GetTestProject(info.Id.ProjectId);
             var hostDocument = new TestHostDocument(
                 text.ToString(), info.Name, info.SourceCodeKind,
-                info.Id, folders: info.Folders, exportProvider: ExportProvider);
+                info.Id, info.FilePath, info.Folders, ExportProvider,
+                info.DocumentServiceProvider);
             hostProject.AddDocument(hostDocument);
             this.OnDocumentAdded(hostDocument.ToDocumentInfo());
         }

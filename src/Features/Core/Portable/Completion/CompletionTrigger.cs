@@ -2,10 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
+    /// <summary>
+    /// The action that triggered completion to start.
+    /// </summary>
+    /// <remarks>
+    /// NOTE: Roslyn's LSP completion implementation uses this struct. If a new property is added, either:
+    ///     1: The property's type must be serializable
+    ///     OR
+    ///     2. LSP will need to be updated to not use CompletionTrigger - see
+    ///        Features\LanguageServer\Protocol\Handler\Completion\CompletionResolveData.cs
+    /// </remarks>
     public readonly struct CompletionTrigger
     {
         /// <summary>

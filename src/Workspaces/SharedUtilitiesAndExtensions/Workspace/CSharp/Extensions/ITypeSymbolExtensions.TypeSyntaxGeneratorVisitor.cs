@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             public override TypeSyntax VisitDynamicType(IDynamicTypeSymbol symbol)
                 => AddInformationTo(SyntaxFactory.IdentifierName("dynamic"), symbol);
 
-            public static bool TryCreateNativeIntegerType(INamedTypeSymbol symbol, out TypeSyntax syntax)
+            public static bool TryCreateNativeIntegerType(INamedTypeSymbol symbol, [NotNullWhen(true)] out TypeSyntax? syntax)
             {
                 if (symbol.IsNativeIntegerType)
                 {
@@ -121,7 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-#nullable enable
             public override TypeSyntax VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
             {
                 FunctionPointerCallingConventionSyntax? callingConventionSyntax = null;
@@ -165,7 +165,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return AddInformationTo(
                     SyntaxFactory.FunctionPointerType(callingConventionSyntax, SyntaxFactory.FunctionPointerParameterList(SyntaxFactory.SeparatedList(parameters))), symbol);
             }
-#nullable restore
 
             public TypeSyntax CreateSimpleTypeSyntax(INamedTypeSymbol symbol)
             {
@@ -217,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             private static IdentifierNameSyntax CreateGlobalIdentifier()
                 => SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword));
 
-            private static TypeSyntax TryCreateSpecializedNamedTypeSyntax(INamedTypeSymbol symbol)
+            private static TypeSyntax? TryCreateSpecializedNamedTypeSyntax(INamedTypeSymbol symbol)
             {
                 if (symbol.SpecialType == SpecialType.System_Void)
                 {
@@ -301,7 +300,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                 }
 
-                if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
+                if (symbol.NullableAnnotation == NullableAnnotation.Annotated &&
+                    !symbol.IsValueType)
                 {
                     typeSyntax = AddInformationTo(SyntaxFactory.NullableType(typeSyntax), symbol);
                 }

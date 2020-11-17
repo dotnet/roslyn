@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -1204,8 +1206,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The default literal is only allowed with equality operators and both operands cannot be typeless at the same time.
             // Note: we only need to restrict expressions that can be converted to *any* type, in which case the resolution could always succeed.
 
-            if (left.IsTypelessNew() ||
-                right.IsTypelessNew())
+            if (left.IsImplicitObjectCreation() ||
+                right.IsImplicitObjectCreation())
             {
                 return false;
             }
@@ -2021,7 +2023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
-#nullable restore
+#nullable disable
 
         private static BinaryOperatorKind SyntaxKindToBinaryOperatorKind(SyntaxKind kind)
         {
@@ -2431,7 +2433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
-            bool isOperandNullOrNew = operand.IsLiteralNull() || operand.IsTypelessNew();
+            bool isOperandNullOrNew = operand.IsLiteralNull() || operand.IsImplicitObjectCreation();
             if (isOperandNullOrNew)
             {
                 // Dev10 does not allow unary prefix operators to be applied to the null literal
@@ -2765,7 +2767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindValueKind.RValue;
             }
         }
-#nullable restore
+#nullable disable
 
         private BoundLiteral BindIntegralMinValConstants(PrefixUnaryExpressionSyntax node, BoundExpression operand, DiagnosticBag diagnostics)
         {

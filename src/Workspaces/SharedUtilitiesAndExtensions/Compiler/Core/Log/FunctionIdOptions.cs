@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         private static Option2<bool> CreateOption(FunctionId id)
         {
-            var name = Enum.GetName(typeof(FunctionId), id);
+            var name = Enum.GetName(typeof(FunctionId), id) ?? throw ExceptionUtilities.UnexpectedValue(id);
 
             return new Option2<bool>(nameof(FunctionIdOptions), name, defaultValue: false,
                 storageLocations: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Performance\FunctionId\" + name));

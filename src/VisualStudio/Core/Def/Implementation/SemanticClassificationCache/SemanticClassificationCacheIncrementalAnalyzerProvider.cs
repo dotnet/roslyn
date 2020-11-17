@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Diagnostics;
@@ -71,7 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
                 await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService>(
                     document.Project.Solution,
                     (service, solutionInfo, cancellationToken) => service.CacheSemanticClassificationsAsync(solutionInfo, document.Id, cancellationToken),
-                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }
         }

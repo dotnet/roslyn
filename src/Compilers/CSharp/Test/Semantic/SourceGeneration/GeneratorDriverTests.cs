@@ -19,8 +19,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
-
-#nullable enable
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
     public class GeneratorDriverTests
@@ -639,8 +637,9 @@ class C { }
 
             outputCompilation.VerifyDiagnostics();
 
-
-            Assert.EndsWith(exception.ToString() + "'.", generatorDiagnostics.Single().Descriptor.Description.ToString());
+            // Since translated description strings can have punctuation that differs based on locale, simply ensure the
+            // exception message is contains in the diagnostic description.
+            Assert.Contains(exception.ToString(), generatorDiagnostics.Single().Descriptor.Description.ToString());
         }
 
         [Fact]

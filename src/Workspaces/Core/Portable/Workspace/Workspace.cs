@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -491,7 +489,7 @@ namespace Microsoft.CodeAnalysis
                 var oldSolution = this.CurrentSolution;
                 var newSolution = oldSolution.RemoveProject(projectId).AddProject(reloadedProjectInfo);
 
-                newSolution = this.AdjustReloadedProject(oldSolution.GetProject(projectId), newSolution.GetProject(projectId)).Solution;
+                newSolution = this.AdjustReloadedProject(oldSolution.GetRequiredProject(projectId), newSolution.GetRequiredProject(projectId)).Solution;
                 newSolution = this.SetCurrentSolution(newSolution);
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectReloaded, oldSolution, newSolution, projectId);
@@ -1672,7 +1670,11 @@ namespace Microsoft.CodeAnalysis
                 doc.Name,
                 doc.Folders,
                 sourceDoc != null ? sourceDoc.SourceCodeKind : SourceCodeKind.Regular,
-                filePath: doc.FilePath);
+                loader: null,
+                filePath: doc.FilePath,
+                isGenerated: false,
+                designTimeOnly: false,
+                doc.Services);
         }
 
         /// <summary>

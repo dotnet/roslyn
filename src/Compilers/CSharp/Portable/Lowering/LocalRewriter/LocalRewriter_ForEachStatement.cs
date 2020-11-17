@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -128,6 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // ((C)(x)).GetEnumerator();  OR  (x).GetEnumerator();  OR  async variants (which fill-in arguments for optional parameters)
             BoundExpression enumeratorVarInitValue = SynthesizeCall(
+                enumeratorInfo.Binder,
                 forEachSyntax,
                 ConvertReceiverForInvocation(forEachSyntax, rewrittenExpression, getEnumeratorMethod, enumeratorInfo.CollectionConversion, enumeratorInfo.CollectionType),
                 getEnumeratorMethod,
@@ -169,6 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rewrittenBodyBlock = CreateBlockDeclaringIterationVariables(iterationVariables, iterationVarDecl, rewrittenBody, forEachSyntax);
             BoundExpression rewrittenCondition = SynthesizeCall(
+                    binder: enumeratorInfo.Binder,
                     syntax: forEachSyntax,
                     receiver: boundEnumeratorVar,
                     method: enumeratorInfo.MoveNextMethod,
@@ -288,6 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // ((IDisposable)e).Dispose() or e.Dispose() or await ((IAsyncDisposable)e).DisposeAsync() or await e.DisposeAsync()
                 BoundExpression disposeCall = MakeCallWithNoExplicitArgument(
+                    enumeratorInfo.Binder,
                     forEachSyntax,
                     receiver,
                     disposeMethod);
@@ -484,12 +485,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return receiver;
         }
 
-        private BoundExpression SynthesizeCall(CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method, bool allowExtensionAndOptionalParameters)
+        private BoundExpression SynthesizeCall(Binder binder, CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method, bool allowExtensionAndOptionalParameters)
         {
             if (allowExtensionAndOptionalParameters)
             {
                 // Generate a call with zero explicit arguments, but with implicit arguments for optional and params parameters.
-                return MakeCallWithNoExplicitArgument(syntax, receiver, method);
+                return MakeCallWithNoExplicitArgument(binder, syntax, receiver, method);
             }
 
             // Generate a call with literally zero arguments

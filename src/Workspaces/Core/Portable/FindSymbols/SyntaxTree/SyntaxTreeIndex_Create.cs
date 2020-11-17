@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -179,7 +181,7 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
 {nameof(declaredSymbolInfo.Span)} = {declaredSymbolInfo.Span}
 {nameof(root.FullSpan)} = {root.FullSpan}";
 
-                                    FatalError.ReportWithoutCrash(new InvalidOperationException(message));
+                                    FatalError.ReportAndCatch(new InvalidOperationException(message));
                                 }
                             }
                         }

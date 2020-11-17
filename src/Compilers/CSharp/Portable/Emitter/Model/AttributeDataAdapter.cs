@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!argument.Values.IsDefault);
             var values = argument.Values;
-            var arrayType = Emit.PEModuleBuilder.Translate((ArrayTypeSymbol)argument.TypeInternal);
+            var arrayType = ((PEModuleBuilder)context.Module).Translate((ArrayTypeSymbol)argument.TypeInternal);
 
             if (values.Length == 0)
             {

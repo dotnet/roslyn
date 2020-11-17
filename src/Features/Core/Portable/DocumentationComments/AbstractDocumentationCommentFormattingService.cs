@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                     return;
                 }
 
-                var (type, index, renderedItem) = _listStack[_listStack.Count - 1];
+                var (type, index, renderedItem) = _listStack[^1];
                 if (renderedItem)
                 {
                     // Mark the end of the previous list item
@@ -138,7 +140,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 }
 
                 // The next list item has an incremented index, and has not yet been rendered to Builder.
-                _listStack[_listStack.Count - 1] = (type, index + 1, renderedItem: false);
+                _listStack[^1] = (type, index + 1, renderedItem: false);
                 MarkLineBreak();
             }
 
@@ -149,7 +151,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                     return;
                 }
 
-                if (_listStack[_listStack.Count - 1].renderedItem)
+                if (_listStack[^1].renderedItem)
                 {
                     Builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
                 }
@@ -538,7 +540,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         {
             if (value.Length >= 2 && value[1] == ':')
             {
-                value = value.Substring(startIndex: 2);
+                value = value[2..];
             }
 
             return value;

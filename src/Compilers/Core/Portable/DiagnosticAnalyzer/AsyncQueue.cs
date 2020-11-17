@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -265,26 +267,21 @@ retry:
                 // in the queue.  This keeps the behavior in line with TryDequeue
                 if (_data.Count > 0)
                 {
-                    return new ValueTask<Optional<TElement>>(_data.Dequeue());
+                    return ValueTaskFactory.FromResult<Optional<TElement>>(_data.Dequeue());
                 }
 
                 if (_completed)
                 {
-                    return new ValueTask<Optional<TElement>>(default(Optional<TElement>));
+                    return ValueTaskFactory.FromResult(default(Optional<TElement>));
                 }
-                else
-                {
-                    if (_waiters == null)
-                    {
-                        _waiters = new Queue<TaskCompletionSource<Optional<TElement>>>();
-                    }
 
-                    // Continuations run asynchronously to ensure user code does not execute within protected regions.
-                    var waiter = new TaskCompletionSource<Optional<TElement>>(TaskCreationOptions.RunContinuationsAsynchronously);
-                    AttachCancellation(waiter, cancellationToken);
-                    _waiters.Enqueue(waiter);
-                    return new ValueTask<Optional<TElement>>(waiter.Task);
-                }
+                _waiters ??= new Queue<TaskCompletionSource<Optional<TElement>>>();
+
+                // Continuations run asynchronously to ensure user code does not execute within protected regions.
+                var waiter = new TaskCompletionSource<Optional<TElement>>(TaskCreationOptions.RunContinuationsAsynchronously);
+                AttachCancellation(waiter, cancellationToken);
+                _waiters.Enqueue(waiter);
+                return new ValueTask<Optional<TElement>>(waiter.Task);
             }
         }
 

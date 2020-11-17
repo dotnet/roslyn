@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             // var (x, y) = e;
             // foreach (var (x, y) in e) ...
-            if (typeName.IsParentKind(SyntaxKind.DeclarationExpression, out DeclarationExpressionSyntax declExpression) &&
+            if (typeName.IsParentKind(SyntaxKind.DeclarationExpression, out DeclarationExpressionSyntax? declExpression) &&
                 declExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
             {
                 return true;
@@ -86,11 +87,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
-            if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) &&
+            if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax? variableDeclaration) &&
                 typeName.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
             {
                 // check assignment for variable declarations.
                 var variable = variableDeclaration.Variables.First();
+                RoslynDebug.AssertNotNull(variable.Initializer);
                 if (!AssignmentSupportsStylePreference(
                         variable.Identifier, typeName, variable.Initializer.Value,
                         semanticModel, optionSet, cancellationToken))

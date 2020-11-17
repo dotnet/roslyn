@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,14 +23,16 @@ namespace RunTests
             StringComparer.OrdinalIgnoreCase,
             "devenv",
             "xunit.console",
-            "xunit.console.x86");
+            "xunit.console.x86",
+            "ServiceHub.RoslynCodeAnalysisService",
+            "ServiceHub.RoslynCodeAnalysisService32");
 
         internal const int ExitSuccess = 0;
         internal const int ExitFailure = 1;
 
         private const long MaxTotalDumpSizeInMegabytes = 4096;
 
-        internal static int Main(string[] args)
+        internal static async Task<int> Main(string[] args)
         {
             Logger.Log("RunTest command line");
             Logger.Log(string.Join(" ", args));
@@ -36,37 +40,63 @@ namespace RunTests
             var options = Options.Parse(args);
             if (options == null)
             {
-                Options.PrintUsage();
                 return ExitFailure;
             }
 
-            // Setup cancellation for ctrl-c key presses
-            var cts = new CancellationTokenSource();
-            Console.CancelKeyPress += delegate
+            if (options.CollectDumps)
             {
-                cts.Cancel();
-            };
+                if (!DumpUtil.IsAdministrator())
+                {
+                    ConsoleUtil.WriteLine(ConsoleColor.Yellow, "Dump collection specified but user is not administrator so cannot modify registry");
+                }
+                else
+                {
+                    DumpUtil.EnableRegistryDumpCollection(options.LogFilesDirectory);
+                }
+            }
 
-            var result = Run(options, cts.Token).GetAwaiter().GetResult();
-            CheckTotalDumpFilesSize();
-            return result;
+            try
+            {
+                // Setup cancellation for ctrl-c key presses
+                using var cts = new CancellationTokenSource();
+                Console.CancelKeyPress += delegate
+                {
+                    cts.Cancel();
+                    DisableRegistryDumpCollection();
+                };
+
+                int result;
+                if (options.Timeout is { } timeout)
+                {
+                    result = await RunAsync(options, timeout, cts.Token);
+                }
+                else
+                {
+                    result = await RunAsync(options, cts.Token);
+                }
+
+                CheckTotalDumpFilesSize();
+                return result;
+            }
+            finally
+            {
+                DisableRegistryDumpCollection();
+            }
+
+            void DisableRegistryDumpCollection()
+            {
+                if (options.CollectDumps && DumpUtil.IsAdministrator())
+                {
+                    DumpUtil.DisableRegistryDumpCollection();
+                }
+            }
         }
 
-        private static async Task<int> Run(Options options, CancellationToken cancellationToken)
+        private static async Task<int> RunAsync(Options options, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            if (options.Timeout == null)
-            {
-                return await RunCore(options, cancellationToken);
-            }
-
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var runTask = RunAsync(options, cts.Token);
             var timeoutTask = Task.Delay(options.Timeout.Value, cancellationToken);
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var runTask = RunCore(options, cts.Token);
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return ExitFailure;
-            }
 
             var finishedTask = await Task.WhenAny(timeoutTask, runTask);
             if (finishedTask == timeoutTask)
@@ -91,7 +121,7 @@ namespace RunTests
             return await runTask;
         }
 
-        private static async Task<int> RunCore(Options options, CancellationToken cancellationToken)
+        private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken)
         {
             if (!CheckAssemblyList(options))
             {
@@ -103,7 +133,7 @@ namespace RunTests
             var start = DateTime.Now;
             var assemblyInfoList = GetAssemblyList(options);
 
-            ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpDirectory}");
+            ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpFilePath}");
             ConsoleUtil.WriteLine($"Running {options.Assemblies.Count} test assemblies in {assemblyInfoList.Count} partitions");
 
             var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
@@ -153,7 +183,7 @@ namespace RunTests
 
         private static void WriteLogFile(Options options)
         {
-            var logFilePath = Path.Combine(options.LogFilesOutputDirectory, "runtests.log");
+            var logFilePath = Path.Combine(options.LogFilesDirectory, "runtests.log");
             try
             {
                 using (var writer = new StreamWriter(logFilePath, append: false))
@@ -216,24 +246,18 @@ namespace RunTests
                 }
             }
 
-            ConsoleUtil.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
-            var procDumpInfo = GetProcDumpInfo(options);
-            if (procDumpInfo != null)
+            if (options.CollectDumps && GetProcDumpInfo(options) is { } procDumpInfo)
             {
+                ConsoleUtil.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
+
                 var counter = 0;
                 foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
                 {
-                    var dumpDir = PrimaryProcessNames.Contains(proc.ProcessName)
-                        ? procDumpInfo.Value.DumpDirectory
-                        : procDumpInfo.Value.SecondaryDumpDirectory;
+                    var dumpDir = procDumpInfo.DumpDirectory;
                     var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
-                    await DumpProcess(proc, procDumpInfo.Value.ProcDumpFilePath, dumpFilePath);
+                    await DumpProcess(proc, procDumpInfo.ProcDumpFilePath, dumpFilePath);
                     counter++;
                 }
-            }
-            else
-            {
-                ConsoleUtil.WriteLine("Could not locate procdump");
             }
 
             WriteLogFile(options);
@@ -241,9 +265,9 @@ namespace RunTests
 
         private static ProcDumpInfo? GetProcDumpInfo(Options options)
         {
-            if (!string.IsNullOrEmpty(options.ProcDumpDirectory))
+            if (!string.IsNullOrEmpty(options.ProcDumpFilePath))
             {
-                return new ProcDumpInfo(Path.Combine(options.ProcDumpDirectory, "procdump.exe"), options.LogFilesOutputDirectory, options.LogFilesSecondaryOutputDirectory);
+                return new ProcDumpInfo(options.ProcDumpFilePath, options.LogFilesDirectory);
             }
 
             return null;
@@ -286,7 +310,7 @@ namespace RunTests
 
             foreach (var assemblyPath in options.Assemblies.OrderByDescending(x => new FileInfo(x).Length))
             {
-                list.AddRange(scheduler.Schedule(assemblyPath));
+                list.AddRange(scheduler.Schedule(assemblyPath).Select(x => new AssemblyInfo(x, options.TargetFramework, options.Platform)));
             }
 
             return list;
@@ -315,7 +339,7 @@ namespace RunTests
 
                 if (open)
                 {
-                    ProcessRunner.OpenFile(cur.ResultsFilePath);
+                    ProcessRunner.OpenFile(cur.ResultsDisplayFilePath);
                 }
             }
         }
@@ -323,14 +347,14 @@ namespace RunTests
         private static ProcessTestExecutor CreateTestExecutor(Options options)
         {
             var testExecutionOptions = new TestExecutionOptions(
-                xunitPath: options.XunitPath,
-                procDumpInfo: options.UseProcDump ? GetProcDumpInfo(options) : null,
-                outputDirectory: options.TestResultXmlOutputDirectory,
+                dotnetFilePath: options.DotnetFilePath,
+                procDumpInfo: options.CollectDumps ? GetProcDumpInfo(options) : null,
+                testResultsDirectory: options.TestResultsDirectory,
                 trait: options.Trait,
                 noTrait: options.NoTrait,
                 includeHtml: options.IncludeHtml,
-                test64: options.Test64,
-                testVsi: options.TestVsi);
+                testVsi: options.TestVsi,
+                retry: options.Retry);
             return new ProcessTestExecutor(testExecutionOptions);
         }
 

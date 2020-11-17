@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
@@ -38,10 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     return ExecuteVisualStudio97(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
                 }
-                else if (pguidCmdGroup == VSConstants.GUID_AppCommand)
-                {
-                    return ExecuteAppCommand(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-                }
                 else
                 {
                     return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
@@ -51,32 +48,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 this.CurrentlyExecutingCommand = default;
             }
-        }
-
-        private int ExecuteAppCommand(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut)
-        {
-            var result = VSConstants.S_OK;
-            var guidCmdGroup = pguidCmdGroup;
-            void executeNextCommandTarget()
-            {
-                result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            }
-
-            switch ((VSConstants.AppCommandCmdID)commandId)
-            {
-                case VSConstants.AppCommandCmdID.BrowserBackward:
-                    ExecuteBrowserBackward(executeNextCommandTarget);
-                    break;
-
-                case VSConstants.AppCommandCmdID.BrowserForward:
-                    ExecuteBrowserForward(executeNextCommandTarget);
-                    break;
-
-                default:
-                    return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
-            }
-
-            return result;
         }
 
         private int ExecuteVisualStudio97(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut)
@@ -135,35 +106,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 default:
                     return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
             }
-        }
-
-        private void ExecuteBrowserBackward(Action executeNextCommandTarget)
-            => ExecuteBrowserNavigationCommand(navigateBackward: true, executeNextCommandTarget);
-
-        private void ExecuteBrowserForward(Action executeNextCommandTarget)
-            => ExecuteBrowserNavigationCommand(navigateBackward: false, executeNextCommandTarget);
-
-        private void ExecuteBrowserNavigationCommand(bool navigateBackward, Action executeNextCommandTarget)
-        {
-            // We just want to delegate to the shell's NavigateBackward/Forward commands
-            System.IServiceProvider serviceProvider = ComponentModel.GetService<SVsServiceProvider>();
-            if (serviceProvider.GetService(typeof(SUIHostCommandDispatcher)) is IOleCommandTarget target)
-            {
-                var cmd = (uint)(navigateBackward ?
-                     VSConstants.VSStd97CmdID.ShellNavBackward :
-                     VSConstants.VSStd97CmdID.ShellNavForward);
-
-                var cmds = new[] { new OLECMD() { cmdf = 0, cmdID = cmd } };
-                var hr = target.QueryStatus(VSConstants.GUID_VSStandardCommandSet97, 1, cmds, IntPtr.Zero);
-                if (hr == VSConstants.S_OK && (cmds[0].cmdf & (uint)OLECMDF.OLECMDF_ENABLED) != 0)
-                {
-                    // ignore failure
-                    target.Exec(VSConstants.GUID_VSStandardCommandSet97, cmd, (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT, IntPtr.Zero, IntPtr.Zero);
-                    return;
-                }
-            }
-
-            executeNextCommandTarget();
         }
     }
 }

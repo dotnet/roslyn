@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -251,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 // The user reset the process during initialization. 
                 // The reset operation will recreate the process.
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -340,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 return initializedService.InitializationResult;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
