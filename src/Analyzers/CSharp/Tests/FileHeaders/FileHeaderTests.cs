@@ -28,6 +28,10 @@ file_header_template = \nCopyright (c) SomeCorp. All rights reserved.\n\nLicense
 file_header_template = //\n// Copyright (c) SomeCorp. All rights reserved.\n//\n// Licensed under the ??? license. See LICENSE file in the project root for full license information.\n//
 ";
 
+        private const string TestSettingsWithMultiLineComment = @"
+[*.cs]
+file_header_template = /************************************************\n*                                               *\n* Copyright (c) SomeCorp. All rights reserved.  *\n*                                               *\n* Licensed under the ??? license.               *\n*                                               *\n************************************************/
+";
         /// <summary>
         /// Verifies that the analyzer will not report a diagnostic when the file header is not configured.
         /// </summary>
@@ -628,6 +632,37 @@ namespace Bar
                 TestCode = testCode,
                 FixedCode = fixedCode,
                 EditorConfig = TestSettingsWithSingleLineComment,
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNoFileHeaderWithMultiLineCommentsInEditorConfig()
+        {
+            var newLine = "\r\n";
+            var testCode = @"[||]
+namespace Bar
+{
+}
+";
+            var fixedCode =
+"/************************************************" + newLine +
+"*                                               *" + newLine +
+"* Copyright (c) SomeCorp. All rights reserved.  *" + newLine +
+"*                                               *" + newLine +
+"* Licensed under the ??? license.               *" + newLine +
+"*                                               *" + newLine +
+"************************************************/" + @"
+
+namespace Bar
+{
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                EditorConfig = TestSettingsWithMultiLineComment,
             }.RunAsync();
         }
     }
