@@ -11,15 +11,12 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
     internal sealed class AddMissingImportsAnalysisResult
     {
         public ImmutableArray<AddImportFixData> AddImportFixData { get; }
-        public Document Document { get; }
         public bool CanAddMissingImports => !AddImportFixData.IsEmpty;
 
         public AddMissingImportsAnalysisResult(
-            ImmutableArray<AddImportFixData> addImportFixData,
-            Document document)
+            ImmutableArray<AddImportFixData> addImportFixData)
         {
             AddImportFixData = addImportFixData;
-            Document = document;
         }
     }
 }

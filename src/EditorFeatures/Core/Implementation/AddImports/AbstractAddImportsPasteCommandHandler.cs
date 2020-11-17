@@ -3,26 +3,29 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddMissingImports;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
 {
     internal abstract class AbstractAddImportsPasteCommandHandler : IChainedCommandHandler<PasteCommandArgs>
     {
+        /// <summary>
+        /// The command handler display name
+        /// </summary>
         public abstract string DisplayName { get; }
+
+        /// <summary>
+        /// The thread await dialog text shown to the user if the operation takes a long time
+        /// </summary>
+        protected abstract string DialogText { get; }
 
         private readonly IThreadingContext _threadingContext;
 
@@ -67,11 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
             var snapshotSpan = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot);
             var textSpan = snapshotSpan.Span.ToTextSpan();
 
-            AddMissingImportsForPaste(args, executionContext, textSpan);
-        }
-
-        private void AddMissingImportsForPaste(PasteCommandArgs args, CommandExecutionContext executionContext, TextSpan textSpan)
-        {
             var sourceTextContainer = args.SubjectBuffer.AsTextContainer();
             if (!Workspace.TryGetWorkspace(sourceTextContainer, out var workspace))
             {
@@ -90,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
                 return;
             }
 
-            using var _ = executionContext.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Adding_missing_import_directives);
+            using var _ = executionContext.OperationContext.AddScope(allowCancellation: true, DialogText);
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
 
 #pragma warning disable VSTHRD102 // Implement internal logic asynchronously
@@ -101,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
                 return;
             }
 
-            updatedDocument.Project.Solution.Workspace.TryApplyChanges(updatedDocument.Project.Solution);
+            workspace.TryApplyChanges(updatedDocument.Project.Solution);
         }
     }
 }

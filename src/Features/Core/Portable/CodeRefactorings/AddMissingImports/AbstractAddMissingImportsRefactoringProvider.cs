@@ -44,14 +44,14 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             var addImportsCodeAction = new AddMissingImportsCodeAction(
                 CodeActionTitle,
-                cancellationToken => AddMissingImportsAsync(addMissingImportsService, analysis, cancellationToken));
+                cancellationToken => AddMissingImportsAsync(document, addMissingImportsService, analysis, cancellationToken));
 
             context.RegisterRefactoring(addImportsCodeAction, textSpan);
         }
 
-        private static async Task<Solution> AddMissingImportsAsync(IAddMissingImportsFeatureService addMissingImportsService, AddMissingImportsAnalysisResult analysis, CancellationToken cancellationToken)
+        private static async Task<Solution> AddMissingImportsAsync(Document document, IAddMissingImportsFeatureService addMissingImportsService, AddMissingImportsAnalysisResult analysis, CancellationToken cancellationToken)
         {
-            var modifiedDocument = await addMissingImportsService.AddMissingImportsAsync(analysis, cancellationToken).ConfigureAwait(false);
+            var modifiedDocument = await addMissingImportsService.AddMissingImportsAsync(document, analysis, cancellationToken).ConfigureAwait(false);
             return modifiedDocument.Project.Solution;
         }
 

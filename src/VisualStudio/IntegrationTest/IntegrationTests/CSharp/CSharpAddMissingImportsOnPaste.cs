@@ -21,7 +21,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.AddMissingImports)]
         public void VerifyMissingByDefault()
         {

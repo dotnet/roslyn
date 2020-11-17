@@ -28,6 +28,6 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         /// Performs the same action as <see cref="AddMissingImportsAsync(Document, TextSpan, CancellationToken)"/> but
         /// with a predetermined analysis of the input instead of recalculating it
         /// </summary>
-        Task<Document> AddMissingImportsAsync(AddMissingImportsAnalysisResult analysisResult, CancellationToken cancellationToken);
+        Task<Document> AddMissingImportsAsync(Document document, AddMissingImportsAnalysisResult analysisResult, CancellationToken cancellationToken);
     }
 }

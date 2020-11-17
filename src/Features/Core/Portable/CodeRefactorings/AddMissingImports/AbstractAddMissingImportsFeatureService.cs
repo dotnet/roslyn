@@ -32,20 +32,20 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         public async Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var analysisResult = await AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            return await AddMissingImportsAsync(analysisResult, cancellationToken).ConfigureAwait(false);
+            return await AddMissingImportsAsync(document, analysisResult, cancellationToken).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<Document> AddMissingImportsAsync(AddMissingImportsAnalysisResult analysisResult, CancellationToken cancellationToken)
+        public async Task<Document> AddMissingImportsAsync(Document document, AddMissingImportsAnalysisResult analysisResult, CancellationToken cancellationToken)
         {
             if (analysisResult.CanAddMissingImports)
             {
                 // Apply those fixes to the document.
-                var newDocument = await ApplyFixesAsync(analysisResult.Document, analysisResult.AddImportFixData, cancellationToken).ConfigureAwait(false);
+                var newDocument = await ApplyFixesAsync(document, analysisResult.AddImportFixData, cancellationToken).ConfigureAwait(false);
                 return newDocument;
             }
 
-            return analysisResult.Document;
+            return document;
         }
 
         /// <inheritdoc/>
@@ -56,8 +56,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             if (diagnostics.IsEmpty)
             {
                 return new AddMissingImportsAnalysisResult(
-                    ImmutableArray<AddImportFixData>.Empty,
-                    document);
+                    ImmutableArray<AddImportFixData>.Empty);
             }
 
             // Find fixes for the diagnostic where there is only a single fix.
@@ -67,8 +66,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var usableFixes = unambiguousFixes.WhereAsArray(fixData => DoesNotAddReference(fixData, document.Project.Id));
 
             return new AddMissingImportsAnalysisResult(
-                usableFixes,
-                document);
+                usableFixes);
         }
 
         private static bool DoesNotAddReference(AddImportFixData fixData, ProjectId currentProjectId)

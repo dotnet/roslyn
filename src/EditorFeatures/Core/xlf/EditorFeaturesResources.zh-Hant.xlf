@@ -2,21 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-HANT" original="../EditorFeaturesResources.resx">
     <body>
-      <trans-unit id="Add_Missing_Imports_On_Paste">
-        <source>Add Missing Imports On Paste</source>
-        <target state="new">Add Missing Imports On Paste</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_Missing_Usings_On_Paste">
-        <source>Add Missing Usings On Paste</source>
-        <target state="new">Add Missing Usings On Paste</target>
-        <note>"usings" is a language word and should not be localized</note>
-      </trans-unit>
-      <trans-unit id="Adding_missing_import_directives">
-        <source>Adding missing import directives...</source>
-        <target state="new">Adding missing import directives...</target>
-        <note>Used as a thread awaited dialog letting the user know that work is being done on paste. "import" is a language specific term</note>
-      </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
         <target state="translated">識別碼 '{0}' 有正在使用的內嵌重新命名工作階段。再次叫用內嵌重新命名可存取其他選項。您隨時可以繼續編輯正在重新命名的識別碼。</target>
