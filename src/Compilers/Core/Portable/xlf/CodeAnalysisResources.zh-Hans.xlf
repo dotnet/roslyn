@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CodeAnalysisResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../CodeAnalysisResources.resx">
     <body>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
         <source>A language name cannot be specified for this option.</source>
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="AssemblyReferencesNetFramework">
         <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
-        <target state="new">The assembly containing type '{0}' references .NET Framework, which is not supported.</target>
+        <target state="translated">包含类型“{0}”的程序集引用了 .NET Framework，而此操作不受支持。</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
@@ -126,7 +126,7 @@
       </trans-unit>
       <trans-unit id="SourceTextRequiresEncoding">
         <source>The provided SourceText must have an explicit encoding set.</source>
-        <target state="new">The provided SourceText must have an explicit encoding set.</target>
+        <target state="translated">提供的 SourceText 必须具有显式编码集。</target>
         <note>'SourceText' is not localizable.</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
@@ -576,12 +576,12 @@
       </trans-unit>
       <trans-unit id="WRN_InvalidGlobalSectionName">
         <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
-        <target state="new">Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</target>
+        <target state="translated">全局分析器配置部分名称“{0}”无效，因为它不是绝对路径。部分将被忽略。部分已在以下文件中声明:“{1}”。</target>
         <note>{0}: invalid section name, {1} path to global config</note>
       </trans-unit>
       <trans-unit id="WRN_InvalidGlobalSectionName_Title">
         <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
-        <target state="new">Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</target>
+        <target state="translated">全局分析器配置部分名称无效，因为它不是绝对路径。部分将被忽略。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">

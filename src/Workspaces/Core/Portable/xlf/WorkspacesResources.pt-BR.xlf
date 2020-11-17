@@ -244,12 +244,12 @@
       </trans-unit>
       <trans-unit id="_0_is_not_referenced">
         <source>'{0}' is not referenced.</source>
-        <target state="translated">'"{0}" não é referenciado.</target>
+        <target state="translated">"{0}" não é referenciado.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_already_referenced">
         <source>'{0}' is already referenced.</source>
-        <target state="translated">'"{0}" já está referenciado.</target>
+        <target state="translated">"{0}" já está referenciado.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_project_reference_from_0_to_1_will_cause_a_circular_reference">
@@ -319,7 +319,7 @@
       </trans-unit>
       <trans-unit id="_0_is_not_open">
         <source>'{0}' is not open.</source>
-        <target state="translated">'"{0}" não está aberto.</target>
+        <target state="translated">"{0}" não está aberto.</target>
         <note />
       </trans-unit>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">

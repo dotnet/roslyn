@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext);
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken);
         protected abstract bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token);
+        protected abstract Task<bool> ShouldProvideParenthesisCompletionAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken);
 
         // For telemetry reporting
         protected abstract void LogCommit();
@@ -108,13 +109,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             LogCommit();
             var containingNamespace = ImportCompletionItem.GetContainingNamespace(completionItem);
+            var provideParenthesisCompletion = await ShouldProvideParenthesisCompletionAsync(
+                document,
+                completionItem,
+                commitKey,
+                cancellationToken).ConfigureAwait(false);
+
+            var insertText = provideParenthesisCompletion
+                ? completionItem.DisplayText + "()"
+                : completionItem.DisplayText;
 
             if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
             {
-                var fullyQualifiedName = $"{containingNamespace}.{completionItem.DisplayText}";
-                var change = new TextChange(completionListSpan, fullyQualifiedName);
-
-                return CompletionChange.Create(change);
+                var completionText = $"{containingNamespace}.{insertText}";
+                return CompletionChange.Create(new TextChange(completionListSpan, completionText));
             }
 
             // Find context node so we can use it to decide where to insert using/imports.
@@ -122,15 +130,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var addImportContextNode = root.FindToken(completionListSpan.Start, findInsideTrivia: true).Parent;
 
-            // Add required using/imports directive.                              
+            // Add required using/imports directive.
             var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
             var allowInHiddenRegions = document.CanAddImportsInHiddenRegions();
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var importNode = CreateImport(document, containingNamespace);
 
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode!, importNode, generator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
             var documentWithImport = document.WithSyntaxRoot(rootWithImport);
             // This only formats the annotated import we just added, not the entire document.
@@ -154,13 +162,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             //       above, we will get a TextChange of "AsnEncodedDat" with 0 length span, instead of a change of 
             //       the full display text with a span of length 1. This will later mess up span-tracking and end up 
             //       with "AsnEncodedDatasd" in the code.
-            builder.Add(new TextChange(completionListSpan, completionItem.DisplayText));
+            builder.Add(new TextChange(completionListSpan, insertText));
 
             // Then get the combined change
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(builder);
-
-            return CompletionChange.Create(Utilities.Collapse(newText, builder.ToImmutableAndFree()));
+            var change = Utilities.Collapse(newText, builder.ToImmutableAndFree());
+            return CompletionChange.Create(change);
 
             async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {

@@ -1846,13 +1846,13 @@ class Program
 
     static void Main()
     {
-        Goo();
+        Goo(); // 1
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (13,9): error CS0029: Cannot implicitly convert type 'int' to 'Enum'
-                //         Goo();
+            comp.VerifyDiagnostics(
+                // (13,9): error CS0029: Cannot implicitly convert type 'int' to 'System.Enum'
+                //         Goo(); // 1
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "Goo()").WithArguments("int", "System.Enum").WithLocation(13, 9));
         }
 

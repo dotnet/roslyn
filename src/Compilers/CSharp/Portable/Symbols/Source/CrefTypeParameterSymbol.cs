@@ -93,10 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _ordinal; }
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
-            Debug.Assert(isValueTypeOverrideOpt == null);
-
             if (ReferenceEquals(this, t2))
             {
                 return true;
@@ -129,7 +127,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        public override bool IsValueTypeFromConstraintTypes
+        {
+            get { return false; }
+        }
+
         public override bool HasReferenceTypeConstraint
+        {
+            get { return false; }
+        }
+
+        public override bool IsReferenceTypeFromConstraintTypes
         {
             get { return false; }
         }
@@ -177,11 +185,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void EnsureAllConstraintsAreResolved(bool canIgnoreNullableContext)
+        internal override void EnsureAllConstraintsAreResolved()
         {
         }
 
-        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool canIgnoreNullableContext)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
             return ImmutableArray<TypeWithAnnotations>.Empty;
         }

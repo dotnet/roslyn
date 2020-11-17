@@ -201,17 +201,15 @@ namespace Microsoft.CodeAnalysis.Operations
                         var boundObjectInitializerMember = (BoundObjectInitializerMember)containingExpression;
                         var property = (PropertySymbol?)boundObjectInitializerMember.MemberSymbol;
                         Debug.Assert(property is not null);
-                        MethodSymbol? accessor = isObjectOrCollectionInitializer ? property.GetOwnOrInheritedGetMethod() : property.GetOwnOrInheritedSetMethod();
                         return DeriveArguments(
                                     boundObjectInitializerMember,
                                     boundObjectInitializerMember.Binder,
                                     property,
-                                    accessor,
                                     boundObjectInitializerMember.Arguments,
                                     boundObjectInitializerMember.ArgumentNamesOpt,
                                     boundObjectInitializerMember.ArgsToParamsOpt,
+                                    boundObjectInitializerMember.DefaultArguments,
                                     boundObjectInitializerMember.ArgumentRefKindsOpt,
-                                    property.Parameters,
                                     boundObjectInitializerMember.Expanded,
                                     boundObjectInitializerMember.Syntax);
                     }
@@ -232,13 +230,11 @@ namespace Microsoft.CodeAnalysis.Operations
                         return DeriveArguments(boundIndexer,
                                                boundIndexer.BinderOpt,
                                                boundIndexer.Indexer,
-                                               boundIndexer.UseSetterForDefaultArgumentGeneration ? boundIndexer.Indexer.GetOwnOrInheritedSetMethod() :
-                                                                                                    boundIndexer.Indexer.GetOwnOrInheritedGetMethod(),
                                                boundIndexer.Arguments,
                                                boundIndexer.ArgumentNamesOpt,
                                                boundIndexer.ArgsToParamsOpt,
+                                               boundIndexer.DefaultArguments,
                                                boundIndexer.ArgumentRefKindsOpt,
-                                               boundIndexer.Indexer.Parameters,
                                                boundIndexer.Expanded,
                                                boundIndexer.Syntax);
                     }
@@ -249,12 +245,11 @@ namespace Microsoft.CodeAnalysis.Operations
                         return DeriveArguments(objectCreation,
                                                objectCreation.BinderOpt,
                                                objectCreation.Constructor,
-                                               objectCreation.Constructor,
                                                objectCreation.Arguments,
                                                objectCreation.ArgumentNamesOpt,
                                                objectCreation.ArgsToParamsOpt,
+                                               objectCreation.DefaultArguments,
                                                objectCreation.ArgumentRefKindsOpt,
-                                               objectCreation.Constructor.Parameters,
                                                objectCreation.Expanded,
                                                objectCreation.Syntax);
                     }
@@ -265,12 +260,11 @@ namespace Microsoft.CodeAnalysis.Operations
                         return DeriveArguments(boundCall,
                                                boundCall.BinderOpt,
                                                boundCall.Method,
-                                               boundCall.Method,
                                                boundCall.Arguments,
                                                boundCall.ArgumentNamesOpt,
                                                boundCall.ArgsToParamsOpt,
+                                               boundCall.DefaultArguments,
                                                boundCall.ArgumentRefKindsOpt,
-                                               boundCall.Method.Parameters,
                                                boundCall.Expanded,
                                                boundCall.Syntax,
                                                boundCall.InvokedAsExtensionMethod);
@@ -282,12 +276,11 @@ namespace Microsoft.CodeAnalysis.Operations
                         return DeriveArguments(boundCollectionElementInitializer,
                                                boundCollectionElementInitializer.BinderOpt,
                                                boundCollectionElementInitializer.AddMethod,
-                                               boundCollectionElementInitializer.AddMethod,
                                                boundCollectionElementInitializer.Arguments,
                                                argumentNamesOpt: default,
                                                boundCollectionElementInitializer.ArgsToParamsOpt,
+                                               boundCollectionElementInitializer.DefaultArguments,
                                                argumentRefKindsOpt: default,
-                                               boundCollectionElementInitializer.AddMethod.Parameters,
                                                boundCollectionElementInitializer.Expanded,
                                                boundCollectionElementInitializer.Syntax,
                                                boundCollectionElementInitializer.InvokedAsExtensionMethod);
@@ -302,12 +295,11 @@ namespace Microsoft.CodeAnalysis.Operations
             BoundNode boundNode,
             Binder binder,
             Symbol methodOrIndexer,
-            MethodSymbol? optionalParametersMethod,
             ImmutableArray<BoundExpression> boundArguments,
             ImmutableArray<string> argumentNamesOpt,
             ImmutableArray<int> argumentsToParametersOpt,
+            BitVector defaultArguments,
             ImmutableArray<RefKind> argumentRefKindsOpt,
-            ImmutableArray<ParameterSymbol> parameters,
             bool expanded,
             SyntaxNode invocationSyntax,
             bool invokedAsExtensionMethod = false)
@@ -315,12 +307,10 @@ namespace Microsoft.CodeAnalysis.Operations
             // We can simply return empty array only if both parameters and boundArguments are empty, because:
             // - if only parameters is empty, there's error in code but we still need to return provided expression.
             // - if boundArguments is empty, then either there's error or we need to provide values for optional/param-array parameters.
-            if (parameters.IsDefaultOrEmpty && boundArguments.IsDefaultOrEmpty)
+            if (methodOrIndexer.GetParameters().IsDefaultOrEmpty && boundArguments.IsDefaultOrEmpty)
             {
                 return ImmutableArray<IArgumentOperation>.Empty;
             }
-
-            Debug.Assert(optionalParametersMethod is not null);
 
             return LocalRewriter.MakeArgumentsInEvaluationOrder(
                  operationFactory: this,
@@ -328,9 +318,9 @@ namespace Microsoft.CodeAnalysis.Operations
                  syntax: invocationSyntax,
                  arguments: boundArguments,
                  methodOrIndexer: methodOrIndexer,
-                 optionalParametersMethod: optionalParametersMethod,
                  expanded: expanded,
                  argsToParamsOpt: argumentsToParametersOpt,
+                 defaultArguments: defaultArguments,
                  invokedAsExtensionMethod: invokedAsExtensionMethod);
         }
 
