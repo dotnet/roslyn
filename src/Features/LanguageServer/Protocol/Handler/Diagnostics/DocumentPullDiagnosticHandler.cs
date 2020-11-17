@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
@@ -35,13 +34,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             => diagnosticsParams.TextDocument;
 
         protected override DiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
-            => new DiagnosticReport { Diagnostics = diagnostics, ResultId = resultId };
+            => new DiagnosticReport
+            {
+                Diagnostics = diagnostics,
+                ResultId = resultId,
+                Identifier = DocumentDiagnosticIdentifier,
+                // Mark these diagnostics as superseding any diagnostics for the same document from the
+                // WorkspacePullDiagnosticHandler. We are always getting completely accurate and up to date diagnostic
+                // values for a particular file, so our results should always be preferred over the workspace-pull
+                // values which are cached and may be out of date.
+                Supersedes = WorkspaceDiagnosticIdentifier,
+            };
 
         protected override DiagnosticParams[]? GetPreviousResults(DocumentDiagnosticsParams diagnosticsParams)
             => new[] { diagnosticsParams };
 
         protected override IProgress<DiagnosticReport[]>? GetProgress(DocumentDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.PartialResultToken;
+
+        protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
+            => ConvertTags(diagnosticData, potentialDuplicate: false);
 
         protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
         {
