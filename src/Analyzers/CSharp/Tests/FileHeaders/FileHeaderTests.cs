@@ -30,8 +30,15 @@ file_header_template = //\n// Copyright (c) SomeCorp. All rights reserved.\n//\n
 
         private const string TestSettingsWithMultiLineComment = @"
 [*.cs]
-file_header_template = /************************************************\n*                                               *\n* Copyright (c) SomeCorp. All rights reserved.  *\n*                                               *\n* Licensed under the ??? license.               *\n*                                               *\n************************************************/
-";
+file_header_template = " +
+@"/************************************************\n" +
+@"*                                               *\n" +
+@"* Copyright (c) SomeCorp. All rights reserved.  *\n" +
+@"*                                               *\n" +
+@"* Licensed under the ??? license.               *\n" +
+@"*                                               *\n" +
+@"************************************************/";
+
         /// <summary>
         /// Verifies that the analyzer will not report a diagnostic when the file header is not configured.
         /// </summary>
