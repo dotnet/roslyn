@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         private readonly int _fileHeaderStart;
 
         /// <summary>
+        /// The location in the source where the file header was expected to end.
+        /// </summary>
+        private readonly int _fileHeaderEnd;
+
+        /// <summary>
         /// The length of the prefix indicating the start of a comment. For example:
         /// <list type="bullet">
         ///   <item>
@@ -40,8 +45,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         internal FileHeader(string copyrightText, int fileHeaderStart, int fileHeaderEnd, int commentPrefixLength)
             : this(fileHeaderStart, isMissing: false)
         {
-            // Currently unused
-            _ = fileHeaderEnd;
+            _fileHeaderEnd = fileHeaderEnd;
 
             CopyrightText = copyrightText;
             _commentPrefixLength = commentPrefixLength;
@@ -55,6 +59,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         private FileHeader(int fileHeaderStart, bool isMissing)
         {
             _fileHeaderStart = fileHeaderStart;
+            _fileHeaderEnd = fileHeaderStart;
             _commentPrefixLength = 0;
 
             IsMissing = isMissing;
@@ -103,6 +108,21 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             }
 
             return Location.Create(syntaxTree, new TextSpan(_fileHeaderStart, _commentPrefixLength));
+        }
+
+        /// <summary>
+        /// Gets the location representing the file header.
+        /// </summary>
+        /// <param name="syntaxTree">The syntax tree to use for generating the location.</param>
+        /// <returns>The location representing the file header.</returns>
+        internal Location GetHeaderLocation(SyntaxTree syntaxTree)
+        {
+            if (IsMissing)
+            {
+                return Location.Create(syntaxTree, new TextSpan(_fileHeaderStart, 0));
+            }
+
+            return Location.Create(syntaxTree, TextSpan.FromBounds(_fileHeaderStart, _fileHeaderEnd));
         }
     }
 }

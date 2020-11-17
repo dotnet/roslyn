@@ -625,17 +625,9 @@ namespace Bar
 
             await new VerifyCS.Test
             {
-                TestState = { Sources = { testCode } },
-                FixedState = {
-                    Sources = { fixedCode },
-                    ExpectedDiagnostics =
-                    {
-                        // /0/Test0.cs(1,1): hidden IDE0073: Header mismatch.
-                        new DiagnosticResult("IDE0073", DiagnosticSeverity.Hidden).WithSpan(1,1,1,3),
-                    },
-                },
+                TestCode = testCode,
+                FixedCode = fixedCode,
                 EditorConfig = TestSettingsWithSingleLineComment,
-                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
             }.RunAsync();
         }
     }

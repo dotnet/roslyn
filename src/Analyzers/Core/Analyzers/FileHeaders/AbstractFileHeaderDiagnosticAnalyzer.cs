@@ -63,7 +63,10 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             }
 
             var expectedFileHeader = fileHeaderTemplate.Replace("{fileName}", Path.GetFileName(tree.FilePath));
-            if (!CompareCopyrightText(expectedFileHeader, fileHeader.CopyrightText))
+            if (!CompareCopyrightText(expectedFileHeader, fileHeader.CopyrightText) &&
+                // Compare the current fileHeader with the expected file header, assuming the expected file header is written as a comment
+                // e.g. file_header_template = /* Copyright */
+                !CompareCopyrightText(expectedFileHeader, root.GetText().GetSubText(fileHeader.GetHeaderLocation(tree).SourceSpan).ToString()))
             {
                 context.ReportDiagnostic(Diagnostic.Create(InvalidHeaderDescriptor, fileHeader.GetLocation(tree)));
                 return;
