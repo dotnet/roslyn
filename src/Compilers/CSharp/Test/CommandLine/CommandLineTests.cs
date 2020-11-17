@@ -12350,6 +12350,42 @@ generated_code = auto");
             }
         }
 
+        [WorkItem(49446, "https://github.com/dotnet/roslyn/issues/49446")]
+        [CombinatorialData, Theory]
+        public void TestWarnAsErrorMinusDoesNotNullifyEditorConfig(bool warnAsErrorMinus)
+        {
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity: DiagnosticSeverity.Hidden, throwOnAllNamedTypes: false);
+            var diagnosticId = analyzer.Descriptor.Id;
+
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"class C { }");
+
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
+[*.cs]
+dotnet_diagnostic.{diagnosticId}.severity = warning");
+
+            // Verify '/warnaserror-:DiagnosticId' behavior.
+            var additionalFlags = new[] { "/warnaserror+", $"/analyzerconfig:{analyzerConfig.Path}" };
+            int expectedWarningCount, expectedErrorCount;
+            if (warnAsErrorMinus)
+            {
+                additionalFlags = additionalFlags.Append($"/warnaserror-:{diagnosticId}").ToArray();
+                expectedWarningCount = 1;
+                expectedErrorCount = 0;
+            }
+            else
+            {
+                expectedWarningCount = 0;
+                expectedErrorCount = 1;
+            }
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false,
+                expectedWarningCount: expectedWarningCount,
+                expectedErrorCount: expectedErrorCount,
+                additionalFlags: additionalFlags,
+                analyzers: new[] { analyzer });
+        }
+
         [Fact]
         public void SourceGenerators_EmbeddedSources()
         {

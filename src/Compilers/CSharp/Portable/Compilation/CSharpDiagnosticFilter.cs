@@ -178,13 +178,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ReportDiagnostic report;
             bool isSpecified = false;
+            bool specifiedWarnAsErrorMinus = false;
 
             if (specificDiagnosticOptions.TryGetValue(id, out report))
             {
                 // 2. Command line options (/nowarn, /warnaserror)
                 isSpecified = true;
+
+                // 'ReportDiagnostic.Default' is added to SpecificDiagnosticOptions for "/warnaserror-:DiagnosticId",
+                if (report == ReportDiagnostic.Default)
+                {
+                    specifiedWarnAsErrorMinus = true;
+                }
             }
-            else if (syntaxTreeOptions != null)
+
+            // Apply syntax tree options, if applicable.
+            if (syntaxTreeOptions != null &&
+                (!isSpecified || specifiedWarnAsErrorMinus))
             {
                 // 3. Editor config options (syntax tree level)
                 // 4. Global analyzer config options (compilation level)
@@ -194,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isSpecified = true;
 
                     // '/warnaserror' should promote warnings configured in analyzer config to error.
-                    if (report == ReportDiagnostic.Warn && generalDiagnosticOption == ReportDiagnostic.Error)
+                    if (!specifiedWarnAsErrorMinus && report == ReportDiagnostic.Warn && generalDiagnosticOption == ReportDiagnostic.Error)
                     {
                         report = ReportDiagnostic.Error;
                     }
