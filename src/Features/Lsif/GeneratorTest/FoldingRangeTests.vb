@@ -54,13 +54,13 @@ using System.Linq;|}", FoldingRangeKind.Imports)>
                     </Workspace>)
 
                 Dim annotatedLocations = AbstractLanguageServerProtocolTests.GetAnnotatedLocations(workspace, workspace.CurrentSolution)
-                Dim expectedRanges = annotatedLocations("foldingRange").Select(Function(location) CreateFoldingRange(rangeKind, location.Range)).ToArray()
+                Dim expectedRanges = annotatedLocations("foldingRange").Select(Function(location) CreateFoldingRange(rangeKind, location.Range)).OrderBy(Function(range) range.StartLine).ToArray()
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
                 Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(workspace)
                 Dim actualRanges = lsif.GetFoldingRanges(document)
 
-                AssertEx.SetEqual(expectedRanges, actualRanges, FoldingRangeComparer.Instance, itemInspector:=AddressOf GetStringForAssert)
+                AbstractLanguageServerProtocolTests.AssertJsonEquals(expectedRanges, actualRanges)
             End Using
         End Function
 
@@ -74,42 +74,5 @@ using System.Linq;|}", FoldingRangeKind.Imports)>
                 .EndLine = range.End.Line
             }
         End Function
-
-        Private Shared Function GetStringForAssert(range As FoldingRange) As String
-            Dim rangeKindStr = $"Kind: {If(range.Kind?.ToString(), "null")}"
-            Dim startLineStr = $"StartLine: {range.StartLine}"
-            Dim endLineStr = $"EndLine: {range.EndLine}"
-            Dim startCharStr = $"StartCharacter: {range.StartCharacter}"
-            Dim endCharStr = $"EndCharacter: {range.EndCharacter}"
-            Return $"[{String.Join(", ", rangeKindStr, startLineStr, endLineStr, startCharStr, endCharStr)}]"
-        End Function
-
-        Private NotInheritable Class FoldingRangeComparer
-            Implements IEqualityComparer(Of FoldingRange)
-
-            Public Shared ReadOnly Instance As New FoldingRangeComparer
-
-            Private Sub New()
-            End Sub
-
-            Public Shadows Function Equals(x As FoldingRange, y As FoldingRange) As Boolean Implements IEqualityComparer(Of FoldingRange).Equals
-                Return x.Kind.GetValueOrDefault = y.Kind.GetValueOrDefault AndAlso
-                    x.StartLine = y.StartLine AndAlso
-                    x.EndLine = y.EndLine AndAlso
-                    x.StartCharacter.GetValueOrDefault = y.StartCharacter.GetValueOrDefault AndAlso
-                    x.EndCharacter.GetValueOrDefault = y.EndCharacter.GetValueOrDefault
-            End Function
-
-            Public Shadows Function GetHashCode(obj As FoldingRange) As Integer Implements IEqualityComparer(Of FoldingRange).GetHashCode
-                Return Hash.CombineValues(
-                {
-                    If(obj.Kind?.GetHashCode(), 0),
-                    obj.StartLine.GetHashCode(),
-                    obj.EndLine.GetHashCode(),
-                    If(obj.StartCharacter?.GetHashCode(), 0),
-                    If(obj.EndCharacter?.GetHashCode(), 0)
-                })
-            End Function
-        End Class
     End Class
 End Namespace
