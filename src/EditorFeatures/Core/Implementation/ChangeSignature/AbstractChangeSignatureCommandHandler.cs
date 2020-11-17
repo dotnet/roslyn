@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
         public bool ExecuteCommand(ReorderParametersCommandArgs args, CommandExecutionContext context)
             => ExecuteCommand(args.TextView, args.SubjectBuffer, context);
 
-        private static bool IsAvailable(ITextBuffer subjectBuffer, out Workspace workspace)
+        private static bool IsAvailable(ITextBuffer subjectBuffer, [NotNullWhen(true)] out Workspace? workspace)
             => subjectBuffer.TryGetWorkspace(out workspace) &&
                workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
                subjectBuffer.SupportsRefactorings();
