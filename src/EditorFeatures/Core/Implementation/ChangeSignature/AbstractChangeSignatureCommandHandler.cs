@@ -126,9 +126,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
                 return;
             }
 
+            using var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(FeaturesResources.Change_signature);
             if (workspace.TryApplyChanges(finalSolution))
             {
-                using var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(FeaturesResources.Change_signature);
                 workspaceUndoTransaction.Commit();
             }
 
