@@ -1167,6 +1167,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                         return true;
                                     }
                                     break;
+                                case CSharp.SyntaxKind.SimpleAssignmentExpression:
+                                    if (((CSharp.Syntax.AssignmentExpressionSyntax)syntax.Parent).Left == syntax
+                                        && syntax.Parent.Parent is InitializerExpressionSyntax { Parent: CSharp.Syntax.ObjectCreationExpressionSyntax })
+                                    {
+                                        // Can occur when a property is actually an indexed property with a default argument accessed through
+                                        // COM interop, see IndexedPropertyWithDefaultArgumentInVB.
+                                        return true;
+                                    }
+                                    break;
                             }
                         }
 
