@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// </summary>
         protected internal abstract VSServerCapabilities GetCapabilities();
 
-        public Task<Connection> ActivateAsync(CancellationToken token)
+        public Task<Connection?> ActivateAsync(CancellationToken token)
         {
             Contract.ThrowIfTrue(_languageServer?.Running == true, "The language server has not yet shutdown.");
 
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 _solutionProvider,
                 clientName: _diagnosticsClientName);
 
-            return Task.FromResult(new Connection(clientStream, clientStream));
+            return Task.FromResult<Connection?>(new Connection(clientStream, clientStream));
         }
 
         /// <summary>
