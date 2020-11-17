@@ -25,7 +25,7 @@ file_header_template = \nCopyright (c) SomeCorp. All rights reserved.\n\nLicense
 
         private const string TestSettingsWithSingleLineComment = @"
 [*.cs]
-file_header_template = //\n// Copyright (c) SomeCorp. All rights reserved.\n//\n// Licensed under the ??? license. See LICENSE file in the project root for full license information.\n
+file_header_template = //\n// Copyright (c) SomeCorp. All rights reserved.\n//\n// Licensed under the ??? license. See LICENSE file in the project root for full license information.\n//
 ";
 
         /// <summary>
@@ -635,6 +635,7 @@ namespace Bar
                     },
                 },
                 EditorConfig = TestSettingsWithSingleLineComment,
+                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
             }.RunAsync();
         }
     }

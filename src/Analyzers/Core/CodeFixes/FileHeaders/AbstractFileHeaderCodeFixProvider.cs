@@ -200,6 +200,12 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
         private static SyntaxTriviaList CreateNewHeader(ISyntaxFacts syntaxFacts, string prefixWithLeadingSpaces, string expectedFileHeader, string newLineText)
         {
+            var tryParseTemplate = syntaxFacts.ParseLeadingTrivia(expectedFileHeader.Replace("\r\n", newLineText).Replace("\n", newLineText));
+            if (tryParseTemplate.Any() && syntaxFacts.IsRegularComment(tryParseTemplate[0]) && tryParseTemplate.All(trivia => !trivia.ContainsDiagnostics))
+            {
+                return tryParseTemplate;
+            }
+
             var copyrightText = GetCopyrightText(prefixWithLeadingSpaces, expectedFileHeader, newLineText);
             var newHeader = copyrightText;
             return syntaxFacts.ParseLeadingTrivia(newHeader);
