@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// while the latter are cached and may be stale.
         /// </summary>
         protected const int WorkspaceDiagnosticIdentifier = 1;
+        protected const int DocumentDiagnosticIdentifier = 2;
 
         protected readonly IDiagnosticService DiagnosticService;
 
@@ -302,7 +303,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// If you make change in this method, please also update the corresponding file in
         /// src\VisualStudio\Xaml\Impl\Implementation\LanguageServer\Handler\Diagnostics\AbstractPullDiagnosticHandler.cs
         /// </summary>
-        protected DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool potentialDuplicate)
+        protected static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool potentialDuplicate)
         {
             using var _ = ArrayBuilder<DiagnosticTag>.GetInstance(out var result);
 

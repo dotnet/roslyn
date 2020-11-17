@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 Diagnostics = diagnostics,
                 ResultId = resultId,
+                Identifier = DocumentDiagnosticIdentifier,
                 // Mark these diagnostics as superseding any diagnostics for the same document from the
                 // WorkspacePullDiagnosticHandler. We are always getting completely accurate and up to date diagnostic
                 // values for a particular file, so our results should always be preferred over the workspace-pull
