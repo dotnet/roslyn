@@ -68,7 +68,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 // Built-in interactive providers
                 typeof(LoadDirectiveCompletionProvider),
                 typeof(ReferenceDirectiveCompletionProvider),
-                typeof(CSharpReplCommandCompletionProvider),
 
                 // Marker for end of built-in completion providers
                 typeof(LastBuiltInCompletionProvider),
