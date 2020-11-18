@@ -72,6 +72,9 @@ internal static class MinimizeUtil
                     }
                 }
             }
+
+            var destGlobalJsonPath = Path.Combine(destinationDirectory, "global.json");
+            CreateHardLink(destGlobalJsonPath, Path.Combine(sourceDirectory, "global.json"), IntPtr.Zero);
         }
 
         // Now that we have a complete list of PE files, determine which are duplicates
