@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
         }
 
-        public bool Equals(TypeWithAnnotations other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        public bool Equals(TypeWithAnnotations other, TypeCompareKind comparison)
         {
             if (this.IsSameAs(other))
             {
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
             }
-            else if (!other.HasType || !TypeSymbolEquals(other, comparison, isValueTypeOverrideOpt))
+            else if (!other.HasType || !TypeSymbolEquals(other, comparison))
             {
                 return false;
             }
@@ -366,12 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     TypeSymbol type = Type;
-                    bool isValueType;
-
-                    if (isValueTypeOverrideOpt == null || !(type is TypeParameterSymbol typeParameter) || !isValueTypeOverrideOpt.TryGetValue(typeParameter, out isValueType))
-                    {
-                        isValueType = type.IsValueType && !type.IsNullableType();
-                    }
+                    bool isValueType = type.IsValueType && !type.IsNullableType();
 
                     if (!isValueType)
                     {
@@ -385,15 +380,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed class EqualsComparer : EqualityComparer<TypeWithAnnotations>
         {
-            internal static readonly EqualsComparer ConsiderEverythingComparer = new EqualsComparer(TypeCompareKind.ConsiderEverything, isValueTypeOverrideOpt: null);
+            internal static readonly EqualsComparer ConsiderEverythingComparer = new EqualsComparer(TypeCompareKind.ConsiderEverything);
+            internal static readonly EqualsComparer IgnoreNullableModifiersForReferenceTypesComparer = new EqualsComparer(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
 
             private readonly TypeCompareKind _compareKind;
-            private readonly IReadOnlyDictionary<TypeParameterSymbol, bool> _isValueTypeOverrideOpt;
 
-            public EqualsComparer(TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
+            public EqualsComparer(TypeCompareKind compareKind)
             {
                 _compareKind = compareKind;
-                _isValueTypeOverrideOpt = isValueTypeOverrideOpt;
             }
 
             public override int GetHashCode(TypeWithAnnotations obj)
@@ -411,12 +405,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return !y.HasType;
                 }
-                return x.Equals(y, _compareKind, _isValueTypeOverrideOpt);
+                return x.Equals(y, _compareKind);
             }
         }
 
-        internal bool TypeSymbolEquals(TypeWithAnnotations other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt) =>
-            _extensions.TypeSymbolEquals(this, other, comparison, isValueTypeOverrideOpt);
+        internal bool TypeSymbolEquals(TypeWithAnnotations other, TypeCompareKind comparison) =>
+            _extensions.TypeSymbolEquals(this, other, comparison);
 
         public bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
@@ -468,20 +462,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return newTypeWithModifiers;
             }
 
+            if (newTypeWithModifiers.Type is PlaceholderTypeArgumentSymbol)
+            {
+                return newTypeWithModifiers;
+            }
+
             NullableAnnotation newAnnotation;
 
-            Debug.Assert(!IsIndexedTypeParameter(newTypeWithModifiers.DefaultType) || newTypeWithModifiers.NullableAnnotation.IsOblivious());
+            Debug.Assert(!IsIndexedTypeParameter(newTypeWithModifiers.Type) || newTypeWithModifiers.NullableAnnotation.IsOblivious());
 
-            if (newTypeWithModifiers.NullableAnnotation.IsAnnotated())
-            {
-                if (newTypeWithModifiers._extensions is LazyNullableTypeParameter)
-                {
-                    Debug.Assert(newCustomModifiers.IsEmpty);
-                    return newTypeWithModifiers;
-                }
-                newAnnotation = NullableAnnotation.Annotated;
-            }
-            else if (NullableAnnotation.IsAnnotated())
+            if (NullableAnnotation.IsAnnotated() || newTypeWithModifiers.NullableAnnotation.IsAnnotated())
             {
                 newAnnotation = NullableAnnotation.Annotated;
             }
@@ -520,9 +510,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public void ReportDiagnosticsIfObsolete(Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics) =>
             _extensions.ReportDiagnosticsIfObsolete(this, binder, syntax, diagnostics);
 
-        private bool TypeSymbolEqualsCore(TypeWithAnnotations other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
+        private bool TypeSymbolEqualsCore(TypeWithAnnotations other, TypeCompareKind comparison)
         {
-            return Type.Equals(other.Type, comparison, isValueTypeOverrideOpt);
+            return Type.Equals(other.Type, comparison);
         }
 
         private void ReportDiagnosticsIfObsoleteCore(Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
@@ -853,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal abstract TypeWithAnnotations WithTypeAndModifiers(TypeWithAnnotations type, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers);
 
-            internal abstract bool TypeSymbolEquals(TypeWithAnnotations type, TypeWithAnnotations other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt);
+            internal abstract bool TypeSymbolEquals(TypeWithAnnotations type, TypeWithAnnotations other, TypeCompareKind comparison);
             internal abstract TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap);
             internal abstract void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics);
 
@@ -905,9 +895,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return CreateNonLazyType(defaultType, defaultType.IsNullableType() ? type.NullableAnnotation : NullableAnnotation.NotAnnotated, _customModifiers);
             }
 
-            internal override bool TypeSymbolEquals(TypeWithAnnotations type, TypeWithAnnotations other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
+            internal override bool TypeSymbolEquals(TypeWithAnnotations type, TypeWithAnnotations other, TypeCompareKind comparison)
             {
-                return type.TypeSymbolEqualsCore(other, comparison, isValueTypeOverrideOpt);
+                return type.TypeSymbolEqualsCore(other, comparison);
             }
 
             internal override TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap)
@@ -1057,16 +1047,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override bool TypeSymbolEquals(TypeWithAnnotations type, TypeWithAnnotations other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
+            internal override bool TypeSymbolEquals(TypeWithAnnotations type, TypeWithAnnotations other, TypeCompareKind comparison)
             {
                 var otherLazy = other._extensions as LazyNullableTypeParameter;
 
                 if ((object)otherLazy != null)
                 {
-                    return _underlying.TypeSymbolEquals(otherLazy._underlying, comparison, isValueTypeOverrideOpt);
+                    return _underlying.TypeSymbolEquals(otherLazy._underlying, comparison);
                 }
 
-                return type.TypeSymbolEqualsCore(other, comparison, isValueTypeOverrideOpt);
+                return type.TypeSymbolEqualsCore(other, comparison);
             }
 
             internal override void TryForceResolve(bool asValueType)

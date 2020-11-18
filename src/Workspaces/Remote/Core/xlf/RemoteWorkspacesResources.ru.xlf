@@ -14,82 +14,82 @@
       </trans-unit>
       <trans-unit id="FeatureName_CodeLensReferences">
         <source>CodeLens references</source>
-        <target state="new">CodeLens references</target>
+        <target state="translated">Ссылки на CodeLens</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
         <source>Convert tuple to struct refactoring</source>
-        <target state="new">Convert tuple to struct refactoring</target>
+        <target state="translated">Преобразовать кортеж в рефакторинг структуры</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_DependentTypeFinder">
         <source>Dependent type finder</source>
-        <target state="new">Dependent type finder</target>
+        <target state="translated">Поиск зависимых типов</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_DesignerAttributeDiscovery">
         <source>DesignerAttribute discovery</source>
-        <target state="new">DesignerAttribute discovery</target>
+        <target state="translated">Обнаружение DesignerAttribute</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_DiagnosticAnalyzer">
         <source>Diagnostic analyzer runner</source>
-        <target state="new">Diagnostic analyzer runner</target>
+        <target state="translated">Средство запуска диагностического анализатора</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_DocumentHighlights">
         <source>Document higlights</source>
-        <target state="new">Document higlights</target>
+        <target state="translated">Выделения в документе</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_EncapsulateField">
         <source>Encapsulate field refactoring</source>
-        <target state="new">Encapsulate field refactoring</target>
+        <target state="translated">Рефакторинг инкапсуляции поля</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
         <source>Extension method import completion</source>
-        <target state="new">Extension method import completion</target>
+        <target state="translated">Завершение импорта метода расширения</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_FindUsages">
         <source>Find usages</source>
-        <target state="new">Find usages</target>
+        <target state="translated">Поиск использований</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_GlobalNotificationDelivery">
         <source>Global notification delivery</source>
-        <target state="new">Global notification delivery</target>
+        <target state="translated">Доставка глобальных уведомлений</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
         <source>Missing import discovery</source>
-        <target state="new">Missing import discovery</target>
+        <target state="translated">Отсутствует обнаружение импорта</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_NavigateToSearch">
         <source>Navigate to</source>
-        <target state="new">Navigate to</target>
+        <target state="translated">Перейти к</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
         <source>Project telemetry collection</source>
-        <target state="new">Project telemetry collection</target>
+        <target state="translated">Сбор данных телеметрии проекта</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_Renamer">
         <source>Rename</source>
-        <target state="new">Rename</target>
+        <target state="translated">Переименовать</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SemanticClassification">
         <source>Semantic classification</source>
-        <target state="new">Semantic classification</target>
+        <target state="translated">Семантическая классификация</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SemanticClassificationCache">
         <source>Semantic classification cache</source>
-        <target state="new">Semantic classification cache</target>
+        <target state="translated">Кэш семантической классификации</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
@@ -99,32 +99,32 @@
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">
         <source>Symbol finder</source>
-        <target state="new">Symbol finder</target>
+        <target state="translated">Поиск символов</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolSearchUpdate">
         <source>Symbol search</source>
-        <target state="new">Symbol search</target>
+        <target state="translated">Поиск символов</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_TodoCommentsDiscovery">
         <source>TODO comments discovery</source>
-        <target state="new">TODO comments discovery</target>
+        <target state="translated">Обнаружение комментариев TODO</target>
         <note />
       </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">
         <source>Feature '{0}' is currently unavailable due to an intermittent error, please try again later: '{1}'</source>
-        <target state="new">Feature '{0}' is currently unavailable due to an intermittent error, please try again later: '{1}'</target>
+        <target state="translated">Функция "{0}" сейчас недоступна из-за временной ошибки. Повторите попытку позже: "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_internal_error">
         <source>Feature '{0}' is currently unavailable due to an internal error.</source>
-        <target state="new">Feature '{0}' is currently unavailable due to an internal error.</target>
+        <target state="translated">Функция "{0}" сейчас недоступна из-за внутренней ошибки.</target>
         <note />
       </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_host_shutting_down">
         <source>Feature '{0}' is currently unavailable since {1} is shutting down.</source>
-        <target state="new">Feature '{0}' is currently unavailable since {1} is shutting down.</target>
+        <target state="translated">Функция "{0}" сейчас недоступна, так как {1} завершает работу.</target>
         <note />
       </trans-unit>
     </body>

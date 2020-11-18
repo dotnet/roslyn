@@ -284,7 +284,7 @@
       </trans-unit>
       <trans-unit id="typeof_can_be_converted_ to_nameof">
         <source>'typeof' can be converted  to 'nameof'</source>
-        <target state="new">'typeof' can be converted  to 'nameof'</target>
+        <target state="translated">"typeof" kann in "nameof" konvertiert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">

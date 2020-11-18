@@ -222,7 +222,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 // 5. Must not have any assembly or analyzer load failures.
                 if (analyzerReference is AnalyzerFileReference &&
                     analyzerReference.GetAnalyzers(project.Language).IsDefaultOrEmpty &&
-                    analyzerReference.GetGenerators().IsDefaultOrEmpty &&
+                    analyzerReference.GetGenerators(project.Language).IsDefaultOrEmpty &&
                     analyzerReference.FullPath != null &&
                     !analyzersWithLoadErrors.Contains(analyzerReference.FullPath))
                 {

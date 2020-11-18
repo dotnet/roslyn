@@ -315,7 +315,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax,
                 rewrittenArguments,
                 property,
-                setMethod,
                 expanded,
                 argsToParamsOpt,
                 ref argumentRefKindsOpt,

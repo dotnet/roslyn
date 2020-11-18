@@ -212,169 +212,169 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="new">                  Visual Basic Compiler Options
+        <target state="translated">                  Opciones del compilador de Visual Basic
 
-                                  - OUTPUT FILE -
--out:&lt;file&gt;                       Specifies the output file name.
--target:exe                       Create a console application (default).
-                                  (Short form: -t)
--target:winexe                    Create a Windows application.
--target:library                   Create a library assembly.
--target:module                    Create a module that can be added to an
-                                  assembly.
--target:appcontainerexe           Create a Windows application that runs in
-                                  AppContainer.
--target:winmdobj                  Create a Windows Metadata intermediate file
--doc[+|-]                         Generates XML documentation file.
--doc:&lt;file&gt;                       Generates XML documentation file to &lt;file&gt;.
--refout:&lt;file&gt;                    Reference assembly output to generate
+                                  - ARCHIVO DE SALIDA -
+-out:&lt;archivo&gt;                       Especifica el nombre del archivo de salida.
+-target:exe                       Crea una aplicación de consola (predeterminado).
+                                  (Forma corta: -t)
+-target:winexe                    Crea una aplicación de Windows.
+-target:library                   Crea un ensamblado de biblioteca.
+-target:module                    Crea un módulo que se puede agregar a un
+                                  ensamblado.
+-target:appcontainerexe           Crea una aplicación de Windows que se ejecuta en
+                                  AppContainer
+-target:winmdobj                  Crea un archivo intermedio de metadatos de Windows. 
+-doc[+|-]                         Genera un archivo de documentación XML.
+-doc:&lt;archivo&gt;                       Genera un archivo de documentación XML en &lt;archivo&gt;.
+-refout:&lt;archivo&gt;                    Salida del ensamblado de referencia para generar
 
-                                  - INPUT FILES -
--addmodule:&lt;file_list&gt;            Reference metadata from the specified modules
--link:&lt;file_list&gt;                 Embed metadata from the specified interop
-                                  assembly. (Short form: -l)
--recurse:&lt;wildcard&gt;               Include all files in the current directory
-                                  and subdirectories according to the
-                                  wildcard specifications.
--reference:&lt;file_list&gt;            Reference metadata from the specified
-                                  assembly. (Short form: -r)
--analyzer:&lt;file_list&gt;             Run the analyzers from this assembly
-                                  (Short form: -a)
--additionalfile:&lt;file list&gt;       Additional files that don't directly affect code
-                                  generation but may be used by analyzers for producing
-                                  errors or warnings.
+                                  - ARCHIVOS DE ENTRADA -
+-addmodule:&lt;lista_archivos&gt;            Hace referencia a metadatos desde los módulos especificados
+-link:&lt;lista_archivos&gt;                 Inserta metadatos desde el ensamblado de interoperabilidad
+                                  especificado. (Forma corta: -l)
+-recurse:&lt;carácter comodín&gt;               Incluye todos los archivos en el directorio y los
+                                  subdirectorios actuales según las
+                                  especificaciones del carácter comodín.
+-reference:&lt;lista_archivos&gt;            Hace referencia a los metadatos desde el ensamblado
+                                  especificado. (Forma corta: -r)
+-analyzer:&lt;lista_archivos&gt;             Ejecuta los analizadores desde este ensamblado
+                                  (Forma corta: -a)
+-additionalfile:&lt;lista_archivos&gt;       Archivos adicionales que no afectan directamente a la
+                                  generación de código, pero que los analizadores pueden usar para producir
+                                  errores o advertencias.
 
-                                  - RESOURCES -
--linkresource:&lt;resinfo&gt;           Links the specified file as an external
-                                  assembly resource.
-                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                  (Short form: -linkres)
--nowin32manifest                  The default manifest should not be embedded
-                                  in the manifest section of the output PE.
--resource:&lt;resinfo&gt;               Adds the specified file as an embedded
-                                  assembly resource.
-                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                  (Short form: -res)
--win32icon:&lt;file&gt;                 Specifies a Win32 icon file (.ico) for the
-                                  default Win32 resources.
--win32manifest:&lt;file&gt;             The provided file is embedded in the manifest
-                                  section of the output PE.
--win32resource:&lt;file&gt;             Specifies a Win32 resource file (.res).
+                                  - RECURSOS -
+-linkresource:&lt;info recurso&gt;           Vincula el archivo especificado como un recurso
+                                  de ensamblado externo.
+                                  resinfo:&lt;archivo&gt;[,&lt;nombre&gt;[,public|private]]
+                                  (Forma corta: -linkres)
+-nowin32manifest                  El manifiesto predeterminado no debe estar insertado
+                                  en la sección del manifiesto del PE de salida.
+-resource:&lt;info recurso&gt;               Agrega el archivo especificado como un recurso
+                                  de ensamblado insertado.
+                                  resinfo:&lt;archivo&gt;[,&lt;nombre&gt;[,public|private]]
+                                  (Forma corta: -res)
+-win32icon:&lt;archivo&gt;                 Especifica un archivo de icono Win32 (.ico) para los
+                                  recursos Win32 predeterminados.
+-win32manifest:&lt;archivo&gt;             El archivo proporcionado está insertado en la sección
+                                  del manifiesto del PE de salida.
+-win32resource:&lt;archivo&gt;             Especifica un archivo de recurso Win32 (.res) .
 
-                                  - CODE GENERATION -
--optimize[+|-]                    Enable optimizations.
--removeintchecks[+|-]             Remove integer checks. Default off.
--debug[+|-]                       Emit debugging information.
--debug:full                       Emit full debugging information (default).
--debug:pdbonly                    Emit full debugging information.
--debug:portable                   Emit cross-platform debugging information.
--debug:embedded                   Emit cross-platform debugging information into
-                                  the target .dll or .exe.
--deterministic                    Produce a deterministic assembly
-                                  (including module version GUID and timestamp)
--refonly                          Produce a reference assembly in place of the main output
--instrument:TestCoverage          Produce an assembly instrumented to collect
-                                  coverage information
--sourcelink:&lt;file&gt;                Source link info to embed into PDB.
+                                  - GENERACIÓN DE CÓDIGO -
+-optimize[+|-]                    Habilita las optimizaciones.
+-removeintchecks[+|-]             Quita las comprobaciones de enteros. Desactivado de forma predeterminada.
+-debug[+|-]                       Emite información de depuración.
+-debug:full                       Emite información de depuración completa (valor predeterminado).
+-debug:pdbonly                    Emite información de depuración completa.
+-debug:portable                   Emite información de depuración multiplataforma.
+-debug:embedded                   Emite información de depuración multiplataforma en el
+                                  archivo .dll o .exe de destino.
+-deterministic                    Produce un ensamblado determinista
+                                  (que incluye el GUID de la versión y la marca de tiempo del módulo)
+-refonly                          Produce un ensamblado de referencia en lugar de la salida principal
+-instrument:TestCoverage          Produce un ensamblado instrumentado para recopilar
+                                  la información de cobertura
+-sourcelink:&lt;archivo&gt;                Información del vínculo de origen para insertar en el PDB.
 
-                                  - ERRORS AND WARNINGS -
--nowarn                           Disable all warnings.
--nowarn:&lt;number_list&gt;             Disable a list of individual warnings.
--warnaserror[+|-]                 Treat all warnings as errors.
--warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
--ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
-                                  diagnostics.
--errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
-                                  Specify a file to log all compiler and analyzer
-                                  diagnostics in SARIF format.
-                                  sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
-                                  both mean SARIF version 2.1.0.
--reportanalyzer                   Report additional analyzer information, such as
-                                  execution time.
--skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
+                                  - ERRORES Y ADVERTENCIAS -
+-nowarn                           Deshabilita todas las advertencias.
+-nowarn:&lt;lista_números&gt;             Deshabilita una lista de advertencias individuales.
+-warnaserror[+|-]                 Trata todas las advertencias como errores.
+-warnaserror[+|-]:&lt;lista_números&gt;   Trata una lista de advertencias como errores.
+-ruleset:&lt;archivo&gt;                   Especifica un archivo de conjunto de reglas que deshabilita diagnósticos
+                                  específicos.
+-errorlog:&lt;archivo&gt;[,version=&lt;versión_de_sarif&gt;]         
+                                  Especifica un archivo para registrar todos los diagnósticos del
+                                  compilador y del analizador en formato SARIF.
+                                  versión_de_sarif:{1|2|2.1} El valor predeterminado es 1. 2 y 2.1,
+                                  ambos significan SARIF versión 2.1.0.
+-reportanalyzer                   Notifica información adicional del analizador, como
+                                  el tiempo de ejecución.
+-skipanalyzers[+|-]               Omite la ejecución de los analizadores de diagnóstico.
 
-                                  - LANGUAGE -
--define:&lt;symbol_list&gt;             Declare global conditional compilation
-                                  symbol(s). symbol_list:name=value,...
-                                  (Short form: -d)
--imports:&lt;import_list&gt;            Declare global Imports for namespaces in
-                                  referenced metadata files.
-                                  import_list:namespace,...
--langversion:?                    Display the allowed values for language version
--langversion:&lt;string&gt;             Specify language version such as
-                                  `default` (latest major version), or
-                                  `latest` (latest version, including minor versions),
-                                  or specific versions like `14` or `15.3`
--optionexplicit[+|-]              Require explicit declaration of variables.
--optioninfer[+|-]                 Allow type inference of variables.
--rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type
-                                  declarations.
--optionstrict[+|-]                Enforce strict language semantics.
--optionstrict:custom              Warn when strict language semantics are not
-                                  respected.
--optioncompare:binary             Specifies binary-style string comparisons.
-                                  This is the default.
--optioncompare:text               Specifies text-style string comparisons.
+                                  - LENGUAJE -
+-define:&lt;lista_símbolos&gt;             Declara símbolos de compilación condicional
+                                  global. lista_símbolos:name=value,...
+                                  (Forma corta: -d)
+-imports:&lt;lista_importaciones&gt;            Declara las importaciones globales para los espacios de nombres de
+                                  los archivos de metadatos a los que se hace referencia.
+                                  lista_importaciones:namespace,...
+-langversion:?                    Muestra los valores permitidos para la versión del lenguaje
+-langversion:&lt;cadena&gt;             Especifica una versión del lenguaje, como
+                                  “predeterminada” (versión principal más reciente) o
+                                  “última” (última versión, incluidas las versiones secundarias)
+                                  o versiones específicas, como “14” o “15.3”
+-optionexplicit[+|-]              Requiere la declaración explícita de las variables.
+-optioninfer[+|-]                 Permite la inferencia de tipos de variables.
+-rootnamespace:&lt;cadena&gt;           Especifica el espacio de nombres raíz para todas las declaraciones
+                                  de tipos.
+-optionstrict[+|-]                Exige semántica de lenguaje estricta.
+-optionstrict:custom              Advierte cuando no se respeta la semántica del lenguaje
+                                  estricta.
+-optioncompare:binary             Especifica comparaciones de cadenas de estilo binario.
+                                  Es el valor predeterminado.
+-optioncompare:text               Especifica comparaciones de cadenas de estilo de texto.
 
-                                  - MISCELLANEOUS -
--help                             Display this usage message. (Short form: -?)
--noconfig                         Do not auto-include VBC.RSP file.
--nologo                           Do not display compiler copyright banner.
--quiet                            Quiet output mode.
--verbose                          Display verbose messages.
--parallel[+|-]                    Concurrent build.
--version                          Display the compiler version number and exit.
+                                  - VARIOS -
+-help                             Muestra este mensaje de uso. (Forma corta: -?)
+-noconfig                         No incluir automáticamente el archivo VBC.RSP.
+-nologo                           No mostrar pancarta de copyright del compilador.
+-quiet                            Modo de salida silencioso.
+-verbose                          Mostrar mensajes detallados.
+-parallel[+|-]                    Compilación simultánea.
+-version                          Mostrar el número de versión del compilador y salir.
 
-                                  - ADVANCED -
--baseaddress:&lt;number&gt;             The base address for a library or module
+                                  - AVANZADO -
+-baseaddress:&lt;número&gt;             Dirección base de una biblioteca o módulo
                                   (hex).
--checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
-                                  checksum stored in PDB. Supported values are:
-                                  SHA1 or SHA256 (default).
--codepage:&lt;number&gt;                Specifies the codepage to use when opening
-                                  source files.
--delaysign[+|-]                   Delay-sign the assembly using only the public
-                                  portion of the strong name key.
--publicsign[+|-]                  Public-sign the assembly using only the public
-                                  portion of the strong name key.
--errorreport:&lt;string&gt;             Specifies how to handle internal compiler
-                                  errors; must be prompt, send, none, or queue
-                                  (default).
--filealign:&lt;number&gt;               Specify the alignment used for output file
-                                  sections.
--highentropyva[+|-]               Enable high-entropy ASLR.
--keycontainer:&lt;string&gt;            Specifies a strong name key container.
--keyfile:&lt;file&gt;                   Specifies a strong name key file.
--libpath:&lt;path_list&gt;              List of directories to search for metadata
-                                  references. (Semi-colon delimited.)
--main:&lt;class&gt;                     Specifies the Class or Module that contains
-                                  Sub Main. It can also be a Class that
-                                  inherits from System.Windows.Forms.Form.
-                                  (Short form: -m)
--moduleassemblyname:&lt;string&gt;      Name of the assembly which this module will
-                                  be a part of.
--netcf                            Target the .NET Compact Framework.
--nostdlib                         Do not reference standard libraries
-                                  (system.dll and VBC.RSP file).
+-checksumalgorithm:&lt;algoritmo&gt;          Especifica el algoritmo para calcular la suma de comprobación
+                                  del archivo de origen almacenado en PDB. Los valores admitidos son:
+                                  SHA1 o SHA256 (predeterminado).
+-codepage:&lt;número&gt;                Especifica la página de códigos que se va a usar al abrir
+                                  los archivos de código fuente.
+-delaysign[+|-]                   Retrasa la firma del ensamblado con solo la parte pública
+                                  de la clave de nombre seguro.
+-publicsign[+|-]                  Publica la firma del ensamblado con solo la parte pública
+                                  de la clave de nombre seguro.
+-errorreport:&lt;cadena&gt;             Especifica cómo tratar los errores internos del
+                                  compilador: avisar, enviar, ninguno o poner en cola
+                                  (predeterminado).
+-filealign:&lt;número&gt;               Especifica la alineación que se usa para las secciones del archivo de
+                                  salida.
+-highentropyva[+|-]               Habilita ASLR de alta entropía.
+-keycontainer:&lt;cadena&gt;            Especifica un contenedor de claves de nombre seguro.
+-keyfile:&lt;archivo&gt;                   Especifica un archivo de claves de nombre seguro.
+-libpath:&lt;lista_rutas&gt;              Lista de directorios para buscar referencias de
+                                  metadatos. (Delimitada por punto y coma).
+-main:&lt;clase&gt;                     Especifica la clase o el módulo que contiene
+                                  Sub Main. También puede ser una clase que
+                                  herede de System.Windows.Forms.Form.
+                                  (Forma corta: -m)
+-moduleassemblyname:&lt;cadena&gt;      Nombre del ensamblado del que este módulo
+                                  formará parte.
+-netcf                            Destino de .NET Compact Framework.
+-nostdlib                         No hacer referencia a las bibliotecas estándar
+                                  (archivo system.dll y VBC.RSP).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  Specify a mapping for source path names output by
-                                  the compiler.
--platform:&lt;string&gt;                Limit which platforms this code can run on;
-                                  must be x86, x64, Itanium, arm, arm64
-                                  AnyCPU32BitPreferred or anycpu (default).
--preferreduilang                  Specify the preferred output language name.
--nosdkpath                        Disable searching the default SDK path for standard library assemblies.
--sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
+                                  Especifica una asignación para los nombres de ruta de acceso de origen
+                                  producidos por el compilador.
+-platform:&lt;cadena&gt;                Limita en qué plataformas se puede ejecutar este código.
+                                  Debe ser x86, x64, Itanium, arm, arm64,
+                                  AnyCPU32BitPreferred o anycpu (valor predeterminado).
+-preferreduilang                  Especifica el nombre del lenguaje de salida preferido.
+-nosdkpath                        Deshabilita la búsqueda de la ruta de acceso del SDK predeterminado para ensamblados de biblioteca estándar.
+-sdkpath:&lt;ruta de acceso&gt;                   Ubicación del directorio de .NET Framework SDK
                                   (mscorlib.dll).
--subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
-                                  version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emit compiler output in UTF8 character
-                                  encoding.
-@&lt;file&gt;                           Insert command-line settings from a text file
--vbruntime[+|-|*]                 Compile with/without the default Visual Basic
-                                  runtime.
--vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
-                                  runtime in &lt;file&gt;.
+-subsystemversion:&lt;versión&gt;       Especifica la versión del subsistema del PE de salida.
+                                  version:&lt;número&gt;[.&lt;número&gt;]
+-utf8output[+|-]                  Emite la salida del compilador en codificación de caracteres
+                                  UTF8.
+@&lt;archivo&gt;                           Inserta la configuración de línea de comandos desde un archivo de texto
+-vbruntime[+|-|*]                 Compila con o sin el entorno de ejecución predeterminado de
+                                  Visual Basic.
+-vbruntime:&lt;archivo&gt;                 Compila con el entorno de ejecución alternativo de
+                                  Visual Basic en &lt;archivo&gt;.
 </target>
         <note />
       </trans-unit>
@@ -461,6 +461,50 @@
       <trans-unit id="TypeArgumentCannotBeNothing">
         <source>Type argument cannot be Nothing</source>
         <target state="translated">El argumento de tipo no puede ser Nothing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration">
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="new">Generator threw the following exception:
+'{0}'.</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
+        <source>Generator failed to generate source.</source>
+        <target state="new">Generator failed to generate source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization">
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="new">Generator threw the following exception:
+'{0}'.</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
+        <source>Generator failed to initialize.</source>
+        <target state="new">Generator failed to initialize.</target>
         <note />
       </trans-unit>
       <trans-unit id="WrongNumberOfTypeArguments">
@@ -2922,7 +2966,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousDelegateBinding2">
         <source>No accessible '{0}' is most specific: {1}</source>
-        <target state="translated">{0}' al que no se puede obtener acceso es más específico: {1}</target>
+        <target state="translated">'{0}' al que no se puede obtener acceso es más específico: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SharedStructMemberCannotSpecifyNew">
@@ -7428,12 +7472,12 @@
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
         <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">{0}' ha concedido acceso de confianza, pero la clave pública del ensamblado de salida no coincide con la especificada por el atributo en el ensamblado de concesión.</target>
+        <target state="translated">'{0}' ha concedido acceso de confianza, pero la clave pública del ensamblado de salida no coincide con la especificada por el atributo en el ensamblado de concesión.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
         <source>Friend access was granted by '{0}', but the strong name signing state of the output assembly does not match that of the granting assembly.</source>
-        <target state="translated">{0}' ha concedido acceso de confianza, pero el nombre seguro que firma el estado del ensamblado de salida no coincide con el del ensamblado de concesión.</target>
+        <target state="translated">'{0}' ha concedido acceso de confianza, pero el nombre seguro que firma el estado del ensamblado de salida no coincide con el del ensamblado de concesión.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PublicSignNoKey">
@@ -9103,7 +9147,7 @@
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">'"{0}" se incluye con fines de evaluación y está sujeto a cambios o a que se elimine en próximas actualizaciones.</target>
+        <target state="translated">"{0}" se incluye con fines de evaluación y está sujeto a cambios o a que se elimine en próximas actualizaciones.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">

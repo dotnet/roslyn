@@ -24,10 +24,7 @@ if ($help) {
 
 # List of binary names that should be skipped because they have a known issue that
 # makes them non-deterministic.  
-$script:skipList = @(
-  # Added to work around https://github.com/dotnet/roslyn/issues/48417
-  "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll"
-)
+$script:skipList = @()
 
 function Run-Build([string]$rootDir, [string]$logFileName) {
   # Clean out the previous run

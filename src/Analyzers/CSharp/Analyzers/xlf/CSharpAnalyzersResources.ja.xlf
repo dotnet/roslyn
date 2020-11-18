@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Add_braces_to_0_statement">
         <source>Add braces to '{0}' statement.</source>
-        <target state="translated">{0}' ステートメントに波かっこを追加します。</target>
+        <target state="translated">'{0}' ステートメントに波かっこを追加します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
-        <target state="translated">{0} を簡略化できます。</target>
+        <target state="translated">{0} を簡略化できます</target>
         <note />
       </trans-unit>
       <trans-unit id="default_expression_can_be_simplified">
@@ -284,7 +284,7 @@
       </trans-unit>
       <trans-unit id="typeof_can_be_converted_ to_nameof">
         <source>'typeof' can be converted  to 'nameof'</source>
-        <target state="new">'typeof' can be converted  to 'nameof'</target>
+        <target state="translated">'typeof' を 'nameof' に変換できます</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">

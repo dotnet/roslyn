@@ -105,6 +105,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 return null;
             }
 
+            return GetDocument(documentIdentifier, documents);
+        }
+
+        public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
+        {
+            var documents = solution.GetDocuments(documentIdentifier.Uri);
+            if (documents.Length == 0)
+            {
+                return null;
+            }
+
+            return GetDocument(documentIdentifier, documents);
+        }
+
+        private static T GetDocument<T>(TextDocumentIdentifier documentIdentifier, ImmutableArray<T> documents) where T : TextDocument
+        {
             if (documents.Length > 1)
             {
                 // We have more than one document; try to find the one that matches the right context

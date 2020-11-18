@@ -689,5 +689,26 @@ class MyClass
     }
 }");
         }
+
+        [WorkItem(37675, "https://github.com/dotnet/roslyn/issues/37675")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestDoNotOfferForUsingDeclaration()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C : IDisposable
+{
+    int i;
+
+    void M()
+    {
+        using var c = [||]new C();
+        c.i = 1;
+    }
+
+    void Dispose()
+    {
+    }
+}");
+        }
     }
 }

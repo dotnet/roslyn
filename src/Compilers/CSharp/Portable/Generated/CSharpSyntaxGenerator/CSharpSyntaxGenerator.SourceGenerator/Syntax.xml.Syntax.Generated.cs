@@ -10,6 +10,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
+
+
     /// <summary>Provides the base class from which the classes that represent name syntax nodes are derived. This is an abstract class.</summary>
     public abstract partial class NameSyntax : TypeSyntax
     {
@@ -42,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class IdentifierNameSyntax : SimpleNameSyntax
     {
+
         internal IdentifierNameSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -321,6 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class PredefinedTypeSyntax : TypeSyntax
     {
+
         internal PredefinedTypeSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -753,6 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class FunctionPointerUnmanagedCallingConventionSyntax : CSharpSyntaxNode
     {
+
         internal FunctionPointerUnmanagedCallingConventionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -946,6 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class OmittedTypeArgumentSyntax : TypeSyntax
     {
+
         internal OmittedTypeArgumentSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -1863,6 +1869,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class ThisExpressionSyntax : InstanceExpressionSyntax
     {
+
         internal ThisExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -1902,6 +1909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class BaseExpressionSyntax : InstanceExpressionSyntax
     {
+
         internal BaseExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -1948,6 +1956,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class LiteralExpressionSyntax : ExpressionSyntax
     {
+
         internal LiteralExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -4290,6 +4299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class JoinIntoClauseSyntax : CSharpSyntaxNode
     {
+
         internal JoinIntoClauseSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -4626,6 +4636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class OmittedArraySizeExpressionSyntax : ExpressionSyntax
     {
+
         internal OmittedArraySizeExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -4867,6 +4878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class DiscardPatternSyntax : PatternSyntax
     {
+
         internal DiscardPatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -5519,6 +5531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class InterpolatedStringTextSyntax : InterpolatedStringContentSyntax
     {
+
         internal InterpolatedStringTextSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -5666,6 +5679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class InterpolationFormatClauseSyntax : CSharpSyntaxNode
     {
+
         internal InterpolationFormatClauseSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -6267,6 +6281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class SingleVariableDesignationSyntax : VariableDesignationSyntax
     {
+
         internal SingleVariableDesignationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -6304,6 +6319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class DiscardDesignationSyntax : VariableDesignationSyntax
     {
+
         internal DiscardDesignationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -8319,6 +8335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class DefaultSwitchLabelSyntax : SwitchLabelSyntax
     {
+
         internal DefaultSwitchLabelSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -8870,6 +8887,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class ExternAliasDirectiveSyntax : CSharpSyntaxNode
     {
+
         internal ExternAliasDirectiveSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -9205,6 +9223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class AttributeTargetSpecifierSyntax : CSharpSyntaxNode
     {
+
         internal AttributeTargetSpecifierSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -10819,6 +10838,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class ConstructorConstraintSyntax : TypeParameterConstraintSyntax
     {
+
         internal ConstructorConstraintSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -10867,6 +10887,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class ClassOrStructConstraintSyntax : TypeParameterConstraintSyntax
     {
+
         internal ClassOrStructConstraintSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -10958,6 +10979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class DefaultConstraintSyntax : TypeParameterConstraintSyntax
     {
+
         internal DefaultConstraintSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -12951,6 +12973,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class SkippedTokensTriviaSyntax : StructuredTriviaSyntax
     {
+
         internal SkippedTokensTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -13908,6 +13931,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class XmlPrefixSyntax : CSharpSyntaxNode
     {
+
         internal XmlPrefixSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -14172,6 +14196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class XmlTextSyntax : XmlNodeSyntax
     {
+
         internal XmlTextSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -14218,6 +14243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class XmlCDataSectionSyntax : XmlNodeSyntax
     {
+
         internal XmlCDataSectionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -14327,6 +14353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class XmlCommentSyntax : XmlNodeSyntax
     {
+
         internal XmlCommentSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -14544,6 +14571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class ElseDirectiveTriviaSyntax : BranchingDirectiveTriviaSyntax
     {
+
         internal ElseDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -14595,6 +14623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class EndIfDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
+
         internal EndIfDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -14643,6 +14672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class RegionDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
+
         internal RegionDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -14691,6 +14721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class EndRegionDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
+
         internal EndRegionDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -14739,6 +14770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class ErrorDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
+
         internal ErrorDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -14787,6 +14819,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class WarningDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
+
         internal WarningDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -14835,6 +14868,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class BadDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
+
         internal BadDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -14883,6 +14917,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class DefineDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
+
         internal DefineDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -14934,6 +14969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class UndefDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
+
         internal UndefDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -14985,6 +15021,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class LineDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
+
         internal LineDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -15114,6 +15151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class PragmaChecksumDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
+
         internal PragmaChecksumDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -15174,6 +15212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class ReferenceDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
+
         internal ReferenceDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -15225,6 +15264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class LoadDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
+
         internal LoadDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -15276,6 +15316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class ShebangDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
+
         internal ShebangDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
@@ -15324,6 +15365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class NullableDirectiveTriviaSyntax : DirectiveTriviaSyntax
     {
+
         internal NullableDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
           : base(green, parent, position)
         {
