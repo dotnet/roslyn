@@ -485,6 +485,11 @@
         </summary>
       </Comments>
     </Property>
+    <Property Name="DisposeMethod" Type="IMethodSymbol?">
+      <Comments>
+        <summary>The method that will be invoked to dispose the <see cref="Resources" /> if they do not implement a disposable interface.</summary>
+      </Comments>
+    </Property>
   </Node>
   <Node Name="IExpressionStatementOperation" Base="IOperation">
     <Comments>
@@ -2932,6 +2937,11 @@
     <Property Name="IsAsynchronous" Type="bool">
       <Comments>
         <summary>True if this is an asynchronous using declaration.</summary>
+      </Comments>
+    </Property>
+    <Property Name="DisposeMethod" Type="IMethodSymbol?">
+      <Comments>
+        <summary>The method that will be invoked to dispose the declared instances if they do not implement a disposable interface.</summary>
       </Comments>
     </Property>
   </Node>

@@ -3735,11 +3735,11 @@ oneMoreTime:
         public override IOperation? VisitUsing(IUsingOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
-            HandleUsingOperationParts(operation.Resources, operation.Body, operation.Locals, operation.IsAsynchronous);
+            HandleUsingOperationParts(operation.Resources, operation.Body, operation.DisposeMethod, operation.Locals, operation.IsAsynchronous);
             return FinishVisitingStatement(operation);
         }
 
-        private void HandleUsingOperationParts(IOperation resources, IOperation body, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous)
+        private void HandleUsingOperationParts(IOperation resources, IOperation body, IMethodSymbol? disposeMethod, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous)
         {
             var usingRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals);
             EnterRegion(usingRegion);
@@ -3862,7 +3862,7 @@ oneMoreTime:
 
                 LeaveRegion();
 
-                AddDisposingFinally(resource, knownToImplementIDisposable: true, iDisposable, isAsynchronous);
+                AddDisposingFinally(resource, knownToImplementIDisposable: true, iDisposable, disposeMethod, isAsynchronous);
 
                 Debug.Assert(CurrentRegionRequired.Kind == ControlFlowRegionKind.TryAndFinally);
                 LeaveRegion();
@@ -3877,7 +3877,7 @@ oneMoreTime:
             }
         }
 
-        private void AddDisposingFinally(IOperation resource, bool knownToImplementIDisposable, ITypeSymbol iDisposable, bool isAsynchronous)
+        private void AddDisposingFinally(IOperation resource, bool knownToImplementIDisposable, ITypeSymbol iDisposable, IMethodSymbol? disposeMethod, bool isAsynchronous)
         {
             Debug.Assert(CurrentRegionRequired.Kind == ControlFlowRegionKind.TryAndFinally);
 
@@ -3888,23 +3888,25 @@ oneMoreTime:
             EnterRegion(finallyRegion);
             AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block));
 
-            if (!knownToImplementIDisposable)
+            var requiresConversion = !knownToImplementIDisposable && disposeMethod is null;
+
+            if (requiresConversion) 
             {
-                Debug.Assert(!isNotNullableValueType(resource.Type));
+                Debug.Assert(!isNonNullableValueType(resource.Type));
                 resource = ConvertToIDisposable(resource, iDisposable, isTryCast: true);
                 int captureId = GetNextCaptureId(finallyRegion);
                 AddStatement(new FlowCaptureOperation(captureId, resource.Syntax, resource));
                 resource = GetCaptureReference(captureId, resource);
             }
 
-            if (!knownToImplementIDisposable || !isNotNullableValueType(resource.Type))
+            if (requiresConversion || !isNonNullableValueType(resource.Type))
             {
                 IOperation condition = MakeIsNullOperation(OperationCloner.CloneOperation(resource));
                 ConditionalBranch(condition, jumpIfTrue: true, endOfFinally);
                 _currentBasicBlock = null;
             }
 
-            if (!iDisposable.Equals(resource.Type))
+            if (disposeMethod is null && !iDisposable.Equals(resource.Type))
             {
                 resource = ConvertToIDisposable(resource, iDisposable);
             }
@@ -3920,11 +3922,13 @@ oneMoreTime:
 
             IOperation? tryDispose(IOperation value)
             {
-                Debug.Assert(value.Type!.Equals(iDisposable));
+                Debug.Assert(disposeMethod is object || value.Type!.Equals(iDisposable));
 
-                var method = isAsynchronous
-                    ? (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)?.GetISymbol()
-                    : (IMethodSymbol?)_compilation.CommonGetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose)?.GetISymbol();
+                var method = disposeMethod
+                             ?? (isAsynchronous
+                                 ? (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)?.GetISymbol()
+                                 : (IMethodSymbol?)_compilation.CommonGetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose)?.GetISymbol());
+
                 if (method != null)
                 {
                     var invocation = new InvocationOperation(method, value, isVirtual: true,
@@ -3942,7 +3946,7 @@ oneMoreTime:
                 return null;
             }
 
-            bool isNotNullableValueType([NotNullWhen(true)] ITypeSymbol? type)
+            bool isNonNullableValueType([NotNullWhen(true)] ITypeSymbol? type)
             {
                 return type?.IsValueType == true && !ITypeSymbolHelpers.IsNullableType(type);
             }
@@ -4231,6 +4235,7 @@ oneMoreTime:
                 AddDisposingFinally(OperationCloner.CloneOperation(enumerator),
                                     info.KnownToImplementIDisposable,
                                     iDisposable,
+                                    info.DisposeMethod,
                                     isAsynchronous);
 
                 Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
@@ -6992,6 +6997,7 @@ oneMoreTime:
             HandleUsingOperationParts(
                 resources: operation.DeclarationGroup,
                 body: logicalBlock,
+                disposeMethod: operation.DisposeMethod,
                 locals: ImmutableArray<ILocalSymbol>.Empty,
                 isAsynchronous: operation.IsAsynchronous);
 

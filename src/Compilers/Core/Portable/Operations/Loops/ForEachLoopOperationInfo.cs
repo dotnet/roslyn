@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public readonly bool IsAsynchronous;
         public readonly bool NeedsDispose;
         public readonly bool KnownToImplementIDisposable;
+        public readonly IMethodSymbol? DisposeMethod;
 
         /// <summary>
         /// The conversion from the type of the <see cref="CurrentProperty"/> to the <see cref="ElementType"/>.
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isAsynchronous,
             bool needsDispose,
             bool knownToImplementIDisposable,
+            IMethodSymbol? disposeMethod,
             IConvertibleConversion currentConversion,
             IConvertibleConversion elementConversion,
             ImmutableArray<IArgumentOperation> getEnumeratorArguments = default,
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IsAsynchronous = isAsynchronous;
             NeedsDispose = needsDispose;
             KnownToImplementIDisposable = knownToImplementIDisposable;
+            DisposeMethod = disposeMethod;
             CurrentConversion = currentConversion;
             ElementConversion = elementConversion;
             GetEnumeratorArguments = getEnumeratorArguments;
