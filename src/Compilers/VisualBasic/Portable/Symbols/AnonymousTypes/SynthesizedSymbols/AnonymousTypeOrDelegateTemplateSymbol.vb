@@ -37,7 +37,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Private ReadOnly _typeParameters As ImmutableArray(Of TypeParameterSymbol)
             Private _adjustedPropertyNames As LocationAndNames
+#If DEBUG Then
             Private _locationAndNamesAreLocked As Boolean
+#End If
 
             ''' <summary>
             ''' The key of the anonymous type descriptor used for this type template
@@ -316,7 +318,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public ReadOnly Property SmallestLocation As Location
                 Get
+#If DEBUG Then
                     _locationAndNamesAreLocked = True
+#End If
                     Return Me._adjustedPropertyNames.Location
                 End Get
             End Property
@@ -343,9 +347,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Exit Sub
                     End If
 
-                    If _locationAndNamesAreLocked Then
-                        Throw ExceptionUtilities.Unreachable
-                    End If
+#If DEBUG Then
+                    Debug.Assert(Not _locationAndNamesAreLocked)
+#End If
 
                     Dim newAdjustedNames As New LocationAndNames(typeDescr)
 
@@ -357,7 +361,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Sub
 
             Friend Function GetAdjustedName(index As Integer) As String
+#If DEBUG Then
                 _locationAndNamesAreLocked = True
+#End If
                 Dim names = Me._adjustedPropertyNames
                 Debug.Assert(names IsNot Nothing)
                 Debug.Assert(names.Names.Length > index)
