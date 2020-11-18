@@ -34,9 +34,11 @@ internal static class MinimizeUtil
         void initialWalk()
         {
             var artifactsDir = Path.Combine(sourceDirectory, "artifacts/bin");
+            var engDir = Path.Combine(sourceDirectory, "eng");
             var directories = Directory.EnumerateDirectories(artifactsDir, "*.UnitTests");
+            directories = directories.Append(engDir);
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "RunTests"));
-            directories = directories.Concat(Directory.EnumerateDirectories(Path.Combine(sourceDirectory, "eng")));
+            directories = directories.Concat(Directory.EnumerateDirectories(engDir));
 
             foreach (var unitDirPath in directories)
             {
