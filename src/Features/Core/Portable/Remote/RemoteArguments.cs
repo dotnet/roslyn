@@ -4,83 +4,50 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     #region NavigateTo
 
-    [DataContract]
-    internal readonly struct SerializableNavigateToSearchResult
+    internal class SerializableNavigateToSearchResult
     {
-        [DataMember(Order = 0)]
-        public readonly string AdditionalInformation;
+        public string AdditionalInformation;
 
-        [DataMember(Order = 1)]
-        public readonly string Kind;
+        public string Kind;
+        public NavigateToMatchKind MatchKind;
+        public bool IsCaseSensitive;
+        public string Name;
+        public IList<TextSpan> NameMatchSpans;
+        public string SecondarySort;
+        public string Summary;
 
-        [DataMember(Order = 2)]
-        public readonly NavigateToMatchKind MatchKind;
-
-        [DataMember(Order = 3)]
-        public readonly bool IsCaseSensitive;
-
-        [DataMember(Order = 4)]
-        public readonly string Name;
-
-        [DataMember(Order = 5)]
-        public readonly ImmutableArray<TextSpan> NameMatchSpans;
-
-        [DataMember(Order = 6)]
-        public readonly string SecondarySort;
-
-        [DataMember(Order = 7)]
-        public readonly string Summary;
-
-        [DataMember(Order = 8)]
-        public readonly SerializableNavigableItem NavigableItem;
-
-        public SerializableNavigateToSearchResult(
-            string additionalInformation,
-            string kind,
-            NavigateToMatchKind matchKind,
-            bool isCaseSensitive,
-            string name,
-            ImmutableArray<TextSpan> nameMatchSpans,
-            string secondarySort,
-            string summary,
-            SerializableNavigableItem navigableItem)
-        {
-            AdditionalInformation = additionalInformation;
-            Kind = kind;
-            MatchKind = matchKind;
-            IsCaseSensitive = isCaseSensitive;
-            Name = name;
-            NameMatchSpans = nameMatchSpans;
-            SecondarySort = secondarySort;
-            Summary = summary;
-            NavigableItem = navigableItem;
-        }
+        public SerializableNavigableItem NavigableItem;
 
         internal static SerializableNavigateToSearchResult Dehydrate(INavigateToSearchResult result)
-            => new(result.AdditionalInformation,
-                   result.Kind,
-                   result.MatchKind,
-                   result.IsCaseSensitive,
-                   result.Name,
-                   result.NameMatchSpans,
-                   result.SecondarySort,
-                   result.Summary,
-                   SerializableNavigableItem.Dehydrate(result.NavigableItem));
+        {
+            return new SerializableNavigateToSearchResult
+            {
+                AdditionalInformation = result.AdditionalInformation,
+                Kind = result.Kind,
+                MatchKind = result.MatchKind,
+                IsCaseSensitive = result.IsCaseSensitive,
+                Name = result.Name,
+                NameMatchSpans = result.NameMatchSpans,
+                SecondarySort = result.SecondarySort,
+                Summary = result.Summary,
+                NavigableItem = SerializableNavigableItem.Dehydrate(result.NavigableItem)
+            };
+        }
 
         internal INavigateToSearchResult Rehydrate(Solution solution)
         {
             return new NavigateToSearchResult(
                 AdditionalInformation, Kind, MatchKind, IsCaseSensitive,
-                Name, NameMatchSpans,
+                Name, NameMatchSpans.ToImmutableArrayOrEmpty(),
                 SecondarySort, Summary, NavigableItem.Rehydrate(solution));
         }
 
@@ -115,60 +82,34 @@ namespace Microsoft.CodeAnalysis.Remote
         }
     }
 
-    /// <summary>
-    /// Note: this is intentionally a class, not struct, to avoid hitting .NET Framework loader bug
-    /// that fails to load a struct S declaring a field of type ImmutableArray of S.
-    /// </summary>
-    [DataContract]
-    internal sealed class SerializableNavigableItem
+    internal class SerializableNavigableItem
     {
-        [DataMember(Order = 0)]
-        public readonly Glyph Glyph;
+        public Glyph Glyph;
 
-        [DataMember(Order = 1)]
-        public readonly ImmutableArray<TaggedText> DisplayTaggedParts;
+        public IList<TaggedText> DisplayTaggedParts;
 
-        [DataMember(Order = 2)]
-        public readonly bool DisplayFileLocation;
+        public bool DisplayFileLocation;
 
-        [DataMember(Order = 3)]
-        public readonly bool IsImplicitlyDeclared;
+        public bool IsImplicitlyDeclared;
 
-        [DataMember(Order = 4)]
-        public readonly DocumentId Document;
+        public DocumentId Document;
+        public TextSpan SourceSpan;
 
-        [DataMember(Order = 5)]
-        public readonly TextSpan SourceSpan;
-
-        [DataMember(Order = 6)]
-        public readonly ImmutableArray<SerializableNavigableItem> ChildItems;
-
-        public SerializableNavigableItem(
-            Glyph glyph,
-            ImmutableArray<TaggedText> displayTaggedParts,
-            bool displayFileLocation,
-            bool isImplicitlyDeclared,
-            DocumentId document,
-            TextSpan sourceSpan,
-            ImmutableArray<SerializableNavigableItem> childItems)
-        {
-            Glyph = glyph;
-            DisplayTaggedParts = displayTaggedParts;
-            DisplayFileLocation = displayFileLocation;
-            IsImplicitlyDeclared = isImplicitlyDeclared;
-            Document = document;
-            SourceSpan = sourceSpan;
-            ChildItems = childItems;
-        }
+        public IList<SerializableNavigableItem> ChildItems;
 
         public static SerializableNavigableItem Dehydrate(INavigableItem item)
-            => new(item.Glyph,
-                   item.DisplayTaggedParts,
-                   item.DisplayFileLocation,
-                   item.IsImplicitlyDeclared,
-                   item.Document.Id,
-                   item.SourceSpan,
-                   item.ChildItems.SelectAsArray(Dehydrate));
+        {
+            return new SerializableNavigableItem
+            {
+                Glyph = item.Glyph,
+                DisplayTaggedParts = item.DisplayTaggedParts,
+                DisplayFileLocation = item.DisplayFileLocation,
+                IsImplicitlyDeclared = item.IsImplicitlyDeclared,
+                Document = item.Document.Id,
+                SourceSpan = item.SourceSpan,
+                ChildItems = item.ChildItems.SelectAsArray(Dehydrate)
+            };
+        }
 
         public INavigableItem Rehydrate(Solution solution)
         {
@@ -176,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 ? ImmutableArray<INavigableItem>.Empty
                 : ChildItems.SelectAsArray(c => c.Rehydrate(solution));
             return new NavigableItem(
-                Glyph, DisplayTaggedParts,
+                Glyph, DisplayTaggedParts.ToImmutableArrayOrEmpty(),
                 DisplayFileLocation, IsImplicitlyDeclared,
                 solution.GetDocument(Document),
                 SourceSpan,

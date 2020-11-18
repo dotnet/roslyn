@@ -15,9 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -142,10 +140,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // +1 for project itself
                 var count = documentAnalysisScope != null ? 1 : project.DocumentIds.Count + 1;
 
-                var performanceInfo = analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(AnalyzerInfoCache).ToImmutableArray();
-
-                _ = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
-                    (service, cancellationToken) => service.ReportAnalyzerPerformanceAsync(performanceInfo, count, cancellationToken),
+                await client.RunRemoteAsync(
+                    WellKnownServiceHubService.CodeAnalysis,
+                    nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
+                    solution: null,
+                    new object[] { analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(AnalyzerInfoCache), count },
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }
@@ -194,40 +193,39 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 project.Id,
                 analyzerMap.Keys.ToArray());
 
-            var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, SerializableDiagnosticAnalysisResults>(
+            return await client.RunRemoteAsync(
+                WellKnownServiceHubService.CodeAnalysis,
+                nameof(IRemoteDiagnosticAnalyzerService.CalculateDiagnosticsAsync),
                 solution,
-                invocation: (service, solutionInfo, cancellationToken) => service.CalculateDiagnosticsAsync(solutionInfo, argument, cancellationToken),
+                new object[] { argument },
                 callbackTarget: null,
+                (s, c) => ReadCompilerAnalysisResultAsync(s, analyzerMap, documentAnalysisScope, project, c),
                 cancellationToken).ConfigureAwait(false);
+        }
 
-            if (!result.HasValue)
+        private static async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(
+            Stream stream,
+            Dictionary<string, DiagnosticAnalyzer> analyzerMap,
+            DocumentAnalysisScope? documentAnalysisScope,
+            Project project,
+            CancellationToken cancellationToken)
+        {
+            // handling of cancellation and exception
+            var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+
+            using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
+
+            // We only get a reader for data transmitted between live processes.
+            // This data should always be correct as we're never persisting the data between sessions.
+            Contract.ThrowIfNull(reader);
+
+            if (!DiagnosticResultSerializer.TryReadDiagnosticAnalysisResults(reader, analyzerMap,
+                    documentAnalysisScope, project, version, cancellationToken, out var result))
             {
                 return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
             }
 
-            // handling of cancellation and exception
-            var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-
-            var documentIds = (documentAnalysisScope != null) ? ImmutableHashSet.Create(documentAnalysisScope.TextDocument.Id) : null;
-
-            return new DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>(
-                result.Value.Diagnostics.ToImmutableDictionary(
-                    entry => analyzerMap[entry.analyzerId],
-                    entry => DiagnosticAnalysisResult.Create(
-                        project,
-                        version,
-                        syntaxLocalMap: Hydrate(entry.diagnosticMap.Syntax, project),
-                        semanticLocalMap: Hydrate(entry.diagnosticMap.Semantic, project),
-                        nonLocalMap: Hydrate(entry.diagnosticMap.NonLocal, project),
-                        others: entry.diagnosticMap.Other,
-                        documentIds)),
-                result.Value.Telemetry.ToImmutableDictionary(entry => analyzerMap[entry.analyzerId], entry => entry.telemetry));
+            return result.Value;
         }
-
-        // TODO: filter in OOP https://github.com/dotnet/roslyn/issues/47859
-        private static ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> Hydrate(ImmutableArray<(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)> diagnosticByDocument, Project project)
-            => diagnosticByDocument
-                .Where(entry => project.GetTextDocument(entry.documentId)?.SupportsDiagnostics() == true)
-                .ToImmutableDictionary(entry => entry.documentId, entry => entry.diagnostics);
     }
 }

@@ -53,13 +53,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public ValueTask OnStartedAsync() => _underlyingProgress.OnStartedAsync();
-        public ValueTask OnCompletedAsync() => _underlyingProgress.OnCompletedAsync();
+        public Task OnStartedAsync() => _underlyingProgress.OnStartedAsync();
+        public Task OnCompletedAsync() => _underlyingProgress.OnCompletedAsync();
 
-        public ValueTask OnFindInDocumentCompletedAsync(Document document) => _underlyingProgress.OnFindInDocumentCompletedAsync(document);
-        public ValueTask OnFindInDocumentStartedAsync(Document document) => _underlyingProgress.OnFindInDocumentStartedAsync(document);
+        public Task OnFindInDocumentCompletedAsync(Document document) => _underlyingProgress.OnFindInDocumentCompletedAsync(document);
+        public Task OnFindInDocumentStartedAsync(Document document) => _underlyingProgress.OnFindInDocumentStartedAsync(document);
 
-        public ValueTask OnDefinitionFoundAsync(ISymbol definition)
+        public Task OnDefinitionFoundAsync(ISymbol definition)
         {
             lock (_gate)
             {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return _underlyingProgress.OnDefinitionFoundAsync(definition);
         }
 
-        public ValueTask OnReferenceFoundAsync(ISymbol definition, ReferenceLocation location)
+        public Task OnReferenceFoundAsync(ISymbol definition, ReferenceLocation location)
         {
             lock (_gate)
             {

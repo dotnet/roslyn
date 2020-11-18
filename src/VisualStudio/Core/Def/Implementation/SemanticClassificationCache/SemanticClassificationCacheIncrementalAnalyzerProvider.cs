@@ -64,9 +64,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
                 var isFullyLoaded = await statusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
                 Debug.Assert(isFullyLoaded, "We should only be called by the incremental analyzer once the solution is fully loaded.");
 
-                await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService>(
+                await client.RunRemoteAsync(
+                    WellKnownServiceHubService.CodeAnalysis,
+                    nameof(IRemoteSemanticClassificationCacheService.CacheSemanticClassificationsAsync),
                     document.Project.Solution,
-                    (service, solutionInfo, cancellationToken) => service.CacheSemanticClassificationsAsync(solutionInfo, document.Id, isFullyLoaded, cancellationToken),
+                    arguments: new object[] { document.Id, isFullyLoaded },
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }

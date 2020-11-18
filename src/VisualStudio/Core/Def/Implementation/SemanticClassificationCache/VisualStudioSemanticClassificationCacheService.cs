@@ -52,16 +52,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
                 return default;
             }
 
-            var classifiedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService, SerializableClassifiedSpans?>(
-                (service, cancellationToken) => service.GetCachedSemanticClassificationsAsync(documentKey.Dehydrate(), textSpan, checksum, cancellationToken),
+            var classifiedSpans = await client.RunRemoteAsync<SerializableClassifiedSpans>(
+                WellKnownServiceHubService.CodeAnalysis,
+                nameof(IRemoteSemanticClassificationCacheService.GetCachedSemanticClassificationsAsync),
+                solution: null,
+                arguments: new object[] { documentKey.Dehydrate(), textSpan, checksum },
                 callbackTarget: null,
                 cancellationToken).ConfigureAwait(false);
-
-            if (!classifiedSpans.HasValue || classifiedSpans.Value == null)
+            if (classifiedSpans == null)
                 return default;
 
             var list = ClassificationUtilities.GetOrCreateClassifiedSpanList();
-            classifiedSpans.Value.Rehydrate(list);
+            classifiedSpans.Rehydrate(list);
 
             var result = list.ToImmutableArray();
             ClassificationUtilities.ReturnClassifiedSpanList(list);

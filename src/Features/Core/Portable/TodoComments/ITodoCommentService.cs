@@ -43,16 +43,18 @@ namespace Microsoft.CodeAnalysis.TodoComments
             var originalLineInfo = location.GetLineSpan();
             var mappedLineInfo = location.GetMappedLineSpan();
 
-            return new(
-                priority: Descriptor.Priority,
-                message: Message,
-                documentId: document.Id,
-                originalLine: originalLineInfo.StartLinePosition.Line,
-                originalColumn: originalLineInfo.StartLinePosition.Character,
-                originalFilePath: document.FilePath,
-                mappedLine: mappedLineInfo.StartLinePosition.Line,
-                mappedColumn: mappedLineInfo.StartLinePosition.Character,
-                mappedFilePath: mappedLineInfo.GetMappedFilePathIfExist());
+            return new TodoCommentData
+            {
+                Priority = Descriptor.Priority,
+                Message = Message,
+                DocumentId = document.Id,
+                OriginalLine = originalLineInfo.StartLinePosition.Line,
+                OriginalColumn = originalLineInfo.StartLinePosition.Character,
+                OriginalFilePath = document.FilePath,
+                MappedLine = mappedLineInfo.StartLinePosition.Line,
+                MappedColumn = mappedLineInfo.StartLinePosition.Character,
+                MappedFilePath = mappedLineInfo.GetMappedFilePathIfExist(),
+            };
         }
 
         public static async Task ConvertAsync(
