@@ -23,5 +23,5 @@ scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
 # Import Arcade functions
 . "$scriptroot/common/tools.sh"
 
-InitializeDotNetCli $true
+InitializeDotNetCli true
 dotnet run --project src/Tools/PrepareTests/PrepareTests.csproj $repo_root $repo_root/artifacts/testPayload

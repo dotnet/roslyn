@@ -68,13 +68,13 @@ internal static class MinimizeUtil
                     else
                     {
                         var destFilePath = Path.Combine(currentOutputDirectory, fileName);
-                        CreateHardLink(destFilePath, sourceFilePath, IntPtr.Zero);
+                        CreateHardLink(destFilePath, sourceFilePath);
                     }
                 }
             }
 
             var destGlobalJsonPath = Path.Combine(destinationDirectory, "global.json");
-            CreateHardLink(destGlobalJsonPath, Path.Combine(sourceDirectory, "global.json"), IntPtr.Zero);
+            CreateHardLink(destGlobalJsonPath, Path.Combine(sourceDirectory, "global.json"));
         }
 
         // Now that we have a complete list of PE files, determine which are duplicates
@@ -84,13 +84,13 @@ internal static class MinimizeUtil
             {
                 if (pair.Value.Count > 1)
                 {
-                    CreateHardLink(getPeFilePath(pair.Key), pair.Value[0].FullPath, IntPtr.Zero);
+                    CreateHardLink(getPeFilePath(pair.Key), pair.Value[0].FullPath);
                 }
                 else
                 {
                     var item = pair.Value[0];
                     var destFilePath = Path.Combine(destinationDirectory, item.RelativePath);
-                    CreateHardLink(destFilePath, item.FullPath, IntPtr.Zero);
+                    CreateHardLink(destFilePath, item.FullPath);
                 }
             }
         }
@@ -128,8 +128,25 @@ internal static class MinimizeUtil
         }
     }
 
-    [DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
-    private static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
+    private static bool CreateHardLink(string lpFileName, string lpExistingFileName)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return CreateHardLink(lpFileName, lpExistingFileName, IntPtr.Zero);
+        }
+        else
+        {
+            return link(lpExistingFileName, lpFileName) == 0;
+        }
+
+        // https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createhardlinkw
+        [DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
+        static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
+
+        // https://man7.org/linux/man-pages/man2/link.2.html
+        [DllImport("libc")]
+        static extern int link(string oldpath, string newpath);
+    }
 
     private static bool TryGetMvid(string filePath, out Guid mvid)
     {
