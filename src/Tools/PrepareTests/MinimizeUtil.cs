@@ -34,8 +34,7 @@ internal static class MinimizeUtil
         void initialWalk()
         {
             IEnumerable<string> directories = new[] {
-                Path.Combine(sourceDirectory, "eng"),
-                Path.Combine(sourceDirectory, ".dotnet")
+                Path.Combine(sourceDirectory, "eng")
             };
             var artifactsDir = Path.Combine(sourceDirectory, "artifacts/bin");
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "*.UnitTests"));
@@ -108,7 +107,6 @@ internal static class MinimizeUtil
                 .SelectMany(pair => pair.Value.Select(fp => (Id: pair.Key, FilePath: fp)))
                 .GroupBy(fp => fp.FilePath.RelativeDirectory);
             var builder = new StringBuilder();
-            builder.AppendLine("@echo off");
             var count = 0;
             foreach (var group in grouping)
             {
@@ -116,23 +114,17 @@ internal static class MinimizeUtil
                 {
                     var source = Path.Combine(duplicateDirectoryName, getPeFileName(tuple.Id));
                     var destFileName = Path.Combine(group.Key, Path.GetFileName(tuple.FilePath.FullPath));
-                    builder.AppendLine($@"
-mklink /h {destFileName} {source} > nul
-if %errorlevel% neq 0 (
-    echo %errorlevel%
-    echo Cmd failed: mklink /h {destFileName} {source} > nul
-    exit 1
-)");
+                    builder.AppendLine($@"New-Item -ItemType HardLink -Name {destFileName} -Value {source} -ErrorAction Stop | Out-Null");
 
                     count++;
                     if (count % 1_000 == 0)
                     {
-                        builder.AppendLine($"echo {count:n0} hydrated");
+                        builder.AppendLine($"Write-Host '{count:n0} hydrated'");
                     }
                 }
             }
 
-            File.WriteAllText(Path.Combine(destinationDirectory, "rehydrate.cmd"), builder.ToString());
+            File.WriteAllText(Path.Combine(destinationDirectory, "rehydrate.ps1"), builder.ToString());
         }
     }
 

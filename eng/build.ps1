@@ -217,7 +217,7 @@ function BuildSolution() {
   $toolsetBuildProj = InitializeToolset
 
   $testTargetFrameworks = if ($testCoreClr) { 'net5.0%3Bnetcoreapp3.1' } else { "" }
-  
+
   $ibcDropName = GetIbcDropName
 
   # Do not set this property to true explicitly, since that would override values set in projects.
@@ -305,7 +305,7 @@ function GetIbcDropName() {
     # Bring in the ibc tools
     $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net461"
     Import-Module (Join-Path $packagePath "Optimization.Data.PowerShell.dll")
-    
+
     # Find the matching drop
     $branch = GetIbcSourceBranchName
     Write-Host "Optimization data branch name is '$branch'."
@@ -336,7 +336,7 @@ function TestUsingRunTests() {
   }
 
   $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
-  $binDir = Join-Path $ArtifactsDir "bin" 
+  $binDir = Join-Path $ArtifactsDir "bin"
   $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "netcoreapp3.1"
 
   if (!(Test-Path $runTests)) {
@@ -353,7 +353,6 @@ function TestUsingRunTests() {
   if ($testCoreClr) {
     $args += " --tfm net5.0"
     $args += " --tfm netcoreapp3.1"
-    $args += " --sequential"
     $args += " --include '\.UnitTests'"
     $args += " --timeout 90"
   }
@@ -429,10 +428,10 @@ function EnablePreviewSdks() {
 
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to
 # deploying at build time.
-function Deploy-VsixViaTool() { 
+function Deploy-VsixViaTool() {
   $vsixDir = Get-PackageDir "RoslynTools.VSIXExpInstaller"
   $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
-  
+
   $vsInfo = LocateVisualStudio
   if ($vsInfo -eq $null) {
     throw "Unable to locate required Visual Studio installation"
@@ -593,7 +592,7 @@ try {
     Prepare-TempDir
     EnablePreviewSdks
     if ($testVsi) {
-      Setup-IntegrationTestRun 
+      Setup-IntegrationTestRun
     }
 
     $global:_DotNetInstallDir = Join-Path $RepoRoot ".dotnet"

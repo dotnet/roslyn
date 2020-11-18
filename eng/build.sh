@@ -6,7 +6,7 @@
 set -u
 
 # Stop script if subcommand fails
-set -e 
+set -e
 
 usage()
 {
@@ -23,7 +23,7 @@ usage()
   echo "  --publish                  Publish build artifacts"
   echo "  --help                     Print help and exit"
   echo ""
-  echo "Test actions:"     
+  echo "Test actions:"
   echo "  --testCoreClr              Run unit tests on .NET Core (short: --test, -t)"
   echo "  --testMono                 Run unit tests on Mono"
   echo "  --testIOperation           Run unit tests with the IOperation test hook"
@@ -220,14 +220,14 @@ function BuildSolution {
 
   InitializeToolset
   local toolset_build_proj=$_InitializeToolset
-  
+
   local bl=""
   if [[ "$binary_log" = true ]]; then
     bl="/bl:\"$log_dir/Build.binlog\""
   fi
-  
-  local projects="$repo_root/$solution" 
-  
+
+  local projects="$repo_root/$solution"
+
   # https://github.com/dotnet/roslyn/issues/23736
   UNAME="$(uname)"
   if [[ "$UNAME" == "Darwin" ]]; then
