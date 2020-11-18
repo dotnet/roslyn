@@ -550,12 +550,12 @@ function Prepare-TempDir() {
   $env:TEMP=$TempDir
   $env:TMP=$TempDir
 
-  Copy-Item (Join-Path $RepoRoot "eng\test-resources\.editorconfig") $TempDir
-  Copy-Item (Join-Path $RepoRoot "eng\test-resources\global.json") $TempDir
-  Copy-Item (Join-Path $RepoRoot "eng\test-resources\Directory.Build.props") $TempDir
-  Copy-Item (Join-Path $RepoRoot "eng\test-resources\Directory.Build.targets") $TempDir
-  Copy-Item (Join-Path $RepoRoot "eng\test-resources\Directory.Build.rsp") $TempDir
-  Copy-Item (Join-Path $RepoRoot "eng\test-resources\NuGet.Config") $TempDir
+  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
+  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\global.json") $TempDir
+  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
+  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
+  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.rsp") $TempDir
+  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\NuGet.Config") $TempDir
 }
 
 function List-Processes() {
