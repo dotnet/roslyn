@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             private readonly ITextUndoHistory _undoHistory;
             private readonly IEditorOperations _editorOperations;
             private readonly IEditorBraceCompletionSession _session;
-            private readonly ISmartIndentationService _smartIndentationService;
 
             #endregion
 
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 ITextView textView, ITextBuffer subjectBuffer,
                 SnapshotPoint openingPoint, char openingBrace, char closingBrace, ITextUndoHistory undoHistory,
                 IEditorOperationsFactoryService editorOperationsFactoryService, IEditorBraceCompletionSession session,
-                ISmartIndentationService smartIndentationService, IThreadingContext threadingContext)
+                IThreadingContext threadingContext)
                 : base(threadingContext, assertIsForeground: true)
             {
                 this.TextView = textView;
@@ -64,7 +63,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 _undoHistory = undoHistory;
                 _editorOperations = editorOperationsFactoryService.GetEditorOperations(textView);
                 _session = session;
-                _smartIndentationService = smartIndentationService;
             }
 
             #endregion
@@ -385,45 +383,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                     return;
                 }
                 
-
-                var snapshotPoint = SubjectBuffer.CurrentSnapshot.GetPoint(result.CaretLocation);
-                var line = snapshotPoint.GetContainingLine();
-
-                if (line.GetText().IsNullOrWhiteSpace())
-                {
-                    // If the caret is on an empty line, put it at the correct indentation using virtual space.
-                    PutCaretOnLine(this, _smartIndentationService, line.LineNumber);
-                }
-                else
-                {
-                    // Not on an empty line, just put the caret at the specified location.
-                    TextView.TryMoveCaretToAndEnsureVisible(snapshotPoint);
-                }
-
-                static void PutCaretOnLine(IBraceCompletionSession session, ISmartIndentationService smartIndentationService, int lineNumber)
-                {
-                    var lineOnSubjectBuffer = session.SubjectBuffer.CurrentSnapshot.GetLineFromLineNumber(lineNumber);
-
-                    var indentation = GetDesiredIndentation(session, smartIndentationService, lineOnSubjectBuffer);
-
-                    session.TextView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(lineOnSubjectBuffer, indentation));
-                }
-
-                static int GetDesiredIndentation(IBraceCompletionSession session, ISmartIndentationService smartIndentationService, ITextSnapshotLine lineOnSubjectBuffer)
-                {
-                    // first try VS's smart indentation service
-                    var indentation = session.TextView.GetDesiredIndentation(smartIndentationService, lineOnSubjectBuffer);
-                    if (indentation.HasValue)
-                    {
-                        return indentation.Value;
-                    }
-
-                    // do poor man's indentation
-                    var openingPoint = session.OpeningPoint.GetPoint(lineOnSubjectBuffer.Snapshot);
-                    var openingSpanLine = openingPoint.GetContainingLine();
-
-                    return openingPoint - openingSpanLine.Start;
-                }
+                var caretLine = SubjectBuffer.CurrentSnapshot.GetLineFromLineNumber(result.CaretLocation.Line);
+                TextView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(caretLine, result.CaretLocation.Character));
             }
 
             #endregion

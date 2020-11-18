@@ -58,16 +58,18 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             }
 
             var braceTextEdit = new TextChange(TextSpan.FromBounds(closingPoint, closingPoint), ClosingBrace.ToString());
-            // The caret location should be right before where the closing brace was inserted.
-            return new BraceCompletionResult(ImmutableArray.Create(braceTextEdit), caretLocation: openingPoint + 1);
+            // The caret location should be in between the braces.
+            var originalOpeningLinePosition = sourceText.Lines.GetLinePosition(openingPoint);
+            var caretLocation = new LinePosition(originalOpeningLinePosition.Line, originalOpeningLinePosition.Character + 1);
+            return new BraceCompletionResult(ImmutableArray.Create(braceTextEdit), caretLocation);
         }
 
         ///<inheritdoc cref="IBraceCompletionService.GetTextChangesAfterCompletionAsync(BraceCompletionContext, CancellationToken)"/>
         public virtual Task<BraceCompletionResult?> GetTextChangesAfterCompletionAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken)
             => SpecializedTasks.Default<BraceCompletionResult?>();
 
-        ///<inheritdoc cref="IBraceCompletionService.GetTextChangeAfterReturnAsync(BraceCompletionContext, bool, CancellationToken)"/>
-        public virtual Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext braceCompletionContext, bool supportsVirtualSpace, CancellationToken cancellationToken)
+        ///<inheritdoc cref="IBraceCompletionService.GetTextChangeAfterReturnAsync(BraceCompletionContext, CancellationToken)"/>
+        public virtual Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken)
             => SpecializedTasks.Default<BraceCompletionResult?>();
 
         ///<inheritdoc cref="IBraceCompletionService.IsValidForBraceCompletionAsync(char, int, Document, CancellationToken)"/>

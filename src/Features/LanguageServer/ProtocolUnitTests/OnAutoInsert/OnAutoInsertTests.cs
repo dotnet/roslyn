@@ -5,6 +5,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
             await VerifyMarkupAndExpected("\n", markup, expected);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task OnAutoInsert_BraceFormatting()
         {
             // The test starts with the closing brace already on a new line.
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
             await VerifyMarkupAndExpected("\n", markup, expected);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task OnAutoInsert_BraceFormattingInsideMethod()
         {
             var markup =
@@ -227,7 +228,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
             await VerifyMarkupAndExpected("\n", markup, expected);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task OnAutoInsert_BraceFormattingNoResultInInterpolation()
         {
             var markup =

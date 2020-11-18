@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         /// <summary>
         /// Get any text changes that should be applied after the enter key is typed inside a brace completion context.
         /// </summary>
-        Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext braceCompletionContext, bool supportsVirtualSpace, CancellationToken cancellationToken);
+        Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the brace completion context if the caret is located between an already completed
@@ -64,9 +64,9 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         /// The caret location in the new text created by applying all <see cref="TextChanges"/>
         /// to the input text.
         /// </summary>
-        public int CaretLocation { get; }
+        public LinePosition CaretLocation { get; }
 
-        public BraceCompletionResult(ImmutableArray<TextChange> textChanges, int caretLocation)
+        public BraceCompletionResult(ImmutableArray<TextChange> textChanges, LinePosition caretLocation)
         {
             CaretLocation = caretLocation;
             TextChanges = textChanges;

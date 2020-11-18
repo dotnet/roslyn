@@ -59,10 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             }
 
             // The caret location should be at the start of the closing brace character.
-            return new BraceCompletionResult(formattingChanges, newClosingPoint - 1);
+            var originalText = await braceCompletionContext.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var formattedText = originalText.WithChanges(formattingChanges);
+            var caretLocation = formattedText.Lines.GetLinePosition(newClosingPoint - 1);
+
+            return new BraceCompletionResult(formattingChanges, caretLocation);
         }
 
-        public override async Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext context, bool supportsVirtualSpace, CancellationToken cancellationToken)
+        public override async Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             var closingPoint = context.ClosingPoint;
@@ -101,28 +105,13 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             var desiredCaretLine = GetLineBetweenCurlys(closingPoint, formattedText);
             Debug.Assert(desiredCaretLine.GetFirstNonWhitespacePosition() == null, "the line between the formatted braces is not empty");
 
-            if (supportsVirtualSpace)
-            {
-                var overallChanges = formattedText.GetTextChanges(originalDocumentText).ToImmutableArray();
-                return new BraceCompletionResult(overallChanges, desiredCaretLine.Start);
-            }
-            else
-            {
-                // The caller does not support virtual spaces, so we have to insert actual whitespace into the document.
+            // Set the caret position to the properly indented column in the desired line.
+            var newDocument = document.WithText(formattedText);
+            var newDocumentText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var caretPosition = GetIndentedLinePosition(newDocument, newDocumentText, desiredCaretLine.LineNumber, cancellationToken);
 
-                // Calculate the desired indentation.
-                var indentationService = document.GetRequiredLanguageService<IIndentationService>();
-                var indentation = indentationService.GetIndentation(document.WithText(formattedText), desiredCaretLine.LineNumber, cancellationToken);
-
-                // Insert whitespace for the indentation.
-                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var indentedText = GetIndentedText(indentation, documentOptions, formattedText);
-
-                // The caret should be placed at the end of the indented line.
-                var caretLocation = indentedText.Lines[desiredCaretLine.LineNumber].End;
-                var overallChanges = indentedText.GetTextChanges(originalDocumentText).ToImmutableArray();
-                return new BraceCompletionResult(overallChanges, caretLocation);
-            }
+            var overallChanges = formattedText.GetTextChanges(originalDocumentText).ToImmutableArray();
+            return new BraceCompletionResult(overallChanges, caretPosition);
 
             static TextLine GetLineBetweenCurlys(int closingPosition, SourceText text)
             {
@@ -130,11 +119,16 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return text.Lines[closingBraceLineNumber - 1];
             }
 
-            static SourceText GetIndentedText(IndentationResult indentation, DocumentOptionSet documentOptions, SourceText originalText)
+            static LinePosition GetIndentedLinePosition(Document document, SourceText sourceText, int lineNumber, CancellationToken cancellationToken)
             {
-                var indentText = indentation.Offset.CreateIndentationString(documentOptions.GetOption(FormattingOptions.UseTabs), documentOptions.GetOption(FormattingOptions.TabSize));
-                var indentTextChange = new TextChange(new TextSpan(indentation.BasePosition, 0), indentText);
-                return originalText.WithChanges(indentTextChange);
+                var indentationService = document.GetRequiredLanguageService<IIndentationService>();
+                var indentation = indentationService.GetIndentation(document, lineNumber, cancellationToken);
+
+                var baseLinePosition = sourceText.Lines.GetLinePosition(indentation.BasePosition);
+                var offsetOfBacePosition = baseLinePosition.Character;
+                var totalOffset = offsetOfBacePosition + indentation.Offset;
+                var indentedLinePosition = new LinePosition(lineNumber, totalOffset);
+                return indentedLinePosition;
             }
         }
 

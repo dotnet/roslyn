@@ -32,20 +32,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
     {
         private readonly ITextBufferUndoManagerProvider _undoManager;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly ISmartIndentationService _smartIndentationService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public BraceCompletionSessionProvider(
             IThreadingContext threadingContext,
             ITextBufferUndoManagerProvider undoManager,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            ISmartIndentationService smartIndentationService)
+            IEditorOperationsFactoryService editorOperationsFactoryService)
             : base(threadingContext)
         {
             _undoManager = undoManager;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _smartIndentationService = smartIndentationService;
         }
 
         public bool TryCreateSession(ITextView textView, SnapshotPoint openingPoint, char openingBrace, char closingBrace, out IBraceCompletionSession session)
@@ -68,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                         session = new BraceCompletionSession(
                             textView, openingPoint.Snapshot.TextBuffer, openingPoint, openingBrace, closingBrace,
                             undoHistory, _editorOperationsFactoryService,
-                            editorSession, _smartIndentationService, ThreadingContext);
+                            editorSession, ThreadingContext);
                         return true;
                     }
                 }

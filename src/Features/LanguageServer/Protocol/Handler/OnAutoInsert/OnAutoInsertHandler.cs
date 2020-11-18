@@ -18,6 +18,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using static Microsoft.CodeAnalysis.Completion.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -112,8 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private async Task<LSP.DocumentOnAutoInsertResponseItem?> GetBraceCompletionAfterReturnResponseAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, Document document, CancellationToken cancellationToken)
         {
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var linePosition = ProtocolConversions.PositionToLinePosition(autoInsertParams.Position);
-            var position = sourceText.Lines.GetPosition(linePosition);
+            var position = sourceText.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(autoInsertParams.Position));
 
             var serviceAndContext = await GetBraceCompletionContextAsync(position, document, cancellationToken).ConfigureAwait(false);
             if (serviceAndContext == null)
@@ -122,17 +123,34 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var (service, context) = serviceAndContext.Value;
-            var postReturnEdit = await service.GetTextChangeAfterReturnAsync(context, supportsVirtualSpace: false, cancellationToken).ConfigureAwait(false);
+            var postReturnEdit = await service.GetTextChangeAfterReturnAsync(context, cancellationToken).ConfigureAwait(false);
             if (postReturnEdit == null)
             {
                 return null;
             }
 
-            var textChange = await GetCollapsedChangeAsync(postReturnEdit.Value, document, cancellationToken).ConfigureAwait(false);
-            Debug.Assert(postReturnEdit.Value.CaretLocation >= textChange.Span.Start);
-            var offsetInTextChange = postReturnEdit.Value.CaretLocation - textChange.Span.Start;
+            var textChanges = postReturnEdit.Value.TextChanges;
+            var desiredCaretLinePosition = postReturnEdit.Value.CaretLocation;
+            var newSourceText = sourceText.WithChanges(textChanges);
 
-            var newText = textChange.NewText!.Insert(offsetInTextChange, "$0");
+            var caretLine = newSourceText.Lines[desiredCaretLinePosition.Line];
+            if (caretLine.IsEmptyOrWhitespace() && desiredCaretLinePosition.Character > caretLine.Span.Length)
+            {
+                // The desired caret column is at an indented position, lets add whitespace indentation to the text.
+
+                // Indent by the amount needed to make the caret line contain the desired indentation column.
+                var amountToIndent = desiredCaretLinePosition.Character - caretLine.Span.Length;
+
+                // Create and apply a text change with whitespace for the indentation amount.
+                var indentedText = await GetIndentedTextAsync(document, newSourceText, caretLine.End, amountToIndent, cancellationToken).ConfigureAwait(false);
+
+                // Get the overall text changes between the original text and the formatted + indented text.
+                textChanges = indentedText.GetTextChanges(sourceText).ToImmutableArray();
+                newSourceText = indentedText;
+            }
+
+            var textChange = await GetCollapsedChangeAsync(textChanges, document, cancellationToken).ConfigureAwait(false);
+            var newText = GetTextChangeTextWithCaretAtLocation(newSourceText, textChange, desiredCaretLinePosition);
             var autoInsertChange = new LSP.DocumentOnAutoInsertResponseItem
             {
                 TextEditFormat = LSP.InsertTextFormat.Snippet,
@@ -145,11 +163,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return autoInsertChange;
 
-            static async Task<TextChange> GetCollapsedChangeAsync(BraceCompletionResult result, Document oldDocument, CancellationToken cancellationToken)
+            static async Task<SourceText> GetIndentedTextAsync(Document originalDocument, SourceText textToIndent, int locationToIndent, int amountToIndent, CancellationToken cancellationToken)
+            {
+                var documentOptions = await originalDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var indentText = amountToIndent.CreateIndentationString(documentOptions.GetOption(FormattingOptions.UseTabs), documentOptions.GetOption(FormattingOptions.TabSize));
+                var indentedText = textToIndent.WithChanges(new TextChange(new TextSpan(locationToIndent, 0), indentText));
+                return indentedText;
+            }
+
+            static async Task<TextChange> GetCollapsedChangeAsync(ImmutableArray<TextChange> textChanges, Document oldDocument, CancellationToken cancellationToken)
             {
                 var documentText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                documentText = documentText.WithChanges(result.TextChanges);
-                return Collapse(documentText, result.TextChanges);
+                documentText = documentText.WithChanges(textChanges);
+                return Collapse(documentText, textChanges);
+            }
+
+            static string GetTextChangeTextWithCaretAtLocation(SourceText sourceText, TextChange textChange, LinePosition desiredCaretLinePosition)
+            {
+                var desiredCaretLocation = sourceText.Lines.GetPosition(desiredCaretLinePosition);
+                Debug.Assert(desiredCaretLocation >= textChange.Span.Start);
+                var offsetInTextChange = desiredCaretLocation - textChange.Span.Start;
+                var newText = textChange.NewText!.Insert(offsetInTextChange, "$0");
+                return newText;
             }
         }
 
