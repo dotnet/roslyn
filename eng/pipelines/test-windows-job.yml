@@ -37,13 +37,13 @@ jobs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
 
-    - task: PowerShell@2 
+    - task: PowerShell@2
       displayName: Rehydrate Unit Tests Environment
       inputs:
         filePath: rehydrate.ps1
         pwsh: true
 
-    - task: PowerShell@2 
+    - task: PowerShell@2
       displayName: Run Unit Tests
       inputs:
         filePath: eng/build.ps1

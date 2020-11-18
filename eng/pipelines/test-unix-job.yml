@@ -36,15 +36,23 @@ jobs:
       vmImage: ${{ parameters.vmImageName }}
   timeoutInMinutes: 40
   steps:
+    - checkout: none
+
     - task: DownloadPipelineArtifact@2
       inputs:
         artifact: ${{ parameters.testArtifactName }}
-        path: '$(Build.SourcesDirectory)/artifacts/bin'
+        path: '$(Build.SourcesDirectory)'
 
     # Work around for files not maintaining permissions after pipeline download
     # https://github.com/microsoft/azure-pipelines-tasks/issues/6364
     - bash: find . -name ilasm | xargs chmod 755
       workingDirectory: '$(Build.SourcesDirectory)/artifacts/bin'
+
+    - task: PowerShell@2
+      displayName: Rehydrate Unit Tests Environment
+      inputs:
+        filePath: rehydrate.ps1
+        pwsh: true
 
     - script: ./eng/build.sh --ci --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
       displayName: Test
