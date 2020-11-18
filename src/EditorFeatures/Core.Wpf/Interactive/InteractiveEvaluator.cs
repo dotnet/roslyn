@@ -84,9 +84,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private RemoteInitializationResult? _initializationResult;
         private InteractiveHostPlatformInfo _platformInfo;
-        public ImmutableArray<string> ReferenceSearchPaths { get; private set; }
-        public ImmutableArray<string> SourceSearchPaths { get; private set; }
-        public string WorkingDirectory { get; private set; }
+        private ImmutableArray<string> _referenceSearchPaths;
+        private ImmutableArray<string> _sourceSearchPaths;
+        private string _workingDirectory;
 
         /// <summary>
         /// Buffers that need to be associated with a submission project once the process initialization completes.
@@ -126,9 +126,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             // The following settings will apply when the REPL starts without .rsp file.
             // They are discarded once the REPL is reset.
-            ReferenceSearchPaths = ImmutableArray<string>.Empty;
-            SourceSearchPaths = ImmutableArray<string>.Empty;
-            WorkingDirectory = initialWorkingDirectory;
+            _referenceSearchPaths = ImmutableArray<string>.Empty;
+            _sourceSearchPaths = ImmutableArray<string>.Empty;
+            _workingDirectory = initialWorkingDirectory;
 
             _interactiveHost = new InteractiveHost(languageInfo.ReplServiceProviderType, initialWorkingDirectory);
             _interactiveHost.ProcessInitialized += ProcessInitialized;
@@ -334,17 +334,17 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 compilationOptions = solution.GetRequiredProject(previousSubmissionProjectId).CompilationOptions!;
 
                 var metadataResolver = (RuntimeMetadataReferenceResolver)compilationOptions.MetadataReferenceResolver!;
-                if (metadataResolver.PathResolver.BaseDirectory != WorkingDirectory ||
-                    !metadataResolver.PathResolver.SearchPaths.SequenceEqual(ReferenceSearchPaths))
+                if (metadataResolver.PathResolver.BaseDirectory != _workingDirectory ||
+                    !metadataResolver.PathResolver.SearchPaths.SequenceEqual(_referenceSearchPaths))
                 {
-                    compilationOptions = compilationOptions.WithMetadataReferenceResolver(metadataResolver.WithRelativePathResolver(new RelativePathResolver(ReferenceSearchPaths, WorkingDirectory)));
+                    compilationOptions = compilationOptions.WithMetadataReferenceResolver(metadataResolver.WithRelativePathResolver(new RelativePathResolver(_referenceSearchPaths, _workingDirectory)));
                 }
 
                 var sourceResolver = (SourceFileResolver)compilationOptions.SourceReferenceResolver!;
-                if (sourceResolver.BaseDirectory != WorkingDirectory ||
-                    !sourceResolver.SearchPaths.SequenceEqual(SourceSearchPaths))
+                if (sourceResolver.BaseDirectory != _workingDirectory ||
+                    !sourceResolver.SearchPaths.SequenceEqual(_sourceSearchPaths))
                 {
-                    compilationOptions = compilationOptions.WithSourceReferenceResolver(CreateSourceReferenceResolver(sourceResolver.SearchPaths, WorkingDirectory));
+                    compilationOptions = compilationOptions.WithSourceReferenceResolver(CreateSourceReferenceResolver(sourceResolver.SearchPaths, _workingDirectory));
                 }
             }
             else
@@ -352,8 +352,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 var metadataService = _workspace.Services.GetRequiredService<IMetadataService>();
                 compilationOptions = _languageInfo.GetSubmissionCompilationOptions(
                     name,
-                    CreateMetadataReferenceResolver(metadataService, _platformInfo, ReferenceSearchPaths, WorkingDirectory),
-                    CreateSourceReferenceResolver(SourceSearchPaths, WorkingDirectory),
+                    CreateMetadataReferenceResolver(metadataService, _platformInfo, _referenceSearchPaths, _workingDirectory),
+                    CreateSourceReferenceResolver(_sourceSearchPaths, _workingDirectory),
                     imports);
             }
 
@@ -524,9 +524,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private void UpdatePathsNoLock(RemoteExecutionResult result)
         {
-            WorkingDirectory = result.WorkingDirectory;
-            ReferenceSearchPaths = result.ReferencePaths;
-            SourceSearchPaths = result.SourcePaths;
+            _workingDirectory = result.WorkingDirectory;
+            _referenceSearchPaths = result.ReferencePaths;
+            _sourceSearchPaths = result.SourcePaths;
         }
 
         public async Task SetPathsAsync(ImmutableArray<string> referenceSearchPaths, ImmutableArray<string> sourceSearchPaths, string workingDirectory)
