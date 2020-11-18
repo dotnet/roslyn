@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(GetMethod is object);
 
-                if (!IsStatic && SetMethod is object && !SetMethod.IsInitOnly)
+                if (!IsStatic && SetMethod is { IsInitOnly: false })
                 {
                     if (ContainingType.IsReadOnly)
                     {
@@ -1418,6 +1418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.StartPropertyEnsureSignature:
                     case CompletionPart.FinishPropertyEnsureSignature:
                         EnsureSignature();
+                        Debug.Assert(_state.HasComplete(CompletionPart.FinishPropertyEnsureSignature));
                         break;
 
                     case CompletionPart.StartPropertyParameters:
