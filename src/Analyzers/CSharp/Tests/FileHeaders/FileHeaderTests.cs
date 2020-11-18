@@ -672,5 +672,37 @@ namespace Bar
                 EditorConfig = TestSettingsWithMultiLineComment,
             }.RunAsync();
         }
+
+        [Theory]
+        [InlineData("/* Missing closing block comment token", "// /* Missing closing block comment token")]
+        [InlineData(@"\n// Leading new line\n", "\r\n// Leading new line\r\n")]
+        [InlineData(@"Some Text // Some Text before comment", "// Some Text // Some Text before comment")]
+        [InlineData(@"// Some Text after comment\nSome Text", "// // Some Text after comment\r\n// Some Text")]
+        public async Task TestNoHeaderTemplateLooksCommentLike(string headerTemplate, string excpectedHeader)
+        {
+            var editorConfig = @$"
+[*.cs]
+file_header_template = {headerTemplate}
+";
+
+            var testCode = @"[||]
+namespace Bar
+{
+}
+";
+            var fixedCode = @$"{excpectedHeader}
+
+namespace Bar
+{{
+}}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                EditorConfig = editorConfig,
+            }.RunAsync();
+        }
     }
 }
