@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            _sourceName = _sourceName ?? memberName; //sourceName may have been set while loading attributes
+            _sourceName = _sourceName ?? memberName; // _sourceName may have been set while loading attributes
             _name = isIndexer ? ExplicitInterfaceHelpers.GetMemberName(WellKnownMemberNames.Indexer, _explicitInterfaceType, aliasQualifierOpt) : _sourceName;
 
             if ((isAutoProperty && hasGetAccessor) || hasInitializer)
