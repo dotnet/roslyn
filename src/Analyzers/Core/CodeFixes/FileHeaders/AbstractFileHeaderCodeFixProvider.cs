@@ -193,15 +193,54 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
         private static SyntaxTriviaList CreateNewHeader(ISyntaxFacts syntaxFacts, string prefixWithLeadingSpaces, string expectedFileHeader, string newLineText)
         {
-            var tryParseTemplate = syntaxFacts.ParseLeadingTrivia(expectedFileHeader.Replace("\r\n", newLineText).Replace("\n", newLineText));
-            if (tryParseTemplate.Any() && syntaxFacts.IsRegularComment(tryParseTemplate[0]) && tryParseTemplate.All(trivia => !trivia.ContainsDiagnostics))
+            if (TryParseTemplateAsComment(syntaxFacts, expectedFileHeader, newLineText, out var parsedTemplate))
             {
-                return tryParseTemplate;
+                return parsedTemplate;
             }
 
             var copyrightText = GetCopyrightText(prefixWithLeadingSpaces, expectedFileHeader, newLineText);
             var newHeader = copyrightText;
             return syntaxFacts.ParseLeadingTrivia(newHeader);
+        }
+
+        private static bool TryParseTemplateAsComment(ISyntaxFacts syntaxFacts, string expectedFileHeader, string newLineText, out SyntaxTriviaList result)
+        {
+            var normalizedHeaderTemplate = expectedFileHeader.Replace("\r\n", "\n").Replace("\n", newLineText);
+            var tryParseTemplate = syntaxFacts.ParseLeadingTrivia(normalizedHeaderTemplate);
+
+            foreach (var trivia in tryParseTemplate)
+            {
+                // Skip over leading whitespace
+                if (syntaxFacts.IsWhitespaceOrEndOfLineTrivia(trivia))
+                {
+                    continue;
+                }
+
+                if (syntaxFacts.IsRegularComment(trivia))
+                {
+                    // trivia starts with optional leading whitespace followed by a comment.
+                    // Lets check if there are any parsing errors in the trivia (e.g. missing closing block comment token)
+                    if (tryParseTemplate.All(t => !t.ContainsDiagnostics))
+                    {
+                        // One final check: Let's see if the parsed comment round-trips. This fails in cases like this:
+                        // file_header_template = // Some text\nMore text
+                        // "More text" is not part of tryParseTemplate
+                        var parsedComment = tryParseTemplate.ToFullString().Replace("\r\n", "\n").Replace("\n", newLineText);
+                        if (string.Equals(parsedComment, normalizedHeaderTemplate, StringComparison.Ordinal))
+                        {
+                            result = tryParseTemplate;
+                            return true;
+                        }
+                    }
+                }
+
+                // The first found (non whitespace) token is not a comment or a comment with diagnostics
+                // There is no need to look any further.
+                break;
+            }
+
+            result = SyntaxTriviaList.Empty;
+            return false;
         }
 
         private static string GetCopyrightText(string prefixWithLeadingSpaces, string copyrightText, string newLineText)
