@@ -1086,45 +1086,45 @@ public interface Bad { }
         }
 
         // From LegacyTest\CSharp\Source\csharp\Source\ClsCompliance\generics\Rule_E_01.cs
-        [Fact]
+        [Fact(Skip = "TODO2")]
         public void WRN_CLS_BadArgType_ConstructedTypeAccessibility()
         {
-//            var source = @"
-//[assembly: System.CLSCompliant(true)]
+            var source = @"
+[assembly: System.CLSCompliant(true)]
 
-//public class C<T>
-//{
-//    protected class N { }
-//    protected void M1(C<int>.N n) { }	// Not CLS-compliant - C<int>.N not 
-//    // accessible from within C<T> in all languages
-//    protected void M2(C<T>.N n) { }	    // CLS-compliant - C<T>.N accessible inside C<T>
+public class C<T>
+{
+    protected class N { }
+    protected void M1(C<int>.N n) { }	// Not CLS-compliant - C<int>.N not 
+    // accessible from within C<T> in all languages
+    protected void M2(C<T>.N n) { }	    // CLS-compliant - C<T>.N accessible inside C<T>
 
-//    protected class N2
-//    {
-//        protected void M1(C<ulong>.N n) { } // Not CLS-compliant
-//    }
-//}
+    protected class N2
+    {
+        protected void M1(C<ulong>.N n) { } // Not CLS-compliant
+    }
+}
 
-//public class D : C<long>
-//{
-//    protected void M3(C<int>.N n) { }	// Not CLS-compliant - C<int>.N is not
-//    // accessible in D (extends C<long>)
-//    protected void M4(C<long>.N n) { }	// CLS-compliant, C<long>.N is
-//    // accessible in D (extends C<long>)
-//}
-//";
+public class D : C<long>
+{
+    protected void M3(C<int>.N n) { }	// Not CLS-compliant - C<int>.N is not
+    // accessible in D (extends C<long>)
+    protected void M4(C<long>.N n) { }	// CLS-compliant, C<long>.N is
+    // accessible in D (extends C<long>)
+}
+";
 
             // TODO2
-            //CreateCompilation(source).VerifyDiagnostics(
-            //    // (7,32): warning CS3001: Argument type 'C<int>.N' is not CLS-compliant
-            //    //     protected void M1(C<int>.N n) { }	// Not CLS-compliant - C<int>.N not 
-            //    Diagnostic(ErrorCode.WRN_CLS_BadArgType, "n").WithArguments("C<int>.N"),
-            //    // (13,38): warning CS3001: Argument type 'C<ulong>.N' is not CLS-compliant
-            //    //         protected void M1(C<ulong>.N n) { }
-            //    Diagnostic(ErrorCode.WRN_CLS_BadArgType, "n").WithArguments("C<ulong>.N"),
-            //    // (19,32): warning CS3001: Argument type 'C<int>.N' is not CLS-compliant
-            //    //     protected void M3(C<int>.N n) { }	// Not CLS-compliant - C<int>.N is not
-            //    Diagnostic(ErrorCode.WRN_CLS_BadArgType, "n").WithArguments("C<int>.N"));
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,32): warning CS3001: Argument type 'C<int>.N' is not CLS-compliant
+                //     protected void M1(C<int>.N n) { }	// Not CLS-compliant - C<int>.N not 
+                Diagnostic(ErrorCode.WRN_CLS_BadArgType, "n").WithArguments("C<int>.N"),
+                // (13,38): warning CS3001: Argument type 'C<ulong>.N' is not CLS-compliant
+                //         protected void M1(C<ulong>.N n) { }
+                Diagnostic(ErrorCode.WRN_CLS_BadArgType, "n").WithArguments("C<ulong>.N"),
+                // (19,32): warning CS3001: Argument type 'C<int>.N' is not CLS-compliant
+                //     protected void M3(C<int>.N n) { }	// Not CLS-compliant - C<int>.N is not
+                Diagnostic(ErrorCode.WRN_CLS_BadArgType, "n").WithArguments("C<int>.N"));
         }
 
         [Fact]

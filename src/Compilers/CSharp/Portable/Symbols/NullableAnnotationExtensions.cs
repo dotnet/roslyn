@@ -22,15 +22,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsOblivious(this NullableAnnotation annotation)
         {
-            if (annotation == NullableAnnotation.Ignored)
-            {
-                Debug.Assert(false);
-                return true;
-            }
+            AssertNotIgnored(ref annotation);
             return annotation == NullableAnnotation.Oblivious;
         }
 
-        public static bool IsObliviousOrIgnored(this NullableAnnotation annotation) => annotation is NullableAnnotation.Oblivious or NullableAnnotation.Ignored;
+        public static bool IsObliviousOrIgnored(this NullableAnnotation annotation)
+            => annotation is NullableAnnotation.Oblivious or NullableAnnotation.Ignored;
+
+        private static void AssertNotIgnored(ref NullableAnnotation annotation)
+        {
+            if (annotation == NullableAnnotation.Ignored)
+            {
+                Debug.Assert(false);
+                annotation = NullableAnnotation.Oblivious;
+            }
+        }
 
         /// <summary>
         /// Join nullable annotations from the set of lower bounds for fixing a type parameter.
@@ -39,17 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static NullableAnnotation Join(this NullableAnnotation a, NullableAnnotation b)
         {
-            if (a == NullableAnnotation.Ignored)
-            {
-                Debug.Assert(false);
-                a = NullableAnnotation.Oblivious;
-            }
-            if (b == NullableAnnotation.Ignored)
-            {
-                Debug.Assert(false);
-                b = NullableAnnotation.Oblivious;
-            }
-
+            AssertNotIgnored(ref a);
+            AssertNotIgnored(ref b);
             return (a < b) ? b : a;
         }
 
@@ -60,17 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static NullableAnnotation Meet(this NullableAnnotation a, NullableAnnotation b)
         {
-            if (a == NullableAnnotation.Ignored)
-            {
-                Debug.Assert(false);
-                a = NullableAnnotation.Oblivious;
-            }
-            if (b == NullableAnnotation.Ignored)
-            {
-                Debug.Assert(false);
-                b = NullableAnnotation.Oblivious;
-            }
-
+            AssertNotIgnored(ref a);
+            AssertNotIgnored(ref b);
             return (a < b) ? a : b;
         }
 
@@ -81,17 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static NullableAnnotation EnsureCompatible(this NullableAnnotation a, NullableAnnotation b)
         {
-            if (a == NullableAnnotation.Ignored)
-            {
-                Debug.Assert(false);
-                a = NullableAnnotation.Oblivious;
-            }
-            if (b == NullableAnnotation.Ignored)
-            {
-                Debug.Assert(false);
-                b = NullableAnnotation.Oblivious;
-            }
-
+            AssertNotIgnored(ref a);
+            AssertNotIgnored(ref b);
             return (a, b) switch
             {
                 (NullableAnnotation.Oblivious, _) => b,
