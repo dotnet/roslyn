@@ -405,7 +405,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 // changed text
                 if (oldDocumentChecksums.Text != newDocumentChecksums.Text)
                 {
-                    var sourceText = await _assetProvider.GetAssetAsync<SourceText>(newDocumentChecksums.Text, _cancellationToken).ConfigureAwait(false);
+                    var serializableSourceText = await _assetProvider.GetAssetAsync<SerializableSourceText>(newDocumentChecksums.Text, _cancellationToken).ConfigureAwait(false);
+                    var sourceText = await serializableSourceText.GetTextAsync(_cancellationToken).ConfigureAwait(false);
 
                     document = document.Kind switch
                     {
@@ -428,6 +429,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfFalse(document.State.Attributes.Name == newDocumentInfo.Name);
                 Contract.ThrowIfFalse(document.State.Attributes.FilePath == newDocumentInfo.FilePath);
                 Contract.ThrowIfFalse(document.State.Attributes.IsGenerated == newDocumentInfo.IsGenerated);
+                Contract.ThrowIfFalse(document.State.Attributes.DesignTimeOnly == newDocumentInfo.DesignTimeOnly);
 
                 if (document.State.Attributes.Folders != newDocumentInfo.Folders)
                 {

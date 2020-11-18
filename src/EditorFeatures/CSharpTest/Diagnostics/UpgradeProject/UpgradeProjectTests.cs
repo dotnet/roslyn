@@ -14,12 +14,18 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProject
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
     public partial class UpgradeProjectTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public UpgradeProjectTests(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpUpgradeProjectCodeFixProvider());
 
@@ -501,7 +507,7 @@ class C
     </Project>
     <Project Language=""C#"" LanguageVersion=""7"">
     </Project>
-    <Project Language=""C#"" LanguageVersion=""800"">
+    <Project Language=""C#"" LanguageVersion=""8"">
     </Project>
 </Workspace>",
                 new[]
@@ -607,7 +613,7 @@ class C
 }
         </Document>
     </Project>
-    <Project Language=""C#"" LanguageVersion=""800"">
+    <Project Language=""C#"" LanguageVersion=""8"">
     </Project>
     <Project Language=""Visual Basic"">
     </Project>
@@ -878,7 +884,7 @@ class Test<T> where T : [|notnull|]
         {
             await TestExactActionSetOfferedAsync(
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""703"">
+    <Project Language=""C#"" LanguageVersion=""7.3"">
         <Document>
 interface notnull { }
 class Test&lt;T&gt; where T : [|notnull|]
@@ -908,7 +914,7 @@ class Test
         {
             await TestExactActionSetOfferedAsync(
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""703"">
+    <Project Language=""C#"" LanguageVersion=""7.3"">
         <Document>
 interface notnull { }
 class Test
@@ -935,7 +941,7 @@ class Test
         {
             await TestExactActionSetOfferedAsync(
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""703"">
+    <Project Language=""C#"" LanguageVersion=""7.3"">
         <Document>
 interface notnull { }
 delegate void D&lt;T&gt;() where T : [| notnull |];
@@ -966,7 +972,7 @@ class Test
         {
             await TestExactActionSetOfferedAsync(
 @"<Workspace>
-    <Project Language=""C#"" LanguageVersion=""703"">
+    <Project Language=""C#"" LanguageVersion=""7.3"">
         <Document>
 interface notnull { }
 class Test
@@ -980,6 +986,20 @@ class Test
     </Project>
 </Workspace>",
                 expectedActionSet: Enumerable.Empty<string>());
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForVarianceSafetyForStaticInterfaceMembers_CS9100()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+interface I2<out T1>
+{
+    static T1 M1([|T1|] x) => x;
+}
+",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp8));
         }
     }
 }

@@ -1663,15 +1663,6 @@ unsafe class C
         }
 
         [Fact]
-        public void PublicApi_ExplicitManagedFormatOption()
-        {
-            var comp = (Compilation)CreateCompilation("");
-            var @string = comp.GetSpecialType(SpecialType.System_String);
-            var ptr = comp.CreateFunctionPointerTypeSymbol(@string, returnRefKind: RefKind.None, parameterTypes: ImmutableArray<ITypeSymbol>.Empty, parameterRefKinds: ImmutableArray<RefKind>.Empty);
-            AssertEx.Equal("delegate* managed<System.String>", ptr.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseExplicitManagedCallingConventionSpecifier)));
-        }
-
-        [Fact]
         public void PublicApi_SemanticInfo01()
         {
             var comp = CreateFunctionPointerCompilation(@"

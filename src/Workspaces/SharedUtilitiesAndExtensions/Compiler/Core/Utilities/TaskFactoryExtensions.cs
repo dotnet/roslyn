@@ -55,7 +55,7 @@ namespace Roslyn.Utilities
         {
             // The one and only place we can call StartNew<>().
             var task = factory.StartNew(actionAsync, cancellationToken, TaskCreationOptions.None, scheduler).Unwrap();
-            TaskExtensions.ReportFatalError(task, actionAsync);
+            TaskExtensions.ReportNonFatalError(task, actionAsync);
             return task;
         }
 
@@ -63,7 +63,7 @@ namespace Roslyn.Utilities
         {
             // The one and only place we can call StartNew<>().
             var task = factory.StartNew(funcAsync, cancellationToken, TaskCreationOptions.None, scheduler).Unwrap();
-            TaskExtensions.ReportFatalError(task, funcAsync);
+            TaskExtensions.ReportNonFatalError(task, funcAsync);
             return task;
         }
     }

@@ -278,39 +278,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (parameterType.Type.IsReferenceType &&
-                parameterType.NullableAnnotation.IsNotAnnotated() &&
-                convertedExpression.ConstantValue?.IsNull == true &&
-                !suppressNullableWarning(convertedExpression) &&
-                DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
-            {
-                diagnostics.Add(ErrorCode.WRN_NullAsNonNullable, parameterSyntax.Default.Value.Location);
-            }
-
             // represent default(struct) by a Null constant:
             var value = convertedExpression.ConstantValue ?? ConstantValue.Null;
             VerifyParamDefaultValueMatchesAttributeIfAny(value, defaultSyntax.Value, diagnostics);
             return value;
-
-            bool suppressNullableWarning(BoundExpression expr)
-            {
-                while (true)
-                {
-                    if (expr.IsSuppressed)
-                    {
-                        return true;
-                    }
-
-                    switch (expr.Kind)
-                    {
-                        case BoundKind.Conversion:
-                            expr = ((BoundConversion)expr).Operand;
-                            break;
-                        default:
-                            return false;
-                    }
-                }
-            }
         }
 
         public override string MetadataName

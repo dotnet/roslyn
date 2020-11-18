@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal sealed class Boxed
         {
-            internal readonly static Boxed Sentinel = new Boxed(default);
+            internal static readonly Boxed Sentinel = new Boxed(default);
 
             internal readonly TypeWithAnnotations Value;
             internal Boxed(TypeWithAnnotations value)
@@ -468,9 +468,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NullableAnnotation newAnnotation;
 
-            Debug.Assert(!IsIndexedTypeParameter(newTypeWithModifiers.Type) || newTypeWithModifiers.NullableAnnotation.IsOblivious());
+            Debug.Assert(!IsIndexedTypeParameter(newTypeWithModifiers.DefaultType) || newTypeWithModifiers.NullableAnnotation.IsOblivious());
 
-            if (NullableAnnotation.IsAnnotated() || newTypeWithModifiers.NullableAnnotation.IsAnnotated())
+            if (newTypeWithModifiers.NullableAnnotation.IsAnnotated())
+            {
+                if (newTypeWithModifiers._extensions is LazyNullableTypeParameter)
+                {
+                    Debug.Assert(newCustomModifiers.IsEmpty);
+                    return newTypeWithModifiers;
+                }
+                newAnnotation = NullableAnnotation.Annotated;
+            }
+            else if (NullableAnnotation.IsAnnotated())
             {
                 newAnnotation = NullableAnnotation.Annotated;
             }
@@ -782,7 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (type is null)
                 {
-                    return annotation.IsAnnotated() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
+                    return annotation.IsAnnotated() ? NullableFlowState.MaybeDefault : NullableFlowState.NotNull;
                 }
                 if (type.IsPossiblyNullableReferenceTypeTypeParameter())
                 {

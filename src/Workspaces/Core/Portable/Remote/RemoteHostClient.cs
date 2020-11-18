@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -22,14 +23,6 @@ namespace Microsoft.CodeAnalysis.Remote
     internal abstract class RemoteHostClient : IDisposable
     {
         public event EventHandler<bool>? StatusChanged;
-
-        /// <summary>
-        /// Return an unique string per client.
-        /// 
-        /// one can use this to distinguish different clients that are connected to different RemoteHosts including
-        /// cases where 2 external process finding each others
-        /// </summary>
-        public abstract string ClientId { get; }
 
         protected void Started()
         {
@@ -66,7 +59,71 @@ namespace Microsoft.CodeAnalysis.Remote
             return service.TryGetRemoteHostClientAsync(cancellationToken);
         }
 
+        public abstract ValueTask<RemoteServiceConnection<T>> CreateConnectionAsync<T>(object? callbackTarget, CancellationToken cancellationToken)
+            where T : class;
+
         public abstract Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken);
+
+        // brokered services:
+
+        public async ValueTask<bool> TryInvokeAsync<TService>(
+            Func<TService, CancellationToken, ValueTask> invocation,
+            object? callbackTarget,
+            CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = await CreateConnectionAsync<TService>(callbackTarget, cancellationToken).ConfigureAwait(false);
+            return await connection.TryInvokeAsync(invocation, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
+            Func<TService, CancellationToken, ValueTask<TResult>> invocation,
+            object? callbackTarget,
+            CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = await CreateConnectionAsync<TService>(callbackTarget, cancellationToken).ConfigureAwait(false);
+            return await connection.TryInvokeAsync(invocation, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async ValueTask<bool> TryInvokeAsync<TService>(
+            Solution solution,
+            Func<TService, PinnedSolutionInfo, CancellationToken, ValueTask> invocation,
+            object? callbackTarget,
+            CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = await CreateConnectionAsync<TService>(callbackTarget, cancellationToken).ConfigureAwait(false);
+            return await connection.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
+            Solution solution,
+            Func<TService, PinnedSolutionInfo, CancellationToken, ValueTask<TResult>> invocation,
+            object? callbackTarget,
+            CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = await CreateConnectionAsync<TService>(callbackTarget, cancellationToken).ConfigureAwait(false);
+            return await connection.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Invokes a remote API that streams data back to the caller via a pipe.
+        /// </summary>
+        public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(
+            Solution solution,
+            Func<TService, PinnedSolutionInfo, PipeWriter, CancellationToken, ValueTask> invocation,
+            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
+            object? callbackTarget,
+            CancellationToken cancellationToken)
+            where TService : class
+        {
+            using var connection = await CreateConnectionAsync<TService>(callbackTarget, cancellationToken).ConfigureAwait(false);
+            return await connection.TryInvokeAsync(solution, invocation, reader, cancellationToken).ConfigureAwait(false);
+        }
+
+        // legacy services:
 
         public async Task RunRemoteAsync(RemoteServiceName serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
         {

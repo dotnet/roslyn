@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         SourceText,
         OptionSet,
 
+        SerializableSourceText,
         RecoverableSourceText,
 
         //

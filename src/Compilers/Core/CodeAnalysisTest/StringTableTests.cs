@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(s1, s2);
         }
 
-        private unsafe static bool TestTextEqualsASCII(string str, string ascii)
+        private static unsafe bool TestTextEqualsASCII(string str, string ascii)
         {
             fixed (byte* ptr = Encoding.ASCII.GetBytes(ascii))
             {

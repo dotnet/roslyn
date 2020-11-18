@@ -12,14 +12,6 @@ using Microsoft.CodeAnalysis.Text;
 #nullable enable
 namespace Microsoft.CodeAnalysis
 {
-    // https://github.com/dotnet/roslyn/issues/46623
-    [Obsolete("Use GeneratorExecutionContext", error: true)]
-    public readonly struct SourceGeneratorContext { }
-
-    // https://github.com/dotnet/roslyn/issues/46623
-    [Obsolete("Use GeneratorInitializationContext", error: true)]
-    public readonly struct InitializationContext { }
-
     /// <summary>
     /// Context passed to a source generator when <see cref="ISourceGenerator.Execute(GeneratorExecutionContext)"/> is called
     /// </summary>

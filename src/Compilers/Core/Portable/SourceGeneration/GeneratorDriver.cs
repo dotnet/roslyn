@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -51,11 +52,6 @@ namespace Microsoft.CodeAnalysis
             var state = RunGeneratorsCore(compilation, diagnosticsBag: null, cancellationToken); //don't directly collect diagnostics on this path
             return FromState(state);
         }
-
-        // https://github.com/dotnet/roslyn/issues/46623
-        [Obsolete("Use RunGeneratorsAndUpdateCompilation", error: true)]
-        public GeneratorDriver RunFullGeneration(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
-            => throw new NotImplementedException("Use RunGeneratorsAndUpdateCompilation");
 
         public GeneratorDriver RunGeneratorsAndUpdateCompilation(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
         {
@@ -340,10 +336,10 @@ namespace Microsoft.CodeAnalysis
         {
             var trees = ArrayBuilder<SyntaxTree>.GetInstance(generatedSources.Length);
             var type = generator.GetType();
-            var prefix = $"{type.Module.ModuleVersionId}_{type.FullName}";
+            var prefix = GetFilePathPrefixForGenerator(generator);
             foreach (var source in generatedSources)
             {
-                trees.Add(ParseGeneratedSourceText(source, $"{prefix}_{source.HintName}", cancellationToken));
+                trees.Add(ParseGeneratedSourceText(source, Path.Combine(prefix, source.HintName), cancellationToken));
             }
             return trees.ToImmutableAndFree();
         }
@@ -387,6 +383,12 @@ namespace Microsoft.CodeAnalysis
 
             diagnosticBag?.Add(diagnostic);
             return new GeneratorState(generatorState.Info, e, diagnostic);
+        }
+
+        internal static string GetFilePathPrefixForGenerator(ISourceGenerator generator)
+        {
+            var type = generator.GetType();
+            return Path.Combine(type.Assembly.GetName().Name ?? string.Empty, type.FullName!);
         }
 
         internal abstract CommonMessageProvider MessageProvider { get; }

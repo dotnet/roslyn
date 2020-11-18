@@ -2576,7 +2576,7 @@ End Class
         Public Async Function TestNonTrailingNamedArgumentInVB15_5() As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                  <Workspace>
-                     <Project Language="Visual Basic" LanguageVersion="VisualBasic15_5" CommonReferences="true" AssemblyName="VBProj">
+                     <Project Language="Visual Basic" LanguageVersion="15.5" CommonReferences="true" AssemblyName="VBProj">
                          <Document FilePath="C.vb">
 Class C
     Sub M()

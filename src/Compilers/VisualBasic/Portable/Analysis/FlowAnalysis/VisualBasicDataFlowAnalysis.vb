@@ -285,6 +285,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property UsedLocalFunctions As ImmutableArray(Of IMethodSymbol)
+            Get
+                Return ImmutableArray(Of IMethodSymbol).Empty
+            End Get
+        End Property
+
         Friend Function Normalize(data As IEnumerable(Of Symbol)) As ImmutableArray(Of ISymbol)
             Dim builder = ArrayBuilder(Of Symbol).GetInstance()
             builder.AddRange(data.Where(Function(s) s.CanBeReferencedByName))

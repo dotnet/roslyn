@@ -494,8 +494,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         DependentTypeFinder_FindAndCacheDerivedInterfacesAsync = 431,
         DependentTypeFinder_FindAndCacheImplementingTypesAsync = 432,
 
-        LSPCompletion_MissingLSPCompletionTriggerKind = 433,
-
         RemoteSemanticClassificationCacheService_ExceptionInCacheRead = 440,
+        FeatureNotAvailable = 441,
     }
 }

@@ -1478,5 +1478,135 @@ class C
 ";
             await TestAllOptionsOffAsync(host, text, expected, index: 1);
         }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.FunctionPointers)]
+        public async Task FunctionPointer(TestHost host)
+        {
+            var text = @"
+unsafe class C
+{
+    private delegate*<int, string> f[|i|]eld;
+
+    void M()
+    {
+        var q = field;
+    }
+}
+";
+
+            var expected = @"
+unsafe class C
+{
+    private delegate*<int, string> f[|i|]eld;
+
+    public unsafe delegate*<int, string> Field
+    {
+        get
+        {
+            return field;
+        }
+
+        set
+        {
+            field = value;
+        }
+    }
+
+    void M()
+    {
+        var q = field;
+    }
+}
+";
+            await TestAllOptionsOffAsync(host, text, expected, index: 1);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.FunctionPointers)]
+        public async Task FunctionPointerWithPrivateTypeParameter(TestHost host)
+        {
+            var text = @"
+unsafe class C
+{
+    private struct S { }
+    private delegate*<S, string> f[|i|]eld;
+
+    void M()
+    {
+        var q = field;
+    }
+}
+";
+
+            var expected = @"
+unsafe class C
+{
+    private struct S { }
+    private delegate*<S, string> f[|i|]eld;
+
+    private unsafe delegate*<S, string> Field
+    {
+        get
+        {
+            return field;
+        }
+
+        set
+        {
+            field = value;
+        }
+    }
+
+    void M()
+    {
+        var q = field;
+    }
+}
+";
+            await TestAllOptionsOffAsync(host, text, expected, index: 1);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.FunctionPointers)]
+        public async Task FunctionPointerWithPrivateTypeReturnValue(TestHost host)
+        {
+            var text = @"
+unsafe class C
+{
+    private struct S { }
+    private delegate*<string, S> f[|i|]eld;
+
+    void M()
+    {
+        var q = field;
+    }
+}
+";
+
+            var expected = @"
+unsafe class C
+{
+    private struct S { }
+    private delegate*<string, S> f[|i|]eld;
+
+    private unsafe delegate*<string, S> Field
+    {
+        get
+        {
+            return field;
+        }
+
+        set
+        {
+            field = value;
+        }
+    }
+
+    void M()
+    {
+        var q = field;
+    }
+}
+";
+            await TestAllOptionsOffAsync(host, text, expected, index: 1);
+        }
     }
 }
