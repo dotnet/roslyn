@@ -25,6 +25,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     /// TODO - This can be removed once C# is using LSP for diagnostics.
     /// https://github.com/dotnet/roslyn/issues/42630
     /// </summary>
+    /// <remarks>
+    /// This specifies RunOnHost because in LiveShare we don't want this to activate on the guest instance
+    /// because LiveShare drops the ClientName when it mirrors guest clients, so this client ends up being
+    /// activated solely by its content type, which means it receives requests for normal .cs and .vb files
+    /// even for non-razor projects, which then of course fails because it gets text sync info for documents
+    /// it doesn't know about.
+    /// </remarks>
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ClientName(ClientName)]
     [RunOnContext(RunningContext.RunOnHost)]
