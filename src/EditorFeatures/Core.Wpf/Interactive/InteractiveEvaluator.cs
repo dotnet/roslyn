@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private readonly IViewClassifierAggregatorService _classifierAggregator;
         private readonly IInteractiveWindowCommandsFactory _commandsFactory;
         private readonly ImmutableArray<IInteractiveWindowCommand> _commands;
-        private readonly InteractiveWorkspace _workspace;
+        private readonly InteractiveWindowWorkspace _workspace;
         private readonly InteractiveSession _session;
 
         private IInteractiveWindow? _lazyInteractiveWindow;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _commandsFactory = commandsFactory;
             _commands = commands;
 
-            _workspace = new InteractiveWorkspace(hostServices);
+            _workspace = new InteractiveWindowWorkspace(hostServices);
 
             _session = new InteractiveSession(_workspace, threadingContext, listener, languageInfo, initialWorkingDirectory);
             _session.Host.ProcessInitialized += ProcessInitialized;

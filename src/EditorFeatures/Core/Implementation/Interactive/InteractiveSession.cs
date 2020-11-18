@@ -14,7 +14,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _sourceSearchPaths = ImmutableArray<string>.Empty;
             _workingDirectory = initialWorkingDirectory;
 
-            _hostDirectory = Path.Combine(Path.GetDirectoryName(typeof(InteractiveSession).Assembly.Location), "InteractiveHost");
+            _hostDirectory = Path.Combine(Path.GetDirectoryName(typeof(InteractiveSession).Assembly.Location)!, "InteractiveHost");
 
             Host = new InteractiveHost(languageInfo.ReplServiceProviderType, initialWorkingDirectory);
             Host.ProcessInitialized += ProcessInitialized;

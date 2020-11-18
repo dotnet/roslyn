@@ -7,9 +7,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
+using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
@@ -27,11 +26,11 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
 
             // the provider might be invoked in non-interactive context:
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            if (Workspace.TryGetWorkspace(sourceText.Container, out var ws))
+            if (Workspace.TryGetWorkspace(sourceText.Container, out var workspace))
             {
-                if (ws is InteractiveWorkspace workspace)
+                if (workspace is InteractiveWindowWorkspace interactiveWorkspace)
                 {
-                    var window = workspace.Window;
+                    var window = interactiveWorkspace.Window;
                     var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                     if (ShouldDisplayCommandCompletions(tree, position, cancellationToken))

@@ -2,31 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using Microsoft.CodeAnalysis.Editor.Interactive;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
-    internal sealed class InteractiveWorkspace : Workspace
+    internal class InteractiveWorkspace : Workspace
     {
         private readonly ISolutionCrawlerRegistrationService _registrationService;
 
-        internal IInteractiveWindow Window { get; set; }
-        private SourceTextContainer _openTextContainer;
-        private DocumentId _openDocumentId;
+        private SourceTextContainer? _openTextContainer;
+        private DocumentId? _openDocumentId;
 
         internal InteractiveWorkspace(HostServices hostServices)
             : base(hostServices, WorkspaceKind.Interactive)
         {
             // register work coordinator for this workspace
-            _registrationService = Services.GetService<ISolutionCrawlerRegistrationService>();
+            _registrationService = Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             _registrationService.Register(this);
         }
 
@@ -75,6 +70,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             {
                 return;
             }
+
+            Contract.ThrowIfNull(_openTextContainer);
 
             ITextSnapshot appliedText;
             using (var edit = _openTextContainer.GetTextBuffer().CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
