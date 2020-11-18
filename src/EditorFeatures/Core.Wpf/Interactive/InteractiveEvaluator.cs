@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _shutdownCancellationSource = new CancellationTokenSource();
             _contentType = contentType;
             _languageInfo = languageInfo;
-            _workspace = new InteractiveWorkspace(hostServices, this);
+            _workspace = new InteractiveWorkspace(hostServices);
             _classifierAggregator = classifierAggregator;
             _commandsFactory = commandsFactory;
             _commands = commands;

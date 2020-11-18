@@ -16,21 +16,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     internal sealed class InteractiveWorkspace : Workspace
     {
-        public readonly InteractiveEvaluator Evaluator;
         private readonly ISolutionCrawlerRegistrationService _registrationService;
 
         internal IInteractiveWindow Window { get; set; }
         private SourceTextContainer _openTextContainer;
         private DocumentId _openDocumentId;
 
-        internal InteractiveWorkspace(HostServices hostServices, InteractiveEvaluator evaluator)
+        internal InteractiveWorkspace(HostServices hostServices)
             : base(hostServices, WorkspaceKind.Interactive)
         {
             // register work coordinator for this workspace
             _registrationService = Services.GetService<ISolutionCrawlerRegistrationService>();
             _registrationService.Register(this);
-
-            Evaluator = evaluator;
         }
 
         protected override void Dispose(bool finalize)

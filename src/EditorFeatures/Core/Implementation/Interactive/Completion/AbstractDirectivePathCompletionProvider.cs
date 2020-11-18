@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -15,6 +13,8 @@ using Microsoft.CodeAnalysis.Scripting;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
                 var position = context.Position;
                 var cancellationToken = context.CancellationToken;
 
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                 if (!TryGetStringLiteralToken(tree, position, out var stringLiteral, cancellationToken))
                 {
@@ -134,24 +134,34 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
             ImmutableArray<string> extensions,
             CompletionItemRules completionRules)
         {
-            var serviceOpt = document.Project.Solution.Workspace.Services.GetService<IScriptEnvironmentService>();
-            var searchPaths = serviceOpt?.MetadataReferenceSearchPaths ?? ImmutableArray<string>.Empty;
+            ImmutableArray<string> referenceSearchPaths;
+            string? baseDirectory;
+            if (document.Project.CompilationOptions?.MetadataReferenceResolver is RuntimeMetadataReferenceResolver resolver)
+            {
+                referenceSearchPaths = resolver.PathResolver.SearchPaths;
+                baseDirectory = resolver.PathResolver.BaseDirectory;
+            }
+            else
+            {
+                referenceSearchPaths = ImmutableArray<string>.Empty;
+                baseDirectory = null;
+            }
 
             return new FileSystemCompletionHelper(
                 Glyph.OpenFolder,
                 itemGlyph,
-                searchPaths,
-                GetBaseDirectory(document, serviceOpt),
+                referenceSearchPaths,
+                GetBaseDirectory(document, baseDirectory),
                 extensions,
                 completionRules);
         }
 
-        private static string GetBaseDirectory(Document document, IScriptEnvironmentService environmentOpt)
+        private static string? GetBaseDirectory(Document document, string? baseDirectory)
         {
             var result = PathUtilities.GetDirectoryName(document.FilePath);
             if (!PathUtilities.IsAbsolute(result))
             {
-                result = environmentOpt?.BaseDirectory;
+                result = baseDirectory;
                 Debug.Assert(result == null || PathUtilities.IsAbsolute(result));
             }
 
