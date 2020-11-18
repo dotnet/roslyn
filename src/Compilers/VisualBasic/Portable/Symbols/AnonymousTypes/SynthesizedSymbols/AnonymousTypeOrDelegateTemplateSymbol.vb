@@ -37,6 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Private ReadOnly _typeParameters As ImmutableArray(Of TypeParameterSymbol)
             Private _adjustedPropertyNames As LocationAndNames
+            Private _locationAndNamesAreLocked As Boolean
 
             ''' <summary>
             ''' The key of the anonymous type descriptor used for this type template
@@ -315,6 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public ReadOnly Property SmallestLocation As Location
                 Get
+                    _locationAndNamesAreLocked = True
                     Return Me._adjustedPropertyNames.Location
                 End Get
             End Property
@@ -335,10 +337,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' to set it ('location' in type descriptor is bigger that the one in m_adjustedPropertyNames)
                     Dim currentAdjustedNames As LocationAndNames = Me._adjustedPropertyNames
                     If currentAdjustedNames IsNot Nothing AndAlso
-                            Me.Manager.Compilation.CompareSourceLocations(currentAdjustedNames.Location, newLocation) < 0 Then
+                            Me.Manager.Compilation.CompareSourceLocations(currentAdjustedNames.Location, newLocation) <= 0 Then
 
                         ' The template's adjusted property names do not need to be changed
                         Exit Sub
+                    End If
+
+                    If _locationAndNamesAreLocked Then
+                        Throw ExceptionUtilities.Unreachable
                     End If
 
                     Dim newAdjustedNames As New LocationAndNames(typeDescr)
@@ -351,6 +357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Sub
 
             Friend Function GetAdjustedName(index As Integer) As String
+                _locationAndNamesAreLocked = True
                 Dim names = Me._adjustedPropertyNames
                 Debug.Assert(names IsNot Nothing)
                 Debug.Assert(names.Names.Length > index)
