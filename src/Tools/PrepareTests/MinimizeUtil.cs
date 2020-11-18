@@ -73,8 +73,29 @@ internal static class MinimizeUtil
                 }
             }
 
-            var destGlobalJsonPath = Path.Combine(destinationDirectory, "global.json");
-            CreateHardLink(destGlobalJsonPath, Path.Combine(sourceDirectory, "global.json"));
+            // TODO: we should avoid copying the files under Resources.
+            var individualFiles = new[]
+            {
+                "./global.json",
+                "src/Workspaces/MSBuildTest/Resources/.editorconfig",
+                "src/Workspaces/MSBuildTest/Resources/global.json",
+                "src/Workspaces/MSBuildTest/Resources/Directory.Build.props",
+                "src/Workspaces/MSBuildTest/Resources/Directory.Build.targets",
+                "src/Workspaces/MSBuildTest/Resources/Directory.Build.rsp",
+                "src/Workspaces/MSBuildTest/Resources/NuGet.Config",
+            };
+
+            foreach (var individualFile in individualFiles)
+            {
+                var currentDirName = Path.GetDirectoryName(individualFile)!;
+                var currentRelativeDirectory = Path.GetRelativePath(sourceDirectory, currentDirName);
+                var currentOutputDirectory = Path.Combine(destinationDirectory, currentRelativeDirectory);
+                Directory.CreateDirectory(currentOutputDirectory);
+
+                var destGlobalJsonPath = Path.Combine(destinationDirectory, individualFile);
+                CreateHardLink(destGlobalJsonPath, Path.Combine(sourceDirectory, individualFile));
+            }
+
         }
 
         // Now that we have a complete list of PE files, determine which are duplicates
@@ -128,16 +149,29 @@ internal static class MinimizeUtil
         }
     }
 
-    private static bool CreateHardLink(string lpFileName, string lpExistingFileName)
+    private static void CreateHardLink(string fileName, string existingFileName)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            return CreateHardLink(lpFileName, lpExistingFileName, IntPtr.Zero);
+            var success = CreateHardLink(fileName, existingFileName, IntPtr.Zero);
+            if (false && !success)
+            {
+                // for debugging: https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes
+                Console.WriteLine($"Failed to create hard link from {fileName} to {existingFileName} with exception 0x{GetLastError():X}");
+            }
         }
         else
         {
-            return link(lpExistingFileName, lpFileName) == 0;
+            var result = link(existingFileName, fileName);
+            if (false && result != 0)
+            {
+                Console.WriteLine($"Failed to create hard link from {fileName} to {existingFileName}");
+            }
         }
+
+        // https://docs.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror
+        [DllImport("kernel32.dll")]
+        static extern uint GetLastError();
 
         // https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createhardlinkw
         [DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
