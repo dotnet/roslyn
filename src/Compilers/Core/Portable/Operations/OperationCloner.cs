@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Roslyn.Utilities;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal override IOperation VisitNoneOperation(IOperation operation, object? argument)
         {
-            return new NoneOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
+            return new NoneOperation(VisitArray(((Operation)operation).ChildOperations.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
         public override IOperation VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, object? argument)
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitInvalid(IInvalidOperation operation, object? argument)
         {
-            return new InvalidOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
+            return new InvalidOperation(VisitArray(((InvalidOperation)operation).Children), ((Operation)operation).OwningSemanticModel, operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
         }
 
         public override IOperation VisitFlowCapture(IFlowCaptureOperation operation, object? argument)

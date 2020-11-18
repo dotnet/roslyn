@@ -6254,14 +6254,14 @@ oneMoreTime:
         private IOperation VisitNoneOperationStatement(IOperation operation)
         {
             Debug.Assert(_currentStatement == operation);
-            VisitStatements(operation.Children.ToImmutableArray());
+            VisitStatements(((Operation)operation).ChildOperations.ToImmutableArray());
             return new NoneOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
         private IOperation VisitNoneOperationExpression(IOperation operation)
         {
             return PopStackFrame(PushStackFrame(),
-                                 new NoneOperation(VisitArray(operation.Children.ToImmutableArray()), semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
+                                 new NoneOperation(VisitArray(((Operation)operation).ChildOperations.ToImmutableArray()), semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
         }
 
         public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, int? captureIdForResult)
@@ -6683,7 +6683,7 @@ oneMoreTime:
         public override IOperation VisitInvalid(IInvalidOperation operation, int? captureIdForResult)
         {
             var children = ArrayBuilder<IOperation>.GetInstance();
-            children.AddRange(operation.Children);
+            children.AddRange(((InvalidOperation)operation).Children);
 
             if (children.Count != 0 && children.Last().Kind == OperationKind.ObjectOrCollectionInitializer)
             {

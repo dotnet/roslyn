@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private void VisitArray<T>(ImmutableArray<T> list, string header, bool logElementCount, bool logNullForDefault = false)
             where T : IOperation
         {
-            VisitArrayCommon(list, header, logElementCount, logNullForDefault, VisitOperationArrayElement);
+            VisitArrayCommon(list, header, logElementCount, logNullForDefault, o => Visit(o));
         }
 
         private void VisitArray(ImmutableArray<ISymbol> list, string header, bool logElementCount, bool logNullForDefault = false)

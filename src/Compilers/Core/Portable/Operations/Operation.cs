@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Root type for representing the abstract semantics of C# and VB statements and expressions.
     /// </summary>
-    internal abstract class Operation : IOperation
+    internal abstract partial class Operation : IOperation
     {
         protected static readonly IOperation s_unset = new EmptyOperation(semanticModel: null, syntax: null!, isImplicit: true);
         private readonly SemanticModel? _owningSemanticModelOpt;
@@ -111,7 +111,19 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public abstract IEnumerable<IOperation> Children { get; }
+        /// <summary>
+        /// In the compiler layer, always prefer <see cref="ChildOperations"/>.
+        /// </summary>
+        IEnumerable<IOperation> IOperation.Children => this.ChildOperations;
+
+        /// <remarks>
+        /// Always prefer this over <see cref="IOperation.Children"/> in the compiler layer, as this does not introduce allocations.
+        /// </remarks>
+        // Making this public is tracked by https://github.com/dotnet/roslyn/issues/49475
+        internal Operation.Enumerable ChildOperations => new Operation.Enumerable(this);
+
+        protected abstract IOperation GetCurrent(int slot, int index);
+        protected abstract (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex);
 
         SemanticModel? IOperation.SemanticModel => _owningSemanticModelOpt?.ContainingModelOrSelf;
 

@@ -51,6 +51,15 @@ namespace IOperationGenerator
                     }
                 }
 
+                foreach (var prop in GetAllGeneratedIOperationProperties(abstractNode))
+                {
+                    if (IsImmutableArray(prop.Type, out _) && prop.Type.Contains("?"))
+                    {
+                        Console.WriteLine($"{abstractNode.Name}.{prop.Name} has nullable IOperation elements. This is not allowed in IOperation and will mess up Children generation.");
+                        error = true;
+                    }
+                }
+
                 if (!(abstractNode is Node node))
                     continue;
                 if (node.SkipChildrenGeneration || node.SkipClassGeneration)
