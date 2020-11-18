@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                         session = new BraceCompletionSession(
                             textView, openingPoint.Snapshot.TextBuffer, openingPoint, openingBrace, closingBrace,
                             undoHistory, _editorOperationsFactoryService,
-                            editorSession, _smartIndentationService);
+                            editorSession, _smartIndentationService, ThreadingContext);
                         return true;
                     }
                 }

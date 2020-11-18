@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         // fortunately, editor provides another extension point where we have more control over brace completion but we do not
         // want to re-implement logics base session provider already provides. so I ported editor's default session and 
         // modified it little bit so that we can use it as base class.
-        private class BraceCompletionSession : IBraceCompletionSession
+        private class BraceCompletionSession : ForegroundThreadAffinitizedObject, IBraceCompletionSession
         {
             #region Private Members
 
@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 ITextView textView, ITextBuffer subjectBuffer,
                 SnapshotPoint openingPoint, char openingBrace, char closingBrace, ITextUndoHistory undoHistory,
                 IEditorOperationsFactoryService editorOperationsFactoryService, IEditorBraceCompletionSession session,
-                ISmartIndentationService smartIndentationService)
+                ISmartIndentationService smartIndentationService, IThreadingContext threadingContext)
+                : base(threadingContext, assertIsForeground: true)
             {
                 this.TextView = textView;
                 this.SubjectBuffer = subjectBuffer;
@@ -76,6 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
             private void Start(CancellationToken cancellationToken)
             {
+                this.AssertIsForeground();
                 var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
                 if (closingSnapshotPoint.Position < 1)
@@ -124,6 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
             public void PreBackspace(out bool handledCommand)
             {
+                this.AssertIsForeground();
                 handledCommand = false;
 
                 var caretPos = this.GetCaretPosition();
@@ -163,6 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
             public void PreOverType(out bool handledCommand)
             {
+                this.AssertIsForeground();
                 handledCommand = false;
                 if (ClosingPoint == null)
                 {
@@ -221,6 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
             public void PreTab(out bool handledCommand)
             {
+                this.AssertIsForeground();
                 handledCommand = false;
 
                 if (!HasForwardTyping)
@@ -244,6 +249,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
             public void PostReturn()
             {
+                this.AssertIsForeground();
                 if (this.GetCaretPosition().HasValue)
                 {
                     var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
@@ -294,6 +300,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             {
                 get
                 {
+                    this.AssertIsForeground();
                     var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
                     if (closingSnapshotPoint.Position > 0)
@@ -338,6 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
             private void MoveCaretToClosingPoint()
             {
+                this.AssertIsForeground();
                 var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
 
                 // find the position just after the closing brace in the view's text buffer
@@ -354,6 +362,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
             private void ApplyBraceCompletionResult(BraceCompletionResult result)
             {
+                this.AssertIsForeground();
                 using var edit = SubjectBuffer.CreateEdit();
                 foreach (var change in result.TextChanges)
                 {
