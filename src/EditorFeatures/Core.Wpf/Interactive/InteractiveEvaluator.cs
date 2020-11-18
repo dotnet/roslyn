@@ -36,11 +36,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
     using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
 
-    internal abstract class InteractiveEvaluator : IResettableInteractiveEvaluator
+    internal sealed class InteractiveEvaluator : IResettableInteractiveEvaluator
     {
         private const string CommandPrefix = "#";
 
-        private readonly string _responseFileName;
+        private readonly InteractiveEvaluatorLanguageInfoProvider _languageInfo;
 
         private readonly InteractiveHost _interactiveHost;
 
@@ -108,17 +108,16 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             IViewClassifierAggregatorService classifierAggregator,
             IInteractiveWindowCommandsFactory commandsFactory,
             ImmutableArray<IInteractiveWindowCommand> commands,
-            string responseFileName,
-            string initialWorkingDirectory,
-            Type replType)
+            InteractiveEvaluatorLanguageInfoProvider languageInfo,
+            string initialWorkingDirectory)
         {
-            Debug.Assert(responseFileName.IndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }) == -1);
+            Debug.Assert(languageInfo.InteractiveResponseFileName.IndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }) == -1);
 
             _threadingContext = threadingContext;
             _taskQueue = new TaskQueue(listener, TaskScheduler.Default);
             _shutdownCancellationSource = new CancellationTokenSource();
             _contentType = contentType;
-            _responseFileName = responseFileName;
+            _languageInfo = languageInfo;
             _workspace = new InteractiveWorkspace(hostServices, this);
             _classifierAggregator = classifierAggregator;
             _commandsFactory = commandsFactory;
@@ -131,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             SourceSearchPaths = ImmutableArray<string>.Empty;
             WorkingDirectory = initialWorkingDirectory;
 
-            _interactiveHost = new InteractiveHost(replType, initialWorkingDirectory);
+            _interactiveHost = new InteractiveHost(languageInfo.ReplServiceProviderType, initialWorkingDirectory);
             _interactiveHost.ProcessInitialized += ProcessInitialized;
         }
 
@@ -159,11 +158,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 _lazyInteractiveCommands = _commandsFactory.CreateInteractiveCommands(value, CommandPrefix, _commands);
             }
         }
-
-        protected abstract string LanguageName { get; }
-        protected abstract CompilationOptions GetSubmissionCompilationOptions(string name, MetadataReferenceResolver metadataReferenceResolver, SourceReferenceResolver sourceReferenceResolver, ImmutableArray<string> imports);
-        protected abstract ParseOptions ParseOptions { get; }
-        protected abstract CommandLineParser CommandLineParser { get; }
 
         /// <summary>
         /// Invoked before the process is reset. The argument is the value of <see cref="InteractiveHostOptions.Platform"/>.
@@ -268,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            _taskQueue.ScheduleTask(nameof(SubmissionBufferAdded), () => AddSubmissionProjectNoLock(args.NewBuffer, LanguageName), _shutdownCancellationSource.Token);
+            _taskQueue.ScheduleTask(nameof(SubmissionBufferAdded), () => AddSubmissionProjectNoLock(args.NewBuffer, _languageInfo.LanguageName), _shutdownCancellationSource.Token);
         }
 
         private void AddSubmissionProjectNoLock(ITextBuffer submissionBuffer, string languageName)
@@ -356,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             else
             {
                 var metadataService = _workspace.Services.GetRequiredService<IMetadataService>();
-                compilationOptions = GetSubmissionCompilationOptions(
+                compilationOptions = _languageInfo.GetSubmissionCompilationOptions(
                     name,
                     CreateMetadataReferenceResolver(metadataService, _platformInfo, ReferenceSearchPaths, WorkingDirectory),
                     CreateSourceReferenceResolver(SourceSearchPaths, WorkingDirectory),
@@ -373,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     assemblyName: name,
                     language: languageName,
                     compilationOptions: compilationOptions,
-                    parseOptions: ParseOptions,
+                    parseOptions: _languageInfo.ParseOptions,
                     documents: null,
                     projectReferences: null,
                     metadataReferences: references,
@@ -392,11 +386,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         #region IInteractiveEngine
 
-        public virtual bool CanExecuteCode(string text)
+        public bool CanExecuteCode(string text)
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            return _lazyInteractiveCommands?.InCommand == true;
+            return _lazyInteractiveCommands?.InCommand == true && _languageInfo.IsCompleteSubmission;
         }
 
         /// <summary>
@@ -435,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         public InteractiveHostOptions GetHostOptions(bool initialize, InteractiveHostPlatform? platform)
             => InteractiveHostOptions.CreateFromDirectory(
                 _hostDirectory,
-                initialize ? _responseFileName : null,
+                initialize ? _languageInfo.InteractiveResponseFileName : null,
                 CultureInfo.CurrentUICulture,
                  platform ?? _interactiveHost.OptionsOpt?.Platform ?? InteractiveHost.DefaultPlatform);
 
