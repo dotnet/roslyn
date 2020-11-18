@@ -39,6 +39,7 @@ jobs:
     - checkout: none
 
     - task: DownloadPipelineArtifact@2
+      displayName: Download test payload
       inputs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
@@ -55,6 +56,7 @@ jobs:
         find artifacts/bin -name ilasm | xargs chmod 755
         chmod 755 eng/build.sh
       workingDirectory: '$(Build.SourcesDirectory)'
+      displayName: Fix executable permissions in pipeline artifact
 
     - script: ./eng/build.sh --ci --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
       displayName: Test
