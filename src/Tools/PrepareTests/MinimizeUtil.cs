@@ -33,11 +33,11 @@ internal static class MinimizeUtil
         //  2. Hard link all other files into destination directory
         void initialWalk()
         {
-            var artifactsDir = Path.Combine(sourceDirectory, "artifacts/bin");
             IEnumerable<string> directories = new[] {
                 Path.Combine(sourceDirectory, "eng"),
                 Path.Combine(sourceDirectory, ".dotnet")
             };
+            var artifactsDir = Path.Combine(sourceDirectory, "artifacts/bin");
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "*.UnitTests"));
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "RunTests"));
 

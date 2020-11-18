@@ -39,12 +39,12 @@ jobs:
     - task: DownloadPipelineArtifact@2
       inputs:
         artifact: ${{ parameters.testArtifactName }}
-        path: '$(Build.SourcesDirectory)/artifacts/bin' 
+        path: '$(Build.SourcesDirectory)/artifacts/bin'
 
     # Work around for files not maintaining permissions after pipeline download
     # https://github.com/microsoft/azure-pipelines-tasks/issues/6364
     - bash: find . -name ilasm | xargs chmod 755
-      workingDirectory: '$(Build.SourcesDirectory)/artifacts/bin' 
+      workingDirectory: '$(Build.SourcesDirectory)/artifacts/bin'
 
     - script: ./eng/build.sh --ci --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
       displayName: Test
