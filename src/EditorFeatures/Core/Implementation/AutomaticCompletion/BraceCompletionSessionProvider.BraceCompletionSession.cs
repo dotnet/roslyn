@@ -10,12 +10,14 @@ using System.Threading;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities.Internal;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 {
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 // Apply the change to complete the brace.
                 ApplyBraceCompletionResult(braceResult.Value);
 
-                // switch from positive to negative tracking so it stays against the closing brace
+                // switch the closing point from positive to negative tracking so that the closing point stays against the closing brace
                 ClosingPoint = SubjectBuffer.CurrentSnapshot.CreateTrackingPoint(ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot), PointTrackingMode.Negative);
 
                 var changesAfterStart = _session.GetChangesAfterCompletion(this, cancellationToken);
@@ -371,10 +373,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
                 edit.ApplyAndLogExceptions();
 
-                Debug.Assert(SubjectBuffer.CurrentSnapshot[OpeningPoint.GetPosition(SubjectBuffer.CurrentSnapshot)] == OpeningBrace,
-                "The opening point does not match the opening brace character");
-                Debug.Assert(SubjectBuffer.CurrentSnapshot[ClosingPoint.GetPosition(SubjectBuffer.CurrentSnapshot) - 1] == ClosingBrace,
-                "The closing point does not match the closing brace character");
+                try
+                {
+                    Contract.ThrowIfFalse(SubjectBuffer.CurrentSnapshot[OpeningPoint.GetPosition(SubjectBuffer.CurrentSnapshot)] == OpeningBrace,
+                        "The opening point does not match the opening brace character");
+                    Contract.ThrowIfFalse(SubjectBuffer.CurrentSnapshot[ClosingPoint.GetPosition(SubjectBuffer.CurrentSnapshot) - 1] == ClosingBrace,
+                        "The closing point does not match the closing brace character");
+                }
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
+                {
+                    return;
+                }
+                
 
                 var snapshotPoint = SubjectBuffer.CurrentSnapshot.GetPoint(result.CaretLocation);
                 var line = snapshotPoint.GetContainingLine();
