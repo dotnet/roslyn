@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Formatting;
@@ -115,9 +116,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 commitKey,
                 cancellationToken).ConfigureAwait(false);
 
-            var insertText = provideParenthesisCompletion
-                ? completionItem.DisplayText + "()"
-                : completionItem.DisplayText;
+            var insertText = completionItem.DisplayText;
+            if (provideParenthesisCompletion)
+            {
+                insertText += "()";
+                CompletionProvidersLogger.LogCommitUsingSemicolonToAddParenthesis();
+            }
 
             if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
             {
