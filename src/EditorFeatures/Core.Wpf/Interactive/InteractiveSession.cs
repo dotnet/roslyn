@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -134,11 +133,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         /// <summary>
         /// Invoked on UI thread when a new language buffer is created and before it is added to the projection.
         /// </summary>
-        internal void AddSubmissionProject(SubmissionBufferAddedEventArgs args)
+        internal void AddSubmissionProject(ITextBuffer submissionBuffer)
         {
             _taskQueue.ScheduleTask(
                 nameof(AddSubmissionProject),
-                () => AddSubmissionProjectNoLock(args.NewBuffer, _languageInfo.LanguageName),
+                () => AddSubmissionProjectNoLock(submissionBuffer, _languageInfo.LanguageName),
                 _shutdownCancellationSource.Token);
         }
 
@@ -261,9 +260,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         /// <summary>
         /// Called once a code snippet is submitted.
-        /// Followed by creation of a new language buffer and call to <see cref="AddSubmissionProject(SubmissionBufferAddedEventArgs)"/>.
+        /// Followed by creation of a new language buffer and call to <see cref="AddSubmissionProject(ITextBuffer)"/>.
         /// </summary>
-        internal Task<ExecutionResult> ExecuteCodeAsync(string text)
+        internal Task<bool> ExecuteCodeAsync(string text)
         {
             return _taskQueue.ScheduleTask(nameof(ExecuteCodeAsync), async () =>
             {
@@ -276,11 +275,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     UpdatePathsNoLock(result);
                 }
 
-                return new ExecutionResult(result.Success);
+                return result.Success;
             }, _shutdownCancellationSource.Token);
         }
 
-        internal async Task<ExecutionResult> ResetAsync(InteractiveHostOptions options)
+        internal async Task<bool> ResetAsync(InteractiveHostOptions options)
         {
             try
             {
@@ -293,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 // Note: Not calling UpdatePathsNoLock here. The paths will be updated by ProcessInitialized 
                 // which is executed once the new host process finishes its initialization.
 
-                return new ExecutionResult(result.Success);
+                return result.Success;
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {

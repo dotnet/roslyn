@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private void SubmissionBufferAdded(object sender, SubmissionBufferAddedEventArgs args)
         {
             _threadingContext.ThrowIfNotOnUIThread();
-            _session.AddSubmissionProject(args);
+            _session.AddSubmissionProject(args.NewBuffer);
         }
 
         private void CaptureClassificationSpans()
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         /// <summary>
         /// Invoked when the Interactive Window is created.
         /// </summary>
-        Task<ExecutionResult> IInteractiveEvaluator.InitializeAsync()
+        async Task<ExecutionResult> IInteractiveEvaluator.InitializeAsync()
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
@@ -187,13 +187,14 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             var resetOptions = ResetOptions;
             _session.Host.SetOutputs(window.OutputWriter, window.ErrorOutputWriter);
-            return _session.ResetAsync(_session.GetHostOptions(initialize: true, resetOptions.Platform));
+            var isSuccessful = await _session.ResetAsync(_session.GetHostOptions(initialize: true, resetOptions.Platform)).ConfigureAwait(false);
+            return new ExecutionResult(isSuccessful);
         }
 
         /// <summary>
         /// Invoked by the reset toolbar button.
         /// </summary>
-        Task<ExecutionResult> IInteractiveEvaluator.ResetAsync(bool initialize)
+        async Task<ExecutionResult> IInteractiveEvaluator.ResetAsync(bool initialize)
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
@@ -207,7 +208,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             var options = _session.GetHostOptions(initialize, resetOptions.Platform);
             OnBeforeReset?.Invoke(options.Platform);
-            return _session.ResetAsync(options);
+            var isSuccessful = await _session.ResetAsync(options).ConfigureAwait(false);
+            return new ExecutionResult(isSuccessful);
         }
 
         /// <summary>
@@ -240,7 +242,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
                 // If process initialization is in progress we will wait with code 
                 // execution after the initialization is completed.
-                return await _session.ExecuteCodeAsync(text).ConfigureAwait(false);
+                var isSuccessful = await _session.ExecuteCodeAsync(text).ConfigureAwait(false);
+                return new ExecutionResult(isSuccessful);
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
