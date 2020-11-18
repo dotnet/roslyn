@@ -3,6 +3,8 @@ using System.Globalization;
 using Microsoft.CodeAnalysis;
 using static RoslynEx.ErrorCode;
 
+#nullable enable
+
 namespace RoslynEx
 {
     internal enum ErrorCode
@@ -154,6 +156,8 @@ namespace RoslynEx
         public override int WRN_GeneratorFailedDuringGeneration => throw new NotImplementedException();
 
         public override int ERR_BadAssemblyName => throw new NotImplementedException();
+
+        public override int WRN_AnalyzerReferencesFramework => throw new NotImplementedException();
 
         #endregion
 

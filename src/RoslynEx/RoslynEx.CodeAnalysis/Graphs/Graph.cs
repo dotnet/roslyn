@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 
+#nullable enable
+
 namespace RoslynEx.Graphs
 {
     internal sealed class Graph : AbstractGraph

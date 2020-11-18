@@ -2,6 +2,8 @@
 using System.IO;
 using Microsoft.CodeAnalysis;
 
+#nullable enable
+
 namespace RoslynEx
 {
     public static class ResourceDescriptionExtensions
