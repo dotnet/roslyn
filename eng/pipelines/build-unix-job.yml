@@ -38,7 +38,7 @@ jobs:
       displayName: Prepare Tests
 
     - task: PublishPipelineArtifact@1
-      displayName: 'Publish Build'
+      displayName: Publish Test Payload
       inputs:
         targetPath: '$(Build.SourcesDirectory)/artifacts/testPayload'
         artifactName: ${{ parameters.testArtifactName }}

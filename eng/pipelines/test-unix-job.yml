@@ -43,16 +43,18 @@ jobs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
 
-    # Work around for files not maintaining permissions after pipeline download
-    # https://github.com/microsoft/azure-pipelines-tasks/issues/6364
-    - bash: find . -name ilasm | xargs chmod 755
-      workingDirectory: '$(Build.SourcesDirectory)/artifacts/bin'
-
     - task: PowerShell@2
       displayName: Rehydrate Unit Tests Environment
       inputs:
         filePath: rehydrate.ps1
         pwsh: true
+
+    # Work around for files not maintaining permissions after pipeline download
+    # https://github.com/microsoft/azure-pipelines-tasks/issues/6364
+    - bash: |
+        find artifacts/bin -name ilasm | xargs chmod 755
+        chmod 755 eng/build.sh
+      workingDirectory: '$(Build.SourcesDirectory)'
 
     - script: ./eng/build.sh --ci --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
       displayName: Test
