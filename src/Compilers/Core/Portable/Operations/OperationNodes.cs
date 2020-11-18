@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Operations
@@ -26,7 +23,23 @@ namespace Microsoft.CodeAnalysis.Operations
             OperationConstantValue = constantValue;
         }
 
-        public override IEnumerable<IOperation> Children { get; }
+        internal ImmutableArray<IOperation> Children { get; }
+
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
+            {
+                0 when index < Children.Length => Children[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index))
+            };
+
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+            => previousSlot switch
+            {
+                -1 when !Children.IsEmpty => (true, 0, 0),
+                0 when previousIndex + 1 < Children.Length => (true, 0, previousIndex + 1),
+                _ => (false, int.MinValue, int.MinValue)
+            };
+
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue { get; }
         public override OperationKind Kind => OperationKind.None;
@@ -59,7 +72,23 @@ namespace Microsoft.CodeAnalysis.Operations
             OperationConstantValue = constantValue;
         }
 
-        public override IEnumerable<IOperation> Children { get; }
+        internal ImmutableArray<IOperation> Children { get; }
+
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
+            {
+                0 when index < Children.Length => Children[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index))
+            };
+
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+            => previousSlot switch
+            {
+                -1 when !Children.IsEmpty => (true, 0, 0),
+                0 when previousIndex + 1 < Children.Length => (true, 0, previousIndex + 1),
+                _ => (false, int.MinValue, int.MinValue)
+            };
+
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue { get; }
         public override OperationKind Kind => OperationKind.Invalid;
@@ -87,7 +116,9 @@ namespace Microsoft.CodeAnalysis.Operations
             Original = original;
         }
         public IMethodSymbol Symbol => Original.Symbol;
-        public override IEnumerable<IOperation> Children => SpecializedCollections.EmptyEnumerable<IOperation>();
+
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
 
         public override OperationKind Kind => OperationKind.FlowAnonymousFunction;
         public override ITypeSymbol? Type => null;
@@ -172,7 +203,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class DynamicObjectCreationOperation : HasDynamicArgumentsExpression, IDynamicObjectCreationOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         public DynamicObjectCreationOperation(IObjectOrCollectionInitializerOperation? initializer, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
             base(arguments, argumentNames, argumentRefKinds, semanticModel, syntax, type, isImplicit)
         {
@@ -183,18 +213,31 @@ namespace Microsoft.CodeAnalysis.Operations
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.DynamicObjectCreation;
 
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (!Arguments.IsEmpty) builder.AddRange(Arguments);
-                    builder.AddIfNotNull(Initializer);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when index < Arguments.Length => Arguments[index],
+                1 when Initializer != null => Initializer,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!Arguments.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+
+                case 0 when previousIndex + 1 < Arguments.Length:
+                    return (true, 0, previousIndex + 1);
+
+                case 0:
+                    if (Initializer != null) return (true, 1, 0);
+                    else goto default;
+
+                default:
+                    return (false, int.MinValue, int.MinValue);
             }
         }
 
@@ -210,24 +253,37 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class DynamicInvocationOperation : HasDynamicArgumentsExpression, IDynamicInvocationOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         public DynamicInvocationOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
             base(arguments, argumentNames, argumentRefKinds, semanticModel, syntax, type, isImplicit)
         {
             Operation = SetParentOperation(operation, this);
         }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    builder.AddIfNotNull(Operation);
-                    if (!Arguments.IsEmpty) builder.AddRange(Arguments);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Operation != null => Operation,
+                1 when index < Arguments.Length => Arguments[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Operation != null) return (true, 0, 0);
+                    else goto case 0;
+
+                case 0: 
+                    if (!Arguments.IsEmpty) return (true, 1, 0);
+                    else goto default;
+
+                case 1 when previousIndex + 1 < Arguments.Length:
+                    return (true, 1, previousIndex + 1);
+
+                default:
+                    return (false, int.MinValue, int.MinValue);
             }
         }
 
@@ -247,7 +303,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class DynamicIndexerAccessOperation : HasDynamicArgumentsExpression, IDynamicIndexerAccessOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         public DynamicIndexerAccessOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
             base(arguments, argumentNames, argumentRefKinds, semanticModel, syntax, type, isImplicit)
         {
@@ -258,18 +313,31 @@ namespace Microsoft.CodeAnalysis.Operations
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.DynamicIndexerAccess;
 
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    builder.AddIfNotNull(Operation);
-                    if (!Arguments.IsEmpty) builder.AddRange(Arguments);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Operation != null => Operation,
+                1 when index < Arguments.Length => Arguments[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Operation != null) return (true, 0, 0);
+                    else goto case 0;
+
+                case 0: 
+                    if (!Arguments.IsEmpty) return (true, 1, 0);
+                    else goto default;
+
+                case 1 when previousIndex + 1 < Arguments.Length:
+                    return (true, 1, previousIndex + 1);
+
+                default:
+                    return (false, int.MinValue, int.MinValue);
             }
         }
 
@@ -300,22 +368,55 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class WhileLoopOperation
     {
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => (slot, ConditionIsTop) switch
             {
-                // PROTOTYPE(iop): Look at making the implementation of these better.
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(6);
-                    if (ConditionIsTop) builder.AddIfNotNull(Condition);
-                    builder.AddIfNotNull(Body);
-                    if (!ConditionIsTop) builder.AddIfNotNull(Condition);
-                    builder.AddIfNotNull(IgnoredCondition);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
+                (0, true) when Condition != null => Condition,
+                (0, false) when Body != null => Body,
+                (1, true) when Body != null => Body,
+                (1, false) when Condition != null => Condition,
+                (2, _) when IgnoredCondition != null => IgnoredCondition,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
 
-                return _lazyChildren;
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            return ConditionIsTop ? MoveNextConditionIsTop() : MoveNextConditionIsBottom();
+
+            (bool hasNext, int nextSlot, int nextIndex) MoveNextConditionIsTop()
+            {
+                switch (previousSlot)
+                {
+                    case -1:
+                        if (Condition != null) return (true, 0, 0);
+                        else goto case 0;
+                    case 0:
+                        if (Body != null) return (true, 1, 0);
+                        else goto case 1;
+                    case 1:
+                        if (IgnoredCondition != null) return (true, 2, 0);
+                        else goto default;
+                    default:
+                        return (false, int.MinValue, int.MinValue);
+                }
+            }
+
+            (bool hasNext, int nextSlot, int nextIndex) MoveNextConditionIsBottom()
+            {
+                switch (previousSlot)
+                {
+                    case -1:
+                        if (Body != null) return (true, 0, 0);
+                        else goto case 0;
+                    case 0:
+                        if (Condition != null) return (true, 1, 0);
+                        else goto case 1;
+                    case 1:
+                        if (IgnoredCondition != null) return (true, 2, 0);
+                        else goto default;
+                    default:
+                        return (false, int.MinValue, int.MinValue);
+                }
             }
         }
 

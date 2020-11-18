@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     IOperation operation,
                     (ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion region, int ordinal)>.Builder map, ControlFlowRegion region) argument)
                 {
-                    foreach (IOperation child in operation.Children)
+                    foreach (IOperation child in ((Operation)operation).ChildOperations)
                     {
                         Visit(child, argument);
                     }
