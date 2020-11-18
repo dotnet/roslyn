@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
             private readonly ITextUndoHistory _undoHistory;
             private readonly IEditorOperations _editorOperations;
-            private readonly IEditorBraceCompletionSession _session;
+            private readonly IBraceCompletionService _service;
 
             #endregion
 
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             public BraceCompletionSession(
                 ITextView textView, ITextBuffer subjectBuffer,
                 SnapshotPoint openingPoint, char openingBrace, char closingBrace, ITextUndoHistory undoHistory,
-                IEditorOperationsFactoryService editorOperationsFactoryService, IEditorBraceCompletionSession session,
+                IEditorOperationsFactoryService editorOperationsFactoryService, IBraceCompletionService service,
                 IThreadingContext threadingContext)
                 : base(threadingContext, assertIsForeground: true)
             {
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 this.ClosingPoint = SubjectBuffer.CurrentSnapshot.CreateTrackingPoint(openingPoint.Position, PointTrackingMode.Positive);
                 _undoHistory = undoHistory;
                 _editorOperations = editorOperationsFactoryService.GetEditorOperations(textView);
-                _session = session;
+                _service = service;
             }
 
             #endregion
@@ -100,7 +101,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
                 OpeningPoint = SubjectBuffer.CurrentSnapshot.CreateTrackingPoint(openingSnapshotPoint, PointTrackingMode.Positive);
 
-                var braceResult = _session.GetBraceCompletion(this, cancellationToken);
+                var context = GetBraceCompletionContext();
+                if (context == null)
+                {
+                    EndSession();
+                    return;
+                }
+
+                var braceResult = _service.GetBraceCompletionAsync(context, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (braceResult == null)
                 {
                     EndSession();
@@ -115,7 +123,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 // switch the closing point from positive to negative tracking so that the closing point stays against the closing brace
                 ClosingPoint = SubjectBuffer.CurrentSnapshot.CreateTrackingPoint(ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot), PointTrackingMode.Negative);
 
-                var changesAfterStart = _session.GetChangesAfterCompletion(this, cancellationToken);
+                var contextAfterStart = GetBraceCompletionContext();
+                if (context == null)
+                {
+                    caretPreservingTransaction.Complete();
+                    return;
+                }
+
+                var changesAfterStart = _service.GetTextChangesAfterCompletionAsync(contextAfterStart, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (changesAfterStart != null)
                 {
                     ApplyBraceCompletionResult(changesAfterStart.Value);
@@ -178,7 +193,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 var snapshot = this.SubjectBuffer.CurrentSnapshot;
 
                 var closingSnapshotPoint = ClosingPoint.GetPoint(snapshot);
-                if (!HasForwardTyping && _session.AllowOverType(this, cancellationToken))
+                
+                if (!HasForwardTyping && AllowOverType())
                 {
                     var caretPos = this.GetCaretPosition();
 
@@ -216,6 +232,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                             undo.Complete();
                         }
                     }
+                }
+
+                bool AllowOverType()
+                {
+                    var context = GetBraceCompletionContext();
+                    return context == null || _service.AllowOverTypeAsync(context, cancellationToken).WaitAndGetResult(cancellationToken);
                 }
             }
 
@@ -256,7 +278,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
                     if (closingSnapshotPoint.Position > 0 && HasNoForwardTyping(this.GetCaretPosition().Value, closingSnapshotPoint.Subtract(1)))
                     {
-                        var changesAfterReturn = _session.GetChangesAfterReturn(this, CancellationToken.None);
+                        var context = GetBraceCompletionContext();
+                        if (context == null)
+                        {
+                            return;
+                        }
+
+                        var changesAfterReturn = _service.GetTextChangeAfterReturnAsync(context, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                         if (changesAfterReturn != null)
                         {
                             using var caretPreservingTransaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Brace_Completion, _undoHistory, _editorOperations);
@@ -358,6 +386,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 {
                     TextView.Caret.MoveTo(afterBrace.Value);
                 }
+            }
+
+            private BraceCompletionContext GetBraceCompletionContext()
+            {
+                this.AssertIsForeground();
+                var snapshot = SubjectBuffer.CurrentSnapshot;
+
+                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document == null)
+                {
+                    return null;
+                }
+
+                var closingSnapshotPoint = ClosingPoint.GetPosition(snapshot);
+                var openingSnapshotPoint = OpeningPoint.GetPosition(snapshot);
+                // The user is actively typing so the caret position should not be null.
+                var caretPosition = this.GetCaretPosition().Value.Position;
+                return new BraceCompletionContext(document, openingSnapshotPoint, closingSnapshotPoint, caretPosition);
             }
 
             private void ApplyBraceCompletionResult(BraceCompletionResult result)

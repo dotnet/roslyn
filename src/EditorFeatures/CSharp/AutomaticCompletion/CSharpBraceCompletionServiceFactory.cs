@@ -12,12 +12,12 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 {
-    [ExportLanguageService(typeof(IEditorBraceCompletionSessionFactory), LanguageNames.CSharp), Shared]
-    internal class CSharpEditorBraceCompletionSessionFactory : AbstractEditorBraceCompletionSessionFactory
+    [ExportLanguageService(typeof(IBraceCompletionServiceFactory), LanguageNames.CSharp), Shared]
+    internal class CSharpBraceCompletionServiceFactory : AbstractBraceCompletionServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpEditorBraceCompletionSessionFactory(
+        public CSharpBraceCompletionServiceFactory(
             [ImportMany(LanguageNames.CSharp)] IEnumerable<IBraceCompletionService> braceCompletionServices,
             IThreadingContext threadingContext)
             : base(braceCompletionServices, threadingContext)

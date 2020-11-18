@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
             {
-                var editorSessionFactory = document.GetLanguageService<IEditorBraceCompletionSessionFactory>();
+                var editorSessionFactory = document.GetLanguageService<IBraceCompletionServiceFactory>();
                 if (editorSessionFactory != null)
                 {
                     // Brace completion is (currently) not cancellable.
                     var cancellationToken = CancellationToken.None;
 
-                    var editorSession = editorSessionFactory.TryCreateSession(document, openingPoint, openingBrace, cancellationToken);
+                    var editorSession = editorSessionFactory.TryGetService(document, openingPoint, openingBrace, cancellationToken);
                     if (editorSession != null)
                     {
                         var undoHistory = _undoManager.GetTextBufferUndoManager(textView.TextBuffer).TextBufferUndoHistory;

@@ -5,12 +5,13 @@
 #nullable disable
 
 using System.Threading;
+using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 {
-    internal interface IEditorBraceCompletionSessionFactory : ILanguageService
+    internal interface IBraceCompletionServiceFactory : ILanguageService
     {
-        IEditorBraceCompletionSession TryCreateSession(Document document, int openingPosition, char openingBrace, CancellationToken cancellationToken);
+        IBraceCompletionService TryGetService(Document document, int openingPosition, char openingBrace, CancellationToken cancellationToken);
     }
 }

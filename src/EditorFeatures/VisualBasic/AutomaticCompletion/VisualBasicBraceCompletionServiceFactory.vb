@@ -9,9 +9,9 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
-    <ExportLanguageService(GetType(IEditorBraceCompletionSessionFactory), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicEditorBraceCompletionSessionFactory
-        Inherits AbstractEditorBraceCompletionSessionFactory
+    <ExportLanguageService(GetType(IBraceCompletionServiceFactory), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicBraceCompletionServiceFactory
+        Inherits AbstractBraceCompletionServiceFactory
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
