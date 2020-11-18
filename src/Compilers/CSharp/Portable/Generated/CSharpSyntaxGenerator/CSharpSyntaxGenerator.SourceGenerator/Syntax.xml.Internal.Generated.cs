@@ -10,6 +10,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+
+
     /// <summary>Provides the base class from which the classes that represent name syntax nodes are derived. This is an abstract class.</summary>
     internal abstract partial class NameSyntax : TypeSyntax
     {
@@ -34120,6 +34122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal partial class ContextAwareSyntax
     {
+
         private SyntaxFactoryContext context;
 
         public ContextAwareSyntax(SyntaxFactoryContext context)
@@ -38993,6 +38996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal static partial class SyntaxFactory
     {
+
         public static IdentifierNameSyntax IdentifierName(SyntaxToken identifier)
         {
 #if DEBUG

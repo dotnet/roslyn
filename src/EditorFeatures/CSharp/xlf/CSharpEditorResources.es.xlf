@@ -47,6 +47,11 @@
         <target state="translated">Se encontró un solo ensamblado: "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">Generar suscripción de eventos</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Load_from_0">
         <source>Load from: '{0}'</source>
         <target state="translated">Cargar desde: "{0}"</target>

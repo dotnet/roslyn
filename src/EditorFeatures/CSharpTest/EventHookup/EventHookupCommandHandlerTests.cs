@@ -1024,7 +1024,7 @@ class C
             testState.AssertCodeIs(expectedCode);
         }
 
-        private OptionsCollection QualifyMethodAccessWithNotification(NotificationOption2 notification)
+        private static OptionsCollection QualifyMethodAccessWithNotification(NotificationOption2 notification)
             => new OptionsCollection(LanguageNames.CSharp) { { CodeStyleOptions2.QualifyMethodAccess, true, notification } };
     }
 }

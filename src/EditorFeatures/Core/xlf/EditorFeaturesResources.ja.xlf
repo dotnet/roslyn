@@ -39,12 +39,12 @@
       </trans-unit>
       <trans-unit id="Error_creating_instance_of_CodeFixProvider">
         <source>Error creating instance of CodeFixProvider</source>
-        <target state="new">Error creating instance of CodeFixProvider</target>
+        <target state="translated">CodeFixProvider のインスタンスの作成でエラーが発生しました</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
         <source>Error creating instance of CodeFixProvider '{0}'</source>
-        <target state="new">Error creating instance of CodeFixProvider '{0}'</target>
+        <target state="translated">CodeFixProvider '{0}' のインスタンスの作成でエラーが発生しました</target>
         <note />
       </trans-unit>
       <trans-unit id="Expander_display_text">
@@ -644,7 +644,7 @@
       </trans-unit>
       <trans-unit id="Rename_operation_was_cancelled_or_is_not_valid">
         <source>Rename operation was cancelled or is not valid</source>
-        <target state="translated">名前の変更操作は取り消されたか、または検証されていません。</target>
+        <target state="translated">名前の変更操作は取り消されたか、または検証されていません</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_Symbol">
@@ -664,7 +664,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">{0}' を '{1}' に名前変更</target>
+        <target state="translated">'{0}' を '{1}' に名前変更</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Warning">
@@ -1111,7 +1111,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Rename_0_to_1_colon">
         <source>Rename '{0}' to '{1}':</source>
-        <target state="translated">{0}' の名前を '{1}' に変更します。</target>
+        <target state="translated">'{0}' の名前を '{1}' に変更します:</target>
         <note />
       </trans-unit>
       <trans-unit id="Encapsulate_Field_colon">
@@ -1126,7 +1126,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Calls_To_0">
         <source>Calls To '{0}'</source>
-        <target state="translated">{0}' への呼び出し</target>
+        <target state="translated">'{0}' への呼び出し</target>
         <note />
       </trans-unit>
       <trans-unit id="Calls_To_Base_Member_0">
@@ -1146,7 +1146,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Implements_0">
         <source>Implements '{0}'</source>
-        <target state="translated">{0}' を実装します</target>
+        <target state="translated">'{0}' を実装します</target>
         <note />
       </trans-unit>
       <trans-unit id="Initializers">
@@ -1166,7 +1166,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Preview_changes1">
         <source>_Preview changes</source>
-        <target state="translated">プレビューの変更(_P)</target>
+        <target state="translated">変更のプレビュー(_P)</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply3">

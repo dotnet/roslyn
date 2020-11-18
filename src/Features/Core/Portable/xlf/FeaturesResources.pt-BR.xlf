@@ -347,7 +347,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
-        <target state="new">Extract base class...</target>
+        <target state="translated">Extrair a classe base...</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_interface">
@@ -502,12 +502,12 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Inline_0">
         <source>Inline '{0}'</source>
-        <target state="new">Inline '{0}'</target>
+        <target state="translated">Embutir '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
-        <target state="new">Inline and keep '{0}'</target>
+        <target state="translated">Embutir e manter '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -542,7 +542,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
-        <target state="new">Make class 'abstract'</target>
+        <target state="translated">Tornar a classe 'abstract'</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_member_static">
@@ -607,17 +607,17 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
-        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</target>
+        <target state="translated">A modificação do corpo de '{0}' impedirá que a sessão de depuração continue porque o corpo tem muitas instruções.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</target>
+        <target state="translated">A modificação do corpo de '{0}' impedirá que a sessão de depuração continue devido a um erro interno: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
         <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
-        <target state="new">Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</target>
+        <target state="translated">A modificação do arquivo de origem '{0}' impedirá que a sessão de depuração continue porque o arquivo é muito grande.</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -642,7 +642,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">Modificar fonte arquivo {0} impedirá a sessão de depuração de continuar devido a erro interno: {1}.</target>
+        <target state="translated">A modificação do arquivo de origem '{0}' impedirá que a sessão de depuração continue devido a um erro interno: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -682,7 +682,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Pull_members_up_to_new_base_class">
         <source>Pull member(s) up to new base class...</source>
-        <target state="new">Pull member(s) up to new base class...</target>
+        <target state="translated">Efetuar pull de membros até a nova classe base...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -1013,7 +1013,7 @@ A âncora $ corresponde a \n, mas não corresponde a \r\n (a combinação dos ca
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="new">expression</target>
+        <target state="translated">expressão</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
@@ -1283,7 +1283,7 @@ A âncora $ corresponde a \n, mas não corresponde a \r\n (a combinação dos ca
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="new">name</target>
+        <target state="translated">nome</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
@@ -1383,7 +1383,7 @@ Dois ou mais intervalos de caracteres podem ser concatenados. Por exemplo, para 
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="new">no</target>
+        <target state="translated">não</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
@@ -1766,7 +1766,7 @@ Se o comportamento em conformidade com o ECMAScript for especificado, \w será e
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="new">yes</target>
+        <target state="translated">sim</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
@@ -1832,7 +1832,7 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="Remove_async_modifier">
         <source>Remove 'async' modifier</source>
-        <target state="new">Remove 'async' modifier</target>
+        <target state="translated">Remover o modificador 'async'</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -2102,12 +2102,12 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
-        <target state="new">'{0}' is not null here.</target>
+        <target state="translated">'{0}' não é nulo aqui.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
-        <target state="new">'{0}' may be null here.</target>
+        <target state="translated">'{0}' pode ser nulo aqui.</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">
@@ -3552,7 +3552,7 @@ Deseja continuar?</target>
       </trans-unit>
       <trans-unit id="property_">
         <source>property</source>
-        <target state="translated">Propriedade.</target>
+        <target state="translated">propriedade</target>
         <note />
       </trans-unit>
       <trans-unit id="event_accessor">
@@ -3672,7 +3672,7 @@ Quando esse especificador de formato padrão é usado, a operação de análise 
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
         <source>'symbol' cannot be a namespace.</source>
-        <target state="translated">'"símbolo" não pode ser um namespace.</target>
+        <target state="translated">"símbolo" não pode ser um namespace.</target>
         <note />
       </trans-unit>
       <trans-unit id="time_separator">

@@ -212,169 +212,169 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="new">                  Visual Basic Compiler Options
+        <target state="translated">                  Параметры компилятора Visual Basic
 
-                                  - OUTPUT FILE -
--out:&lt;file&gt;                       Specifies the output file name.
--target:exe                       Create a console application (default).
-                                  (Short form: -t)
--target:winexe                    Create a Windows application.
--target:library                   Create a library assembly.
--target:module                    Create a module that can be added to an
-                                  assembly.
--target:appcontainerexe           Create a Windows application that runs in
+                                  - Выходной файл -
+-out:&lt;file&gt;                       Задает имя выходного файла.
+-target:exe                       Создать консольное приложение (по умолчанию).
+                                  (Краткая форма: -t)
+-target:winexe                    Создать Windows-приложение.
+-target:library                   Создать библиотечную сборку.
+-target:module                    Создать модуль, который может быть добавлен в
+                                  сборку.
+-target:appcontainerexe           Создать Windows-приложение, выполняемое в контейнере
                                   AppContainer.
--target:winmdobj                  Create a Windows Metadata intermediate file
--doc[+|-]                         Generates XML documentation file.
--doc:&lt;file&gt;                       Generates XML documentation file to &lt;file&gt;.
--refout:&lt;file&gt;                    Reference assembly output to generate
+-target:winmdobj                  Создать промежуточный файл метаданных Windows
+-doc[+|-]                         Создает XML-файл документации.
+-doc:&lt;file&gt;                       Создает XML-файл документации &lt;file&gt;.
+-refout:&lt;file&gt;                    Выходные данные создаваемой базовой сборки
 
-                                  - INPUT FILES -
--addmodule:&lt;file_list&gt;            Reference metadata from the specified modules
--link:&lt;file_list&gt;                 Embed metadata from the specified interop
-                                  assembly. (Short form: -l)
--recurse:&lt;wildcard&gt;               Include all files in the current directory
-                                  and subdirectories according to the
-                                  wildcard specifications.
--reference:&lt;file_list&gt;            Reference metadata from the specified
-                                  assembly. (Short form: -r)
--analyzer:&lt;file_list&gt;             Run the analyzers from this assembly
-                                  (Short form: -a)
--additionalfile:&lt;file list&gt;       Additional files that don't directly affect code
-                                  generation but may be used by analyzers for producing
-                                  errors or warnings.
+                                  - Входные файлы -
+-addmodule:&lt;file_list&gt;            Ссылка на метаданные из заданных модулей
+-link:&lt;file_list&gt;                 Внедрить метаданные из указанной сборки
+                                  взаимодействия. (Краткая форма: -l)
+-recurse:&lt;wildcard&gt;               Включить все файлы в текущем каталоге
+                                  и подкаталогах в соответствии с
+                                  заданным шаблоном.
+-reference:&lt;file_list&gt;            Ссылка на метаданные из заданной
+                                  сборки. (Краткая форма: -r)
+-analyzer:&lt;file_list&gt;             Запускать анализаторы из этой сборки
+                                  (Краткая форма: -a)
+-additionalfile:&lt;file list&gt;       Дополнительные файлы, которые не оказывают прямого влияния на создание
+                                  кода, но могут использоваться анализаторами для вывода
+                                  ошибок или предупреждений.
 
-                                  - RESOURCES -
--linkresource:&lt;resinfo&gt;           Links the specified file as an external
-                                  assembly resource.
-                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                  (Short form: -linkres)
--nowin32manifest                  The default manifest should not be embedded
-                                  in the manifest section of the output PE.
--resource:&lt;resinfo&gt;               Adds the specified file as an embedded
-                                  assembly resource.
-                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                  (Short form: -res)
--win32icon:&lt;file&gt;                 Specifies a Win32 icon file (.ico) for the
-                                  default Win32 resources.
--win32manifest:&lt;file&gt;             The provided file is embedded in the manifest
-                                  section of the output PE.
--win32resource:&lt;file&gt;             Specifies a Win32 resource file (.res).
+                                  - Ресурсы -
+-linkresource:&lt;resinfo&gt;           Привязывает указанный файл в качестве внешнего
+                                  ресурса сборки.
+                                  Данные о ресурсе:&lt;file&gt;[,&lt;name&gt;[,public|private]]
+                                  (Краткая форма: -linkres)
+-nowin32manifest                  Манифест по умолчанию не должен внедряться
+                                  в раздел манифеста выходного PE-файла.
+-resource:&lt;resinfo&gt;               Добавляет указанный файл в качестве внедренного
+                                  ресурса сборки.
+                                  Данные о ресурсе:&lt;file&gt;[,&lt;name&gt;[,public|private]]
+                                  (Краткая форма: -res)
+-win32icon:&lt;file&gt;                 Задает файл значка Win32 (ICO-файл) для
+                                  ресурсов Win32 по умолчанию.
+-win32manifest:&lt;file&gt;             Предоставленный файл внедряется в раздел
+                                  манифеста выходного PE-файла.
+-win32resource:&lt;file&gt;             Задает файл ресурсов Win32 (RES-файл).
 
-                                  - CODE GENERATION -
--optimize[+|-]                    Enable optimizations.
--removeintchecks[+|-]             Remove integer checks. Default off.
--debug[+|-]                       Emit debugging information.
--debug:full                       Emit full debugging information (default).
--debug:pdbonly                    Emit full debugging information.
--debug:portable                   Emit cross-platform debugging information.
--debug:embedded                   Emit cross-platform debugging information into
-                                  the target .dll or .exe.
--deterministic                    Produce a deterministic assembly
-                                  (including module version GUID and timestamp)
--refonly                          Produce a reference assembly in place of the main output
--instrument:TestCoverage          Produce an assembly instrumented to collect
-                                  coverage information
--sourcelink:&lt;file&gt;                Source link info to embed into PDB.
+                                  - Создание кода -
+-optimize[+|-]                    Включить оптимизацию.
+-removeintchecks[+|-]             Удалить целочисленные проверки. По умолчанию отключены.
+-debug[+|-]                       Выдать отладочные данные.
+-debug:full                       Выдать полные отладочные данные (по умолчанию).
+-debug:pdbonly                    Выдать полные отладочные данные.
+-debug:portable                   Выдать кроссплатформенные отладочные данные.
+-debug:embedded                   Выдать кроссплатформенные отладочные данные в
+                                  целевой DLL-файл или EXE-файл.
+-deterministic                    Создать детерминированную сборку
+                                  (включая GUID версии модуля и метку времени)
+-refonly                          Создавать базовую сборку вместо основных выходных данных
+-instrument:TestCoverage          Создавать сборку, инструментированную для сбора
+                                  данных об объеме протестированного кода
+-sourcelink:&lt;file&gt;                Данные о ссылке на исходные файлы для внедрения в PDB.
 
-                                  - ERRORS AND WARNINGS -
--nowarn                           Disable all warnings.
--nowarn:&lt;number_list&gt;             Disable a list of individual warnings.
--warnaserror[+|-]                 Treat all warnings as errors.
--warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
--ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
-                                  diagnostics.
+                                  - Ошибки и предупреждения -
+-nowarn                           Отключить все предупреждения.
+-nowarn:&lt;number_list&gt;             Отключить отдельные предупреждения по списку.
+-warnaserror[+|-]                 Обрабатывать все предупреждения как ошибки.
+-warnaserror[+|-]:&lt;number_list&gt;   Обрабатывать список предупреждений как ошибки.
+-ruleset:&lt;file&gt;                   Указать файл набора правил, отключающий определенные
+                                  диагностические операции.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
-                                  Specify a file to log all compiler and analyzer
-                                  diagnostics in SARIF format.
-                                  sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
-                                  both mean SARIF version 2.1.0.
--reportanalyzer                   Report additional analyzer information, such as
-                                  execution time.
--skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
+                                  Указать файл для записи всех диагностических данных
+                                  компилятора и анализатора в формате SARIF.
+                                  sarif_version:{1|2|2.1} По умолчанию используются значения 1. 2 и 2.1,
+                                  обозначающие версию SARIF 2.1.0.
+-reportanalyzer                   Сообщить дополнительные сведения об анализаторе, например
+                                  время выполнения.
+-skipanalyzers[+|-]               Пропустить выполнение анализаторов диагностики.
 
-                                  - LANGUAGE -
--define:&lt;symbol_list&gt;             Declare global conditional compilation
-                                  symbol(s). symbol_list:name=value,...
-                                  (Short form: -d)
--imports:&lt;import_list&gt;            Declare global Imports for namespaces in
-                                  referenced metadata files.
-                                  import_list:namespace,...
--langversion:?                    Display the allowed values for language version
--langversion:&lt;string&gt;             Specify language version such as
-                                  `default` (latest major version), or
-                                  `latest` (latest version, including minor versions),
-                                  or specific versions like `14` or `15.3`
--optionexplicit[+|-]              Require explicit declaration of variables.
--optioninfer[+|-]                 Allow type inference of variables.
--rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type
-                                  declarations.
--optionstrict[+|-]                Enforce strict language semantics.
--optionstrict:custom              Warn when strict language semantics are not
-                                  respected.
--optioncompare:binary             Specifies binary-style string comparisons.
-                                  This is the default.
--optioncompare:text               Specifies text-style string comparisons.
+                                  - Язык -
+-define:&lt;symbol_list&gt;             Объявить глобальные символы условной
+                                  компиляции. symbol_list:имя=значение,...
+                                  (Краткая форма: -d)
+-imports:&lt;import_list&gt;            Объявить глобальные импорты для пространств имен в
+                                  указанных файлах метаданных.
+                                  import_list:пространство_имен,...
+-langversion:?                    Отображать допустимые значения версии языка
+-langversion:&lt;string&gt;             Указать версию языка, например
+                                  "default" (последний основной номер версии) или
+                                  "latest" (последняя версия, включая дополнительные номера),
+                                  или конкретные версии, например 14 или 15.3
+-optionexplicit[+|-]              Требовать явное объявление переменных.
+-optioninfer[+|-]                 Разрешить вывод для типов переменных.
+-rootnamespace:&lt;string&gt;           Задает корневое пространство имен для всех объявлений
+                                  типов.
+-optionstrict[+|-]                Требовать строгую семантику языка.
+-optionstrict:custom              Предупреждать, когда не соблюдается строгая семантика
+                                  языка.
+-optioncompare:binary             Задает сравнение строк как двоичных данных.
+                                  Задано по умолчанию.
+-optioncompare:text               Задает сравнение строк как текста.
 
-                                  - MISCELLANEOUS -
--help                             Display this usage message. (Short form: -?)
--noconfig                         Do not auto-include VBC.RSP file.
--nologo                           Do not display compiler copyright banner.
--quiet                            Quiet output mode.
--verbose                          Display verbose messages.
--parallel[+|-]                    Concurrent build.
--version                          Display the compiler version number and exit.
+                                  - Прочее -
+-help                             Отображать это сообщение об использовании. (Краткая форма: -?)
+-noconfig                         Не включать файл VBC.RSP в состав автоматически.
+-nologo                           Не отображать заставку компилятора с информацией об авторских правах.
+-quiet                            Режим вывода без сообщений.
+-verbose                          Отображать подробные сообщения.
+-parallel[+|-]                    Параллельная сборка.
+-version                          Отобразить номер версии компилятора и выйти.
 
-                                  - ADVANCED -
--baseaddress:&lt;number&gt;             The base address for a library or module
-                                  (hex).
--checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
-                                  checksum stored in PDB. Supported values are:
-                                  SHA1 or SHA256 (default).
--codepage:&lt;number&gt;                Specifies the codepage to use when opening
-                                  source files.
--delaysign[+|-]                   Delay-sign the assembly using only the public
-                                  portion of the strong name key.
--publicsign[+|-]                  Public-sign the assembly using only the public
-                                  portion of the strong name key.
--errorreport:&lt;string&gt;             Specifies how to handle internal compiler
-                                  errors; must be prompt, send, none, or queue
-                                  (default).
--filealign:&lt;number&gt;               Specify the alignment used for output file
-                                  sections.
--highentropyva[+|-]               Enable high-entropy ASLR.
--keycontainer:&lt;string&gt;            Specifies a strong name key container.
--keyfile:&lt;file&gt;                   Specifies a strong name key file.
--libpath:&lt;path_list&gt;              List of directories to search for metadata
-                                  references. (Semi-colon delimited.)
--main:&lt;class&gt;                     Specifies the Class or Module that contains
-                                  Sub Main. It can also be a Class that
-                                  inherits from System.Windows.Forms.Form.
-                                  (Short form: -m)
--moduleassemblyname:&lt;string&gt;      Name of the assembly which this module will
-                                  be a part of.
--netcf                            Target the .NET Compact Framework.
--nostdlib                         Do not reference standard libraries
-                                  (system.dll and VBC.RSP file).
+                                  - Дополнительно -
+-baseaddress:&lt;number&gt;             Базовый адрес библиотеки или модуля
+                                  (шестнадцатеричный).
+-checksumalgorithm:&lt;alg&gt;          Задать алгоритм расчета контрольной суммы
+                                  исходного файла, хранимой в PDB. Поддерживаемые значения:
+                                  SHA1 или SHA256 (по умолчанию).
+-codepage:&lt;number&gt;                Указывает кодовую страницу, используемую при открытии
+                                  исходных файлов.
+-delaysign[+|-]                   Использовать отложенную подпись для сборки, применяя только
+                                  открытую часть ключа строгого имени.
+-publicsign[+|-]                  Выполнить общедоступную подпись сборки, используя только открытую
+                                  часть ключа строгого имени.
+-errorreport:&lt;string&gt;             Указывает способ обработки внутренних ошибок
+                                  компилятора; принимает prompt, send, none или queue
+                                  (по умолчанию).
+-filealign:&lt;number&gt;               Задать выравнивание для разделов выходных
+                                  файлов.
+-highentropyva[+|-]               Включить ASLR с высокой энтропией.
+-keycontainer:&lt;string&gt;            Задает контейнер ключа строгого имени.
+-keyfile:&lt;file&gt;                   Задает файл ключа строгого имени.
+-libpath:&lt;path_list&gt;              Список каталогов для поиска ссылок на
+                                  метаданные. (Разделитель — точка с запятой.)
+-main:&lt;class&gt;                     Задает класс или модуль, содержащий
+                                  Sub Main. Он может являться производным
+                                  классом от System.Windows.Forms.Form.
+                                  (Краткая форма: -m)
+-moduleassemblyname:&lt;string&gt;      Имя сборки, частью которой будет
+                                  данный модуль.
+-netcf                            Целевая версия .NET Compact Framework.
+-nostdlib                         Не обращаться к стандартным библиотекам
+                                  (файл system.dll и VBC.RSP).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  Specify a mapping for source path names output by
-                                  the compiler.
--platform:&lt;string&gt;                Limit which platforms this code can run on;
-                                  must be x86, x64, Itanium, arm, arm64
-                                  AnyCPU32BitPreferred or anycpu (default).
--preferreduilang                  Specify the preferred output language name.
--nosdkpath                        Disable searching the default SDK path for standard library assemblies.
--sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
+                                  Указать сопоставление для выходных данных имен исходного пути по
+                                  компилятору.
+-platform:&lt;string&gt;                Ограничить платформы, на которых может выполняться этот код:
+                                  x86, x64, Itanium, arm, arm64
+                                  AnyCPU32BitPreferred или anycpu (по умолчанию).
+-preferreduilang                  Указать имя предпочтительного языка вывода.
+-nosdkpath                        Отключить поиск пути пакета SDK по умолчанию для сборок стандартных библиотек.
+-sdkpath:&lt;path&gt;                   Расположение каталога пакета SDK .NET Framework
                                   (mscorlib.dll).
--subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
+-subsystemversion:&lt;version&gt;       Указать версию подсистемы выходного PE-файла.
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emit compiler output in UTF8 character
-                                  encoding.
-@&lt;file&gt;                           Insert command-line settings from a text file
--vbruntime[+|-|*]                 Compile with/without the default Visual Basic
-                                  runtime.
--vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
-                                  runtime in &lt;file&gt;.
+-utf8output[+|-]                  Выдавать выходные данные компилятора в кодировке
+                                  UTF8.
+@&lt;file&gt;                           Вставить параметры командной строки из текстового файла
+-vbruntime[+|-|*]                 Скомпилировать с помощью или без использования стандартной среды выполнения
+                                  Visual Basic.
+-vbruntime:&lt;file&gt;                 Скомпилировать с помощью альтернативной среды выполнения
+                                  Visual Basic в &lt;file&gt;.
 </target>
         <note />
       </trans-unit>
@@ -461,6 +461,50 @@
       <trans-unit id="TypeArgumentCannotBeNothing">
         <source>Type argument cannot be Nothing</source>
         <target state="translated">Аргумент типа не может иметь значение Nothing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration">
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="new">Generator threw the following exception:
+'{0}'.</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
+        <source>Generator failed to generate source.</source>
+        <target state="new">Generator failed to generate source.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization">
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="new">Generator threw the following exception:
+'{0}'.</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
+        <source>Generator failed to initialize.</source>
+        <target state="new">Generator failed to initialize.</target>
         <note />
       </trans-unit>
       <trans-unit id="WrongNumberOfTypeArguments">
@@ -615,7 +659,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyName">
         <source>'{0}' is not a valid value for /moduleassemblyname</source>
-        <target state="translated">'"{0}" не является допустимым значением для /moduleassemblyname</target>
+        <target state="translated">"{0}" не является допустимым значением для /moduleassemblyname</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConflictingManifestSwitches">
@@ -815,12 +859,12 @@
       </trans-unit>
       <trans-unit id="ERR_UseOfKeywordNotInInstanceMethod1">
         <source>'{0}' is valid only within an instance method.</source>
-        <target state="translated">'"{0}" допускается только в методе экземпляра.</target>
+        <target state="translated">"{0}" допускается только в методе экземпляра.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseOfKeywordFromStructure1">
         <source>'{0}' is not valid within a structure.</source>
-        <target state="translated">'"{0}" не является допустимым в структуре.</target>
+        <target state="translated">"{0}" не является допустимым в структуре.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAttributeConstructor1">
@@ -1055,42 +1099,42 @@
       </trans-unit>
       <trans-unit id="ERR_EnumNotExpression1">
         <source>'{0}' is an Enum type and cannot be used as an expression.</source>
-        <target state="translated">'"{0}" является типом Enum и не может использоваться как выражение.</target>
+        <target state="translated">"{0}" является типом Enum и не может использоваться как выражение.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeNotExpression1">
         <source>'{0}' is a type and cannot be used as an expression.</source>
-        <target state="translated">'"{0}" является типом и не может использоваться в качестве выражения.</target>
+        <target state="translated">"{0}" является типом и не может использоваться в качестве выражения.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassNotExpression1">
         <source>'{0}' is a class type and cannot be used as an expression.</source>
-        <target state="translated">'"{0}" является типом класса и не может использоваться как выражение.</target>
+        <target state="translated">"{0}" является типом класса и не может использоваться как выражение.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructureNotExpression1">
         <source>'{0}' is a structure type and cannot be used as an expression.</source>
-        <target state="translated">'"{0}" является типом структуры и не может использоваться в качестве выражения.</target>
+        <target state="translated">"{0}" является типом структуры и не может использоваться в качестве выражения.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceNotExpression1">
         <source>'{0}' is an interface type and cannot be used as an expression.</source>
-        <target state="translated">'"{0}" является типом интерфейса и не может использоваться как выражение.</target>
+        <target state="translated">"{0}" является типом интерфейса и не может использоваться как выражение.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceNotExpression1">
         <source>'{0}' is a namespace and cannot be used as an expression.</source>
-        <target state="translated">'"{0}" является пространством имени и не может использоваться в качестве выражения.</target>
+        <target state="translated">"{0}" является пространством имени и не может использоваться в качестве выражения.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamespaceName1">
         <source>'{0}' is not a valid name and cannot be used as the root namespace name.</source>
-        <target state="translated">'"{0}" является недопустимым именем и не может использоваться как имя корневого пространства имен.</target>
+        <target state="translated">"{0}" является недопустимым именем и не может использоваться как имя корневого пространства имен.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_XmlPrefixNotExpression">
         <source>'{0}' is an XML prefix and cannot be used as an expression.  Use the GetXmlNamespace operator to create a namespace object.</source>
-        <target state="translated">'"{0}" является префиксом XML и не может использоваться в качестве выражения.  Используйте оператор GetXmlNamespace для создания объекта пространства имен.</target>
+        <target state="translated">"{0}" является префиксом XML и не может использоваться в качестве выражения.  Используйте оператор GetXmlNamespace для создания объекта пространства имен.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleExtends">
@@ -1350,17 +1394,17 @@
       </trans-unit>
       <trans-unit id="ERR_BadConstFlags1">
         <source>'{0}' is not valid on a constant declaration.</source>
-        <target state="translated">'"{0}" недопустимо использовать при объявлении константы.</target>
+        <target state="translated">"{0}" недопустимо использовать при объявлении константы.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadWithEventsFlags1">
         <source>'{0}' is not valid on a WithEvents declaration.</source>
-        <target state="translated">'"{0}" недопустимо использовать в объявлении WithEvents.</target>
+        <target state="translated">"{0}" недопустимо использовать в объявлении WithEvents.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDimFlags1">
         <source>'{0}' is not valid on a member variable declaration.</source>
-        <target state="translated">'"{0}" недопустимо использовать при объявлении переменной-члена.</target>
+        <target state="translated">"{0}" недопустимо использовать при объявлении переменной-члена.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateParamName1">
@@ -1400,27 +1444,27 @@
       </trans-unit>
       <trans-unit id="ERR_BadMethodFlags1">
         <source>'{0}' is not valid on a method declaration.</source>
-        <target state="translated">'"{0}" недопустимо использовать в объявлении метода.</target>
+        <target state="translated">"{0}" недопустимо использовать в объявлении метода.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEventFlags1">
         <source>'{0}' is not valid on an event declaration.</source>
-        <target state="translated">'"{0}" недопустимо использовать при объявлении события.</target>
+        <target state="translated">"{0}" недопустимо использовать при объявлении события.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDeclareFlags1">
         <source>'{0}' is not valid on a Declare.</source>
-        <target state="translated">'"{0}" является недопустимым для Declare.</target>
+        <target state="translated">"{0}" является недопустимым для Declare.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadLocalConstFlags1">
         <source>'{0}' is not valid on a local constant declaration.</source>
-        <target state="translated">'"{0}" недопустимо использовать в объявлении локальной константы.</target>
+        <target state="translated">"{0}" недопустимо использовать в объявлении локальной константы.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadLocalDimFlags1">
         <source>'{0}' is not valid on a local variable declaration.</source>
-        <target state="translated">'"{0}" недопустимо использовать в объявлении локальной переменной.</target>
+        <target state="translated">"{0}" недопустимо использовать в объявлении локальной переменной.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedConditionalDirective">
@@ -1474,42 +1518,42 @@
       </trans-unit>
       <trans-unit id="ERR_MultiplyDefinedType3">
         <source>'{0}' is already declared as '{1}' in this {2}.</source>
-        <target state="translated">'"{0}" уже объявлено как "{1}" в {2}.</target>
+        <target state="translated">"{0}" уже объявлено как "{1}" в {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadOverrideAccess2">
         <source>'{0}' cannot override '{1}' because they have different access levels.</source>
-        <target state="translated">'"{0}" не может переопределить "{1}", поскольку у них разные уровни доступа.</target>
+        <target state="translated">"{0}" не может переопределить "{1}", поскольку у них разные уровни доступа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOverrideNotOverridable2">
         <source>'{0}' cannot override '{1}' because it is declared 'NotOverridable'.</source>
-        <target state="translated">'"{0}" не может переопределить "{1}", поскольку он объявлен как "NotOverridable".</target>
+        <target state="translated">"{0}" не может переопределить "{1}", поскольку он объявлен как "NotOverridable".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateProcDef1">
         <source>'{0}' has multiple definitions with identical signatures.</source>
-        <target state="translated">'"{0}" имеет несколько определений с одинаковыми сигнатурами.</target>
+        <target state="translated">"{0}" имеет несколько определений с одинаковыми сигнатурами.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateProcDefWithDifferentTupleNames2">
         <source>'{0}' has multiple definitions with identical signatures with different tuple element names, including '{1}'.</source>
-        <target state="translated">'"{0}" имеет несколько определений с одинаковыми подписями, но разными именами элементов кортежа, в том числе "{1}".</target>
+        <target state="translated">"{0}" имеет несколько определений с одинаковыми подписями, но разными именами элементов кортежа, в том числе "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceMethodFlags1">
         <source>'{0}' is not valid on an interface method declaration.</source>
-        <target state="translated">'"{0}" является недопустимым объявлением метода интерфейса.</target>
+        <target state="translated">"{0}" является недопустимым объявлением метода интерфейса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedParamNotFound2">
         <source>'{0}' is not a parameter of '{1}'.</source>
-        <target state="translated">'"{0}" не является параметром "{1}".</target>
+        <target state="translated">"{0}" не является параметром "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfacePropertyFlags1">
         <source>'{0}' is not valid on an interface property declaration.</source>
-        <target state="translated">'"{0}" является недопустимым объявлением свойства интерфейса.</target>
+        <target state="translated">"{0}" является недопустимым объявлением свойства интерфейса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedArgUsedTwice2">
@@ -1519,7 +1563,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceCantUseEventSpecifier1">
         <source>'{0}' is not valid on an interface event declaration.</source>
-        <target state="translated">'"{0}" является недопустимым объявлением события интерфейса.</target>
+        <target state="translated">"{0}" является недопустимым объявлением события интерфейса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypecharNoMatch2">
@@ -1618,17 +1662,17 @@
       </trans-unit>
       <trans-unit id="ERR_InheritsFromCantInherit3">
         <source>'{0}' cannot inherit from {2} '{1}' because '{1}' is declared 'NotInheritable'.</source>
-        <target state="translated">'"{0}" не может наследовать от {2} "{1}", поскольку "{1}" объявлен как "NotInheritable".</target>
+        <target state="translated">"{0}" не может наследовать от {2} "{1}", поскольку "{1}" объявлен как "NotInheritable".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadWithOptional2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by optional parameters.</source>
-        <target state="translated">'"{0}" и "{1}" не могут переопределить друг друга, так как они отличаются только по необязательным параметрам.</target>
+        <target state="translated">"{0}" и "{1}" не могут переопределить друг друга, так как они отличаются только по необязательным параметрам.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadWithReturnType2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by return types.</source>
-        <target state="translated">'"{0}" и "{1}" не могут переопределить друг друга, так как они отличаются только по возвращаемым типам.</target>
+        <target state="translated">"{0}" и "{1}" не могут переопределить друг друга, так как они отличаются только по возвращаемым типам.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeCharWithType1">
@@ -1643,7 +1687,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadWithDefault2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by the default values of optional parameters.</source>
-        <target state="translated">'"{0}" и "{1}" не могут переопределить друг друга, так как они отличаются только по значениям по умолчанию необязательных параметров.</target>
+        <target state="translated">"{0}" и "{1}" не могут переопределить друг друга, так как они отличаются только по значениям по умолчанию необязательных параметров.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingSubscript">
@@ -1653,12 +1697,12 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithDefault2">
         <source>'{0}' cannot override '{1}' because they differ by the default values of optional parameters.</source>
-        <target state="translated">'"{0}" не может переопределить "{1}", так как они отличаются по значениям по умолчанию необязательных параметров.</target>
+        <target state="translated">"{0}" не может переопределить "{1}", так как они отличаются по значениям по умолчанию необязательных параметров.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithOptional2">
         <source>'{0}' cannot override '{1}' because they differ by optional parameters.</source>
-        <target state="translated">'"{0}" не может переопределить "{1}", так как они отличаются по необязательным параметрам.</target>
+        <target state="translated">"{0}" не может переопределить "{1}", так как они отличаются по необязательным параметрам.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldOfValueFieldOfMarshalByRef3">
@@ -1693,7 +1737,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadWithByref2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by parameters declared 'ByRef' or 'ByVal'.</source>
-        <target state="translated">'"{0}" и "{1}" не могут переопределить друг друга, так как они отличаются только по параметрам, объявленным "ByRef" или "ByVal".</target>
+        <target state="translated">"{0}" и "{1}" не могут переопределить друг друга, так как они отличаются только по параметрам, объявленным "ByRef" или "ByVal".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritsFromNonInterface">
@@ -1713,12 +1757,12 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultMissingFromProperty2">
         <source>'{0}' and '{1}' cannot overload each other because only one is declared 'Default'.</source>
-        <target state="translated">'"{0}" и "{1}" не могут перегружать друг друга, т. к. только один из них объявлен как "Default".</target>
+        <target state="translated">"{0}" и "{1}" не могут перегружать друг друга, т. к. только один из них объявлен как "Default".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverridingPropertyKind2">
         <source>'{0}' cannot override '{1}' because they differ by 'ReadOnly' or 'WriteOnly'.</source>
-        <target state="translated">'"{0}" не может переопределить "{1}", так как они отличаются по типу "ReadOnly" или "WriteOnly".</target>
+        <target state="translated">"{0}" не может переопределить "{1}", так как они отличаются по типу "ReadOnly" или "WriteOnly".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewInInterface">
@@ -1733,7 +1777,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadingPropertyKind2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by 'ReadOnly' or 'WriteOnly'.</source>
-        <target state="translated">'"{0}" и "{1}" не могут переопределить друг друга, так как они отличаются только по "ReadOnly" или "WriteOnly".</target>
+        <target state="translated">"{0}" и "{1}" не могут переопределить друг друга, так как они отличаются только по "ReadOnly" или "WriteOnly".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoDefaultNotExtend1">
@@ -1743,7 +1787,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadWithArrayVsParamArray2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by parameters declared 'ParamArray'.</source>
-        <target state="translated">'"{0}" и "{1}" не могут переопределить друг друга, так как они отличаются только по параметрам, объявленным "ParamArray".</target>
+        <target state="translated">"{0}" и "{1}" не могут переопределить друг друга, так как они отличаются только по параметрам, объявленным "ParamArray".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInstanceMemberAccess">
@@ -1798,7 +1842,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadDelegateFlags1">
         <source>'{0}' is not valid on a Delegate declaration.</source>
-        <target state="translated">'"{0}" недопустимо использовать при объявлении делегата.</target>
+        <target state="translated">"{0}" недопустимо использовать при объявлении делегата.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConstructorOnBase2">
@@ -1808,12 +1852,12 @@
       </trans-unit>
       <trans-unit id="ERR_InaccessibleSymbol2">
         <source>'{0}' is not accessible in this context because it is '{1}'.</source>
-        <target state="translated">'"{0}" в этом контексте недоступен, так как он является "{1}".</target>
+        <target state="translated">"{0}" в этом контексте недоступен, так как он является "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InaccessibleMember3">
         <source>'{0}.{1}' is not accessible in this context because it is '{2}'.</source>
-        <target state="translated">'"{0}.{1}" в этом контексте недоступен, так как он является "{2}".</target>
+        <target state="translated">"{0}.{1}" в этом контексте недоступен, так как он является "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CatchNotException1">
@@ -1828,22 +1872,22 @@
       </trans-unit>
       <trans-unit id="ERR_BadRecordFlags1">
         <source>'{0}' is not valid on a Structure declaration.</source>
-        <target state="translated">'"{0}" недопустимо использовать в объявлении Structure.</target>
+        <target state="translated">"{0}" недопустимо использовать в объявлении Structure.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEnumFlags1">
         <source>'{0}' is not valid on an Enum declaration.</source>
-        <target state="translated">'"{0}" недопустимо использовать при объявлении перечисления.</target>
+        <target state="translated">"{0}" недопустимо использовать при объявлении перечисления.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceFlags1">
         <source>'{0}' is not valid on an Interface declaration.</source>
-        <target state="translated">'"{0}" является недопустимым объявлением интерфейса.</target>
+        <target state="translated">"{0}" является недопустимым объявлением интерфейса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithByref2">
         <source>'{0}' cannot override '{1}' because they differ by a parameter that is marked as 'ByRef' versus 'ByVal'.</source>
-        <target state="translated">'"{0}" не может переопределить "{1}", так как они отличаются по параметру, который помечен как ByRef" относительно "ByVal".</target>
+        <target state="translated">"{0}" не может переопределить "{1}", так как они отличаются по параметру, который помечен как ByRef" относительно "ByVal".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MyBaseAbstractCall1">
@@ -1853,12 +1897,12 @@
       </trans-unit>
       <trans-unit id="ERR_IdentNotMemberOfInterface4">
         <source>'{0}' cannot implement '{1}' because there is no matching {2} on interface '{3}'.</source>
-        <target state="translated">'"{0}" не может реализовать "{1}", поскольку нет соответствующего {2} в интерфейсе "{3}".</target>
+        <target state="translated">"{0}" не может реализовать "{1}", поскольку нет соответствующего {2} в интерфейсе "{3}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplementingInterfaceWithDifferentTupleNames5">
         <source>'{0}' cannot implement {1} '{2}' on interface '{3}' because the tuple element names in '{4}' do not match those in '{5}'.</source>
-        <target state="translated">'"{0}" не может реализовать {1} "{2}" в интерфейсе "{3}", так как имена элементов кортежа в "{4}" не соответствуют именам в "{5}".</target>
+        <target state="translated">"{0}" не может реализовать {1} "{2}" в интерфейсе "{3}", так как имена элементов кортежа в "{4}" не соответствуют именам в "{5}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WithEventsRequiresClass">
@@ -1923,12 +1967,12 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidOverrideDueToReturn2">
         <source>'{0}' cannot override '{1}' because they differ by their return types.</source>
-        <target state="translated">'"{0}" не может переопределить "{1}", так как их возвращаемые типы различны.</target>
+        <target state="translated">"{0}" не может переопределить "{1}", так как их возвращаемые типы различны.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidOverrideDueToTupleNames2">
         <source>'{0}' cannot override '{1}' because they differ by their tuple element names.</source>
-        <target state="translated">'"{0}" не может переопределять "{1}", так как они отличаются именами элементов кортежа.</target>
+        <target state="translated">"{0}" не может переопределять "{1}", так как они отличаются именами элементов кортежа.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidOverrideDueToTupleNames2_Title">
@@ -1958,7 +2002,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameNotDeclared1">
         <source>'{0}' is not declared. It may be inaccessible due to its protection level.</source>
-        <target state="translated">'"{0}" не объявлена. Возможно, она недоступна из-за своего уровня защиты.</target>
+        <target state="translated">"{0}" не объявлена. Возможно, она недоступна из-за своего уровня защиты.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BinaryOperands3">
@@ -1978,7 +2022,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameNotMember2">
         <source>'{0}' is not a member of '{1}'.</source>
-        <target state="translated">'"{0}" не является членом "{1}".</target>
+        <target state="translated">"{0}" не является членом "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EndClassNoClass">
@@ -1998,7 +2042,7 @@
       </trans-unit>
       <trans-unit id="ERR_NonNamespaceOrClassOnImport2">
         <source>'{1}' for the Imports '{0}' does not refer to a Namespace, Class, Structure, Enum or Module.</source>
-        <target state="translated">'"{1}" для Imports "{0}" не ссылается на Namespace, Class, Structure, Enum или Module.</target>
+        <target state="translated">"{1}" для Imports "{0}" не ссылается на Namespace, Class, Structure, Enum или Module.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypecharNotallowed">
@@ -2103,7 +2147,7 @@
       </trans-unit>
       <trans-unit id="ERR_InheritanceAccessMismatch5">
         <source>'{0}' cannot inherit from {1} '{2}' because it expands the access of the base {1} to {3} '{4}'.</source>
-        <target state="translated">'"{0}" не может наследовать от {1} "{2}", поскольку он расширяет доступ базы {1} до {3} "{4}".</target>
+        <target state="translated">"{0}" не может наследовать от {1} "{2}", поскольку он расширяет доступ базы {1} до {3} "{4}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NarrowingConversionDisallowed2">
@@ -2205,7 +2249,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceNoDefault1">
         <source>'{0}' cannot be indexed because it has no default property.</source>
-        <target state="translated">'"{0}" невозможно индексировать, поскольку он не содержит свойства по умолчанию.</target>
+        <target state="translated">"{0}" невозможно индексировать, поскольку он не содержит свойства по умолчанию.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyAttribute1">
@@ -2220,7 +2264,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInUnnamedNamespace1">
         <source>'{0}' is ambiguous.</source>
-        <target state="translated">'"{0}" неоднозначен.</target>
+        <target state="translated">"{0}" неоднозначен.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultMemberNotProperty1">
@@ -2230,22 +2274,22 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInNamespace2">
         <source>'{0}' is ambiguous in the namespace '{1}'.</source>
-        <target state="translated">'"{0}" неоднозначен в пространстве имен "{1}".</target>
+        <target state="translated">"{0}" неоднозначен в пространстве имен "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInImports2">
         <source>'{0}' is ambiguous, imported from the namespaces or types '{1}'.</source>
-        <target state="translated">'"{0}", импортированный из пространств имен или типов "{1}", является неоднозначным.</target>
+        <target state="translated">"{0}", импортированный из пространств имен или типов "{1}", является неоднозначным.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInModules2">
         <source>'{0}' is ambiguous between declarations in Modules '{1}'.</source>
-        <target state="translated">'"{0}" неоднозначен для объявлений в модулях "{1}".</target>
+        <target state="translated">"{0}" неоднозначен для объявлений в модулях "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInNamespaces2">
         <source>'{0}' is ambiguous between declarations in namespaces '{1}'.</source>
-        <target state="translated">'"{0}" неоднозначен для объявлений в пространствах имен "{1}".</target>
+        <target state="translated">"{0}" неоднозначен для объявлений в пространствах имен "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArrayInitializerTooFewDimensions">
@@ -2320,12 +2364,12 @@
       </trans-unit>
       <trans-unit id="ERR_MethodAlreadyImplemented2">
         <source>'{0}.{1}' cannot be implemented more than once.</source>
-        <target state="translated">'"{0}.{1}" невозможно реализовать более одного раза.</target>
+        <target state="translated">"{0}.{1}" невозможно реализовать более одного раза.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateInInherits1">
         <source>'{0}' cannot be inherited more than once.</source>
-        <target state="translated">'"{0}" не может наследоваться несколько раз.</target>
+        <target state="translated">"{0}" не может наследоваться несколько раз.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedParamArrayArgument">
@@ -2390,7 +2434,7 @@
       </trans-unit>
       <trans-unit id="ERR_MustInheritEventNotOverridden">
         <source>'{0}' is a MustOverride event in the base class '{1}'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class '{2}' MustInherit.</source>
-        <target state="translated">'"{0}" является событием MustOverride в базовом классе "{1}". Visual Basic не поддерживает переопределение событий. Необходимо предоставить реализацию события в базовом классе или задать для класса "{2}" значение MustInherit.</target>
+        <target state="translated">"{0}" является событием MustOverride в базовом классе "{1}". Visual Basic не поддерживает переопределение событий. Необходимо предоставить реализацию события в базовом классе или задать для класса "{2}" значение MustInherit.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NegativeArraySize">
@@ -2570,7 +2614,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedType1">
         <source>'{0}' is an unsupported type.</source>
-        <target state="translated">'"{0}" является неподдерживаемым типом.</target>
+        <target state="translated">"{0}" является неподдерживаемым типом.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidEnumBase">
@@ -2605,7 +2649,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedMethod1">
         <source>'{0}' has a return type that is not supported or parameter types that are not supported.</source>
-        <target state="translated">'"{0}" имеет возвращаемый тип или типы параметров, которые не поддерживаются.</target>
+        <target state="translated">"{0}" имеет возвращаемый тип или типы параметров, которые не поддерживаются.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNonIndexProperty1">
@@ -2687,7 +2731,7 @@
       </trans-unit>
       <trans-unit id="ERR_UseOfObsoleteSymbol2">
         <source>'{0}' is obsolete: '{1}'.</source>
-        <target state="translated">'"{0}" является устаревшим: "{1}".</target>
+        <target state="translated">"{0}" является устаревшим: "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RedimNoSizes">
@@ -2717,7 +2761,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameNotEvent2">
         <source>'{0}' is not an event of '{1}'.</source>
-        <target state="translated">'"{0}" не является событием "{1}".</target>
+        <target state="translated">"{0}" не является событием "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AddOrRemoveHandlerEvent">
@@ -2782,7 +2826,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithOptionalTypes2">
         <source>'{0}' cannot override '{1}' because they differ by the types of optional parameters.</source>
-        <target state="translated">'"{0}" не может переопределить "{1}", так как они отличаются по типам необязательных параметров.</target>
+        <target state="translated">"{0}" не может переопределить "{1}", так как они отличаются по типам необязательных параметров.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedEndOfExpression">
@@ -2802,7 +2846,7 @@
       </trans-unit>
       <trans-unit id="ERR_LocalNamedSameAsParam1">
         <source>'{0}' is already declared as a parameter of this method.</source>
-        <target state="translated">'"{0}" уже объявлена как параметр этого метода.</target>
+        <target state="translated">"{0}" уже объявлена как параметр этого метода.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalNamedSameAsParamInLambda1">
@@ -2942,7 +2986,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidTypeForAliasesImport2">
         <source>'{1}' for the Imports alias to '{0}' does not refer to a Namespace, Class, Structure, Interface, Enum or Module.</source>
-        <target state="translated">'"{1}" псевдонима Imports для "{0}" не ссылается на Namespace, Class, Structure, Interface, Enum или Module.</target>
+        <target state="translated">"{1}" псевдонима Imports для "{0}" не ссылается на Namespace, Class, Structure, Interface, Enum или Module.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedConstant2">
@@ -3027,7 +3071,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithArrayVsParamArray2">
         <source>'{0}' cannot override '{1}' because they differ by parameters declared 'ParamArray'.</source>
-        <target state="translated">'"{0}" не может переопределить "{1}", так как они отличаются по параметрам, объявленным как "ParamArray".</target>
+        <target state="translated">"{0}" не может переопределить "{1}", так как они отличаются по параметрам, объявленным как "ParamArray".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularBaseDependencies4">
@@ -3042,32 +3086,32 @@
       </trans-unit>
       <trans-unit id="ERR_AccessMismatchOutsideAssembly4">
         <source>'{0}' cannot expose type '{1}' outside the project through {2} '{3}'.</source>
-        <target state="translated">'"{0}" не может представлять тип "{1}" вне проекта посредством {2} "{3}".</target>
+        <target state="translated">"{0}" не может представлять тип "{1}" вне проекта посредством {2} "{3}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritanceAccessMismatchOutside3">
         <source>'{0}' cannot inherit from {1} '{2}' because it expands the access of the base {1} outside the assembly.</source>
-        <target state="translated">'"{0}" не может наследовать от {1} "{2}", поскольку он расширяет доступ базы {1} за пределы сборки.</target>
+        <target state="translated">"{0}" не может наследовать от {1} "{2}", поскольку он расширяет доступ базы {1} за пределы сборки.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseOfObsoletePropertyAccessor3">
         <source>'{0}' accessor of '{1}' is obsolete: '{2}'.</source>
-        <target state="translated">'"{0}" средство доступа для "{1}" устарело: '{2}'.</target>
+        <target state="translated">"{0}" средство доступа для "{1}" устарело: '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseOfObsoletePropertyAccessor2">
         <source>'{0}' accessor of '{1}' is obsolete.</source>
-        <target state="translated">'"{0}" средство доступа для "{1}" устарело.</target>
+        <target state="translated">"{0}" средство доступа для "{1}" устарело.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AccessMismatchImplementedEvent6">
         <source>'{0}' cannot expose the underlying delegate type '{1}' of the event it is implementing to {2} '{3}' through {4} '{5}'.</source>
-        <target state="translated">'"{0}" не может представлять базовый тип делегата "{1}" события, которое он реализует в {2} "{3}" посредством {4} "{5}".</target>
+        <target state="translated">"{0}" не может представлять базовый тип делегата "{1}" события, которое он реализует в {2} "{3}" посредством {4} "{5}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AccessMismatchImplementedEvent4">
         <source>'{0}' cannot expose the underlying delegate type '{1}' of the event it is implementing outside the project through {2} '{3}'.</source>
-        <target state="translated">'"{0}" не может представлять базовый тип делегата "{1}" события, которое он реализует вне проекта посредством {2} "{3}".</target>
+        <target state="translated">"{0}" не может представлять базовый тип делегата "{1}" события, которое он реализует вне проекта посредством {2} "{3}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritanceCycleInImportedType1">
@@ -3097,12 +3141,12 @@
       </trans-unit>
       <trans-unit id="ERR_InheritsTypeArgAccessMismatch7">
         <source>'{0}' cannot inherit from {1} '{2}' because it expands the access of type '{3}' to {4} '{5}'.</source>
-        <target state="translated">'"{0}" не может наследовать от {1} "{2}", поскольку он расширяет доступ типа "{3}" до {4} "{5}".</target>
+        <target state="translated">"{0}" не может наследовать от {1} "{2}", поскольку он расширяет доступ типа "{3}" до {4} "{5}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritsTypeArgAccessMismatchOutside5">
         <source>'{0}' cannot inherit from {1} '{2}' because it expands the access of type '{3}' outside the assembly.</source>
-        <target state="translated">'"{0}" не может наследовать от {1} "{2}", поскольку он расширяет доступ типа "{3}" за пределы данной сборки.</target>
+        <target state="translated">"{0}" не может наследовать от {1} "{2}", поскольку он расширяет доступ типа "{3}" за пределы данной сборки.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeAccessMismatch3">
@@ -3213,7 +3257,7 @@
       </trans-unit>
       <trans-unit id="ERR_InAccessibleOverridingMethod5">
         <source>'{0}' in class '{1}' cannot override '{2}' in class '{3}' because an intermediate class '{4}' overrides '{2}' in class '{3}' but is not accessible.</source>
-        <target state="translated">'"{0}" в классе "{1}" не может переопределять "{2}" в классе "{3}", поскольку недоступен промежуточный класс "{4}", переопределяющий "{2}" в классе "{3}".</target>
+        <target state="translated">"{0}" в классе "{1}" не может переопределять "{2}" в классе "{3}", поскольку недоступен промежуточный класс "{4}", переопределяющий "{2}" в классе "{3}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuitableWidestType1">
@@ -3358,7 +3402,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousImplementsMember3">
         <source>'{0}' exists in multiple base interfaces. Use the name of the interface that declares '{0}' in the 'Implements' clause instead of the name of the derived interface.</source>
-        <target state="translated">'"{0}" существует в нескольких базовых интерфейсах. Используйте имя данного интерфейса, которое объявляет "{0}" в предложении "Implements", а не имя производного интерфейса.</target>
+        <target state="translated">"{0}" существует в нескольких базовых интерфейсах. Используйте имя данного интерфейса, которое объявляет "{0}" в предложении "Implements", а не имя производного интерфейса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplementsOnNew">
@@ -3508,17 +3552,17 @@
       </trans-unit>
       <trans-unit id="ERR_UseOfObsoleteSymbolNoMessage1">
         <source>'{0}' is obsolete.</source>
-        <target state="translated">'"{0}" является устаревшим.</target>
+        <target state="translated">"{0}" является устаревшим.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MetaDataIsNotAssembly">
         <source>'{0}' is a module and cannot be referenced as an assembly.</source>
-        <target state="translated">'"{0}" является модулем и не может указываться в ссылках как сборка.</target>
+        <target state="translated">"{0}" является модулем и не может указываться в ссылках как сборка.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MetaDataIsNotModule">
         <source>'{0}' is an assembly and cannot be referenced as a module.</source>
-        <target state="translated">'"{0}' является сборкой и не может указываться в ссылках как модуль.</target>
+        <target state="translated">"{0}" является сборкой и не может указываться в ссылках как модуль.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReferenceComparison3">
@@ -3528,7 +3572,7 @@
       </trans-unit>
       <trans-unit id="ERR_CatchVariableNotLocal1">
         <source>'{0}' is not a local variable or parameter, and so cannot be used as a 'Catch' variable.</source>
-        <target state="translated">'"{0}" не является локальной переменной или параметром и поэтому не может использоваться как переменная оператора "Catch".</target>
+        <target state="translated">"{0}" не является локальной переменной или параметром и поэтому не может использоваться как переменная оператора "Catch".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleMemberCantImplement">
@@ -3548,7 +3592,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantOverride4">
         <source>'{0}' cannot override '{1}' because it is not declared 'Overridable'.</source>
-        <target state="translated">'"{0}" не может переопределить "{1}", поскольку он не объявлен как "Overridable".</target>
+        <target state="translated">"{0}" не может переопределить "{1}", поскольку он не объявлен как "Overridable".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantSpecifyArraysOnBoth">
@@ -3788,7 +3832,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantReferToMyGroupInsideGroupType1">
         <source>'{0}' cannot refer to itself through its default instance; use 'Me' instead.</source>
-        <target state="translated">'"{0}" не может ссылаться на себя с помощью экземпляра по умолчанию; вместо этого используйте "Me".</target>
+        <target state="translated">"{0}" не может ссылаться на себя с помощью экземпляра по умолчанию; вместо этого используйте "Me".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidUseOfCustomModifier">
@@ -3803,7 +3847,7 @@
       </trans-unit>
       <trans-unit id="ERR_ObsoleteInvalidOnEventMember">
         <source>'{0}' cannot be applied to the 'AddHandler', 'RemoveHandler', or 'RaiseEvent' definitions. If required, apply the attribute directly to the event.</source>
-        <target state="translated">'"{0}" не может быть применен к определениям "AddHandler", "RemoveHandler" или "RaiseEvent". При необходимости примените атрибут непосредственно к событию.</target>
+        <target state="translated">"{0}" не может быть применен к определениям "AddHandler", "RemoveHandler" или "RaiseEvent". При необходимости примените атрибут непосредственно к событию.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DelegateBindingIncompatible2">
@@ -4083,7 +4127,7 @@
       </trans-unit>
       <trans-unit id="ERR_RestrictedType1">
         <source>'{0}' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.</source>
-        <target state="translated">'"{0}" не может принимать значение Null и не может быть использовано в качестве типа данных элемента массива, поля, анонимного типа члена, аргумента типа, параметра "ByRef" или оператора return.</target>
+        <target state="translated">"{0}" не может принимать значение Null и не может быть использовано в качестве типа данных элемента массива, поля, анонимного типа члена, аргумента типа, параметра "ByRef" или оператора return.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoTypecharInAlias">
@@ -4113,7 +4157,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantShadowAMustOverride1">
         <source>'{0}' cannot shadow a method declared 'MustOverride'.</source>
-        <target state="translated">'"{0}" не может сделать теневым метод, объявленный как "MustOverride".</target>
+        <target state="translated">"{0}" не может сделать теневым метод, объявленный как "MustOverride".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleEventImplMismatch3">
@@ -4123,7 +4167,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpecifierCombo2">
         <source>'{0}' and '{1}' cannot be combined.</source>
-        <target state="translated">'"{0}" и "{1}" объединять нельзя.</target>
+        <target state="translated">"{0}" и "{1}" объединять нельзя.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MustBeOverloads2">
@@ -4133,7 +4177,7 @@
       </trans-unit>
       <trans-unit id="ERR_MustOverridesInClass1">
         <source>'{0}' must be declared 'MustInherit' because it contains methods declared 'MustOverride'.</source>
-        <target state="translated">'"{0}" должна быть объявлена как "MustInherit", потому что она содержит методы, объявленные как "MustOverride".</target>
+        <target state="translated">"{0}" должна быть объявлена как "MustInherit", потому что она содержит методы, объявленные как "MustOverride".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_HandlesSyntaxInClass">
@@ -4143,12 +4187,12 @@
       </trans-unit>
       <trans-unit id="ERR_SynthMemberShadowsMustOverride5">
         <source>'{0}', implicitly declared for {1} '{2}', cannot shadow a 'MustOverride' method in the base {3} '{4}'.</source>
-        <target state="translated">'"{0}", неявно объявленный для {1} "{2}", не может затенять метод "MustOverride" в базе {3} "{4}".</target>
+        <target state="translated">"{0}", неявно объявленный для {1} "{2}", не может затенять метод "MustOverride" в базе {3} "{4}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotOverrideInAccessibleMember">
         <source>'{0}' cannot override '{1}' because it is not accessible in this context.</source>
-        <target state="translated">'"{0}" не может переопределить "{1}", поскольку он недоступен в данном контексте.</target>
+        <target state="translated">"{0}" не может переопределить "{1}", поскольку он недоступен в данном контексте.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_HandlesSyntaxInModule">
@@ -4163,12 +4207,12 @@
       </trans-unit>
       <trans-unit id="ERR_ClashWithReservedEnumMember1">
         <source>'{0}' conflicts with the reserved member by this name that is implicitly declared in all enums.</source>
-        <target state="translated">'"{0}" конфликтует с зарезервированным членом по данному имени, которое явно объявлено во всех перечислениях.</target>
+        <target state="translated">"{0}" конфликтует с зарезервированным членом по данному имени, которое явно объявлено во всех перечислениях.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultiplyDefinedEnumMember2">
         <source>'{0}' is already declared in this {1}.</source>
-        <target state="translated">'"{0}" уже объявлено в {1}.</target>
+        <target state="translated">"{0}" уже объявлено в {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadUseOfVoid">
@@ -4188,7 +4232,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeFwdCycle2">
         <source>'{0}' in assembly '{1}' has been forwarded to itself and so is an unsupported type.</source>
-        <target state="translated">'"{0}" в сборке "{1}" был перемещен к себе и поэтому является недопустимым типом.</target>
+        <target state="translated">"{0}" в сборке "{1}" был перемещен к себе и поэтому является недопустимым типом.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadTypeInCCExpression">
@@ -4208,7 +4252,7 @@
       </trans-unit>
       <trans-unit id="ERR_MetadataMembersAmbiguous3">
         <source>'{0}' is ambiguous because multiple kinds of members with this name exist in {1} '{2}'.</source>
-        <target state="translated">'"{0}" неоднозначно, поскольку несколько видов членов с данным именем существует в {1} "{2}".</target>
+        <target state="translated">"{0}" неоднозначно, поскольку несколько видов членов с данным именем существует в {1} "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeOfExprAlwaysFalse2">
@@ -4243,7 +4287,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMethodsMustBeSub1">
         <source>'{0}' cannot be declared 'Partial' because partial methods must be Subs.</source>
-        <target state="translated">'"{0}" не может быть объявлен "Partial", так как разделяемые методы должны быть Subs.</target>
+        <target state="translated">"{0}" не может быть объявлен "Partial", так как разделяемые методы должны быть Subs.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodGenericConstraints2">
@@ -4298,17 +4342,17 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeMustBeClassNotStruct1">
         <source>'{0}' cannot be used as an attribute because it is not a class.</source>
-        <target state="translated">'"{0}" нельзя использовать как атрибут, поскольку он не является классом.</target>
+        <target state="translated">"{0}" нельзя использовать как атрибут, поскольку он не является классом.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeMustInheritSysAttr">
         <source>'{0}' cannot be used as an attribute because it does not inherit from 'System.Attribute'.</source>
-        <target state="translated">'"{0}" нельзя использовать как атрибут, так как он не является производным от "System.Attribute".</target>
+        <target state="translated">"{0}" нельзя использовать как атрибут, так как он не является производным от "System.Attribute".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCannotBeAbstract">
         <source>'{0}' cannot be used as an attribute because it is declared 'MustInherit'.</source>
-        <target state="translated">'"{0}" не может использоваться как атрибут, поскольку он объявлен как "MustInherit".</target>
+        <target state="translated">"{0}" не может использоваться как атрибут, поскольку он объявлен как "MustInherit".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnableToOpenResourceFile1">
@@ -4408,7 +4452,7 @@
       </trans-unit>
       <trans-unit id="ERR_UseOfKeywordFromModule1">
         <source>'{0}' is not valid within a Module.</source>
-        <target state="translated">'"{0}" не является допустимым в модуле.</target>
+        <target state="translated">"{0}" не является допустимым в модуле.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BogusWithinLineIf">
@@ -4438,7 +4482,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttrAssignmentNotFieldOrProp1">
         <source>'{0}' cannot be named as a parameter in an attribute specifier because it is not a field or property.</source>
-        <target state="translated">'"{0}" нельзя указать как параметр в описателе атрибута, поскольку он не является полем или свойством.</target>
+        <target state="translated">"{0}" нельзя указать как параметр в описателе атрибута, поскольку он не является полем или свойством.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectComparison1">
@@ -4458,7 +4502,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionResultCannotBeIndexed1">
         <source>'{0}' has no parameters and its return type cannot be indexed.</source>
-        <target state="translated">'"{0}" не имеет параметров, поэтому невозможно проиндексировать его возвращаемый тип.</target>
+        <target state="translated">"{0}" не имеет параметров, поэтому невозможно проиндексировать его возвращаемый тип.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgumentSyntax">
@@ -4483,7 +4527,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotCallEvent1">
         <source>'{0}' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.</source>
-        <target state="translated">'"{0}" является событием и не может вызываться напрямую. Для порождения события используйте оператор "RaiseEvent".</target>
+        <target state="translated">"{0}" является событием и не может вызываться напрямую. Для порождения события используйте оператор "RaiseEvent".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachCollectionDesignPattern1">
@@ -4568,7 +4612,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeOrMemberNotGeneric1">
         <source>'{0}' has no type parameters and so cannot have type arguments.</source>
-        <target state="translated">'"{0}" не имеет параметров типа и поэтому не может иметь аргументов типа.</target>
+        <target state="translated">"{0}" не имеет параметров типа и поэтому не может иметь аргументов типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewIfNullOnGenericParam">
@@ -4608,7 +4652,7 @@
       </trans-unit>
       <trans-unit id="ERR_ShadowingGenericParamWithMember1">
         <source>'{0}' has the same name as a type parameter.</source>
-        <target state="translated">'"{0}" имеет такое же имя, как и параметр типа.</target>
+        <target state="translated">"{0}" имеет такое же имя, как и параметр типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericParamBase2">
@@ -4633,7 +4677,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConstraintIsRestrictedType1">
         <source>'{0}' cannot be used as a type constraint.</source>
-        <target state="translated">'"{0}" нельзя использовать как ограничение типа.</target>
+        <target state="translated">"{0}" нельзя использовать как ограничение типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericParamsOnInvalidMember">
@@ -4688,12 +4732,12 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraintMismatch2">
         <source>'{0}' cannot override '{1}' because they differ by type parameter constraints.</source>
-        <target state="translated">'"{0}" не может переопределить "{1}", так как они отличаются по ограничениям параметра типа.</target>
+        <target state="translated">"{0}" не может переопределить "{1}", так как они отличаются по ограничениям параметра типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplementsWithConstraintMismatch3">
         <source>'{0}' cannot implement '{1}.{2}' because they differ by type parameter constraints.</source>
-        <target state="translated">'"{0}" не может реализовать "{1}.{2}", поскольку они отличаются ограничениями параметра типа.</target>
+        <target state="translated">"{0}" не может реализовать "{1}.{2}", поскольку они отличаются ограничениями параметра типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OpenTypeDisallowed">
@@ -4748,7 +4792,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameSameAsMethodTypeParam1">
         <source>'{0}' is already declared as a type parameter of this method.</source>
-        <target state="translated">'"{0}" уже объявлен в качестве параметра типа этого метода.</target>
+        <target state="translated">"{0}" уже объявлен в качестве параметра типа этого метода.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeParamNameFunctionNameCollision">
@@ -4935,7 +4979,7 @@
       </trans-unit>
       <trans-unit id="ERR_ShadowingTypeOutsideClass1">
         <source>'{0}' cannot be declared 'Shadows' outside of a class, structure, or interface.</source>
-        <target state="translated">'"{0}" невозможно объявить "Shadows" вне области класса, структуры или интерфейса.</target>
+        <target state="translated">"{0}" невозможно объявить "Shadows" вне области класса, структуры или интерфейса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertySetParamCollisionWithValue">
@@ -4950,7 +4994,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateReferenceStrong">
         <source>Multiple assemblies with equivalent identity have been imported: '{0}' and '{1}'. Remove one of the duplicate references.</source>
-        <target state="translated">Импортировано несколько сборок с одинаковыми удостоверениями: '{0}" и "{1}". Удалите одну из повторяющихся ссылок.</target>
+        <target state="translated">Импортировано несколько сборок с одинаковыми удостоверениями: "{0}" и "{1}". Удалите одну из повторяющихся ссылок.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateReference2">
@@ -4970,7 +5014,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAttributeUuid2">
         <source>'{0}' cannot be applied because the format of the GUID '{1}' is not correct.</source>
-        <target state="translated">'"{0}" не может использоваться из-за неверного формата GUID "{1}".</target>
+        <target state="translated">"{0}" не может использоваться из-за неверного формата GUID "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ComClassAndReservedAttribute1">
@@ -5060,7 +5104,7 @@
       </trans-unit>
       <trans-unit id="ERR_OptionalIllegal1">
         <source>'{0}' parameters cannot be declared 'Optional'.</source>
-        <target state="translated">'"{0}" не могут быть объявлены "Optional".</target>
+        <target state="translated">"{0}" не могут быть объявлены "Optional".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorMustBePublic">
@@ -5340,7 +5384,7 @@
       </trans-unit>
       <trans-unit id="ERR_PropertyNameConflictInMyCollection">
         <source>'{0}' has the same name as a member used for type '{1}' exposed in a 'My' group. Rename the type or its enclosing namespace.</source>
-        <target state="translated">'"{0}" имеет то же имя, что и член, используемый для типа "{1}" в группе "My". Переименуйте тип или его вложенное пространство имен.</target>
+        <target state="translated">"{0}" имеет то же имя, что и член, используемый для типа "{1}" в группе "My". Переименуйте тип или его вложенное пространство имен.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidImplicitVar">
@@ -5440,7 +5484,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameNotMemberOfAnonymousType2">
         <source>'{0}' is not a member of '{1}'; it does not exist in the current context.</source>
-        <target state="translated">'"{0}" не является членом "{1}"; он не существует в текущем контексте.</target>
+        <target state="translated">"{0}" не является членом "{1}"; он не существует в текущем контексте.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttributeInvalid">
@@ -5512,7 +5556,7 @@
       </trans-unit>
       <trans-unit id="ERR_NamedParamNotFound1">
         <source>'{0}' is not a method parameter.</source>
-        <target state="translated">'"{0}" не является параметром метода.</target>
+        <target state="translated">"{0}" не является параметром метода.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OmittedArgument1">
@@ -5564,7 +5608,7 @@
       </trans-unit>
       <trans-unit id="ERR_NamedParamNotFound3">
         <source>'{0}' is not a parameter of extension method '{1}' defined in '{2}'.</source>
-        <target state="translated">'"{0}" не является параметром метода расширения "{1}", определенного в "{2}".</target>
+        <target state="translated">"{0}" не является параметром метода расширения "{1}", определенного в "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OmittedArgument3">
@@ -5609,7 +5653,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotGotoNonScopeBlocksWithClosure">
         <source>'{0}{1}' is not valid because '{2}' is inside a scope that defines a variable that is used in a lambda or query expression.</source>
-        <target state="translated">'"{0}{1}" является недопустимым, поскольку "{2}" находится внутри области, которая определяет переменную, используемую в лямбда-выражении или выражении запроса.</target>
+        <target state="translated">"{0}{1}" является недопустимым, поскольку "{2}" находится внутри области, которая определяет переменную, используемую в лямбда-выражении или выражении запроса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotLiftRestrictedTypeQuery">
@@ -5749,7 +5793,7 @@
       </trans-unit>
       <trans-unit id="ERR_IterationVariableShadowLocal2">
         <source>Range variable '{0}' hides a variable in an enclosing block, a previously defined range variable, or an implicitly declared variable in a query expression.</source>
-        <target state="translated">Переменная диапазона ''{0}" скрывает переменную во внешнем блоке, ранее определенную переменную диапазона или неявно объявленную переменную в выражении запроса.</target>
+        <target state="translated">Переменная диапазона "{0}" скрывает переменную во внешнем блоке, ранее определенную переменную диапазона или неявно объявленную переменную в выражении запроса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LambdasCannotHaveAttributes">
@@ -5899,7 +5943,7 @@
       </trans-unit>
       <trans-unit id="ERR_InaccessibleReturnTypeOfMember2">
         <source>'{0}' is not accessible in this context because the return type is not accessible.</source>
-        <target state="translated">'"{0}" в этом контексте недоступен, так как недоступен возвращаемый тип.</target>
+        <target state="translated">"{0}" в этом контексте недоступен, так как недоступен возвращаемый тип.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedIdentifierOrGroup">
@@ -5986,7 +6030,7 @@
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoleteSymbol2">
         <source>'{0}' is obsolete: '{1}'.</source>
-        <target state="translated">'"{0}" является устаревшим: "{1}".</target>
+        <target state="translated">"{0}" является устаревшим: "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoleteSymbol2_Title">
@@ -6036,7 +6080,7 @@
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoleteSymbolNoMessage1">
         <source>'{0}' is obsolete.</source>
-        <target state="translated">'"{0}" является устаревшим.</target>
+        <target state="translated">"{0}" является устаревшим.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoleteSymbolNoMessage1_Title">
@@ -6106,7 +6150,7 @@
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoletePropertyAccessor3">
         <source>'{0}' accessor of '{1}' is obsolete: '{2}'.</source>
-        <target state="translated">'"{0}" средство доступа для "{1}" устарело: '{2}'.</target>
+        <target state="translated">"{0}" средство доступа для "{1}" устарело: '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoletePropertyAccessor3_Title">
@@ -6116,7 +6160,7 @@
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoletePropertyAccessor2">
         <source>'{0}' accessor of '{1}' is obsolete.</source>
-        <target state="translated">'"{0}" средство доступа для "{1}" устарело.</target>
+        <target state="translated">"{0}" средство доступа для "{1}" устарело.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoletePropertyAccessor2_Title">
@@ -6136,7 +6180,7 @@
       </trans-unit>
       <trans-unit id="WRN_BaseClassNotCLSCompliant2">
         <source>'{0}' is not CLS-compliant because it derives from '{1}', which is not CLS-compliant.</source>
-        <target state="translated">'"{0}" несовместим с CLS, так как унаследован от "{1}", который несовместим с CLS.</target>
+        <target state="translated">"{0}" несовместим с CLS, так как унаследован от "{1}", который несовместим с CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BaseClassNotCLSCompliant2_Title">
@@ -6166,7 +6210,7 @@
       </trans-unit>
       <trans-unit id="WRN_InheritedInterfaceNotCLSCompliant2">
         <source>'{0}' is not CLS-compliant because the interface '{1}' it inherits from is not CLS-compliant.</source>
-        <target state="translated">'"{0}" несовместим с CLS, так как унаследованный интерфейс "{1}" несовместим с CLS.</target>
+        <target state="translated">"{0}" несовместим с CLS, так как унаследованный интерфейс "{1}" несовместим с CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InheritedInterfaceNotCLSCompliant2_Title">
@@ -6226,7 +6270,7 @@
       </trans-unit>
       <trans-unit id="WRN_ArrayOverloadsNonCLS2">
         <source>'{0}' is not CLS-compliant because it overloads '{1}' which differs from it only by array of array parameter types or by the rank of the array parameter types.</source>
-        <target state="translated">'"{0}" несовместим с CLS, так как перегружает "{1}", который отличается от него только массивом типов параметра массива или рангом типов параметра массива.</target>
+        <target state="translated">"{0}" несовместим с CLS, так как перегружает "{1}", который отличается от него только массивом типов параметра массива или рангом типов параметра массива.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArrayOverloadsNonCLS2_Title">
@@ -6356,7 +6400,7 @@
       </trans-unit>
       <trans-unit id="WRN_CLSEventMethodInNonCLSType3">
         <source>'{0}' method for event '{1}' cannot be marked CLS compliant because its containing type '{2}' is not CLS compliant.</source>
-        <target state="translated">'"{0}" метод для события "{1}" не может быть помечен как совместимый с CLS, потому что тип, который он содержит, "{2}" несовместим с CLS.</target>
+        <target state="translated">"{0}" метод для события "{1}" не может быть помечен как совместимый с CLS, потому что тип, который он содержит, "{2}" несовместим с CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLSEventMethodInNonCLSType3_Title">
@@ -6366,7 +6410,7 @@
       </trans-unit>
       <trans-unit id="WRN_ExpectedInitComponentCall2">
         <source>'{0}' in designer-generated type '{1}' should call InitializeComponent method.</source>
-        <target state="translated">'"{0}" в типе, созданном конструктором "{1}", должен вызывать метод InitializeComponent.</target>
+        <target state="translated">"{0}" в типе, созданном конструктором "{1}", должен вызывать метод InitializeComponent.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExpectedInitComponentCall2_Title">
@@ -7361,7 +7405,7 @@
       </trans-unit>
       <trans-unit id="ERR_AccessMismatch6">
         <source>'{0}' cannot expose type '{1}' in {2} '{3}' through {4} '{5}'.</source>
-        <target state="translated">'"{0}" не может представлять тип "{1}" в {2} "{3}" посредством {4} "{5}".</target>
+        <target state="translated">"{0}" не может представлять тип "{1}" в {2} "{3}" посредством {4} "{5}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadMetaDataReference1">
@@ -7371,7 +7415,7 @@
       </trans-unit>
       <trans-unit id="ERR_PropertyDoesntImplementAllAccessors">
         <source>'{0}' cannot be implemented by a {1} property.</source>
-        <target state="translated">'"{0}" невозможно реализовать с помощью свойства {1}.</target>
+        <target state="translated">"{0}" невозможно реализовать с помощью свойства {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedMustOverride">
@@ -7663,12 +7707,12 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceIEnumerableSuggestion3">
         <source>'{0}' cannot be converted to '{1}'. Consider using '{2}' instead.</source>
-        <target state="translated">'"{0}" нельзя преобразовать в "{1}". Попробуйте использовать "{2}".</target>
+        <target state="translated">"{0}" нельзя преобразовать в "{1}". Попробуйте использовать "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceIEnumerableSuggestion3">
         <source>'{0}' cannot be converted to '{1}'. Consider using '{2}' instead.</source>
-        <target state="translated">'"{0}" нельзя преобразовать в "{1}". Попробуйте использовать "{2}".</target>
+        <target state="translated">"{0}" нельзя преобразовать в "{1}". Попробуйте использовать "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceIEnumerableSuggestion3_Title">
@@ -7678,7 +7722,7 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceConversionFailedIn6">
         <source>'{4}' cannot be converted to '{5}' because '{0}' is not derived from '{1}', as required for the 'In' generic parameter '{2}' in '{3}'.</source>
-        <target state="translated">'"{4}" нельзя преобразовать в "{5}", так как "{0}" не наследованы из "{1}" в соответствии с требованием универсального параметра "In" "{2}" в "{3}".</target>
+        <target state="translated">"{4}" нельзя преобразовать в "{5}", так как "{0}" не наследованы из "{1}" в соответствии с требованием универсального параметра "In" "{2}" в "{3}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceConversionFailedOut6">
@@ -7708,17 +7752,17 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceConversionFailedTryIn4">
         <source>'{0}' cannot be converted to '{1}'. Consider changing the '{2}' in the definition of '{3}' to an In type parameter, 'In {2}'.</source>
-        <target state="translated">'{0}" нельзя преобразовать в "{1}". Попробуйте изменить "{2}" в определении "{3}" на параметр In, "In {2}".</target>
+        <target state="translated">"{0}" нельзя преобразовать в "{1}". Попробуйте изменить "{2}" в определении "{3}" на параметр In, "In {2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceConversionFailedTryOut4">
         <source>'{0}' cannot be converted to '{1}'. Consider changing the '{2}' in the definition of '{3}' to an Out type parameter, 'Out {2}'.</source>
-        <target state="translated">'{0}" нельзя преобразовать в "{1}". Попробуйте изменить "{2}" в определении "{3}" на параметр типа Out, "Out {2}".</target>
+        <target state="translated">"{0}" нельзя преобразовать в "{1}". Попробуйте изменить "{2}" в определении "{3}" на параметр типа Out, "Out {2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedTryIn4">
         <source>'{0}' cannot be converted to '{1}'. Consider changing the '{2}' in the definition of '{3}' to an In type parameter, 'In {2}'.</source>
-        <target state="translated">'{0}" нельзя преобразовать в "{1}". Попробуйте изменить "{2}" в определении "{3}" на параметр In, "In {2}".</target>
+        <target state="translated">"{0}" нельзя преобразовать в "{1}". Попробуйте изменить "{2}" в определении "{3}" на параметр In, "In {2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedTryIn4_Title">
@@ -7728,7 +7772,7 @@
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedTryOut4">
         <source>'{0}' cannot be converted to '{1}'. Consider changing the '{2}' in the definition of '{3}' to an Out type parameter, 'Out {2}'.</source>
-        <target state="translated">'{0}" нельзя преобразовать в "{1}". Попробуйте изменить "{2}" в определении "{3}" на параметр типа Out, "Out {2}".</target>
+        <target state="translated">"{0}" нельзя преобразовать в "{1}". Попробуйте изменить "{2}" в определении "{3}" на параметр типа Out, "Out {2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedTryOut4_Title">
@@ -7998,7 +8042,7 @@
       </trans-unit>
       <trans-unit id="ERR_DoesntImplementAwaitInterface2">
         <source>'{0}' does not implement '{1}'.</source>
-        <target state="translated">'"{0}" не реализует "{1}".</target>
+        <target state="translated">"{0}" не реализует "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitNothing">
@@ -8038,7 +8082,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantAwaitAsyncSub1">
         <source>'{0}' does not return a Task and cannot be awaited. Consider changing it to an Async Function.</source>
-        <target state="translated">'"{0}" не возвращает значения типа Task, и его нельзя ожидать. Попробуйте заменить его на функцию с модификатором Async.</target>
+        <target state="translated">"{0}" не возвращает значения типа Task, и его нельзя ожидать. Попробуйте заменить его на функцию с модификатором Async.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidLambdaModifier">
@@ -8093,7 +8137,7 @@
       </trans-unit>
       <trans-unit id="ERR_RestrictedResumableType1">
         <source>'{0}' cannot be used as a parameter type for an Iterator or Async method.</source>
-        <target state="translated">'"{0}" не может быть использовано в качестве типа параметра для метода Iterator или Async.</target>
+        <target state="translated">"{0}" не может быть использовано в качестве типа параметра для метода Iterator или Async.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorAsync">
@@ -8103,7 +8147,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMethodsMustNotBeAsync1">
         <source>'{0}' cannot be declared 'Partial' because it has the 'Async' modifier.</source>
-        <target state="translated">'"{0}" не может быть объявлен "Partial", так как имеет модификатор "Async".</target>
+        <target state="translated">"{0}" не может быть объявлен "Partial", так как имеет модификатор "Async".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ResumablesCannotContainOnError">
@@ -8218,12 +8262,12 @@
       </trans-unit>
       <trans-unit id="ERR_ReImplementingWinRTInterface5">
         <source>'{0}.{1}' from 'implements {2}' is already implemented by the base class '{3}'. Re-implementation of Windows Runtime Interface '{4}' is not allowed</source>
-        <target state="translated">'"{0}.{1}" из "implements {2}" уже реализован базовым классом "{3}". Повторная реализация интерфейса среды выполнения Windows "{4}" не разрешена.</target>
+        <target state="translated">"{0}.{1}" из "implements {2}" уже реализован базовым классом "{3}". Повторная реализация интерфейса среды выполнения Windows "{4}" не разрешена.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReImplementingWinRTInterface4">
         <source>'{0}.{1}' is already implemented by the base class '{2}'. Re-implementation of Windows Runtime Interface '{3}' is not allowed</source>
-        <target state="translated">'"{0}.{1}" уже реализован базовым классом "{2}". Повторная реализация интерфейса среды выполнения Windows "{3}" не разрешена.</target>
+        <target state="translated">"{0}.{1}" уже реализован базовым классом "{2}". Повторная реализация интерфейса среды выполнения Windows "{3}" не разрешена.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorByRefParam">
@@ -8448,12 +8492,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedModule1">
         <source>'{0}' is an unsupported .NET module.</source>
-        <target state="translated">'"{0}" не поддерживается модулем .NET.</target>
+        <target state="translated">"{0}" не поддерживается модулем .NET.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedEvent1">
         <source>'{0}' is an unsupported event.</source>
-        <target state="translated">'"{0}" является неподдерживаемым событием.</target>
+        <target state="translated">"{0}" является неподдерживаемым событием.</target>
         <note />
       </trans-unit>
       <trans-unit id="PropertiesCanNotHaveTypeArguments">
@@ -8718,7 +8762,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidFormatSpecifier">
         <source>'{0}' is not a valid format specifier</source>
-        <target state="translated">'{0}" не является допустимым описателем формата.</target>
+        <target state="translated">"{0}" не является допустимым описателем формата.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidPreprocessorConstantType">
@@ -8733,7 +8777,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable1">
         <source>'{0}' cannot be made nullable.</source>
-        <target state="translated">'"{0}" не может быть стать параметром, допускающим NULL.</target>
+        <target state="translated">"{0}" не может быть стать параметром, допускающим NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadConditionalWithRef">
@@ -9103,7 +9147,7 @@
       </trans-unit>
       <trans-unit id="WRN_Experimental">
         <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">'"{0}" предназначен только для оценки и может быть изменен или удален в будущих обновлениях.</target>
+        <target state="translated">"{0}" предназначен только для оценки и может быть изменен или удален в будущих обновлениях.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">

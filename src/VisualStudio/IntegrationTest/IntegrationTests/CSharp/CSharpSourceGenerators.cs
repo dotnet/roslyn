@@ -7,6 +7,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.TestSourceGenerator;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Test.Utilities;
@@ -29,10 +30,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
             await base.InitializeAsync();
 
-            VisualStudio.SolutionExplorer.AddAnalyzerReference(typeof(IntegrationTestSourceGenerator).Assembly.Location, new ProjectUtils.Project(ProjectName));
+            VisualStudio.SolutionExplorer.AddAnalyzerReference(typeof(HelloWorldGenerator).Assembly.Location, new ProjectUtils.Project(ProjectName));
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/47255"), Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
         public void GoToDefinitionOpensGeneratedFile()
         {
             VisualStudio.Editor.SetText(@"using System;
@@ -40,14 +41,14 @@ internal static class Program
 {
     public static void Main()
     {
-        Console.WriteLine(" + IntegrationTestSourceGenerator.GeneratedClassName + @".GetMessage());
+        Console.WriteLine(" + HelloWorldGenerator.GeneratedClassName + @".GetMessage());
     }
 }");
 
-            VisualStudio.Editor.PlaceCaret(IntegrationTestSourceGenerator.GeneratedClassName);
+            VisualStudio.Editor.PlaceCaret(HelloWorldGenerator.GeneratedClassName);
             VisualStudio.Editor.GoToDefinition();
-            Assert.Equal($"{IntegrationTestSourceGenerator.GeneratedClassName}.cs {ServicesVSResources.generated_suffix}", VisualStudio.Shell.GetActiveWindowCaption());
-            Assert.Equal(IntegrationTestSourceGenerator.GeneratedClassName, VisualStudio.Editor.GetSelectedText());
+            Assert.Equal($"{HelloWorldGenerator.GeneratedClassName}.cs {ServicesVSResources.generated_suffix}", VisualStudio.Shell.GetActiveWindowCaption());
+            Assert.Equal(HelloWorldGenerator.GeneratedClassName, VisualStudio.Editor.GetSelectedText());
         }
     }
 }

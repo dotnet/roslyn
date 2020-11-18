@@ -232,9 +232,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Indexer; }
         }
 
-        public BoundIndexerAccess Update(bool useSetterForDefaultArgumentGeneration) =>
-            Update(ReceiverOpt, Indexer, Arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, Expanded, ArgsToParamsOpt, BinderOpt, useSetterForDefaultArgumentGeneration, OriginalIndexersOpt, Type);
-
         public override LookupResultKind ResultKind
         {
             get
@@ -430,6 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKindsOpt: newRefKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
+                defaultArguments: default(BitVector),
                 constantValueOpt: ConstantValueOpt,
                 initializerExpressionOpt: newInitializerExpression,
                 binderOpt: BinderOpt,

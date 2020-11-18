@@ -62,5 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override GeneratorDriver FromState(GeneratorDriverState state) => new CSharpGeneratorDriver(state);
 
         internal override CommonMessageProvider MessageProvider => CSharp.MessageProvider.Instance;
+
+        internal override AdditionalSourcesCollection CreateSourcesCollection() => new AdditionalSourcesCollection(".cs");
     }
 }

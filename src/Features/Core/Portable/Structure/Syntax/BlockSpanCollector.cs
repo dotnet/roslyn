@@ -13,20 +13,20 @@ namespace Microsoft.CodeAnalysis.Structure
 {
     internal class BlockSpanCollector
     {
-        private readonly Document _document;
+        private readonly BlockStructureOptionProvider _optionProvider;
         private readonly ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> _nodeProviderMap;
         private readonly ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> _triviaProviderMap;
         private readonly ArrayBuilder<BlockSpan> _spans;
         private readonly CancellationToken _cancellationToken;
 
         private BlockSpanCollector(
-            Document document,
+            BlockStructureOptionProvider optionProvider,
             ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> nodeOutlinerMap,
             ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> triviaOutlinerMap,
             ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
-            _document = document;
+            _optionProvider = optionProvider;
             _nodeProviderMap = nodeOutlinerMap;
             _triviaProviderMap = triviaOutlinerMap;
             _spans = spans;
@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.Structure
         }
 
         public static void CollectBlockSpans(
-            Document document,
             SyntaxNode syntaxRoot,
+            BlockStructureOptionProvider optionProvider,
             ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> nodeOutlinerMap,
             ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> triviaOutlinerMap,
             ArrayBuilder<BlockSpan> spans,
             CancellationToken cancellationToken)
         {
-            var collector = new BlockSpanCollector(document, nodeOutlinerMap, triviaOutlinerMap, spans, cancellationToken);
+            var collector = new BlockSpanCollector(optionProvider, nodeOutlinerMap, triviaOutlinerMap, spans, cancellationToken);
             collector.Collect(syntaxRoot);
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Structure
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    provider.CollectBlockSpans(_document, node, _spans, _cancellationToken);
+                    provider.CollectBlockSpans(node, _spans, _optionProvider, _cancellationToken);
                 }
             }
         }
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Structure
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
 
-                        provider.CollectBlockSpans(_document, trivia, _spans, _cancellationToken);
+                        provider.CollectBlockSpans(trivia, _spans, _optionProvider, _cancellationToken);
                     }
                 }
             }

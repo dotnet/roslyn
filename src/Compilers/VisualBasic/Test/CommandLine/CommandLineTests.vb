@@ -10257,6 +10257,67 @@ dotnet_diagnostic.{diagnosticId}.severity = {analyzerConfigSeverity}")
                 Assert.DoesNotContain(diagnosticId, output)
             End If
         End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly), Reason:="Can't load a coreclr targeting generator on net framework / mono")>
+        Public Sub TestGeneratorsCantTargetNetFramework()
+            Dim directory = Temp.CreateDirectory()
+            Dim src = directory.CreateFile("test.vb").WriteAllText("
+Class C
+End Class")
+
+            'Core
+            Dim coreGenerator = EmitGenerator(".NETCoreApp,Version=v5.0")
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/analyzer:" & coreGenerator})
+
+            'NetStandard
+            Dim nsGenerator = EmitGenerator(".NETStandard,Version=v2.0")
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/analyzer:" & nsGenerator})
+
+            'NoTarget
+            Dim ntGenerator = EmitGenerator(targetFramework:=Nothing)
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/analyzer:" & ntGenerator})
+
+            'Framework
+            Dim frameworkGenerator = EmitGenerator(".NETFramework,Version=v4.7.2")
+            Dim output = VerifyOutput(directory, src, expectedWarningCount:=2, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/analyzer:" & frameworkGenerator})
+            Assert.Contains("CS8850", output)
+            Assert.Contains("CS8033", output)
+
+            'Framework, suppressed
+            output = VerifyOutput(directory, src, expectedWarningCount:=1, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/nowarn:CS8850", "/analyzer:" & frameworkGenerator})
+            Assert.Contains("CS8033", output)
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/nowarn:CS8850,CS8033", "/analyzer:" & frameworkGenerator})
+        End Sub
+
+        Private Function EmitGenerator(ByVal targetFramework As String) As String
+            Dim targetFrameworkAttributeText As String = If(TypeOf targetFramework Is Object, $"<Assembly: System.Runtime.Versioning.TargetFramework(""{targetFramework}"")>", String.Empty)
+            Dim generatorSource As String = $"
+Imports Microsoft.CodeAnalysis
+
+{targetFrameworkAttributeText}
+
+<Generator>
+Public Class Generator
+    Inherits ISourceGenerator
+
+    Public Sub Execute(ByVal context As GeneratorExecutionContext)
+    End Sub
+
+    Public Sub Initialize(ByVal context As GeneratorInitializationContext)
+    End Sub
+End Class
+"
+            Dim directory = Temp.CreateDirectory()
+            Dim generatorPath = Path.Combine(directory.Path, "generator.dll")
+            Dim compilation = VisualBasicCompilation.Create($"generator_{targetFramework}",
+                                                            {VisualBasicSyntaxTree.ParseText(generatorSource)},
+                                                            TargetFrameworkUtil.GetReferences(Roslyn.Test.Utilities.TargetFramework.Standard, {MetadataReference.CreateFromAssemblyInternal(GetType(ISourceGenerator).Assembly)}),
+                                                            New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            compilation.VerifyDiagnostics()
+            Dim result = compilation.Emit(generatorPath)
+            Assert.[True](result.Success)
+            Return generatorPath
+        End Function
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

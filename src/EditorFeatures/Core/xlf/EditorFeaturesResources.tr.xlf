@@ -39,12 +39,12 @@
       </trans-unit>
       <trans-unit id="Error_creating_instance_of_CodeFixProvider">
         <source>Error creating instance of CodeFixProvider</source>
-        <target state="new">Error creating instance of CodeFixProvider</target>
+        <target state="translated">CodeFixProvider örneği oluşturulurken hata oluştu</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
         <source>Error creating instance of CodeFixProvider '{0}'</source>
-        <target state="new">Error creating instance of CodeFixProvider '{0}'</target>
+        <target state="translated">'{0}' CodeFixProvider örneği oluşturulurken hata oluştu</target>
         <note />
       </trans-unit>
       <trans-unit id="Expander_display_text">
@@ -444,32 +444,32 @@
       </trans-unit>
       <trans-unit id="Adding_0_to_1_with_content_colon">
         <source>Adding '{0}' to '{1}' with content:</source>
-        <target state="translated">{0}' şu içerik ile '{1}' üzerine ekleniyor:</target>
+        <target state="translated">'{0}' şu içerik ile '{1}' üzerine ekleniyor:</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_project_0">
         <source>Adding project '{0}'</source>
-        <target state="translated">{0}' projesi ekleniyor</target>
+        <target state="translated">'{0}' projesi ekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_project_0">
         <source>Removing project '{0}'</source>
-        <target state="translated">{0}' projesi kaldırılıyor</target>
+        <target state="translated">'{0}' projesi kaldırılıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_project_references_for_0">
         <source>Changing project references for '{0}'</source>
-        <target state="translated">{0}' için proje başvuruları değiştiriliyor</target>
+        <target state="translated">'{0}' için proje başvuruları değiştiriliyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_reference_0_to_1">
         <source>Adding reference '{0}' to '{1}'</source>
-        <target state="translated">{0}' başvurusu '{1}' üzerine ekleniyor</target>
+        <target state="translated">'{0}' başvurusu '{1}' üzerine ekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_reference_0_from_1">
         <source>Removing reference '{0}' from '{1}'</source>
-        <target state="translated">{0}' başvurusu '{1}' üzerinden kaldırılıyor</target>
+        <target state="translated">'{0}' başvurusu '{1}' üzerinden kaldırılıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_analyzer_reference_0_to_1">
@@ -664,7 +664,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">{0}' öğesini '{1}' olarak yeniden adlandır</target>
+        <target state="translated">'{0}' öğesini '{1}' olarak yeniden adlandır</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Warning">
@@ -1100,7 +1100,7 @@
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="translated">Yapı "out/ref" parametrelerini yapmayarak hatayı düzeltebiliriz. 
+        <target state="translated">Yapı "out/ref" parametrelerini yapmayarak hatayı düzeltebiliriz.
 Devam etmek istiyor musunuz?</target>
         <note />
       </trans-unit>
@@ -1111,7 +1111,7 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="Rename_0_to_1_colon">
         <source>Rename '{0}' to '{1}':</source>
-        <target state="translated">{0}' öğesini '{1}' olarak yeniden adlandır:</target>
+        <target state="translated">'{0}' öğesini '{1}' olarak yeniden adlandır:</target>
         <note />
       </trans-unit>
       <trans-unit id="Encapsulate_Field_colon">
@@ -1126,7 +1126,7 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="Calls_To_0">
         <source>Calls To '{0}'</source>
-        <target state="translated">{0}' Öğesine Çağrılar</target>
+        <target state="translated">'{0}' Öğesine Çağrılar</target>
         <note />
       </trans-unit>
       <trans-unit id="Calls_To_Base_Member_0">
@@ -1136,7 +1136,7 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="Calls_To_Interface_Implementation_0">
         <source>Calls To Interface Implementation '{0}'</source>
-        <target state="translated">{0}' Arayüz Uygulama Çağrıları</target>
+        <target state="translated">'{0}' Arayüz Uygulama Çağrıları</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_Call_Hierarchy_Information">
@@ -1146,7 +1146,7 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="Implements_0">
         <source>Implements '{0}'</source>
-        <target state="translated">{0}' öğesini uygular</target>
+        <target state="translated">'{0}' öğesini uygular</target>
         <note />
       </trans-unit>
       <trans-unit id="Initializers">
@@ -1156,7 +1156,7 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="References_To_Field_0">
         <source>References To Field '{0}'</source>
-        <target state="translated">{0}' Alanına Yapılan Başvurular</target>
+        <target state="translated">'{0}' Alanına Yapılan Başvurular</target>
         <note />
       </trans-unit>
       <trans-unit id="Calls_To_Overrides">
@@ -1206,7 +1206,7 @@ Devam etmek istiyor musunuz?</target>
       </trans-unit>
       <trans-unit id="Removing_0_from_1_with_content_colon">
         <source>Removing '{0}' from '{1}' with content:</source>
-        <target state="translated">{0}' öğesi, içeriği şu olan '{1}' öğesinden kaldırılıyor:</target>
+        <target state="translated">'{0}' öğesi, içeriği şu olan '{1}' öğesinden kaldırılıyor:</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation">
