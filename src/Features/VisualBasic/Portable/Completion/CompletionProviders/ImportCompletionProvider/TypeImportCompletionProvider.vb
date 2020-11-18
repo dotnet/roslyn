@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
@@ -45,6 +46,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Protected Overrides Function ShouldProvideParenthesisCompletionAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of Boolean)
             Return Task.FromResult(False)
+        End Function
+
+        Protected Overrides Function GetAliasSymbolsName(node As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As HashSet(Of String)
+            Dim symbolNames = New HashSet(Of String)()
+            ' VB imports can only be placed before any declarations
+            Dim aliasNodes = node.GetAncestorOrThis(Of CompilationUnitSyntax).Imports.SelectMany(Function(import) import.ImportsClauses).OfType(Of SimpleImportsClauseSyntax)
+
+            For Each candidate As SyntaxNode In aliasNodes
+                If TypeOf candidate Is SimpleImportsClauseSyntax Then
+                    Dim symbol = semanticModel.GetDeclaredSymbol(candidate, cancellationToken)
+                    Dim aliasSymbol = DirectCast(symbol, IAliasSymbol)
+                    If aliasSymbol IsNot Nothing AndAlso aliasSymbol.Target.IsType Then
+                        Dim typeName = aliasSymbol.Target.ToDisplayString(SymbolDisplayFormats.NameFormat)
+                        symbolNames.Add(typeName)
+                    End If
+                End If
+            Next
+
+            Return symbolNames
         End Function
     End Class
 End Namespace

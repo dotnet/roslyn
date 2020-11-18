@@ -129,6 +129,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return CompletionDescription.Empty;
         }
 
+        public static string GetFullyQualifiedNameForTypeItem(CompletionItem item)
+        {
+            var containingNamespace = GetContainingNamespace(item);
+            var typeName = item.Properties.TryGetValue(AttributeFullName, out var attributeFullName) ? attributeFullName : item.DisplayText;
+            var fullyQualifiedName = GetFullyQualifiedName(containingNamespace, typeName);
+
+            // We choose not to display the number of "type overloads" for simplicity.
+            // Otherwise, we need additional logic to track internal and public visible
+            // types separately, and cache both completion items.
+            if (item.Properties.TryGetValue(TypeAritySuffixName, out var aritySuffix))
+            {
+                return fullyQualifiedName + aritySuffix;
+            }
+
+            return fullyQualifiedName;
+        }
+
         private static string GetFullyQualifiedName(string namespaceName, string typeName)
             => namespaceName.Length == 0 ? typeName : namespaceName + "." + typeName;
 
@@ -160,18 +177,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // Otherwise, this is a type item, so we don't have SymbolKey data. But we should still have all 
             // the data to construct its full metadata name
-            var containingNamespace = GetContainingNamespace(item);
-            var typeName = item.Properties.TryGetValue(AttributeFullName, out var attributeFullName) ? attributeFullName : item.DisplayText;
-            var fullyQualifiedName = GetFullyQualifiedName(containingNamespace, typeName);
-
-            // We choose not to display the number of "type overloads" for simplicity.
-            // Otherwise, we need additional logic to track internal and public visible
-            // types separately, and cache both completion items.
-            if (item.Properties.TryGetValue(TypeAritySuffixName, out var aritySuffix))
-            {
-                return (compilation.GetTypeByMetadataName(fullyQualifiedName + aritySuffix), 0);
-            }
-
+            var fullyQualifiedName = GetFullyQualifiedNameForTypeItem(item);
             return (compilation.GetTypeByMetadataName(fullyQualifiedName), 0);
         }
     }

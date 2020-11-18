@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfTypeImportCompletionItem();
 
+        protected abstract HashSet<string> GetAliasSymbolsName(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken);
+
         protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
@@ -42,9 +44,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
                 else
                 {
+                    // In case the caret is at the beginning of the file, take the root node.
+                    var aliasSymbols = GetAliasSymbolsName(
+                        syntaxContext.LeftToken.Parent ?? await syntaxContext.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false),
+                        syntaxContext.SemanticModel,
+                        cancellationToken);
                     foreach (var items in itemsFromAllAssemblies)
                     {
-                        AddItems(items, completionContext, namespacesInScope, telemetryCounter);
+                        AddItems(items, completionContext, namespacesInScope, aliasSymbols, telemetryCounter);
                     }
                 }
 
@@ -52,13 +59,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        private static void AddItems(ImmutableArray<CompletionItem> items, CompletionContext completionContext, HashSet<string> namespacesInScope, TelemetryCounter counter)
+        private static void AddItems(
+            ImmutableArray<CompletionItem> items,
+            CompletionContext completionContext,
+            HashSet<string> namespacesInScope,
+            HashSet<string> aliasSymbolsName,
+            TelemetryCounter counter)
         {
             counter.ReferenceCount++;
             foreach (var item in items)
             {
                 var containingNamespace = ImportCompletionItem.GetContainingNamespace(item);
-                if (!namespacesInScope.Contains(containingNamespace))
+                var fullyQualifiedName = ImportCompletionItem.GetFullyQualifiedNameForTypeItem(item);
+                if (!namespacesInScope.Contains(containingNamespace) && !aliasSymbolsName.Contains(fullyQualifiedName))
                 {
                     // We can return cached item directly, item's span will be fixed by completion service.
                     // On the other hand, because of this (i.e. mutating the  span of cached item for each run),

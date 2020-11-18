@@ -761,6 +761,91 @@ namespace NS
             await VerifyTypeImportItemExistsAsync(markup, "Bar", displayTextSuffix: "<>", glyph: (int)Glyph.ClassPublic, inlineDescription: "Baz");
         }
 
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestNoCompletionItemWhenThereIsAlias(bool isProjectReference)
+        {
+            var file1 = @"
+using AliasFoo1 = Foo1.Foo2.Foo3.Foo4;
+
+namespace Bar
+{
+    using AliasFoo2 = Foo1.Foo2.Foo3.Foo5;
+    public class CC
+    {
+        public static void Main()
+        {    
+            F$$
+        }
+    }
+}";
+            var file2 = @"
+namespace Foo1
+{
+    namespace Foo2
+    {
+        namespace Foo3
+        {
+            public class Foo4
+            {
+            }
+
+            public class Foo5
+            {
+            }
+        }
+    }
+}";
+
+            var markup = GetMarkupWithReference(file1, file2, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Foo4", "Foo1.Foo2.Foo3");
+            await VerifyTypeImportItemIsAbsentAsync(markup, "Foo5", "Foo1.Foo2.Foo3");
+        }
+
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestGenericsAliasHasNoEffect(bool isProjectReference)
+        {
+            var file1 = @"
+using AliasFoo1 = Foo1.Foo2.Foo3.Foo4<int>;
+using AliasC1 = CTestNoCompletionItemWhenThereIsAlias;
+
+namespace Bar
+{
+    using AliasFoo2 = Foo1.Foo2.Foo3.Foo5<string>;
+    public class CC
+    {
+        public static void Main()
+        {    
+            F$$
+        }
+    }
+}";
+            var file2 = @"
+namespace Foo1
+{
+    namespace Foo2
+    {
+        namespace Foo3
+        {
+            public class Foo4<T>
+            {
+            }
+
+            public class Foo5<U>
+            {
+            }
+        }
+    }
+}";
+
+            var markup = GetMarkupWithReference(file1, file2, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
+            await VerifyTypeImportItemExistsAsync(markup, "Foo4", (int)Glyph.ClassPublic, "Foo1.Foo2.Foo3", displayTextSuffix: "<>");
+            await VerifyTypeImportItemExistsAsync(markup, "Foo5",(int)Glyph.ClassPublic, "Foo1.Foo2.Foo3",  displayTextSuffix: "<>");
+        }
+
         #endregion
 
         #region "Commit Change Tests"
