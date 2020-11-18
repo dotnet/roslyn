@@ -47,7 +47,7 @@ namespace Analyzer.Utilities
         bool IsEmpty { get; }
 
         [return: MaybeNull, NotNullIfNotNull("defaultValue")]
-        T/*??*/ GetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, [MaybeNull] T/*??*/ defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality);
+        T/*??*/ GetOptionValue<T>(string optionName, SyntaxTree? tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, [MaybeNull] T/*??*/ defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality);
     }
 
     internal static class CategorizedAnalyzerConfigOptionsExtensions

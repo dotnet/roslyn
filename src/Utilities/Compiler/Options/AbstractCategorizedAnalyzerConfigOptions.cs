@@ -26,7 +26,7 @@ namespace Analyzer.Utilities
         protected abstract bool TryGetOptionValue(string optionKeyPrefix, string? optionKeySuffix, string optionName, [NotNullWhen(returnValue: true)] out string? valueString);
 
         [return: MaybeNull, NotNullIfNotNull("defaultValue")]
-        public T/*??*/ GetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, [MaybeNull] T/*??*/ defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality)
+        public T/*??*/ GetOptionValue<T>(string optionName, SyntaxTree? tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, [MaybeNull] T/*??*/ defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality)
         {
             if (TryGetOptionValue(optionName, kind, rule, tryParseValue, defaultValue, out var value))
             {

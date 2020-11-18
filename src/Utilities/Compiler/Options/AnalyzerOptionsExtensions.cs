@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#nullable disable warnings
+#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -355,7 +355,7 @@ namespace Analyzer.Utilities
         public static SymbolNamesWithValueOption<Unit> GetDisallowedSymbolNamesWithValueOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
-            SyntaxTree tree,
+            SyntaxTree? tree,
             Compilation compilation,
             CancellationToken cancellationToken)
             => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.DisallowedSymbolNames, rule, tree, compilation, cancellationToken);
@@ -371,7 +371,7 @@ namespace Analyzer.Utilities
         public static SymbolNamesWithValueOption<string> GetAdditionalRequiredSuffixesOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
-            SyntaxTree tree,
+            SyntaxTree? tree,
             Compilation compilation,
             CancellationToken cancellationToken)
         {
@@ -422,7 +422,7 @@ namespace Analyzer.Utilities
         public static SymbolNamesWithValueOption<INamedTypeSymbol> GetAdditionalRequiredGenericInterfaces(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
-            SyntaxTree tree,
+            SyntaxTree? tree,
             Compilation compilation,
             CancellationToken cancellationToken)
         {
@@ -480,7 +480,7 @@ namespace Analyzer.Utilities
             this AnalyzerOptions options,
             string optionName,
             DiagnosticDescriptor rule,
-            SyntaxTree tree,
+            SyntaxTree? tree,
             Compilation compilation,
             CancellationToken cancellationToken,
             string? namePrefix = null,
@@ -671,6 +671,9 @@ namespace Analyzer.Utilities
                     if (fileName.Equals(".editorconfig", StringComparison.OrdinalIgnoreCase))
                     {
                         var text = additionalFile.GetText(cancellationToken);
+                        if (text is null)
+                            return CompilationCategorizedAnalyzerConfigOptions.Empty;
+
                         return EditorConfigParser.Parse(text);
                     }
                 }

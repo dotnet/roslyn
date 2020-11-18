@@ -27,14 +27,17 @@ namespace Analyzer.Utilities
     internal sealed class AggregateCategorizedAnalyzerConfigOptions : ICategorizedAnalyzerConfigOptions
     {
         public static readonly AggregateCategorizedAnalyzerConfigOptions Empty = new AggregateCategorizedAnalyzerConfigOptions(
+            globalOptions: null,
             ImmutableDictionary<SyntaxTree, Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>>.Empty,
             CompilationCategorizedAnalyzerConfigOptions.Empty);
 
+        private readonly Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>? _globalOptions;
         private readonly ImmutableDictionary<SyntaxTree, Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>> _perTreeOptions;
         private readonly CompilationCategorizedAnalyzerConfigOptions _additionalFileBasedOptions;
 
-        private AggregateCategorizedAnalyzerConfigOptions(ImmutableDictionary<SyntaxTree, Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>> perTreeOptions, CompilationCategorizedAnalyzerConfigOptions additionalFileBasedOptions)
+        private AggregateCategorizedAnalyzerConfigOptions(Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>? globalOptions, ImmutableDictionary<SyntaxTree, Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>> perTreeOptions, CompilationCategorizedAnalyzerConfigOptions additionalFileBasedOptions)
         {
+            _globalOptions = globalOptions;
             _perTreeOptions = perTreeOptions;
             _additionalFileBasedOptions = additionalFileBasedOptions;
         }
@@ -58,13 +61,20 @@ namespace Analyzer.Utilities
                 return Empty;
             }
 
+            Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>? globalOptions;
+#if CODEANALYSIS_V3_7_OR_BETTER
+            globalOptions = new Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>(() => SyntaxTreeCategorizedAnalyzerConfigOptions.Create(analyzerConfigOptionsProvider.GlobalOptions));
+#else
+            globalOptions = null;
+#endif
+
             var perTreeOptionsBuilder = PooledDictionary<SyntaxTree, Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>>.GetInstance();
             foreach (var tree in compilation.SyntaxTrees)
             {
                 perTreeOptionsBuilder.Add(tree, new Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>(() => Create(tree, analyzerConfigOptionsProvider)));
             }
 
-            return new AggregateCategorizedAnalyzerConfigOptions(perTreeOptionsBuilder.ToImmutableDictionaryAndFree(), additionalFileBasedOptions);
+            return new AggregateCategorizedAnalyzerConfigOptions(globalOptions, perTreeOptionsBuilder.ToImmutableDictionaryAndFree(), additionalFileBasedOptions);
 
             static SyntaxTreeCategorizedAnalyzerConfigOptions Create(SyntaxTree tree, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
             {
@@ -74,7 +84,7 @@ namespace Analyzer.Utilities
         }
 
         [return: MaybeNull, NotNullIfNotNull("defaultValue")]
-        public T/*??*/ GetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, [MaybeNull] T/*??*/ defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality)
+        public T/*??*/ GetOptionValue<T>(string optionName, SyntaxTree? tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, [MaybeNull] T/*??*/ defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality)
         {
             if (TryGetOptionValue(optionName, kind, tree, rule, tryParseValue, defaultValue, out var value))
             {
@@ -84,7 +94,7 @@ namespace Analyzer.Utilities
             return defaultValue;
         }
 
-        private bool TryGetOptionValue<T>(string optionName, OptionKind kind, SyntaxTree tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, [MaybeNull] T/*??*/ defaultValue, [MaybeNullWhen(false), NotNullIfNotNull("defaultValue")] out T value)
+        private bool TryGetOptionValue<T>(string optionName, OptionKind kind, SyntaxTree? tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, [MaybeNull] T/*??*/ defaultValue, [MaybeNullWhen(false), NotNullIfNotNull("defaultValue")] out T value)
         {
             if (ReferenceEquals(this, Empty))
             {
@@ -96,6 +106,17 @@ namespace Analyzer.Utilities
             if (_additionalFileBasedOptions.TryGetOptionValue(optionName, kind, rule, tryParseValue, defaultValue, out value))
             {
                 return true;
+            }
+
+            if (tree is null)
+            {
+                if (_globalOptions is null)
+                {
+                    value = defaultValue;
+                    return false;
+                }
+
+                return _globalOptions.Value.TryGetOptionValue(optionName, kind, rule, tryParseValue, defaultValue, out value);
             }
 
             return _perTreeOptions.TryGetValue(tree, out var lazyTreeOptions) &&
