@@ -271,6 +271,13 @@ namespace Microsoft.CodeAnalysis
 
         public async ValueTask<SourceGeneratedDocument?> GetSourceGeneratedDocumentAsync(DocumentId documentId, CancellationToken cancellationToken = default)
         {
+            // Quick check first: if we already have created a SourceGeneratedDocument wrapper, we're good
+            if (_idToSourceGeneratedDocumentMap.TryGetValue(documentId, out var sourceGeneratedDocument))
+            {
+                return sourceGeneratedDocument;
+            }
+
+            // We'll have to run generators if we haven't already and now try to find it.
             var generatedDocumentStates = await _solution.State.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
 
             foreach (var generatedDocumentState in generatedDocumentStates)
