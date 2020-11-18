@@ -121,7 +121,7 @@ namespace Roslyn.Test.Utilities
         /// <typeparam name="T">the JSON object type.</typeparam>
         /// <param name="expected">the expected object to be converted to JSON.</param>
         /// <param name="actual">the actual object to be converted to JSON.</param>
-        protected static void AssertJsonEquals<T>(T expected, T actual)
+        public static void AssertJsonEquals<T>(T expected, T actual)
         {
             var expectedStr = JsonConvert.SerializeObject(expected);
             var actualStr = JsonConvert.SerializeObject(actual);
@@ -340,7 +340,7 @@ namespace Roslyn.Test.Utilities
             provider.SetTestWorkspace(workspace);
         }
 
-        private static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(TestWorkspace workspace, Solution solution)
+        public static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(TestWorkspace workspace, Solution solution)
         {
             var locations = new Dictionary<string, IList<LSP.Location>>();
             foreach (var testDocument in workspace.Documents)
