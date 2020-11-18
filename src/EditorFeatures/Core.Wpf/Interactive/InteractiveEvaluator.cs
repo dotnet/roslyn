@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            return _lazyInteractiveCommands?.InCommand == true && _languageInfo.IsCompleteSubmission;
+            return _lazyInteractiveCommands?.InCommand == true && _languageInfo.IsCompleteSubmission(text);
         }
 
         /// <summary>
