@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         public ImmutableArray<CodeAction> GetCodeActionsForFixes(
             Document document, ImmutableArray<AddImportFixData> fixes,
-            IPackageInstallerService installerService, int maxResults)
+            IPackageInstallerService? installerService, int maxResults)
         {
             var codeActionsBuilder = ArrayBuilder<CodeAction>.GetInstance();
 
@@ -530,13 +530,13 @@ namespace Microsoft.CodeAnalysis.AddImport
             return codeActionsBuilder.ToImmutableAndFree();
         }
 
-        private static CodeAction? TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService installerService)
+        private static CodeAction? TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService? installerService)
             => fixData.Kind switch
             {
                 AddImportFixKind.ProjectSymbol => new ProjectSymbolReferenceCodeAction(document, fixData),
                 AddImportFixKind.MetadataSymbol => new MetadataSymbolReferenceCodeAction(document, fixData),
                 AddImportFixKind.ReferenceAssemblySymbol => new AssemblyReferenceCodeAction(document, fixData),
-                AddImportFixKind.PackageSymbol => !installerService.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName)
+                AddImportFixKind.PackageSymbol => installerService?.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName) == false
                     ? new ParentInstallPackageCodeAction(document, fixData, installerService)
                     : null,
                 _ => throw ExceptionUtilities.Unreachable,
