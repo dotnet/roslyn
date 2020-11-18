@@ -14,7 +14,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using RoslynEx;
+using Caravela.Compiler;
 
 namespace Microsoft.CodeAnalysis
 {

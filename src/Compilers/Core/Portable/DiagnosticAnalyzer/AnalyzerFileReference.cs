@@ -17,7 +17,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
 using System.Threading;
 using Roslyn.Utilities;
-using RoslynEx;
+using Caravela.Compiler;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 foreach (var attribute in module.MetadataReader.GetAssemblyDefinition().GetCustomAttributes())
                 {
-                    if (!module.Module.IsTargetAttribute(attribute, nameof(RoslynEx), nameof(TransformerOrderAttribute), out _))
+                    if (!module.Module.IsTargetAttribute(attribute, "Caravela.Compiler", nameof(TransformerOrderAttribute), out _))
                         continue;
 
                     if (module.Module.TryExtractStringArrayValueFromAttribute(attribute, out var transformerNames))

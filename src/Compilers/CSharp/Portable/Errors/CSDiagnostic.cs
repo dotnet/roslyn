@@ -4,7 +4,7 @@
 
 using System;
 using System.Linq;
-using RoslynEx;
+using Caravela.Compiler;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {

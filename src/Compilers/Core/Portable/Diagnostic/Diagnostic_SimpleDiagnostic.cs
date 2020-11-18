@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
-using RoslynEx;
+using Caravela.Compiler;
 
 namespace Microsoft.CodeAnalysis
 {

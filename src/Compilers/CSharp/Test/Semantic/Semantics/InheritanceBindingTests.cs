@@ -2953,7 +2953,7 @@ class Class : Interface
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Class", "Interface.Method1()").WithLocation(10, 15));
         }
 
-        [Fact(Skip = "The way RoslynEx transformations are ran in tests doesn't support setting assembly identity.")]
+        [Fact(Skip = "The way Caravela.Compiler transformations are ran in tests doesn't support setting assembly identity.")]
 
         public void TestNoImplementationOfInterfaceMethod_02()
         {

@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using RoslynEx;
+using Caravela.Compiler;
 using Xunit;
 using static Roslyn.Test.Utilities.TestMetadata;
 

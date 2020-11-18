@@ -6,7 +6,7 @@
 
 using System;
 using System.Diagnostics;
-using RoslynEx;
+using Caravela.Compiler;
 
 namespace Microsoft.CodeAnalysis.Syntax
 {

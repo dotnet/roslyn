@@ -1,30 +1,30 @@
 Microsoft.CodeAnalysis.CommandLineArguments.TransformedFilesOutputDirectory.get -> string
 Microsoft.CodeAnalysis.CommandLineArguments.TransformerOrder.get -> System.Collections.Immutable.ImmutableArray<string>
-RoslynEx.ISourceTransformer
-RoslynEx.ISourceTransformer.Execute(RoslynEx.TransformerContext context) -> Microsoft.CodeAnalysis.Compilation
-RoslynEx.TransformerContext
-RoslynEx.TransformerContext.AddManifestResource(Microsoft.CodeAnalysis.ResourceDescription resource) -> void
-RoslynEx.TransformerContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
-RoslynEx.TransformerContext.GlobalOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
-RoslynEx.TransformerContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
-RoslynEx.TransformerAttribute
-RoslynEx.TransformerAttribute.TransformerAttribute() -> void
-RoslynEx.TransformerOrderAttribute
-RoslynEx.TransformerOrderAttribute.TransformerNames.get -> string[]
-RoslynEx.TransformerOrderAttribute.TransformerOrderAttribute(params string[] transformerNames) -> void
-RoslynEx.Intrinsics
-RoslynEx.ResourceDescriptionExtensions
-RoslynEx.RoslynExInfo
-RoslynEx.TransformerContext
-RoslynEx.TransformerContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
-RoslynEx.TransformerContext.GlobalOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
-RoslynEx.TransformerContext.LoadReferencedAssembly(Microsoft.CodeAnalysis.IAssemblySymbol assemblySymbol) -> System.Reflection.Assembly
-RoslynEx.TransformerContext.ManifestResources.get -> System.Collections.Generic.IList<Microsoft.CodeAnalysis.ResourceDescription>
-RoslynEx.TransformerContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
-static RoslynEx.Intrinsics.GetRuntimeFieldHandle(string documentationId) -> System.RuntimeFieldHandle
-static RoslynEx.Intrinsics.GetRuntimeMethodHandle(string documentationId) -> System.RuntimeMethodHandle
-static RoslynEx.Intrinsics.GetRuntimeTypeHandle(string documentationId) -> System.RuntimeTypeHandle
-static RoslynEx.ResourceDescriptionExtensions.GetFileName(this Microsoft.CodeAnalysis.ResourceDescription resource) -> string
-static RoslynEx.ResourceDescriptionExtensions.GetResourceName(this Microsoft.CodeAnalysis.ResourceDescription resource) -> string
-static RoslynEx.ResourceDescriptionExtensions.IsPublic(this Microsoft.CodeAnalysis.ResourceDescription resource) -> bool
-static RoslynEx.RoslynExInfo.IsActive.get -> bool
+Caravela.Compiler.ISourceTransformer
+Caravela.Compiler.ISourceTransformer.Execute(Caravela.Compiler.TransformerContext context) -> Microsoft.CodeAnalysis.Compilation
+Caravela.Compiler.TransformerContext
+Caravela.Compiler.TransformerContext.AddManifestResource(Microsoft.CodeAnalysis.ResourceDescription resource) -> void
+Caravela.Compiler.TransformerContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
+Caravela.Compiler.TransformerContext.GlobalOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
+Caravela.Compiler.TransformerContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
+Caravela.Compiler.TransformerAttribute
+Caravela.Compiler.TransformerAttribute.TransformerAttribute() -> void
+Caravela.Compiler.TransformerOrderAttribute
+Caravela.Compiler.TransformerOrderAttribute.TransformerNames.get -> string[]
+Caravela.Compiler.TransformerOrderAttribute.TransformerOrderAttribute(params string[] transformerNames) -> void
+Caravela.Compiler.Intrinsics
+Caravela.Compiler.ResourceDescriptionExtensions
+Caravela.Compiler.CaravelaCompilerInfo
+Caravela.Compiler.TransformerContext
+Caravela.Compiler.TransformerContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
+Caravela.Compiler.TransformerContext.GlobalOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
+Caravela.Compiler.TransformerContext.LoadReferencedAssembly(Microsoft.CodeAnalysis.IAssemblySymbol assemblySymbol) -> System.Reflection.Assembly
+Caravela.Compiler.TransformerContext.ManifestResources.get -> System.Collections.Generic.IList<Microsoft.CodeAnalysis.ResourceDescription>
+Caravela.Compiler.TransformerContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
+static Caravela.Compiler.Intrinsics.GetRuntimeFieldHandle(string documentationId) -> System.RuntimeFieldHandle
+static Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(string documentationId) -> System.RuntimeMethodHandle
+static Caravela.Compiler.Intrinsics.GetRuntimeTypeHandle(string documentationId) -> System.RuntimeTypeHandle
+static Caravela.Compiler.ResourceDescriptionExtensions.GetFileName(this Microsoft.CodeAnalysis.ResourceDescription resource) -> string
+static Caravela.Compiler.ResourceDescriptionExtensions.GetResourceName(this Microsoft.CodeAnalysis.ResourceDescription resource) -> string
+static Caravela.Compiler.ResourceDescriptionExtensions.IsPublic(this Microsoft.CodeAnalysis.ResourceDescription resource) -> bool
+static Caravela.Compiler.CaravelaCompilerInfo.IsActive.get -> bool

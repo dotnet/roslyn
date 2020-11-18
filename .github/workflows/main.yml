@@ -18,9 +18,9 @@ jobs:
       run: ./restore.sh
     - name: Build
       run: ./build.sh
-    - name: Run RoslynEx tests
+    - name: Run Caravela.Compiler tests
       run: dotnet test --filter Category\!=OuterLoop
-      working-directory: ./src/RoslynEx/RoslynEx.UnitTests
+      working-directory: ./src/Caravela/Caravela.Compiler.UnitTests
     - name: Run Roslyn tests
       run: ./build.sh --test
     - uses: actions/upload-artifact@v2

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <Target Name="InitializeCaravelaCompilerArtifacts">
+    <ItemGroup>
+      
+      <CaravelaCompilerArtifact Include="$(ArtifactsBinDir)Caravela.Compiler.Interface.TypeForwards\$(Configuration)\netstandard2.0\Caravela.Compiler.Interface.dll" />
+
+    </ItemGroup>
+  </Target>
+</Project>

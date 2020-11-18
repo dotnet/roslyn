@@ -299,33 +299,33 @@
 
   <!--
     ========================
-    CompilerTransformedFilesOutputPath
+    CaravelaCaravelaCompilerTransformedFilesOutputPath
     ========================
     
-    Controls output of files transformed by RoslynEx.
+    Controls output of files transformed by the Caravela compiler.
     
-    CompilerTransformedFilesOutputPath controls the location the files will be output to.
+    CaravelaCompilerTransformedFilesOutputPath controls the location the files will be output to.
     The compiler will not emit any transformed files when the path is empty, and defaults to a /transformed directory in $(IntermediateOutputPath) if $(IntermediateOutputPath) has a value.
-    EmitCompilerTransformedFiles allows the user to control if anything is emitted by clearing the property when not true.
-    When EmitCompilerTransformedFiles is true, we ensure that CompilerTransformedFilesOutputPath has a value and issue a warning if not.
-    We will create CompilerTransformedFilesOutputPath if it does not exist.
+    CaravelaEmitCompilerTransformedFiles allows the user to control if anything is emitted by clearing the property when not true.
+    When CaravelaEmitCompilerTransformedFiles is true, we ensure that CaravelaCompilerTransformedFilesOutputPath has a value and issue a warning if not.
+    We will create CaravelaCompilerTransformedFilesOutputPath if it does not exist.
     -->
   <PropertyGroup>
-    <EmitCompilerTransformedFiles Condition="'$(EmitCompilerTransformedFiles)' == '' and '$(RoslynExDebugTransformedCode)' == 'true'">true</EmitCompilerTransformedFiles>
-    <EmitCompilerTransformedFiles Condition="'$(EmitCompilerTransformedFiles)' == ''">false</EmitCompilerTransformedFiles>
-    <CompilerTransformedFilesOutputPath Condition="'$(EmitCompilerTransformedFiles)' != 'true'"></CompilerTransformedFilesOutputPath>
-    <CompilerTransformedFilesOutputPath Condition="'$(EmitCompilerTransformedFiles)' == 'true' and '$(CompilerTransformedFilesOutputPath)' == '' and '$(IntermediateOutputPath)' != ''">$(IntermediateOutputPath)/transformed</CompilerTransformedFilesOutputPath>
+    <CaravelaEmitCompilerTransformedFiles Condition="'$(CaravelaEmitCompilerTransformedFiles)' == '' and '$(CaravelaDebugTransformedCode)' == 'true'">true</CaravelaEmitCompilerTransformedFiles>
+    <CaravelaEmitCompilerTransformedFiles Condition="'$(CaravelaEmitCompilerTransformedFiles)' == ''">false</CaravelaEmitCompilerTransformedFiles>
+    <CaravelaCompilerTransformedFilesOutputPath Condition="'$(CaravelaEmitCompilerTransformedFiles)' != 'true'"></CaravelaCompilerTransformedFilesOutputPath>
+    <CaravelaCompilerTransformedFilesOutputPath Condition="'$(CaravelaEmitCompilerTransformedFiles)' == 'true' and '$(CaravelaCompilerTransformedFilesOutputPath)' == '' and '$(IntermediateOutputPath)' != ''">$(IntermediateOutputPath)/transformed</CaravelaCompilerTransformedFilesOutputPath>
   </PropertyGroup>
 
-  <Target Name="CreateCompilerTransformedFilesOutputPath"
+  <Target Name="CreateCaravelaCompilerTransformedFilesOutputPath"
         BeforeTargets="CoreCompile"
-        Condition="'$(EmitCompilerTransformedFiles)' == 'true' and !('$(DesignTimeBuild)' == 'true' OR '$(BuildingProject)' != 'true')">
+        Condition="'$(CaravelaEmitCompilerTransformedFiles)' == 'true' and !('$(DesignTimeBuild)' == 'true' OR '$(BuildingProject)' != 'true')">
 
-    <Warning Condition="'$(CompilerTransformedFilesOutputPath)' == ''"
-             Text="EmitCompilerTransformedFiles was true, but no CompilerTransformedFilesOutputPath was provided. CompilerTransformedFilesOutputPath must be set in order to emit transformed files." />
+    <Warning Condition="'$(CaravelaCompilerTransformedFilesOutputPath)' == ''"
+             Text="CaravelaEmitCompilerTransformedFiles was true, but no CaravelaCompilerTransformedFilesOutputPath was provided. CaravelaCompilerTransformedFilesOutputPath must be set in order to emit transformed files." />
 
-    <MakeDir Condition="'$(CompilerTransformedFilesOutputPath)' != ''"
-             Directories="$(CompilerTransformedFilesOutputPath)"  />
+    <MakeDir Condition="'$(CaravelaCompilerTransformedFilesOutputPath)' != ''"
+             Directories="$(CaravelaCompilerTransformedFilesOutputPath)"  />
   </Target>
 
 </Project>

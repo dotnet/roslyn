@@ -7231,7 +7231,7 @@ public class C
                 );
         }
 
-        [Fact(Skip = "MakeTypeMissing does not work with the way RoslynEx is used in tests")]
+        [Fact(Skip = "MakeTypeMissing does not work with the way Caravela.Compiler is used in tests")]
         [WorkItem(39960, "https://github.com/dotnet/roslyn/issues/39960")]
         public void MissingExceptionType()
         {

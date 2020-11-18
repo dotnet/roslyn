@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <DefineConstants>CARAVELA_COMPILER_INTERFACE</DefineConstants>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <AssemblyName>Caravela.Compiler.Interface</AssemblyName>
+    <PackageId>Caravela.Compiler.Sdk</PackageId>
+  </PropertyGroup>
+
+  <Import Project="..\Caravela.Compiler.Shared\Caravela.Compiler.Shared.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <None Include="build\Caravela.Compiler.Sdk.targets" Pack="true" PackagePath="build" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" />
+  </ItemGroup>
+
+  <!-- based on https://claires.site/2018/07/03/create-and-pack-reference-assemblies/ -->
+  <Target Name="_GetReferenceAssemblies" DependsOnTargets="Build" Returns="@(ReferenceAssembliesOutput)">
+    <ItemGroup>
+      <ReferenceAssembliesOutput Include="@(IntermediateRefAssembly->'%(FullPath)')" TargetFramework="$(TargetFramework)" />
+      <ReferenceAssembliesOutput Include="@(DocumentationProjectOutputGroupOutput->'%(FullPath)')" TargetFramework="$(TargetFramework)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="GetRefsForPackage" BeforeTargets="_GetPackageFiles" DependsOnTargets="_GetReferenceAssemblies">
+    <ItemGroup>
+      <None Include="@(ReferenceAssembliesOutput)" PackagePath="ref/$(TargetFramework)" Pack="true" />
+    </ItemGroup>
+  </Target>
+
+</Project>

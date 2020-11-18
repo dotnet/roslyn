@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
-using RoslynEx;
+using Caravela.Compiler;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 catch (Exception ex)
                 {
                     var diagnostic = Diagnostic.Create(new DiagnosticInfo(
-                        RoslynExMessageProvider.Instance, (int)RoslynEx.ErrorCode.ERR_TransformerFailed, transformer.GetType().Name, ex.ToString()));
+                        CaravelaCompilerMessageProvider.Instance, (int)Caravela.Compiler.ErrorCode.ERR_TransformerFailed, transformer.GetType().Name, ex.ToString()));
                     diagnostics.Add(diagnostic);
                 }
             }

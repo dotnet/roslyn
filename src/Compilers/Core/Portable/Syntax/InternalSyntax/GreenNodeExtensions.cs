@@ -4,7 +4,7 @@
 
 #nullable enable
 
-using RoslynEx;
+using Caravela.Compiler;
 
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {

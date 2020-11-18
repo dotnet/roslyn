@@ -1211,7 +1211,7 @@ namespace CSharpSyntaxGenerator
                     node.Fields.Select(f => CamelCase(f.Name))));
                 WriteLine(");");
                 WriteLine("var annotations = GetAnnotations();");
-                WriteLine("RoslynEx.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);");
+                WriteLine("Caravela.Compiler.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);");
                 WriteLine("return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;");
                 CloseBlock();
             }
@@ -1594,7 +1594,7 @@ namespace CSharpSyntaxGenerator
                 }
                 else
                 {
-                    WriteLine($"{CamelCase(field.Name)} = RoslynEx.TreeTracker.TrackIfNeeded({CamelCase(field.Name)});");
+                    WriteLine($"{CamelCase(field.Name)} = Caravela.Compiler.TreeTracker.TrackIfNeeded({CamelCase(field.Name)});");
                 }
             }
 

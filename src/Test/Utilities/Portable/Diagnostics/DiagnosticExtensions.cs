@@ -103,14 +103,14 @@ namespace Microsoft.CodeAnalysis
 
             var compilation = c;
 
-            if (RoslynExTest.ShouldExecuteTransformer)
+            if (CaravelaCompilerTest.ShouldExecuteTransformer)
             {
                 // don't run transformations if there are syntax errors, just like what happens in the compiler
                 var diagnosticBag = new DiagnosticBag();
                 compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnosticBag);
                 if (!CommonCompiler.HasUnsuppressableErrors(diagnosticBag))
-                    compilation = (TCompilation)RoslynExTest.ExecuteTransformer(compilation, new
-RoslynExTest.TokenPerLineTransformer());
+                    compilation = (TCompilation)CaravelaCompilerTest.ExecuteTransformer(compilation, new
+CaravelaCompilerTest.TokenPerLineTransformer());
             }
 
             var diagnostics = compilation.GetDiagnostics();

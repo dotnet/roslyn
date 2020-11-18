@@ -22,7 +22,7 @@
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="RoslynEx.UnitTests" />
+    <InternalsVisibleTo Include="Caravela.Compiler.UnitTests" />
     <EmbeddedResource Include="..\..\csc\csc.rsp" LogicalName="csc.rsp" />
   </ItemGroup>
   <ItemGroup>

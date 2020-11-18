@@ -5,8 +5,8 @@
     <Copyright>$(CopyrightMicrosoft)</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
-    <RepositoryUrl>https://github.com/postsharp/RoslynEx</RepositoryUrl>
-    <PackageTags>RoslynEx</PackageTags>
+    <RepositoryUrl>https://github.com/postsharp/Caravela.Compiler</RepositoryUrl>
+    <PackageTags>PostSharp Caravela</PackageTags>
     <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\src\NuGet\ThirdPartyNotices.rtf</ThirdPartyNoticesFilePath>
 
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>

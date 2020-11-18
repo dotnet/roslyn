@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal static class AnalyzerConsistencyChecker
     {
-        private static readonly ImmutableArray<string> s_defaultIgnorableReferenceNames = ImmutableArray.Create("mscorlib", "System", "Microsoft.CodeAnalysis", "netstandard", "RoslynEx.Interface");
+        private static readonly ImmutableArray<string> s_defaultIgnorableReferenceNames = ImmutableArray.Create("mscorlib", "System", "Microsoft.CodeAnalysis", "netstandard", "Caravela.Compiler.Interface");
 
         public static bool Check(string baseDirectory, IEnumerable<CommandLineAnalyzerReference> analyzerReferences, IAnalyzerAssemblyLoader loader, IEnumerable<string> ignorableReferenceNames = null)
         {

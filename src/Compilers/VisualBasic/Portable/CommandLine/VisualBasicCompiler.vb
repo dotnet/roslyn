@@ -7,7 +7,7 @@ Imports System.IO
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports RoslynEx
+Imports Caravela.Compiler
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 

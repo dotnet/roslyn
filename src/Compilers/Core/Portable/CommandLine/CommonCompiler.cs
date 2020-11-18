@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using RoslynEx;
+using Caravela.Compiler;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -804,7 +804,7 @@ namespace Microsoft.CodeAnalysis
                     diagnostics.AddRange(sourceFileAnalyzerConfigOption.Diagnostics);
                 }
 
-                globalConfigOptions.AnalyzerOptions.TryGetValue("build_property.RoslynExTransformerOrder", out var transformerOrderString);
+                globalConfigOptions.AnalyzerOptions.TryGetValue("build_property.CaravelaCompilerTransformerOrder", out var transformerOrderString);
 
                 if (!string.IsNullOrWhiteSpace(transformerOrderString))
                     transformerOrder = transformerOrderString.Split(';').ToImmutableArray();
@@ -923,7 +923,7 @@ namespace Microsoft.CodeAnalysis
 
         protected static bool ShouldDebugTransformedCode(AnalyzerConfigOptionsProvider options)
         {
-            options.GlobalOptions.TryGetValue("build_property.RoslynExDebugTransformedCode", out var shouldDebugTransformedCodeString);
+            options.GlobalOptions.TryGetValue("build_property.CaravelaDebugTransformedCode", out var shouldDebugTransformedCodeString);
             bool.TryParse(shouldDebugTransformedCodeString, out var shouldDebugTransformedCode);
             return shouldDebugTransformedCode;
         }
@@ -1073,7 +1073,7 @@ namespace Microsoft.CodeAnalysis
                         if (shouldDebugTransformedCode && !hasTransformedOutputPath)
                         {
                             var diagnostic = Diagnostic.Create(new DiagnosticInfo(
-                                RoslynExMessageProvider.Instance, (int)ErrorCode.WRN_NoTransformedOutputPathWhenDebuggingTransformed));
+                                CaravelaCompilerMessageProvider.Instance, (int)ErrorCode.WRN_NoTransformedOutputPathWhenDebuggingTransformed));
                             diagnostics.Add(diagnostic);
                         }
 

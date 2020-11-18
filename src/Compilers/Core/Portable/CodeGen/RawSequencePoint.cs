@@ -6,7 +6,7 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
-using RoslynEx;
+using Caravela.Compiler;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {

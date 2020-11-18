@@ -27,7 +27,7 @@ using Microsoft.Metadata.Tools;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using RoslynEx;
+using Caravela.Compiler;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -234,8 +234,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string expectedValueSourcePath,
             bool expectedIsXmlLiteral)
         {
-            if (RoslynExTest.ShouldExecuteTransformer)
-                compilation = RoslynExTest.ExecuteTransformer(compilation, new RoslynExTest.TokenPerLineTransformer());
+            if (CaravelaCompilerTest.ShouldExecuteTransformer)
+                compilation = CaravelaCompilerTest.ExecuteTransformer(compilation, new CaravelaCompilerTest.TokenPerLineTransformer());
 
             Assert.NotEqual(DebugInformationFormat.Embedded, format);
 
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             RemoveEmptyMethods(expectedXml);
             RemoveFormatAttributes(expectedXml);
 
-            if (RoslynExTest.ShouldExecuteTransformer)
+            if (CaravelaCompilerTest.ShouldExecuteTransformer)
             {
                 RemoveEnc(actualXml);
                 RemoveEnc(expectedXml);

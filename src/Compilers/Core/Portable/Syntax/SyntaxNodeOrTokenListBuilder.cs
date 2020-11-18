@@ -7,7 +7,7 @@
 using System;
 using System.Collections.Generic;
 using Roslyn.Utilities;
-using RoslynEx;
+using Caravela.Compiler;
 
 namespace Microsoft.CodeAnalysis.Syntax
 {

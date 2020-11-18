@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>9ac4f471-ed46-4cd9-920f-e50bc6a65dd6</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Caravela.Compiler</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CaravelaCompilerMessageProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommonPath.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Graphs\AbstractGraph.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Graphs\Graph.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Graphs\SimpleLinkedListNode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TimeBomb.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TransformerDependencyResolver.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TreeTracker.cs" />
+  </ItemGroup>
+</Project>

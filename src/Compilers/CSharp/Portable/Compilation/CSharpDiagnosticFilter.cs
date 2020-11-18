@@ -10,7 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
-using RoslynEx;
+using Caravela.Compiler;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {

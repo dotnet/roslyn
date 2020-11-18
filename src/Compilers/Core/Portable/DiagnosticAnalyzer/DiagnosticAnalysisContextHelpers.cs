@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             Debug.Assert(location.SourceTree != null);
 
-            // RoslynEx tree tracking means that the syntax trees don't match, so disable this check
+            // Caravela compiler tree tracking means that the syntax trees don't match, so disable this check
 
             //if (!compilation.ContainsSyntaxTree(location.SourceTree))
             //{

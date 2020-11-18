@@ -32194,7 +32194,7 @@ class H
             Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
         }
 
-        [Fact(Skip = "For some reason fails with RoslynEx, but RoslynEx doesn't support scripting, so this shouldn't be relevant")]
+        [Fact(Skip = "For some reason fails with Caravela.Compiler, but Caravela.Compiler doesn't support scripting, so this shouldn't be relevant")]
         public void GlobalCode_InferenceFailure_04()
         {
             string source =
@@ -32249,7 +32249,7 @@ class H
                 );
         }
 
-        [Fact(Skip = "For some reason fails with RoslynEx, but RoslynEx doesn't support scripting, so this shouldn't be relevant")]
+        [Fact(Skip = "For some reason fails with Caravela.Compiler, but Caravela.Compiler doesn't support scripting, so this shouldn't be relevant")]
         public void GlobalCode_InferenceFailure_05()
         {
             string source =

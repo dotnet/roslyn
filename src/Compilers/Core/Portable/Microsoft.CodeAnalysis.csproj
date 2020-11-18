@@ -21,7 +21,7 @@
     </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
-    <AssemblyAttribute Include="RoslynEx.TimeBomb.AssemblyBuildDate">
+    <AssemblyAttribute Include="Caravela.Compiler.TimeBomb.AssemblyBuildDate">
       <_Parameter1>$([System.DateTime]::UtcNow.ToString(o))</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
@@ -94,7 +94,7 @@
     <InternalsVisibleTo Include="VBCSCompiler.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="CompilerBenchmarks" />
-    <InternalsVisibleTo Include="RoslynEx.UnitTests" />
+    <InternalsVisibleTo Include="Caravela.Compiler.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CodeAnalysisResources.resx" GenerateSource="true" />
@@ -113,6 +113,6 @@
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
-  <Import Project="..\..\..\RoslynEx\RoslynEx.Shared\RoslynEx.Shared.projitems" Label="Shared" />
-  <Import Project="..\..\..\RoslynEx\RoslynEx.CodeAnalysis\RoslynEx.CodeAnalysis.projitems" Label="Shared" />
+  <Import Project="..\..\..\Caravela\Caravela.Compiler.Shared\Caravela.Compiler.Shared.projitems" Label="Shared" />
+  <Import Project="..\..\..\Caravela\Caravela.Compiler.CodeAnalysis\Caravela.Compiler.CodeAnalysis.projitems" Label="Shared" />
 </Project>

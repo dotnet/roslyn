@@ -1025,7 +1025,7 @@ IVariableDeclaratorOperation (Symbol: delegate*<System.Object> ptr3) (OperationK
 ");
         }
 
-        [Fact(Skip = "The way RoslynEx transformations are ran in tests doesn't support SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention.")]
+        [Fact(Skip = "The way Caravela.Compiler transformations are ran in tests doesn't support SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention.")]
         public void FunctionPointerToFunctionPointerInvalid_CallingConvention()
         {
             var comp = CreateCompilationWithFunctionPointers(@"

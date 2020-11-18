@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
-using RoslynEx;
+using Caravela.Compiler;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -227,8 +227,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type);
             }
             else if (method.IsStatic &&
-                // global::RoslynEx.Intrinsics
-                method.ContainingType is { Name: nameof(Intrinsics), ContainingNamespace: { Name: nameof(RoslynEx), ContainingNamespace: { IsGlobalNamespace: true } } })
+                // global::Caravela.Compiler.Intrinsics
+                method.ContainingType is
+                {
+                    Name: nameof(Intrinsics),
+                    ContainingNamespace:
+                    {
+                        Name: nameof(Caravela.Compiler),
+                        ContainingNamespace:
+                        {
+                            Name: nameof(Caravela),
+                            ContainingNamespace:
+                            {
+                                IsGlobalNamespace: true
+                            }
+                        }
+                    }
+                })
             {
                 Debug.Assert(temps.IsEmpty);
                 Debug.Assert(rewrittenArguments.Length == 1);
@@ -274,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundBadExpression error()
                 {
                     _diagnostics.Add(new DiagnosticInfo(
-                        RoslynExMessageProvider.Instance, (int)RoslynEx.ErrorCode.ERR_InvalidIntrinsicUse, rewrittenArguments[0].Syntax, method), syntax.Location);
+                        CaravelaCompilerMessageProvider.Instance, (int)Caravela.Compiler.ErrorCode.ERR_InvalidIntrinsicUse, rewrittenArguments[0].Syntax, method), syntax.Location);
 
                     return _factory.BadExpression(_compilation.GetSpecialType(SpecialType.System_Void));
                 }
