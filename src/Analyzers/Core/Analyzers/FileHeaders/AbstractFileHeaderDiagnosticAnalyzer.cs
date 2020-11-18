@@ -75,9 +75,9 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
         private static bool CompareCopyrightText(string expectedFileHeader, string copyrightText)
         {
-            // make sure that both \n and \r\n are accepted from the settings.
-            var reformattedCopyrightTextParts = expectedFileHeader.Replace("\r\n", "\n").Split('\n');
-            var fileHeaderCopyrightTextParts = copyrightText.Replace("\r\n", "\n").Split('\n');
+            // make sure that both \n and \r\n are accepted from the settings and leading and trailing whitespace is ignored.
+            var reformattedCopyrightTextParts = expectedFileHeader.Trim().Replace("\r\n", "\n").Split('\n');
+            var fileHeaderCopyrightTextParts = copyrightText.Trim().Replace("\r\n", "\n").Split('\n');
 
             if (reformattedCopyrightTextParts.Length != fileHeaderCopyrightTextParts.Length)
             {
