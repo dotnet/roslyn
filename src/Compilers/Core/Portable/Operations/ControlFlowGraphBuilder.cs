@@ -3890,7 +3890,7 @@ oneMoreTime:
 
             var requiresConversion = !knownToImplementIDisposable && disposeMethod is null;
 
-            if (requiresConversion) 
+            if (requiresConversion)
             {
                 Debug.Assert(!isNonNullableValueType(resource.Type));
                 resource = ConvertToIDisposable(resource, iDisposable, isTryCast: true);
