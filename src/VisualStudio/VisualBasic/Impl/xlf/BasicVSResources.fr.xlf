@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments">
         <source>Insert ' at the start of new lines when writing ' comments</source>
-        <target state="new">Insert ' at the start of new lines when writing ' comments</target>
+        <target state="translated">Insérer ' au début des nouvelles lignes pour l'écriture de commentaires '</target>
         <note />
       </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
@@ -49,12 +49,12 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
         <source>Show hints for 'New' expressions</source>
-        <target state="new">Show hints for 'New' expressions</target>
+        <target state="translated">Afficher les indicateurs pour les expressions 'New'</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
-        <target state="needs-review-translation">Afficher les éléments des espaces de noms qui ne sont pas importés (expérimental)</target>
+        <target state="translated">Afficher les éléments des espaces de noms qui ne sont pas importés</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">

@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
-        <target state="new">Inline Hints</target>
+        <target state="translated">Satır İçi İpuçları</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="Split_comment">
         <source>Split comment</source>
-        <target state="new">Split comment</target>
+        <target state="translated">Açıklamayı böl</target>
         <note />
       </trans-unit>
       <trans-unit id="String_Escape_Character">
@@ -259,7 +259,7 @@
       </trans-unit>
       <trans-unit id="User_Types_Records">
         <source>User Types - Records</source>
-        <target state="new">User Types - Records</target>
+        <target state="translated">Kullanıcı Türleri - Kayıtlar</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Structures">
@@ -1100,7 +1100,7 @@
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
         <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="translated">Yapı "out/ref" parametrelerini yapmayarak hatayı düzeltebiliriz.
+        <target state="translated">Yapı "out/ref" parametrelerini yapmayarak hatayı düzeltebiliriz. 
 Devam etmek istiyor musunuz?</target>
         <note />
       </trans-unit>

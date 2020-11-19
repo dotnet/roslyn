@@ -81,10 +81,10 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="needs-review-translation">Mostrar sugerencias de nombre de parámetro insertado;
+        <target state="translated">Mostrar sugerencias insertadas;
 Mostrar diagnóstico para archivos cerrados;
-Colorear expresión regular;
-Resaltar componentes relacionados bajo el cursor;
+Colorear expresión regular; 
+Resaltar componentes relacionados bajo el cursor; 
 Informar sobre expresiones regulares no válidas;
 Habilitar análisis de la solución completa;
 Realizar el análisis de características del editor en proceso externo;
@@ -154,14 +154,14 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="needs-review-translation">Aplicar sangría al contenido del bloque;
-aplicar sangría a llaves de apertura y de cierre;
-aplicar sangría al contenido de case;
-aplicar sangría al contenido de case (cuando está bloqueado);
-aplicar sangría a etiquetas case;
-sangría de etiquetas;
-colocar etiquetas goto en primera columna de la izquierda;
-aplicar sangría normal a etiquetas;
+        <target state="translated">Aplicar sangría al contenido del bloque; 
+aplicar sangría a llaves de apertura y de cierre; 
+aplicar sangría al contenido de case; 
+aplicar sangría al contenido de case (cuando está bloqueado); 
+aplicar sangría a etiquetas case; 
+sangría de etiquetas; 
+colocar etiquetas goto en primera columna de la izquierda; 
+aplicar sangría normal a etiquetas; 
 reducir una sangrí­a para las etiquetas goto;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>

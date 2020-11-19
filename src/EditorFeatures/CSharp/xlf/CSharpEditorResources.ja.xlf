@@ -47,14 +47,14 @@
         <target state="translated">1 つのアセンブリが見つかりました: '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Load_from_0">
-        <source>Load from: '{0}'</source>
-        <target state="translated">読み込み元: '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
         <target state="translated">イベント サブスクリプションの生成</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Load_from_0">
+        <source>Load from: '{0}'</source>
+        <target state="translated">読み込み元: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Module_not_found">
