@@ -70,8 +70,10 @@ namespace Microsoft.CodeAnalysis
             {
                 if (solutionServices.SupportsCachingRecoverableObjects)
                 {
-                    // Allow the cache service to create a strong reference to the compilation
-                    solutionServices.CacheService.CacheObjectIfCachingEnabledForKey(ProjectState.Id, state, state.CompilationWithoutGeneratedDocuments?.GetValueOrNull());
+                    // Allow the cache service to create a strong reference to the compilation. We'll get the "furthest along" compilation we have
+                    // and hold onto that.
+                    var compilationToCache = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull() ?? state.CompilationWithoutGeneratedDocuments?.GetValueOrNull();
+                    solutionServices.CacheService.CacheObjectIfCachingEnabledForKey(ProjectState.Id, state, compilationToCache);
                 }
 
                 Volatile.Write(ref _stateDoNotAccessDirectly, state);
