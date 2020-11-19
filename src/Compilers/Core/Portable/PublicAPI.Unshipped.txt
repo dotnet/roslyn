@@ -1,10 +1,4 @@
 Microsoft.CodeAnalysis.CommandLineArguments.GeneratedArtifactsOutputDirectory.get -> string
-Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerationContext
-Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerationContext.ArtifactGenerationContext() -> void
-Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerationContext.GenerateArtifact(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
-Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerationContext.GenerateArtifact(string hintName, string source) -> void
-Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerationContext.GenerateArtifact(string hintName, System.Action<System.IO.Stream> writeStream) -> void
-Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerationContext.GenerateArtifact(string hintName, System.Text.StringBuilder builder) -> void
 Microsoft.CodeAnalysis.Diagnostics.ArtifactProducer
 Microsoft.CodeAnalysis.Diagnostics.ArtifactProducer.ArtifactProducer() -> void
 Microsoft.CodeAnalysis.Diagnostics.ArtifactProducer.WriteArtifact(string fileName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
