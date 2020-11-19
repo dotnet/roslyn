@@ -22,15 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
     internal static class Extensions
     {
         /// <summary>
-        /// format span
-        /// </summary>
-        public static void Format(this ITextBuffer buffer, TextSpan span, IEnumerable<AbstractFormattingRule> rules)
-        {
-            var snapshot = buffer.CurrentSnapshot;
-            snapshot.FormatAndApplyToBuffer(span, rules, CancellationToken.None);
-        }
-
-        /// <summary>
         /// create caret preserving edit transaction with automatic code change undo merging policy
         /// </summary>
         public static CaretPreservingEditTransaction CreateEditTransaction(

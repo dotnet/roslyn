@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -29,6 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
     [Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
     internal class CurlyBraceCompletionService : AbstractBraceCompletionService
     {
+        /// <summary>
+        /// Annotation used to find the closing brace location after formatting changes are applied.
+        /// The closing brace location is then used as the caret location.
+        /// </summary>
         private static readonly SyntaxAnnotation s_closingBraceSyntaxAnnotation = new("original closing brace");
 
         [ImportingConstructor]
@@ -46,9 +51,22 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         public override async Task<BraceCompletionResult?> GetTextChangesAfterCompletionAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken)
         {
-            // Format the span from the open brace location up to and including the closing brace location.
-            var (formattingChanges, newClosingPoint) = await FormatTrackingSpanAsync(braceCompletionContext.Document, braceCompletionContext.OpeningPoint, braceCompletionContext.ClosingPoint,
-                shouldHonorAutoFormattingOnCloseBraceOption: true, rules: null, cancellationToken).ConfigureAwait(false);
+            var documentOptions = await braceCompletionContext.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            // After the closing brace is completed we need to format the span from the opening point to the closing point.
+            // E.g. when the user triggers completion for an if statement ($$ is the caret location) we insert braces to get
+            // if (true){$$}
+            // We then need to format this to
+            // if (true) { $$}
+            var (formattingChanges, finalCurlyBraceEnd) = await FormatTrackingSpanAsync(
+                braceCompletionContext.Document,
+                documentOptions,
+                braceCompletionContext.OpeningPoint,
+                braceCompletionContext.ClosingPoint,
+                shouldHonorAutoFormattingOnCloseBraceOption: true,
+                // We're not trying to format the indented block here, so no need to pass in additional rules.
+                braceFormattingIndentationRules: ImmutableArray<AbstractFormattingRule>.Empty,
+                cancellationToken).ConfigureAwait(false);
 
             if (formattingChanges.IsEmpty)
             {
@@ -58,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // The caret location should be at the start of the closing brace character.
             var originalText = await braceCompletionContext.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var formattedText = originalText.WithChanges(formattingChanges);
-            var caretLocation = formattedText.Lines.GetLinePosition(newClosingPoint - 1);
+            var caretLocation = formattedText.Lines.GetLinePosition(finalCurlyBraceEnd - 1);
 
             return new BraceCompletionResult(formattingChanges, caretLocation);
         }
@@ -88,12 +106,14 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             closingPoint += Environment.NewLine.Length;
 
             // Format the text that contains the newly inserted line.
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var (formattingChanges, newClosingPoint) = await FormatTrackingSpanAsync(
                 document.WithText(textWithNewLine),
+                documentOptions,
                 openingPoint,
                 closingPoint,
                 shouldHonorAutoFormattingOnCloseBraceOption: false,
-                rules: GetBraceFormattingRules(document),
+                braceFormattingIndentationRules: GetBraceIndentationFormattingRules(documentOptions),
                 cancellationToken).ConfigureAwait(false);
             closingPoint = newClosingPoint;
             var formattedText = textWithNewLine.WithChanges(formattingChanges);
@@ -144,21 +164,14 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         protected override bool IsValidClosingBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.CloseBraceToken);
 
-        private bool ContainsOnlyWhitespace(SourceText text, int openingPosition, int closingPosition)
+        private static bool ContainsOnlyWhitespace(SourceText text, int openingPosition, int closingBraceEndPoint)
         {
-            var start = openingPosition;
-            start = text[start] == OpeningBrace ? start + 1 : start;
+            // Set the start point to the character after the opening brace.
+            var start = openingPosition + 1;
+            // Set the end point to the closing brace start character position.
+            var end = closingBraceEndPoint - 1;
 
-            var end = closingPosition - 1;
-            end = text[end] == ClosingBrace ? end - 1 : end;
-
-            if (!PositionInSnapshot(start, text) ||
-                !PositionInSnapshot(end, text))
-            {
-                return false;
-            }
-
-            for (var i = start; i <= end; i++)
+            for (var i = start; i < end; i++)
             {
                 if (!char.IsWhiteSpace(text[i]))
                 {
@@ -167,25 +180,20 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             }
 
             return true;
-
-            static int GetValueInValidRange(int value, int smallest, int largest)
-            => Math.Max(smallest, Math.Min(value, largest));
-
-            static bool PositionInSnapshot(int position, SourceText text)
-                => GetValueInValidRange(position, 0, Math.Max(0, text.Length - 1)) == position;
         }
 
         /// <summary>
         /// Formats the span between the opening and closing points, options permitting.
         /// Returns the text changes that should be applied to the input document to 
-        /// get the formatted text and the new closing point in the formatted text.
+        /// get the formatted text and the end of the close curly brace in the formatted text.
         /// </summary>
-        private static async Task<(ImmutableArray<TextChange> TextChanges, int NewClosingPoint)> FormatTrackingSpanAsync(
+        private static async Task<(ImmutableArray<TextChange> textChanges, int finalCurlyBraceEnd)> FormatTrackingSpanAsync(
             Document document,
+            DocumentOptionSet documentOptions,
             int openingPoint,
             int closingPoint,
             bool shouldHonorAutoFormattingOnCloseBraceOption,
-            ImmutableArray<AbstractFormattingRule>? rules,
+            ImmutableArray<AbstractFormattingRule> braceFormattingIndentationRules,
             CancellationToken cancellationToken)
         {
             var option = document.Project.Solution.Options.GetOption(BraceCompletionOptions.AutoFormattingOnCloseBrace, document.Project.Language);
@@ -203,7 +211,10 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            // Do not format within the braces if they're on the same line for array/collection/object initializer expressions.
+            // Only format outside of the completed braces if they're on the same line for array/collection/object initializer expressions.
+            // Example:   `var x = new int[]{}`:
+            // Correct:   `var x = new int[] {}`
+            // Incorrect: `var x = new int[] { }`
             // This is a heuristic to prevent brace completion from breaking user expectation/muscle memory in common scenarios.
             // see bug Devdiv:823958
             if (text.Lines.GetLineFromPosition(startPoint) == text.Lines.GetLineFromPosition(endPoint))
@@ -213,20 +224,16 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                     (startToken.Parent?.IsInitializerForArrayOrCollectionCreationExpression() == true ||
                      startToken.Parent is AnonymousObjectCreationExpressionSyntax))
                 {
-                    // format everything but the brace pair.
-                    var endToken = root.FindToken(endPoint, findInsideTrivia: true);
-                    if (endToken.IsKind(SyntaxKind.CloseBraceToken))
-                    {
-                        endPoint -= endToken.Span.Length + startToken.Span.Length;
-                    }
+                    // Since the braces are next to each other the span to format is everything up to the opening brace start.
+                    endPoint = startToken.SpanStart;
                 }
             }
 
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var style = documentOptions.GetOption(FormattingOptions.SmartIndent);
-
             if (style == FormattingOptions.IndentStyle.Smart)
             {
+                // Set the formatting start point to be the beginning of the first word to the left 
+                // of the opening brace location.
                 // skip whitespace
                 while (startPoint >= 0 && char.IsWhiteSpace(text[startPoint]))
                 {
@@ -242,33 +249,33 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             }
 
             var spanToFormat = TextSpan.FromBounds(Math.Max(startPoint, 0), endPoint);
-            rules = document.GetFormattingRules(rules, spanToFormat);
-
+            var rules = document.GetFormattingRules(braceFormattingIndentationRules, spanToFormat);
             var result = Formatter.GetFormattingResult(root, SpecializedCollections.SingletonEnumerable(spanToFormat), document.Project.Solution.Workspace, documentOptions, rules, cancellationToken);
             if (result == null)
             {
                 return (ImmutableArray<TextChange>.Empty, closingPoint);
             }
+
             var newRoot = result.GetFormattedRoot(cancellationToken);
             var newClosingPoint = newRoot.GetAnnotatedTokens(s_closingBraceSyntaxAnnotation).Single().SpanStart + 1;
 
             var textChanges = result.GetTextChanges(cancellationToken).ToImmutableArray();
             return (textChanges, newClosingPoint);
 
-            static async Task<Document> GetDocumentWithAnnotatedClosingBraceAsync(Document document, int closingPoint, CancellationToken cancellationToken)
+            static async Task<Document> GetDocumentWithAnnotatedClosingBraceAsync(Document document, int closingBraceEndPoint, CancellationToken cancellationToken)
             {
                 var originalRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var closeBraceToken = originalRoot.FindToken(closingPoint - 1);
+                var closeBraceToken = originalRoot.FindToken(closingBraceEndPoint - 1);
                 var newCloseBraceToken = closeBraceToken.WithAdditionalAnnotations(s_closingBraceSyntaxAnnotation);
                 var root = originalRoot.ReplaceToken(closeBraceToken, newCloseBraceToken);
                 return document.WithSyntaxRoot(root);
             }
         }
 
-        private static ImmutableArray<AbstractFormattingRule> GetBraceFormattingRules(Document document)
+        private static ImmutableArray<AbstractFormattingRule> GetBraceIndentationFormattingRules(DocumentOptionSet documentOptions)
         {
-            var indentStyle = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None).GetOption(FormattingOptions.SmartIndent);
-            return ImmutableArray.Create(BraceCompletionFormattingRule.ForIndentStyle(indentStyle)).AddRange(Formatter.GetDefaultFormattingRules(document));
+            var indentStyle = documentOptions.GetOption(FormattingOptions.SmartIndent);
+            return ImmutableArray.Create(BraceCompletionFormattingRule.ForIndentStyle(indentStyle));
         }
 
         private sealed class BraceCompletionFormattingRule : BaseFormattingRule
@@ -314,17 +321,19 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
             public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
-                // Eg Cases -
+                // If we're inside any of the following expressions check if the option for
+                // braces on new lines in object / array initializers is set before we attempt
+                // to move the open brace location to a new line.
                 // new MyObject {
                 // new List<int> {
                 // int[] arr = {
                 //           = new[] {
                 //           = new int[] {
-                if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent != null &&
-                (currentToken.Parent.Kind() == SyntaxKind.ObjectInitializerExpression ||
-                currentToken.Parent.Kind() == SyntaxKind.CollectionInitializerExpression ||
-                currentToken.Parent.Kind() == SyntaxKind.ArrayInitializerExpression ||
-                currentToken.Parent.Kind() == SyntaxKind.ImplicitArrayCreationExpression))
+                if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(
+                    SyntaxKind.ObjectInitializerExpression,
+                    SyntaxKind.CollectionInitializerExpression,
+                    SyntaxKind.ArrayInitializerExpression,
+                    SyntaxKind.ImplicitArrayCreationExpression))
                 {
                     if (_options.NewLinesForBracesInObjectCollectionArrayInitializers)
                     {
@@ -347,7 +356,10 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                     var bracePair = node.GetBracePair();
                     if (bracePair.IsValidBracePair())
                     {
-                        AddAlignIndentationOfTokensToBaseTokenOperation(list, node, bracePair.Item1, SpecializedCollections.SingletonEnumerable(bracePair.Item2), AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine);
+                        // If the user has set block style indentation and we're in a valid brace pair
+                        // then make sure we align the close brace to the open brace.
+                        AddAlignIndentationOfTokensToBaseTokenOperation(list, node, bracePair.openBrace,
+                            SpecializedCollections.SingletonEnumerable(bracePair.closeBrace), AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine);
                     }
                 }
             }
@@ -355,6 +367,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
             {
                 base.AddSuppressOperations(list, node, in nextOperation);
+
+                // not sure exactly what is happening here, but removing the bellow causesthe indentation to be wrong.
 
                 // remove suppression rules for array and collection initializer
                 if (node.IsInitializerForArrayOrCollectionCreationExpression())

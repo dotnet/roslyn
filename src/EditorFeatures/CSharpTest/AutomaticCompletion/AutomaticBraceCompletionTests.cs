@@ -1241,6 +1241,47 @@ $$
             CheckReturn(session.Session, 8, expectedAfterReturn);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void DoesNotFormatInsideBracePairInInitializers()
+        {
+            var code =@"class C
+{
+    void M()
+    {
+        var x = new int[]$$
+    }
+}";
+
+            var expected = @"class C
+{
+    void M()
+    {
+        var x = new int[] {}
+    }
+}";
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckText(session.Session, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void DoesNotFormatOnReturnWithNonWhitespaceInBetween()
+        {
+            var code = @"class C $$";
+
+            var expected = @"class C { dd
+}";
+
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            Type(session.Session, "dd");
+            CheckReturn(session.Session, 0, expected);
+        }
+
         internal static Holder CreateSession(string code, Dictionary<OptionKey2, object> optionSet = null)
         {
             return CreateSession(
