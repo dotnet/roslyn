@@ -59,24 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // First, check to see if the character to the left of the position is an open curly.
             // If it is, we shouldn't complete because the user may be trying to escape a curly.
             // E.g. they are trying to type $"{{"
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var index = position - 1;
-            var openCurlyCount = 0;
-            while (index >= 0)
-            {
-                if (text[index] == '{')
-                {
-                    openCurlyCount++;
-                }
-                else
-                {
-                    break;
-                }
-
-                index--;
-            }
-
-            if (openCurlyCount > 0 && openCurlyCount % 2 == 1)
+            if (await CouldEscapePreviousOpenBraceAsync('{', position, document, cancellationToken).ConfigureAwait(false))
             {
                 return false;
             }

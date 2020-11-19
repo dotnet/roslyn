@@ -19,17 +19,9 @@ Friend Class InterpolationBraceCompletionService
         MyBase.New()
     End Sub
 
-    Protected Overrides ReadOnly Property OpeningBrace As Char
-        Get
-            Return CurlyBrace.OpenCharacter
-        End Get
-    End Property
+    Protected Overrides ReadOnly Property OpeningBrace As Char = CurlyBrace.OpenCharacter
 
-    Protected Overrides ReadOnly Property ClosingBrace As Char
-        Get
-            Return CurlyBrace.CloseCharacter
-        End Get
-    End Property
+    Protected Overrides ReadOnly Property ClosingBrace As Char = CurlyBrace.CloseCharacter
 
     Protected Overrides Function IsValidOpenBraceTokenAtPositionAsync(token As SyntaxToken, position As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
         Return Task.FromResult(IsValidOpeningBraceToken(token))
@@ -57,20 +49,10 @@ Friend Class InterpolationBraceCompletionService
             Return False
         End If
 
-        ' Check to see if the character to the left of the position is an open curly brace. Note that we have to
-        ' count braces to ensure that the character isn't actually an escaped brace.
-        Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
-        Dim index = position - 1
-        Dim openCurlyCount = 0
-        For index = index To 0 Step -1
-            If text(index) = "{"c Then
-                openCurlyCount += 1
-            Else
-                Exit For
-            End If
-        Next
-
-        If openCurlyCount Mod 2 > 0 Then
+        ' First, check to see if the character to the left of the position is an open curly.
+        ' If it is, we shouldn't complete because the user may be trying to escape a curly.
+        ' E.g. they are trying to type $"{{"
+        If (Await CouldEscapePreviousOpenBraceAsync("{"c, position, document, cancellationToken).ConfigureAwait(False)) Then
             Return False
         End If
 

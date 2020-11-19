@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.BraceCompletion
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 <Export(LanguageNames.VisualBasic, GetType(IBraceCompletionService)), [Shared]>
 Friend Class InterpolatedStringBraceCompletionService
@@ -19,17 +20,9 @@ Friend Class InterpolatedStringBraceCompletionService
         MyBase.New()
     End Sub
 
-    Protected Overrides ReadOnly Property OpeningBrace As Char
-        Get
-            Return DoubleQuote.OpenCharacter
-        End Get
-    End Property
+    Protected Overrides ReadOnly Property OpeningBrace As Char = DoubleQuote.OpenCharacter
 
-    Protected Overrides ReadOnly Property ClosingBrace As Char
-        Get
-            Return DoubleQuote.CloseCharacter
-        End Get
-    End Property
+    Protected Overrides ReadOnly Property ClosingBrace As Char = DoubleQuote.CloseCharacter
 
     Protected Overrides Function IsValidOpenBraceTokenAtPositionAsync(token As SyntaxToken, position As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
         Return Task.FromResult(IsValidOpeningBraceToken(token) AndAlso
@@ -59,6 +52,7 @@ Friend Class InterpolatedStringBraceCompletionService
 
         Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
 
+        ' Position can be in an interpolated string if the preceding character is a $
         Return text(position - 1) = "$"c
     End Function
 End Class

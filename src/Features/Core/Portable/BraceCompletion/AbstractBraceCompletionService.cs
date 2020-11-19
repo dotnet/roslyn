@@ -184,5 +184,32 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             public const char OpenCharacter = '\'';
             public const char CloseCharacter = '\'';
         }
+
+        protected static async Task<bool> CouldEscapePreviousOpenBraceAsync(char openingBrace, int position, Document document, CancellationToken cancellationToken)
+        {
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var index = position - 1;
+            var openBraceCount = 0;
+            while (index >= 0)
+            {
+                if (text[index] == openingBrace)
+                {
+                    openBraceCount++;
+                }
+                else
+                {
+                    break;
+                }
+
+                index--;
+            }
+
+            if (openBraceCount > 0 && openBraceCount % 2 == 1)
+            {
+                return true;
+            }
+            
+            return false;
+        }
     }
 }

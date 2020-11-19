@@ -20,17 +20,9 @@ Friend Class LessAndGreaterThanCompletionService
         MyBase.New()
     End Sub
 
-    Protected Overrides ReadOnly Property OpeningBrace As Char
-        Get
-            Return LessAndGreaterThan.OpenCharacter
-        End Get
-    End Property
+    Protected Overrides ReadOnly Property OpeningBrace As Char = LessAndGreaterThan.OpenCharacter
 
-    Protected Overrides ReadOnly Property ClosingBrace As Char
-        Get
-            Return LessAndGreaterThan.CloseCharacter
-        End Get
-    End Property
+    Protected Overrides ReadOnly Property ClosingBrace As Char = LessAndGreaterThan.CloseCharacter
 
     Protected Overrides Function IsValidOpeningBraceToken(token As SyntaxToken) As Boolean
         Return token.IsKind(SyntaxKind.LessThanToken)

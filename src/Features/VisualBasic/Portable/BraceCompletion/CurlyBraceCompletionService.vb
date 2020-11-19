@@ -19,17 +19,9 @@ Friend Class CurlyBraceCompletionService
         MyBase.New()
     End Sub
 
-    Protected Overrides ReadOnly Property OpeningBrace As Char
-        Get
-            Return CurlyBrace.OpenCharacter
-        End Get
-    End Property
+    Protected Overrides ReadOnly Property OpeningBrace As Char = CurlyBrace.OpenCharacter
 
-    Protected Overrides ReadOnly Property ClosingBrace As Char
-        Get
-            Return CurlyBrace.CloseCharacter
-        End Get
-    End Property
+    Protected Overrides ReadOnly Property ClosingBrace As Char = CurlyBrace.CloseCharacter
 
     Public Overrides Function AllowOverTypeAsync(context As BraceCompletionContext, cancellationToken As CancellationToken) As Task(Of Boolean)
         Return AllowOverTypeInUserCodeWithValidClosingTokenAsync(context, cancellationToken)

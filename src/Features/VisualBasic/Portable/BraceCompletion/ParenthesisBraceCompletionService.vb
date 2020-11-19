@@ -20,17 +20,9 @@ Friend Class ParenthesisBraceCompletionService
         MyBase.New()
     End Sub
 
-    Protected Overrides ReadOnly Property OpeningBrace As Char
-        Get
-            Return Parenthesis.OpenCharacter
-        End Get
-    End Property
+    Protected Overrides ReadOnly Property OpeningBrace As Char = Parenthesis.OpenCharacter
 
-    Protected Overrides ReadOnly Property ClosingBrace As Char
-        Get
-            Return Parenthesis.CloseCharacter
-        End Get
-    End Property
+    Protected Overrides ReadOnly Property ClosingBrace As Char = Parenthesis.CloseCharacter
 
     Protected Overrides Function IsValidOpeningBraceToken(token As SyntaxToken) As Boolean
         Return token.IsKind(SyntaxKind.OpenParenToken)
@@ -49,6 +41,7 @@ Friend Class ParenthesisBraceCompletionService
         Dim skippedTriviaNode = TryCast(token.Parent, SkippedTokensTriviaSyntax)
         If skippedTriviaNode IsNot Nothing Then
             Dim skippedToken = skippedTriviaNode.ParentTrivia.Token
+            ' These checks don't make any sense.  Leaving them in place to avoid breaking something as part of this move.
             If skippedToken.Kind <> SyntaxKind.CloseParenToken OrElse Not TypeOf skippedToken.Parent Is BinaryConditionalExpressionSyntax Then
                 Return SpecializedTasks.False
             End If
