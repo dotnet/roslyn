@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         private static bool All<TNode>(SyntaxList<TNode> items, Func<TNode, bool> predicate)
-            where TNode: SyntaxNode
+            where TNode : SyntaxNode
         {
             bool result = true;
             for (int i = 0; i < items.Count; i++)
