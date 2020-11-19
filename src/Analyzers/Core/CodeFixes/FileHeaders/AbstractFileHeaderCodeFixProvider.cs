@@ -112,7 +112,8 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             for (var i = 0; i < triviaList.Count; i++)
             {
                 var triviaLine = triviaList[i];
-                if (triviaLine.RawKind == syntaxFacts.SyntaxKinds.SingleLineCommentTrivia)
+                if (triviaLine.RawKind == syntaxFacts.SyntaxKinds.SingleLineCommentTrivia ||
+                    triviaLine.RawKind == syntaxFacts.SyntaxKinds.MultiLineCommentTrivia)
                 {
                     if (possibleLeadingSpaces != string.Empty)
                     {
