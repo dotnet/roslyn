@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>A bound node that computes the pointer to the required frame</returns>
         protected override BoundExpression FramePointer(SyntaxNode syntax, NamedTypeSymbol frameClass)
         {
-            Debug.Assert(frameClass.IsDefinition);
+            //Debug.Assert(frameClass.IsDefinition); // TODO2
 
             // If in an instance method of the right type, we can just return the "this" pointer.
             if ((object)_currentFrameThis != null && TypeSymbol.Equals(_currentFrameThis.Type, frameClass, TypeCompareKind.ConsiderEverything2))

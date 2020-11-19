@@ -104,8 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(resultType.Equals(sourceType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers)); // Same custom modifiers as source type.
 
             // Same object/dynamic, nullability, native integers, and tuple names as destination type.
-            // TODO2 We may have had some Ignored annotations in destinationType, which would be replaced with Oblivious
-            Debug.Assert(resultType.Equals(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.ObliviousNullableModifierMatchesAny));
+            Debug.Assert(resultType.Equals(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
 
             return resultType;
         }

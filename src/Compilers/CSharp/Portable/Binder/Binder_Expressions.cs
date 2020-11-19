@@ -2084,7 +2084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = IsRefOrOutThisParameterCaptured(node.Token, diagnostics);
             }
 
-            return ThisReference(node, this.ContainingType, hasErrors);
+            return ThisReference(node, (NamedTypeSymbol)this.ContainingType?.PurgeIgnoredNullability(), hasErrors);
         }
 
         private BoundThisReference ThisReference(SyntaxNode node, NamedTypeSymbol thisTypeOpt, bool hasErrors = false, bool wasCompilerGenerated = false)
