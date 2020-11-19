@@ -108,12 +108,18 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             // followed by a comment which is considered a header comment.
             var possibleLeadingSpaces = string.Empty;
 
+            // Track the first code comment. Any comments found later should not be removed.
+            // 0: Init
+            // 1: First comment found
+            // 2: NewLine ending the first comment found
+            var firstCommentState = 0;
+
             // Need to do this with index so we get the line endings correct.
             for (var i = 0; i < triviaList.Count; i++)
             {
                 var triviaLine = triviaList[i];
                 if (triviaLine.RawKind == syntaxFacts.SyntaxKinds.SingleLineCommentTrivia ||
-                    triviaLine.RawKind == syntaxFacts.SyntaxKinds.MultiLineCommentTrivia)
+                    (triviaLine.RawKind == syntaxFacts.SyntaxKinds.MultiLineCommentTrivia && firstCommentState is 0))
                 {
                     if (possibleLeadingSpaces != string.Empty)
                     {
@@ -121,7 +127,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                         // header by the same amount.
                         leadingSpaces = possibleLeadingSpaces;
                     }
-
+                    firstCommentState = 1;
                     removalList.Add(i);
                     onBlankLine = false;
                 }
@@ -131,14 +137,26 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                     {
                         possibleLeadingSpaces = triviaLine.ToFullString();
                     }
-
                     removalList.Add(i);
                 }
                 else if (triviaLine.RawKind == syntaxFacts.SyntaxKinds.EndOfLineTrivia)
                 {
                     possibleLeadingSpaces = string.Empty;
                     removalList.Add(i);
+                    if (firstCommentState == 2)
+                    {
+                        // Additional new line after a new line ending a comment:
+                        // // Comment\n
+                        // \n <- We are here
+                        break;
+                    }
 
+                    if (firstCommentState == 1)
+                    {
+                        // A new line after a comment:
+                        // // Comment\n <- We are here
+                        firstCommentState = 2;
+                    }
                     if (onBlankLine)
                     {
                         break;

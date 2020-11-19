@@ -710,6 +710,9 @@ namespace Bar
         [InlineData(@"\n/* Leading and trailing new lines block comment */\n", "/* Leading and trailing new lines block comment */", null)]
         [InlineData(@"Comment", "\r\n\r\n[|/*|] Some unrelated comment1 */\r\n\r\n// Some unrelated comment2\r\n\r\n", "// Comment\r\n\r\n[|/*|] Some unrelated comment1 */\r\n\r\n// Some unrelated comment2\r\n\r\n")]
         [InlineData(@"Comment", "[|//|] Changed comment\r\n\r\n// Some unrelated comment", "// Comment\r\n\r\n// Some unrelated comment")]
+        [InlineData(@"Comment", "[|/*|] Changed comment*/\r\n// Some related comment", "// Comment")]
+        [InlineData(@"Comment", "[|/*|] Changed comment*/\r\n\r\n// Some unrelated comment", "// Comment\r\n\r\n// Some unrelated comment")]
+        [InlineData(@"/* Comment */", "[|//|] Changed comment\r\n\r\n// Some unrelated comment", "/* Comment */\r\n\r\n// Some unrelated comment")]
         public async Task TestExisitingHeaderTemplateLooksCommentLike(string headerTemplate, string existingHeader, string? expectedHeader)
         {
             var editorConfig = @$"

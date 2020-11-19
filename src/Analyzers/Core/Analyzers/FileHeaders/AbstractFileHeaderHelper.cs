@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var missingHeaderOffset = 0;
             var fileHeaderStart = int.MaxValue;
             var fileHeaderEnd = int.MinValue;
-
+            var firstCommentState = 0; // 0: Init, 1: First comment found: 2: newLine ending the first comment
             for (var i = firstNonWhitespaceTrivia; i < firstToken.LeadingTrivia.Count; i++)
             {
                 var trivia = firstToken.LeadingTrivia[i];
@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 else if (trivia.RawKind == SingleLineCommentTriviaKind)
                 {
                     endOfLineCount = 0;
+                    firstCommentState = 1;
 
                     var commentText = GetTextContextOfComment(trivia).Span.Trim();
 
@@ -103,6 +104,19 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                     if (endOfLineCount > 1)
                     {
                         break;
+                    }
+                    if (firstCommentState == 2)
+                    {
+                        // second EndOfLine after a single line comment. Don't look further:
+                        // // Comment\n
+                        // \n <- We are here
+                        break;
+                    }
+                    if (firstCommentState == 1)
+                    {
+                        // EndOfLine of a single line comment
+                        // break; after the next conjunctive new line
+                        firstCommentState = 2;
                     }
                 }
                 else
