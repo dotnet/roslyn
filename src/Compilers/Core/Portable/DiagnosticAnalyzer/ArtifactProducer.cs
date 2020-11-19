@@ -44,13 +44,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             => ImmutableArray<DiagnosticDescriptor>.Empty;
 
         /// <summary>
-        /// Generates an artifact with the contents of <paramref name="source"/>.  The artifact will be written out with utf8 encoding.
+        /// Writes out an artifact with the contents of <paramref name="source"/>.  The artifact will be written out with utf8 encoding.
         /// </summary>
-        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="fileName">The file name to generate this artifact into.  Will be concatenated with the
+        /// generatedartifactsout path provided to the compiler.</param>
         /// <param name="source">The text to generate</param>
-        protected void GenerateArtifact(string hintName, string source)
+        protected void WriteArtifact(string fileName, string source)
         {
-            GenerateArtifact(hintName, stream =>
+            WriteArtifact(fileName, stream =>
             {
 #if NETCOREAPP
                 using var writer = new StreamWriter(stream, Encoding.UTF8, leaveOpen: true);
@@ -64,11 +65,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Generates an artifact with the contents of <paramref name="builder"/>.  The artifact will be written out with utf8 encoding.
         /// </summary>
-        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="fileName">The file name to generate this artifact into.  Will be concatenated with the
+        /// generatedartifactsout path provided to the compiler.</param>
         /// <param name="builder">The string builder containing the contents to generate</param>
-        protected void GenerateArtifact(string hintName, StringBuilder builder)
+        protected void WriteArtifact(string fileName, StringBuilder builder)
         {
-            GenerateArtifact(hintName, stream =>
+            WriteArtifact(fileName, stream =>
             {
 #if NETCOREAPP
                 using var writer = new StreamWriter(stream, Encoding.UTF8, leaveOpen: true);
@@ -82,11 +84,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Generates an artifact with the contents and encoding specified by <paramref name="sourceText"/>.
         /// </summary>
-        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="fileName">The file name to generate this artifact into.  Will be concatenated with the
+        /// generatedartifactsout path provided to the compiler.</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to generate</param>
-        protected void GenerateArtifact(string hintName, SourceText sourceText)
+        protected void WriteArtifact(string fileName, SourceText sourceText)
         {
-            GenerateArtifact(hintName, stream =>
+            WriteArtifact(fileName, stream =>
             {
 #if NETCOREAPP
                 using var writer = new StreamWriter(stream, sourceText.Encoding ?? Encoding.UTF8, leaveOpen: true);
@@ -98,14 +101,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Requests a fresh stream associated with the given <paramref name="hintName"/> to write artifact data into.
+        /// Requests a fresh stream associated with the given <paramref name="fileName"/> to write artifact data into.
         /// The callback does should not call <see cref="Stream.Close"/>, <see cref="Stream.Flush"/>, or <see
         /// cref="Stream.Dispose()"/>.  This overload is useful if there is a large amount of data to write, or if there
         /// is binary data to write.
         /// </summary>
-        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
+        /// <param name="fileName">The file name to generate this artifact into.  Will be concatenated with the
+        /// generatedartifactsout path provided to the compiler.</param>
         /// <param name="writeStream">A callback that will be passed the stream to write into.</param>
-        protected void GenerateArtifact(string hintName, Action<Stream> writeStream)
-            => CreateArtifactStream!(hintName, writeStream);
+        protected void WriteArtifact(string fileName, Action<Stream> writeStream)
+            => CreateArtifactStream!(fileName, writeStream);
     }
 }
