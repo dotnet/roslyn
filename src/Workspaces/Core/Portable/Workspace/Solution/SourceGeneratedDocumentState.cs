@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
                 textSource = CreateRecoverableText(textAndVersion, solutionServices);
                 tree = languageServices.SyntaxTreeFactory.CreateRecoverableTree(
                     documentId.ProjectId,
-                    filePath: null,
+                    filePath: tree.FilePath,
                     tree.Options,
                     textSource,
                     generatedSourceResult.SourceText.Encoding,

@@ -34,9 +34,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Theory]
         [CombinatorialData]
         public async Task SourceGeneratorBasedOnAdditionalFileGeneratesSyntaxTreesOnce(
-            bool fetchCompilationBeforeAddingGenerator)
+            bool fetchCompilationBeforeAddingGenerator,
+            bool useRecoverableTrees)
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = useRecoverableTrees ? AdhocWorkspaceTests.CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations() : new AdhocWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented() { });
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference);
