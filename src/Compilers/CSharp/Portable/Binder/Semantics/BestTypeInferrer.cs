@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return type;
                     }
 
-                    candidateTypes.Add(type);
+                    candidateTypes.Add(type.PurgeIgnoredNullability());
                 }
             }
 
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (conversionsWithoutNullability.ClassifyImplicitConversionFromExpression(expr2, type1, ref useSiteDiagnostics).Exists)
                     {
-                        candidateTypes.Add(type1);
+                        candidateTypes.Add(type1.PurgeIgnoredNullability());
                     }
                 }
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (conversionsWithoutNullability.ClassifyImplicitConversionFromExpression(expr1, type2, ref useSiteDiagnostics).Exists)
                     {
-                        candidateTypes.Add(type2);
+                        candidateTypes.Add(type2.PurgeIgnoredNullability());
                     }
                 }
 
