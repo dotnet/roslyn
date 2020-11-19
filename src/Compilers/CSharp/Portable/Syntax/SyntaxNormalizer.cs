@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static bool IsAutoAccessorList(SyntaxNode? node)
         {
-            if (node != null && node.Parent != null && node.Parent is AccessorListSyntax accessorList)
+            if (node?.Parent is AccessorListSyntax accessorList)
             {
                 return All(accessorList.Accessors, a => a.Body == null);
             }
