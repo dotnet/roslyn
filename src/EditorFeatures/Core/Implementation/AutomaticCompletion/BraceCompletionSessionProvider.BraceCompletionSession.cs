@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 bool AllowOverType()
                 {
                     var context = GetBraceCompletionContext();
-                    return context == null || _service.AllowOverTypeAsync(context.Value, cancellationToken).WaitAndGetResult(cancellationToken);
+                    return context != null && _service.AllowOverTypeAsync(context.Value, cancellationToken).WaitAndGetResult(cancellationToken);
                 }
             }
 
