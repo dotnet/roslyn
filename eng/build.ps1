@@ -373,7 +373,8 @@ function TestUsingRunTests() {
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
   }
-  else {
+
+  if (-not $ci -and -not $testVsi) {
     $args += " --html"
   }
 

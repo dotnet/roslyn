@@ -154,31 +154,27 @@ internal static class MinimizeUtil
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             var success = CreateHardLink(fileName, existingFileName, IntPtr.Zero);
-            if (false && !success)
+            if (!success)
             {
                 // for debugging: https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes
-                Console.WriteLine($"Failed to create hard link from {fileName} to {existingFileName} with exception 0x{GetLastError():X}");
+                throw new IOException($"Failed to create hard link from {fileName} to {existingFileName} with exception 0x{Marshal.GetLastWin32Error():X}");
             }
         }
         else
         {
             var result = link(existingFileName, fileName);
-            if (false && result != 0)
+            if (result != 0)
             {
-                Console.WriteLine($"Failed to create hard link from {fileName} to {existingFileName}");
+                throw new IOException($"Failed to create hard link from {fileName} to {existingFileName} with error code {Marshal.GetLastWin32Error()}");
             }
         }
 
-        // https://docs.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-getlasterror
-        [DllImport("kernel32.dll")]
-        static extern uint GetLastError();
-
         // https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createhardlinkw
-        [DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
+        [DllImport("Kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
 
         // https://man7.org/linux/man-pages/man2/link.2.html
-        [DllImport("libc")]
+        [DllImport("libc", SetLastError = true)]
         static extern int link(string oldpath, string newpath);
     }
 

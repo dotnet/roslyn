@@ -24,4 +24,8 @@ scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
 . "$scriptroot/common/tools.sh"
 
 InitializeDotNetCli true
-dotnet run --project src/Tools/PrepareTests/PrepareTests.csproj $repo_root $repo_root/artifacts/testPayload
+
+# careful...
+# rm -rfi "$repo_root/artifacts/testPayload"
+
+dotnet run --project src/Tools/PrepareTests/PrepareTests.csproj "$repo_root" "$repo_root/artifacts/testPayload"
