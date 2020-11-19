@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         public Task<object?> HandleRequestAsync(LSP.DidOpenTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
             // Add the document and ensure the text we have matches whats on the client
-            var sourceText = SourceText.From(request.TextDocument.Text);
+            var sourceText = SourceText.From(request.TextDocument.Text, System.Text.Encoding.UTF8);
 
             context.StartTracking(request.TextDocument.Uri, sourceText);
 

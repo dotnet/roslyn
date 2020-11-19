@@ -74,13 +74,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
         Friend Sub CollectCommentsRegions(node As SyntaxNode,
                                           spans As ArrayBuilder(Of BlockSpan),
-                                          isMetadataAsSource As Boolean)
+                                          optionProvider As BlockStructureOptionProvider)
             If node Is Nothing Then
                 Throw New ArgumentNullException(NameOf(node))
             End If
 
             Dim span As BlockSpan = Nothing
-            If isMetadataAsSource AndAlso TryGetLeadingCollapsibleSpan(node, span) Then
+            If optionProvider.IsMetadataAsSource AndAlso TryGetLeadingCollapsibleSpan(node, span) Then
                 spans.Add(span)
             Else
                 Dim triviaList = node.GetLeadingTrivia()

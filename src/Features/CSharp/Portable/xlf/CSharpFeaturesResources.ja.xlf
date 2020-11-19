@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
         <source>Apply file header preferences</source>
-        <target state="new">Apply file header preferences</target>
+        <target state="translated">ファイル ヘッダーの基本設定を適用する</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">
@@ -304,7 +304,7 @@
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_node">
         <source>Selection does not contain a valid node</source>
-        <target state="translated">選択には有効なノードは含まれません。</target>
+        <target state="translated">選択には有効なノードは含まれません</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_selection">

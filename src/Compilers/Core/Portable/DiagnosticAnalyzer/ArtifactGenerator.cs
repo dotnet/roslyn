@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
-    /// The base type for artifact generators that can programmatically produce additional non-code files during a
+    /// The base type for artifact producers that can programmatically generate additional non-code files during a
     /// compilation.  Artifact generators only run when a compiler is invoked with the <c>generatedfilesout</c>
     /// parameter.
     /// </summary>
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// state which diagnostics may be produced, and the various context `ReportDiagnostic` calls should be used to
     /// report them.
     /// </remarks>
-    public abstract class ArtifactGenerator : DiagnosticAnalyzer
+    public abstract class ArtifactProducer : DiagnosticAnalyzer
     {
         // By default artifact generators don't report diagnostics.  However, they are still allowed to if they run into
         // any issues.

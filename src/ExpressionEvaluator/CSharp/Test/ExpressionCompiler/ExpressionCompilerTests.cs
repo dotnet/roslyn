@@ -4816,14 +4816,12 @@ class C
                 string error;
                 var testData = new CompilationTestData();
                 var result = context.CompileExpression("F()", out error, testData);
-                // Currently, the name of the evaluation method is used for
-                // [CallerMemberName] so "F()" will generate "[] [<>m0] [1]".
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
     @"{
   // Code size       17 (0x11)
   .maxstack  3
   IL_0000:  ldstr      """"
-  IL_0005:  ldstr      ""<>m0""
+  IL_0005:  ldstr      ""Main""
   IL_000a:  ldc.i4.1
   IL_000b:  call       ""object C.F(string, string, int)""
   IL_0010:  ret

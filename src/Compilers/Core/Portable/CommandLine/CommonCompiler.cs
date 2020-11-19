@@ -1281,17 +1281,15 @@ namespace Microsoft.CodeAnalysis
                 if (Arguments.ErrorLogPath == null)
                     severityFilter |= SeverityFilter.Info;
 
-                var hasGeneratedOutputPath = !string.IsNullOrWhiteSpace(Arguments.GeneratedFilesOutputDirectory);
-
                 // Determine if we should support artifact generators or not.  If we have an specified output path, then
                 // we will run artifact generators.  Otherwise, we won't bother as we have no place to put their files.
                 ArtifactGenerationContext? artifactContext = null;
-                if (hasGeneratedOutputPath)
+                if (!string.IsNullOrWhiteSpace(Arguments.GeneratedArtifactsOutputDirectory))
                 {
                     artifactContext = new ArtifactGenerationContext(
                         (hint, callback) =>
                         {
-                            CreateFileStream(diagnostics, hint, out var path, out var fileStream);
+                            CreateFileStream(diagnostics, hint, Arguments.GeneratedArtifactsOutputDirectory, out var path, out var fileStream);
                             if (fileStream is not null)
                             {
                                 using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
@@ -1334,7 +1332,6 @@ namespace Microsoft.CodeAnalysis
                 compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
 
                 bool hasAnalyzerConfigs = !Arguments.AnalyzerConfigPaths.IsEmpty;
-                bool hasGeneratedOutputPath = !string.IsNullOrWhiteSpace(Arguments.GeneratedFilesOutputDirectory);
 
                 var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length).ToList();
 
@@ -1361,9 +1358,12 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         // write out the file if we have an output path
-                        if (hasGeneratedOutputPath)
+                        if (!string.IsNullOrWhiteSpace(Arguments.GeneratedFilesOutputDirectory))
                         {
-                            WriteSourceText(touchedFilesLogger, diagnostics, filePath, encoding, sourceText, cancellationToken);
+                            WriteSourceText(
+                                touchedFilesLogger, diagnostics,
+                                Arguments.GeneratedFilesOutputDirectory!, filePath,
+                                encoding, sourceText, cancellationToken);
                         }
                     }
 
@@ -1384,9 +1384,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void WriteSourceText(TouchedFileLogger? touchedFilesLogger, DiagnosticBag diagnostics, string filePath, Encoding? encoding, SourceText sourceText, CancellationToken cancellationToken)
+        private void WriteSourceText(
+            TouchedFileLogger? touchedFilesLogger, DiagnosticBag diagnostics,
+            string directory, string filePath,
+            Encoding? encoding, SourceText sourceText, CancellationToken cancellationToken)
         {
-            CreateFileStream(diagnostics, filePath, out var path, out var fileStream);
+            CreateFileStream(diagnostics, directory, filePath, out var path, out var fileStream);
             if (fileStream is not null)
             {
                 Debug.Assert(encoding is not null);
@@ -1399,10 +1402,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void CreateFileStream(DiagnosticBag diagnostics, string filePath, out string path, out Stream? fileStream)
+        private void CreateFileStream(DiagnosticBag diagnostics, string directory, string filePath, out string path, out Stream? fileStream)
         {
-            path = Path.Combine(Arguments.GeneratedFilesOutputDirectory!, filePath);
-            if (Directory.Exists(Arguments.GeneratedFilesOutputDirectory))
+            path = Path.Combine(directory, filePath);
+            if (Directory.Exists(directory))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
             }

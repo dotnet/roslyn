@@ -107,13 +107,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
             var containerSymbol = semanticModel.GetDeclaredSymbol(container, cancellationToken);
             var isStatic = containerSymbol.IsStatic || captures.All(capture => !capture.IsThisParameter());
 
+            // GetSymbolModifiers actually checks if the local function needs to be unsafe, not whether
+            // it is declared as such, so this check we don't need to worry about whether the containing method
+            // is unsafe, this will just work regardless.
+            var needsUnsafe = declaredSymbol.GetSymbolModifiers().IsUnsafe;
+
             var methodName = GenerateUniqueMethodName(declaredSymbol);
             var parameters = declaredSymbol.Parameters;
             var methodSymbol = CodeGenerationSymbolFactory.CreateMethodSymbol(
                 containingType: declaredSymbol.ContainingType,
                 attributes: default,
                 accessibility: Accessibility.Private,
-                modifiers: new DeclarationModifiers(isStatic, isAsync: declaredSymbol.IsAsync),
+                modifiers: new DeclarationModifiers(isStatic, isAsync: declaredSymbol.IsAsync, isUnsafe: needsUnsafe),
                 returnType: declaredSymbol.ReturnType,
                 refKind: default,
                 explicitInterfaceImplementations: default,
