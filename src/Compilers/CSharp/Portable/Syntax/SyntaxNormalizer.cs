@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static bool IsAccessorListFollowedByInitializer(SyntaxToken token)
         {
-            if (token.Parent != null && token.Parent is AccessorListSyntax accessorList)
+            if (token.Parent is AccessorListSyntax accessorList)
             {
                 var declaration = accessorList.Parent;
                 if (declaration == null)
