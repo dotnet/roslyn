@@ -12,16 +12,6 @@ namespace Microsoft.CodeAnalysis.FileHeaders
     internal readonly struct FileHeader
     {
         /// <summary>
-        /// The location in the source where the file header was expected to start.
-        /// </summary>
-        private readonly int _fileHeaderStart;
-
-        /// <summary>
-        /// The location in the source where the file header was expected to end.
-        /// </summary>
-        private readonly int _fileHeaderEnd;
-
-        /// <summary>
         /// The length of the prefix indicating the start of a comment. For example:
         /// <list type="bullet">
         ///   <item>
@@ -43,12 +33,8 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         /// <param name="fileHeaderStart">The offset within the file at which the header started.</param>
         /// <param name="fileHeaderEnd">The offset within the file at which the header ended.</param>
         internal FileHeader(string copyrightText, int fileHeaderStart, int fileHeaderEnd, int commentPrefixLength)
-            : this(fileHeaderStart, isMissing: false)
+            : this(copyrightText, fileHeaderStart, fileHeaderEnd, commentPrefixLength, isMissing: false)
         {
-            _fileHeaderEnd = fileHeaderEnd;
-
-            CopyrightText = copyrightText;
-            _commentPrefixLength = commentPrefixLength;
         }
 
         /// <summary>
@@ -56,14 +42,12 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         /// </summary>
         /// <param name="fileHeaderStart">The offset within the file at which the header started, or was expected to start.</param>
         /// <param name="isMissing"><see langword="true"/> if the file header is missing; otherwise, <see langword="false"/>.</param>
-        private FileHeader(int fileHeaderStart, bool isMissing)
+        private FileHeader(string copyrightText, int fileHeaderStart, int fileHeaderEnd, int commentPrefixLength, bool isMissing)
         {
-            _fileHeaderStart = fileHeaderStart;
-            _fileHeaderEnd = fileHeaderStart;
-            _commentPrefixLength = 0;
-
+            HeaderSpan = TextSpan.FromBounds(fileHeaderStart, fileHeaderEnd);
+            CopyrightText = copyrightText;
+            _commentPrefixLength = commentPrefixLength;
             IsMissing = isMissing;
-            CopyrightText = "";
         }
 
         /// <summary>
@@ -83,6 +67,11 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         internal string CopyrightText { get; }
 
         /// <summary>
+        /// The location in the source where the file header is located.
+        /// </summary>
+        internal TextSpan HeaderSpan { get; }
+
+        /// <summary>
         /// Gets a <see cref="FileHeader"/> instance representing a missing file header starting at the specified
         /// position.
         /// </summary>
@@ -93,7 +82,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         /// A <see cref="FileHeader"/> instance representing a missing file header.
         /// </returns>
         internal static FileHeader MissingFileHeader(int fileHeaderStart)
-            => new(fileHeaderStart, isMissing: true);
+            => new(copyrightText: "", fileHeaderStart, fileHeaderEnd: fileHeaderStart, commentPrefixLength: 0, isMissing: true);
 
         /// <summary>
         /// Gets the location representing the start of the file header.
@@ -104,25 +93,10 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         {
             if (IsMissing)
             {
-                return Location.Create(syntaxTree, new TextSpan(_fileHeaderStart, 0));
+                return Location.Create(syntaxTree, HeaderSpan);
             }
 
-            return Location.Create(syntaxTree, new TextSpan(_fileHeaderStart, _commentPrefixLength));
-        }
-
-        /// <summary>
-        /// Gets the location representing the file header.
-        /// </summary>
-        /// <param name="syntaxTree">The syntax tree to use for generating the location.</param>
-        /// <returns>The location representing the file header.</returns>
-        internal Location GetHeaderLocation(SyntaxTree syntaxTree)
-        {
-            if (IsMissing)
-            {
-                return Location.Create(syntaxTree, new TextSpan(_fileHeaderStart, 0));
-            }
-
-            return Location.Create(syntaxTree, TextSpan.FromBounds(_fileHeaderStart, _fileHeaderEnd));
+            return Location.Create(syntaxTree, new TextSpan(HeaderSpan.Start, _commentPrefixLength));
         }
     }
 }
