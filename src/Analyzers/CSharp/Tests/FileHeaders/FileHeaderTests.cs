@@ -394,10 +394,6 @@ namespace Bar
             var fixedCode = @"// Copyright (c) SomeCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
-/* Copyright (c) OtherCorp. All rights reserved.
- * Licensed under the ??? license. See LICENSE file in the project root for full license information.
- */
-
 namespace Bar
 {
 }
@@ -484,8 +480,6 @@ namespace Bar
             var fixedCode = @"// Copyright (c) SomeCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
-{|CS1035:|}/* Copyright (c) OtherCorp. All rights reserved.
- * Licensed under the ??? license. See LICENSE file in the project root for full license information.
 ";
 
             await new VerifyCS.Test
@@ -508,7 +502,6 @@ namespace Bar
             var fixedCode = @"// Copyright (c) SomeCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
-{|CS1035:|}/*/
 ";
 
             await new VerifyCS.Test
@@ -703,6 +696,54 @@ namespace Bar
                 FixedCode = fixedCode,
                 EditorConfig = editorConfig,
             }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("// Comment", "// Comment", null)]
+        [InlineData("/* Block comment */", "/* Block comment */", null)]
+        [InlineData("// Comment", "[|//|] Changed Comment", "// Comment")]
+        [InlineData("/* Block comment */", "[|/*|] Changed block comment */", "/* Block comment */")]
+        [InlineData(@"/* Multiline block comment\nLine 2\nLine3\n*/", "[|/*|] Changed block comment\r\nLine 2\r\nLine 3\r\n*/", "/* Multiline block comment\r\nLine 2\r\nLine3\r\n*/")]
+        [InlineData("Changed", "[|//|] Comment", "// Changed")]
+        [InlineData("Changed", "[|/*|] Block comment */", "// Changed")]
+        [InlineData(@"\n// Leading and trailing new lines comment\n", "// Leading and trailing new lines comment", null)]
+        [InlineData(@"\n/* Leading and trailing new lines block comment */\n", "/* Leading and trailing new lines block comment */", null)]
+        [InlineData(@"Comment", "\r\n\r\n[|/*|] Some unrelated comment1 */\r\n\r\n// Some unrelated comment2\r\n\r\n", "// Comment\r\n\r\n[|/*|] Some unrelated comment1 */\r\n\r\n// Some unrelated comment2\r\n\r\n")]
+
+        public async Task TestExisitingHeaderTemplateLooksCommentLike(string headerTemplate, string existingHeader, string? expectedHeader)
+        {
+            var editorConfig = @$"
+[*.cs]
+file_header_template = {headerTemplate}
+";
+
+            var testCode = @$"{existingHeader}
+
+namespace Bar
+{{
+}}
+";
+            var fixedCode = expectedHeader is null
+                ? testCode
+                : @$"{expectedHeader}
+
+namespace Bar
+{{
+}}
+";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                //FixedState =
+                //{
+                //    Sources = { fixedCode},
+                //    ExpectedDiagnostics = {new DiagnosticResult("IDE0073", DiagnosticSeverity.Hidden).WithSpan(1,1,1,3) },
+                //},
+                EditorConfig = editorConfig,
+            };
+            await test.RunAsync();
         }
     }
 }
