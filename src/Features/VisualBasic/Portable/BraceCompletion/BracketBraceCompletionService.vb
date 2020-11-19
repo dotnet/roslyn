@@ -33,7 +33,7 @@ Friend Class BracketBraceCompletionService
     End Property
 
     Public Overrides Function AllowOverTypeAsync(context As BraceCompletionContext, cancellationToken As CancellationToken) As Task(Of Boolean)
-        Return CheckCurrentPositionAsync(context.Document, context.CaretLocation, cancellationToken)
+        Return AllowOverTypeInUserCodeWithValidClosingTokenAsync(context, cancellationToken)
     End Function
 
     Protected Overrides Function IsValidOpeningBraceToken(token As SyntaxToken) As Boolean
@@ -41,7 +41,8 @@ Friend Class BracketBraceCompletionService
     End Function
 
     Protected Overrides Function IsValidClosingBraceToken(token As SyntaxToken) As Boolean
-        Return token.IsKind(SyntaxKind.CloseBraceToken)
+        ' Identifiers in VB can be bracketed, e.g. Dim [Dim].  The closing brace token in this case is an identifier token.
+        Return token.IsKind(SyntaxKind.CloseBraceToken, SyntaxKind.IdentifierToken)
     End Function
 
     Protected Overrides Function IsValidOpenBraceTokenAtPositionAsync(token As SyntaxToken, position As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)

@@ -27,11 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         protected override char ClosingBrace => Parenthesis.CloseCharacter;
 
-        public override async Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
-        {
-            return await CheckCurrentPositionAsync(context.Document, context.CaretLocation, cancellationToken).ConfigureAwait(false)
-                && await CheckClosingTokenKindAsync(context.Document, context.ClosingPoint, cancellationToken).ConfigureAwait(false);
-        }
+        public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
+            => AllowOverTypeInUserCodeWithValidClosingTokenAsync(context, cancellationToken);
 
         protected override bool IsValidOpeningBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.OpenParenToken);
 

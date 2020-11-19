@@ -41,11 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         protected override char ClosingBrace => CurlyBrace.CloseCharacter;
 
-        public override async Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
-        {
-            return await CheckCurrentPositionAsync(context.Document, context.CaretLocation, cancellationToken).ConfigureAwait(false)
-                && await CheckClosingTokenKindAsync(context.Document, context.ClosingPoint, cancellationToken).ConfigureAwait(false);
-        }
+        public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
+            => AllowOverTypeInUserCodeWithValidClosingTokenAsync(context, cancellationToken);
 
         public override async Task<BraceCompletionResult?> GetTextChangesAfterCompletionAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken)
         {

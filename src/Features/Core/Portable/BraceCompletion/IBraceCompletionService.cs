@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
 
         public int ClosingPoint { get; }
 
-        public int? CaretLocation { get; }
+        public int CaretLocation { get; }
 
-        public BraceCompletionContext(Document document, int openingPoint, int closingPoint, int? caretLocation)
+        public BraceCompletionContext(Document document, int openingPoint, int closingPoint, int caretLocation)
         {
             Document = document;
             OpeningPoint = openingPoint;

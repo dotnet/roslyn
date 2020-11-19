@@ -37,7 +37,7 @@ Friend Class LessAndGreaterThanCompletionService
     End Function
 
     Protected Overrides Function IsValidClosingBraceToken(token As SyntaxToken) As Boolean
-        Return token.IsKind(SyntaxKind.GreaterThanToken)
+        Return token.IsKind(SyntaxKind.LessThanGreaterThanToken)
     End Function
 
     Protected Overrides Function IsValidOpenBraceTokenAtPositionAsync(token As SyntaxToken, position As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
@@ -51,6 +51,6 @@ Friend Class LessAndGreaterThanCompletionService
     End Function
 
     Public Overrides Function AllowOverTypeAsync(context As BraceCompletionContext, cancellationToken As CancellationToken) As Task(Of Boolean)
-        Return CheckCurrentPositionAsync(context.Document, context.CaretLocation, cancellationToken)
+        Return AllowOverTypeInUserCodeWithValidClosingTokenAsync(context, cancellationToken)
     End Function
 End Class

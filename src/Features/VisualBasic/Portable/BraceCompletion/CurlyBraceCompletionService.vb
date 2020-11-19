@@ -31,9 +31,8 @@ Friend Class CurlyBraceCompletionService
         End Get
     End Property
 
-    Public Overrides Async Function AllowOverTypeAsync(context As BraceCompletionContext, cancellationToken As CancellationToken) As Task(Of Boolean)
-        Return Await CheckCurrentPositionAsync(context.Document, context.CaretLocation, cancellationToken).ConfigureAwait(False) _
-            And Await CheckClosingTokenKindAsync(context.Document, context.ClosingPoint, cancellationToken).ConfigureAwait(False)
+    Public Overrides Function AllowOverTypeAsync(context As BraceCompletionContext, cancellationToken As CancellationToken) As Task(Of Boolean)
+        Return AllowOverTypeInUserCodeWithValidClosingTokenAsync(context, cancellationToken)
     End Function
 
     Public Overrides Async Function IsValidForBraceCompletionAsync(brace As Char, openingPosition As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)

@@ -112,20 +112,31 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         }
 
         /// <summary>
-        /// Checks that the current position is a valid location.
-        /// Used to determine if overtype should be allowed.
+        /// Returns true when the current position is inside user code (e.g. not strings) and the closing token
+        /// matches the expected closing token for this brace completion service.
+        /// Helper method used by <see cref="AllowOverTypeAsync(BraceCompletionContext, CancellationToken)"/> implementations.
         /// </summary>
-        protected static async Task<bool> CheckCurrentPositionAsync(Document document, int? currentPosition, CancellationToken cancellationToken)
+        protected async Task<bool> AllowOverTypeInUserCodeWithValidClosingTokenAsync(BraceCompletionContext context, CancellationToken cancellationToken)
         {
-            // make sure auto closing is called from a valid position
-            if (currentPosition == null)
-            {
-                return false;
-            }
+            return await IsCurrentPositionInUserCodeAsync(context.Document, context.CaretLocation, cancellationToken).ConfigureAwait(false)
+                && await CheckClosingTokenKindAsync(context.Document, context.ClosingPoint, cancellationToken).ConfigureAwait(false);
 
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            return !syntaxFactsService.IsInNonUserCode(tree, currentPosition.Value, cancellationToken);
+            static async Task<bool> IsCurrentPositionInUserCodeAsync(Document document, int currentPosition, CancellationToken cancellationToken)
+            {
+                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                return !syntaxFactsService.IsInNonUserCode(tree, currentPosition, cancellationToken);
+            }
+        }
+
+        /// <summary>
+        /// Returns true when the closing token matches the expected closing token for this brace completion service.
+        /// Used by <see cref="AllowOverTypeAsync(BraceCompletionContext, CancellationToken)"/> implementations
+        /// (e.g. when over typing is allowed inside strings).
+        /// </summary>
+        protected Task<bool> AllowOverTypeWithValidClosingTokenAsync(BraceCompletionContext context, CancellationToken cancellationToken)
+        {
+            return CheckClosingTokenKindAsync(context.Document, context.ClosingPoint, cancellationToken);
         }
 
         protected static bool IsParentSkippedTokensTrivia(ISyntaxFactsService syntaxFactsService, SyntaxToken token)
@@ -134,7 +145,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         /// <summary>
         /// Checks that the token at the closing position is a valid closing token.
         /// </summary>
-        protected async Task<bool> CheckClosingTokenKindAsync(Document document, int closingPosition, CancellationToken cancellationToken)
+        private async Task<bool> CheckClosingTokenKindAsync(Document document, int closingPosition, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var closingToken = root.FindTokenFromEnd(closingPosition, includeZeroWidth: false, findInsideTrivia: true);

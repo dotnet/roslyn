@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override char ClosingBrace => SingleQuote.CloseCharacter;
 
         public override Task<bool> AllowOverTypeAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken)
-            => SpecializedTasks.True;
+            => AllowOverTypeWithValidClosingTokenAsync(braceCompletionContext, cancellationToken);
 
         protected override bool IsValidOpeningBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.CharacterLiteralToken);
 

@@ -58,6 +58,6 @@ Friend Class ParenthesisBraceCompletionService
     End Function
 
     Public Overrides Function AllowOverTypeAsync(context As BraceCompletionContext, cancellationToken As CancellationToken) As Task(Of Boolean)
-        Return CheckCurrentPositionAsync(context.Document, context.CaretLocation, cancellationToken)
+        Return AllowOverTypeInUserCodeWithValidClosingTokenAsync(context, cancellationToken)
     End Function
 End Class

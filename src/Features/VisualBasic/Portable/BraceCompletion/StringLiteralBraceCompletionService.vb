@@ -32,7 +32,7 @@ Friend Class StringLiteralBraceCompletionService
     End Property
 
     Public Overrides Function AllowOverTypeAsync(context As BraceCompletionContext, cancellationToken As CancellationToken) As Task(Of Boolean)
-        Return CheckClosingTokenKindAsync(context.Document, context.ClosingPoint, cancellationToken)
+        Return AllowOverTypeWithValidClosingTokenAsync(context, cancellationToken)
     End Function
 
     Public Overrides Async Function IsValidForBraceCompletionAsync(brace As Char, openingPosition As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
