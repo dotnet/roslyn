@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         protected virtual Task<bool> IsValidOpenBraceTokenAtPositionAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            
+
             // The open token is typed in skipped token trivia, we should not attempt to complete it.
             if (ParentIsSkippedTokensTrivia(syntaxFactsService, token))
             {
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             {
                 return true;
             }
-            
+
             return false;
         }
     }

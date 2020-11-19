@@ -1244,7 +1244,7 @@ $$
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void DoesNotFormatInsideBracePairInInitializers()
         {
-            var code =@"class C
+            var code = @"class C
 {
     void M()
     {
