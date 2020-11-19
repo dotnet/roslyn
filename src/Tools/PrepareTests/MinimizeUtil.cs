@@ -165,7 +165,7 @@ internal static class MinimizeUtil
             var result = link(existingFileName, fileName);
             if (result != 0)
             {
-                throw new IOException($"Failed to create hard link from {fileName} to {existingFileName} with error code {Marshal.GetLastWin32Error()}");
+                throw new IOException($"Failed to create hard link from {existingFileName} to {fileName} with error code {Marshal.GetLastWin32Error()}");
             }
         }
 
