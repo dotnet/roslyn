@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Newtonsoft.Json;
 
@@ -18,14 +19,16 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
     internal class CompilerInvocation
     {
         public Compilation Compilation { get; }
-        public HostLanguageServices LanguageServices { get; internal set; }
-        public string ProjectFilePath { get; internal set; }
+        public HostLanguageServices LanguageServices { get; }
+        public string ProjectFilePath { get; }
+        public OptionSet Options { get; }
 
-        public CompilerInvocation(Compilation compilation, HostLanguageServices languageServices, string projectFilePath)
+        public CompilerInvocation(Compilation compilation, HostLanguageServices languageServices, string projectFilePath, OptionSet options)
         {
             Compilation = compilation;
             LanguageServices = languageServices;
             ProjectFilePath = projectFilePath;
+            Options = options;
         }
 
         public static async Task<CompilerInvocation> CreateFromJsonAsync(string jsonContents)
@@ -101,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             var compilation = await workspace.CurrentSolution.GetProject(projectId)!.GetRequiredCompilationAsync(CancellationToken.None);
 
-            return new CompilerInvocation(compilation, languageServices, invocationInfo.ProjectFilePath);
+            return new CompilerInvocation(compilation, languageServices, invocationInfo.ProjectFilePath, workspace.CurrentSolution.Options);
 
             // Local methods:
             DocumentInfo CreateDocumentInfo(string unmappedPath)
