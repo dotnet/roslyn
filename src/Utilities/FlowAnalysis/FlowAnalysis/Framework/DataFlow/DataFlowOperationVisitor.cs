@@ -1668,10 +1668,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                     if (invocation.TargetMethod.IsArgumentNullCheckMethod())
                     {
-                        // Predicate analysis for null checks.
-                        if (invocation.Arguments.Length == 1)
+                        // Predicate analysis for null checks, e.g. 'IsNullOrEmpty', 'IsNullOrWhiteSpace', etc.
+                        // The method guarantees non-null value on 'WhenFalse' path, but does not guarantee null value on 'WhenTrue' path.
+                        // Additionally, predicateValueKind cannot be determined to be AlwaysTrue or AlwaysFalse on either of these paths.
+                        if (invocation.Arguments.Length == 1 && FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse)
                         {
-                            predicateValueKind = SetValueForIsNullComparisonOperator(invocation.Arguments[0].Value, equals: FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue, targetAnalysisData: targetAnalysisData);
+                            _ = SetValueForIsNullComparisonOperator(invocation.Arguments[0].Value, equals: false, targetAnalysisData: targetAnalysisData);
                         }
 
                         break;
