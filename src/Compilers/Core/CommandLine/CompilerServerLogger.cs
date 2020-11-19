@@ -167,6 +167,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         public bool IsLogging => false;
 
+        private EmptyCompilerServerLogger()
+        {
+        }
+
         public void Log(string message)
         {
         }

@@ -357,6 +357,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         public class MiscTests : VBCSCompilerServerTests
         {
+            internal XunitCompilerServerLogger Logger { get; }
+
+            public MiscTests(ITestOutputHelper testOutputHelper)
+            {
+                Logger = new XunitCompilerServerLogger(testOutputHelper);
+            }
+
             [Fact]
             public async Task CompilationExceptionShouldShutdown()
             {
@@ -366,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     hitCompilation = true;
                     throw new Exception("");
                 });
-                using var serverData = await ServerUtil.CreateServer(EmptyCompilerServerLogger.Instance, compilerServerHost: compilerServerHost).ConfigureAwait(false);
+                using var serverData = await ServerUtil.CreateServer(Logger, compilerServerHost: compilerServerHost).ConfigureAwait(false);
 
                 var response = await serverData.SendAsync(ProtocolUtil.EmptyBasicBuildRequest).ConfigureAwait(false);
                 Assert.True(response is RejectedBuildResponse);
@@ -386,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return new AnalyzerInconsistencyBuildResponse();
                 });
 
-                using var serverData = await ServerUtil.CreateServer(EmptyCompilerServerLogger.Instance, compilerServerHost: compilerServerHost).ConfigureAwait(false);
+                using var serverData = await ServerUtil.CreateServer(Logger, compilerServerHost: compilerServerHost).ConfigureAwait(false);
 
                 var response = await serverData.SendAsync(ProtocolUtil.EmptyBasicBuildRequest).ConfigureAwait(false);
                 Assert.True(response is AnalyzerInconsistencyBuildResponse);

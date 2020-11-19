@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class CompilerServerApiTest : TestBase
     {
-        internal XunitCompilerServerLogger Logger { get; }
+        internal ICompilerServerLogger Logger { get; }
 
         public CompilerServerApiTest(ITestOutputHelper testOutputHelper)
         {
