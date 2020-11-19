@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                     return;
                 }
 
-                var braceResult = _service.GetBraceCompletionAsync(context, cancellationToken).WaitAndGetResult(cancellationToken);
+                var braceResult = _service.GetBraceCompletionAsync(context.Value, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (braceResult == null)
                 {
                     EndSession();
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                     return;
                 }
 
-                var changesAfterStart = _service.GetTextChangesAfterCompletionAsync(contextAfterStart, cancellationToken).WaitAndGetResult(cancellationToken);
+                var changesAfterStart = _service.GetTextChangesAfterCompletionAsync(contextAfterStart.Value, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (changesAfterStart != null)
                 {
                     ApplyBraceCompletionResult(changesAfterStart.Value);
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 bool AllowOverType()
                 {
                     var context = GetBraceCompletionContext();
-                    return context == null || _service.AllowOverTypeAsync(context, cancellationToken).WaitAndGetResult(cancellationToken);
+                    return context == null || _service.AllowOverTypeAsync(context.Value, cancellationToken).WaitAndGetResult(cancellationToken);
                 }
             }
 
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                             return;
                         }
 
-                        var changesAfterReturn = _service.GetTextChangeAfterReturnAsync(context, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                        var changesAfterReturn = _service.GetTextChangeAfterReturnAsync(context.Value, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                         if (changesAfterReturn != null)
                         {
                             using var caretPreservingTransaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Brace_Completion, _undoHistory, _editorOperations);
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 }
             }
 
-            private BraceCompletionContext GetBraceCompletionContext()
+            private BraceCompletionContext? GetBraceCompletionContext()
             {
                 this.AssertIsForeground();
                 var snapshot = SubjectBuffer.CurrentSnapshot;

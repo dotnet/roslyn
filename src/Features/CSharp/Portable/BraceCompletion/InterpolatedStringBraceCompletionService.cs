@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         /// Only return this service as valid when we're starting an interpolated string.
         /// Otherwise double quotes should be completed using the <see cref="StringLiteralBraceCompletionService"/>
         /// </summary>
-        public override async Task<bool> IsValidForBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
+        public override async Task<bool> CanProvideBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
             => OpeningBrace == brace && await IsPositionInInterpolatedStringContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(false);
 
         protected override bool IsValidOpeningBraceToken(SyntaxToken leftToken)

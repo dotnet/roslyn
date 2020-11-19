@@ -199,10 +199,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             foreach (var service in servicesForDocument)
             {
-                var context = await service.IsInsideCompletedBracesAsync(caretLocation, document, cancellationToken).ConfigureAwait(false);
+                var context = await service.GetCompletedBraceContextAsync(document, caretLocation, cancellationToken).ConfigureAwait(false);
                 if (context != null)
                 {
-                    return (service, context);
+                    return (service, context.Value);
                 }
             }
 

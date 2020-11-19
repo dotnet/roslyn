@@ -18,7 +18,15 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         /// Note that this does not mean that the service will provide brace completion, but that
         /// only this service will be asked to provide them.
         /// </summary>
-        Task<bool> IsValidForBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken);
+        /// <param name="brace">
+        /// The opening brace character to be inserted at the opening position.</param>
+        /// <param name="openingPosition">
+        /// The opening position to insert the brace.
+        /// Note that the brace is not yet inserted at this position in the document.
+        /// </param>
+        /// <param name="document">The document to insert the brace at the position.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        Task<bool> CanProvideBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the text change to add the closing brace given the context.
@@ -30,8 +38,9 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         /// </summary>
         /// <remarks>
         /// This cannot be merged with <see cref="GetBraceCompletionAsync(BraceCompletionContext, CancellationToken)"/>
-        /// as we need to make modifications to tracking spans in between adding the closing brace and doing
-        /// any kind of formatting on it.  So these must be two distinct steps until we fully move to LSP.
+        /// as we need to swap the editor tracking mode of the closing point from positive to negative
+        /// in BraceCompletionSessionProvider.BraceCompletionSession.Start after completing the brace and before
+        /// doing any kind of formatting on it.  So these must be two distinct steps until we fully move to LSP.
         /// </remarks>
         Task<BraceCompletionResult?> GetTextChangesAfterCompletionAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken);
 
@@ -44,15 +53,16 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         /// Returns the brace completion context if the caret is located between an already completed
         /// set of braces with only whitespace in between.
         /// </summary>
-        Task<BraceCompletionContext?> IsInsideCompletedBracesAsync(int caretLocation, Document document, CancellationToken cancellationToken);
+        Task<BraceCompletionContext?> GetCompletedBraceContextAsync(Document document, int caretLocation, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Whether or not overtype should be allowed given a brace completion context.
+        /// Returns true if over typing should be allowed given the caret location and completed pair of braces.
+        /// For example some providers allow over typing in non-user code and others do not.
         /// </summary>
         Task<bool> AllowOverTypeAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken);
     }
 
-    internal struct BraceCompletionResult
+    internal readonly struct BraceCompletionResult
     {
         /// <summary>
         /// The set of text changes that should be applied to the input text to retrieve the
@@ -73,7 +83,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         }
     }
 
-    internal class BraceCompletionContext
+    internal readonly struct BraceCompletionContext
     {
         public Document Document { get; }
 

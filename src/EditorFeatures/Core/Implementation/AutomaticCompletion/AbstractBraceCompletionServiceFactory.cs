@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
         private static bool IsServiceValidForBraceCompletion(IBraceCompletionService service, Document document, int openingPosition, char openingBrace, CancellationToken cancellationToken)
         {
-            return service.IsValidForBraceCompletionAsync(openingBrace, openingPosition, document, cancellationToken).WaitAndGetResult(cancellationToken);
+            return service.CanProvideBraceCompletionAsync(openingBrace, openingPosition, document, cancellationToken).WaitAndGetResult(cancellationToken);
         }
     }
 }

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         /// Only return this service as valid when we're typing curly braces inside an interpolated string.
         /// Otherwise curly braces should be completed using the <see cref="CurlyBraceCompletionService"/>
         /// </summary>
-        public override async Task<bool> IsValidForBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
+        public override async Task<bool> CanProvideBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
             => OpeningBrace == brace && await IsPositionInInterpolationContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(false);
 
         protected override Task<bool> IsValidOpenBraceTokenAtPositionAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)

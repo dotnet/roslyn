@@ -39,7 +39,7 @@ Friend Class InterpolationBraceCompletionService
         Return AllowOverTypeWithValidClosingTokenAsync(context, cancellationToken)
     End Function
 
-    Public Overrides Async Function IsValidForBraceCompletionAsync(brace As Char, openingPosition As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
+    Public Overrides Async Function CanProvideBraceCompletionAsync(brace As Char, openingPosition As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
         Return OpeningBrace = brace And Await IsPositionInInterpolationContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(False)
     End Function
 
