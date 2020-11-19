@@ -275,7 +275,6 @@ namespace Analyzer.Utilities
             if (_wildcardNamesBySymbolKind.IsEmpty)
             {
                 firstMatch = NoWildcardMatch;
-                _wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, match) => NoWildcardMatch);
                 return false;
             }
 

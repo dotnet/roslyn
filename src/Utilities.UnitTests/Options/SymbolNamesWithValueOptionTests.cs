@@ -270,6 +270,29 @@ public namespace MyNamespace
             Assert.Equal("SomeValue4", options.GetTestAccessor().WildcardNamesBySymbolKind[SymbolKind.NamedType]["MyClass"]);
         }
 
+        [Fact]
+        [WorkItem(1242125, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1242125")]
+        public void FastPathDoesNotCache()
+        {
+            var compilation = GetCompilation(@"
+using System;
+
+public namespace MyNamespace
+{
+    public class MyClass {}
+}");
+
+            var namedTypeSymbol = (INamedTypeSymbol)compilation.GetSymbolsWithName("MyClass").Single();
+
+            var options = SymbolNamesWithValueOption<Unit>.Empty;
+
+            // Check for containment
+            var contained = options.Contains(namedTypeSymbol);
+            Assert.False(contained);
+            Assert.Empty(options.GetTestAccessor().WildcardMatchResult);
+            Assert.Empty(options.GetTestAccessor().SymbolToDeclarationId);
+        }
+
         [Theory]
         // Symbol name
         [InlineData("My*", "MyCompany")]
