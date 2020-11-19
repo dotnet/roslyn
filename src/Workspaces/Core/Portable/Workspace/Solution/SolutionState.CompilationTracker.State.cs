@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
                 /// The base <see cref="State"/> that starts with everything empty.
                 /// </summary>
                 public static readonly State Empty = new(
-                    compilation: null,
+                    compilationWithoutGeneratedDocuments: null,
                     declarationOnlyCompilation: null,
                     generatedDocuments: ImmutableArray<SourceGeneratedDocumentState>.Empty,
                     generatedDocumentsAreFinal: false,
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
                 /// The value is an <see cref="Optional{Compilation}"/> to represent the
                 /// possibility of the compilation already having been garabage collected.
                 /// </summary>
-                public ValueSource<Optional<Compilation>>? Compilation { get; }
+                public ValueSource<Optional<Compilation>>? CompilationWithoutGeneratedDocuments { get; }
 
                 /// <summary>
                 /// The best generated documents we have for the current state. <see cref="GeneratedDocumentsAreFinal"/> specifies whether the
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis
                 public readonly UnrootedSymbolSet? UnrootedSymbolSet;
 
                 /// <summary>
-                /// Specifies whether <see cref="FinalCompilation"/> and all compilations it depends on contain full information or not. This can return
+                /// Specifies whether <see cref="FinalCompilationWithGeneratedDocuments"/> and all compilations it depends on contain full information or not. This can return
                 /// <see langword="null"/> if the state isn't at the point where it would know, and it's necessary to transition to <see cref="FinalState"/> to figure that out.
                 /// </summary>
                 public virtual bool? HasSuccessfullyLoaded => null;
@@ -79,10 +79,10 @@ namespace Microsoft.CodeAnalysis
                 /// The value is an <see cref="Optional{Compilation}"/> to represent the
                 /// possibility of the compilation already having been garabage collected.
                 /// </summary>
-                public virtual ValueSource<Optional<Compilation>>? FinalCompilation => null;
+                public virtual ValueSource<Optional<Compilation>>? FinalCompilationWithGeneratedDocuments => null;
 
                 protected State(
-                    ValueSource<Optional<Compilation>>? compilation,
+                    ValueSource<Optional<Compilation>>? compilationWithoutGeneratedDocuments,
                     Compilation? declarationOnlyCompilation,
                     ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
                     bool generatedDocumentsAreFinal,
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
                     // Declaration-only compilations should never have any references
                     Contract.ThrowIfTrue(declarationOnlyCompilation != null && declarationOnlyCompilation.ExternalReferences.Any());
 
-                    Compilation = compilation;
+                    CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
                     DeclarationOnlyCompilation = declarationOnlyCompilation;
                     GeneratedDocuments = generatedDocuments;
                     GeneratedDocumentsAreFinal = generatedDocumentsAreFinal;
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis
                     Compilation inProgressCompilation,
                     ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
                     ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
-                    : base(compilation: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
+                    : base(compilationWithoutGeneratedDocuments: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                            declarationOnlyCompilation: null,
                            generatedDocuments,
                            generatedDocumentsAreFinal: false, // since we have a set of transformations to make, we'll always have to run generators again
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis
                 public LightDeclarationState(Compilation declarationOnlyCompilation,
                     ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
                     bool generatedDocumentsAreFinal)
-                    : base(compilation: null,
+                    : base(compilationWithoutGeneratedDocuments: null,
                            declarationOnlyCompilation,
                            generatedDocuments,
                            generatedDocumentsAreFinal,
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis
 
             /// <summary>
             /// The final state a compilation tracker reaches. The <see cref="State.DeclarationOnlyCompilation"/> is available,
-            /// as well as the real <see cref="State.FinalCompilation"/>.
+            /// as well as the real <see cref="State.FinalCompilationWithGeneratedDocuments"/>.
             /// </summary>
             private sealed class FinalState : State
             {
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis
                 /// consumes <see cref="Compilation"/> which will avoid generators being ran a second time on a compilation that
                 /// already contains the output of other generators. If source generators are not active, this is equal to <see cref="Compilation"/>.
                 /// </summary>
-                public override ValueSource<Optional<Compilation>> FinalCompilation { get; }
+                public override ValueSource<Optional<Compilation>> FinalCompilationWithGeneratedDocuments { get; }
 
                 public FinalState(
                     ValueSource<Optional<Compilation>> finalCompilationSource,
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis
                            unrootedSymbolSet)
                 {
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
-                    FinalCompilation = finalCompilationSource;
+                    FinalCompilationWithGeneratedDocuments = finalCompilationSource;
 
                     if (GeneratedDocuments.IsEmpty)
                     {

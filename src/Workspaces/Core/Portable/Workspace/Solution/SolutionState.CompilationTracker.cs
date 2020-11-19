@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
                 if (solutionServices.SupportsCachingRecoverableObjects)
                 {
                     // Allow the cache service to create a strong reference to the compilation
-                    solutionServices.CacheService.CacheObjectIfCachingEnabledForKey(ProjectState.Id, state, state.Compilation?.GetValueOrNull());
+                    solutionServices.CacheService.CacheObjectIfCachingEnabledForKey(ProjectState.Id, state, state.CompilationWithoutGeneratedDocuments?.GetValueOrNull());
                 }
 
                 Volatile.Write(ref _stateDoNotAccessDirectly, state);
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis
                 get
                 {
                     var state = this.ReadState();
-                    return state.Compilation != null && state.Compilation.TryGetValue(out _) || state.DeclarationOnlyCompilation != null;
+                    return state.CompilationWithoutGeneratedDocuments != null && state.CompilationWithoutGeneratedDocuments.TryGetValue(out _) || state.DeclarationOnlyCompilation != null;
                 }
             }
 
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var state = ReadState();
 
-                var baseCompilation = state.Compilation?.GetValueOrNull(cancellationToken);
+                var baseCompilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
                 if (baseCompilation != null)
                 {
                     // We have some pre-calculated state to incrementally update
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis
                 CancellationToken cancellationToken)
             {
                 var state = ReadState();
-                var compilation = state.Compilation?.GetValueOrNull(cancellationToken);
+                var compilationWithoutGeneratedDocuments = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
 
                 // check whether we can bail out quickly for typing case
                 var inProgressState = state as InProgressState;
@@ -258,14 +258,14 @@ namespace Microsoft.CodeAnalysis
                 // all changes left for this document is modifying the given document.
                 // we can use current state as it is since we will replace the document with latest document anyway.
                 if (inProgressState != null &&
-                    compilation != null &&
+                    compilationWithoutGeneratedDocuments != null &&
                     inProgressState.IntermediateProjects.All(t => IsTouchDocumentActionForDocument(t.action, id)))
                 {
                     inProgressProject = ProjectState;
 
                     // We'll add in whatever generated documents we do have; these may be from a prior run prior to some changes
                     // being made to the project, but it's the best we have so we'll use it.
-                    inProgressCompilation = compilation.AddSyntaxTrees(sourceGeneratedDocuments.Select(d => d.SyntaxTree));
+                    inProgressCompilation = compilationWithoutGeneratedDocuments.AddSyntaxTrees(sourceGeneratedDocuments.Select(d => d.SyntaxTree));
 
                     SolutionLogger.UseExistingPartialProjectState();
                     return;
@@ -274,9 +274,9 @@ namespace Microsoft.CodeAnalysis
                 inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.First().state : this.ProjectState;
 
                 // if we already have a final compilation we are done.
-                if (compilation != null && state is FinalState finalState)
+                if (compilationWithoutGeneratedDocuments != null && state is FinalState finalState)
                 {
-                    var finalCompilation = finalState.FinalCompilation.GetValueOrNull(cancellationToken);
+                    var finalCompilation = finalState.FinalCompilationWithGeneratedDocuments.GetValueOrNull(cancellationToken);
 
                     if (finalCompilation != null)
                     {
@@ -289,14 +289,14 @@ namespace Microsoft.CodeAnalysis
                 // 1) if we have an in-progress compilation use it.  
                 // 2) If we don't, then create a simple empty compilation/project. 
                 // 3) then, make sure that all it's p2p refs and whatnot are correct.
-                if (compilation == null)
+                if (compilationWithoutGeneratedDocuments == null)
                 {
                     inProgressProject = inProgressProject.RemoveAllDocuments();
                     inProgressCompilation = CreateEmptyCompilation();
                 }
                 else
                 {
-                    inProgressCompilation = compilation;
+                    inProgressCompilation = compilationWithoutGeneratedDocuments;
                 }
 
                 inProgressCompilation = inProgressCompilation.AddSyntaxTrees(sourceGeneratedDocuments.Select(d => d.SyntaxTree));
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis
             public bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation)
             {
                 var state = ReadState();
-                if (state.FinalCompilation != null && state.FinalCompilation.TryGetValue(out var compilationOpt) && compilationOpt.HasValue)
+                if (state.FinalCompilationWithGeneratedDocuments != null && state.FinalCompilationWithGeneratedDocuments.TryGetValue(out var compilationOpt) && compilationOpt.HasValue)
                 {
                     compilation = compilationOpt.Value;
                     return true;
@@ -413,13 +413,13 @@ namespace Microsoft.CodeAnalysis
                         var state = ReadState();
 
                         // we are already in the final stage. just return it.
-                        var compilation = state.FinalCompilation?.GetValueOrNull(cancellationToken);
+                        var compilation = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken);
                         if (compilation != null)
                         {
                             return compilation;
                         }
 
-                        compilation = state.Compilation?.GetValueOrNull(cancellationToken);
+                        compilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
                         if (compilation == null)
                         {
                             // let's see whether we have declaration only compilation
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis
                         var state = ReadState();
 
                         // Try to get the built compilation.  If it exists, then we can just return that.
-                        var finalCompilation = state.FinalCompilation?.GetValueOrNull(cancellationToken);
+                        var finalCompilation = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken);
                         if (finalCompilation != null)
                         {
                             RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
@@ -511,14 +511,14 @@ namespace Microsoft.CodeAnalysis
 
                 // if we already have a compilation, we must be already done!  This can happen if two
                 // threads were waiting to build, and we came in after the other succeeded.
-                var compilation = state.FinalCompilation?.GetValueOrNull(cancellationToken);
+                var compilation = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken);
                 if (compilation != null)
                 {
                     RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
                     return Task.FromResult(new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratedDocuments));
                 }
 
-                compilation = state.Compilation?.GetValueOrNull(cancellationToken);
+                compilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
 
                 // If we have already reached FinalState in the past but the compilation was garbage collected, we still have the generated documents
                 // so we can pass those to FinalizeCompilationAsync to avoid the recomputation. This is necessary for correctness as otherwise
@@ -904,8 +904,8 @@ namespace Microsoft.CodeAnalysis
                 var state = ReadState();
 
                 // get compilation in any state it happens to be in right now.
-                if (state.Compilation != null &&
-                    state.Compilation.TryGetValue(out var compilationOpt) &&
+                if (state.CompilationWithoutGeneratedDocuments != null &&
+                    state.CompilationWithoutGeneratedDocuments.TryGetValue(out var compilationOpt) &&
                     compilationOpt.HasValue &&
                     ProjectState.LanguageServices == fromProject.LanguageServices)
                 {
