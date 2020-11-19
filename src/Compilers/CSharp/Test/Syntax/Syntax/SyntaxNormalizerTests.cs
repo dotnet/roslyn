@@ -215,7 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("class a {\r\nint Q{get{return 0;}init{}}\r\nint R{get=>1;}\r\n}\r\n", "class a\r\n{\r\n  int Q\r\n  {\r\n    get\r\n    {\r\n      return 0;\r\n    }\r\n\r\n    init\r\n    {\r\n    }\r\n  }\r\n\r\n  int R { get => 1; }\r\n}");
             TestNormalizeDeclaration("class a {\r\nint R{get=>1;}\r\n}\r\n", "class a\r\n{\r\n  int R { get => 1; }\r\n}");
             TestNormalizeDeclaration("class a {\r\nint S=>2;\r\n}\r\n", "class a\r\n{\r\n  int S => 2;\r\n}");
-
+            TestNormalizeDeclaration("class x\r\n{\r\nint _g;\r\nint G\r\n{\r\nget\r\n{\r\nreturn\r\n_g;\r\n}\r\ninit;\r\n}\r\nint H\r\n{\r\nget;\r\nset\r\n{\r\n_g\r\n=\r\n12;\r\n}\r\n}\r\n}\r\n",
+                "class x\r\n{\r\n  int _g;\r\n  int G\r\n  {\r\n    get\r\n    {\r\n      return _g;\r\n    }\r\n\r\n    init;\r\n  }\r\n\r\n  int H\r\n  {\r\n    get;\r\n    set\r\n    {\r\n      _g = 12;\r\n    }\r\n  }\r\n}");
 
             // indexers
             TestNormalizeDeclaration("class a{b this[c d]{get;}}", "class a\r\n{\r\n  b this[c d] { get; }\r\n}");

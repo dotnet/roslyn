@@ -296,32 +296,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return false;
         }
 
-        private static bool IsAccessorListFollowedByInitializer(SyntaxToken token)
-        {
-            if (token.Parent is AccessorListSyntax accessorList)
-            {
-                var declaration = accessorList.Parent;
-                if (declaration == null)
-                {
-                    return false;
-                }
-
-                SyntaxNode? lastChild = null;
-                foreach (var item in declaration.ChildNodes())
-                {
-                    lastChild = item;
-                }
-
-                if (lastChild == null || lastChild == accessorList)
-                {
-                    return false;
-                }
-
-                return true;
-            }
-
-            return false;
-        }
+        private static bool IsAccessorListFollowedByInitializer(SyntaxToken token) =>
+            token.Parent is AccessorListSyntax accessorList &&
+            accessorList.Parent is PropertyDeclarationSyntax propertyDeclarationSyntax &&
+                    propertyDeclarationSyntax.Initializer != null;
 
         private static int LineBreaksBeforeOpenBrace(SyntaxToken currentToken, SyntaxToken nextToken)
         {
