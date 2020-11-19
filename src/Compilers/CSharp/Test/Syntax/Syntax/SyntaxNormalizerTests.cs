@@ -207,10 +207,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("class a{~a(){}}", "class a\r\n{\r\n  ~a()\r\n  {\r\n  }\r\n}");
 
             // properties
-            TestNormalizeDeclaration("class a{b c{get;}}", "class a\r\n{\r\n  b c\r\n  {\r\n    get;\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{b c{get;}}", "class a\r\n{\r\n  b c { get; }\r\n}");
+            TestNormalizeDeclaration("class a {\r\nint X{get;set;}= 2;\r\n}\r\n", "class a\r\n{\r\n  int X { get; set; } = 2;\r\n}");
+            TestNormalizeDeclaration("class a {\r\nint Y\r\n{get;\r\nset;\r\n}\r\n=99;\r\n}\r\n", "class a\r\n{\r\n  int Y { get; set; } = 99;\r\n}");
+            TestNormalizeDeclaration("class a {\r\nint Z{get;}\r\n}\r\n", "class a\r\n{\r\n  int Z { get; }\r\n}");
+            TestNormalizeDeclaration("class a {\r\nint T{get;init;}\r\nint R{get=>1;}\r\n}\r\n", "class a\r\n{\r\n  int T { get; init; }\r\n\r\n  int R { get => 1; }\r\n}");
+            TestNormalizeDeclaration("class a {\r\nint Q{get{return 0;}init{}}\r\nint R{get=>1;}\r\n}\r\n", "class a\r\n{\r\n  int Q\r\n  {\r\n    get\r\n    {\r\n      return 0;\r\n    }\r\n\r\n    init\r\n    {\r\n    }\r\n  }\r\n\r\n  int R { get => 1; }\r\n}");
+            TestNormalizeDeclaration("class a {\r\nint R{get=>1;}\r\n}\r\n", "class a\r\n{\r\n  int R { get => 1; }\r\n}");
+            TestNormalizeDeclaration("class a {\r\nint S=>2;\r\n}\r\n", "class a\r\n{\r\n  int S => 2;\r\n}");
+
 
             // indexers
-            TestNormalizeDeclaration("class a{b this[c d]{get;}}", "class a\r\n{\r\n  b this[c d]\r\n  {\r\n    get;\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{b this[c d]{get;}}", "class a\r\n{\r\n  b this[c d] { get; }\r\n}");
 
             // fields
             TestNormalizeDeclaration("class a{b c;}", "class a\r\n{\r\n  b c;\r\n}");

@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -192,6 +193,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return 0;
             }
 
+            if(nextToken.IsKind(SyntaxKind.CloseBraceToken) && IsAutoAccessorList(currentToken.Parent))
+            {
+                return 0;
+            }
+
             switch (currentToken.Kind())
             {
                 case SyntaxKind.None:
@@ -250,8 +256,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             switch (nextToken.Kind())
             {
                 case SyntaxKind.OpenBraceToken:
+                    return LineBreaksBeforeOpenBrace(currentToken, nextToken);
                 case SyntaxKind.CloseBraceToken:
-                    return (nextToken.Parent.IsKind(SyntaxKind.Interpolation) || nextToken.Parent is InitializerExpressionSyntax) ? 0 : 1;
+                    return LineBreaksBeforeCloseBrace(currentToken, nextToken);
                 case SyntaxKind.ElseKeyword:
                 case SyntaxKind.FinallyKeyword:
                     return 1;
@@ -264,10 +271,89 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return 0;
         }
 
+        private static bool IsAutoAccessorList(SyntaxToken token)
+        {
+            if(token.Parent != null && token.Parent is AccessorListSyntax accessorList)
+            {
+                return accessorList.Accessors.All(a => a.Body == null);
+            }
+
+            return false;
+        }
+
+        private static bool IsAutoAccessorList(SyntaxNode? node)
+        {
+            if(node != null && node.Parent != null && node.Parent is AccessorListSyntax accessorList)
+            {
+                return accessorList.Accessors.All(a => a.Body == null);
+            }
+
+            return false;
+        }
+
+        private static bool IsAccessorListFollowedByInitializer(SyntaxToken token)
+        {
+            if(token.Parent != null && token.Parent is AccessorListSyntax accessorList)
+            {
+                var declaration = accessorList.Parent;
+                if (declaration == null)
+                {
+                    return false;
+                }
+
+                var lastChild = declaration.ChildNodes().LastOrDefault();
+                if(lastChild == null || lastChild == accessorList)
+                {
+                    return false;
+                }
+                //var children = declaration.ChildNodes().ToArray();
+                //var accessorListIndex = children.IndexOf(accessorList);
+                //if (accessorListIndex == -1 || accessorListIndex == children.Length - 1)
+                //{
+                //    return false;
+                //}
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private static int LineBreaksBeforeOpenBrace(SyntaxToken currentToken, SyntaxToken nextToken)
+        {
+            if (nextToken.Parent.IsKind(SyntaxKind.Interpolation) ||
+                nextToken.Parent is InitializerExpressionSyntax ||
+                IsAutoAccessorList(currentToken) ||
+                IsAutoAccessorList(nextToken))
+            {
+                return 0;
+            }
+            else
+            {
+                return 1;
+            }
+        }
+
+        private static int LineBreaksBeforeCloseBrace(SyntaxToken currentToken, SyntaxToken nextToken)
+        {
+            if (nextToken.Parent.IsKind(SyntaxKind.Interpolation) ||
+                nextToken.Parent is InitializerExpressionSyntax ||
+                IsAutoAccessorList(currentToken) ||
+                IsAutoAccessorList(nextToken))
+            {
+                return 0;
+            }
+            else
+            {
+                return 1;
+            }
+        }
+
         private static int LineBreaksAfterOpenBrace(SyntaxToken currentToken, SyntaxToken nextToken)
         {
             if (currentToken.Parent is InitializerExpressionSyntax ||
-                currentToken.Parent.IsKind(SyntaxKind.Interpolation))
+                currentToken.Parent.IsKind(SyntaxKind.Interpolation) ||
+                IsAutoAccessorList(currentToken))
             {
                 return 0;
             }
@@ -281,7 +367,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             if (currentToken.Parent is InitializerExpressionSyntax ||
                 currentToken.Parent.IsKind(SyntaxKind.Interpolation) ||
-                currentToken.Parent?.Parent is AnonymousFunctionExpressionSyntax)
+                currentToken.Parent?.Parent is AnonymousFunctionExpressionSyntax ||
+                IsAccessorListFollowedByInitializer(currentToken))
             {
                 return 0;
             }
@@ -326,6 +413,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 return nextToken.Parent.IsKind(SyntaxKind.ExternAliasDirective) ? 1 : 2;
             }
+            else if ((currentToken.Parent.IsKind(SyntaxKind.GetAccessorDeclaration) ||
+                currentToken.Parent.IsKind(SyntaxKind.SetAccessorDeclaration) ||
+                currentToken.Parent.IsKind(SyntaxKind.InitAccessorDeclaration)) &&
+                IsAutoAccessorList(currentToken.Parent))
+            {
+                return 0;
+            }
             else
             {
                 return 1;
@@ -337,6 +431,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             if (token.Parent == null || next.Parent == null)
             {
                 return false;
+            }
+
+            if (!next.IsKind(SyntaxKind.SemicolonToken) && (IsAutoAccessorList(next) || IsAutoAccessorList(next.Parent)))
+            {
+                return true;
             }
 
             if (IsXmlTextToken(token.Kind()) || IsXmlTextToken(next.Kind()))
