@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -252,7 +253,8 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         /// <returns>A normalized copy of <paramref name="orgiginal"/>.</returns>
         private static string GetNormalizedHeaderTemplate(string orgiginal, string newLineText)
         {
-            return orgiginal.Replace("\r\n", "\n").Replace("\n", newLineText);
+            // Source: https://stackoverflow.com/a/141069
+            return Regex.Replace(orgiginal, @"\r\n|\n\r|\n|\r", newLineText);
         }
 
         private static string GetCopyrightText(string prefixWithLeadingSpaces, string copyrightText, string newLineText)
