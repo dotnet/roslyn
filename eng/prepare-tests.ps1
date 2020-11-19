@@ -10,7 +10,7 @@ try {
 
   $dotnet = Ensure-DotnetSdk
   # permissions issues make this a pain to do in PrepareTests itself.
-  Remove-Item -Recurse -Force "$RepoRoot\artifacts\testPayload"
+  Remove-Item -Recurse -Force "$RepoRoot\artifacts\testPayload" -ErrorAction SilentlyContinue
   Exec-Console $dotnet "run --project src\Tools\PrepareTests\PrepareTests.csproj $RepoRoot $RepoRoot\artifacts\testPayload"
   exit 0
 }
