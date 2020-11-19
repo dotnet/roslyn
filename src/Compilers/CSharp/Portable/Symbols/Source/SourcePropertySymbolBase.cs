@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void EnsureSignature(DiagnosticBag diagnostics)
+        private void EnsureSignatureGuarded(DiagnosticBag diagnostics)
         {
             PropertySymbol? explicitlyImplementedProperty = null;
             _lazyRefCustomModifiers = ImmutableArray<CustomModifier>.Empty;
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var diagnostics = DiagnosticBag.GetInstance();
                         try
                         {
-                            EnsureSignature(diagnostics);
+                            EnsureSignatureGuarded(diagnostics);
                             AddDiagnostics(diagnostics);
                         }
                         finally
