@@ -694,15 +694,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this;
         }
 
-        // TODO2
-        public TypeWithAnnotations PurgeIgnoredNullability()
-        {
-            var newTypeSymbol = DefaultType.PurgeIgnoredNullability();
-            var newAnnotation = (NullableAnnotation == NullableAnnotation.Ignored) ? NullableAnnotation.Oblivious : NullableAnnotation;
-
-            return new TypeWithAnnotations(newTypeSymbol, newAnnotation, _extensions);
-        }
-
 #pragma warning disable CS0809
         [Obsolete("Unsupported", error: true)]
         public override bool Equals(object other)

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         IgnoreTupleNames = 4,
         IgnoreDynamicAndTupleNames = IgnoreDynamic | IgnoreTupleNames,
         IgnoreNullableModifiersForReferenceTypes = 8,
-        ObliviousNullableModifierMatchesAny = 16,
+        ObliviousNullableModifierMatchesAny = 16, // Ignored is treated like Oblivious
         IgnoreNativeIntegers = 32,
 
         // For the purposes of a few specific cases such as overload comparisons, we need to consider function pointers that only differ

@@ -23,6 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         NotAnnotated,
 
         /// <summary>
+        /// Whenever the compiler needs to do a substitution without affecting the nullable annotation.
+        /// Used on type arguments for definitions, and indexed/placeholder type parameters.
+        /// </summary>
+        Ignored,
+
+        /// <summary>
         /// The type is not annotated in a context where the nullable feature is not enabled.
         /// Used for interoperation with existing pre-nullable code.
         /// </summary>
@@ -32,11 +38,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Type is annotated with '?' - string?, T?.
         /// </summary>
         Annotated,
-
-        /// <summary>
-        /// Whenever the compiler needs to do a substitution without affecting the nullable annotation.
-        /// Used on type arguments for definitions, and indexed/placeholder type parameters.
-        /// </summary>
-        Ignored,
     }
 }

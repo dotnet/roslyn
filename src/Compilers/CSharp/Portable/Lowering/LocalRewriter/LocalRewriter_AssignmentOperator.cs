@@ -298,7 +298,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (setMethod is null)
             {
-                // TODO2 get a SubstitutedPropertySymbol
                 var autoProp = (SourcePropertySymbolBase)property;
                 Debug.Assert(autoProp.IsAutoProperty,
                     "only autoproperties can be assignable without having setters");

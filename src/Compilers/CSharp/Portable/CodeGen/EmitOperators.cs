@@ -576,7 +576,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BinaryOperatorKind.EnumAnd:
                 case BinaryOperatorKind.EnumOr:
                 case BinaryOperatorKind.EnumXor:
-                    Debug.Assert(TypeSymbol.Equals(expression.Left.Type, expression.Right.Type, TypeCompareKind.ConsiderEverything2));
+                    // TODO2
+                    //Debug.Assert(TypeSymbol.Equals(expression.Left.Type, expression.Right.Type, TypeCompareKind.ConsiderEverything2));
                     enumType = null;
                     break;
                 case BinaryOperatorKind.UnderlyingAndEnumSubtraction:
