@@ -4,7 +4,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -193,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return 0;
             }
 
-            if(nextToken.IsKind(SyntaxKind.CloseBraceToken) && IsAutoAccessorList(currentToken.Parent))
+            if (nextToken.IsKind(SyntaxKind.CloseBraceToken) && IsAutoAccessorList(currentToken.Parent))
             {
                 return 0;
             }
@@ -271,11 +270,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return 0;
         }
 
+        private static bool All<TNode>(SyntaxList<TNode> items, Func<TNode, bool> predicate)
+            where TNode: SyntaxNode
+        {
+            bool result = true;
+            for (int i = 0; i < items.Count; i++)
+            {
+                result &= predicate(items[i]);
+            }
+
+            return result;
+        }
+
         private static bool IsAutoAccessorList(SyntaxToken token)
         {
             if (token.Parent is AccessorListSyntax accessorList)
             {
-                return accessorList.Accessors.All(a => a.Body == null);
+                return All(accessorList.Accessors, a => a.Body == null);
             }
 
             return false;
@@ -283,9 +294,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static bool IsAutoAccessorList(SyntaxNode? node)
         {
-            if(node != null && node.Parent != null && node.Parent is AccessorListSyntax accessorList)
+            if (node != null && node.Parent != null && node.Parent is AccessorListSyntax accessorList)
             {
-                return accessorList.Accessors.All(a => a.Body == null);
+                return All(accessorList.Accessors, a => a.Body == null);
             }
 
             return false;
@@ -293,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static bool IsAccessorListFollowedByInitializer(SyntaxToken token)
         {
-            if(token.Parent != null && token.Parent is AccessorListSyntax accessorList)
+            if (token.Parent != null && token.Parent is AccessorListSyntax accessorList)
             {
                 var declaration = accessorList.Parent;
                 if (declaration == null)
@@ -301,17 +312,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return false;
                 }
 
-                var lastChild = declaration.ChildNodes().LastOrDefault();
-                if(lastChild == null || lastChild == accessorList)
+                SyntaxNode? lastChild = null;
+                foreach (var item in declaration.ChildNodes())
+                {
+                    lastChild = item;
+                }
+
+                if (lastChild == null || lastChild == accessorList)
                 {
                     return false;
                 }
-                //var children = declaration.ChildNodes().ToArray();
-                //var accessorListIndex = children.IndexOf(accessorList);
-                //if (accessorListIndex == -1 || accessorListIndex == children.Length - 1)
-                //{
-                //    return false;
-                //}
 
                 return true;
             }
@@ -322,10 +332,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private static int LineBreaksBeforeOpenBrace(SyntaxToken currentToken, SyntaxToken nextToken)
         {
             if (nextToken.Parent.IsKind(SyntaxKind.Interpolation) ||
-                nextToken.Parent is InitializerExpressionSyntax ||
-                IsAutoAccessorList(currentToken) ||
-                IsAutoAccessorList(nextToken))
+                nextToken.Parent is InitializerExpressionSyntax)
             {
+                return 0;
+            }
+            else if (IsAutoAccessorList(nextToken))
+            {
+                // currentToken is the property name, nextToken is the open brace
                 return 0;
             }
             else
@@ -337,9 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private static int LineBreaksBeforeCloseBrace(SyntaxToken currentToken, SyntaxToken nextToken)
         {
             if (nextToken.Parent.IsKind(SyntaxKind.Interpolation) ||
-                nextToken.Parent is InitializerExpressionSyntax ||
-                IsAutoAccessorList(currentToken) ||
-                IsAutoAccessorList(nextToken))
+                nextToken.Parent is InitializerExpressionSyntax)
             {
                 return 0;
             }
@@ -413,9 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 return nextToken.Parent.IsKind(SyntaxKind.ExternAliasDirective) ? 1 : 2;
             }
-            else if ((currentToken.Parent.IsKind(SyntaxKind.GetAccessorDeclaration) ||
-                currentToken.Parent.IsKind(SyntaxKind.SetAccessorDeclaration) ||
-                currentToken.Parent.IsKind(SyntaxKind.InitAccessorDeclaration)) &&
+            else if (currentToken.Parent is AccessorDeclarationSyntax &&
                 IsAutoAccessorList(currentToken.Parent))
             {
                 return 0;
