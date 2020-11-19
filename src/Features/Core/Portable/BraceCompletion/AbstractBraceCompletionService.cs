@@ -28,10 +28,8 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         /// </summary>
         protected abstract bool IsValidClosingBraceToken(SyntaxToken token);
 
-        ///<inheritdoc cref="IBraceCompletionService.AllowOverTypeAsync(BraceCompletionContext, CancellationToken)"/>
         public abstract Task<bool> AllowOverTypeAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken);
 
-        ///<inheritdoc cref="IBraceCompletionService.GetBraceCompletionAsync(BraceCompletionContext, CancellationToken)"/>
         public async Task<BraceCompletionResult?> GetBraceCompletionAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken)
         {
             var closingPoint = braceCompletionContext.ClosingPoint;
@@ -64,15 +62,12 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             return new BraceCompletionResult(ImmutableArray.Create(braceTextEdit), caretLocation);
         }
 
-        ///<inheritdoc cref="IBraceCompletionService.GetTextChangesAfterCompletionAsync(BraceCompletionContext, CancellationToken)"/>
         public virtual Task<BraceCompletionResult?> GetTextChangesAfterCompletionAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken)
             => SpecializedTasks.Default<BraceCompletionResult?>();
 
-        ///<inheritdoc cref="IBraceCompletionService.GetTextChangeAfterReturnAsync(BraceCompletionContext, CancellationToken)"/>
         public virtual Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken)
             => SpecializedTasks.Default<BraceCompletionResult?>();
 
-        ///<inheritdoc cref="IBraceCompletionService.IsValidForBraceCompletionAsync(char, int, Document, CancellationToken)"/>
         public virtual async Task<bool> IsValidForBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
         {
             // check that the user is not typing in a string literal or comment
@@ -82,7 +77,6 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             return OpeningBrace == brace && !syntaxFactsService.IsInNonUserCode(tree, openingPosition, cancellationToken);
         }
 
-        ///<inheritdoc cref="IBraceCompletionService.IsInsideCompletedBracesAsync(int, Document, CancellationToken)"/>
         public async Task<BraceCompletionContext?> IsInsideCompletedBracesAsync(int caretLocation, Document document, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -99,16 +93,19 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
 
         /// <summary>
         /// Checks if the already inserted token is a valid opening token at the position in the document.
+        /// By default checks that the opening token is a valid token at the position and not in skipped token trivia.
         /// </summary>
         protected virtual Task<bool> IsValidOpenBraceTokenAtPositionAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            if (!IsParentSkippedTokensTrivia(syntaxFactsService, token))
+            
+            // The open token is typed in skipped token trivia, we should not attempt to complete it.
+            if (ParentIsSkippedTokensTrivia(syntaxFactsService, token))
             {
                 return SpecializedTasks.False;
             }
 
-            return Task.FromResult(IsValidOpeningBraceToken(token) && token.SpanStart == position);
+            return Task.FromResult(token.SpanStart == position && IsValidOpeningBraceToken(token));
         }
 
         /// <summary>
@@ -139,8 +136,8 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             return CheckClosingTokenKindAsync(context.Document, context.ClosingPoint, cancellationToken);
         }
 
-        protected static bool IsParentSkippedTokensTrivia(ISyntaxFactsService syntaxFactsService, SyntaxToken token)
-            => token.Parent != null && !syntaxFactsService.IsSkippedTokensTrivia(token.Parent);
+        protected static bool ParentIsSkippedTokensTrivia(ISyntaxFactsService syntaxFactsService, SyntaxToken token)
+            => token.Parent == null || syntaxFactsService.IsSkippedTokensTrivia(token.Parent);
 
         /// <summary>
         /// Checks that the token at the closing position is a valid closing token.

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override Task<bool> IsValidOpenBraceTokenAtPositionAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            if (!IsParentSkippedTokensTrivia(syntaxFactsService, token) || !IsValidOpeningBraceToken(token))
+            if (ParentIsSkippedTokensTrivia(syntaxFactsService, token) || !IsValidOpeningBraceToken(token))
             {
                 return SpecializedTasks.False;
             }
