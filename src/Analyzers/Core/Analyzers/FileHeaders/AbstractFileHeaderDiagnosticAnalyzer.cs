@@ -75,9 +75,8 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
         private static bool CompareCopyrightText(string expectedFileHeader, string copyrightText)
         {
-            // make sure that both \n and \r\n are accepted from the settings and leading and trailing whitespace is ignored.
-            var reformattedCopyrightTextParts = expectedFileHeader.Trim().Replace("\r\n", "\n").Split('\n');
-            var fileHeaderCopyrightTextParts = copyrightText.Trim().Replace("\r\n", "\n").Split('\n');
+            var reformattedCopyrightTextParts = NormalizeCopyrightText(expectedFileHeader).Split('\n');
+            var fileHeaderCopyrightTextParts = NormalizeCopyrightText(copyrightText).Split('\n');
 
             if (reformattedCopyrightTextParts.Length != fileHeaderCopyrightTextParts.Length)
             {
@@ -95,5 +94,13 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
             return true;
         }
+
+        /// <summary>
+        /// Make sure that both \n and \r\n are accepted from the settings and leading and trailing whitespace is ignored.
+        /// </summary>
+        /// <param name="original">The original header text from the document or editorconfig</param>
+        /// <returns>A normalized text for comparison.</returns>
+        private static string NormalizeCopyrightText(string original)
+            => original.Trim().Replace("\r\n", "\n");
     }
 }
