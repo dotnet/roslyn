@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static bool IsAutoAccessorList(SyntaxToken token)
         {
-            if(token.Parent != null && token.Parent is AccessorListSyntax accessorList)
+            if (token.Parent is AccessorListSyntax accessorList)
             {
                 return accessorList.Accessors.All(a => a.Body == null);
             }
