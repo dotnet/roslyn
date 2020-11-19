@@ -195,6 +195,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         {
             if (TryParseTemplateAsComment(syntaxFacts, expectedFileHeader, newLineText, out var parsedTemplate))
             {
+                // The editorconfig file header can be parsed as a comment in the target language. We insert it as is.
                 return parsedTemplate;
             }
 
@@ -205,7 +206,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
         private static bool TryParseTemplateAsComment(ISyntaxFacts syntaxFacts, string expectedFileHeader, string newLineText, out SyntaxTriviaList result)
         {
-            var normalizedHeaderTemplate = expectedFileHeader.Replace("\r\n", "\n").Replace("\n", newLineText);
+            var normalizedHeaderTemplate = GetNormalizedHeaderTemplate(expectedFileHeader, newLineText);
             var tryParseTemplate = syntaxFacts.ParseLeadingTrivia(normalizedHeaderTemplate);
 
             foreach (var trivia in tryParseTemplate)
@@ -225,7 +226,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                         // One final check: Let's see if the parsed comment round-trips. This fails in cases like this:
                         // file_header_template = // Some text\nMore text
                         // "More text" is not part of tryParseTemplate
-                        var parsedComment = tryParseTemplate.ToFullString().Replace("\r\n", "\n").Replace("\n", newLineText);
+                        var parsedComment = GetNormalizedHeaderTemplate(tryParseTemplate.ToFullString(), newLineText);
                         if (string.Equals(parsedComment, normalizedHeaderTemplate, StringComparison.Ordinal))
                         {
                             result = tryParseTemplate;
@@ -241,6 +242,17 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
             result = SyntaxTriviaList.Empty;
             return false;
+        }
+
+        /// <summary>
+        /// Normalize the new line characters for comparison.
+        /// </summary>
+        /// <param name="orgiginal">The text with the new line characters to normalize.</param>
+        /// <param name="newLineText">The new line sequence.</param>
+        /// <returns>A normalized copy of <paramref name="orgiginal"/>.</returns>
+        private static string GetNormalizedHeaderTemplate(string orgiginal, string newLineText)
+        {
+            return orgiginal.Replace("\r\n", "\n").Replace("\n", newLineText);
         }
 
         private static string GetCopyrightText(string prefixWithLeadingSpaces, string copyrightText, string newLineText)
