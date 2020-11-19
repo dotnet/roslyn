@@ -72,8 +72,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // prioritize the files from currently active projects, but then also include all other docs in all projects
             // (depending on current FSA settings).
 
-            // Oen docs will not be included as those are handled by DocumentPullDiagnosticHandler.
-
             var activeDocument = documentTrackingService.GetActiveDocument(solution);
             var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
 
@@ -106,17 +104,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
                 // Otherwise, if the user has an open file from this project, or FSA is on, then include all the
                 // documents from it.
-                result.AddRange(project.Documents);
+                foreach (var document in project.Documents)
+                {
+                    // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
+                    // Each handler treats those as separate worlds that they are responsible for.
+                    if (!context.IsTracking(document.GetURI()))
+                        result.Add(document);
+                }
             }
         }
 
         protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
         {
-            // We only support workspace diagnostics for closed files.
-            if (context.IsTracking(document.GetURI()))
-                return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
-
             // For closed files, go to the IDiagnosticService for results.  These won't necessarily be totally up to
             // date.  However, that's fine as these are closed files and won't be in the process of being edited.  So
             // any deviations in the spans of diagnostics shouldn't be impactful for the user.
