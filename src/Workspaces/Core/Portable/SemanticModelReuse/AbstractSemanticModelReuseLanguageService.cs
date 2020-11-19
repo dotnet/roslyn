@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SemanticModelReuse
 {
@@ -24,6 +23,11 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
         where TBasePropertyDeclarationSyntax : TMemberDeclarationSyntax
         where TAccessorDeclarationSyntax : SyntaxNode
     {
+        /// <summary>
+        /// Used to make sure we only report one watson per sessoin here.
+        /// </summary>
+        private static bool s_watsonReported;
+
         protected abstract ISyntaxFacts SyntaxFacts { get; }
 
         public abstract SyntaxNode? TryGetContainingMethodBodyForSpeculation(SyntaxNode node);
@@ -45,21 +49,27 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
             // causing this.
             if (!previousSyntaxTree.IsEquivalentTo(currentSyntaxTree, topLevel: true))
             {
-                try
+                if (!s_watsonReported)
                 {
-                    throw new InvalidOperationException(
-                        $@"Syntax trees should have been equivalent.
+                    s_watsonReported = true;
+
+                    try
+                    {
+                        throw new InvalidOperationException(
+                            $@"Syntax trees should have been equivalent.
 ---
 {previousSyntaxTree.GetText(CancellationToken.None)}
 ---
 {currentSyntaxTree.GetText(CancellationToken.None)}
 ---");
 
+                    }
+                    catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                    {
+                    }
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
-                {
-                    return null;
-                }
+
+                return null;
             }
 
             return await TryGetSpeculativeSemanticModelWorkerAsync(
