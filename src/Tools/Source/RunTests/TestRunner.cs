@@ -191,7 +191,8 @@ namespace RunTests
             var htmlResultsFilePath = testResult.TestResultInfo.HtmlResultsFilePath;
             if (!string.IsNullOrEmpty(htmlResultsFilePath))
             {
-                Process.Start(htmlResultsFilePath);
+                var startInfo = new ProcessStartInfo() { FileName = htmlResultsFilePath, UseShellExecute = true };
+                Process.Start(startInfo);
             }
         }
     }
