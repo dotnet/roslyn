@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         /// <summary>
         /// Returns true when the closing token matches the expected closing token for this brace completion service.
         /// Used by <see cref="AllowOverTypeAsync(BraceCompletionContext, CancellationToken)"/> implementations
-        /// (e.g. when over typing is allowed inside strings).
+        /// when the over type could be triggered from outside of user code (e.g. overtyping end quotes in a string).
         /// </summary>
         protected Task<bool> AllowOverTypeWithValidClosingTokenAsync(BraceCompletionContext context, CancellationToken cancellationToken)
         {

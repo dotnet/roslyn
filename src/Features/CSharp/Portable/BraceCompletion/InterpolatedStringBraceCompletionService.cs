@@ -6,16 +6,18 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.BraceCompletion;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 {
+    /// <summary>
+    /// Brace completion service for double quotes marking an interpolated string.
+    /// Note that the <see cref="StringLiteralBraceCompletionService"/> is used for
+    /// other double quote completions.
+    /// </summary>
     [Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
     internal class InterpolatedStringBraceCompletionService : AbstractBraceCompletionService
     {
@@ -32,6 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
             => AllowOverTypeWithValidClosingTokenAsync(context, cancellationToken);
 
+        /// <summary>
+        /// Only return this service as valid when we're starting an interpolated string.
+        /// Otherwise double quotes should be completed using the <see cref="StringLiteralBraceCompletionService"/>
+        /// </summary>
         public override async Task<bool> IsValidForBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
             => OpeningBrace == brace && await IsPositionInInterpolatedStringContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(false);
 
@@ -47,9 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 && token.Span.End - 1 == position);
         }
 
+        /// <summary>
+        /// Returns true when the input position could be starting an interpolated string if opening quotes were typed.
+        /// </summary>
         public static async Task<bool> IsPositionInInterpolatedStringContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            // Check to see if we're to the right of an $ or an @$
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var start = position - 1;
@@ -58,6 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return false;
             }
 
+            // Check if the user is typing an interpolated or interpolated verbatim string.
+            // If the preceding character(s) are not '$' or '$@' then we can't be starting an interpolated string.
             if (text[start] == '@')
             {
                 start--;
@@ -73,10 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return false;
             }
 
+            // Verify that we are actually in an location allowed for an interpolated string.
+            // Note that the quote has not yet been typed so we don't actually know if we're in an interpolated string.
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
             var token = root.FindTokenOnLeftOfPosition(start);
-
             return root.SyntaxTree.IsExpressionContext(start, token, attributes: false, cancellationToken: cancellationToken)
                 || root.SyntaxTree.IsStatementContext(start, token, cancellationToken);
         }

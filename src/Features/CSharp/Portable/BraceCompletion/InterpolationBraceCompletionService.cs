@@ -7,13 +7,15 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 {
+    /// <summary>
+    /// Brace completion service used for completing curly braces inside interpolated strings.
+    /// In other curly brace completion scenarios the <see cref="CurlyBraceCompletionService"/> should be used.
+    /// </summary>
     [Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
     internal class InterpolationBraceCompletionService : AbstractBraceCompletionService
     {
@@ -30,6 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
             => AllowOverTypeWithValidClosingTokenAsync(context, cancellationToken);
 
+        /// <summary>
+        /// Only return this service as valid when we're typing curly braces inside an interpolated string.
+        /// Otherwise curly braces should be completed using the <see cref="CurlyBraceCompletionService"/>
+        /// </summary>
         public override async Task<bool> IsValidForBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
             => OpeningBrace == brace && await IsPositionInInterpolationContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(false);
 
@@ -45,10 +51,14 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         protected override bool IsValidClosingBraceToken(SyntaxToken token)
             => token.IsKind(SyntaxKind.CloseBraceToken);
 
+        /// <summary>
+        /// Returns true when the input position could be starting an interpolation expression if a curly brace was typed.
+        /// </summary>
         public static async Task<bool> IsPositionInInterpolationContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            // First, check to see if the character to the left of the position is an open curly. If it is,
-            // we shouldn't complete because the user may be trying to escape a curly.
+            // First, check to see if the character to the left of the position is an open curly.
+            // If it is, we shouldn't complete because the user may be trying to escape a curly.
+            // E.g. they are trying to type $"{{"
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var index = position - 1;
             var openCurlyCount = 0;
@@ -71,7 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return false;
             }
 
-            // Next, check to see if we're typing in an interpolated string
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindTokenOnLeftOfPosition(position);
 
@@ -80,18 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return false;
             }
 
-            // For the case: string s = $"{}$$
-            // Here the token to the left is a close brace token inside an interpolation.
-            if (token.IsKind(SyntaxKind.CloseBraceToken) && token.Parent.IsKind(SyntaxKind.Interpolation))
-            {
-                return true;
-            }
-
-            return token.IsKind(
-                SyntaxKind.InterpolatedStringStartToken,
-                SyntaxKind.InterpolatedVerbatimStringStartToken,
-                SyntaxKind.InterpolatedStringTextToken,
-                SyntaxKind.InterpolatedStringEndToken);
+            // We can be starting an interpolation expression if we're inside an interpolated string.
+            return token.GetAncestor((node) => node.IsKind(SyntaxKind.InterpolatedStringExpression)) != null;
         }
     }
 }

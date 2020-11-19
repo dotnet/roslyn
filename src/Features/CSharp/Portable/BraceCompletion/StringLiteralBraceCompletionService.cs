@@ -58,6 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return SpecializedTasks.True;
             }
 
+            // The character at the position is a double quote but the token's span start we found at the position
+            // doesn't match the position.  Check if we're in a verbatim string token @" where the token span start
+            // is the @ character and the " is one past the token start.
             return Task.FromResult(token.SpanStart + 1 == position && token.IsVerbatimStringLiteral());
         }
     }
