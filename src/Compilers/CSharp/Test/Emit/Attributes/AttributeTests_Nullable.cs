@@ -72,7 +72,7 @@ public interface I0 : I1<string>
                 imc1.InterfacesNoUseSiteDiagnostics().Select(i => i.ToTestDisplayString(includeNonNullable: true)));
 
             AssertEx.SetEqual(
-                new[] { "I1<System.String>", "I2<System.String, System.Object!>" },
+                new[] { "I1<System.String>", "I2<System.String!, System.Object!>" },
                 imc1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString(includeNonNullable: true)));
 
             var client_source = @"
@@ -90,12 +90,12 @@ public class C
             // Note: it is expected that the symbol shows different Interfaces in PE vs. compilation reference
             AssertEx.SetEqual(
                 useImageReferences
-                    ? new[] { "I1<System.String>", "I2<System.String, System.Object!>" }
+                    ? new[] { "I1<System.String>", "I2<System.String!, System.Object!>" }
                     : new[] { "I1<System.String>" },
                 imc2.InterfacesNoUseSiteDiagnostics().Select(i => i.ToTestDisplayString(includeNonNullable: true)));
 
             AssertEx.SetEqual(
-                new[] { "I1<System.String>", "I2<System.String, System.Object!>" },
+                new[] { "I1<System.String>", "I2<System.String!, System.Object!>" },
                 imc2.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString(includeNonNullable: true)));
         }
 
@@ -136,7 +136,7 @@ public class C0 : I1<string>
                 lib2_c0.InterfacesNoUseSiteDiagnostics().Select(i => i.ToTestDisplayString(includeNonNullable: true)));
 
             AssertEx.SetEqual(
-                new[] { "I1<System.String>", "I2<System.String, System.Object!>" },
+                new[] { "I1<System.String>", "I2<System.String!, System.Object!>" },
                 lib2_c0.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString(includeNonNullable: true)));
 
             CompileAndVerify(lib2_comp, validator: assembly =>
@@ -171,7 +171,7 @@ public class C1 : C0
                 lib3_c0.InterfacesNoUseSiteDiagnostics().Select(i => i.ToTestDisplayString(includeNonNullable: true)));
 
             AssertEx.SetEqual(
-                new[] { "I1<System.String>", "I2<System.String, System.Object!>" },
+                new[] { "I1<System.String>", "I2<System.String!, System.Object!>" },
                 lib3_c0.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString(includeNonNullable: true)));
 
             CompileAndVerify(lib3_comp, validator: assembly =>

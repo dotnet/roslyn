@@ -773,7 +773,7 @@ public interface I<T, U, V>
                 PublicNullableAnnotation.Annotated);
         }
 
-        [Fact]
+        [Fact(Skip = "TODO2")]
         [WorkItem(34412, "https://github.com/dotnet/roslyn/issues/34412")]
         public void Constraints()
         {
