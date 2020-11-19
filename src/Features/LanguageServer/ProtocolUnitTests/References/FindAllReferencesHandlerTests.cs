@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -51,7 +52,7 @@ class B
             Assert.Equal("M", orderedResults[1].ContainingMember);
             Assert.Equal("M2", orderedResults[3].ContainingMember);
 
-            AssertValidDefinitionProperties(results, 0, Glyph.FieldPublic);
+            AssertValidDefinitionProperties(results, 0, Glyph.FieldPublic, "someInt");
         }
 
         [WpfFact]
@@ -98,7 +99,7 @@ class B
             Assert.Equal("M", orderedResults[1].ContainingMember);
             Assert.Equal("M2", orderedResults[3].ContainingMember);
 
-            AssertValidDefinitionProperties(results, 0, Glyph.FieldPublic);
+            AssertValidDefinitionProperties(results, 0, Glyph.FieldPublic, "someInt");
         }
 
         [WpfFact]
@@ -138,7 +139,7 @@ class B
             Assert.Equal("B", orderedResults[2].ContainingType);
             Assert.Equal("M2", orderedResults[2].ContainingMember);
 
-            AssertValidDefinitionProperties(results, 0, Glyph.ClassInternal);
+            AssertValidDefinitionProperties(results, 0, Glyph.ClassInternal, "A");
         }
 
         [WpfFact]
@@ -175,7 +176,7 @@ class B
             Assert.Equal("M", orderedResults[1].ContainingMember);
             Assert.Equal("M2", orderedResults[3].ContainingMember);
 
-            AssertValidDefinitionProperties(results, 0, Glyph.FieldPublic);
+            AssertValidDefinitionProperties(results, 0, Glyph.FieldPublic, "someInt");
         }
 
         [WpfFact]
@@ -236,7 +237,7 @@ class A
             // Namespace references should have a location
             Assert.True(results.Any(r => r.DefinitionText == null && r.Location != null));
 
-            AssertValidDefinitionProperties(results, 0, Glyph.Namespace);
+            AssertValidDefinitionProperties(results, 0, Glyph.Namespace, "N");
         }
 
         private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress) =>
@@ -266,13 +267,25 @@ class A
                 CreateReferenceParams(caret, progress), vsClientCapabilities, null, CancellationToken.None);
         }
 
-        private static void AssertValidDefinitionProperties(LSP.VSReferenceItem[] referenceItems, int definitionIndex, Glyph definitionGlyph)
+        private static void AssertValidDefinitionProperties(LSP.VSReferenceItem[] referenceItems, int definitionIndex, Glyph definitionGlyph, string originalSymbolDisplayName)
         {
             var definition = referenceItems[definitionIndex];
             var definitionId = definition.DefinitionId;
             Assert.NotNull(definition.DefinitionText);
 
             Assert.Equal(definitionGlyph.GetImageId(), definition.DefinitionIcon.ImageId);
+
+            // Assert that we only have highlights where expected
+            var classifiedTextRuns = referenceItems.SelectMany(r => ((ClassifiedTextElement)r.Text).Runs);
+            var highlightedTags = classifiedTextRuns.Where(
+                c => c.MarkerTagType == DefinitionHighlightTag.TagId || c.MarkerTagType == WrittenReferenceHighlightTag.TagId || c.MarkerTagType == ReferenceHighlightTag.TagId);
+
+            // Highlights should only be applied to the original display name
+            Assert.True(highlightedTags.All(t => t.Text == originalSymbolDisplayName));
+            // All occurrences of original display name should have highlights
+            Assert.True(classifiedTextRuns.Where(c => c.Text == originalSymbolDisplayName).All(c => c.MarkerTagType != null));
+            // Definition should have a special definition highlight tag
+            Assert.True(((ClassifiedTextElement)definition.Text).Runs.Any(r => r.MarkerTagType == DefinitionHighlightTag.TagId));
 
             for (var i = 0; i < referenceItems.Length; i++)
             {
@@ -285,6 +298,9 @@ class A
                 Assert.Equal(0, referenceItems[i].DefinitionIcon.ImageId.Id);
                 Assert.Equal(definitionId, referenceItems[i].DefinitionId);
                 Assert.NotEqual(definitionId, referenceItems[i].Id);
+
+                // Non-definition references should not contain DefinitionHighlightTag
+                Assert.False(((ClassifiedTextElement)referenceItems[i].Text).Runs.Any(r => r.MarkerTagType == DefinitionHighlightTag.TagId));
             }
         }
     }

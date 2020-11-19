@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.MetadataAsSource;
@@ -47,8 +48,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var position = await document.GetPositionFromLinePositionAsync(
                 ProtocolConversions.PositionToLinePosition(referenceParams.Position), cancellationToken).ConfigureAwait(false);
 
+            var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+            if (symbol == null)
+            {
+                return Array.Empty<LSP.VSReferenceItem>();
+            }
+
+            var originalSymbolDisplayName = FindUsagesHelpers.GetDisplayName(symbol);
             var findUsagesContext = new FindUsagesLSPContext(
-                progress, document, position, _metadataAsSourceFileService, cancellationToken);
+                progress, document, position, originalSymbolDisplayName, _metadataAsSourceFileService, cancellationToken);
 
             // Finds the references for the symbol at the specific position in the document, reporting them via streaming to the LSP client.
             await findUsagesService.FindReferencesAsync(document, position, findUsagesContext).ConfigureAwait(false);

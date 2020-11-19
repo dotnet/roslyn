@@ -9,12 +9,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
@@ -27,6 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         private readonly IProgress<VSReferenceItem[]> _progress;
         private readonly Document _document;
         private readonly int _position;
+        private readonly string _originalSymbolDisplayName;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
         /// <summary>
@@ -60,12 +64,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             IProgress<VSReferenceItem[]> progress,
             Document document,
             int position,
+            string originalSymbolDisplayName,
             IMetadataAsSourceFileService metadataAsSourceFileService,
             CancellationToken cancellationToken)
         {
             _progress = progress;
             _document = document;
             _position = position;
+            _originalSymbolDisplayName = originalSymbolDisplayName;
             _metadataAsSourceFileService = metadataAsSourceFileService;
             _workQueue = new AsyncBatchingWorkQueue<VSReferenceItem>(
                 TimeSpan.FromMilliseconds(500), ReportReferencesAsync, cancellationToken);
@@ -92,9 +98,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 // Creating a new VSReferenceItem for the definition
                 var definitionItem = await GenerateVSReferenceItemAsync(
-                    _id, definitionId: _id, _document, _position, definition.SourceSpans.FirstOrDefault(),
+                    _id, definitionId: _id, _document, _position, _originalSymbolDisplayName, definition.SourceSpans.FirstOrDefault(),
                     definition.DisplayableProperties, _metadataAsSourceFileService, definition.GetClassifiedText(),
-                    definition.Tags.GetFirstGlyph(), symbolUsageInfo: null, CancellationToken).ConfigureAwait(false);
+                    definition.Tags.GetFirstGlyph(), symbolUsageInfo: null, isWriteOperation: false, CancellationToken).ConfigureAwait(false);
 
                 if (definitionItem != null)
                 {
@@ -134,9 +140,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 // Creating a new VSReferenceItem for the reference
                 var referenceItem = await GenerateVSReferenceItemAsync(
-                    _id, definitionId, _document, _position, reference.SourceSpan,
+                    _id, definitionId, _document, _position, _originalSymbolDisplayName, reference.SourceSpan,
                     reference.AdditionalProperties, _metadataAsSourceFileService, definitionText: null,
-                    definitionGlyph: Glyph.None, reference.SymbolUsageInfo, CancellationToken).ConfigureAwait(false);
+                    definitionGlyph: Glyph.None, reference.SymbolUsageInfo, isWriteOperation: reference.IsWrittenTo,
+                    CancellationToken).ConfigureAwait(false);
 
                 if (referenceItem != null)
                 {
@@ -150,19 +157,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             int? definitionId,
             Document document,
             int position,
+            string originalSymbolDisplayName,
             DocumentSpan documentSpan,
             ImmutableDictionary<string, string> properties,
             IMetadataAsSourceFileService metadataAsSourceFileService,
             ClassifiedTextElement? definitionText,
             Glyph definitionGlyph,
             SymbolUsageInfo? symbolUsageInfo,
+            bool isWriteOperation,
             CancellationToken cancellationToken)
         {
             var location = await ComputeLocationAsync(document, position, documentSpan, metadataAsSourceFileService, cancellationToken).ConfigureAwait(false);
 
             // Getting the text for the Text property. If we somehow can't compute the text, that means we're probably dealing with a metadata
             // reference, and those don't show up in the results list in Roslyn FAR anyway.
-            var text = await ComputeTextAsync(id, definitionId, documentSpan, definitionText, cancellationToken).ConfigureAwait(false);
+            var text = await ComputeTextAsync(
+                id, definitionId, originalSymbolDisplayName, documentSpan, definitionText, isWriteOperation, cancellationToken).ConfigureAwait(false);
             if (text == null)
             {
                 return null;
@@ -202,6 +212,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
             return result;
 
+            // Local functions
             static async Task<LSP.Location?> ComputeLocationAsync(
                 Document document,
                 int position,
@@ -250,15 +261,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 }
             }
 
-            static async Task<object?> ComputeTextAsync(
+            static async Task<ClassifiedTextElement?> ComputeTextAsync(
                 int id, int? definitionId,
+                string originalSymbolDisplayName,
                 DocumentSpan documentSpan,
                 ClassifiedTextElement? definitionText,
+                bool isWriteOperation,
                 CancellationToken cancellationToken)
             {
                 if (id == definitionId)
                 {
-                    return definitionText;
+                    Contract.ThrowIfNull(definitionText);
+
+                    // The 'Text' property of the VSReferenceItem should contain highlights, but 'DefinitionText' should not,
+                    // since the latter is used to display a header when the user groups FAR results by definition.
+                    var classifiedTextRuns = GetDefinitionClassifiedTextRunsWithHighlight(originalSymbolDisplayName, definitionText);
+                    return new ClassifiedTextElement(classifiedTextRuns.ToArray());
                 }
                 else if (documentSpan != default)
                 {
@@ -267,11 +285,71 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                     var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
                     var docText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                    return new ClassifiedTextElement(
-                        classifiedSpans.Select(cspan => new ClassifiedTextRun(cspan.ClassificationType, docText.ToString(cspan.TextSpan))));
+                    var classifiedTextRuns = GetReferenceClassifiedTextRunsWithHighlight(originalSymbolDisplayName, classifiedSpans, docText, isWriteOperation);
+                    return new ClassifiedTextElement(classifiedTextRuns);
                 }
 
                 return null;
+
+                // Local functions
+                static ClassifiedTextRun[] GetDefinitionClassifiedTextRunsWithHighlight(string originalSymbolDisplayName, ClassifiedTextElement definitionText)
+                {
+                    using var _ = ArrayBuilder<ClassifiedTextRun>.GetInstance(out var classifiedTextRuns);
+                    foreach (var run in definitionText.Runs)
+                    {
+                        if (run.Text == originalSymbolDisplayName)
+                        {
+                            // We want to highlight this span of text. For example, if the user invokes FAR on 'x' in 'var x = 1', 'x'
+                            // should be highlighted.
+                            classifiedTextRuns.Add(new ClassifiedTextRun(
+                                run.ClassificationTypeName, run.Text, ClassifiedTextRunStyle.Plain, markerTagType: DefinitionHighlightTag.TagId));
+                        }
+                        else
+                        {
+                            // This isn't something we want to highlight. For example, 'var' and '= 1' in the example above should not be highlighted.
+                            classifiedTextRuns.Add(new ClassifiedTextRun(
+                                run.ClassificationTypeName, run.Text, ClassifiedTextRunStyle.Plain));
+                        }
+                    }
+
+                    return classifiedTextRuns.ToArray();
+                }
+
+                static ClassifiedTextRun[] GetReferenceClassifiedTextRunsWithHighlight(
+                    string originalSymbolDisplayName,
+                    ImmutableArray<ClassifiedSpan> classifiedSpans,
+                    SourceText docText,
+                    bool isWriteOperation)
+                {
+                    using var _ = ArrayBuilder<ClassifiedTextRun>.GetInstance(out var classifiedTextRuns);
+
+                    foreach (var span in classifiedSpans)
+                    {
+                        var spanText = docText.ToString(span.TextSpan);
+                        if (spanText == originalSymbolDisplayName)
+                        {
+                            // We want to highlight this span of text. For example, if the user invokes FAR on 'M' in 'C.M()', 'M' should be
+                            // highlighted in all reference results.
+                            if (isWriteOperation)
+                            {
+                                classifiedTextRuns.Add(new ClassifiedTextRun(
+                                    span.ClassificationType, spanText, ClassifiedTextRunStyle.Plain, markerTagType: WrittenReferenceHighlightTag.TagId));
+                            }
+                            else
+                            {
+                                classifiedTextRuns.Add(new ClassifiedTextRun(
+                                    span.ClassificationType, spanText, ClassifiedTextRunStyle.Plain, markerTagType: ReferenceHighlightTag.TagId));
+                            }
+                        }
+                        else
+                        {
+                            // This isn't something we want to highlight. For example, 'C' and '()' in the example above should not be highlighted.
+                            classifiedTextRuns.Add(new ClassifiedTextRun(span.ClassificationType, spanText, ClassifiedTextRunStyle.Plain));
+                        }
+                    }
+
+                    return classifiedTextRuns.ToArray();
+                }
             }
         }
 
