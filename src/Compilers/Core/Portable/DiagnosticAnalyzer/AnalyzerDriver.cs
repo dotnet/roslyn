@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -435,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
            CompilationWithAnalyzersOptions analysisOptions,
            CompilationData compilationData,
            bool categorizeDiagnostics,
-           ArtifactGenerationContext? artifactContext,
+           Action<string, Action<Stream>>? createArtifactStream,
            CancellationToken cancellationToken)
         {
             Debug.Assert(_lazyInitializeTask == null);
@@ -491,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 IsAnalyzerSuppressedForTree,
                 GetAnalyzerGate,
                 getSemanticModel: GetOrCreateSemanticModel,
-                artifactContext: artifactContext,
+                createArtifactStream: createArtifactStream,
                 analysisOptions.LogAnalyzerExecutionTime,
                 addCategorizedLocalDiagnostic,
                 addCategorizedNonLocalDiagnostic,
@@ -814,7 +815,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="options">Options that are passed to analyzers.</param>
         /// <param name="analyzerManager">AnalyzerManager to manage analyzers for the lifetime of analyzer host.</param>
         /// <param name="addExceptionDiagnostic">Delegate to add diagnostics generated for exceptions from third party analyzers.</param>
-        /// <param name="artifactContext">Callback to add additional artifact files to be generated.</param>
+        /// <param name="createArtifactStream">Callback to add additional artifact files to be generated.</param>
         /// <param name="reportAnalyzer">Report additional information related to analyzers, such as analyzer execution time.</param>
         /// <param name="severityFilter">Filtered diagnostic severities in the compilation, i.e. diagnostics with effective severity from this set should not be reported.</param>
         /// <param name="newCompilation">The new compilation with the analyzer driver attached.</param>
@@ -830,7 +831,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions options,
             AnalyzerManager analyzerManager,
             Action<Diagnostic> addExceptionDiagnostic,
-            ArtifactGenerationContext? artifactContext,
+            Action<string, Action<Stream>>? createArtifactStream,
             bool reportAnalyzer,
             SeverityFilter severityFilter,
             out Compilation newCompilation,
@@ -845,7 +846,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analyzers,
                 options,
                 analyzerManager,
-                artifactContext,
+                createArtifactStream,
                 onAnalyzerException,
                 nullFilter,
                 reportAnalyzer,
@@ -860,7 +861,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalyzerOptions options,
             AnalyzerManager analyzerManager,
-            ArtifactGenerationContext? artifactContext,
+            Action<string, Action<Stream>>? createArtifactStream,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
             Func<Exception, bool>? analyzerExceptionFilter,
             bool reportAnalyzer,
@@ -875,7 +876,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var categorizeDiagnostics = false;
             var analysisOptions = new CompilationWithAnalyzersOptions(options, onAnalyzerException, analyzerExceptionFilter: analyzerExceptionFilter, concurrentAnalysis: true, logAnalyzerExecutionTime: reportAnalyzer, reportSuppressedDiagnostics: false);
-            analyzerDriver.Initialize(newCompilation, analysisOptions, new CompilationData(newCompilation), categorizeDiagnostics, artifactContext, cancellationToken);
+            analyzerDriver.Initialize(
+                newCompilation, analysisOptions, new CompilationData(newCompilation),
+                categorizeDiagnostics, createArtifactStream, cancellationToken);
 
             var analysisScope = new AnalysisScope(newCompilation, options, analyzers, hasAllAnalyzers: true, concurrentAnalysis: newCompilation.Options.ConcurrentBuild, categorizeDiagnostics: categorizeDiagnostics);
             analyzerDriver.AttachQueueAndStartProcessingEvents(newCompilation.EventQueue!, analysisScope, cancellationToken: cancellationToken);

@@ -1283,10 +1283,10 @@ namespace Microsoft.CodeAnalysis
 
                 // Determine if we should support artifact generators or not.  If we have an specified output path, then
                 // we will run artifact generators.  Otherwise, we won't bother as we have no place to put their files.
-                ArtifactGenerationContext? artifactContext = null;
+                Action<string, Action<Stream>>? createArtifactStream = null;
                 if (!string.IsNullOrWhiteSpace(Arguments.GeneratedArtifactsOutputDirectory))
                 {
-                    artifactContext = new ArtifactGenerationContext(
+                    createArtifactStream =
                         (hint, callback) =>
                         {
                             CreateFileStream(diagnostics, hint, Arguments.GeneratedArtifactsOutputDirectory, out var path, out var fileStream);
@@ -1296,7 +1296,7 @@ namespace Microsoft.CodeAnalysis
                                 callback(fileStream);
                                 touchedFilesLogger?.AddWritten(path);
                             };
-                        });
+                        };
                 }
 
                 analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
@@ -1305,7 +1305,7 @@ namespace Microsoft.CodeAnalysis
                     analyzerOptions,
                     new AnalyzerManager(analyzers),
                     analyzerExceptionDiagnostics.Add,
-                    artifactContext,
+                    createArtifactStream,
                     Arguments.ReportAnalyzer,
                     severityFilter,
                     out compilation,

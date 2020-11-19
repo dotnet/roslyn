@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private Func<IOperation, ControlFlowGraph> GetControlFlowGraph
             => _lazyGetControlFlowGraph ??= GetControlFlowGraphImpl;
 
-        public readonly ArtifactGenerationContext? ArtifactContext;
+        public readonly Action<string, Action<Stream>>? CreateArtifactStream;
 
         private bool IsAnalyzerSuppressedForTree(DiagnosticAnalyzer analyzer, SyntaxTree tree)
         {
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, bool> isAnalyzerSuppressedForTree,
             Func<DiagnosticAnalyzer, object?> getAnalyzerGate,
             Func<SyntaxTree, SemanticModel> getSemanticModel,
-            ArtifactGenerationContext? artifactContext,
+            Action<string, Action<Stream>>? createArtifactStream,
             bool logExecutionTime = false,
             Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic = null,
             Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic = null,
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isAnalyzerSuppressedForTree,
                 getAnalyzerGate,
                 getSemanticModel,
-                artifactContext,
+                createArtifactStream,
                 analyzerExecutionTimeMap,
                 addCategorizedLocalDiagnostic,
                 addCategorizedNonLocalDiagnostic,
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="cancellationToken">Cancellation token.</param>
         public static AnalyzerExecutor CreateForSupportedDiagnostics(
             Action<Exception, DiagnosticAnalyzer, Diagnostic>? onAnalyzerException,
-            ArtifactGenerationContext? artifactContext,
+            Action<string, Action<Stream>>? createArtifactStream,
             AnalyzerManager analyzerManager,
             CancellationToken cancellationToken = default)
         {
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isAnalyzerSuppressedForTree: null,
                 getAnalyzerGate: null,
                 getSemanticModel: null,
-                artifactContext: artifactContext,
+                createArtifactStream: createArtifactStream,
                 onAnalyzerException: onAnalyzerException,
                 analyzerExceptionFilter: null,
                 analyzerManager: analyzerManager,
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, bool>? isAnalyzerSuppressedForTree,
             Func<DiagnosticAnalyzer, object?>? getAnalyzerGate,
             Func<SyntaxTree, SemanticModel>? getSemanticModel,
-            ArtifactGenerationContext? artifactContext,
+            Action<string, Action<Stream>>? createArtifactStream,
             ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>>? analyzerExecutionTimeMap,
             Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic,
             Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic,
@@ -227,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _isAnalyzerSuppressedForTree = isAnalyzerSuppressedForTree;
             _getAnalyzerGate = getAnalyzerGate;
             _getSemanticModel = getSemanticModel;
-            ArtifactContext = artifactContext;
+            CreateArtifactStream = createArtifactStream;
             _analyzerExecutionTimeMap = analyzerExecutionTimeMap;
             _addCategorizedLocalDiagnostic = addCategorizedLocalDiagnostic;
             _addCategorizedNonLocalDiagnostic = addCategorizedNonLocalDiagnostic;
@@ -258,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _isAnalyzerSuppressedForTree,
                 _getAnalyzerGate,
                 _getSemanticModel,
-                ArtifactContext,
+                CreateArtifactStream,
                 _analyzerExecutionTimeMap,
                 _addCategorizedLocalDiagnostic,
                 _addCategorizedNonLocalDiagnostic,
@@ -330,13 +331,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // not have any opportunity to register callbacks for us to call into in the future.
                     if (analyzer is ArtifactProducer artifactProducer)
                     {
-                        if (ArtifactContext != null)
-                            artifactProducer.Initialize(data.context, ArtifactContext.Value);
+                        if (CreateArtifactStream == null)
+                            return;
+
+                        artifactProducer.CreateArtifactStream = CreateArtifactStream;
                     }
-                    else
-                    {
-                        data.analyzer.Initialize(data.context);
-                    }
+
+                    data.analyzer.Initialize(data.context);
                 },
                 (analyzer, context));
         }

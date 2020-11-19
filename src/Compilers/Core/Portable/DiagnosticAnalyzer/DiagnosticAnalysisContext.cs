@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -1640,94 +1639,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Gets a <see cref="SemanticModel"/> for the given <see cref="SyntaxTree"/>, which is shared across all analyzers.
         /// </summary>
         public SemanticModel GetSemanticModel(SyntaxTree syntaxTree) => _getSemanticModel(syntaxTree);
-    }
-
-    /// <summary>
-    /// Helper type used for actually generating artifact files during the analyzer pass. <see
-    /// cref="ArtifactProducer"/>s can be provided as plugins and are given the opportunity to analyze the compilation
-    /// during the analysis pass, writing out arbitrary data to files during that time. These generators will only be
-    /// executed if the compilation is run with a specified 'generatedfilesout' argument for both source generator and
-    /// artifacts to be generated into.
-    /// </summary>
-    public readonly struct ArtifactGenerationContext
-    {
-#if !NETCOREAPP
-        /// <summary>
-        /// From: https://github.com/microsoft/referencesource/blob/f461f1986ca4027720656a0c77bede9963e20b7e/mscorlib/system/io/streamwriter.cs#L48
-        /// </summary>
-        private const int DefaultBufferSize = 1024;
-#endif
-
-        private readonly Action<string, Action<Stream>> _createArtifactStream;
-
-        internal ArtifactGenerationContext(Action<string, Action<Stream>> createArtifactStream)
-        {
-            _createArtifactStream = createArtifactStream;
-        }
-
-        /// <summary>
-        /// Generates an artifact with the contents of <paramref name="source"/>.  The artifact will be written out with utf8 encoding.
-        /// </summary>
-        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
-        /// <param name="source">The text to generate</param>
-        public void GenerateArtifact(string hintName, string source)
-        {
-            GenerateArtifact(hintName, stream =>
-            {
-#if NETCOREAPP
-                using var writer = new StreamWriter(stream, Encoding.UTF8, leaveOpen: true);
-#else
-                using var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: DefaultBufferSize, leaveOpen: true);
-#endif
-                writer.Write(source);
-            });
-        }
-
-        /// <summary>
-        /// Generates an artifact with the contents of <paramref name="builder"/>.  The artifact will be written out with utf8 encoding.
-        /// </summary>
-        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
-        /// <param name="builder">The string builder containing the contents to generate</param>
-        public void GenerateArtifact(string hintName, StringBuilder builder)
-        {
-            GenerateArtifact(hintName, stream =>
-            {
-#if NETCOREAPP
-                using var writer = new StreamWriter(stream, Encoding.UTF8, leaveOpen: true);
-#else
-                using var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: DefaultBufferSize, leaveOpen: true);
-#endif
-                writer.Write(builder);
-            });
-        }
-
-        /// <summary>
-        /// Generates an artifact with the contents and encoding specified by <paramref name="sourceText"/>.
-        /// </summary>
-        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
-        /// <param name="sourceText">The <see cref="SourceText"/> to generate</param>
-        public void GenerateArtifact(string hintName, SourceText sourceText)
-        {
-            GenerateArtifact(hintName, stream =>
-            {
-#if NETCOREAPP
-                using var writer = new StreamWriter(stream, sourceText.Encoding ?? Encoding.UTF8, leaveOpen: true);
-#else
-                using var writer = new StreamWriter(stream, sourceText.Encoding ?? Encoding.UTF8, bufferSize: DefaultBufferSize, leaveOpen: true);
-#endif
-                sourceText.Write(writer);
-            });
-        }
-
-        /// <summary>
-        /// Requests a fresh stream associated with the given <paramref name="hintName"/> to write artifact data into.
-        /// The callback does should not call <see cref="Stream.Close"/>, <see cref="Stream.Flush"/>, or <see
-        /// cref="Stream.Dispose()"/>.  This overload is useful if there is a large amount of data to write, or if there
-        /// is binary data to write.
-        /// </summary>
-        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this analyzer</param>
-        /// <param name="writeStream">A callback that will be passed the stream to write into.</param>
-        public void GenerateArtifact(string hintName, Action<Stream> writeStream)
-            => _createArtifactStream(hintName, writeStream);
     }
 }

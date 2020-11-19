@@ -8,6 +8,10 @@ Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerationContext.GenerateArtifact(st
 Microsoft.CodeAnalysis.Diagnostics.ArtifactGenerationContext.GenerateArtifact(string hintName, System.Text.StringBuilder builder) -> void
 Microsoft.CodeAnalysis.Diagnostics.ArtifactProducer
 Microsoft.CodeAnalysis.Diagnostics.ArtifactProducer.ArtifactProducer() -> void
+Microsoft.CodeAnalysis.Diagnostics.ArtifactProducer.GenerateArtifact(string hintName, Microsoft.CodeAnalysis.Text.SourceText sourceText) -> void
+Microsoft.CodeAnalysis.Diagnostics.ArtifactProducer.GenerateArtifact(string hintName, string source) -> void
+Microsoft.CodeAnalysis.Diagnostics.ArtifactProducer.GenerateArtifact(string hintName, System.Action<System.IO.Stream> writeStream) -> void
+Microsoft.CodeAnalysis.Diagnostics.ArtifactProducer.GenerateArtifact(string hintName, System.Text.StringBuilder builder) -> void
 Microsoft.CodeAnalysis.GeneratorAttribute.GeneratorAttribute(string firstLanguage, params string[] additionalLanguages) -> void
 Microsoft.CodeAnalysis.GeneratorAttribute.Languages.get -> string[]
 Microsoft.CodeAnalysis.ITypeSymbol.IsRecord.get -> bool
