@@ -73,7 +73,8 @@ internal static class MinimizeUtil
                 }
             }
 
-            // TODO: we should avoid copying the files under Resources.
+            // https://github.com/dotnet/roslyn/issues/49486
+            // we should avoid copying the files under Resources.
             var individualFiles = new[]
             {
                 "./global.json",
@@ -95,7 +96,6 @@ internal static class MinimizeUtil
                 var destGlobalJsonPath = Path.Combine(destinationDirectory, individualFile);
                 CreateHardLink(destGlobalJsonPath, Path.Combine(sourceDirectory, individualFile));
             }
-
         }
 
         // Now that we have a complete list of PE files, determine which are duplicates
