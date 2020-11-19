@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Discard_can_be_removed">
         <source>Discard can be removed</source>
-        <target state="new">Discard can be removed</target>
+        <target state="translated">무시 항목은 제거할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnessary_discard">
         <source>Remove unnecessary discard</source>
-        <target state="new">Remove unnecessary discard</target>
+        <target state="translated">불필요한 무시 항목 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_default_expression">
@@ -214,7 +214,7 @@
       </trans-unit>
       <trans-unit id="Use_new">
         <source>Use 'new(...)'</source>
-        <target state="new">Use 'new(...)'</target>
+        <target state="translated">'new(...)' 사용</target>
         <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_pattern_matching">
@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="new_expression_can_be_simplified">
         <source>'new' expression can be simplified</source>
-        <target state="new">'new' expression can be simplified</target>
+        <target state="translated">'new' 식을 간단하게 줄일 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="typeof_can_be_converted_ to_nameof">

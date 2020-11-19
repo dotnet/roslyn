@@ -89,12 +89,12 @@
       </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
-        <target state="new">Change to 'as' expression</target>
+        <target state="translated">變更為 'as' 運算式</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_to_cast">
         <source>Change to cast</source>
-        <target state="new">Change to cast</target>
+        <target state="translated">變更為 'cast'</target>
         <note />
       </trans-unit>
       <trans-unit id="Compare_to_0">

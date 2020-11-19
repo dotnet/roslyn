@@ -652,7 +652,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="No_valid_location_to_insert_method_call">
         <source>No valid location to insert method call.</source>
-        <target state="new">No valid location to insert method call.</target>
+        <target state="translated">メソッド呼び出しを挿入する有効な場所がありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -1887,7 +1887,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="The_assembly_0_containing_type_1_references_NET_Framework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
-        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <target state="translated">型 '{1}' を含むアセンブリ '{0}' が .NET Framework を参照しています。これはサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2092,12 +2092,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
         <source>'{0}' cannot be null or empty.</source>
-        <target state="needs-review-translation">'{0}' を null または空にすることはできません。</target>
+        <target state="translated">'{0}' を NULL または空にすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_whitespace">
         <source>'{0}' cannot be null or whitespace.</source>
-        <target state="needs-review-translation">'{0}' を null または空白にすることはできません。</target>
+        <target state="translated">'{0}' を null または空白にすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
