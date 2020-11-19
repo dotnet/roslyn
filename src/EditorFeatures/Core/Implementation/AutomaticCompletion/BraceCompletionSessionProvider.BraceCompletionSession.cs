@@ -73,10 +73,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             public void Start()
             {
                 // Brace completion is not cancellable.
-                this.Start(CancellationToken.None);
+                if (!this.Start(CancellationToken.None))
+                {
+                    EndSession();
+                }
             }
 
-            private void Start(CancellationToken cancellationToken)
+            private bool Start(CancellationToken cancellationToken)
             {
                 this.AssertIsForeground();
                 var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
@@ -84,8 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 if (closingSnapshotPoint.Position < 1)
                 {
                     Debug.Fail("The closing point was not found at the expected position.");
-                    EndSession();
-                    return;
+                    return false;
                 }
 
                 var openingSnapshotPoint = closingSnapshotPoint.Subtract(1);
@@ -95,8 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                     // there is a bug in editor brace completion engine on projection buffer that already fixed in vs_pro. until that is FIed to use
                     // I will make this not to assert
                     // Debug.Fail("The opening brace was not found at the expected position.");
-                    EndSession();
-                    return;
+                    return false;
                 }
 
                 OpeningPoint = SubjectBuffer.CurrentSnapshot.CreateTrackingPoint(openingSnapshotPoint, PointTrackingMode.Positive);
@@ -104,15 +105,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 var context = GetBraceCompletionContext();
                 if (context == null)
                 {
-                    EndSession();
-                    return;
+                    return false;
                 }
 
                 var braceResult = _service.GetBraceCompletionAsync(context.Value, cancellationToken).WaitAndGetResult(cancellationToken);
                 if (braceResult == null)
                 {
-                    EndSession();
-                    return;
+                    return false;
                 }
 
                 using var caretPreservingTransaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Brace_Completion, _undoHistory, _editorOperations);
@@ -124,19 +123,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 ClosingPoint = SubjectBuffer.CurrentSnapshot.CreateTrackingPoint(ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot), PointTrackingMode.Negative);
 
                 var contextAfterStart = GetBraceCompletionContext();
-                if (context == null)
+                if (contextAfterStart != null)
                 {
-                    caretPreservingTransaction.Complete();
-                    return;
-                }
-
-                var changesAfterStart = _service.GetTextChangesAfterCompletionAsync(contextAfterStart.Value, cancellationToken).WaitAndGetResult(cancellationToken);
-                if (changesAfterStart != null)
-                {
-                    ApplyBraceCompletionResult(changesAfterStart.Value);
+                    var changesAfterStart = _service.GetTextChangesAfterCompletionAsync(contextAfterStart.Value, cancellationToken).WaitAndGetResult(cancellationToken);
+                    if (changesAfterStart != null)
+                    {
+                        ApplyBraceCompletionResult(changesAfterStart.Value);
+                    }
                 }
 
                 caretPreservingTransaction.Complete();
+                return true;
             }
 
             public void PreBackspace(out bool handledCommand)
@@ -193,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 var snapshot = this.SubjectBuffer.CurrentSnapshot;
 
                 var closingSnapshotPoint = ClosingPoint.GetPoint(snapshot);
-                
+
                 if (!HasForwardTyping && AllowOverType())
                 {
                     var caretPos = this.GetCaretPosition();
@@ -233,6 +230,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                         }
                     }
                 }
+
+                return;
 
                 bool AllowOverType()
                 {
@@ -428,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 {
                     return;
                 }
-                
+
                 var caretLine = SubjectBuffer.CurrentSnapshot.GetLineFromLineNumber(result.CaretLocation.Line);
                 TextView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(caretLine, result.CaretLocation.Character));
             }
