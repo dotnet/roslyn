@@ -24,17 +24,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AddImports
             MyBase.New(threadingContext)
         End Sub
 
-        Public Overrides ReadOnly Property DisplayName As String
-            Get
-                Return VBEditorResources.Add_Missing_Imports_on_Paste
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property DialogText As String
-            Get
-                Return VBEditorResources.Adding_missing_imports
-            End Get
-        End Property
+        Public Overrides ReadOnly Property DisplayName As String = VBEditorResources.Add_Missing_Imports_on_Paste
+        Protected Overrides ReadOnly Property DialogText As String = VBEditorResources.Adding_missing_imports
     End Class
 
 End Namespace

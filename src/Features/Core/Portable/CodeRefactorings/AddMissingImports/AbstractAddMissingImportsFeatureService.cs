@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             // We do not want to add project or framework references without the user's input, so filter those out.
             var usableFixes = unambiguousFixes.WhereAsArray(fixData => DoesNotAddReference(fixData, document.Project.Id));
 
-            return new AddMissingImportsAnalysisResult(
-                usableFixes);
+            return new AddMissingImportsAnalysisResult(usableFixes);
         }
 
         private static bool DoesNotAddReference(AddImportFixData fixData, ProjectId currentProjectId)
