@@ -356,7 +356,7 @@ function TestUsingRunTests() {
     $args += " --include '\.UnitTests'"
     $args += " --timeout 90"
   }
-  if ($testDesktop -or $testIOperation) {
+  elseif ($testDesktop -or $testIOperation) {
     $args += " --tfm net472"
     $args += " --include '\.UnitTests'"
     $args += " --timeout 90"
