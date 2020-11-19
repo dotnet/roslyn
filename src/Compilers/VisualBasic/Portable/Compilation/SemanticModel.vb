@@ -909,9 +909,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Next
 
-                Dim tmp = ImmutableArray.CreateRange(symbolSet)
+                Dim result = ImmutableArray.CreateRange(symbolSet)
                 symbolSet.Free()
-                Return tmp
+                Return result
             End If
         End Function
 
