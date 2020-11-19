@@ -843,7 +843,7 @@ namespace Foo1
 
             var markup = GetMarkupWithReference(file1, file2, LanguageNames.CSharp, LanguageNames.CSharp, isProjectReference);
             await VerifyTypeImportItemExistsAsync(markup, "Foo4", (int)Glyph.ClassPublic, "Foo1.Foo2.Foo3", displayTextSuffix: "<>");
-            await VerifyTypeImportItemExistsAsync(markup, "Foo5",(int)Glyph.ClassPublic, "Foo1.Foo2.Foo3",  displayTextSuffix: "<>");
+            await VerifyTypeImportItemExistsAsync(markup, "Foo5", (int)Glyph.ClassPublic, "Foo1.Foo2.Foo3", displayTextSuffix: "<>");
         }
 
         #endregion
