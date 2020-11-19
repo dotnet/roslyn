@@ -237,8 +237,35 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             IDocumentTextDifferencingService textDiffingService,
             CancellationToken cancellationToken)
         {
-            var newSolution = await codeAction.GetChangedSolutionAsync(
-                progressTracker, cancellationToken: cancellationToken).ConfigureAwait(false);
+            // CodeAction.GetChangedSolutionAsync is only implemented for code actions that can fully compute the new
+            // solution without deferred computation or taking a dependency on the main thread. In other cases, the
+            // implementation of GetChangedSolutionAsync will throw an exception and the code action application is
+            // expected to apply the changes by executing the operations in GetOperationsAsync (which may have other
+            // side effects). This code cannot assume the input CodeAction supports GetChangedSolutionAsync, so it first
+            // attempts to apply text changes obtained from GetOperationsAsync. Two forms are supported:
+            //
+            // 1. GetOperationsAsync returns an empty list of operations (i.e. no changes are required)
+            // 2. GetOperationsAsync returns a list of operations, where the first change is an ApplyChangesOperation to
+            //    change the text in the solution, and any remaining changes are deferred computation changes.
+            //
+            // If GetOperationsAsync does not adhere to one of these patterns, the code falls back to calling
+            // GetChangedSolutionAsync since there is no clear way to apply the changes otherwise.
+            var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
+            Solution newSolution;
+            if (operations.Length == 0)
+            {
+                newSolution = document.Project.Solution;
+            }
+            else if (operations.Length == 1 && operations[0] is ApplyChangesOperation applyChangesOperation)
+            {
+                newSolution = applyChangesOperation.ChangedSolution;
+            }
+            else
+            {
+                newSolution = await codeAction.GetChangedSolutionAsync(
+                    progressTracker, cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+
             var newDocument = newSolution.GetDocument(document.Id);
 
             // Use Line differencing to reduce the possibility of changes that overwrite existing code.
