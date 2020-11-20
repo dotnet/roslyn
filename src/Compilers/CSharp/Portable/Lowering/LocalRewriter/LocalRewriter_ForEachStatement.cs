@@ -219,17 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private bool TryGetDisposeMethod(CommonForEachStatementSyntax forEachSyntax, ForEachEnumeratorInfo enumeratorInfo, out MethodSymbol disposeMethod)
-        {
-            if (enumeratorInfo.IsAsync)
-            {
-                disposeMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_IAsyncDisposable__DisposeAsync, _diagnostics, syntax: forEachSyntax);
-                return (object)disposeMethod != null;
-            }
-
-            return Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, forEachSyntax, _diagnostics, out disposeMethod);
-        }
-
         /// <summary>
         /// There are three possible cases where we need disposal:
         /// - pattern-based disposal (we have a Dispose/DisposeAsync method)
@@ -250,7 +239,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? disposeMethod = enumeratorInfo.DisposeMethod;
             if (!enumeratorInfo.IsPatternDispose)
             {
-                TryGetDisposeMethod(forEachSyntax, enumeratorInfo, out disposeMethod); // interface-based
+                //TODO: do we need gthis?
+                //TryGetDisposeMethod(forEachSyntax, enumeratorInfo, out disposeMethod); // interface-based
 
                 idisposableTypeSymbol = disposeMethod.ContainingType;
                 Debug.Assert(_factory.CurrentFunction is { });
