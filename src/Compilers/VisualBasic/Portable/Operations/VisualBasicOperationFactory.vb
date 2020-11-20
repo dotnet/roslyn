@@ -12,18 +12,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.Operations
     Partial Friend NotInheritable Class VisualBasicOperationFactory
 
-        Private ReadOnly _nodeMap As ConcurrentDictionary(Of BoundNode, IOperation) =
-            New ConcurrentDictionary(Of BoundNode, IOperation)(concurrencyLevel:=2, capacity:=10)
-
         Private _lazyPlaceholderToParentMap As ConcurrentDictionary(Of BoundValuePlaceholderBase, BoundNode) = Nothing
-
-        Private ReadOnly _cachedCreateInternal As Func(Of BoundNode, IOperation)
 
         Private ReadOnly _semanticModel As SemanticModel
 
         Public Sub New(semanticModel As SemanticModel)
             _semanticModel = semanticModel
-            _cachedCreateInternal = AddressOf CreateInternal
         End Sub
 
         Private Function Clone() As VisualBasicOperationFactory
@@ -68,34 +62,11 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Return Nothing
             End If
 
-            ' this should be removed once this issue is fixed
-            ' https://github.com/dotnet/roslyn/issues/21186
-            ' https://github.com/dotnet/roslyn/issues/21554
-            If TypeOf boundNode Is BoundValuePlaceholderBase OrElse
-               (TypeOf boundNode Is BoundParameter AndAlso boundNode.WasCompilerGenerated) Then
-                ' since same bound node appears in multiple places in the tree
-                ' we can't use bound node to operation map.
-                ' for now, we will just create new operation and return cloned
-                Return OperationCloner.CloneOperation(CreateInternal(boundNode))
-            End If
-
             ' A BoundUserDefined conversion is always the operand of a BoundConversion, and is handled
             ' by the BoundConversion creation. We should never receive one in this top level create call.
             Debug.Assert(boundNode.Kind <> BoundKind.UserDefinedConversion)
 
-            Return _nodeMap.GetOrAdd(boundNode, _cachedCreateInternal)
-        End Function
 
-        Public Function CreateFromArray(Of TBoundNode As BoundNode, TOperation As {Class, IOperation})(nodeArray As ImmutableArray(Of TBoundNode)) As ImmutableArray(Of TOperation)
-            Dim builder = ArrayBuilder(Of TOperation).GetInstance(nodeArray.Length)
-            For Each node In nodeArray
-                builder.AddIfNotNull(DirectCast(Create(node), TOperation))
-            Next
-
-            Return builder.ToImmutableAndFree()
-        End Function
-
-        Private Function CreateInternal(boundNode As BoundNode) As IOperation
             Select Case boundNode.Kind
                 Case BoundKind.AssignmentOperator
                     Return CreateBoundAssignmentOperatorOperation(DirectCast(boundNode, BoundAssignmentOperator))
@@ -350,6 +321,15 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(boundNode.Kind)
             End Select
+        End Function
+
+        Public Function CreateFromArray(Of TBoundNode As BoundNode, TOperation As {Class, IOperation})(nodeArray As ImmutableArray(Of TBoundNode)) As ImmutableArray(Of TOperation)
+            Dim builder = ArrayBuilder(Of TOperation).GetInstance(nodeArray.Length)
+            For Each node In nodeArray
+                builder.AddIfNotNull(DirectCast(Create(node), TOperation))
+            Next
+
+            Return builder.ToImmutableAndFree()
         End Function
 
         Friend Function GetIOperationChildren(boundNode As BoundNode) As ImmutableArray(Of IOperation)

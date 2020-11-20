@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -19,17 +17,11 @@ namespace Microsoft.CodeAnalysis.Operations
 {
     internal sealed partial class CSharpOperationFactory
     {
-        private readonly ConcurrentDictionary<BoundNode, IOperation> _nodeMap =
-            new ConcurrentDictionary<BoundNode, IOperation>(concurrencyLevel: 2, capacity: 10);
-
-        private readonly Func<BoundNode, IOperation> _cachedCreateInternal;
-
         private readonly SemanticModel _semanticModel;
 
         public CSharpOperationFactory(SemanticModel semanticModel)
         {
             _semanticModel = semanticModel;
-            _cachedCreateInternal = CreateInternal;
         }
 
         [return: NotNullIfNotNull("boundNode")]
@@ -40,33 +32,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 return null;
             }
 
-            // implicit receiver can be shared between multiple bound nodes.
-            // always return cloned one
-            if (boundNode.Kind == BoundKind.ImplicitReceiver ||
-                boundNode.Kind == BoundKind.ObjectOrCollectionValuePlaceholder)
-            {
-                return OperationCloner.CloneOperation(CreateInternal(boundNode));
-            }
-
-            return _nodeMap.GetOrAdd(boundNode, _cachedCreateInternal);
-        }
-
-        public ImmutableArray<TOperation> CreateFromArray<TBoundNode, TOperation>(ImmutableArray<TBoundNode> boundNodes) where TBoundNode : BoundNode where TOperation : class, IOperation
-        {
-            if (boundNodes.IsDefault)
-            {
-                return ImmutableArray<TOperation>.Empty;
-            }
-            var builder = ArrayBuilder<TOperation>.GetInstance(boundNodes.Length);
-            foreach (var node in boundNodes)
-            {
-                builder.AddIfNotNull((TOperation)Create(node));
-            }
-            return builder.ToImmutableAndFree();
-        }
-
-        internal IOperation CreateInternal(BoundNode boundNode)
-        {
             switch (boundNode.Kind)
             {
                 case BoundKind.DeconstructValuePlaceholder:
@@ -351,6 +316,20 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
+        public ImmutableArray<TOperation> CreateFromArray<TBoundNode, TOperation>(ImmutableArray<TBoundNode> boundNodes) where TBoundNode : BoundNode where TOperation : class, IOperation
+        {
+            if (boundNodes.IsDefault)
+            {
+                return ImmutableArray<TOperation>.Empty;
+            }
+            var builder = ArrayBuilder<TOperation>.GetInstance(boundNodes.Length);
+            foreach (var node in boundNodes)
+            {
+                builder.AddIfNotNull((TOperation)Create(node));
+            }
+            return builder.ToImmutableAndFree();
+        }
+
         private IMethodBodyOperation CreateMethodBodyOperation(BoundNonConstructorMethodBody boundNode)
         {
             return new MethodBodyOperation(
@@ -411,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         var builder = ArrayBuilder<IVariableDeclaratorOperation>.GetInstance(multipleDeclaration.LocalDeclarations.Length);
                         foreach (var decl in multipleDeclaration.LocalDeclarations)
                         {
-                            builder.Add((IVariableDeclaratorOperation)_nodeMap.GetOrAdd(decl, CreateVariableDeclaratorInternal(decl, decl.Syntax)));
+                            builder.Add((IVariableDeclaratorOperation)CreateVariableDeclaratorInternal(decl, decl.Syntax));
                         }
                         return builder.ToImmutableAndFree();
                     }
@@ -942,7 +921,7 @@ namespace Microsoft.CodeAnalysis.Operations
             // We are counting on the fact that will do the error recovery and actually create the BoundLambda node appropriate for
             // this syntax node.
             BoundLambda boundLambda = unboundLambda.BindForErrorRecovery();
-            return CreateInternal(boundLambda);
+            return Create(boundLambda);
         }
 
         private IAnonymousFunctionOperation CreateBoundLambdaOperation(BoundLambda boundLambda)
@@ -1458,7 +1437,7 @@ namespace Microsoft.CodeAnalysis.Operations
             // we encounter an array access. Since we create from the top down, it should be impossible for us to see the node in
             // boundArrayAccess.Expression before seeing the boundArrayAccess itself, so this should not create any other parent pointer
             // issues.
-            IOperation arrayReference = CreateInternal(boundArrayAccess.Expression);
+            IOperation arrayReference = Create(boundArrayAccess.Expression);
             ImmutableArray<IOperation> indices = CreateFromArray<BoundExpression, IOperation>(boundArrayAccess.Indices);
             SyntaxNode syntax = boundArrayAccess.Syntax;
             ITypeSymbol? type = boundArrayAccess.GetPublicTypeSymbol();
@@ -1942,13 +1921,21 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IExpressionStatementOperation CreateBoundExpressionStatementOperation(BoundExpressionStatement boundExpressionStatement)
         {
-            IOperation expression = Create(boundExpressionStatement.Expression);
-            SyntaxNode syntax = boundExpressionStatement.Syntax;
-
             // lambda body can point to expression directly and binder can insert expression statement there. and end up statement pointing to
             // expression syntax node since there is no statement syntax node to point to. this will mark such one as implicit since it doesn't
             // actually exist in code
             bool isImplicit = boundExpressionStatement.WasCompilerGenerated || boundExpressionStatement.Syntax == boundExpressionStatement.Expression.Syntax;
+            SyntaxNode syntax = boundExpressionStatement.Syntax;
+
+            // If we're creating the tree for a speculatively-bound constructor initializer, there can be a bound sequence as the child node here
+            // that corresponds to the lifetime of any declared variables.
+            IOperation expression = Create(boundExpressionStatement.Expression);
+            if (boundExpressionStatement.Expression is BoundSequence sequence)
+            {
+                Debug.Assert(boundExpressionStatement.Syntax == sequence.Value.Syntax);
+                isImplicit = true;
+            }
+
             return new ExpressionStatementOperation(expression, _semanticModel, syntax, isImplicit);
         }
 
@@ -1997,7 +1984,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (part.Kind == BoundKind.StringInsert)
                 {
-                    builder.Add((IInterpolatedStringContentOperation)CreateInternal(part));
+                    builder.Add((IInterpolatedStringContentOperation)Create(part));
                 }
                 else
                 {
