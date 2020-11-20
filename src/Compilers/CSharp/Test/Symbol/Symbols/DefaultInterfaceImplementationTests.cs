@@ -60024,5 +60024,122 @@ interface I1<T>
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 16)
                 );
         }
+
+        [Fact, WorkItem(49341, "https://github.com/dotnet/roslyn/issues/49341")]
+        public void RefReturningAutoProperty_01()
+        {
+            var source1 =
+@"
+interface IA
+{
+    static ref int PA { get;}
+}
+
+interface IB
+{
+    static ref int PB { get; set;}
+}
+
+interface IC
+{
+    static ref int PC { set;}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (4,20): error CS8145: Auto-implemented properties cannot return by reference
+                //     static ref int PA { get;}
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PA").WithArguments("IA.PA").WithLocation(4, 20),
+                // (9,20): error CS8145: Auto-implemented properties cannot return by reference
+                //     static ref int PB { get; set;}
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PB").WithArguments("IB.PB").WithLocation(9, 20),
+                // (9,30): error CS8147: Properties which return by reference cannot have set accessors
+                //     static ref int PB { get; set;}
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("IB.PB.set").WithLocation(9, 30),
+                // (14,20): error CS8146: Properties which return by reference must have a get accessor
+                //     static ref int PC { set;}
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithArguments("IC.PC").WithLocation(14, 20)
+                );
+        }
+
+        [Fact, WorkItem(49341, "https://github.com/dotnet/roslyn/issues/49341")]
+        public void RefReturningAutoProperty_02()
+        {
+            var source1 =
+@"
+interface IA
+{
+    ref int PA { get;}
+}
+
+interface IB
+{
+    ref int PB { get; set;}
+}
+
+interface IC
+{
+    ref int PC { set;}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (9,23): error CS8147: Properties which return by reference cannot have set accessors
+                //     ref int PB { get; set;}
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("IB.PB.set").WithLocation(9, 23),
+                // (14,13): error CS8146: Properties which return by reference must have a get accessor
+                //     ref int PC { set;}
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithArguments("IC.PC").WithLocation(14, 13)
+                );
+        }
+
+        [Fact, WorkItem(49341, "https://github.com/dotnet/roslyn/issues/49341")]
+        public void RefReturningAutoProperty_03()
+        {
+            var source1 =
+@"
+interface IA
+{
+    sealed ref int PA { get;}
+}
+
+interface IB
+{
+    sealed ref int PB { get; set;}
+}
+
+interface IC
+{
+    sealed ref int PC { set;}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (4,25): error CS0501: 'IA.PA.get' must declare a body because it is not marked abstract, extern, or partial
+                //     sealed ref int PA { get;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("IA.PA.get").WithLocation(4, 25),
+                // (9,25): error CS0501: 'IB.PB.get' must declare a body because it is not marked abstract, extern, or partial
+                //     sealed ref int PB { get; set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("IB.PB.get").WithLocation(9, 25),
+                // (9,30): error CS8147: Properties which return by reference cannot have set accessors
+                //     sealed ref int PB { get; set;}
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("IB.PB.set").WithLocation(9, 30),
+                // (9,30): error CS0501: 'IB.PB.set' must declare a body because it is not marked abstract, extern, or partial
+                //     sealed ref int PB { get; set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("IB.PB.set").WithLocation(9, 30),
+                // (14,20): error CS8146: Properties which return by reference must have a get accessor
+                //     sealed ref int PC { set;}
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithArguments("IC.PC").WithLocation(14, 20),
+                // (14,25): error CS0501: 'IC.PC.set' must declare a body because it is not marked abstract, extern, or partial
+                //     sealed ref int PC { set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("IC.PC.set").WithLocation(14, 25)
+                );
+        }
     }
 }
