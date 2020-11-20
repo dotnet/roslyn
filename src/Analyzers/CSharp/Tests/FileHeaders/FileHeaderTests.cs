@@ -480,6 +480,8 @@ namespace Bar
             var fixedCode = @"// Copyright (c) SomeCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
+{|CS1035:|}/* Copyright (c) OtherCorp. All rights reserved.
+ * Licensed under the ??? license. See LICENSE file in the project root for full license information.
 ";
 
             await new VerifyCS.Test
@@ -502,6 +504,7 @@ namespace Bar
             var fixedCode = @"// Copyright (c) SomeCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
+{|CS1035:|}/*/
 ";
 
             await new VerifyCS.Test
@@ -529,12 +532,16 @@ namespace Bar
 {{
 }}
 ";
-            var fixedCode = @"// Copyright (c) SomeCorp. All rights reserved.
+            var fixedCode = $@"// Copyright (c) SomeCorp. All rights reserved.
+// Licensed under the ??? license. See LICENSE file in the project root for full license information.
+
+{firstLine}
+// Copyright (c) OtherCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
 namespace Bar
-{
-}
+{{
+}}
 ";
 
             await new VerifyCS.Test

@@ -337,7 +337,11 @@ End Namespace
 Namespace Bar
 End Namespace
 "
-            Dim fixedCode = "' Copyright (c) SomeCorp. All rights reserved.
+            Dim fixedCode = $"' Copyright (c) SomeCorp. All rights reserved.
+' Licensed under the ??? license. See LICENSE file in the project root for full license information.
+
+{firstLine}
+' Copyright (c) OtherCorp. All rights reserved.
 ' Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
 Namespace Bar
