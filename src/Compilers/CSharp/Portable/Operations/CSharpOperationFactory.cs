@@ -1666,10 +1666,6 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 var compilation = (CSharpCompilation)_semanticModel.Compilation;
 
-                var iDisposable = enumeratorInfoOpt.IsAsync
-                                  ? compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable)
-                                  : compilation.GetSpecialType(SpecialType.System_IDisposable);
-
                 info = new ForEachLoopOperationInfo(enumeratorInfoOpt.ElementType.GetPublicSymbol(),
                                                     enumeratorInfoOpt.GetEnumeratorMethod.GetPublicSymbol(),
                                                     ((PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol).GetPublicSymbol(),
