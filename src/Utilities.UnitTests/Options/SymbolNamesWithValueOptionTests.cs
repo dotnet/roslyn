@@ -59,9 +59,9 @@ namespace Analyzer.Utilities.UnitTests.Options
             var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, null);
 
             // Assert
-            Assert.Equal(symbolNames.Length, options._names.Count);
-            Assert.Empty(options._symbols);
-            Assert.Empty(options._wildcardNamesBySymbolKind);
+            Assert.Equal(symbolNames.Length, options.GetTestAccessor().Names.Count);
+            Assert.Empty(options.GetTestAccessor().Symbols);
+            Assert.Empty(options.GetTestAccessor().WildcardNamesBySymbolKind);
         }
 
         [Fact]
@@ -93,9 +93,9 @@ public namespace MyNamespace
             var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, null);
 
             // Assert
-            Assert.Empty(options._names);
-            Assert.Empty(options._symbols);
-            Assert.Empty(options._wildcardNamesBySymbolKind);
+            Assert.Empty(options.GetTestAccessor().Names);
+            Assert.Empty(options.GetTestAccessor().Symbols);
+            Assert.Empty(options.GetTestAccessor().WildcardNamesBySymbolKind);
         }
 
         [Fact]
@@ -127,9 +127,9 @@ public namespace MyNamespace
             var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, null);
 
             // Assert
-            Assert.Empty(options._names);
-            Assert.Equal(symbolNames.Length, options._symbols.Count);
-            Assert.Empty(options._wildcardNamesBySymbolKind);
+            Assert.Empty(options.GetTestAccessor().Names);
+            Assert.Equal(symbolNames.Length, options.GetTestAccessor().Symbols.Count);
+            Assert.Empty(options.GetTestAccessor().WildcardNamesBySymbolKind);
         }
 
         [Fact]
@@ -149,9 +149,9 @@ public namespace MyNamespace
             var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, null);
 
             // Assert
-            Assert.Empty(options._names);
-            Assert.Empty(options._symbols);
-            Assert.Empty(options._wildcardNamesBySymbolKind);
+            Assert.Empty(options.GetTestAccessor().Names);
+            Assert.Empty(options.GetTestAccessor().Symbols);
+            Assert.Empty(options.GetTestAccessor().WildcardNamesBySymbolKind);
         }
 
         [Fact]
@@ -169,9 +169,9 @@ public namespace MyNamespace
             var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, null);
 
             // Assert
-            Assert.Empty(options._names);
-            Assert.Empty(options._symbols);
-            Assert.Empty(options._wildcardNamesBySymbolKind);
+            Assert.Empty(options.GetTestAccessor().Names);
+            Assert.Empty(options.GetTestAccessor().Symbols);
+            Assert.Empty(options.GetTestAccessor().WildcardNamesBySymbolKind);
         }
 
         [Fact]
@@ -191,16 +191,16 @@ public namespace MyNamespace
             var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, null);
 
             // Assert
-            Assert.Empty(options._names);
-            Assert.Empty(options._symbols);
-            Assert.Single(options._wildcardNamesBySymbolKind);
-            Assert.Equal(symbolNames.Length, options._wildcardNamesBySymbolKind[SymbolNamesWithValueOption<Unit>.AllKinds].Count);
-            Assert.True(options._wildcardNamesBySymbolKind[SymbolNamesWithValueOption<Unit>.AllKinds].ContainsKey("MyNamespace"));
-            Assert.True(options._wildcardNamesBySymbolKind[SymbolNamesWithValueOption<Unit>.AllKinds].ContainsKey("MyNamespace.MyClass"));
-            Assert.True(options._wildcardNamesBySymbolKind[SymbolNamesWithValueOption<Unit>.AllKinds].ContainsKey("MyNamespace.MyClass.MyField"));
-            Assert.True(options._wildcardNamesBySymbolKind[SymbolNamesWithValueOption<Unit>.AllKinds].ContainsKey("MyNamespace.MyClass.MyProperty"));
-            Assert.True(options._wildcardNamesBySymbolKind[SymbolNamesWithValueOption<Unit>.AllKinds].ContainsKey("MyNamespace.MyClass.MyEvent"));
-            Assert.True(options._wildcardNamesBySymbolKind[SymbolNamesWithValueOption<Unit>.AllKinds].ContainsKey("MyNamespace.MyClass.MyMethod("));
+            Assert.Empty(options.GetTestAccessor().Names);
+            Assert.Empty(options.GetTestAccessor().Symbols);
+            Assert.Single(options.GetTestAccessor().WildcardNamesBySymbolKind);
+            Assert.Equal(symbolNames.Length, options.GetTestAccessor().WildcardNamesBySymbolKind[SymbolNamesWithValueOption<Unit>.AllKinds].Count);
+            Assert.True(options.GetTestAccessor().WildcardNamesBySymbolKind[SymbolNamesWithValueOption<Unit>.AllKinds].ContainsKey("MyNamespace"));
+            Assert.True(options.GetTestAccessor().WildcardNamesBySymbolKind[SymbolNamesWithValueOption<Unit>.AllKinds].ContainsKey("MyNamespace.MyClass"));
+            Assert.True(options.GetTestAccessor().WildcardNamesBySymbolKind[SymbolNamesWithValueOption<Unit>.AllKinds].ContainsKey("MyNamespace.MyClass.MyField"));
+            Assert.True(options.GetTestAccessor().WildcardNamesBySymbolKind[SymbolNamesWithValueOption<Unit>.AllKinds].ContainsKey("MyNamespace.MyClass.MyProperty"));
+            Assert.True(options.GetTestAccessor().WildcardNamesBySymbolKind[SymbolNamesWithValueOption<Unit>.AllKinds].ContainsKey("MyNamespace.MyClass.MyEvent"));
+            Assert.True(options.GetTestAccessor().WildcardNamesBySymbolKind[SymbolNamesWithValueOption<Unit>.AllKinds].ContainsKey("MyNamespace.MyClass.MyMethod("));
         }
 
         [Fact]
@@ -220,15 +220,15 @@ public namespace MyNamespace
             var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, null);
 
             // Assert
-            Assert.Empty(options._names);
-            Assert.Empty(options._symbols);
-            Assert.Equal(symbolNames.Length, options._wildcardNamesBySymbolKind.Count);
-            Assert.True(options._wildcardNamesBySymbolKind[SymbolKind.Namespace].ContainsKey("MyNamespace"));
-            Assert.True(options._wildcardNamesBySymbolKind[SymbolKind.NamedType].ContainsKey("MyNamespace.MyClass"));
-            Assert.True(options._wildcardNamesBySymbolKind[SymbolKind.Field].ContainsKey("MyNamespace.MyClass.MyField"));
-            Assert.True(options._wildcardNamesBySymbolKind[SymbolKind.Property].ContainsKey("MyNamespace.MyClass.MyProperty"));
-            Assert.True(options._wildcardNamesBySymbolKind[SymbolKind.Event].ContainsKey("MyNamespace.MyClass.MyEvent"));
-            Assert.True(options._wildcardNamesBySymbolKind[SymbolKind.Method].ContainsKey("MyNamespace.MyClass.MyMethod("));
+            Assert.Empty(options.GetTestAccessor().Names);
+            Assert.Empty(options.GetTestAccessor().Symbols);
+            Assert.Equal(symbolNames.Length, options.GetTestAccessor().WildcardNamesBySymbolKind.Count);
+            Assert.True(options.GetTestAccessor().WildcardNamesBySymbolKind[SymbolKind.Namespace].ContainsKey("MyNamespace"));
+            Assert.True(options.GetTestAccessor().WildcardNamesBySymbolKind[SymbolKind.NamedType].ContainsKey("MyNamespace.MyClass"));
+            Assert.True(options.GetTestAccessor().WildcardNamesBySymbolKind[SymbolKind.Field].ContainsKey("MyNamespace.MyClass.MyField"));
+            Assert.True(options.GetTestAccessor().WildcardNamesBySymbolKind[SymbolKind.Property].ContainsKey("MyNamespace.MyClass.MyProperty"));
+            Assert.True(options.GetTestAccessor().WildcardNamesBySymbolKind[SymbolKind.Event].ContainsKey("MyNamespace.MyClass.MyEvent"));
+            Assert.True(options.GetTestAccessor().WildcardNamesBySymbolKind[SymbolKind.Method].ContainsKey("MyNamespace.MyClass.MyMethod("));
         }
 
         [Fact]
@@ -259,15 +259,38 @@ public namespace MyNamespace
                 });
 
             // Assert
-            Assert.Single(options._names);
-            Assert.Equal("SomeValue1", options._names["MyClass"]);
-            Assert.Single(options._symbols);
-            Assert.Equal("SomeValue2", options._symbols[namedTypeSymbol]);
-            Assert.Equal(2, options._wildcardNamesBySymbolKind.Count);
-            Assert.Single(options._wildcardNamesBySymbolKind[SymbolNamesWithValueOption<Unit>.AllKinds]);
-            Assert.Equal("SomeValue3", options._wildcardNamesBySymbolKind[SymbolNamesWithValueOption<Unit>.AllKinds]["MyClass"]);
-            Assert.Single(options._wildcardNamesBySymbolKind[SymbolKind.NamedType]);
-            Assert.Equal("SomeValue4", options._wildcardNamesBySymbolKind[SymbolKind.NamedType]["MyClass"]);
+            Assert.Single(options.GetTestAccessor().Names);
+            Assert.Equal("SomeValue1", options.GetTestAccessor().Names["MyClass"]);
+            Assert.Single(options.GetTestAccessor().Symbols);
+            Assert.Equal("SomeValue2", options.GetTestAccessor().Symbols[namedTypeSymbol]);
+            Assert.Equal(2, options.GetTestAccessor().WildcardNamesBySymbolKind.Count);
+            Assert.Single(options.GetTestAccessor().WildcardNamesBySymbolKind[SymbolNamesWithValueOption<Unit>.AllKinds]);
+            Assert.Equal("SomeValue3", options.GetTestAccessor().WildcardNamesBySymbolKind[SymbolNamesWithValueOption<Unit>.AllKinds]["MyClass"]);
+            Assert.Single(options.GetTestAccessor().WildcardNamesBySymbolKind[SymbolKind.NamedType]);
+            Assert.Equal("SomeValue4", options.GetTestAccessor().WildcardNamesBySymbolKind[SymbolKind.NamedType]["MyClass"]);
+        }
+
+        [Fact]
+        [WorkItem(1242125, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1242125")]
+        public void FastPathDoesNotCache()
+        {
+            var compilation = GetCompilation(@"
+using System;
+
+public namespace MyNamespace
+{
+    public class MyClass {}
+}");
+
+            var namedTypeSymbol = (INamedTypeSymbol)compilation.GetSymbolsWithName("MyClass").Single();
+
+            var options = SymbolNamesWithValueOption<Unit>.Empty;
+
+            // Check for containment
+            var contained = options.Contains(namedTypeSymbol);
+            Assert.False(contained);
+            Assert.Empty(options.GetTestAccessor().WildcardMatchResult);
+            Assert.Empty(options.GetTestAccessor().SymbolToDeclarationId);
         }
 
         [Theory]
@@ -345,7 +368,7 @@ public namespace MyCompany.MyProduct.MyFeature
 
             // Assert
             Assert.True(isFound);
-            Assert.True(options._wildcardMatchResult.ContainsKey(symbol));
+            Assert.True(options.GetTestAccessor().WildcardMatchResult.ContainsKey(symbol));
 
             static ISymbol FindSymbol(Compilation compilation, string symbolName)
             {
