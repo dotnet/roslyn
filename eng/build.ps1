@@ -241,7 +241,6 @@ function BuildSolution() {
       /p:RepoRoot=$RepoRoot `
       /p:Restore=$restore `
       /p:Build=$build `
-      /p:Test=$testCoreClr `
       /p:Rebuild=$rebuild `
       /p:Pack=$pack `
       /p:Sign=$sign `
@@ -250,7 +249,6 @@ function BuildSolution() {
       /p:OfficialBuildId=$officialBuildId `
       /p:RunAnalyzersDuringBuild=$runAnalyzers `
       /p:BootstrapBuildPath=$bootstrapDir `
-      /p:TestTargetFrameworks=$testTargetFrameworks `
       /p:TreatWarningsAsErrors=$warnAsError `
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
