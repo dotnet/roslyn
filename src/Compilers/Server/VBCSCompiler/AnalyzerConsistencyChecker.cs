@@ -15,19 +15,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal static class AnalyzerConsistencyChecker
     {
-        private static readonly ImmutableArray<string> s_defaultIgnorableReferenceNames = ImmutableArray.Create("mscorlib", "System", "Microsoft.CodeAnalysis", "netstandard");
-
         public static bool Check(string baseDirectory, IEnumerable<CommandLineAnalyzerReference> analyzerReferences, IAnalyzerAssemblyLoader loader, IEnumerable<string>? ignorableReferenceNames = null)
         {
-            if (ignorableReferenceNames == null)
-            {
-                ignorableReferenceNames = s_defaultIgnorableReferenceNames;
-            }
-
             try
             {
                 CompilerServerLogger.Log("Begin Analyzer Consistency Check");
-                return CheckCore(baseDirectory, analyzerReferences, loader, ignorableReferenceNames);
+                return CheckCore(baseDirectory, analyzerReferences, loader);
             }
             catch (Exception e)
             {
@@ -40,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        private static bool CheckCore(string baseDirectory, IEnumerable<CommandLineAnalyzerReference> analyzerReferences, IAnalyzerAssemblyLoader loader, IEnumerable<string> ignorableReferenceNames)
+        private static bool CheckCore(string baseDirectory, IEnumerable<CommandLineAnalyzerReference> analyzerReferences, IAnalyzerAssemblyLoader loader)
         {
             var resolvedPaths = new List<string>();
 
@@ -57,21 +50,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
 
                 // Don't worry about paths we can't resolve. The compiler will report an error for that later.
-            }
-
-            // First, check that the set of references is complete, modulo items in the safe list.
-            foreach (var resolvedPath in resolvedPaths)
-            {
-                var missingDependencies = AssemblyUtilities.IdentifyMissingDependencies(resolvedPath, resolvedPaths);
-
-                foreach (var missingDependency in missingDependencies)
-                {
-                    if (!ignorableReferenceNames.Any(name => missingDependency.Name.StartsWith(name)))
-                    {
-                        CompilerServerLogger.LogError($"Analyzer assembly {resolvedPath} depends on '{missingDependency}' but it was not found.");
-                        return false;
-                    }
-                }
             }
 
             // Register analyzers and their dependencies upfront, 
