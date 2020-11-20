@@ -5,6 +5,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
@@ -56,9 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
-            // Determining of the textView's buffer does not match the buffer in order to skip showing the hints for
-            // the interactive window
-            if (buffer != textView.TextBuffer)
+            if (textView.IsNotSurfaceBufferOfTextView(buffer))
             {
                 return null;
             }
