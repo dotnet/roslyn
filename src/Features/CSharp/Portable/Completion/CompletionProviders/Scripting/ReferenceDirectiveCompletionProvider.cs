@@ -6,11 +6,10 @@ using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.Completion.FileSystem;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
+namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(ReferenceDirectiveCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(LoadDirectiveCompletionProvider))]

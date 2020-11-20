@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
+namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractReferenceDirectiveCompletionProvider : AbstractDirectivePathCompletionProvider
     {

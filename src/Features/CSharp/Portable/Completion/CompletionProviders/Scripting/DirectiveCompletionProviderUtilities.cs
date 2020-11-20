@@ -3,10 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
+namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal static class DirectiveCompletionProviderUtilities
     {

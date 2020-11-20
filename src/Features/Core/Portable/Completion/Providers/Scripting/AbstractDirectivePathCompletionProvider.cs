@@ -16,7 +16,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
+namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractDirectivePathCompletionProvider : CompletionProvider
     {
