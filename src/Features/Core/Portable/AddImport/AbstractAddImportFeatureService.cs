@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -510,7 +511,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         public ImmutableArray<CodeAction> GetCodeActionsForFixes(
             Document document, ImmutableArray<AddImportFixData> fixes,
-            IPackageInstallerService installerService, int maxResults)
+            IPackageInstallerService? installerService, int maxResults)
         {
             var codeActionsBuilder = ArrayBuilder<CodeAction>.GetInstance();
 
@@ -529,13 +530,13 @@ namespace Microsoft.CodeAnalysis.AddImport
             return codeActionsBuilder.ToImmutableAndFree();
         }
 
-        private static CodeAction? TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService installerService)
+        private static CodeAction? TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService? installerService)
             => fixData.Kind switch
             {
                 AddImportFixKind.ProjectSymbol => new ProjectSymbolReferenceCodeAction(document, fixData),
                 AddImportFixKind.MetadataSymbol => new MetadataSymbolReferenceCodeAction(document, fixData),
                 AddImportFixKind.ReferenceAssemblySymbol => new AssemblyReferenceCodeAction(document, fixData),
-                AddImportFixKind.PackageSymbol => !installerService.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName)
+                AddImportFixKind.PackageSymbol => installerService?.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName) == false
                     ? new ParentInstallPackageCodeAction(document, fixData, installerService)
                     : null,
                 _ => throw ExceptionUtilities.Unreachable,
@@ -544,13 +545,11 @@ namespace Microsoft.CodeAnalysis.AddImport
         private static ITypeSymbol? GetAwaitInfo(SemanticModel semanticModel, ISyntaxFacts syntaxFactsService, SyntaxNode node)
         {
             var awaitExpression = FirstAwaitExpressionAncestor(syntaxFactsService, node);
-
-            var innerExpression = syntaxFactsService.GetExpressionOfAwaitExpression(awaitExpression);
-
-            if (innerExpression is null)
-            {
+            if (awaitExpression is null)
                 return null;
-            }
+
+            Debug.Assert(syntaxFactsService.IsAwaitExpression(awaitExpression));
+            var innerExpression = syntaxFactsService.GetExpressionOfAwaitExpression(awaitExpression);
 
             return semanticModel.GetTypeInfo(innerExpression).Type;
         }

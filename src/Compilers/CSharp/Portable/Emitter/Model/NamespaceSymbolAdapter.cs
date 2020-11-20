@@ -16,17 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif 
         Cci.INamespace
     {
-#if DEBUG
-        internal NamespaceSymbolAdapter(NamespaceSymbol underlyingNamespaceSymbol)
-        {
-            AdaptedNamespaceSymbol = underlyingNamespaceSymbol;
-        }
+        Cci.INamespace Cci.INamespace.ContainingNamespace => AdaptedNamespaceSymbol.ContainingNamespace?.GetCciAdapter();
 
-        internal sealed override Symbol AdaptedSymbol => AdaptedNamespaceSymbol;
-        internal NamespaceSymbol AdaptedNamespaceSymbol { get; }
-#else
-        internal NamespaceSymbol AdaptedNamespaceSymbol => this;
-#endif 
+        string Cci.INamedEntity.Name => AdaptedNamespaceSymbol.MetadataName;
+
+        CodeAnalysis.Symbols.INamespaceSymbolInternal Cci.INamespace.GetInternalSymbol() => AdaptedNamespaceSymbol;
     }
 
     internal partial class NamespaceSymbol
@@ -35,38 +29,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private NamespaceSymbolAdapter _lazyAdapter;
 
         protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
-#endif
-        internal new
-#if DEBUG
-            NamespaceSymbolAdapter
-#else
-            NamespaceSymbol
-#endif
-            GetCciAdapter()
+        internal new NamespaceSymbolAdapter GetCciAdapter()
         {
-#if DEBUG
             if (_lazyAdapter is null)
             {
                 return InterlockedOperations.Initialize(ref _lazyAdapter, new NamespaceSymbolAdapter(this));
             }
 
             return _lazyAdapter;
-#else
-            return this;
-#endif
         }
-    }
-
-    internal partial class
-#if DEBUG
-        NamespaceSymbolAdapter
 #else
-        NamespaceSymbol
-#endif
-    {
-        Cci.INamespace Cci.INamespace.ContainingNamespace => AdaptedNamespaceSymbol.ContainingNamespace?.GetCciAdapter();
-        string Cci.INamedEntity.Name => AdaptedNamespaceSymbol.MetadataName;
+        internal NamespaceSymbol AdaptedNamespaceSymbol => this;
 
-        CodeAnalysis.Symbols.INamespaceSymbolInternal Cci.INamespace.GetInternalSymbol() => AdaptedNamespaceSymbol;
+        internal new NamespaceSymbol GetCciAdapter()
+        {
+            return this;
+        }
+#endif 
     }
+
+#if DEBUG
+    internal partial class NamespaceSymbolAdapter
+    {
+        internal NamespaceSymbolAdapter(NamespaceSymbol underlyingNamespaceSymbol)
+        {
+            AdaptedNamespaceSymbol = underlyingNamespaceSymbol;
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedNamespaceSymbol;
+        internal NamespaceSymbol AdaptedNamespaceSymbol { get; }
+    }
+#endif
 }

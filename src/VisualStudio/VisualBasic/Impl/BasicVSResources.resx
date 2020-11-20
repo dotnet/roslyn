@@ -310,4 +310,8 @@
   <data name="Show_hints_for_New_expressions" xml:space="preserve">
     <value>Show hints for 'New' expressions</value>
   </data>
+  <data name="Add_missing_imports_on_paste" xml:space="preserve">
+    <value>Add missing imports on paste</value>
+    <comment>'import' is a Visual Basic keyword and should not be localized</comment>
+  </data>
 </root>

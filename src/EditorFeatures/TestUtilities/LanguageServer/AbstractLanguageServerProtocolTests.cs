@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -46,7 +47,7 @@ namespace Roslyn.Test.Utilities
         internal class TestLspSolutionProvider : ILspSolutionProvider
         {
             [DisallowNull]
-            private Solution? _currentSolution;
+            private TestWorkspace? _workspace;
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -54,21 +55,20 @@ namespace Roslyn.Test.Utilities
             {
             }
 
-            public void UpdateSolution(Solution solution)
+            public void SetTestWorkspace(TestWorkspace workspace)
             {
-                _currentSolution = solution;
+                _workspace = workspace;
             }
 
             public Solution GetCurrentSolutionForMainWorkspace()
             {
-                Contract.ThrowIfNull(_currentSolution);
-                return _currentSolution;
+                Contract.ThrowIfNull(_workspace);
+                return _workspace.CurrentSolution;
             }
 
             public ImmutableArray<Document> GetDocuments(Uri documentUri)
             {
-                Contract.ThrowIfNull(_currentSolution);
-                return _currentSolution.GetDocuments(documentUri);
+                return GetCurrentSolutionForMainWorkspace().GetDocuments(documentUri);
             }
         }
 
@@ -101,11 +101,16 @@ namespace Roslyn.Test.Utilities
                 ImmutableArray<MappedSpanResult> mappedResult = default;
                 if (document.Name == GeneratedFileName)
                 {
-                    mappedResult = ImmutableArray.Create(new MappedSpanResult(s_mappedFilePath, s_mappedLinePosition, new TextSpan(0, 5)));
+                    mappedResult = spans.Select(span => new MappedSpanResult(s_mappedFilePath, s_mappedLinePosition, new TextSpan(0, 5))).ToImmutableArray();
                 }
 
                 return Task.FromResult(mappedResult);
             }
+        }
+
+        protected class OrderLocations : Comparer<LSP.Location>
+        {
+            public override int Compare(LSP.Location x, LSP.Location y) => CompareLocations(x, y);
         }
 
         protected virtual TestComposition Composition => s_composition;
@@ -116,7 +121,7 @@ namespace Roslyn.Test.Utilities
         /// <typeparam name="T">the JSON object type.</typeparam>
         /// <param name="expected">the expected object to be converted to JSON.</param>
         /// <param name="actual">the actual object to be converted to JSON.</param>
-        protected static void AssertJsonEquals<T>(T expected, T actual)
+        public static void AssertJsonEquals<T>(T expected, T actual)
         {
             var expectedStr = JsonConvert.SerializeObject(expected);
             var actualStr = JsonConvert.SerializeObject(actual);
@@ -140,13 +145,13 @@ namespace Roslyn.Test.Utilities
             var orderedExpectedLocations = expectedLocations.OrderBy(CompareLocations);
 
             AssertJsonEquals(orderedExpectedLocations, orderedActualLocations);
+        }
 
-            static int CompareLocations(LSP.Location l1, LSP.Location l2)
-            {
-                var compareDocument = l1.Uri.OriginalString.CompareTo(l2.Uri.OriginalString);
-                var compareRange = CompareRange(l1.Range, l2.Range);
-                return compareDocument != 0 ? compareDocument : compareRange;
-            }
+        protected static int CompareLocations(LSP.Location l1, LSP.Location l2)
+        {
+            var compareDocument = l1.Uri.OriginalString.CompareTo(l2.Uri.OriginalString);
+            var compareRange = CompareRange(l1.Range, l2.Range);
+            return compareDocument != 0 ? compareDocument : compareRange;
         }
 
         protected static int CompareRange(LSP.Range r1, LSP.Range r2)
@@ -171,17 +176,20 @@ namespace Roslyn.Test.Utilities
             return text.ToString();
         }
 
-        protected static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, string? containerName = null)
+        internal static LSP.SymbolInformation CreateSymbolInformation(LSP.SymbolKind kind, string name, LSP.Location location, Glyph glyph, string? containerName = null)
         {
-            var info = new LSP.SymbolInformation()
+            var info = new LSP.VSSymbolInformation()
             {
                 Kind = kind,
                 Name = name,
                 Location = location,
+                Icon = new ImageElement(glyph.GetImageId()),
             };
 
             if (containerName != null)
+            {
                 info.ContainerName = containerName;
+            }
 
             return info;
         }
@@ -269,7 +277,10 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         /// <returns>the solution and the annotated ranges in the document.</returns>
         protected TestWorkspace CreateTestWorkspace(string markup, out Dictionary<string, IList<LSP.Location>> locations)
-            => CreateTestWorkspace(new string[] { markup }, out locations);
+            => CreateTestWorkspace(new string[] { markup }, out locations, LanguageNames.CSharp);
+
+        protected TestWorkspace CreateVisualBasicTestWorkspace(string markup, out Dictionary<string, IList<LSP.Location>> locations)
+            => CreateTestWorkspace(new string[] { markup }, out locations, LanguageNames.VisualBasic);
 
         /// <summary>
         /// Create a solution with multiple documents.
@@ -278,8 +289,18 @@ namespace Roslyn.Test.Utilities
         /// the solution with the documents plus a list for each document of all annotated ranges in the document.
         /// </returns>
         protected TestWorkspace CreateTestWorkspace(string[] markups, out Dictionary<string, IList<LSP.Location>> locations)
+            => CreateTestWorkspace(markups, out locations, LanguageNames.CSharp);
+
+        private TestWorkspace CreateTestWorkspace(string[] markups, out Dictionary<string, IList<LSP.Location>> locations, string languageName)
         {
-            var workspace = TestWorkspace.CreateCSharp(markups, composition: Composition);
+            var workspace = languageName switch
+            {
+                LanguageNames.CSharp => TestWorkspace.CreateCSharp(markups, composition: Composition),
+                LanguageNames.VisualBasic => TestWorkspace.CreateVisualBasic(markups, composition: Composition),
+                _ => throw new ArgumentException($"language name {languageName} is not valid for a test workspace"),
+            };
+
+            SetSolutionProviderWorkspace(workspace);
             var solution = workspace.CurrentSolution;
 
             foreach (var document in workspace.Documents)
@@ -291,15 +312,14 @@ namespace Roslyn.Test.Utilities
 
             locations = GetAnnotatedLocations(workspace, solution);
 
-            UpdateSolutionProvider(workspace, solution);
             return workspace;
         }
 
         protected TestWorkspace CreateXmlTestWorkspace(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations)
         {
             var workspace = TestWorkspace.Create(xmlContent, composition: Composition);
+            SetSolutionProviderWorkspace(workspace);
             locations = GetAnnotatedLocations(workspace, workspace.CurrentSolution);
-            UpdateSolutionProvider(workspace, workspace.CurrentSolution);
             return workspace;
         }
 
@@ -312,16 +332,15 @@ namespace Roslyn.Test.Utilities
                 SourceCodeKind.Regular, loader, $"C:\\{TestSpanMapper.GeneratedFileName}", isGenerated: true, designTimeOnly: false, new TestSpanMapperProvider());
             var newSolution = workspace.CurrentSolution.AddDocument(generatedDocumentInfo);
             workspace.TryApplyChanges(newSolution);
-            UpdateSolutionProvider((TestWorkspace)workspace, newSolution);
         }
 
-        private protected static void UpdateSolutionProvider(TestWorkspace workspace, Solution solution)
+        private protected static void SetSolutionProviderWorkspace(TestWorkspace workspace)
         {
             var provider = (TestLspSolutionProvider)workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
-            provider.UpdateSolution(solution);
+            provider.SetTestWorkspace(workspace);
         }
 
-        private static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(TestWorkspace workspace, Solution solution)
+        public static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(TestWorkspace workspace, Solution solution)
         {
             var locations = new Dictionary<string, IList<LSP.Location>>();
             foreach (var testDocument in workspace.Documents)

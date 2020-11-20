@@ -67,7 +67,7 @@ namespace RunTests
                             if (!testResult.Succeeded)
                             {
                                 failures++;
-                                ConsoleUtil.WriteLine(ConsoleColor.Red, "Test failure log: " + testResult.ResultsFilePath);
+                                ConsoleUtil.WriteLine(ConsoleColor.Red, "Test failure log: " + testResult.ResultsDisplayFilePath);
                             }
 
                             completed.Add(testResult);
@@ -175,9 +175,10 @@ namespace RunTests
             }
 
             // If the results are html, use Process.Start to open in the browser.
-            if (_options.IncludeHtml && !string.IsNullOrEmpty(testResult.ResultsFilePath))
+            var htmlResultsFilePath = testResult.TestResultInfo.HtmlResultsFilePath;
+            if (!string.IsNullOrEmpty(htmlResultsFilePath))
             {
-                Process.Start(testResult.ResultsFilePath);
+                Process.Start(htmlResultsFilePath);
             }
         }
     }

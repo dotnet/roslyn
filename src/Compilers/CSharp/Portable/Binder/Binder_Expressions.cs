@@ -1933,13 +1933,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal Symbol ContainingMember()
         {
-            // We skip intervening lambdas and local functions to find the actual member.
-            var containingMember = this.ContainingMemberOrLambda;
-            while (containingMember.Kind != SymbolKind.NamedType && (object)containingMember.ContainingSymbol != null && containingMember.ContainingSymbol.Kind != SymbolKind.NamedType)
-            {
-                containingMember = containingMember.ContainingSymbol;
-            }
-            return containingMember;
+            return this.ContainingMemberOrLambda.ContainingNonLambdaMember();
         }
 
         private BoundExpression TryBindInteractiveReceiver(SyntaxNode syntax, NamedTypeSymbol memberDeclaringType)
@@ -3959,23 +3953,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CSharpSyntaxNode nonNullSyntax;
                 Location errorLocation;
+                bool enableCallerInfo;
 
                 switch (initializerArgumentListOpt?.Parent)
                 {
                     case ConstructorInitializerSyntax initializerSyntax:
                         nonNullSyntax = initializerSyntax;
                         errorLocation = initializerSyntax.ThisOrBaseKeyword.GetLocation();
+                        enableCallerInfo = true;
                         break;
 
                     case PrimaryConstructorBaseTypeSyntax baseWithArguments:
                         nonNullSyntax = baseWithArguments;
                         errorLocation = initializerArgumentListOpt.GetLocation();
+                        enableCallerInfo = true;
                         break;
 
                     default:
                         // Note: use syntax node of constructor with initializer, not constructor invoked by initializer (i.e. methodResolutionResult).
                         nonNullSyntax = constructor.GetNonNullSyntaxNode();
                         errorLocation = constructor.Locations[0];
+                        enableCallerInfo = false;
                         break;
                 }
 
@@ -4037,9 +4035,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ReportDiagnosticsIfObsolete(diagnostics, resultMember, nonNullSyntax, hasBaseReceiver: isBaseConstructorInitializer);
 
+                    var expanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
+                    var argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
+                    BindDefaultArguments(nonNullSyntax, resultMember.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argsToParamsOpt, out var defaultArguments, expanded, enableCallerInfo, diagnostics);
+
                     var arguments = analyzedArguments.Arguments.ToImmutable();
                     var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
-                    var argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
                     if (!hasErrors)
                     {
                         hasErrors = !CheckInvocationArgMixing(
@@ -4061,9 +4062,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedArguments.GetNames(),
                         refKinds,
                         isDelegateCall: false,
-                        expanded: memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
+                        expanded,
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: argsToParamsOpt,
+                        defaultArguments: defaultArguments,
                         resultKind: LookupResultKind.Viable,
                         binderOpt: this,
                         type: constructorReturnType,
@@ -4653,6 +4655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> argumentNamesOpt = default(ImmutableArray<string>);
             ImmutableArray<int> argsToParamsOpt = default(ImmutableArray<int>);
             ImmutableArray<RefKind> argumentRefKindsOpt = default(ImmutableArray<RefKind>);
+            BitVector defaultArguments = default(BitVector);
             bool expanded = false;
 
             switch (boundMemberKind)
@@ -4683,12 +4686,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IndexerAccess:
                     {
-                        var indexer = (BoundIndexerAccess)boundMember;
+                        var indexer = BindIndexerDefaultArguments((BoundIndexerAccess)boundMember, valueKind, diagnostics);
+                        boundMember = indexer;
                         hasErrors |= isRhsNestedInitializer && !CheckNestedObjectInitializerPropertySymbol(indexer.Indexer, namedAssignment.Left, diagnostics, hasErrors, ref resultKind);
                         arguments = indexer.Arguments;
                         argumentNamesOpt = indexer.ArgumentNamesOpt;
                         argsToParamsOpt = indexer.ArgsToParamsOpt;
                         argumentRefKindsOpt = indexer.ArgumentRefKindsOpt;
+                        defaultArguments = indexer.DefaultArguments;
                         expanded = indexer.Expanded;
 
                         break;
@@ -4732,6 +4737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKindsOpt,
                 expanded,
                 argsToParamsOpt,
+                defaultArguments,
                 resultKind,
                 implicitReceiver.Type,
                 binder: this,
@@ -5081,6 +5087,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundCall.ReceiverOpt,
                     boundCall.Expanded,
                     boundCall.ArgsToParamsOpt,
+                    boundCall.DefaultArguments,
                     boundCall.InvokedAsExtensionMethod,
                     boundCall.ResultKind,
                     binderOpt: boundCall.BinderOpt,
@@ -5254,9 +5261,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     FoldParameterlessValueTypeConstructor(type) :
                     null;
 
+                var expanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
+                var argToParams = memberResolutionResult.Result.ArgsToParamsOpt;
+                BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
+
                 var arguments = analyzedArguments.Arguments.ToImmutable();
                 var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
-                var argToParams = memberResolutionResult.Result.ArgsToParamsOpt;
 
                 if (!hasError)
                 {
@@ -5279,8 +5289,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arguments,
                     analyzedArguments.GetNames(),
                     refKinds,
-                    memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
+                    expanded,
                     argToParams,
+                    defaultArguments,
                     constantValueOpt,
                     boundInitializerOpt,
                     wasTargetTyped,
@@ -5442,7 +5453,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.ObjectCreationExpression:
                         var creation = (BoundObjectCreationExpression)classCreation;
                         return creation.Update(creation.Constructor, creation.ConstructorsGroup, creation.Arguments, creation.ArgumentNamesOpt,
-                                               creation.ArgumentRefKindsOpt, creation.Expanded, creation.ArgsToParamsOpt, creation.ConstantValueOpt,
+                                               creation.ArgumentRefKindsOpt, creation.Expanded, creation.ArgsToParamsOpt, creation.DefaultArguments, creation.ConstantValueOpt,
                                                creation.InitializerExpressionOpt, creation.BinderOpt, interfaceType);
 
                     case BoundKind.BadExpression:
@@ -7786,6 +7797,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics);
                 }
 
+                // Note that we do not bind default arguments here, because at this point we do not know whether
+                // the indexer is being used in a 'get', or 'set', or 'get+set' (compound assignment) context.
                 propertyAccess = new BoundIndexerAccess(
                     syntax,
                     receiver,
@@ -7795,8 +7808,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentRefKinds,
                     isExpanded,
                     argsToParams,
+                    defaultArguments: default,
                     this,
-                    false,
                     property.Type,
                     gotError);
             }

@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var symbol = tokenInformation.Symbols.First();
 
             // if generating quick info for an attribute, bind to the class instead of the constructor
-            if (syntaxFactsService.IsAttributeName(token.Parent) &&
+            if (syntaxFactsService.IsAttributeName(token.Parent!) &&
                 symbol.ContainingType?.IsAttribute() == true)
             {
                 symbol = symbol.ContainingType;

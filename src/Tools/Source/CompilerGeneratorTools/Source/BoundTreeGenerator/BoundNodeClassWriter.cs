@@ -91,6 +91,7 @@ namespace BoundTreeGenerator
             _valueTypes.Add("ImmutableArray");
             _valueTypes.Add("PropertyAccessKind");
             _valueTypes.Add("TypeWithAnnotations");
+            _valueTypes.Add("BitVector");
         }
 
         public static void Write(TextWriter writer, Tree tree, TargetLanguage targetLang)

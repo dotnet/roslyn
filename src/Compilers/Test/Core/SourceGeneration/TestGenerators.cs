@@ -57,7 +57,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
             _onExecute(context);
             if (!string.IsNullOrWhiteSpace(_source))
             {
-                context.AddSource("source.cs", SourceText.From(_source, Encoding.UTF8));
+                context.AddSource("source", SourceText.From(_source, Encoding.UTF8));
             }
         }
         public void Initialize(GeneratorInitializationContext context) => _onInit(context);

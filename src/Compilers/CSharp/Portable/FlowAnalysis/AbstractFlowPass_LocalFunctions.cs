@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class AbstractFlowPass<TLocalState, TLocalFunctionState>
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _localFuncVarUsages ??= new SmallDictionary<LocalFunctionSymbol, TLocalFunctionState>();
 
-            if (!_localFuncVarUsages.TryGetValue(localFunc, out TLocalFunctionState usages))
+            if (!_localFuncVarUsages.TryGetValue(localFunc, out TLocalFunctionState? usages))
             {
                 usages = CreateLocalFunctionState();
                 _localFuncVarUsages[localFunc] = usages;
