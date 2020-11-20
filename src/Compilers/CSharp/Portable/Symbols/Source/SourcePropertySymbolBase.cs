@@ -705,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(DeclaringCompilation,
                     WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor, diagnostics, location: Location);
 
-                if (this.RefKind != RefKind.None && !ContainingType.IsInterface)
+                if (this.RefKind != RefKind.None)
                 {
                     diagnostics.Add(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, Location, this);
                 }
