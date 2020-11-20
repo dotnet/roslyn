@@ -72,6 +72,5 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="EditorFeaturesWpfResources.resx" GenerateSource="true" />
-    <EmbeddedResource Update="Interactive\InteractiveEditorFeaturesResources.resx" GenerateSource="true" />
   </ItemGroup>
 </Project>

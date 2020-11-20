@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
                 if (_lazyInteractiveWindow != null)
                 {
-                    throw new NotSupportedException(InteractiveEditorFeaturesResources.The_CurrentWindow_property_may_only_be_assigned_once);
+                    throw new NotSupportedException(EditorFeaturesWpfResources.The_CurrentWindow_property_may_only_be_assigned_once);
                 }
 
                 _lazyInteractiveWindow = value ?? throw new ArgumentNullException(nameof(value));
@@ -202,8 +202,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             var resetOptions = ResetOptions;
             Debug.Assert(GetInteractiveCommands().CommandPrefix == CommandPrefix);
-            window.AddInput(CommandPrefix + ResetCommand.GetCommandLine(initialize, resetOptions.Platform));
-            window.WriteLine(InteractiveEditorFeaturesResources.Resetting_execution_engine);
+            window.AddInput(CommandPrefix + InteractiveWindowResetCommand.GetCommandLine(initialize, resetOptions.Platform));
+            window.WriteLine(EditorFeaturesWpfResources.Resetting_execution_engine);
             window.FlushOutput();
 
             var options = _session.GetHostOptions(initialize, resetOptions.Platform);
