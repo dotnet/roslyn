@@ -110,22 +110,36 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public async ValueTask OnDefinitionFoundAsync(SerializableDefinitionItem definition)
         {
-            var id = definition.Id;
-            var rehydrated = await definition.RehydrateAsync(_solution, _context.CancellationToken).ConfigureAwait(false);
-
-            lock (_idToDefinition)
+            try
             {
-                _idToDefinition.Add(id, rehydrated);
-            }
+                var id = definition.Id;
+                var rehydrated = await definition.RehydrateAsync(_solution, _context.CancellationToken).ConfigureAwait(false);
 
-            await _context.OnDefinitionFoundAsync(rehydrated).ConfigureAwait(false);
+                lock (_idToDefinition)
+                {
+                    _idToDefinition.Add(id, rehydrated);
+                }
+
+                await _context.OnDefinitionFoundAsync(rehydrated).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException oce) when (oce.CancellationToken == _context.CancellationToken)
+            {
+                // Eat the cancellation exception since we're unsure if it's safe to propagate back to the remote side
+            }
         }
 
         public async ValueTask OnReferenceFoundAsync(SerializableSourceReferenceItem reference)
         {
-            var rehydrated = await reference.RehydrateAsync(_solution, GetDefinition(reference.DefinitionId), _context.CancellationToken).ConfigureAwait(false);
+            try
+            {
+                var rehydrated = await reference.RehydrateAsync(_solution, GetDefinition(reference.DefinitionId), _context.CancellationToken).ConfigureAwait(false);
 
-            await _context.OnReferenceFoundAsync(rehydrated).ConfigureAwait(false);
+                await _context.OnReferenceFoundAsync(rehydrated).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException oce) when (oce.CancellationToken == _context.CancellationToken)
+            {
+                // Eat the cancellation exception since we're unsure if it's safe to propagate back to the remote side
+            }
         }
 
         private DefinitionItem GetDefinition(int definitionId)
