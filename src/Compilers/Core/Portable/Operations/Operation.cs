@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis
 
         protected void SetParentOperation(IOperation? parent)
         {
+            Debug.Assert(Volatile.Read(ref _parentDoNotAccessDirectly) == s_unset);
             var result = Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, parent, s_unset);
 
             // tree must belong to same semantic model if parent is given
@@ -144,7 +145,6 @@ namespace Microsoft.CodeAnalysis
         {
             // For simplicity of implementation of derived types, we handle `null` children, as some children
             // are optional.
-            Debug.Assert(operation == null || ((Operation)(IOperation)operation)._parentDoNotAccessDirectly == s_unset);
             (operation as Operation)?.SetParentOperation(parent);
             return operation;
         }
