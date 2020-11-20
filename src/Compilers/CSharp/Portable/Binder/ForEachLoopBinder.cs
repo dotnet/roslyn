@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         builder.GetEnumeratorMethod.ReturnType.SpecialType == SpecialType.System_Collections_IEnumerator);
                 }
 
-                // We don't know the runtime type, so we will have to insert a runtime check for disposal,
+                // We don't know the runtime type, so we will have to insert a runtime check for disposal
                 // that will call the interface method if the check is successful
                 builder.NeedsDisposal = true;
                 builder.DisposeMethod = this.Compilation.GetWellKnownDisposeMethod(isAsync);
@@ -996,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)builder.GetEnumeratorMethod == null ||
                 TypeSymbol.Equals(builder.GetEnumeratorMethod.ReturnType, this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerator), TypeCompareKind.ConsiderEverything2));
 
-            // We don't know the runtime type, so we will have to insert a runtime check for disposal,
+            // We don't know the runtime type, so we will have to insert a runtime check for disposal
             // that will call the interface method if the check is successful
             builder.NeedsDisposal = true;
             builder.DisposeMethod = this.Compilation.GetWellKnownDisposeMethod(isAsync);

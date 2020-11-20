@@ -1454,7 +1454,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim locals As ImmutableArray(Of ILocalSymbol) = ImmutableArray(Of ILocalSymbol).CastUp(boundUsingStatement.Locals)
             Dim syntax As SyntaxNode = boundUsingStatement.Syntax
             Dim isImplicit As Boolean = boundUsingStatement.WasCompilerGenerated
-            Dim disposeMethod As MethodSymbol = DirectCast(DirectCast(_semanticModel.Compilation), VisualBasicCompilation).GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), MethodSymbol)
+            Dim disposeMethod As MethodSymbol = DirectCast(DirectCast(_semanticModel.Compilation, VisualBasicCompilation).GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), MethodSymbol)
             Return New UsingOperation(resources, body, locals, isAsynchronous:=False, disposeMethod, _semanticModel, syntax, isImplicit)
         End Function
 

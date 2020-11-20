@@ -3829,7 +3829,7 @@ oneMoreTime:
                 //   finally { resource.Dispose(); }
                 // }
                 // Otherwise, when Resource type is a nullable value type or
-                // a reference type other than dynamic, that implements IDisposable the expansion is:
+                // a reference type other than dynamic that implements IDisposable, the expansion is:
                 //
                 // {
                 //   ResourceType resource = expr;
@@ -3838,8 +3838,8 @@ oneMoreTime:
                 // }
                 //
                 // Otherwise, when Resource type is a nullable value type or
-                // a reference type other than dynamic, that implements disposal
-                // via pattern the expansion is:
+                // a reference type other than dynamic that implements disposal
+                // via pattern, the expansion is:
                 //
                 // {
                 //   ResourceType resource = expr;
@@ -3913,10 +3913,10 @@ oneMoreTime:
 
                 var isPatternDispose = !disposeMethod.ContainingType.Equals(iDisposable, SymbolEqualityComparer.Default);
                 var isNull = resource.GetConstantValue() == ConstantValue.Null;
-                var requiresConversion = !isPatternDispose && !isAsynchronous && !isNull && !_compilation.HasImplicitConversion(resource.Type, iDisposable) && !isNonNullableValueType(resource.Type);
+                var requiresRuntimeConversion = !isPatternDispose && !isAsynchronous && !isNull && !_compilation.HasImplicitConversion(resource.Type, iDisposable) && !isNonNullableValueType(resource.Type);
 
-                // var resource = (IDisposable)resource;
-                if (requiresConversion)
+                // var resource = resource as IDisposable;
+                if (requiresRuntimeConversion)
                 {
                     Debug.Assert(!isNonNullableValueType(resource.Type));
                     resource = ConvertToIDisposable(resource, iDisposable, isTryCast: true);
@@ -3926,7 +3926,7 @@ oneMoreTime:
                 }
 
                 // if (resource is null) return;
-                if (requiresConversion || !isNonNullableValueType(resource.Type))
+                if (requiresRuntimeConversion || !isNonNullableValueType(resource.Type))
                 {
                     IOperation condition = MakeIsNullOperation(OperationCloner.CloneOperation(resource));
                     ConditionalBranch(condition, jumpIfTrue: true, endOfFinally);
