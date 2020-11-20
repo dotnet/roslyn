@@ -37,10 +37,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
 
         public void ExecuteCommand(PasteCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
+            // Check that the feature is enabled before doing any work
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AddImportsOnPaste))
+            {
+                nextCommandHandler();
+                return;
+            }
+
             // Capture the pre-paste caret position
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!caretPosition.HasValue)
             {
+                nextCommandHandler();
                 return;
             }
 
@@ -57,11 +65,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
 
             // Don't perform work if we're inside the interactive window
             if (args.TextView.IsNotSurfaceBufferOfTextView(args.SubjectBuffer))
-            {
-                return;
-            }
-
-            if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AddImportsOnPaste))
             {
                 return;
             }
