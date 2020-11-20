@@ -115,15 +115,11 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         /// </summary>
         protected async Task<bool> AllowOverTypeInUserCodeWithValidClosingTokenAsync(BraceCompletionContext context, CancellationToken cancellationToken)
         {
-            return await IsCurrentPositionInUserCodeAsync(context.Document, context.CaretLocation, cancellationToken).ConfigureAwait(false)
-                && await CheckClosingTokenKindAsync(context.Document, context.ClosingPoint, cancellationToken).ConfigureAwait(false);
+            var tree = await context.Document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFactsService = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            static async Task<bool> IsCurrentPositionInUserCodeAsync(Document document, int currentPosition, CancellationToken cancellationToken)
-            {
-                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                return !syntaxFactsService.IsInNonUserCode(tree, currentPosition, cancellationToken);
-            }
+            return !syntaxFactsService.IsInNonUserCode(tree, context.CaretLocation, cancellationToken)
+                && await CheckClosingTokenKindAsync(context.Document, context.ClosingPoint, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
