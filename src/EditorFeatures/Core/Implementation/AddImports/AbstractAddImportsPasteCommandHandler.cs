@@ -85,7 +85,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
                 return;
             }
 
-
             using var _ = executionContext.OperationContext.AddScope(allowCancellation: true, DialogText);
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
 
