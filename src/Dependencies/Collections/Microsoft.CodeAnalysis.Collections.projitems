@@ -10,9 +10,14 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Collections</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\HashHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\IDictionaryDebugView`2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\InsertionBehavior.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\SegmentedArrayHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\ThrowHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\Unsafe.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedArray`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SegmentedDictionary`2.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)Internal\Strings.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.Collections.Internal.SR" />
