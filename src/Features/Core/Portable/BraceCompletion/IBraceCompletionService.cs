@@ -72,7 +72,8 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
 
         /// <summary>
         /// The caret location in the new text created by applying all <see cref="TextChanges"/>
-        /// to the input text.
+        /// to the input text.  Note the column in the line position can be virtual in that it points
+        /// to a location in the line which does not actually contain whitespace.
         /// </summary>
         public LinePosition CaretLocation { get; }
 

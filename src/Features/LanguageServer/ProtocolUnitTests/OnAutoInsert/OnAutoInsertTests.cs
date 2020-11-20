@@ -5,6 +5,9 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -203,6 +206,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task OnAutoInsert_BraceFormattingWithTabs()
+        {
+            var markup =
+@"class A
+{
+    void M() {{|type:|}
+    }
+}";
+            // Use show whitespace when modifying the expected value.
+            // The method braces and caret location should be indented with tabs.
+            var expected =
+@"class A
+{
+    void M()
+	{
+		$0
+	}
+}";
+            await VerifyMarkupAndExpected("\n", markup, expected, useTabs: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task OnAutoInsert_BraceFormattingInsideMethod()
         {
             var markup =
@@ -242,11 +267,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
             await VerifyNoResult("\n", markup);
         }
 
-        private async Task VerifyMarkupAndExpected(string characterTyped, string markup, string expected)
+        private async Task VerifyMarkupAndExpected(string characterTyped, string markup, string expected, bool useTabs = false)
         {
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var locationTyped = locations["type"].Single();
-            var documentText = await workspace.CurrentSolution.GetDocuments(locationTyped.Uri).Single().GetTextAsync();
+
+            if (useTabs)
+            {
+                var newSolution = workspace.CurrentSolution.WithOptions(
+                    workspace.CurrentSolution.Options.WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs));
+                workspace.TryApplyChanges(newSolution);
+            }
+
+            var document = workspace.CurrentSolution.GetDocuments(locationTyped.Uri).Single();
+            var documentText = await document.GetTextAsync();
 
             var result = await RunOnAutoInsertAsync(workspace.CurrentSolution, characterTyped, locationTyped);
 

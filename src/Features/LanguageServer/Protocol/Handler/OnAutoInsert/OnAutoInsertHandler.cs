@@ -20,6 +20,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using static Microsoft.CodeAnalysis.Completion.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -134,19 +135,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var newSourceText = sourceText.WithChanges(textChanges);
 
             var caretLine = newSourceText.Lines[desiredCaretLinePosition.Line];
-            if (caretLine.IsEmptyOrWhitespace() && desiredCaretLinePosition.Character > caretLine.Span.Length)
+            if (desiredCaretLinePosition.Character > caretLine.Span.Length)
             {
-                // The desired caret column is at an indented position, lets add whitespace indentation to the text.
+                if (caretLine.Span.IsEmpty)
+                {
+                    // We have an empty line with the caret column at an indented position, let's add whitespace indentation to the text.
+                    var indentedText = await GetIndentedTextAsync(document, newSourceText, caretLine, desiredCaretLinePosition, cancellationToken).ConfigureAwait(false);
 
-                // Indent by the amount needed to make the caret line contain the desired indentation column.
-                var amountToIndent = desiredCaretLinePosition.Character - caretLine.Span.Length;
+                    // Get the overall text changes between the original text and the formatted + indented text.
+                    textChanges = indentedText.GetTextChanges(sourceText).ToImmutableArray();
+                    newSourceText = indentedText;
 
-                // Create and apply a text change with whitespace for the indentation amount.
-                var indentedText = await GetIndentedTextAsync(document, newSourceText, caretLine.End, amountToIndent, cancellationToken).ConfigureAwait(false);
-
-                // Get the overall text changes between the original text and the formatted + indented text.
-                textChanges = indentedText.GetTextChanges(sourceText).ToImmutableArray();
-                newSourceText = indentedText;
+                    // If tabs were inserted the desired caret column can remain beyond the line text.
+                    // So just set the caret position to the end of the newly indented line.
+                    var caretLineInIndentedText = indentedText.Lines[desiredCaretLinePosition.Line];
+                    desiredCaretLinePosition = indentedText.Lines.GetLinePosition(caretLineInIndentedText.End);
+                }
+                else
+                {
+                    // We're not on an empty line, clamp the line position to the actual line end.
+                    desiredCaretLinePosition = new LinePosition(desiredCaretLinePosition.Line, Math.Min(desiredCaretLinePosition.Character, caretLine.End));
+                }
             }
 
             var textChange = await GetCollapsedChangeAsync(textChanges, document, cancellationToken).ConfigureAwait(false);
@@ -163,11 +172,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return autoInsertChange;
 
-            static async Task<SourceText> GetIndentedTextAsync(Document originalDocument, SourceText textToIndent, int locationToIndent, int amountToIndent, CancellationToken cancellationToken)
+            static async Task<SourceText> GetIndentedTextAsync(Document originalDocument, SourceText textToIndent, TextLine lineToIndent, LinePosition desiredCaretLinePosition, CancellationToken cancellationToken)
             {
+                // Indent by the amount needed to make the caret line contain the desired indentation column.
+                var amountToIndent = desiredCaretLinePosition.Character - lineToIndent.Span.Length;
+
+                // Create and apply a text change with whitespace for the indentation amount.
                 var documentOptions = await originalDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var indentText = amountToIndent.CreateIndentationString(documentOptions.GetOption(FormattingOptions.UseTabs), documentOptions.GetOption(FormattingOptions.TabSize));
-                var indentedText = textToIndent.WithChanges(new TextChange(new TextSpan(locationToIndent, 0), indentText));
+                var indentedText = textToIndent.WithChanges(new TextChange(new TextSpan(lineToIndent.End, 0), indentText));
                 return indentedText;
             }
 
