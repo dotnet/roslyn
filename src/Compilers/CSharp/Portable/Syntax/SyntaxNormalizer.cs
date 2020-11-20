@@ -284,22 +284,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static bool IsAutoAccessorList(SyntaxToken token)
             => token.Parent is AccessorListSyntax accessorList &&
-               All(accessorList.Accessors, a => a.Body == null);
+                All(accessorList.Accessors, a => a.Body == null);
 
         private static bool IsAutoAccessorList(SyntaxNode? node)
-        {
-            if (node?.Parent is AccessorListSyntax accessorList)
-            {
-                return All(accessorList.Accessors, a => a.Body == null);
-            }
+            => node?.Parent is AccessorListSyntax accessorList &&
+                All(accessorList.Accessors, a => a.Body == null);
 
-            return false;
-        }
+        private static bool HasInitializer(BasePropertyDeclarationSyntax basePropertyDeclaration)
+            => (basePropertyDeclaration is PropertyDeclarationSyntax property && property.Initializer != null);
 
-        private static bool IsAccessorListFollowedByInitializer(SyntaxToken token) =>
-            token.Parent is AccessorListSyntax accessorList &&
-            accessorList.Parent is PropertyDeclarationSyntax propertyDeclarationSyntax &&
-                    propertyDeclarationSyntax.Initializer != null;
+        private static bool IsAccessorListFollowedByInitializer(SyntaxToken token)
+            => token.Parent is AccessorListSyntax accessorList &&
+                accessorList.Parent is BasePropertyDeclarationSyntax basePropertyDeclarationSyntax &&
+                HasInitializer(basePropertyDeclarationSyntax);
 
         private static int LineBreaksBeforeOpenBrace(SyntaxToken currentToken, SyntaxToken nextToken)
         {
@@ -414,9 +411,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return false;
             }
 
-            if (!next.IsKind(SyntaxKind.SemicolonToken) && (IsAutoAccessorList(next) || IsAutoAccessorList(next.Parent)))
+            if (IsAutoAccessorList(next) || IsAutoAccessorList(next.Parent))
             {
-                return true;
+                return !next.IsKind(SyntaxKind.SemicolonToken);
             }
 
             if (IsXmlTextToken(token.Kind()) || IsXmlTextToken(next.Kind()))

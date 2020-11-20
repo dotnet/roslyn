@@ -218,8 +218,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("class x\r\n{\r\nint _g;\r\nint G\r\n{\r\nget\r\n{\r\nreturn\r\n_g;\r\n}\r\ninit;\r\n}\r\nint H\r\n{\r\nget;\r\nset\r\n{\r\n_g\r\n=\r\n12;\r\n}\r\n}\r\n}\r\n",
                 "class x\r\n{\r\n  int _g;\r\n  int G\r\n  {\r\n    get\r\n    {\r\n      return _g;\r\n    }\r\n\r\n    init;\r\n  }\r\n\r\n  int H\r\n  {\r\n    get;\r\n    set\r\n    {\r\n      _g = 12;\r\n    }\r\n  }\r\n}");
 
+            TestNormalizeDeclaration("class i1\r\n{\r\nint\r\np\r\n{\r\nget;\r\n}\r\n}", "class i1\r\n{\r\n  int p { get; }\r\n}");
+            TestNormalizeDeclaration("class i2\r\n{\r\nint\r\np\r\n{\r\nget=>1;\r\n}\r\n}", "class i2\r\n{\r\n  int p { get => 1; }\r\n}");
+            TestNormalizeDeclaration("class i3\r\n{\r\nint\r\np\r\n{\r\nget{}\r\n}\r\n}", "class i3\r\n{\r\n  int p\r\n  {\r\n    get\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class i4\r\n{\r\nint\r\np\r\n{\r\nset;\r\n}\r\n}", "class i4\r\n{\r\n  int p { set; }\r\n}");
+            TestNormalizeDeclaration("class i5\r\n{\r\nint\r\np\r\n{\r\nset{}\r\n}\r\n}", "class i5\r\n{\r\n  int p\r\n  {\r\n    set\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class i6\r\n{\r\nint\r\np\r\n{\r\ninit;\r\n}\r\n}", "class i6\r\n{\r\n  int p { init; }\r\n}");
+            TestNormalizeDeclaration("class i7\r\n{\r\nint\r\np\r\n{\r\ninit{}\r\n}\r\n}", "class i7\r\n{\r\n  int p\r\n  {\r\n    init\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class i8\r\n{\r\nint\r\np\r\n{\r\nget{}\r\nset{}\r\n}\r\n}", "class i8\r\n{\r\n  int p\r\n  {\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class i9\r\n{\r\nint\r\np\r\n{\r\nget=>1;\r\nset{z=1;}\r\n}\r\n}", "class i9\r\n{\r\n  int p\r\n  {\r\n    get => 1;\r\n    set\r\n    {\r\n      z = 1;\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class ia\r\n{\r\nint\r\np\r\n{\r\nget{}\r\nset;\r\n}\r\n}", "class ia\r\n{\r\n  int p\r\n  {\r\n    get\r\n    {\r\n    }\r\n\r\n    set;\r\n  }\r\n}");
+            TestNormalizeDeclaration("class ib\r\n{\r\nint\r\np\r\n{\r\nget;\r\nset{}\r\n}\r\n}", "class ib\r\n{\r\n  int p\r\n  {\r\n    get;\r\n    set\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class i4\r\n{\r\nint\r\np\r\n{\r\nset;\r\n}=1;\r\n}", "class i4\r\n{\r\n  int p { set; } = 1;\r\n}");
+            TestNormalizeDeclaration("class i5\r\n{\r\nint\r\np\r\n{\r\nset{}\r\n}=1;\r\n}", "class i5\r\n{\r\n  int p\r\n  {\r\n    set\r\n    {\r\n    }\r\n  } = 1;\r\n}");
+            TestNormalizeDeclaration("class i6\r\n{\r\nint\r\np\r\n{\r\ninit;\r\n}=1;\r\n}", "class i6\r\n{\r\n  int p { init; } = 1;\r\n}");
+            TestNormalizeDeclaration("class i7\r\n{\r\nint\r\np\r\n{\r\ninit{}\r\n}=1;\r\n}", "class i7\r\n{\r\n  int p\r\n  {\r\n    init\r\n    {\r\n    }\r\n  } = 1;\r\n}");
+            TestNormalizeDeclaration("class i8\r\n{\r\nint\r\np\r\n{\r\nget{}\r\nset{}\r\n}=1;\r\n}", "class i8\r\n{\r\n  int p\r\n  {\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n    }\r\n  } = 1;\r\n}");
+            TestNormalizeDeclaration("class i9\r\n{\r\nint\r\np\r\n{\r\nget=>1;\r\nset{z=1;}\r\n}=1;\r\n}", "class i9\r\n{\r\n  int p\r\n  {\r\n    get => 1;\r\n    set\r\n    {\r\n      z = 1;\r\n    }\r\n  } = 1;\r\n}");
+            TestNormalizeDeclaration("class ia\r\n{\r\nint\r\np\r\n{\r\nget{}\r\nset;\r\n}=1;\r\n}", "class ia\r\n{\r\n  int p\r\n  {\r\n    get\r\n    {\r\n    }\r\n\r\n    set;\r\n  } = 1;\r\n}");
+            TestNormalizeDeclaration("class ib\r\n{\r\nint\r\np\r\n{\r\nget;\r\nset{}\r\n}=1;\r\n}", "class ib\r\n{\r\n  int p\r\n  {\r\n    get;\r\n    set\r\n    {\r\n    }\r\n  } = 1;\r\n}");
+
             // indexers
             TestNormalizeDeclaration("class a{b this[c d]{get;}}", "class a\r\n{\r\n  b this[c d] { get; }\r\n}");
+            TestNormalizeDeclaration("class i1\r\n{\r\nint\r\nthis[b c]\r\n{\r\nget;\r\n}\r\n}", "class i1\r\n{\r\n  int this[b c] { get; }\r\n}");
+            TestNormalizeDeclaration("class i2\r\n{\r\nint\r\nthis[b c]\r\n{\r\nget=>1;\r\n}\r\n}", "class i2\r\n{\r\n  int this[b c] { get => 1; }\r\n}");
+            TestNormalizeDeclaration("class i3\r\n{\r\nint\r\nthis[b c]\r\n{\r\nget{}\r\n}\r\n}", "class i3\r\n{\r\n  int this[b c]\r\n  {\r\n    get\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class i4\r\n{\r\nint\r\nthis[b c]\r\n{\r\nset;\r\n}\r\n}", "class i4\r\n{\r\n  int this[b c] { set; }\r\n}");
+            TestNormalizeDeclaration("class i5\r\n{\r\nint\r\nthis[b c]\r\n{\r\nset{}\r\n}\r\n}", "class i5\r\n{\r\n  int this[b c]\r\n  {\r\n    set\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class i6\r\n{\r\nint\r\nthis[b c]\r\n{\r\ninit;\r\n}\r\n}", "class i6\r\n{\r\n  int this[b c] { init; }\r\n}");
+            TestNormalizeDeclaration("class i7\r\n{\r\nint\r\nthis[b c]\r\n{\r\ninit{}\r\n}\r\n}", "class i7\r\n{\r\n  int this[b c]\r\n  {\r\n    init\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class i8\r\n{\r\nint\r\nthis[b c]\r\n{\r\nget{}\r\nset{}\r\n}\r\n}", "class i8\r\n{\r\n  int this[b c]\r\n  {\r\n    get\r\n    {\r\n    }\r\n\r\n    set\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class i9\r\n{\r\nint\r\nthis[b c]\r\n{\r\nget=>1;\r\nset{z=1;}\r\n}\r\n}", "class i9\r\n{\r\n  int this[b c]\r\n  {\r\n    get => 1;\r\n    set\r\n    {\r\n      z = 1;\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class ia\r\n{\r\nint\r\nthis[b c]\r\n{\r\nget{}\r\nset;\r\n}\r\n}", "class ia\r\n{\r\n  int this[b c]\r\n  {\r\n    get\r\n    {\r\n    }\r\n\r\n    set;\r\n  }\r\n}");
+            TestNormalizeDeclaration("class ib\r\n{\r\nint\r\nthis[b c]\r\n{\r\nget;\r\nset{}\r\n}\r\n}", "class ib\r\n{\r\n  int this[b c]\r\n  {\r\n    get;\r\n    set\r\n    {\r\n    }\r\n  }\r\n}");
 
             // fields
             TestNormalizeDeclaration("class a{b c;}", "class a\r\n{\r\n  b c;\r\n}");
