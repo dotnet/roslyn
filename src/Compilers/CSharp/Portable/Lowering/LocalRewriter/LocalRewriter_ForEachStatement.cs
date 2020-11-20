@@ -233,10 +233,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement rewrittenBody)
         {
             Debug.Assert(enumeratorInfo.NeedsDisposal);
+            Debug.Assert(enumeratorInfo.DisposeMethod is not null);
 
             NamedTypeSymbol? idisposableTypeSymbol = null;
             bool isImplicit = false;
-            MethodSymbol? disposeMethod = enumeratorInfo.DisposeMethod;
+            MethodSymbol disposeMethod = enumeratorInfo.DisposeMethod;
             if (!enumeratorInfo.IsPatternDispose)
             {
                 idisposableTypeSymbol = disposeMethod.ContainingType;
