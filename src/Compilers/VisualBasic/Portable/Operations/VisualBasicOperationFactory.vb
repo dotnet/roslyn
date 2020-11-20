@@ -1199,8 +1199,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                      statementInfo.MoveNextMethod,
                                                      isAsynchronous:=False,
                                                      boundForEachStatement.EnumeratorInfo.NeedToDispose,
-                                                     knownToImplementIDisposable:=boundForEachStatement.EnumeratorInfo.NeedToDispose AndAlso
-                                                                                  boundForEachStatement.EnumeratorInfo.IsOrInheritsFromOrImplementsIDisposable,
                                                      disposeMethod:=Nothing,
                                                      statementInfo.CurrentConversion,
                                                      statementInfo.ElementConversion,

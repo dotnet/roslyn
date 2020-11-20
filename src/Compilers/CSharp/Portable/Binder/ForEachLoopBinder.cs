@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return EnumeratorResult.FailedAndReported;
                 }
-                builder = GetDefaultEnumeratorInfo(builder, diagnostics, collectionExprType);
+                builder = GetDefaultEnumeratorInfo(builder, diagnostics, collectionExprType, isAsync);
                 return EnumeratorResult.Succeeded;
             }
 
@@ -860,7 +860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return EnumeratorResult.FailedAndReported;
                 }
 
-                builder = GetDefaultEnumeratorInfo(builder, diagnostics, collectionExprType);
+                builder = GetDefaultEnumeratorInfo(builder, diagnostics, collectionExprType, isAsync);
                 return EnumeratorResult.Succeeded;
             }
 
@@ -924,6 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref useSiteDiagnostics).IsImplicit)
             {
                 builder.NeedsDisposal = true;
+                builder.DisposeMethod = this.Compilation.GetWellKnownDisposeMethod(isAsync);
             }
             else if (Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingDeclarations) &&
                     (enumeratorType.IsRefLikeType || isAsync))
@@ -963,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return getEnumeratorMethod;
         }
 
-        private ForEachEnumeratorInfo.Builder GetDefaultEnumeratorInfo(ForEachEnumeratorInfo.Builder builder, DiagnosticBag diagnostics, TypeSymbol collectionExprType)
+        private ForEachEnumeratorInfo.Builder GetDefaultEnumeratorInfo(ForEachEnumeratorInfo.Builder builder, DiagnosticBag diagnostics, TypeSymbol collectionExprType, bool isAsync)
         {
             // NOTE: for arrays, we won't actually use any of these members - they're just for the API.
             builder.CollectionType = GetSpecialType(SpecialType.System_Collections_IEnumerable, diagnostics, _syntax);
@@ -992,8 +993,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)builder.GetEnumeratorMethod == null ||
                 TypeSymbol.Equals(builder.GetEnumeratorMethod.ReturnType, this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerator), TypeCompareKind.ConsiderEverything2));
 
-            // We don't know the runtime type, so we will have to insert a runtime check for IDisposable (with a conditional call to IDisposable.Dispose).
+            // We don't know the runtime type, so we will have to insert a runtime check for disposal,
+            // but we do know what method will be called if the check is successful
             builder.NeedsDisposal = true;
+            builder.DisposeMethod = this.Compilation.GetWellKnownDisposeMethod(isAsync);
             return builder;
         }
 

@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         bool IsAsynchronous { get; }
         /// <summary>
-        /// The method that will be invoked to dispose the <see cref="Resources" /> if they do not implement a disposable interface.
+        /// The method that will be invoked to dispose the <see cref="Resources" />. This can be null in error scenarios.
         /// </summary>
         IMethodSymbol? DisposeMethod { get; }
     }
@@ -3190,7 +3190,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         bool IsAsynchronous { get; }
         /// <summary>
-        /// The method that will be invoked to dispose the declared instances if they do not implement a disposable interface.
+        /// The method that will be invoked to dispose the declared instances. This can be null in error scenarios.
         /// </summary>
         IMethodSymbol? DisposeMethod { get; }
     }

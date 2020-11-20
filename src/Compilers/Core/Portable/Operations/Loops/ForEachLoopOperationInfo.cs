@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public readonly bool IsAsynchronous;
         public readonly bool NeedsDispose;
-        public readonly bool KnownToImplementIDisposable;
         public readonly IMethodSymbol? DisposeMethod;
 
         /// <summary>
@@ -43,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Operations
             IMethodSymbol moveNextMethod,
             bool isAsynchronous,
             bool needsDispose,
-            bool knownToImplementIDisposable,
             IMethodSymbol? disposeMethod,
             IConvertibleConversion currentConversion,
             IConvertibleConversion elementConversion,
@@ -57,7 +55,6 @@ namespace Microsoft.CodeAnalysis.Operations
             MoveNextMethod = moveNextMethod;
             IsAsynchronous = isAsynchronous;
             NeedsDispose = needsDispose;
-            KnownToImplementIDisposable = knownToImplementIDisposable;
             DisposeMethod = disposeMethod;
             CurrentConversion = currentConversion;
             ElementConversion = elementConversion;

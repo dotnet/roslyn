@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Syntax;
@@ -443,6 +444,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
         }
+
+        internal static MethodSymbol? GetWellKnownDisposeMethod(this CSharpCompilation compilation, bool isAsync) =>
+             (MethodSymbol?)(isAsync
+                             ? compilation.GetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)
+                             : compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose));
+
         #endregion
 
         #region SemanticModel
