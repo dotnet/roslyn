@@ -2,7 +2,6 @@
 <Project>
   <PropertyGroup>
     <MSBuildWarningsAsMessages>MSB4181</MSBuildWarningsAsMessages>
-    <CaravelaCompilerVersion>0.1.46</CaravelaCompilerVersion>
   </PropertyGroup>
 
   <Target Name="CaravelaCompilerSetAnalyzerAssembliesInPackage" DependsOnTargets="ResolveReferences;BuiltProjectOutputGroup">
@@ -30,7 +29,6 @@
   <UsingTask TaskName="CaravelaCompilerRewriteNuspec" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <NuspecFile />
-      <ToolsetVersion />
     </ParameterGroup>
     <Task>
       <Using Namespace="System.Xml.Linq" />
@@ -44,10 +42,9 @@
             foreach (var group in groups)
             {
                 var sdk = group.Elements(ns + "dependency").SingleOrDefault(e => e.Attribute("id").Value == "Caravela.Compiler.Sdk");
-                sdk?.Remove();
 
-                var toolset = new XElement(ns + "dependency", new XAttribute("id", "Caravela.Compiler"), new XAttribute("version", ToolsetVersion));
-                group.Add(toolset);
+                if (sdk != null)
+                    sdk.Attribute("id").Value = "Caravela.Compiler";
             }
 
             doc.Save(NuspecFile);
@@ -132,7 +129,7 @@
       <NuspecFileAbsolutePath>@(FilteredOutput)</NuspecFileAbsolutePath>
     </PropertyGroup>
 
-    <CaravelaCompilerRewriteNuspec NuspecFile="$(NuspecFileAbsolutePath)" ToolsetVersion="$(CaravelaCompilerVersion)" />
+    <CaravelaCompilerRewriteNuspec NuspecFile="$(NuspecFileAbsolutePath)" />
 
   </Target>
 
