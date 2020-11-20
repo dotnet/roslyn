@@ -736,7 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 Syntax, receiver, method, args,
                 default(ImmutableArray<String>), method.ParameterRefKinds, false, false, false,
-                default(ImmutableArray<int>), LookupResultKind.Viable, null, method.ReturnType,
+                default(ImmutableArray<int>), default(BitVector), LookupResultKind.Viable, null, method.ReturnType,
                 hasErrors: method.OriginalDefinition is ErrorMethodSymbol)
             { WasCompilerGenerated = true };
         }
@@ -747,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 Syntax, receiver, method, args,
                 default(ImmutableArray<String>), refKinds, false, false, false,
-                ImmutableArray<int>.Empty, LookupResultKind.Viable, null, method.ReturnType)
+                ImmutableArray<int>.Empty, default(BitVector), LookupResultKind.Viable, null, method.ReturnType)
             { WasCompilerGenerated = true };
         }
 

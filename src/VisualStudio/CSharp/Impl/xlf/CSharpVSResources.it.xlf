@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="needs-review-translation">Mostra automaticamente l'elenco di completamento negli elenchi di argomenti (sperimentale)</target>
+        <target state="translated">Mostra automaticamente l'elenco di completamento negli elenchi di argomenti (sperimentale)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -34,12 +34,12 @@
       </trans-unit>
       <trans-unit id="Edit_color_scheme">
         <source>Edit color scheme</source>
-        <target state="new">Edit color scheme</target>
+        <target state="translated">Modifica combinazione colori</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document">
         <source>Format document</source>
-        <target state="new">Format document</target>
+        <target state="translated">Formatta documento</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
         <source>Insert // at the start of new lines when writing // comments</source>
-        <target state="new">Insert // at the start of new lines when writing // comments</target>
+        <target state="translated">Inserisci * all'inizio di nuove righe quando si scrivono commenti //</target>
         <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
-        <target state="new">Pattern matching preferences:</target>
+        <target state="translated">Preferenze per criteri di ricerca:</target>
         <note />
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
-        <target state="new">Prefer implicit object creation when type is apparent</target>
+        <target state="translated">Preferisci la creazione implicita di oggetti quando il tipo è apparente</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>
-        <target state="new">Prefer pattern matching</target>
+        <target state="translated">Preferisci i criteri di ricerca</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching_over_mixed_type_check">
         <source>Prefer pattern matching over mixed type check</source>
-        <target state="new">Prefer pattern matching over mixed type check</target>
+        <target state="translated">Preferisci criteri di ricerca al controllo dei tipi misti</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_switch_expression">
@@ -119,12 +119,12 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
         <source>Show hints for 'new' expressions</source>
-        <target state="new">Show hints for 'new' expressions</target>
+        <target state="translated">Mostra suggerimenti per le espressioni 'new'</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
-        <target state="needs-review-translation">Mostra elementi da spazi dei nomi non importati (sperimentale)</target>
+        <target state="translated">Mostra elementi da spazi dei nomi non importati</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

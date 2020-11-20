@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments">
         <source>Insert ' at the start of new lines when writing ' comments</source>
-        <target state="new">Insert ' at the start of new lines when writing ' comments</target>
+        <target state="translated">Fügen Sie beim Schreiben von '-Kommentaren ein Apostroph (') am Anfang der neuen Zeilen ein.</target>
         <note />
       </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
         <source>Prefer 'IsNot' expression</source>
-        <target state="new">Prefer 'IsNot' expression</target>
+        <target state="translated">Ausdruck "IsNot" bevorzugen</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
@@ -49,12 +49,12 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
         <source>Show hints for 'New' expressions</source>
-        <target state="new">Show hints for 'New' expressions</target>
+        <target state="translated">Hinweise für new-Ausdrücke anzeigen</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
-        <target state="needs-review-translation">Elemente aus nicht importierten Namespaces anzeigen (experimentell)</target>
+        <target state="translated">Elemente aus nicht importierten Namespaces anzeigen</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -174,7 +174,7 @@
       </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_imports">
         <source>_Place 'System' directives first when sorting imports</source>
-        <target state="translated">System-Direktiven beim Sortieren von Import-Direktiven an erster Stelle platzieren</target>
+        <target state="translated">System-Anweisungen beim Sortieren von import-Anweisungen an erster Stelle _platzieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_Me">

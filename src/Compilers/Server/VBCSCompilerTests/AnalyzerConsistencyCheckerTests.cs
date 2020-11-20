@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var analyzerReferences = ImmutableArray.Create(new CommandLineAnalyzerReference("Alpha.dll"));
             var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new InMemoryAssemblyLoader());
 
-            Assert.False(result);
+            Assert.True(result);
         }
 
         [Fact]
