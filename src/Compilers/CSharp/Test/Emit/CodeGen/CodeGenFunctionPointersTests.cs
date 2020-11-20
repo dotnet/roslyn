@@ -10677,6 +10677,178 @@ static void Test(out int i1, out int i2)
 ");
         }
 
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void ReturnByRefFromRefReturningMethod()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe
+{
+    int i = 1;
+    ref int iRef = ref ReturnPtrByRef(&ReturnByRef, ref i);
+    iRef = 2;
+    System.Console.WriteLine(i);
+    
+    static ref int ReturnPtrByRef(delegate*<ref int, ref int> ptr, ref int i)
+        => ref ptr(ref i);
+
+    static ref int ReturnByRef(ref int i) => ref i;
+}", expectedOutput: "2");
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, int>, ref int)", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (delegate*<ref int, ref int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.1
+  IL_0003:  ldloc.0
+  IL_0004:  calli      ""delegate*<ref int, ref int>""
+  IL_0009:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void ReturnByRefFromRefReturningMethod_FunctionPointerDoesNotReturnByRefError()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    int i = 1;
+    ref int iRef = ref ReturnPtrByRef(&ReturnByRef, ref i);
+    
+    static ref int ReturnPtrByRef(delegate*<ref int, int> ptr, ref int i)
+        => ref ptr(ref i);
+
+    static int ReturnByRef(ref int i) => i;
+}", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (8,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         => ref ptr(ref i);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "ptr(ref i)").WithLocation(8, 16)
+            );
+        }
+
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void ReturnByRefFromRefReturningMethod_NotSafeToEscape()
+        {
+            var comp = CreateCompilationWithSpan(@"
+using System;
+unsafe
+{
+    ref Span<int> spanRef = ref ReturnPtrByRef(&ReturnByRef);
+    
+    static ref Span<int> ReturnPtrByRef(delegate*<ref Span<int>, ref Span<int>> ptr)
+    {
+        Span<int> span = stackalloc int[1];
+        return ref ptr(ref span);
+    }
+
+    static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
+}", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (10,20): error CS8347: Cannot use a result of 'delegate*<ref Span<int>, Span<int>>' in this context because it may expose variables referenced by parameter '' outside of their declaration scope
+                //         return ref ptr(ref span);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ptr(ref span)").WithArguments("delegate*<ref System.Span<int>, System.Span<int>>", "").WithLocation(10, 20),
+                // (10,28): error CS8168: Cannot return local 'span' by reference because it is not a ref local
+                //         return ref ptr(ref span);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "span").WithArguments("span").WithLocation(10, 28)
+            );
+        }
+
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void ReturnByRefFromRefReturningMethod_SafeToEscape()
+        {
+            var comp = CreateCompilationWithSpan(@"
+using System;
+unsafe
+{
+    Span<int> s = stackalloc int[1];
+    s[0] = 1;
+    ref Span<int> sRef = ref ReturnPtrByRef(&ReturnByRef, ref s);
+    sRef[0] = 2;
+    Console.WriteLine(s[0]);
+    
+    static ref Span<int> ReturnPtrByRef(delegate*<ref Span<int>, ref Span<int>> ptr, ref Span<int> s)
+        => ref ptr(ref s);
+
+    static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
+}", options: TestOptions.UnsafeReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "2");
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref System.Span<int>, System.Span<int>>, ref System.Span<int>)", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (delegate*<ref System.Span<int>, ref System.Span<int>> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.1
+  IL_0003:  ldloc.0
+  IL_0004:  calli      ""delegate*<ref System.Span<int>, ref System.Span<int>>""
+  IL_0009:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void ReturnByRefFromRefReturningMethod_RefReadonlyToRefError()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    int i = 1;
+    ref int iRef = ref ReturnPtrByRef(&ReturnByRef, ref i);
+    
+    static ref int ReturnPtrByRef(delegate*<ref int, ref readonly int> ptr, ref int i)
+        => ref ptr(ref i);
+
+    static ref readonly int ReturnByRef(ref int i) => ref i;
+}", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (8,16): error CS8333: Cannot return method 'delegate*<ref int, int>' by writable reference because it is a readonly variable
+                //         => ref ptr(ref i);
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "ptr(ref i)").WithArguments("method", "delegate*<ref int, int>").WithLocation(8, 16)
+            );
+        }
+
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void ReturnByRefFromRefReturningMethod_RefToRefReadonly()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe
+{
+    int i = 1;
+    ref readonly int iRef = ref ReturnPtrByRef(&ReturnByRef, ref i);
+    i = 2;
+    System.Console.WriteLine(iRef);
+    
+    static ref readonly int ReturnPtrByRef(delegate*<ref int, ref int> ptr, ref int i)
+        => ref ptr(ref i);
+
+    static ref int ReturnByRef(ref int i) => ref i;
+}", expectedOutput: "2");
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, int>, ref int)", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (delegate*<ref int, ref int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.1
+  IL_0003:  ldloc.0
+  IL_0004:  calli      ""delegate*<ref int, ref int>""
+  IL_0009:  ret
+}
+");
+        }
+
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
         private static readonly BlobContentId s_contentId = new BlobContentId(s_guid, 0x04030201);
 
