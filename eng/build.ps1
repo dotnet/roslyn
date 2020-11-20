@@ -216,8 +216,6 @@ function BuildSolution() {
   $projects = Join-Path $RepoRoot $solution
   $toolsetBuildProj = InitializeToolset
 
-  $testTargetFrameworks = if ($testCoreClr) { 'net5.0%3Bnetcoreapp3.1' } else { "" }
-
   $ibcDropName = GetIbcDropName
 
   # Do not set this property to true explicitly, since that would override values set in projects.
@@ -334,7 +332,6 @@ function TestUsingRunTests() {
   }
 
   $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
-  $binDir = Join-Path $ArtifactsDir "bin"
   $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "netcoreapp3.1"
 
   if (!(Test-Path $runTests)) {
