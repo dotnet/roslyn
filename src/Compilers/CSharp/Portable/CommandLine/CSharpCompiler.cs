@@ -345,9 +345,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> transformerOrder,
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators,
-            out ImmutableArray<ISourceTransformer> transformers)
+            out ImmutableArray<ISourceTransformer> transformers,
+            out ImmutableArray<object> plugins)
         {
-            Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers);
+            Arguments.ResolveAnalyzersFromArguments(LanguageNames.CSharp, diagnostics, messageProvider, AssemblyLoader, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers, out plugins);
         }
 
         protected override void ResolveEmbeddedFilesFromExternalSourceDirectives(
@@ -391,11 +392,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private protected override Compilation RunTransformers(
-            ref Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics)
+            ref Compilation input, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
+            DiagnosticBag diagnostics)
         {
             var resources = Arguments.ManifestResources.ToList();
 
-            var result = RunTransformers(ref input, transformers, analyzerConfigProvider, diagnostics, resources, AssemblyLoader);
+            var result = RunTransformers(ref input, transformers, plugins, analyzerConfigProvider, diagnostics, resources, AssemblyLoader);
 
             Arguments.ManifestResources = resources.ToImmutableArray();
 
@@ -403,8 +405,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal static Compilation RunTransformers(
-            ref Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics,
-            IList<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader)
+            ref Compilation input, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
+            DiagnosticBag diagnostics, IList<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader)
         {
             if (!ShouldDebugTransformedCode(analyzerConfigProvider))
             {
@@ -421,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 try
                 {
-                    var context = new TransformerContext(compilation, analyzerConfigProvider.GlobalOptions, manifestResources, diagnostics, assemblyLoader);
+                    var context = new TransformerContext(compilation, plugins, analyzerConfigProvider.GlobalOptions, manifestResources, diagnostics, assemblyLoader);
                     compilation = transformer.Execute(context);
                 }
                 catch (Exception ex)

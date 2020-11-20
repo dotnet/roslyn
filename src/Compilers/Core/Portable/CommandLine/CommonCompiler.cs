@@ -114,7 +114,8 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<string> transformerOrder,
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators,
-            out ImmutableArray<ISourceTransformer> transformers);
+            out ImmutableArray<ISourceTransformer> transformers,
+            out ImmutableArray<object> plugins);
 
         public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, BuildPaths buildPaths, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
         {
@@ -736,7 +737,7 @@ namespace Microsoft.CodeAnalysis
         private protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag generatorDiagnostics) { return input; }
 
         private protected virtual Compilation RunTransformers(
-            ref Compilation input, ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics)
+            ref Compilation input, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics)
         { return input; }
 
         private int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
@@ -817,7 +818,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var diagnosticInfos = new List<DiagnosticInfo>();
-            ResolveAnalyzersFromArguments(diagnosticInfos, MessageProvider, Arguments.SkipAnalyzers, transformerOrder, out var analyzers, out var generators, out var transformers);
+            ResolveAnalyzersFromArguments(diagnosticInfos, MessageProvider, Arguments.SkipAnalyzers, transformerOrder, out var analyzers, out var generators, out var transformers, out var plugins);
             var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnosticInfos, MessageProvider, touchedFilesLogger);
             if (ReportDiagnostics(diagnosticInfos, consoleOutput, errorLogger))
             {
@@ -838,6 +839,7 @@ namespace Microsoft.CodeAnalysis
                 analyzers,
                 generators,
                 transformers,
+                plugins,
                 additionalTexts,
                 analyzerConfigSet,
                 sourceFileAnalyzerConfigOptions,
@@ -945,6 +947,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<ISourceTransformer> transfomers,
+            ImmutableArray<object> plugins,
             ImmutableArray<AdditionalText> additionalTextFiles,
             AnalyzerConfigSet analyzerConfigSet,
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions,
@@ -1061,7 +1064,7 @@ namespace Microsoft.CodeAnalysis
                 if (!transfomers.IsEmpty)
                 {
                     var compilationBefore = compilation;
-                    compilation = RunTransformers(ref compilationBefore, transfomers, analyzerConfigProvider, diagnostics);
+                    compilation = RunTransformers(ref compilationBefore, transfomers, plugins, analyzerConfigProvider, diagnostics);
 
                     bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
                     var transformedOutputPath = GetTransformedFilesOutputDirectory(analyzerConfigProvider);

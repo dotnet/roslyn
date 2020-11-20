@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -21,10 +22,11 @@ namespace Caravela.Compiler
         private readonly IAnalyzerAssemblyLoader _assemblyLoader;
 
         internal TransformerContext(
-            Compilation compilation, AnalyzerConfigOptions globalOptions, IList<ResourceDescription> manifestResources, DiagnosticBag diagnostics,
-            IAnalyzerAssemblyLoader assemblyLoader)
+            Compilation compilation, ImmutableArray<object> plugins, AnalyzerConfigOptions globalOptions, IList<ResourceDescription> manifestResources,
+            DiagnosticBag diagnostics, IAnalyzerAssemblyLoader assemblyLoader)
         {
             Compilation = compilation;
+            Plugins = plugins;
             GlobalOptions = globalOptions;
             ManifestResources = manifestResources;
             _diagnostics = diagnostics;
@@ -36,6 +38,11 @@ namespace Caravela.Compiler
         /// Get the current <see cref="Compilation"/> at the time of execution.
         /// </summary>
         public Compilation Compilation { get; }
+
+        /// <summary>
+        /// Gets plugins that were registered by being marked with the <c>Caravela.CompilerPluginAttribute</c> attribute.
+        /// </summary>
+        public ImmutableArray<object> Plugins { get; }
 
         /// <summary>
         /// Allows access to global options provided by an analyzer config,

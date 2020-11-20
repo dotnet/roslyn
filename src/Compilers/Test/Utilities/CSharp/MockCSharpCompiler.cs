@@ -43,9 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             ImmutableArray<string> transformerOrder,
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators,
-            out ImmutableArray<ISourceTransformer> transformers)
+            out ImmutableArray<ISourceTransformer> transformers,
+            out ImmutableArray<object> plugins)
         {
-            base.ResolveAnalyzersFromArguments(diagnostics, messageProvider, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers);
+            base.ResolveAnalyzersFromArguments(diagnostics, messageProvider, skipAnalyzers, transformerOrder, out analyzers, out generators, out transformers, out plugins);
             if (!_analyzers.IsDefaultOrEmpty)
             {
                 analyzers = analyzers.InsertRange(0, _analyzers);

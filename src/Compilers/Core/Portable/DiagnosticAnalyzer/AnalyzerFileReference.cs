@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Extensions<DiagnosticAnalyzer> _diagnosticAnalyzers;
         private readonly Extensions<ISourceGenerator> _generators;
         private readonly Extensions<ISourceTransformer> _transformers;
+        private readonly Extensions<object> _plugins;
 
         private string? _lazyDisplay;
         private object? _lazyIdentity;
@@ -67,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _diagnosticAnalyzers = new Extensions<DiagnosticAnalyzer>(this, IsDiagnosticAnalyzerAttribute, GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: true);
             _generators = new Extensions<ISourceGenerator>(this, IsGeneratorAttribute, GetGeneratorsSupportedLanguages, allowNetFramework: false);
             _transformers = new Extensions<ISourceTransformer>(this, IsTransformerAttribute, GetTransformersSupportedLanguages, allowNetFramework: false);
+            _plugins = new Extensions<object>(this, IsPluginAttribute, GetTransformersSupportedLanguages, allowNetFramework: false);
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
@@ -217,6 +219,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        internal void AddCompilerPlugins(ImmutableArray<object>.Builder builder, string language)
+        {
+            _plugins.AddExtensions(builder, language);
+        }
+
         private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string? typeName = null)
         {
             // unwrap:
@@ -325,6 +332,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static IEnumerable<string> GetTransformersSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle) => ImmutableArray.Create(LanguageNames.CSharp);
+
+        private static bool IsPluginAttribute(PEModule peModule, CustomAttributeHandle customAttrHandle)
+        {
+            return peModule.IsTargetAttribute(customAttrHandle, nameof(Caravela), "CompilerPluginAttribute", ctor: out _);
+        }
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
         {
