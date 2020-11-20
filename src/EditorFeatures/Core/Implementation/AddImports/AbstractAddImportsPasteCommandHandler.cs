@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
             }
 
             // Don't perform work if we're inside the interactive window
-            if (args.TextView.IsBufferInInteractiveWindow(args.SubjectBuffer))
+            if (args.TextView.IsNotSurfaceBufferOfTextView(args.SubjectBuffer))
             {
                 return;
             }
@@ -82,15 +82,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
                 return;
             }
 
-            var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
-            if (addMissingImportsService is null)
-            {
-                return;
-            }
 
             using var _ = executionContext.OperationContext.AddScope(allowCancellation: true, DialogText);
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
 
+            var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
 #pragma warning disable VSTHRD102 // Implement internal logic asynchronously
             var updatedDocument = _threadingContext.JoinableTaskFactory.Run(() => addMissingImportsService.AddMissingImportsAsync(document, textSpan, cancellationToken));
 #pragma warning restore VSTHRD102 // Implement internal logic asynchronously

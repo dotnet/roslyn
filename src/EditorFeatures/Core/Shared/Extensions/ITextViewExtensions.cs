@@ -379,10 +379,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         }
 
         /// <summary>
-        /// Determines if the textbuffer passed in matches the buffer for the textview. If it does
-        /// not, we assume that the textview is in the interactive window.
+        /// Determines if the textbuffer passed in matches the buffer for the textview.
         /// </summary>
-        public static bool IsBufferInInteractiveWindow(this ITextView textView, ITextBuffer textBuffer)
+        public static bool IsNotSurfaceBufferOfTextView(this ITextView textView, ITextBuffer textBuffer)
             => textBuffer != textView.TextBuffer;
     }
 }
