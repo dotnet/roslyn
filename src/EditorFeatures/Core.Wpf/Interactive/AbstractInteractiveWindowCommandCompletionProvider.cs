@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -13,7 +11,10 @@ using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
 {
-    internal abstract class ReplCompletionProvider : LSPCompletionProvider
+    /// <summary>
+    /// Provides completion items for Interactive Window commands (such as #help, #cls, etc.) at the start of a language buffer.
+    /// </summary>
+    internal abstract class AbstractInteractiveWindowCommandCompletionProvider : LSPCompletionProvider
     {
         protected abstract bool ShouldDisplayCommandCompletions(SyntaxTree tree, int position, CancellationToken cancellationToken);
         protected abstract string GetCompletionString(string commandName);
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
                 if (workspace is InteractiveWindowWorkspace interactiveWorkspace)
                 {
                     var window = interactiveWorkspace.Window;
-                    var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                     if (ShouldDisplayCommandCompletions(tree, position, cancellationToken))
                     {
