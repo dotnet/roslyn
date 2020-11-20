@@ -366,15 +366,22 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class BlockOperation
     {
+        /// <summary>
+        /// This creates a block that can be used for temporary, internal applications that require a block composed of
+        /// statements from another block. Blocks created by this API violate IOperation tree constraints and should
+        /// never be exposed from a public API.
+        /// </summary>
         public static BlockOperation CreateTemporaryBlock(ImmutableArray<IOperation> statements, SemanticModel semanticModel, SyntaxNode syntax)
-            => new(statements, semanticModel, syntax);
+            => new BlockOperation(statements, semanticModel, syntax);
 
         private BlockOperation(ImmutableArray<IOperation> statements, SemanticModel semanticModel, SyntaxNode syntax)
             : base(semanticModel, syntax, isImplicit: true)
         {
             // Intentionally skipping SetParentOperation: this is used by CreateTemporaryBlock for the purposes of the
             // control flow factory, to temporarily create a new block for use in emulating the "block" a using variable
-            // declaration introduces.
+            // declaration introduces. These statements already have a parent node, and `SetParentOperation`'s verification
+            // would fail because that parent isn't this.
+            Debug.Assert(statements.All(s => s.Parent != this && s.Parent!.Kind == OperationKind.Block));
             Operations = statements;
             Locals = ImmutableArray<ILocalSymbol>.Empty;
         }

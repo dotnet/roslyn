@@ -874,7 +874,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Operation.SetParentOperation(rootOperation, Nothing)
-                OperationMapBuilder.Instance.Visit(rootOperation, _guardedIOperationNodeMap)
+                OperationMapBuilder.AddToMap(rootOperation, _guardedIOperationNodeMap)
 
                 Return If(_guardedIOperationNodeMap.TryGetValue(node, result), result, Nothing)
             Finally

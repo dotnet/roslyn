@@ -142,7 +142,9 @@ namespace Microsoft.CodeAnalysis
         [return: NotNullIfNotNull("operation")]
         public static T? SetParentOperation<T>(T? operation, IOperation? parent) where T : IOperation
         {
-            // explicit cast is not allowed, so using "as" instead
+            // For simplicity of implementation of derived types, we handle `null` children, as some children
+            // are optional.
+            Debug.Assert(operation == null || ((Operation)(IOperation)operation)._parentDoNotAccessDirectly == s_unset);
             (operation as Operation)?.SetParentOperation(parent);
             return operation;
         }
@@ -158,17 +160,6 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var operation in operations)
             {
-                if ((operation as Operation)?._parentDoNotAccessDirectly != s_unset)
-                {
-#if DEBUG
-                    VerifyParentOperation(parent, operation);
-                    continue;
-#else
-                    break;
-#endif
-                }
-
-                // go through slowest path
                 SetParentOperation(operation, parent);
             }
 

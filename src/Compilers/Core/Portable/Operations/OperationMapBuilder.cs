@@ -9,53 +9,64 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class OperationMapBuilder : OperationWalker<Dictionary<SyntaxNode, IOperation>>
+    internal static class OperationMapBuilder
     {
-        internal static readonly OperationMapBuilder Instance = new OperationMapBuilder();
-
-        private OperationMapBuilder() { }
-
-        public override object? Visit(IOperation? operation, Dictionary<SyntaxNode, IOperation> argument)
+        /// <summary>
+        /// Populates a empty dictionary of SyntaxNode->IOperation, where every key corresponds to an explicit IOperation node.
+        /// If there is a SyntaxNode with more than one explicit IOperation, this will throw.
+        /// </summary>
+        internal static void AddToMap(IOperation root, Dictionary<SyntaxNode, IOperation> dictionary)
         {
-            if (operation == null)
+            Debug.Assert(dictionary.Count == 0);
+            Walker.Instance.Visit(root, dictionary);
+        }
+
+        private sealed class Walker : OperationWalker<Dictionary<SyntaxNode, IOperation>>
+        {
+            internal static readonly Walker Instance = new Walker();
+
+            public override object? DefaultVisit(IOperation operation, Dictionary<SyntaxNode, IOperation> argument)
             {
+                RecordOperation(operation, argument);
+                return base.DefaultVisit(operation, argument);
+            }
+
+            public override object? VisitBinaryOperator([DisallowNull] IBinaryOperation? operation, Dictionary<SyntaxNode, IOperation> argument)
+            {
+                // In order to handle very large nested operators, we implement manual iteration here. Our operations are not order sensitive,
+                // so we don't need to maintain a stack, just iterate through every level.
+                while (true)
+                {
+                    RecordOperation(operation, argument);
+                    Visit(operation.RightOperand, argument);
+                    if (operation.LeftOperand is IBinaryOperation nested)
+                    {
+                        operation = nested;
+                    }
+                    else
+                    {
+                        Visit(operation.LeftOperand, argument);
+                        break;
+                    }
+                }
+
                 return null;
             }
 
-            RecordOperation(operation, argument);
-
-            return base.Visit(operation, argument);
-        }
-
-        public override object? VisitBinaryOperator([DisallowNull] IBinaryOperation? operation, Dictionary<SyntaxNode, IOperation> argument)
-        {
-            // In order to handle very large nested operators, we implement manual iteration here. Our operations are not order sensitive,
-            // so we don't need to maintain a stack, just iterate through every level. Visit above will have already recorded the given operation.
-            Debug.Assert(argument.ContainsKey(operation.Syntax) || operation.IsImplicit);
-            do
+            internal override object? VisitNoneOperation(IOperation operation, Dictionary<SyntaxNode, IOperation> argument)
             {
-                Visit(operation.RightOperand, argument);
-                if (operation.LeftOperand is IBinaryOperation nested)
-                {
-                    operation = nested;
-                    RecordOperation(operation, argument);
-                }
-                else
-                {
-                    Visit(operation.LeftOperand, argument);
-                    break;
-                }
-            } while (true);
+                // OperationWalker skips these nodes by default, to avoid having public consumers deal with NoneOperation.
+                // we need to deal with it here, however, so delegate to DefaultVisit.
+                return DefaultVisit(operation, argument);
+            }
 
-            return null;
-        }
-
-        private static void RecordOperation(IOperation operation, Dictionary<SyntaxNode, IOperation> argument)
-        {
-            if (!operation.IsImplicit)
+            private static void RecordOperation(IOperation operation, Dictionary<SyntaxNode, IOperation> argument)
             {
-                // IOperation invariant is that all there is at most 1 non-implicit node per syntax node.
-                argument.Add(operation.Syntax, operation);
+                if (!operation.IsImplicit)
+                {
+                    // IOperation invariant is that all there is at most 1 non-implicit node per syntax node.
+                    argument.Add(operation.Syntax, operation);
+                }
             }
         }
     }

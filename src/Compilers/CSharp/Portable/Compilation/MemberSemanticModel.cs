@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly Symbol _memberSymbol;
         private readonly CSharpSyntaxNode _root;
-        private readonly DiagnosticBag _ignoredDiagnostics = new();
-        private readonly ReaderWriterLockSlim _nodeMapLock = new(LockRecursionPolicy.NoRecursion);
+        private readonly DiagnosticBag _ignoredDiagnostics = new DiagnosticBag();
+        private readonly ReaderWriterLockSlim _nodeMapLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
         // The bound nodes associated with a syntax node, from highest in the tree to lowest.
-        private readonly Dictionary<SyntaxNode, ImmutableArray<BoundNode>> _guardedBoundNodeMap = new();
-        private readonly Dictionary<SyntaxNode, IOperation> _guardedIOperationNodeMap = new();
+        private readonly Dictionary<SyntaxNode, ImmutableArray<BoundNode>> _guardedBoundNodeMap = new Dictionary<SyntaxNode, ImmutableArray<BoundNode>>();
+        private readonly Dictionary<SyntaxNode, IOperation> _guardedIOperationNodeMap = new Dictionary<SyntaxNode, IOperation>();
         private Dictionary<SyntaxNode, BoundStatement> _lazyGuardedSynthesizedStatementsMap;
         private NullableWalker.SnapshotManager _lazySnapshotManager;
         private ImmutableDictionary<Symbol, Symbol> _lazyRemappedSymbols;
@@ -1154,7 +1154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return guardedGetIOperation();
             }
 
-            OperationMapBuilder.Instance.Visit(rootOperation, _guardedIOperationNodeMap);
+            OperationMapBuilder.AddToMap(rootOperation, _guardedIOperationNodeMap);
             return guardedGetIOperation();
 
             IOperation? guardedGetIOperation()
@@ -1212,7 +1212,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (highestBoundNode is BoundGlobalStatementInitializer { Statement: var innerStatement })
             {
-                // We don't have an IOperation node for the top-level statement here.
+                // Script top-level field declarations use a BoundGlobalStatementInitializer to wrap initializers.
+                // We don't represent these nodes in IOperation, so skip it.
                 highestBoundNode = innerStatement;
             }
 
