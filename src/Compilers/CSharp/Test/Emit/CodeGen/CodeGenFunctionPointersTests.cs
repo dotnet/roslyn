@@ -10778,7 +10778,7 @@ unsafe
     static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
 }", options: TestOptions.UnsafeReleaseExe);
 
-            var verifier = CompileAndVerify(comp, expectedOutput: "2");
+            var verifier = CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Skipped);
 
             verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref System.Span<int>, System.Span<int>>, ref System.Span<int>)", @"
 {
