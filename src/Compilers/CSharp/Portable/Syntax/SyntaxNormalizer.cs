@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 All(accessorList.Accessors, a => a.Body == null);
 
         private static bool HasInitializer(BasePropertyDeclarationSyntax basePropertyDeclaration)
-            => (basePropertyDeclaration is PropertyDeclarationSyntax property && property.Initializer != null);
+            => basePropertyDeclaration is PropertyDeclarationSyntax property && property.Initializer != null;
 
         private static bool IsAccessorListFollowedByInitializer(SyntaxToken token)
             => token.Parent is AccessorListSyntax accessorList &&
