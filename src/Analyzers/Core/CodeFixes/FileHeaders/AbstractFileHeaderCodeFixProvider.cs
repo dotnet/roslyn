@@ -267,13 +267,13 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         /// <summary>
         /// Normalize the new line characters for comparison.
         /// </summary>
-        /// <param name="orgiginal">The text with the new line characters to normalize.</param>
+        /// <param name="original">The text with the new line characters to normalize.</param>
         /// <param name="newLineText">The new line sequence.</param>
-        /// <returns>A normalized copy of <paramref name="orgiginal"/>.</returns>
-        private static string GetNormalizedHeaderTemplate(string orgiginal, string newLineText)
+        /// <returns>A normalized copy of <paramref name="original"/>.</returns>
+        private static string GetNormalizedHeaderTemplate(string original, string newLineText)
         {
             // Source: https://stackoverflow.com/a/141069
-            return Regex.Replace(orgiginal, @"\r\n|\n\r|\n|\r", newLineText);
+            return Regex.Replace(original, @"\r\n|\n\r|\n|\r", newLineText);
         }
 
         private static string GetCopyrightText(string prefixWithLeadingSpaces, string copyrightText, string newLineText)
