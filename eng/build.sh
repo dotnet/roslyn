@@ -259,10 +259,6 @@ function BuildSolution {
     test_runtime="/p:TestRuntime=Mono"
     mono_tool="/p:MonoTool=\"$mono_path\""
     test_runtime_args="--debug"
-  elif [[ "$test_core_clr" == true ]]; then
-    test=true
-    test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=net5.0%3Bnetcoreapp3.1 /p:TestRunnerAdditionalArguments=-verbose"
-    mono_tool=""
   fi
 
   # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
