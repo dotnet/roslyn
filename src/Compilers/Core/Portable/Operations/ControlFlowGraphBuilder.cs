@@ -3911,7 +3911,7 @@ oneMoreTime:
                                           ? _compilation.CommonGetWellKnownType(WellKnownType.System_IAsyncDisposable).GetITypeSymbol()
                                           : _compilation.GetSpecialType(SpecialType.System_IDisposable);
 
-                var isPatternDispose = !disposeMethod?.ContainingType.Equals(iDisposable, SymbolEqualityComparer.Default) ?? false;
+                var isPatternDispose = !disposeMethod.ContainingType.Equals(iDisposable, SymbolEqualityComparer.Default);
                 var requiresConversion = !isPatternDispose && !isAsynchronous && !_compilation.HasImplicitConversion(resource.Type, iDisposable) && !isNonNullableValueType(resource.Type);
 
                 // var resource = (IDisposable)resource;

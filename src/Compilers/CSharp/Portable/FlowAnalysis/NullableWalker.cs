@@ -8512,7 +8512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var disposalPlaceholder = awaitDisposalInfo.AwaitableInstancePlaceholder;
                     bool addedPlaceholder = false;
-                    if (node.EnumeratorInfoOpt.DisposeMethod is not null) // no statically known Dispose method if doing a runtime check
+                    if (node.EnumeratorInfoOpt.IsPatternDispose) // no statically known Dispose method if doing a runtime check
                     {
                         Debug.Assert(disposalPlaceholder is not null);
                         var disposeAsyncMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.DisposeMethod);

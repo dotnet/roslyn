@@ -247,9 +247,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol? idisposableTypeSymbol = null;
             bool isImplicit = false;
-            MethodSymbol? disposeMethod = enumeratorInfo.DisposeMethod; // pattern-based
-
-            if (disposeMethod is null)
+            MethodSymbol? disposeMethod = enumeratorInfo.DisposeMethod;
+            if (!enumeratorInfo.IsPatternDispose)
             {
                 TryGetDisposeMethod(forEachSyntax, enumeratorInfo, out disposeMethod); // interface-based
 
@@ -269,14 +268,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                location: enumeratorInfo.Location);
 
             BoundBlock finallyBlockOpt;
-            if (isImplicit || !(enumeratorInfo.DisposeMethod is null))
+            if (isImplicit || enumeratorInfo.IsPatternDispose)
             {
                 Conversion receiverConversion = enumeratorType.IsStructType() ?
                     Conversion.Boxing :
                     Conversion.ImplicitReference;
 
                 BoundExpression receiver;
-                if (enumeratorInfo.DisposeMethod is null)
+                if (!enumeratorInfo.IsPatternDispose)
                 {
                     Debug.Assert(idisposableTypeSymbol is { });
                     receiver = ConvertReceiverForInvocation(forEachSyntax, boundEnumeratorVar, disposeMethod, receiverConversion, idisposableTypeSymbol);
