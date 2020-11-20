@@ -7384,8 +7384,7 @@ class C
 
             edits.VerifyEdits("Update [unsafe Node* left;]@14 -> [Node* left;]@14");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Node* left", FeaturesResources.field));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
