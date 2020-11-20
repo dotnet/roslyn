@@ -3912,7 +3912,8 @@ oneMoreTime:
                                           : _compilation.GetSpecialType(SpecialType.System_IDisposable);
 
                 var isPatternDispose = !disposeMethod.ContainingType.Equals(iDisposable, SymbolEqualityComparer.Default);
-                var requiresConversion = !isPatternDispose && !isAsynchronous && !_compilation.HasImplicitConversion(resource.Type, iDisposable) && !isNonNullableValueType(resource.Type);
+                var isNull = resource.GetConstantValue() == ConstantValue.Null;
+                var requiresConversion = !isPatternDispose && !isAsynchronous && !isNull && !_compilation.HasImplicitConversion(resource.Type, iDisposable) && !isNonNullableValueType(resource.Type);
 
                 // var resource = (IDisposable)resource;
                 if (requiresConversion)
