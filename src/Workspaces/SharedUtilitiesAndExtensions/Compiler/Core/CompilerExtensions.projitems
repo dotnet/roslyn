@@ -179,9 +179,25 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\NotificationOption2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\OperatorPlacementWhenWrappingPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\HashHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\HashHelpers.SerializationInfoTable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\IDictionaryDebugView`2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\IInternalStringEqualityComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\InsertionBehavior.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\Marvin.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\Marvin.OrdinalIgnoreCase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\NonRandomizedStringEqualityComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\Ordinal.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\OrdinalCasing.Icu.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\RandomizedStringEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedArrayHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedArray`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedDictionary`2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\SR.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\StackTraceHiddenAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\TemporaryArray`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\ThrowHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\Unsafe.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IPragmaSuppressionsAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedDiagnostic.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedSyntaxHelpers.cs" />
@@ -196,6 +212,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VirtualCharSequence.Chunks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VirtualCharSequence.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VirtualCharSequence.Enumerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\BitOperations.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticAnalyzerExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticDescriptorExtensions.cs" />
@@ -496,6 +513,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IBuiltInAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Collections\Strings.resx" GenerateSource="true" ClassName="System.SR" />
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CompilerExtensionsResources.resx" GenerateSource="true" Link="CompilerExtensionsResources.resx" />
     <None Include="$(MSBuildThisFileDirectory)CompilerExtensionsResources.resx" />
   </ItemGroup>
