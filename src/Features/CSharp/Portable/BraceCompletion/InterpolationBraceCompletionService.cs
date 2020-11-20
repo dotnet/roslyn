@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             }
 
             // We can be starting an interpolation expression if we're inside an interpolated string.
-            return token.GetAncestor((node) => node.IsKind(SyntaxKind.InterpolatedStringExpression)) != null;
+            return token.Parent.IsKind(SyntaxKind.InterpolatedStringExpression) || token.Parent.IsParentKind(SyntaxKind.InterpolatedStringExpression);
         }
     }
 }

@@ -1282,6 +1282,31 @@ $$
             CheckReturn(session.Session, 0, expected);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void CurlyBraceFormattingInsideLambdaInsideInterpolation()
+        {
+            var code = @"class C
+{
+    void M(string[] args)
+    {
+        var s = $""{ args.Select(a => $$)}""
+    }
+}";
+            var expectedAfterStart = @"class C
+{
+    void M(string[] args)
+    {
+        var s = $""{ args.Select(a => { })}""
+    }
+}";
+
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            Assert.Equal(expectedAfterStart, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
+        }
+
         internal static Holder CreateSession(string code, Dictionary<OptionKey2, object> optionSet = null)
         {
             return CreateSession(
