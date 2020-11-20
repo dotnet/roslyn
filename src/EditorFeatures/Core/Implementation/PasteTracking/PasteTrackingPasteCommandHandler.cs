@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor;
@@ -44,6 +42,10 @@ namespace Microsoft.CodeAnalysis.PasteTracking
         {
             // Capture the pre-paste caret position
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
+            if (!caretPosition.HasValue)
+            {
+                return;
+            }
 
             // Allow the pasted text to be inserted and formatted.
             nextCommandHandler();
