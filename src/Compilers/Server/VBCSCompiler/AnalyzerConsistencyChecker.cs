@@ -15,25 +15,33 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal static class AnalyzerConsistencyChecker
     {
-        public static bool Check(string baseDirectory, IEnumerable<CommandLineAnalyzerReference> analyzerReferences, IAnalyzerAssemblyLoader loader, IEnumerable<string>? ignorableReferenceNames = null)
+        public static bool Check(
+            string baseDirectory,
+            IEnumerable<CommandLineAnalyzerReference> analyzerReferences,
+            IAnalyzerAssemblyLoader loader,
+            ICompilerServerLogger? logger = null)
         {
             try
             {
-                CompilerServerLogger.Log("Begin Analyzer Consistency Check");
-                return CheckCore(baseDirectory, analyzerReferences, loader);
+                logger?.Log("Begin Analyzer Consistency Check");
+                return CheckCore(baseDirectory, analyzerReferences, loader, logger);
             }
             catch (Exception e)
             {
-                CompilerServerLogger.LogException(e, "Analyzer Consistency Check");
+                logger?.LogException(e, "Analyzer Consistency Check");
                 return false;
             }
             finally
             {
-                CompilerServerLogger.Log("End Analyzer Consistency Check");
+                logger?.Log("End Analyzer Consistency Check");
             }
         }
 
-        private static bool CheckCore(string baseDirectory, IEnumerable<CommandLineAnalyzerReference> analyzerReferences, IAnalyzerAssemblyLoader loader)
+        private static bool CheckCore(
+            string baseDirectory,
+            IEnumerable<CommandLineAnalyzerReference> analyzerReferences,
+            IAnalyzerAssemblyLoader loader,
+            ICompilerServerLogger? logger)
         {
             var resolvedPaths = new List<string>();
 
@@ -76,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 if (resolvedPathMvid != loadedAssemblyMvid)
                 {
-                    CompilerServerLogger.LogError($"Analyzer assembly {resolvedPath} has MVID '{resolvedPathMvid}' but loaded assembly '{loadedAssembly.FullName}' has MVID '{loadedAssemblyMvid}'.");
+                    logger?.LogError($"Analyzer assembly {resolvedPath} has MVID '{resolvedPathMvid}' but loaded assembly '{loadedAssembly.FullName}' has MVID '{loadedAssemblyMvid}'.");
                     return false;
                 }
             }
