@@ -4,11 +4,10 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 {
@@ -24,15 +23,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             _braceCompletionServices = braceCompletionServices.ToImmutableArray();
         }
 
-        public IBraceCompletionService? TryGetService(Document document, int openingPosition, char openingBrace, CancellationToken cancellationToken)
+        public async Task<IBraceCompletionService?> TryGetServiceAsync(Document document, int openingPosition, char openingBrace, CancellationToken cancellationToken)
         {
-            this.AssertIsForeground();
-            return _braceCompletionServices.SingleOrDefault(service => IsServiceValidForBraceCompletion(service, document, openingPosition, openingBrace, cancellationToken));
-        }
+            foreach (var service in _braceCompletionServices)
+            {
+                if (await service.CanProvideBraceCompletionAsync(openingBrace, openingPosition, document, cancellationToken).ConfigureAwait(false))
+                {
+                    return service;
+                }
+            }
 
-        private static bool IsServiceValidForBraceCompletion(IBraceCompletionService service, Document document, int openingPosition, char openingBrace, CancellationToken cancellationToken)
-        {
-            return service.CanProvideBraceCompletionAsync(openingBrace, openingPosition, document, cancellationToken).WaitAndGetResult(cancellationToken);
+            return null;
         }
     }
 }

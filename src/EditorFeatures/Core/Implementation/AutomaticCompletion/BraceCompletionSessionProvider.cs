@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.Text.BraceCompletion;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                     // Brace completion is (currently) not cancellable.
                     var cancellationToken = CancellationToken.None;
 
-                    var editorSession = editorSessionFactory.TryGetService(document, openingPoint, openingBrace, cancellationToken);
+                    var editorSession = editorSessionFactory.TryGetServiceAsync(document, openingPoint, openingBrace, cancellationToken).WaitAndGetResult(cancellationToken);
                     if (editorSession != null)
                     {
                         var undoHistory = _undoManager.GetTextBufferUndoManager(textView.TextBuffer).TextBufferUndoHistory;
