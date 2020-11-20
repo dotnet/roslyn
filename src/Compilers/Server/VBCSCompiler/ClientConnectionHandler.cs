@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     internal sealed class ClientConnectionHandler
     {
         internal ICompilerServerHost CompilerServerHost { get; }
+        internal ICompilerServerLogger Logger => CompilerServerHost.Logger;
 
         internal ClientConnectionHandler(ICompilerServerHost compilerServerHost)
         {
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             catch (Exception ex)
             {
-                CompilerServerLogger.LogException(ex, $"Error processing request for client");
+                Logger.LogException(ex, $"Error processing request for client");
                 return CompletionData.RequestError;
             }
 
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         cancellationToken).ConfigureAwait(false);
                 }
 
-                if (!Environment.Is64BitProcess && !MemoryHelper.IsMemoryAvailable())
+                if (!Environment.Is64BitProcess && !MemoryHelper.IsMemoryAvailable(Logger))
                 {
                     return await WriteBuildResponseAsync(
                         clientConnection,
@@ -100,14 +101,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        private static async Task<CompletionData> WriteBuildResponseAsync(IClientConnection clientConnection, BuildResponse response, CompletionData completionData, CancellationToken cancellationToken)
+        private async Task<CompletionData> WriteBuildResponseAsync(IClientConnection clientConnection, BuildResponse response, CompletionData completionData, CancellationToken cancellationToken)
         {
             var message = response switch
             {
                 RejectedBuildResponse r => $"Writing {r.Type} response '{r.Reason}' for {clientConnection.LoggingIdentifier}",
                 _ => $"Writing {response.Type} response for {clientConnection.LoggingIdentifier}"
             };
-            CompilerServerLogger.Log(message);
+            Logger.Log(message);
             await clientConnection.WriteBuildResponseAsync(response, cancellationToken).ConfigureAwait(false);
             return completionData;
         }
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     {
                         // The compilation task should never throw. If it does we need to assume that the compiler is
                         // in a bad state and need to issue a RequestError
-                        CompilerServerLogger.LogException(ex, $"Exception running compilation for {clientConnection.LoggingIdentifier}");
+                        Logger.LogException(ex, $"Exception running compilation for {clientConnection.LoggingIdentifier}");
                         response = new RejectedBuildResponse($"Exception during compilation: {ex.Message}");
                         completionData = CompletionData.RequestError;
                     }

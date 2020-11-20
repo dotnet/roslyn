@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../CSharpVSResources.resx">
     <body>
+      <trans-unit id="Add_missing_using_directives_on_paste">
+        <source>Add missing using directives on paste</source>
+        <target state="new">Add missing using directives on paste</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
         <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
         <target state="translated">C# のすべての書式ルール (インデント、折り返し、スペース) を適用します</target>
@@ -9,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="needs-review-translation">入力候補一覧を引数リストに自動的に表示する (試験段階)</target>
+        <target state="translated">入力候補一覧を引数リストに自動的に表示する (試験段階)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -59,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
         <source>Insert // at the start of new lines when writing // comments</source>
-        <target state="new">Insert // at the start of new lines when writing // comments</target>
+        <target state="translated">// コメントの記述時に // を新しい行の先頭に挿入する</target>
         <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">
@@ -84,7 +89,7 @@
       </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
-        <target state="new">Prefer implicit object creation when type is apparent</target>
+        <target state="translated">型が明白な場合に暗黙的なオブジェクトの作成を優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
@@ -119,12 +124,12 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
         <source>Show hints for 'new' expressions</source>
-        <target state="new">Show hints for 'new' expressions</target>
+        <target state="translated">'new' 式のヒントを表示する</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
-        <target state="needs-review-translation">インポートされていない名前空間の項目を表示する (試験段階)</target>
+        <target state="translated">インポートされていない名前空間の項目を表示する</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

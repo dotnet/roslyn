@@ -91,11 +91,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         TypeParameterSymbolAll = Attributes | TypeParameterConstraints,
 
         // For property symbols
-        StartPropertyParameters = 1 << 4,
-        FinishPropertyParameters = 1 << 5,
-        StartPropertyType = 1 << 6,
-        FinishPropertyType = 1 << 7,
-        PropertySymbolAll = Attributes | StartPropertyParameters | FinishPropertyParameters | StartPropertyType | FinishPropertyType,
+        StartPropertyEnsureSignature = 1 << 4,
+        FinishPropertyEnsureSignature = 1 << 5,
+        StartPropertyParameters = 1 << 6,
+        FinishPropertyParameters = 1 << 7,
+        StartPropertyType = 1 << 8,
+        FinishPropertyType = 1 << 9,
+        StartPropertyFinalCompletion = 1 << 10,
+        FinishPropertyFinalCompletion = 1 << 11,
+        PropertySymbolAll = Attributes | StartPropertyEnsureSignature | FinishPropertyEnsureSignature | StartPropertyParameters | FinishPropertyParameters |
+                            StartPropertyType | FinishPropertyType | StartPropertyFinalCompletion | FinishPropertyFinalCompletion,
 
         // For alias symbols
         AliasTarget = 1 << 4,

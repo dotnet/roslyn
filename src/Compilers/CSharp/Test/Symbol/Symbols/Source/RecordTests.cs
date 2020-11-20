@@ -150,7 +150,7 @@ record C(int x, string y)
 
             var x = (SourcePropertySymbolBase)c.GetProperty("x");
             Assert.NotNull(x.GetMethod);
-            Assert.Equal(MethodKind.PropertyGet, x.GetMethod.MethodKind);
+            Assert.Equal(MethodKind.PropertyGet, x.GetMethod!.MethodKind);
             Assert.Equal(SpecialType.System_Int32, x.Type.SpecialType);
             Assert.False(x.IsReadOnly);
             Assert.False(x.IsWriteOnly);
@@ -175,7 +175,7 @@ record C(int x, string y)
             Assert.Equal(Accessibility.Public, getAccessor.DeclaredAccessibility);
 
             var setAccessor = x.SetMethod;
-            Assert.Equal(x, setAccessor.AssociatedSymbol);
+            Assert.Equal(x, setAccessor!.AssociatedSymbol);
             Assert.True(setAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, setAccessor.ContainingSymbol);
             Assert.Equal(c, setAccessor.ContainingType);
@@ -184,7 +184,7 @@ record C(int x, string y)
 
             var y = (SourcePropertySymbolBase)c.GetProperty("y");
             Assert.NotNull(y.GetMethod);
-            Assert.Equal(MethodKind.PropertyGet, y.GetMethod.MethodKind);
+            Assert.Equal(MethodKind.PropertyGet, y.GetMethod!.MethodKind);
             Assert.Equal(SpecialType.System_Int32, y.Type.SpecialType);
             Assert.False(y.IsReadOnly);
             Assert.False(y.IsWriteOnly);
@@ -208,7 +208,7 @@ record C(int x, string y)
             Assert.Equal(c, getAccessor.ContainingType);
 
             setAccessor = y.SetMethod;
-            Assert.Equal(y, setAccessor.AssociatedSymbol);
+            Assert.Equal(y, setAccessor!.AssociatedSymbol);
             Assert.True(setAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, setAccessor.ContainingSymbol);
             Assert.Equal(c, setAccessor.ContainingType);

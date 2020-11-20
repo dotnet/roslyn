@@ -8,11 +8,86 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
+    /// <summary>
+    /// Used to log information from within the compiler server
+    /// </summary>
+    /// <remarks>
+    /// Implementations of this interface must assume they are used on multilpe threads without any form
+    /// of synchronization.
+    /// </remarks>
+    internal interface ICompilerServerLogger
+    {
+        bool IsLogging { get; }
+        void Log(string message);
+    }
+
+    internal static class CompilerServerLoggerExtensions
+    {
+        internal static void Log(this ICompilerServerLogger logger, string format, params object?[] arguments)
+        {
+            if (logger.IsLogging)
+            {
+                logger.Log(string.Format(format, arguments));
+            }
+        }
+
+        internal static void LogError(this ICompilerServerLogger logger, string message)
+        {
+            if (logger.IsLogging)
+            {
+                logger.Log($"Error: {message}");
+            }
+        }
+
+        internal static void LogError(this ICompilerServerLogger logger, string format, params object?[] arguments)
+        {
+            if (logger.IsLogging)
+            {
+                logger.Log($"Error: {format}", arguments);
+            }
+        }
+
+        /// <summary>
+        /// Log an exception. Also logs information about inner exceptions.
+        /// </summary>
+        internal static void LogException(this ICompilerServerLogger logger, Exception exception, string reason)
+        {
+            if (!logger.IsLogging)
+            {
+                return;
+            }
+
+            var builder = new StringBuilder();
+            builder.Append("Error ");
+            AppendException(exception);
+
+            int innerExceptionLevel = 0;
+            Exception? e = exception.InnerException;
+            while (e != null)
+            {
+                builder.Append($"Inner exception[{innerExceptionLevel}]  ");
+                AppendException(e);
+                e = e.InnerException;
+                innerExceptionLevel += 1;
+            }
+
+            logger.Log(builder.ToString());
+
+            void AppendException(Exception exception)
+            {
+                builder.AppendLine($"Error: '{exception.GetType().Name}' '{exception.Message}' occurred during '{reason}'");
+                builder.AppendLine("Stack trace:");
+                builder.AppendLine(exception.StackTrace);
+            }
+        }
+    }
+
     /// <summary>
     /// Class for logging information about what happens in the server and client parts of the 
     /// Roslyn command line compiler and build tasks. Useful for debugging what is going on.
@@ -21,130 +96,83 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// To use the logging, set the environment variable RoslynCommandLineLogFile to the name
     /// of a file to log to. This file is logged to by both client and server components.
     /// </remarks>
-    internal class CompilerServerLogger
+    internal sealed class CompilerServerLogger : ICompilerServerLogger, IDisposable
     {
         // Environment variable, if set, to enable logging and set the file to log to.
-        private const string environmentVariable = "RoslynCommandLineLogFile";
+        internal const string EnvironmentVariableName = "RoslynCommandLineLogFile";
+        internal const string LoggingPrefix = "---";
 
-        private static readonly Stream? s_loggingStream;
-        private static string s_prefix = "---";
+        private Stream? _loggingStream;
+        private readonly int _processId;
+
+        public bool IsLogging => _loggingStream is object;
 
         /// <summary>
         /// Static class initializer that initializes logging.
         /// </summary>
-        static CompilerServerLogger()
+        public CompilerServerLogger()
         {
-            s_loggingStream = null;
+            _processId = Process.GetCurrentProcess().Id;
 
             try
             {
                 // Check if the environment
-                string? loggingFileName = Environment.GetEnvironmentVariable(environmentVariable);
-
-                if (loggingFileName != null)
+                if (Environment.GetEnvironmentVariable(EnvironmentVariableName) is string loggingFileName)
                 {
                     // If the environment variable contains the path of a currently existing directory,
                     // then use a process-specific name for the log file and put it in that directory.
                     // Otherwise, assume that the environment variable specifies the name of the log file.
                     if (Directory.Exists(loggingFileName))
                     {
-                        loggingFileName = Path.Combine(loggingFileName, $"server.{GetCurrentProcessId()}.log");
+                        loggingFileName = Path.Combine(loggingFileName, $"server.{_processId}.log");
                     }
 
                     // Open allowing sharing. We allow multiple processes to log to the same file, so we use share mode to allow that.
-                    s_loggingStream = new FileStream(loggingFileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
+                    _loggingStream = new FileStream(loggingFileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
                 }
             }
             catch (Exception e)
             {
-                LogException(e, "Failed to create logging stream");
+                Debug.Assert(false, e.Message);
             }
         }
 
-        /// <summary>
-        /// Set the logging prefix that describes our role.
-        /// Typically a 3-letter abbreviation. If logging happens before this, it's logged with "---".
-        /// </summary>
-        public static void Initialize(string outputPrefix)
+        public void Dispose()
         {
-            s_prefix = outputPrefix;
+            _loggingStream?.Dispose();
+            _loggingStream = null;
         }
 
-        /// <summary>
-        /// Log an exception. Also logs information about inner exceptions.
-        /// </summary>
-        public static void LogException(Exception exception, string reason)
+        public void Log(string message)
         {
-            if (s_loggingStream != null)
+            if (_loggingStream is object)
             {
-                LogError("'{0}' '{1}' occurred during '{2}'. Stack trace:\r\n{3}", exception.GetType().Name, exception.Message, reason, exception.StackTrace);
-
-                int innerExceptionLevel = 0;
-
-                Exception? e = exception.InnerException;
-                while (e != null)
-                {
-                    Log("Inner exception[{0}] '{1}' '{2}'. Stack trace: \r\n{3}", innerExceptionLevel, e.GetType().Name, e.Message, e.StackTrace);
-                    e = e.InnerException;
-                    innerExceptionLevel += 1;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Log a line of text to the logging file, with string.Format arguments.
-        /// </summary>
-        public static void Log(string format, params object?[] arguments)
-        {
-            if (s_loggingStream != null)
-            {
-                Log(string.Format(format, arguments));
-            }
-        }
-
-        /// <summary>
-        /// Log a line of text to the logging file.
-        /// </summary>
-        /// <param name="message"></param>
-        public static void Log(string message)
-        {
-            if (s_loggingStream != null)
-            {
-                string prefix = GetLoggingPrefix();
-
-                string output = prefix + message + "\r\n";
+                var threadId = Thread.CurrentThread.ManagedThreadId;
+                var prefix = $"PID={_processId} TID={threadId} Ticks={Environment.TickCount} ";
+                string output = prefix + message + Environment.NewLine;
                 byte[] bytes = Encoding.UTF8.GetBytes(output);
 
                 // Because multiple processes might be logging to the same file, we always seek to the end,
                 // write, and flush.
-                s_loggingStream.Seek(0, SeekOrigin.End);
-                s_loggingStream.Write(bytes, 0, bytes.Length);
-                s_loggingStream.Flush();
+                _loggingStream.Seek(0, SeekOrigin.End);
+                _loggingStream.Write(bytes, 0, bytes.Length);
+                _loggingStream.Flush();
             }
         }
+    }
 
-        public static void LogError(string message) => Log($"Error: {message}");
+    internal sealed class EmptyCompilerServerLogger : ICompilerServerLogger
+    {
+        public static EmptyCompilerServerLogger Instance { get; } = new EmptyCompilerServerLogger();
 
-        public static void LogError(string format, params object?[] arguments) => Log($"Error: {format}", arguments);
+        public bool IsLogging => false;
 
-        private static int GetCurrentProcessId()
+        private EmptyCompilerServerLogger()
         {
-            var process = Process.GetCurrentProcess();
-            return process.Id;
         }
 
-        private static int GetCurrentThreadId()
+        public void Log(string message)
         {
-            var thread = Thread.CurrentThread;
-            return thread.ManagedThreadId;
-        }
-
-        /// <summary>
-        /// Get the string that prefixes all log entries. Shows the process, thread, and time.
-        /// </summary>
-        private static string GetLoggingPrefix()
-        {
-            return string.Format("{0} PID={1} TID={2} Ticks={3}: ", s_prefix, GetCurrentProcessId(), GetCurrentThreadId(), Environment.TickCount);
         }
     }
 }

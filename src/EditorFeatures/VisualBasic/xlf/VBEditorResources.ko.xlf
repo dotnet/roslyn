@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../VBEditorResources.resx">
     <body>
+      <trans-unit id="Add_Missing_Imports_on_Paste">
+        <source>Add Missing Imports on Paste</source>
+        <target state="new">Add Missing Imports on Paste</target>
+        <note>"imports" is a language specific term and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Adding_missing_imports">
+        <source>Adding missing imports...</source>
+        <target state="new">Adding missing imports...</target>
+        <note>Thread awaited dialog text. "imports" is a language specific term and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Case_Correction">
         <source>Case Correction</source>
         <target state="translated">대/소문자 수정</target>

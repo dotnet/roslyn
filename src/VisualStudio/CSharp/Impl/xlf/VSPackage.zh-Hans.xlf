@@ -81,7 +81,7 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="needs-review-translation">显示内联参数名称提示；
+        <target state="translated">显示内联提示；
 显示对已关闭文件的诊断；
 对正则表达式着色；
 突出显示游标下的相关组件；
