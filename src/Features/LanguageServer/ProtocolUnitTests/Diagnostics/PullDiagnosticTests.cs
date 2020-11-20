@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             var results = await RunGetDocumentPullDiagnosticsAsync(workspace, queue, server, document);
 
-            Assert.Empty(results.Single().Diagnostics);
+            Assert.Empty(results);
         }
 
         [Fact]
