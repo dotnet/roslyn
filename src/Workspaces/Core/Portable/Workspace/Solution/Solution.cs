@@ -235,6 +235,20 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
+        public ValueTask<SourceGeneratedDocument?> GetSourceGeneratedDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+        {
+            var project = GetProject(documentId.ProjectId);
+
+            if (project == null)
+            {
+                return new(result: null);
+            }
+            else
+            {
+                return project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken);
+            }
+        }
+
         /// <summary>
         /// Gets the document in this solution with the specified syntax tree.
         /// </summary>
@@ -250,7 +264,9 @@ namespace Microsoft.CodeAnalysis
                 if (docId != null && (projectId == null || docId.ProjectId == projectId))
                 {
                     // does this solution even have the document?
-                    var document = this.GetDocument(docId);
+                    // We call TryGetSourceGeneratedDocumentForAlreadyGeneratedId if it's not a regular document;
+                    // we know that if we already have the tree that means generation completed, so that's safe to call.
+                    var document = this.GetDocument(docId) ?? this.GetProject(docId.ProjectId)?.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(docId);
                     if (document != null)
                     {
                         // does this document really have the syntax tree?
