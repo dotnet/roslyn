@@ -513,7 +513,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IBuiltInAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Collections\Strings.resx" GenerateSource="true" ClassName="System.SR" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Collections\Strings.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.Shared.Collections.SR" />
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CompilerExtensionsResources.resx" GenerateSource="true" Link="CompilerExtensionsResources.resx" />
     <None Include="$(MSBuildThisFileDirectory)CompilerExtensionsResources.resx" />
   </ItemGroup>

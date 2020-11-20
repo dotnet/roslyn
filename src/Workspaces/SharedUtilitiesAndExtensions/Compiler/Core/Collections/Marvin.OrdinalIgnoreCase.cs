@@ -1,13 +1,17 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#pragma warning disable
+
+using System;
 using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Unicode;
-using Internal.Runtime.CompilerServices;
 
-namespace System
+namespace Microsoft.CodeAnalysis.Shared.Collections
 {
     internal static partial class Marvin
     {
@@ -15,8 +19,10 @@ namespace System
         /// Compute a Marvin OrdinalIgnoreCase hash and collapse it into a 32-bit hash.
         /// n.b. <paramref name="count"/> is specified as char count, not byte count.
         /// </summary>
-        public static int ComputeHash32OrdinalIgnoreCase(ref char data, int count, uint p0, uint p1)
+        public static int ComputeHash32OrdinalIgnoreCase(ReadOnlySpan<char> source, uint p0, uint p1)
         {
+            int count = source.Length;
+            ref char data = ref MemoryMarshal.GetReference(source);
             uint ucount = (uint)count; // in chars
             nuint byteOffset = 0; // in bytes
             uint tempValue;
@@ -25,7 +31,7 @@ namespace System
 
             while (ucount >= 2)
             {
-                tempValue = Unsafe.ReadUnaligned<uint>(ref Unsafe.As<char, byte>(ref Unsafe.AddByteOffset(ref data, byteOffset)));
+                tempValue = Unsafe.ReadUnaligned<uint>(ref Unsafe.As<char, byte>(ref Unsafe.AddByteOffset(ref data, (nint)byteOffset)));
                 if (!Utf16Utility.AllCharsInUInt32AreAscii(tempValue))
                 {
                     goto NotAscii;
@@ -42,7 +48,7 @@ namespace System
 
             if (ucount > 0)
             {
-                tempValue = Unsafe.AddByteOffset(ref data, byteOffset);
+                tempValue = Unsafe.AddByteOffset(ref data, (nint)byteOffset);
                 if (tempValue > 0x7Fu)
                 {
                     goto NotAscii;
@@ -60,17 +66,18 @@ namespace System
 
         NotAscii:
             Debug.Assert(ucount <= int.MaxValue); // this should fit into a signed int
-            return ComputeHash32OrdinalIgnoreCaseSlow(ref Unsafe.AddByteOffset(ref data, byteOffset), (int)ucount, p0, p1);
+            return ComputeHash32OrdinalIgnoreCaseSlow(source.Slice((int)byteOffset / sizeof(char), (int)ucount), p0, p1);
         }
 
-        private static int ComputeHash32OrdinalIgnoreCaseSlow(ref char data, int count, uint p0, uint p1)
+        private static int ComputeHash32OrdinalIgnoreCaseSlow(ReadOnlySpan<char> source, uint p0, uint p1)
         {
+            int count = source.Length;
             Debug.Assert(count > 0);
 
             char[]? borrowedArr = null;
             Span<char> scratch = (uint)count <= 64 ? stackalloc char[64] : (borrowedArr = ArrayPool<char>.Shared.Rent(count));
 
-            int charsWritten = System.Globalization.Ordinal.ToUpperOrdinal(new ReadOnlySpan<char>(ref data, count), scratch);
+            int charsWritten = Ordinal.ToUpperOrdinal(source, scratch);
             Debug.Assert(charsWritten == count); // invariant case conversion should involve simple folding; preserve code unit count
 
             // Slice the array to the size returned by ToUpperInvariant.

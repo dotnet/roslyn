@@ -1,16 +1,21 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#pragma warning disable
 
 using System.Diagnostics;
 using System.Text.Unicode;
 using System.Runtime.CompilerServices;
-using Internal.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System;
+using System.Globalization;
 
-namespace System.Globalization
+namespace Microsoft.CodeAnalysis.Shared.Collections
 {
     internal static partial class Ordinal
     {
+#if false
         internal static int CompareStringIgnoreCase(ref char strA, int lengthA, ref char strB, int lengthB)
         {
             int length = Math.Min(lengthA, lengthB);
@@ -384,6 +389,7 @@ namespace System.Globalization
 
             return OrdinalCasing.LastIndexOf(source, value);
         }
+#endif
 
         internal static int ToUpperOrdinal(ReadOnlySpan<char> source, Span<char> destination)
         {
@@ -394,12 +400,15 @@ namespace System.Globalization
             if (destination.Length < source.Length)
                 return -1;
 
+#if false
             if (GlobalizationMode.Invariant)
+#endif
             {
                 OrdinalCasing.ToUpperInvariantMode(source, destination);
                 return source.Length;
             }
 
+#if false
             if (GlobalizationMode.UseNls)
             {
                 TextInfo.Invariant.ChangeCaseToUpper(source, destination); // this is the best so far for NLS.
@@ -408,6 +417,7 @@ namespace System.Globalization
 
             OrdinalCasing.ToUpperOrdinal(source, destination);
             return source.Length;
+#endif
         }
     }
 }

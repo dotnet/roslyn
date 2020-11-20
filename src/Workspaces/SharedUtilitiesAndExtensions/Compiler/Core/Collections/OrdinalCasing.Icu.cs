@@ -1,17 +1,22 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#pragma warning disable
+
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
-using Internal.Runtime.CompilerServices;
 
-namespace System.Globalization
+namespace Microsoft.CodeAnalysis.Shared.Collections
 {
     internal static partial class OrdinalCasing
     {
+#if false
         // s_noCasingPage means the Unicode page doesn't support any casing and no case translation is needed.
         private static ushort [] s_noCasingPage = Array.Empty<ushort>();
+#endif
 
         // s_basicLatin is covering the casing for the Basic Latin & C0 Controls range.
         // we are not lazy initializing this range because it is the most common used range and we'll cache it anyway very early.
@@ -37,6 +42,7 @@ namespace System.Globalization
             /* 00f0-00ff */  0x00d0, 0x00d1, 0x00d2, 0x00d3, 0x00d4, 0x00d5, 0x00d6, 0x00f7, 0x00d8, 0x00d9, 0x00da, 0x00db, 0x00dc, 0x00dd, 0x00de, 0x0178,
         };
 
+#if false
         // s_casingTable is covering the Unicode BMP plane only. Surrogate casing is handled separately.
         // Every cell in the table is covering the casing of 256 characters in the BMP.
         // Every cell is array of 512 character for uppercasing mapping.
@@ -99,6 +105,7 @@ namespace System.Globalization
 
             return (char) casingTable[((int)c) & 0xFF];
         }
+#endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static char ToUpperInvariantMode(char c) => c <= '\u00FF' ? (char) s_basicLatin[(int)c] : c;
@@ -111,6 +118,7 @@ namespace System.Globalization
             }
         }
 
+#if false
         internal static void ToUpperOrdinal(ReadOnlySpan<char> source, Span<char> destination)
         {
             Debug.Assert(!GlobalizationMode.Invariant);
@@ -440,5 +448,6 @@ namespace System.Globalization
             s_casingTable[pageNumber] = casingTable;
             return casingTable;
         }
+#endif
     }
 }

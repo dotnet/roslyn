@@ -1,9 +1,16 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#pragma warning disable
+
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Internal.Runtime.CompilerServices;
+using Roslyn.Utilities;
 
-namespace System.Collections.Generic
+namespace Microsoft.CodeAnalysis.Shared.Collections
 {
     /// <summary>
     /// A randomized <see cref="EqualityComparer{String}"/> which uses a different seed on each
@@ -16,14 +23,13 @@ namespace System.Collections.Generic
         private readonly MarvinSeed _seed;
         private readonly IEqualityComparer<string?> _underlyingComparer;
 
-        private unsafe RandomizedStringEqualityComparer(IEqualityComparer<string?> underlyingComparer)
+        private RandomizedStringEqualityComparer(IEqualityComparer<string?> underlyingComparer)
         {
             _underlyingComparer = underlyingComparer;
 
-            fixed (MarvinSeed* seed = &_seed)
-            {
-                Interop.GetRandomBytes((byte*)seed, sizeof(MarvinSeed));
-            }
+            var guidAccessor = new ObjectWriter.GuidAccessor() { Guid = Guid.NewGuid() };
+            _seed.p0 = (uint)guidAccessor.High64;
+            _seed.p1 = (uint)guidAccessor.Low64;
         }
 
         internal static RandomizedStringEqualityComparer Create(IEqualityComparer<string?> underlyingComparer, bool ignoreCase)
@@ -65,7 +71,7 @@ namespace System.Collections.Generic
                 // The Ordinal version of Marvin32 operates over bytes.
                 // The multiplication from # chars -> # bytes will never integer overflow.
                 return Marvin.ComputeHash32(
-                    ref Unsafe.As<char, byte>(ref obj.GetRawStringData()),
+                    ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(obj.AsSpan())),
                     (uint)obj.Length * 2,
                     _seed.p0, _seed.p1);
             }
@@ -78,7 +84,7 @@ namespace System.Collections.Generic
             {
             }
 
-            public override bool Equals(string? x, string? y) => string.EqualsOrdinalIgnoreCase(x, y);
+            public override bool Equals(string? x, string? y) => string.Equals(x, y, StringComparison.OrdinalIgnoreCase);
 
             public override int GetHashCode(string? obj)
             {
@@ -90,7 +96,7 @@ namespace System.Collections.Generic
                 // The Ordinal version of Marvin32 operates over bytes, so convert
                 // char count -> byte count. Guaranteed not to integer overflow.
                 return Marvin.ComputeHash32(
-                    ref Unsafe.As<char, byte>(ref obj.GetRawStringData()),
+                    ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(obj.AsSpan())),
                     (uint)obj.Length * sizeof(char),
                     _seed.p0, _seed.p1);
             }
@@ -103,7 +109,7 @@ namespace System.Collections.Generic
             {
             }
 
-            public override bool Equals(string? x, string? y) => string.EqualsOrdinalIgnoreCase(x, y);
+            public override bool Equals(string? x, string? y) => string.Equals(x, y, StringComparison.OrdinalIgnoreCase);
 
             public override int GetHashCode(string? obj)
             {
@@ -115,8 +121,7 @@ namespace System.Collections.Generic
                 // The OrdinalIgnoreCase version of Marvin32 operates over chars,
                 // so pass in the char count directly.
                 return Marvin.ComputeHash32OrdinalIgnoreCase(
-                    ref obj.GetRawStringData(),
-                    obj.Length,
+                    obj.AsSpan(),
                     _seed.p0, _seed.p1);
             }
         }

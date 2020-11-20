@@ -1,13 +1,17 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#pragma warning disable
+
+using System;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Internal.Runtime.CompilerServices;
+using Roslyn.Utilities;
 
-namespace System
+namespace Microsoft.CodeAnalysis.Shared.Collections
 {
     internal static partial class Marvin
     {
@@ -57,7 +61,7 @@ namespace System
                 // running in a 64-bit process.
 
                 p0 += Unsafe.ReadUnaligned<uint>(ref data);
-                uint nextUInt32 = Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref data, 4));
+                uint nextUInt32 = Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref data, (nint)4));
 
                 // One block round for each of the 32-bit integers we just read, 2x rounds total.
 
@@ -72,7 +76,7 @@ namespace System
                 // Requires https://github.com/dotnet/runtime/issues/6794 to be addressed first
                 // before we can realize the full benefits of this.
 
-                data = ref Unsafe.AddByteOffset(ref data, 8);
+                data = ref Unsafe.AddByteOffset(ref data, (nint)8);
             } while (--loopCount > 0);
 
             // n.b. We've not been updating the original 'count' parameter, so its actual value is
@@ -108,7 +112,7 @@ namespace System
 
             // Read the last 4 bytes of the buffer.
 
-            uint partialResult = Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref Unsafe.AddByteOffset(ref data, (nuint)count & 7), -4));
+            uint partialResult = Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref Unsafe.AddByteOffset(ref data, (nint)((nuint)count & 7)), -4));
 
             // The 'partialResult' local above contains any data we have yet to read, plus some number
             // of bytes which we've already read from the buffer. An example of this is given below
@@ -174,7 +178,7 @@ namespace System
                 // [ AA          ]  -> 0x0000_80AA / 0xAA80_0000
                 // [ AA BB CC    ]  -> 0x0000_80CC / 0xCC80_0000
 
-                partialResult = Unsafe.AddByteOffset(ref data, (nuint)count & 2);
+                partialResult = Unsafe.AddByteOffset(ref data, (nint)((nuint)count & 2));
 
                 if (BitConverter.IsLittleEndian)
                 {
@@ -241,9 +245,8 @@ namespace System
 
         private static unsafe ulong GenerateSeed()
         {
-            ulong seed;
-            Interop.GetRandomBytes((byte*)&seed, sizeof(ulong));
-            return seed;
+            var guidAccessor = new ObjectWriter.GuidAccessor() { Guid = Guid.NewGuid() };
+            return (ulong)guidAccessor.High64;
         }
     }
 }

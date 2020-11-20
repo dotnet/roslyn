@@ -1,6 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#pragma warning disable
 
 // This file defines an internal class used to throw exceptions in BCL code.
 // The main purpose is to reduce code size.
@@ -34,6 +36,7 @@
 // multiple times for different instantiation.
 //
 
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -41,7 +44,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 
-namespace System
+namespace Microsoft.CodeAnalysis.Shared.Collections
 {
     [StackTraceHidden]
     internal static class ThrowHelper

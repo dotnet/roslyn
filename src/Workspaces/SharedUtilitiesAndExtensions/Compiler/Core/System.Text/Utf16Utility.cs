@@ -8,8 +8,6 @@
 // Copied from https://github.com/dotnet/runtime/blob/c73774b53944a6007ee85f138e3ff3d3297846ea/src/libraries/System.Private.CoreLib/src/System/Text/Unicode/Utf16Utility.cs#L1
 // So that we can use Runes in netstandard 2.0
 
-#if !NETCOREAPP
-
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
 
@@ -221,5 +219,3 @@ namespace System.Text.Unicode
         }
     }
 }
-
-#endif

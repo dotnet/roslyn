@@ -1,11 +1,18 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#if !NETCOREAPP
+
+#pragma warning disable
 
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+#if false
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
+#endif
 
 #if SYSTEM_PRIVATE_CORELIB
 using Internal.Runtime.CompilerServices;
@@ -28,6 +35,7 @@ namespace System.Numerics
 #endif
         static class BitOperations
     {
+#if false
         // C# no-alloc optimization that directly wraps the data section of the dll (similar to string constants)
         // https://github.com/dotnet/roslyn/pull/24621
 
@@ -398,6 +406,7 @@ namespace System.Numerics
 
             return TrailingZeroCount(lo);
         }
+#endif
 
         /// <summary>
         /// Rotates the specified value left by the specified number of bits.
@@ -452,3 +461,5 @@ namespace System.Numerics
             => (value >> offset) | (value << (64 - offset));
     }
 }
+
+#endif

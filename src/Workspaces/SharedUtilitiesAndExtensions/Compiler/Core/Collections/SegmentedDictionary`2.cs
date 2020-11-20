@@ -1,20 +1,26 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#pragma warning disable
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 
-using Internal.Runtime.CompilerServices;
+using Unsafe = Internal.Runtime.CompilerServices.Unsafe;
 
-namespace System.Collections.Generic
+namespace Microsoft.CodeAnalysis.Shared.Collections
 {
     [DebuggerTypeProxy(typeof(IDictionaryDebugView<,>))]
     [DebuggerDisplay("Count = {Count}")]
     [Serializable]
     [TypeForwardedFrom("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
-    public class Dictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>, ISerializable, IDeserializationCallback where TKey : notnull
+    public class SegmentedDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>, ISerializable, IDeserializationCallback where TKey : notnull
     {
         // constants for serialization
         private const string VersionName = "Version"; // Do not rename (binary serialization)
@@ -36,13 +42,13 @@ namespace System.Collections.Generic
         private ValueCollection? _values;
         private const int StartOfFreeList = -3;
 
-        public Dictionary() : this(0, null) { }
+        public SegmentedDictionary() : this(0, null) { }
 
-        public Dictionary(int capacity) : this(capacity, null) { }
+        public SegmentedDictionary(int capacity) : this(capacity, null) { }
 
-        public Dictionary(IEqualityComparer<TKey>? comparer) : this(0, comparer) { }
+        public SegmentedDictionary(IEqualityComparer<TKey>? comparer) : this(0, comparer) { }
 
-        public Dictionary(int capacity, IEqualityComparer<TKey>? comparer)
+        public SegmentedDictionary(int capacity, IEqualityComparer<TKey>? comparer)
         {
             if (capacity < 0)
             {
@@ -80,9 +86,9 @@ namespace System.Collections.Generic
             }
         }
 
-        public Dictionary(IDictionary<TKey, TValue> dictionary) : this(dictionary, null) { }
+        public SegmentedDictionary(IDictionary<TKey, TValue> dictionary) : this(dictionary, null) { }
 
-        public Dictionary(IDictionary<TKey, TValue> dictionary, IEqualityComparer<TKey>? comparer) :
+        public SegmentedDictionary(IDictionary<TKey, TValue> dictionary, IEqualityComparer<TKey>? comparer) :
             this(dictionary != null ? dictionary.Count : 0, comparer)
         {
             if (dictionary == null)
@@ -90,13 +96,13 @@ namespace System.Collections.Generic
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.dictionary);
             }
 
-            // It is likely that the passed-in dictionary is Dictionary<TKey,TValue>. When this is the case,
+            // It is likely that the passed-in dictionary is SegmentedDictionary<TKey,TValue>. When this is the case,
             // avoid the enumerator allocation and overhead by looping through the entries array directly.
-            // We only do this when dictionary is Dictionary<TKey,TValue> and not a subclass, to maintain
+            // We only do this when dictionary is SegmentedDictionary<TKey,TValue> and not a subclass, to maintain
             // back-compat with subclasses that may have overridden the enumerator behavior.
-            if (dictionary.GetType() == typeof(Dictionary<TKey, TValue>))
+            if (dictionary.GetType() == typeof(SegmentedDictionary<TKey, TValue>))
             {
-                Dictionary<TKey, TValue> d = (Dictionary<TKey, TValue>)dictionary;
+                SegmentedDictionary<TKey, TValue> d = (SegmentedDictionary<TKey, TValue>)dictionary;
                 int count = d._count;
                 Entry[]? entries = d._entries;
                 for (int i = 0; i < count; i++)
@@ -115,9 +121,9 @@ namespace System.Collections.Generic
             }
         }
 
-        public Dictionary(IEnumerable<KeyValuePair<TKey, TValue>> collection) : this(collection, null) { }
+        public SegmentedDictionary(IEnumerable<KeyValuePair<TKey, TValue>> collection) : this(collection, null) { }
 
-        public Dictionary(IEnumerable<KeyValuePair<TKey, TValue>> collection, IEqualityComparer<TKey>? comparer) :
+        public SegmentedDictionary(IEnumerable<KeyValuePair<TKey, TValue>> collection, IEqualityComparer<TKey>? comparer) :
             this((collection as ICollection<KeyValuePair<TKey, TValue>>)?.Count ?? 0, comparer)
         {
             if (collection == null)
@@ -131,7 +137,7 @@ namespace System.Collections.Generic
             }
         }
 
-        protected Dictionary(SerializationInfo info, StreamingContext context)
+        protected SegmentedDictionary(SerializationInfo info, StreamingContext context)
         {
             // We can't do anything with the keys and values until the entire graph has been deserialized
             // and we have a resonable estimate that GetHashCode is not going to fail.  For the time being,
@@ -145,7 +151,7 @@ namespace System.Collections.Generic
             {
                 if (typeof(TKey) == typeof(string))
                 {
-                    return (IEqualityComparer<TKey>)IInternalStringEqualityComparer.GetUnderlyingEqualityComparer((IEqualityComparer<string?>?)_comparer);
+                    return (IEqualityComparer<TKey>)InternalStringEqualityComparer.GetUnderlyingEqualityComparer((IEqualityComparer<string?>?)_comparer);
                 }
                 else
                 {
@@ -798,12 +804,16 @@ namespace System.Collections.Generic
                         Debug.Assert((StartOfFreeList - _freeList) < 0, "shouldn't underflow because max hashtable length is MaxPrimeArrayLength = 0x7FEFFFFD(2146435069) _freelist underflow threshold 2147483646");
                         entry.next = StartOfFreeList - _freeList;
 
+#if NETCOREAPP
                         if (RuntimeHelpers.IsReferenceOrContainsReferences<TKey>())
+#endif
                         {
                             entry.key = default!;
                         }
 
+#if NETCOREAPP
                         if (RuntimeHelpers.IsReferenceOrContainsReferences<TValue>())
+#endif
                         {
                             entry.value = default!;
                         }
@@ -868,12 +878,16 @@ namespace System.Collections.Generic
                         Debug.Assert((StartOfFreeList - _freeList) < 0, "shouldn't underflow because max hashtable length is MaxPrimeArrayLength = 0x7FEFFFFD(2146435069) _freelist underflow threshold 2147483646");
                         entry.next = StartOfFreeList - _freeList;
 
+#if NETCOREAPP
                         if (RuntimeHelpers.IsReferenceOrContainsReferences<TKey>())
+#endif
                         {
                             entry.key = default!;
                         }
 
+#if NETCOREAPP
                         if (RuntimeHelpers.IsReferenceOrContainsReferences<TValue>())
+#endif
                         {
                             entry.value = default!;
                         }
@@ -1215,7 +1229,7 @@ namespace System.Collections.Generic
 
         public struct Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>, IDictionaryEnumerator
         {
-            private readonly Dictionary<TKey, TValue> _dictionary;
+            private readonly SegmentedDictionary<TKey, TValue> _dictionary;
             private readonly int _version;
             private int _index;
             private KeyValuePair<TKey, TValue> _current;
@@ -1224,7 +1238,7 @@ namespace System.Collections.Generic
             internal const int DictEntry = 1;
             internal const int KeyValuePair = 2;
 
-            internal Enumerator(Dictionary<TKey, TValue> dictionary, int getEnumeratorRetType)
+            internal Enumerator(SegmentedDictionary<TKey, TValue> dictionary, int getEnumeratorRetType)
             {
                 _dictionary = dictionary;
                 _version = dictionary._version;
@@ -1335,9 +1349,9 @@ namespace System.Collections.Generic
         [DebuggerDisplay("Count = {Count}")]
         public sealed class KeyCollection : ICollection<TKey>, ICollection, IReadOnlyCollection<TKey>
         {
-            private readonly Dictionary<TKey, TValue> _dictionary;
+            private readonly SegmentedDictionary<TKey, TValue> _dictionary;
 
-            public KeyCollection(Dictionary<TKey, TValue> dictionary)
+            public KeyCollection(SegmentedDictionary<TKey, TValue> dictionary)
             {
                 if (dictionary == null)
                 {
@@ -1458,12 +1472,12 @@ namespace System.Collections.Generic
 
             public struct Enumerator : IEnumerator<TKey>, IEnumerator
             {
-                private readonly Dictionary<TKey, TValue> _dictionary;
+                private readonly SegmentedDictionary<TKey, TValue> _dictionary;
                 private int _index;
                 private readonly int _version;
                 private TKey? _currentKey;
 
-                internal Enumerator(Dictionary<TKey, TValue> dictionary)
+                internal Enumerator(SegmentedDictionary<TKey, TValue> dictionary)
                 {
                     _dictionary = dictionary;
                     _version = dictionary._version;
@@ -1528,9 +1542,9 @@ namespace System.Collections.Generic
         [DebuggerDisplay("Count = {Count}")]
         public sealed class ValueCollection : ICollection<TValue>, ICollection, IReadOnlyCollection<TValue>
         {
-            private readonly Dictionary<TKey, TValue> _dictionary;
+            private readonly SegmentedDictionary<TKey, TValue> _dictionary;
 
-            public ValueCollection(Dictionary<TKey, TValue> dictionary)
+            public ValueCollection(SegmentedDictionary<TKey, TValue> dictionary)
             {
                 if (dictionary == null)
                 {
@@ -1650,12 +1664,12 @@ namespace System.Collections.Generic
 
             public struct Enumerator : IEnumerator<TValue>, IEnumerator
             {
-                private readonly Dictionary<TKey, TValue> _dictionary;
+                private readonly SegmentedDictionary<TKey, TValue> _dictionary;
                 private int _index;
                 private readonly int _version;
                 private TValue? _currentValue;
 
-                internal Enumerator(Dictionary<TKey, TValue> dictionary)
+                internal Enumerator(SegmentedDictionary<TKey, TValue> dictionary)
                 {
                     _dictionary = dictionary;
                     _version = dictionary._version;

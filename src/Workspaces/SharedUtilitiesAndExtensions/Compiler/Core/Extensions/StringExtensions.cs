@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Numerics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -259,6 +260,80 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             builder.Add(alias.GetWithSingleAttributeSuffix(caseSensitive));
+        }
+
+        // Use this if and only if 'Denial of Service' attacks are not a concern (i.e. never used for free-form user input),
+        // or are otherwise mitigated
+        internal static unsafe int GetNonRandomizedHashCode(this string obj)
+        {
+            fixed (char* src = obj)
+            {
+                Debug.Assert(src[obj.Length] == '\0', "src[this.Length] == '\\0'");
+                Debug.Assert(((int)src) % 4 == 0, "Managed string should start at 4 bytes boundary");
+
+                uint hash1 = (5381 << 16) + 5381;
+                var hash2 = hash1;
+
+                var ptr = (uint*)src;
+                var length = obj.Length;
+
+                while (length > 2)
+                {
+                    length -= 4;
+                    // Where length is 4n-1 (e.g. 3,7,11,15,19) this additionally consumes the null terminator
+                    hash1 = (BitOperations.RotateLeft(hash1, 5) + hash1) ^ ptr[0];
+                    hash2 = (BitOperations.RotateLeft(hash2, 5) + hash2) ^ ptr[1];
+                    ptr += 2;
+                }
+
+                if (length > 0)
+                {
+                    // Where length is 4n-3 (e.g. 1,5,9,13,17) this additionally consumes the null terminator
+                    hash2 = (BitOperations.RotateLeft(hash2, 5) + hash2) ^ ptr[0];
+                }
+
+                return (int)(hash1 + (hash2 * 1566083941));
+            }
+        }
+
+        // Use this if and only if 'Denial of Service' attacks are not a concern (i.e. never used for free-form user input),
+        // or are otherwise mitigated
+        internal static unsafe int GetNonRandomizedHashCodeOrdinalIgnoreCase(this string obj)
+        {
+            fixed (char* src = obj)
+            {
+                Debug.Assert(src[obj.Length] == '\0', "src[this.Length] == '\\0'");
+                Debug.Assert(((int)src) % 4 == 0, "Managed string should start at 4 bytes boundary");
+
+                uint hash1 = (5381 << 16) + 5381;
+                var hash2 = hash1;
+
+                var ptr = (uint*)src;
+                var length = obj.Length;
+
+                // We "normalize to lowercase" every char by ORing with 0x0020. This casts
+                // a very wide net because it will change, e.g., '^' to '~'. But that should
+                // be ok because we expect this to be very rare in practice.
+
+                const uint NormalizeToLowercase = 0x0020_0020u; // valid both for big-endian and for little-endian
+
+                while (length > 2)
+                {
+                    length -= 4;
+                    // Where length is 4n-1 (e.g. 3,7,11,15,19) this additionally consumes the null terminator
+                    hash1 = (BitOperations.RotateLeft(hash1, 5) + hash1) ^ (ptr[0] | NormalizeToLowercase);
+                    hash2 = (BitOperations.RotateLeft(hash2, 5) + hash2) ^ (ptr[1] | NormalizeToLowercase);
+                    ptr += 2;
+                }
+
+                if (length > 0)
+                {
+                    // Where length is 4n-3 (e.g. 1,5,9,13,17) this additionally consumes the null terminator
+                    hash2 = (BitOperations.RotateLeft(hash2, 5) + hash2) ^ (ptr[0] | NormalizeToLowercase);
+                }
+
+                return (int)(hash1 + (hash2 * 1566083941));
+            }
         }
     }
 }

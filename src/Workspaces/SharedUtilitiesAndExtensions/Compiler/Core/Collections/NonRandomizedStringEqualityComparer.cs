@@ -1,12 +1,18 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#pragma warning disable
+
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.Serialization;
 using Internal.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace System.Collections.Generic
+namespace Microsoft.CodeAnalysis.Shared.Collections
 {
     // NonRandomizedStringEqualityComparer is the comparer used by default with the Dictionary<string,...>
     // We use NonRandomizedStringEqualityComparer as default comparer as it doesnt use the randomized string hashing which
@@ -69,7 +75,7 @@ namespace System.Collections.Generic
             // Our own collection types will never call this (since this type is a wrapper),
             // but perhaps third-party collection types could try serializing an instance
             // of this.
-            info.SetType(typeof(GenericEqualityComparer<string>));
+            info.SetType(EqualityComparer<string>.Default.GetType());
         }
 
         private sealed class OrdinalComparer : NonRandomizedStringEqualityComparer
@@ -96,7 +102,7 @@ namespace System.Collections.Generic
             {
             }
 
-            public override bool Equals(string? x, string? y) => string.EqualsOrdinalIgnoreCase(x, y);
+            public override bool Equals(string? x, string? y) => string.Equals(x, y, StringComparison.OrdinalIgnoreCase);
 
             public override int GetHashCode(string? obj)
             {

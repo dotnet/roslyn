@@ -1,7 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-#pragma warning disable IDE0060 // implementations provided by the JIT
+#pragma warning disable
+
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -26,6 +28,7 @@ namespace Internal.Runtime.CompilerServices
     [CLSCompliant(false)]
     public static unsafe partial class Unsafe
     {
+#if false
         /// <summary>
         /// Returns a pointer to the given by-ref parameter.
         /// </summary>
@@ -72,6 +75,7 @@ namespace Internal.Runtime.CompilerServices
             // ldarg.0
             // ret
         }
+#endif
 
         /// <summary>
         /// Reinterprets the given reference as a reference to a value of type <typeparamref name="TTo"/>.
@@ -81,12 +85,13 @@ namespace Internal.Runtime.CompilerServices
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ref TTo As<TFrom, TTo>(ref TFrom source)
         {
-            throw new PlatformNotSupportedException();
+            return ref System.Runtime.CompilerServices.Unsafe.As<TFrom, TTo>(ref source);
 
             // ldarg.0
             // ret
         }
 
+#if false
         /// <summary>
         /// Adds an element offset to the given reference.
         /// </summary>
@@ -214,6 +219,7 @@ namespace Internal.Runtime.CompilerServices
             for (uint i = 0; i < byteCount; i++)
                 AddByteOffset(ref startAddress, i) = value;
         }
+#endif
 
         /// <summary>
         /// Reads a value of type <typeparamref name="T"/> from the given location.
@@ -223,12 +229,7 @@ namespace Internal.Runtime.CompilerServices
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T ReadUnaligned<T>(void* source)
         {
-#if CORECLR
-            typeof(T).ToString(); // Type token used by the actual method body
-            throw new PlatformNotSupportedException();
-#else
-            return Unsafe.As<byte, T>(ref *(byte*)source);
-#endif
+            return System.Runtime.CompilerServices.Unsafe.ReadUnaligned<T>(source);
         }
 
         /// <summary>
@@ -239,14 +240,10 @@ namespace Internal.Runtime.CompilerServices
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T ReadUnaligned<T>(ref byte source)
         {
-#if CORECLR
-            typeof(T).ToString(); // Type token used by the actual method body
-            throw new PlatformNotSupportedException();
-#else
-            return Unsafe.As<byte, T>(ref source);
-#endif
+            return System.Runtime.CompilerServices.Unsafe.ReadUnaligned<T>(ref source);
         }
 
+#if false
         /// <summary>
         /// Writes a value of type <typeparamref name="T"/> to the given location.
         /// </summary>
@@ -372,6 +369,7 @@ namespace Internal.Runtime.CompilerServices
         {
             throw new PlatformNotSupportedException();
         }
+#endif
 
         /// <summary>
         /// Returns a by-ref to type <typeparamref name="T"/> that is a null reference.
@@ -381,7 +379,7 @@ namespace Internal.Runtime.CompilerServices
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ref T NullRef<T>()
         {
-            return ref Unsafe.AsRef<T>(null);
+            return ref System.Runtime.CompilerServices.Unsafe.AsRef<T>(null);
 
             // ldc.i4.0
             // conv.u
@@ -399,7 +397,7 @@ namespace Internal.Runtime.CompilerServices
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsNullRef<T>(ref T source)
         {
-            return Unsafe.AsPointer(ref source) == null;
+            return System.Runtime.CompilerServices.Unsafe.AsPointer(ref source) == null;
 
             // ldarg.0
             // ldc.i4.0
@@ -408,6 +406,7 @@ namespace Internal.Runtime.CompilerServices
             // ret
         }
 
+#if false
         /// <summary>
         /// Bypasses definite assignment rules by taking advantage of <c>out</c> semantics.
         /// </summary>
@@ -419,6 +418,17 @@ namespace Internal.Runtime.CompilerServices
             throw new PlatformNotSupportedException();
 
             // ret
+        }
+#endif
+
+        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Field, Inherited = false)]
+        internal sealed class IntrinsicAttribute : Attribute
+        {
+        }
+
+        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Method | AttributeTargets.Constructor, AllowMultiple = false, Inherited = false)]
+        internal sealed class NonVersionableAttribute : Attribute
+        {
         }
     }
 }

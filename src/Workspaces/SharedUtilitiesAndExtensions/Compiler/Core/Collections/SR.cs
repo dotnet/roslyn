@@ -1,11 +1,14 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-#nullable enable
+#pragma warning disable
+
+using System;
 using System.Resources;
 using System.Runtime.CompilerServices;
 
-namespace System
+namespace Microsoft.CodeAnalysis.Shared.Collections
 {
     internal partial class SR
     {
@@ -24,6 +27,7 @@ namespace System
             false;
 #endif
 
+#if false
         internal static string GetResourceString(string resourceKey, string? defaultString = null)
         {
             if (UsingResourceKeys())
@@ -50,6 +54,7 @@ namespace System
 
             return resourceString!; // only null if missing resources
         }
+#endif
 
         internal static string Format(string resourceFormat, object? p1)
         {

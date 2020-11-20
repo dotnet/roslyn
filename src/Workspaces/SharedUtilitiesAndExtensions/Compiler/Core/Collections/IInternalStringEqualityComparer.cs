@@ -1,7 +1,12 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-namespace System.Collections.Generic
+#pragma warning disable
+
+using System.Collections.Generic;
+
+namespace Microsoft.CodeAnalysis.Shared.Collections
 {
     /// <summary>
     /// Represents an <see cref="IEqualityComparer{String}"/> that's meant for internal
@@ -12,7 +17,10 @@ namespace System.Collections.Generic
     internal interface IInternalStringEqualityComparer : IEqualityComparer<string?>
     {
         IEqualityComparer<string?> GetUnderlyingEqualityComparer();
+    }
 
+    internal static class InternalStringEqualityComparer
+    {
         /// <summary>
         /// Unwraps the internal equality comparer, if proxied.
         /// Otherwise returns the equality comparer itself or its default equivalent.
