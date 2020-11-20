@@ -268,6 +268,21 @@ class C
             AssertHighlightCount(results, expectedDefinitionCount: 1, expectedWrittenReferenceCount: 1, expectedReferenceCount: 1);
         }
 
+        [WpfFact]
+        public async Task TestFindAllReferencesAsync_StaticClassification()
+        {
+            var markup =
+@"static class {|caret:|}{|reference:C|} { }
+";
+            using var workspace = CreateTestWorkspace(markup, out var locations);
+
+            var results = await RunFindAllReferencesAsync(workspace.CurrentSolution, locations["caret"].First());
+
+            // Ensure static definitions and references are only classified once
+            var textRuns = ((ClassifiedTextElement)results.First().Text).Runs;
+            Assert.Equal(9, textRuns.Count());
+        }
+
         private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress) =>
             new LSP.ReferenceParams()
             {
