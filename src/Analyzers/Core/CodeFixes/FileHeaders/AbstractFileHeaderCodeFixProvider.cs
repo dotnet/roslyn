@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -88,100 +87,22 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
         private static SyntaxNode ReplaceHeader(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
         {
-            // Skip single line comments, whitespace, and end of line trivia until a blank line is encountered.
-            var triviaList = root.GetLeadingTrivia();
-
-            // True if the current line is blank so far (empty or whitespace); otherwise, false. The first line is
-            // assumed to not be blank, which allows the analysis to detect a file header which follows a blank line at
-            // the top of the file.
-            var onBlankLine = false;
-
-            // The set of indexes to remove from 'triviaList'. After removing these indexes, the remaining trivia (if
-            // any) will be preserved in the document along with the replacement header.
-            var removalList = new List<int>();
-
-            // The number of spaces to indent the new header. This is expected to match the indentation of the header
-            // which is being replaced.
-            var leadingSpaces = string.Empty;
-
-            // The number of spaces found so far on the current line. This will become 'leadingSpaces' if the spaces are
-            // followed by a comment which is considered a header comment.
-            var possibleLeadingSpaces = string.Empty;
-
-            // Track the first code comment. Any comments found later should not be removed.
-            // 0: Init
-            // 1: First comment found
-            // 2: NewLine ending the first comment found
-            var firstCommentState = 0;
-
-            // Need to do this with index so we get the line endings correct.
-            for (var i = 0; i < triviaList.Count; i++)
+            var newHeaderTrivia = CreateNewHeader(syntaxFacts, fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString());
+            var existingBanner = syntaxFacts.GetFileBanner(root);
+            var allRootTrivia = root.GetLeadingTrivia();
+            var existingBannerIndizes = allRootTrivia
+                .Select((t, i) => (index: i, exists: existingBanner.Contains(allRootTrivia[i])))
+                .Where(t => t.exists)
+                .Select(t => t.index)
+                .Reverse()
+                .ToList();
+            foreach (var index in existingBannerIndizes)
             {
-                var triviaLine = triviaList[i];
-                if (triviaLine.RawKind == syntaxFacts.SyntaxKinds.SingleLineCommentTrivia ||
-                    (triviaLine.RawKind == syntaxFacts.SyntaxKinds.MultiLineCommentTrivia && firstCommentState is 0))
-                {
-                    if (possibleLeadingSpaces != string.Empty)
-                    {
-                        // One or more spaces precedes the comment. Keep track of these spaces so we can indent the new
-                        // header by the same amount.
-                        leadingSpaces = possibleLeadingSpaces;
-                    }
-                    firstCommentState = 1;
-                    removalList.Add(i);
-                    onBlankLine = false;
-                }
-                else if (triviaLine.RawKind == syntaxFacts.SyntaxKinds.WhitespaceTrivia)
-                {
-                    if (leadingSpaces == string.Empty)
-                    {
-                        possibleLeadingSpaces = triviaLine.ToFullString();
-                    }
-                    removalList.Add(i);
-                }
-                else if (triviaLine.RawKind == syntaxFacts.SyntaxKinds.EndOfLineTrivia)
-                {
-                    possibleLeadingSpaces = string.Empty;
-                    removalList.Add(i);
-                    if (firstCommentState == 2)
-                    {
-                        // Additional new line after a new line ending a comment:
-                        // // Comment\n
-                        // \n <- We are here
-                        break;
-                    }
-
-                    if (firstCommentState == 1)
-                    {
-                        // A new line after a comment:
-                        // // Comment\n <- We are here
-                        firstCommentState = 2;
-                    }
-                    if (onBlankLine)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        onBlankLine = true;
-                    }
-                }
-                else
-                {
-                    break;
-                }
+                allRootTrivia = allRootTrivia.RemoveAt(index);
             }
-
-            // Remove copyright lines in reverse order.
-            for (var i = removalList.Count - 1; i >= 0; i--)
-            {
-                triviaList = triviaList.RemoveAt(removalList[i]);
-            }
-
-            var newHeaderTrivia = CreateNewHeader(syntaxFacts, leadingSpaces + fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString());
 
             // Add a blank line and any remaining preserved trivia after the header.
-            newHeaderTrivia = newHeaderTrivia.Add(newLineTrivia).Add(newLineTrivia).AddRange(triviaList);
+            newHeaderTrivia = newHeaderTrivia.Add(newLineTrivia).Add(newLineTrivia).AddRange(allRootTrivia);
 
             // Insert header at top of the file.
             return root.WithLeadingTrivia(newHeaderTrivia);
