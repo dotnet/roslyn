@@ -239,9 +239,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? disposeMethod = enumeratorInfo.DisposeMethod;
             if (!enumeratorInfo.IsPatternDispose)
             {
-                //TODO: do we need gthis?
-                //TryGetDisposeMethod(forEachSyntax, enumeratorInfo, out disposeMethod); // interface-based
-
                 idisposableTypeSymbol = disposeMethod.ContainingType;
                 Debug.Assert(_factory.CurrentFunction is { });
                 var conversions = new TypeConversions(_factory.CurrentFunction.ContainingAssembly.CorLibrary);
