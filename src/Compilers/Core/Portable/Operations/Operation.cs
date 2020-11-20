@@ -129,15 +129,12 @@ namespace Microsoft.CodeAnalysis
 
         protected void SetParentOperation(IOperation? parent)
         {
-            Debug.Assert(Volatile.Read(ref _parentDoNotAccessDirectly) == s_unset);
-            var result = Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, parent, s_unset);
+            Debug.Assert(_parentDoNotAccessDirectly == s_unset);
+            Debug.Assert(parent != s_unset);
+            _parentDoNotAccessDirectly = parent;
 
             // tree must belong to same semantic model if parent is given
-            Debug.Assert(parent == null || ((Operation)parent).OwningSemanticModel == OwningSemanticModel ||
-                ((Operation)parent).OwningSemanticModel == null || OwningSemanticModel == null);
-
-            // make sure given parent and one we already have is same if we have one already
-            Debug.Assert(result == s_unset || result == parent);
+            Debug.Assert(parent == null || ((Operation)parent).OwningSemanticModel == OwningSemanticModel);
         }
 
         [return: NotNullIfNotNull("operation")]
