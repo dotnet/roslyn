@@ -15,5 +15,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             throw new NotImplementedException();
         }
+
+        /// <seealso cref="Array.Copy(Array, Array, int)"/>
+        internal static void Copy<T>(SegmentedArray<T> sourceArray, SegmentedArray<T> destinationArray, int length)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

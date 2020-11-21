@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         where TKey : notnull
     {
         private SegmentedArray<int> _buckets;
-        private Entry[]? _entries;
+        private SegmentedArray<Entry> _entries;
 #if TARGET_64BIT
         private ulong _fastModMultiplier;
 #endif
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 var entries = d._entries;
                 for (var i = 0; i < count; i++)
                 {
-                    if (entries![i].next >= -1)
+                    if (entries[i].next >= -1)
                     {
                         Add(entries[i].key, entries[i].value);
                     }
@@ -213,14 +213,14 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             if (count > 0)
             {
                 RoslynDebug.Assert(_buckets.Length > 0, "_buckets should be non-empty");
-                RoslynDebug.Assert(_entries != null, "_entries should be non-null");
+                RoslynDebug.Assert(_entries.Length > 0, "_entries should be non-empty");
 
                 SegmentedArray.Clear(_buckets, 0, _buckets.Length);
 
                 _count = 0;
                 _freeList = -1;
                 _freeCount = 0;
-                Array.Clear(_entries, 0, count);
+                SegmentedArray.Clear(_entries, 0, count);
             }
         }
 
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             {
                 for (var i = 0; i < _count; i++)
                 {
-                    if (entries![i].next >= -1 && entries[i].value == null)
+                    if (entries[i].next >= -1 && entries[i].value == null)
                     {
                         return true;
                     }
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 // ValueType: Devirtualize with EqualityComparer<TValue>.Default intrinsic
                 for (var i = 0; i < _count; i++)
                 {
-                    if (entries![i].next >= -1 && EqualityComparer<TValue>.Default.Equals(entries[i].value, value))
+                    if (entries[i].next >= -1 && EqualityComparer<TValue>.Default.Equals(entries[i].value, value))
                     {
                         return true;
                     }
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 var defaultComparer = EqualityComparer<TValue>.Default;
                 for (var i = 0; i < _count; i++)
                 {
-                    if (entries![i].next >= -1 && defaultComparer.Equals(entries[i].value, value))
+                    if (entries[i].next >= -1 && defaultComparer.Equals(entries[i].value, value))
                     {
                         return true;
                     }
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             var entries = _entries;
             for (var i = 0; i < count; i++)
             {
-                if (entries![i].next >= -1)
+                if (entries[i].next >= -1)
                 {
                     array[index++] = new KeyValuePair<TKey, TValue>(entries[i].key, entries[i].value);
                 }
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             ref var entry = ref RoslynUnsafe.NullRef<Entry>();
             if (_buckets.Length > 0)
             {
-                RoslynDebug.Assert(_entries != null, "expected entries to be != null");
+                RoslynDebug.Assert(_entries.Length > 0, "expected entries to be non-empty");
                 var comparer = _comparer;
                 if (comparer == null)
                 {
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             var size = HashHelpers.GetPrime(capacity);
             var buckets = new SegmentedArray<int>(size);
-            var entries = new Entry[size];
+            var entries = new SegmentedArray<Entry>(size);
 
             // Assign member variables after both arrays allocated to guard against corruption from OOM if second fails
             _freeList = -1;
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             Debug.Assert(_buckets.Length > 0);
 
             var entries = _entries;
-            RoslynDebug.Assert(entries != null, "expected entries to be non-null");
+            RoslynDebug.Assert(entries.Length > 0, "expected entries to be non-empty");
 
             var comparer = _comparer;
             var hashCode = (uint)((comparer == null) ? key.GetHashCode() : comparer.GetHashCode(key));
@@ -637,13 +637,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             // Value types never rehash
             Debug.Assert(!forceNewHashCodes || !typeof(TKey).IsValueType);
-            RoslynDebug.Assert(_entries != null, "_entries should be non-null");
+            RoslynDebug.Assert(_entries.Length > 0, "_entries should be non-empty");
             Debug.Assert(newSize >= _entries.Length);
 
-            var entries = new Entry[newSize];
+            var entries = new SegmentedArray<Entry>(newSize);
 
             var count = _count;
-            Array.Copy(_entries, entries, count);
+            SegmentedArray.Copy(_entries, entries, count);
 
             if (!typeof(TKey).IsValueType && forceNewHashCodes)
             {
@@ -695,7 +695,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             if (_buckets.Length > 0)
             {
-                RoslynDebug.Assert(_entries != null, "entries should be non-null");
+                RoslynDebug.Assert(_entries.Length > 0, "entries should be non-empty");
                 uint collisionCount = 0;
                 var hashCode = (uint)(_comparer?.GetHashCode(key) ?? key.GetHashCode());
                 ref var bucket = ref GetBucket(hashCode);
@@ -767,7 +767,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             if (_buckets.Length > 0)
             {
-                RoslynDebug.Assert(_entries != null, "entries should be non-null");
+                RoslynDebug.Assert(_entries.Length > 0, "entries should be non-empty");
                 uint collisionCount = 0;
                 var hashCode = (uint)(_comparer?.GetHashCode(key) ?? key.GetHashCode());
                 ref var bucket = ref GetBucket(hashCode);
@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 var entries = _entries;
                 for (var i = 0; i < _count; i++)
                 {
-                    if (entries![i].next >= -1)
+                    if (entries[i].next >= -1)
                     {
                         dictEntryArray[index++] = new DictionaryEntry(entries[i].key, entries[i].value);
                     }
@@ -909,7 +909,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     var entries = _entries;
                     for (var i = 0; i < count; i++)
                     {
-                        if (entries![i].next >= -1)
+                        if (entries[i].next >= -1)
                         {
                             objects[index++] = new KeyValuePair<TKey, TValue>(entries[i].key, entries[i].value);
                         }
@@ -934,7 +934,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.capacity);
             }
 
-            var currentCapacity = _entries == null ? 0 : _entries.Length;
+            var currentCapacity = _entries.Length;
             if (currentCapacity >= capacity)
             {
                 return currentCapacity;
@@ -982,7 +982,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             var newSize = HashHelpers.GetPrime(capacity);
             var oldEntries = _entries;
-            var currentCapacity = oldEntries == null ? 0 : oldEntries.Length;
+            var currentCapacity = oldEntries.Length;
             if (newSize >= currentCapacity)
             {
                 return;
@@ -995,10 +995,10 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             var count = 0;
             for (var i = 0; i < oldCount; i++)
             {
-                var hashCode = oldEntries![i].hashCode; // At this point, we know we have entries.
+                var hashCode = oldEntries[i].hashCode; // At this point, we know we have entries.
                 if (oldEntries[i].next >= -1)
                 {
-                    ref var entry = ref entries![count];
+                    ref var entry = ref entries[count];
                     entry = oldEntries[i];
                     ref var bucket = ref GetBucket(hashCode);
                     entry.next = bucket - 1; // Value in _buckets is 1-based
@@ -1176,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 // dictionary.count+1 could be negative if dictionary.count is int.MaxValue
                 while ((uint)_index < (uint)_dictionary._count)
                 {
-                    ref var entry = ref _dictionary._entries![_index++];
+                    ref var entry = ref _dictionary._entries[_index++];
 
                     if (entry.next >= -1)
                     {
@@ -1302,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 var entries = _dictionary._entries;
                 for (var i = 0; i < count; i++)
                 {
-                    if (entries![i].next >= -1)
+                    if (entries[i].next >= -1)
                         array[index++] = entries[i].key;
                 }
             }
@@ -1375,7 +1375,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     {
                         for (var i = 0; i < count; i++)
                         {
-                            if (entries![i].next >= -1)
+                            if (entries[i].next >= -1)
                                 objects[index++] = entries[i].key;
                         }
                     }
@@ -1416,7 +1416,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
                     while ((uint)_index < (uint)_dictionary._count)
                     {
-                        ref var entry = ref _dictionary._entries![_index++];
+                        ref var entry = ref _dictionary._entries[_index++];
 
                         if (entry.next >= -1)
                         {
@@ -1497,7 +1497,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 var entries = _dictionary._entries;
                 for (var i = 0; i < count; i++)
                 {
-                    if (entries![i].next >= -1)
+                    if (entries[i].next >= -1)
                         array[index++] = entries[i].value;
                 }
             }
@@ -1569,7 +1569,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     {
                         for (var i = 0; i < count; i++)
                         {
-                            if (entries![i].next >= -1)
+                            if (entries[i].next >= -1)
                                 objects[index++] = entries[i].value!;
                         }
                     }
@@ -1610,7 +1610,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
                     while ((uint)_index < (uint)_dictionary._count)
                     {
-                        ref var entry = ref _dictionary._entries![_index++];
+                        ref var entry = ref _dictionary._entries[_index++];
 
                         if (entry.next >= -1)
                         {
