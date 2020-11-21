@@ -1,4 +1,6 @@
-#pragma warning disable CA1820, CS8600, IDE0057, IDE0062, IDE0078, IDE0073
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+#pragma warning disable CA1820, CS8600, IDE0057, IDE0062, IDE0078
 
 using System;
 using System.Collections.Generic;
