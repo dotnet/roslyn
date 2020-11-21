@@ -438,7 +438,7 @@ namespace Bar
         public async Task TestInvalidFileHeaderWithWrongTextInRegionAsync(string startLabel, string endLabel)
         {
             var testCode = $@"#region{startLabel}
-[|//|] Copyright (c) OtherCorp. All rights reserved.
+[||]// Copyright (c) OtherCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 #endregion{endLabel}
 
@@ -474,7 +474,7 @@ namespace Bar
         [Fact]
         public async Task TestInvalidFileHeaderWithWrongTextInUnterminatedMultiLineComment1Async()
         {
-            var testCode = @"{|CS1035:|}[|/*|] Copyright (c) OtherCorp. All rights reserved.
+            var testCode = @"{|CS1035:|}[||]/* Copyright (c) OtherCorp. All rights reserved.
  * Licensed under the ??? license. See LICENSE file in the project root for full license information.
 ";
             var fixedCode = @"// Copyright (c) SomeCorp. All rights reserved.
@@ -499,7 +499,7 @@ namespace Bar
         [Fact]
         public async Task TestInvalidFileHeaderWithWrongTextInUnterminatedMultiLineComment2Async()
         {
-            var testCode = @"{|CS1035:|}[|/*|]/
+            var testCode = @"{|CS1035:|}[||]/*/
 ";
             var fixedCode = @"// Copyright (c) SomeCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
@@ -524,8 +524,8 @@ namespace Bar
         [InlineData("    ")]
         public async Task TestInvalidFileHeaderWithWrongTextAfterBlankLineAsync(string firstLine)
         {
-            var testCode = $@"{firstLine}
-[|//|] Copyright (c) OtherCorp. All rights reserved.
+            var testCode = $@"[||]{firstLine}
+// Copyright (c) OtherCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
 namespace Bar
@@ -535,7 +535,6 @@ namespace Bar
             var fixedCode = $@"// Copyright (c) SomeCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
-{firstLine}
 // Copyright (c) OtherCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
@@ -715,7 +714,7 @@ namespace Bar
         [InlineData("Changed", "[|/*|] Block comment */", "// Changed")]
         [InlineData(@"\n// Leading and trailing new lines comment\n", "// Leading and trailing new lines comment", null)]
         [InlineData(@"\n/* Leading and trailing new lines block comment */\n", "/* Leading and trailing new lines block comment */", null)]
-        [InlineData(@"Comment", "\r\n\r\n[|/*|] Some unrelated comment1 */\r\n\r\n// Some unrelated comment2\r\n\r\n", "// Comment\r\n\r\n\r\n\r\n[|/*|] Some unrelated comment1 */\r\n\r\n// Some unrelated comment2\r\n\r\n")]
+        [InlineData(@"Comment", "[||]\r\n\r\n/* Some unrelated comment1 */\r\n\r\n// Some unrelated comment2\r\n\r\n", "// Comment\r\n\r\n[|/*|] Some unrelated comment1 */\r\n\r\n// Some unrelated comment2\r\n\r\n")]
         [InlineData(@"Comment", "[|//|] Changed comment\r\n\r\n// Some unrelated comment", "// Comment\r\n\r\n// Some unrelated comment")]
         [InlineData(@"Comment", "[|/*|] Changed comment*/\r\n// Some related comment", "// Comment")]
         [InlineData(@"Comment", "[|/*|] Changed comment*/\r\n\r\n// Some unrelated comment", "// Comment\r\n\r\n// Some unrelated comment")]

@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
         Public Shared ReadOnly Instance As VisualBasicFileHeaderHelper = New VisualBasicFileHeaderHelper()
 
         Private Sub New()
-            MyBase.New(VisualBasicSyntaxKinds.Instance)
+            MyBase.New(VisualBasicSyntaxFacts.Instance, VisualBasicSyntaxKinds.Instance)
         End Sub
 
         Public Overrides ReadOnly Property CommentPrefix As String
@@ -21,12 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
             End Get
         End Property
 
-        Protected Overrides Function GetTextContextOfComment(commentTrivia As SyntaxTrivia) As ReadOnlyMemory(Of Char)
+        Protected Overrides Function GetTextContextOfComment(commentTrivia As SyntaxTrivia) As String
             If Not commentTrivia.IsKind(SyntaxKind.CommentTrivia) Then
                 Throw ExceptionUtilities.UnexpectedValue(commentTrivia.Kind())
             End If
 
-            Return commentTrivia.ToFullString().AsMemory().Slice(1)
+            Return commentTrivia.ToFullString().Substring(1)
         End Function
     End Class
 End Namespace

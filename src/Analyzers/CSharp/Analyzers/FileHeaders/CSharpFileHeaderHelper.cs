@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.FileHeaders;
 using Roslyn.Utilities;
@@ -17,36 +18,21 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
         public static readonly CSharpFileHeaderHelper Instance = new();
 
         private CSharpFileHeaderHelper()
-            : base(CSharpSyntaxKinds.Instance)
+            : base(CSharpSyntaxFacts.Instance, CSharpSyntaxKinds.Instance)
         {
         }
 
         public override string CommentPrefix => "//";
 
-        protected override ReadOnlyMemory<char> GetTextContextOfComment(SyntaxTrivia commentTrivia)
+        protected override string GetTextContextOfComment(SyntaxTrivia commentTrivia)
         {
-            if (commentTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
+            if (commentTrivia.MatchesKind(SyntaxKind.SingleLineCommentTrivia, SyntaxKind.MultiLineCommentTrivia))
             {
-                return commentTrivia.ToFullString().AsMemory()[2..];
+                return commentTrivia.GetCommentText();
             }
-            else if (commentTrivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
-            {
-                var triviaString = commentTrivia.ToFullString();
 
-                var startIndex = triviaString.IndexOf("/*", StringComparison.Ordinal) + 2;
-                var endIndex = triviaString.LastIndexOf("*/", StringComparison.Ordinal);
-                if (endIndex < startIndex)
-                {
-                    // While editing, it is possible to have a multiline comment trivia that does not contain the closing '*/' yet.
-                    return triviaString.AsMemory()[startIndex..];
-                }
 
-                return triviaString.AsMemory()[startIndex..endIndex];
-            }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(commentTrivia.Kind());
-            }
+            throw ExceptionUtilities.UnexpectedValue(commentTrivia.Kind());
         }
     }
 }

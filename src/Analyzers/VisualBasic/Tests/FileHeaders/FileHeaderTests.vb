@@ -295,7 +295,7 @@ End Namespace
         <InlineData(" ' Header", " ' Header")>
         Public Async Function TestInvalidFileHeaderWithWrongTextInRegionAsync(startLabel As String, endLabel As String) As Task
             Dim testCode = $"#Region ""Header""{startLabel}
-[|'|] Copyright (c) OtherCorp. All rights reserved.
+[||]' Copyright (c) OtherCorp. All rights reserved.
 ' Licensed under the ??? license. See LICENSE file in the project root for full license information.
 #End Region{endLabel}
 
@@ -330,8 +330,8 @@ End Namespace
         <InlineData("")>
         <InlineData("    ")>
         Public Async Function TestInvalidFileHeaderWithWrongTextAfterBlankLineAsync(firstLine As String) As Task
-            Dim testCode = $"{firstLine}
-[|'|] Copyright (c) OtherCorp. All rights reserved.
+            Dim testCode = $"[||]{firstLine}
+' Copyright (c) OtherCorp. All rights reserved.
 ' Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
 Namespace Bar
@@ -340,7 +340,6 @@ End Namespace
             Dim fixedCode = $"' Copyright (c) SomeCorp. All rights reserved.
 ' Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
-{firstLine}
 ' Copyright (c) OtherCorp. All rights reserved.
 ' Licensed under the ??? license. See LICENSE file in the project root for full license information.
 

@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -11,12 +11,11 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 {
     internal abstract class AbstractFileHeaderHelper
     {
-        protected AbstractFileHeaderHelper(ISyntaxKinds syntaxKinds)
+        protected AbstractFileHeaderHelper(ISyntaxFacts syntaxFacts, ISyntaxKinds syntaxKinds)
         {
             SingleLineCommentTriviaKind = syntaxKinds.SingleLineCommentTrivia;
             MultiLineCommentTriviaKind = syntaxKinds.MultiLineCommentTrivia;
-            WhitespaceTriviaKind = syntaxKinds.WhitespaceTrivia;
-            EndOfLineTriviaKind = syntaxKinds.EndOfLineTrivia;
+            SyntaxFacts = syntaxFacts;
         }
 
         /// <summary>
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         /// </summary>
         public abstract string CommentPrefix { get; }
 
-        protected abstract ReadOnlyMemory<char> GetTextContextOfComment(SyntaxTrivia commentTrivia);
+        protected abstract string GetTextContextOfComment(SyntaxTrivia commentTrivia);
 
         /// <inheritdoc cref="ISyntaxKinds.SingleLineCommentTrivia"/>
         private int SingleLineCommentTriviaKind { get; }
@@ -32,143 +31,33 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         /// <inheritdoc cref="ISyntaxKinds.MultiLineCommentTrivia"/>
         private int? MultiLineCommentTriviaKind { get; }
 
-        /// <inheritdoc cref="ISyntaxKinds.WhitespaceTrivia"/>
-        private int WhitespaceTriviaKind { get; }
-
-        /// <inheritdoc cref="ISyntaxKinds.EndOfLineTrivia"/>
-        private int EndOfLineTriviaKind { get; }
+        private ISyntaxFacts SyntaxFacts { get; }
 
         public FileHeader ParseFileHeader(SyntaxNode root)
         {
-            var firstToken = root.GetFirstToken(includeZeroWidth: true);
-            var firstNonWhitespaceTrivia = IndexOfFirstNonWhitespaceTrivia(firstToken.LeadingTrivia);
-
-            if (firstNonWhitespaceTrivia == -1)
+            var banner = SyntaxFacts.GetFileBanner(root);
+            if (banner.Length == 0)
             {
-                return FileHeader.MissingFileHeader(0);
-            }
-
-            using var _ = PooledStringBuilder.GetInstance(out var sb);
-            var endOfLineCount = 0;
-            var missingHeaderOffset = 0;
-            var fileHeaderStart = int.MaxValue;
-            var fileHeaderEnd = int.MinValue;
-            var firstCommentState = 0; // 0: Init, 1: First comment found: 2: newLine ending the first comment
-            for (var i = firstNonWhitespaceTrivia; i < firstToken.LeadingTrivia.Count; i++)
-            {
-                var trivia = firstToken.LeadingTrivia[i];
-
-                if (trivia.RawKind == WhitespaceTriviaKind)
-                {
-                    endOfLineCount = 0;
-                }
-                else if (trivia.RawKind == SingleLineCommentTriviaKind)
-                {
-                    endOfLineCount = 0;
-                    firstCommentState = 1;
-
-                    var commentText = GetTextContextOfComment(trivia).Span.Trim();
-
-                    fileHeaderStart = Math.Min(trivia.FullSpan.Start, fileHeaderStart);
-                    fileHeaderEnd = trivia.FullSpan.End;
-
-#if NETCOREAPP
-                    sb.Append(commentText).AppendLine();
-#else
-                    sb.AppendLine(commentText.ToString());
-#endif
-                }
-                else if (trivia.RawKind == MultiLineCommentTriviaKind)
-                {
-                    // only process a MultiLineCommentTrivia if no SingleLineCommentTrivia have been processed
-                    if (sb.Length == 0)
-                    {
-                        var commentText = GetTextContextOfComment(trivia);
-                        var triviaStringParts = commentText.Span.Trim().ToString().Replace("\r\n", "\n").Split('\n');
-
-                        foreach (var part in triviaStringParts)
-                        {
-                            var trimmedPart = part.TrimStart(' ', '*');
-                            sb.AppendLine(trimmedPart);
-                        }
-
-                        fileHeaderStart = trivia.FullSpan.Start;
-                        fileHeaderEnd = trivia.FullSpan.End;
-                    }
-
-                    break;
-                }
-                else if (trivia.RawKind == EndOfLineTriviaKind)
-                {
-                    endOfLineCount++;
-                    if (endOfLineCount > 1)
-                    {
-                        break;
-                    }
-                    if (firstCommentState == 2)
-                    {
-                        // second EndOfLine after a single line comment. Don't look further:
-                        // // Comment\n
-                        // \n <- We are here
-                        break;
-                    }
-                    if (firstCommentState == 1)
-                    {
-                        // EndOfLine of a single line comment
-                        // break; after the next conjunctive new line
-                        firstCommentState = 2;
-                    }
-                }
-                else
-                {
-                    if (trivia.IsDirective)
-                    {
-                        missingHeaderOffset = trivia.FullSpan.End;
-                    }
-
-                    if ((fileHeaderStart < fileHeaderEnd) || !trivia.IsDirective)
-                    {
-                        break;
-                    }
-                }
-            }
-
-            if (fileHeaderStart > fileHeaderEnd)
-            {
+                var missingHeaderOffset = root.GetLeadingTrivia().FirstOrDefault(t => t.IsDirective).FullSpan.End;
                 return FileHeader.MissingFileHeader(missingHeaderOffset);
             }
 
-            if (sb.Length > 0)
-            {
-                // remove the final newline
-                var eolLength = Environment.NewLine.Length;
-                sb.Remove(sb.Length - eolLength, eolLength);
-            }
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
+            var fileHeaderStart = int.MaxValue;
+            var fileHeaderEnd = int.MinValue;
 
-            return new FileHeader(sb.ToString(), fileHeaderStart, fileHeaderEnd, CommentPrefix.Length);
-        }
-
-        /// <summary>
-        /// Returns the index of the first non-whitespace trivia in the given trivia list.
-        /// </summary>
-        /// <param name="triviaList">The trivia list to process.</param>
-        /// <typeparam name="T">The type of the trivia list.</typeparam>
-        /// <returns>The index where the non-whitespace starts, or -1 if there is no non-whitespace trivia.</returns>
-        private int IndexOfFirstNonWhitespaceTrivia<T>(T triviaList)
-            where T : IReadOnlyList<SyntaxTrivia>
-        {
-            for (var index = 0; index < triviaList.Count; index++)
+            foreach (var trivia in banner)
             {
-                var currentTrivia = triviaList[index];
-                if (currentTrivia.RawKind != EndOfLineTriviaKind
-                    && currentTrivia.RawKind != WhitespaceTriviaKind)
+                if (trivia.RawKind == SingleLineCommentTriviaKind || trivia.RawKind == MultiLineCommentTriviaKind)
                 {
-                    // encountered non-whitespace trivia -> the search is done.
-                    return index;
+                    var comment = GetTextContextOfComment(trivia);
+                    fileHeaderStart = Math.Min(trivia.FullSpan.Start, fileHeaderStart);
+                    fileHeaderEnd = trivia.FullSpan.End;
+                    sb.AppendLine(comment.Trim());
                 }
             }
 
-            return -1;
+            return new FileHeader(sb.ToString(), fileHeaderStart, fileHeaderEnd, CommentPrefix.Length);
         }
     }
 }
