@@ -3894,7 +3894,7 @@ oneMoreTime:
             }
         }
 
-        private void AddDisposingFinally(IOperation resource, IMethodSymbol? disposeMethod, bool isAsynchronous)
+        private void AddDisposingFinally(IOperation resource, IMethodSymbol? disposeMethod, bool isAsynchronous, bool requiresRuntimeConversion = false)
         {
             Debug.Assert(CurrentRegionRequired.Kind == ControlFlowRegionKind.TryAndFinally);
 
@@ -3912,12 +3912,6 @@ oneMoreTime:
                                           : _compilation.GetSpecialType(SpecialType.System_IDisposable);
 
                 var isPatternDispose = !disposeMethod.ContainingType.Equals(iDisposable, SymbolEqualityComparer.IgnoreAll);
-                var isNull = resource.GetConstantValue() == ConstantValue.Null;
-                var requiresRuntimeConversion = !isPatternDispose
-                                                && !isAsynchronous
-                                                && !isNull
-                                                && !_compilation.HasImplicitConversion(resource.Type, iDisposable)
-                                                && !isNonNullableValueType(resource.Type);
 
                 // var resource = resource as IDisposable;
                 if (requiresRuntimeConversion)
@@ -4250,7 +4244,8 @@ oneMoreTime:
 
                 AddDisposingFinally(OperationCloner.CloneOperation(enumerator),
                                     info.DisposeMethod,
-                                    info.IsAsynchronous);
+                                    info.IsAsynchronous,
+                                    requiresRuntimeConversion: !info.KnownToImplementIDisposable && !info.IsPatternDispose);
 
                 Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
                 LeaveRegion();

@@ -1179,7 +1179,10 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                      statementInfo.MoveNextMethod,
                                                      isAsynchronous:=False,
                                                      boundForEachStatement.EnumeratorInfo.NeedToDispose,
+                                                     knownToImplementIDisposable:=boundForEachStatement.EnumeratorInfo.NeedToDispose AndAlso
+                                                                                  boundForEachStatement.EnumeratorInfo.IsOrInheritsFromOrImplementsIDisposable,
                                                      disposeMethod:=DirectCast(DirectCast(_semanticModel.Compilation, VisualBasicCompilation).GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), MethodSymbol),
+                                                     isPatternDispose:=False,
                                                      statementInfo.CurrentConversion,
                                                      statementInfo.ElementConversion,
                                                      If(getEnumeratorArguments.IsDefaultOrEmpty, Nothing,

@@ -1643,7 +1643,18 @@ namespace Microsoft.CodeAnalysis.Operations
 
             if (enumeratorInfoOpt != null)
             {
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
                 var compilation = (CSharpCompilation)_semanticModel.Compilation;
+
+                var iDisposable = enumeratorInfoOpt.IsAsync 
+                                    ? compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable)
+                                    : compilation.GetSpecialType(SpecialType.System_IDisposable);
+
+                var enumeratorImplementsDisposable = enumeratorInfoOpt.NeedsDisposal && (object)enumeratorInfoOpt.GetEnumeratorMethod != null 
+                                                        ? compilation.Conversions.ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorMethod.ReturnType,
+                                                                                                                     iDisposable,
+                                                                                                                     ref useSiteDiagnostics).IsImplicit
+                                                        : false;
 
                 info = new ForEachLoopOperationInfo(enumeratorInfoOpt.ElementType.GetPublicSymbol(),
                                                     enumeratorInfoOpt.GetEnumeratorMethod.GetPublicSymbol(),
@@ -1651,7 +1662,9 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     enumeratorInfoOpt.MoveNextMethod.GetPublicSymbol(),
                                                     isAsynchronous: enumeratorInfoOpt.IsAsync,
                                                     needsDispose: enumeratorInfoOpt.NeedsDisposal,
+                                                    knownToImplementIDisposable: enumeratorImplementsDisposable,
                                                     enumeratorInfoOpt.DisposeMethod.GetPublicSymbol(),
+                                                    enumeratorInfoOpt.IsPatternDispose,
                                                     enumeratorInfoOpt.CurrentConversion,
                                                     boundForEachStatement.ElementConversion,
                                                     getEnumeratorArguments: enumeratorInfoOpt.GetEnumeratorMethod is { IsExtensionMethod: true } enumeratorMethod
