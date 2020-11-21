@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable
-
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -45,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             if ((candidate & 1) != 0)
             {
-                int limit = (int)Math.Sqrt(candidate);
-                for (int divisor = 3; divisor <= limit; divisor += 2)
+                var limit = (int)Math.Sqrt(candidate);
+                for (var divisor = 3; divisor <= limit; divisor += 2)
                 {
                     if ((candidate % divisor) == 0)
                         return false;
@@ -61,14 +59,14 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             if (min < 0)
                 throw new ArgumentException(SR.Arg_HTCapacityOverflow);
 
-            foreach (int prime in s_primes)
+            foreach (var prime in s_primes)
             {
                 if (prime >= min)
                     return prime;
             }
 
             // Outside of our predefined table. Compute the hard way.
-            for (int i = (min | 1); i < int.MaxValue; i += 2)
+            for (var i = (min | 1); i < int.MaxValue; i += 2)
             {
                 if (IsPrime(i) && ((i - 1) % HashPrime != 0))
                     return i;
@@ -79,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         // Returns size of hashtable to grow to.
         public static int ExpandPrime(int oldSize)
         {
-            int newSize = 2 * oldSize;
+            var newSize = 2 * oldSize;
 
             // Allow the hashtables to grow to maximum possible size (~2G elements) before encountering capacity overflow.
             // Note that this check works even when _items.Length overflowed thanks to the (uint) cast
@@ -108,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             // This is equivalent of (uint)Math.BigMul(multiplier * value, divisor, out _). This version
             // is faster than BigMul currently because we only need the high bits.
-            uint highbits = (uint)(((((multiplier * value) >> 32) + 1) * divisor) >> 32);
+            var highbits = (uint)(((((multiplier * value) >> 32) + 1) * divisor) >> 32);
 
             Debug.Assert(highbits == value % divisor);
             return highbits;

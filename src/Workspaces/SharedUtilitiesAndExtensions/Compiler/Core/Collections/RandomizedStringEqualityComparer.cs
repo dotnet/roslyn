@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable
-
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Internal.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
@@ -15,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     /// <summary>
     /// A randomized <see cref="EqualityComparer{String}"/> which uses a different seed on each
     /// construction as a general good hygiene + defense-in-depth mechanism. This implementation
-    /// *does not* need to stay in sync with <see cref="string.GetHashCode"/>, which for stability
+    /// *does not* need to stay in sync with <see cref="string.GetHashCode()"/>, which for stability
     /// is required to use an app-global seed.
     /// </summary>
     internal abstract class RandomizedStringEqualityComparer : EqualityComparer<string?>, IInternalStringEqualityComparer

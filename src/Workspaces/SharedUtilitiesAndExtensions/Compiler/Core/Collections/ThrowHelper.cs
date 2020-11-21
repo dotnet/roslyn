@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable
-
 // This file defines an internal class used to throw exceptions in BCL code.
 // The main purpose is to reduce code size.
 //
@@ -49,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     [StackTraceHidden]
     internal static class ThrowHelper
     {
+#if false
         [DoesNotReturn]
         internal static void ThrowArrayTypeMismatchException()
         {
@@ -103,6 +102,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             throw new ArgumentException(SR.Format(SR.Arg_BogusIComparer, comparer));
         }
+#endif
 
         [DoesNotReturn]
         internal static void ThrowIndexArgumentOutOfRange_NeedNonNegNumException()
@@ -111,6 +111,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                                                     ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
         }
 
+#if false
         [DoesNotReturn]
         internal static void ThrowValueArgumentOutOfRange_NeedNonNegNumException()
         {
@@ -163,6 +164,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             throw new ArgumentOutOfRangeException(null, SR.Overflow_TimeSpanTooLong);
         }
+#endif
 
         [DoesNotReturn]
         internal static void ThrowWrongKeyTypeArgumentException<T>(T key, Type targetType)
@@ -203,11 +205,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             throw GetArgumentException(resource);
         }
 
+#if false
         [DoesNotReturn]
         internal static void ThrowArgumentException(ExceptionResource resource, ExceptionArgument argument)
         {
             throw GetArgumentException(resource, argument);
         }
+#endif
 
         private static ArgumentNullException GetArgumentNullException(ExceptionArgument argument)
         {
@@ -220,6 +224,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             throw GetArgumentNullException(argument);
         }
 
+#if false
         [DoesNotReturn]
         internal static void ThrowArgumentNullException(ExceptionResource resource)
         {
@@ -231,6 +236,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             throw new ArgumentNullException(GetArgumentName(argument), GetResourceString(resource));
         }
+#endif
 
         [DoesNotReturn]
         internal static void ThrowArgumentOutOfRangeException(ExceptionArgument argument)
@@ -238,6 +244,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             throw new ArgumentOutOfRangeException(GetArgumentName(argument));
         }
 
+#if false
         [DoesNotReturn]
         internal static void ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
         {
@@ -273,6 +280,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             throw new InvalidOperationException(GetResourceString(resource), e);
         }
+#endif
 
         [DoesNotReturn]
         internal static void ThrowSerializationException(ExceptionResource resource)
@@ -280,6 +288,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             throw new SerializationException(GetResourceString(resource));
         }
 
+#if false
         [DoesNotReturn]
         internal static void ThrowSecurityException(ExceptionResource resource)
         {
@@ -291,6 +300,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             throw new RankException(GetResourceString(resource));
         }
+#endif
 
         [DoesNotReturn]
         internal static void ThrowNotSupportedException(ExceptionResource resource)
@@ -298,6 +308,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             throw new NotSupportedException(GetResourceString(resource));
         }
 
+#if false
         [DoesNotReturn]
         internal static void ThrowUnauthorizedAccessException(ExceptionResource resource)
         {
@@ -333,6 +344,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             throw new OutOfMemoryException();
         }
+#endif
 
         [DoesNotReturn]
         internal static void ThrowArgumentException_Argument_InvalidArrayType()
@@ -340,6 +352,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             throw new ArgumentException(SR.Argument_InvalidArrayType);
         }
 
+#if false
         [DoesNotReturn]
         internal static void ThrowInvalidOperationException_InvalidOperation_EnumNotStarted()
         {
@@ -357,6 +370,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             throw GetInvalidOperationException_EnumCurrent(index);
         }
+#endif
 
         [DoesNotReturn]
         internal static void ThrowInvalidOperationException_InvalidOperation_EnumFailedVersion()
@@ -370,11 +384,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             throw new InvalidOperationException(SR.InvalidOperation_EnumOpCantHappen);
         }
 
+#if false
         [DoesNotReturn]
         internal static void ThrowInvalidOperationException_InvalidOperation_NoValue()
         {
             throw new InvalidOperationException(SR.InvalidOperation_NoValue);
         }
+#endif
 
         [DoesNotReturn]
         internal static void ThrowInvalidOperationException_ConcurrentOperationsNotSupported()
@@ -382,6 +398,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             throw new InvalidOperationException(SR.InvalidOperation_ConcurrentOperationsNotSupported);
         }
 
+#if false
         [DoesNotReturn]
         internal static void ThrowInvalidOperationException_HandleIsNotInitialized()
         {
@@ -430,16 +447,19 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             Debug.Assert(array.Length - offset < count);
             return new ArgumentException(SR.Argument_InvalidOffLen);
         }
+#endif
 
         private static ArgumentException GetArgumentException(ExceptionResource resource)
         {
             return new ArgumentException(GetResourceString(resource));
         }
 
+#if false
         private static InvalidOperationException GetInvalidOperationException(ExceptionResource resource)
         {
             return new InvalidOperationException(GetResourceString(resource));
         }
+#endif
 
         private static ArgumentException GetWrongKeyTypeArgumentException(object? key, Type targetType)
         {
@@ -461,6 +481,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return new ArgumentOutOfRangeException(GetArgumentName(argument), GetResourceString(resource));
         }
 
+#if false
         private static ArgumentException GetArgumentException(ExceptionResource resource, ExceptionArgument argument)
         {
             return new ArgumentException(GetResourceString(resource), GetArgumentName(argument));
@@ -478,6 +499,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 SR.InvalidOperation_EnumNotStarted :
                 SR.InvalidOperation_EnumEnded);
         }
+#endif
 
         // Allow nulls for reference types and Nullable<U>, but not for value types.
         // Aggressively inline so the jit evaluates the if in place and either drops the call altogether
@@ -490,6 +512,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 ThrowHelper.ThrowArgumentNullException(argName);
         }
 
+#if false
         // Throws if 'T' is disallowed in Vector<T> / Vector128<T> / other related types in the
         // Numerics or Intrinsics namespaces. If 'T' is allowed, no-ops. JIT will elide the method
         // entirely if 'T' is supported and we're on an optimized release build.
@@ -505,6 +528,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 ThrowNotSupportedException(ExceptionResource.Arg_TypeNotSupported);
             }
         }
+#endif
 
 #if false // Reflection-based implementation does not work for CoreRT/ProjectN
         // This function will convert an ExceptionArgument enum value to the argument name string.

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             get
             {
-                KeyValuePair<K, V>[] items = new KeyValuePair<K, V>[_dict.Count];
+                var items = new KeyValuePair<K, V>[_dict.Count];
                 _dict.CopyTo(items, 0);
                 return items;
             }
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             get
             {
-                TKey[] items = new TKey[_collection.Count];
+                var items = new TKey[_collection.Count];
                 _collection.CopyTo(items, 0);
                 return items;
             }
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             get
             {
-                TValue[] items = new TValue[_collection.Count];
+                var items = new TValue[_collection.Count];
                 _collection.CopyTo(items, 0);
                 return items;
             }

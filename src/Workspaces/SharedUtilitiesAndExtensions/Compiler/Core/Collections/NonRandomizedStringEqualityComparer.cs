@@ -2,15 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable
-
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
 using System.Runtime.Serialization;
-using Internal.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
@@ -20,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     // randomized string hashing.
     [Serializable] // Required for compatibility with .NET Core 2.0 as we exposed the NonRandomizedStringEqualityComparer inside the serialization blob
     // Needs to be public to support binary serialization compatibility
-    public class NonRandomizedStringEqualityComparer : IEqualityComparer<string?>, IInternalStringEqualityComparer, ISerializable
+    internal class NonRandomizedStringEqualityComparer : IEqualityComparer<string?>, IInternalStringEqualityComparer, ISerializable
     {
         // Dictionary<...>.Comparer and similar methods need to return the original IEqualityComparer
         // that was passed in to the ctor. The caller chooses one of these singletons so that the
@@ -34,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         private NonRandomizedStringEqualityComparer(IEqualityComparer<string?> underlyingComparer)
         {
-            Debug.Assert(underlyingComparer != null);
+            RoslynDebug.Assert(underlyingComparer != null);
             _underlyingComparer = underlyingComparer;
         }
 
@@ -89,10 +85,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             public override int GetHashCode(string? obj)
             {
-                Debug.Assert(obj != null, "This implementation is only called from first-party collection types that guarantee non-null parameters.");
+                RoslynDebug.Assert(obj != null, "This implementation is only called from first-party collection types that guarantee non-null parameters.");
                 return obj.GetNonRandomizedHashCode();
             }
-
         }
 
         private sealed class OrdinalIgnoreCaseComparer : NonRandomizedStringEqualityComparer
@@ -106,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             public override int GetHashCode(string? obj)
             {
-                Debug.Assert(obj != null, "This implementation is only called from first-party collection types that guarantee non-null parameters.");
+                RoslynDebug.Assert(obj != null, "This implementation is only called from first-party collection types that guarantee non-null parameters.");
                 return obj.GetNonRandomizedHashCodeOrdinalIgnoreCase();
             }
 

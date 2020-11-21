@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable
-
 using System;
 using System.Buffers;
 using System.Diagnostics;
@@ -17,13 +15,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     {
         /// <summary>
         /// Compute a Marvin OrdinalIgnoreCase hash and collapse it into a 32-bit hash.
-        /// n.b. <paramref name="count"/> is specified as char count, not byte count.
         /// </summary>
         public static int ComputeHash32OrdinalIgnoreCase(ReadOnlySpan<char> source, uint p0, uint p1)
         {
-            int count = source.Length;
-            ref char data = ref MemoryMarshal.GetReference(source);
-            uint ucount = (uint)count; // in chars
+            var count = source.Length;
+            ref var data = ref MemoryMarshal.GetReference(source);
+            var ucount = (uint)count; // in chars
             nuint byteOffset = 0; // in bytes
             uint tempValue;
 
@@ -71,18 +68,18 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         private static int ComputeHash32OrdinalIgnoreCaseSlow(ReadOnlySpan<char> source, uint p0, uint p1)
         {
-            int count = source.Length;
+            var count = source.Length;
             Debug.Assert(count > 0);
 
             char[]? borrowedArr = null;
             Span<char> scratch = (uint)count <= 64 ? stackalloc char[64] : (borrowedArr = ArrayPool<char>.Shared.Rent(count));
 
-            int charsWritten = Ordinal.ToUpperOrdinal(source, scratch);
+            var charsWritten = Ordinal.ToUpperOrdinal(source, scratch);
             Debug.Assert(charsWritten == count); // invariant case conversion should involve simple folding; preserve code unit count
 
             // Slice the array to the size returned by ToUpperInvariant.
             // Multiplication below will not overflow since going from positive Int32 to UInt32.
-            int hash = ComputeHash32(ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(scratch)), (uint)charsWritten * 2, p0, p1);
+            var hash = ComputeHash32(ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(scratch)), (uint)charsWritten * 2, p0, p1);
 
             // Return the borrowed array if necessary.
             if (borrowedArr != null)
