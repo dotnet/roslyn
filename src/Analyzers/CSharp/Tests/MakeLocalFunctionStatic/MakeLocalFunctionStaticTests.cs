@@ -519,11 +519,11 @@ parseOptions: CSharp8ParseOptions);
             await TestInRegularAndScriptAsync(@"
 using System;
 Console.WriteLine(Hello());
-string Hello() => ""Hello, world!"";
+string [||]Hello() => ""Hello, world!"";
 ", @"
 using System;
 Console.WriteLine(Hello());
-string Hello() => ""Hello, world!"";
+static string Hello() => ""Hello, world!"";
 ",
 parseOptions: CSharp9ParseOptions);
         }
