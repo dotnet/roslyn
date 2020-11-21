@@ -1,7 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#pragma warning disable IDE0078
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -186,10 +184,7 @@ if (fileList.Length > 0 || assemblyList.Length > 0 || libraryList.Length > 0 || 
             foreach (var file in Directory.EnumerateFiles(folderPath))
             {
                 var fileExtension = Path.GetExtension(file);
-                if (fileExtension == ".exe" ||
-                    fileExtension == ".dll" ||
-                    fileExtension == ".config" ||
-                    fileExtension == ".xml")
+                if (fileExtension is ".exe" or ".dll" or ".config" or ".xml")
                 {
                     var fileWithPath = Path.Combine(folderPath, file);
                     var targetPath = tfms.Length > 1 ? Path.Combine(folder, tfm) : folder;
