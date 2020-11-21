@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
                 return commentTrivia.GetCommentText();
             }
 
-
             throw ExceptionUtilities.UnexpectedValue(commentTrivia.Kind());
         }
     }
