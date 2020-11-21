@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -3911,7 +3911,7 @@ oneMoreTime:
                                           ? _compilation.CommonGetWellKnownType(WellKnownType.System_IAsyncDisposable).GetITypeSymbol()
                                           : _compilation.GetSpecialType(SpecialType.System_IDisposable);
 
-                var isPatternDispose = !disposeMethod.ContainingType.Equals(iDisposable, SymbolEqualityComparer.Default);
+                var isPatternDispose = !disposeMethod.ContainingType.Equals(iDisposable, SymbolEqualityComparer.ConsiderEverything);
                 var isNull = resource.GetConstantValue() == ConstantValue.Null;
                 var requiresRuntimeConversion = !isPatternDispose
                                                 && !isAsynchronous
