@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             throw new IndexOutOfRangeException();
         }
+#endif
 
         [DoesNotReturn]
         internal static void ThrowArgumentOutOfRangeException()
@@ -72,6 +73,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             throw new ArgumentOutOfRangeException();
         }
 
+#if false
         [DoesNotReturn]
         internal static void ThrowArgumentException_DestinationTooShort()
         {
