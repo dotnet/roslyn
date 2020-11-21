@@ -280,7 +280,6 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             throw new InvalidOperationException(GetResourceString(resource), e);
         }
-#endif
 
         [DoesNotReturn]
         internal static void ThrowSerializationException(ExceptionResource resource)
@@ -288,7 +287,6 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             throw new SerializationException(GetResourceString(resource));
         }
 
-#if false
         [DoesNotReturn]
         internal static void ThrowSecurityException(ExceptionResource resource)
         {

@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
-    internal static partial class HashHelpers
+    internal static class HashHelpers
     {
         public const uint HashCollisionThreshold = 100;
 

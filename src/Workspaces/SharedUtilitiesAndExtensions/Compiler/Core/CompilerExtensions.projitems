@@ -180,7 +180,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\OperatorPlacementWhenWrappingPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\HashHelpers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\HashHelpers.SerializationInfoTable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IDictionaryDebugView`2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IInternalStringEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\InsertionBehavior.cs" />
