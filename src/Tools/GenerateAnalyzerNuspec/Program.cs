@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#pragma warning disable CA1820, IDE0062, IDE0078
+#pragma warning disable CA1820, IDE0078
 
 using System;
 using System.Collections.Generic;
@@ -86,8 +86,6 @@ if (dependencyList.Length > 0)
 result.AppendLine(@"  </metadata>");
 
 result.AppendLine(@"  <files>");
-
-string FileElement(string file, string target) => $@"    <file src=""{file}"" target=""{target}""/>";
 
 if (fileList.Length > 0 || assemblyList.Length > 0 || libraryList.Length > 0 || folderList.Length > 0)
 {
@@ -288,3 +286,5 @@ result.AppendLine(@"  </files>");
 result.AppendLine(@"</package>");
 
 File.WriteAllText(nuspecFile, result.ToString());
+
+static string FileElement(string file, string target) => $@"    <file src=""{file}"" target=""{target}""/>";
