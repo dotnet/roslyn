@@ -175,30 +175,6 @@
     </ItemGroup>
   </Target>
 
-  <!--
-    Work around missing code fix references causing VBCSCompiler.exe to reject compilations.
-    https://github.com/dotnet/roslyn/issues/46684
-  -->
-  <Target Name="ExcludeCodeFixes"
-          BeforeTargets="CoreCompile"
-          Condition="'$(UseRoslynAnalyzers)' != 'false' AND '$(BuildingProject)' == 'true'">
-    <!--
-      Disable analyzers that only provide code fixes.
-    -->
-    <ItemGroup>
-      <Analyzer Remove="@(Analyzer)"
-                Condition="'%(Filename)' == 'Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes'
-                  OR '%(Filename)' == 'Microsoft.VisualStudio.Threading.Analyzers.CodeFixes'"/>
-    </ItemGroup>
-
-    <!--
-      Explicitly reference Humanizer prior to https://github.com/dotnet/roslyn/pull/47297
-    -->
-    <ItemGroup>
-      <Analyzer Include="$(NuGetPackageRoot)\humanizer.core\$(HumanizerCoreVersion)\lib\netstandard1.0\Humanizer.dll" />
-    </ItemGroup>
-  </Target>
-
   <ItemGroup>
     <PackageDownload Include="Humanizer.Core" Version="[$(HumanizerCoreVersion)]" />
   </ItemGroup>
