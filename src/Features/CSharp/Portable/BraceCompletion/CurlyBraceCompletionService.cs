@@ -86,10 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             var document = context.Document;
             var closingPoint = context.ClosingPoint;
             var openingPoint = context.OpeningPoint;
-            var documentSnapshotText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            // Create a new source text that is not based on an editor snapshot so we can take advantage
-            // of the multi-version text change merging in ChangedText instead of ChangedSnapshotText.
-            var originalDocumentText = SourceText.From(documentSnapshotText.ToString(), documentSnapshotText.Encoding, documentSnapshotText.ChecksumAlgorithm);
+            var originalDocumentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // check whether shape of the braces are what we support
             // shape must be either "{|}" or "{ }". | is where caret is. otherwise, we don't do any special behavior
@@ -127,7 +124,10 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             var newDocumentText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var caretPosition = GetIndentedLinePosition(newDocument, newDocumentText, desiredCaretLine.LineNumber, cancellationToken);
 
-            var overallChanges = formattedText.GetTextChanges(originalDocumentText).ToImmutableArray();
+            // The new line edit is calculated against the original text, d0, to get text d1.
+            // The formatting edits are calculated against d1 to get text d2.
+            // Merge the formatting and new line edits into a set of whitespace only text edits that all apply to d0.
+            var overallChanges = MergeFormatChangesIntoNewLineChange(newLineEdit, formattingChanges);
             return new BraceCompletionResult(overallChanges, caretPosition);
 
             static TextLine GetLineBetweenCurlys(int closingPosition, SourceText text)
@@ -146,6 +146,81 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 var totalOffset = offsetOfBacePosition + indentation.Offset;
                 var indentedLinePosition = new LinePosition(lineNumber, totalOffset);
                 return indentedLinePosition;
+            }
+
+            static ImmutableArray<TextChange> MergeFormatChangesIntoNewLineChange(TextChange newLineEdit, ImmutableArray<TextChange> formattingEdits)
+            {
+                using var _ = ArrayBuilder<TextChange>.GetInstance(out var overallChanges);
+
+                // There is always text in the new line edit as we construct it above.
+                var newLineText = newLineEdit.NewText!;
+                var newLineTextStart = newLineEdit.Span.Start;
+                var newLineTextEnd = newLineEdit.Span.End + newLineText.Length;
+                var newLineTextAfterMerge = newLineText;
+                foreach (var formattingEdit in formattingEdits)
+                {
+                    var formattingEditText = formattingEdit.NewText ?? string.Empty;
+                    if (formattingEdit.Span.End < newLineTextStart)
+                    {
+                        // The formatting change replacement span is entirely before where we added the new line, just take the change
+                        // since the spans are already relative to the original text.
+                        overallChanges.Add(formattingEdit);
+                    }
+                    else if (formattingEdit.Span.Start > newLineTextEnd)
+                    {
+                        // The formatting change replacement span is entirely after the text inserted by the new line change.
+                        // We need to adjust the span by the amount that was inserted by the new line to make the change relative to the original text.
+                        var adjustedFormatChange = new TextChange(new TextSpan(formattingEdit.Span.Start - newLineText.Length, formattingEdit.Span.Length), formattingEditText);
+                        overallChanges.Add(adjustedFormatChange);
+                    }
+                    else
+                    {
+                        // The formatting change modifies locations that were inserted by the new line edit.
+                        // There are three cases that cover the different types of overlap.
+
+                        // Case 1: The new line text is entirely contained within the formatting change replacement span.
+                        // The formatting change text therefore has all of the new line text that should be inserted.
+                        // Remove the new line edit and modify the formatting change so that the end is relative to the original text.
+                        if (newLineTextStart >= formattingEdit.Span.Start && newLineTextEnd <= formattingEdit.Span.End)
+                        {
+                            newLineTextAfterMerge = string.Empty;
+                            var adjustedFormatChange = new TextChange(new TextSpan(formattingEdit.Span.Start, formattingEdit.Span.Length - newLineText.Length), formattingEditText);
+                            overallChanges.Add(adjustedFormatChange);
+                        }
+                        // Case 2: The end of the formatting change span overlaps with the beginning of the new line text.
+                        // Remove the overlapping text from the new line edit (the text is included in the formatting change).
+                        // Modify the formatting change span to be everything up to the new line edit start so there is not overlap.
+                        else if (newLineTextStart >= formattingEdit.Span.Start)
+                        {
+                            var overlappingAmount = formattingEdit.Span.Start - newLineTextStart;
+                            var adjustedFormatChange = new TextChange(new TextSpan(formattingEdit.Span.Start, formattingEdit.Span.Length - overlappingAmount), formattingEditText);
+
+                            // Remove the overlap at the beginning of the new line text.
+                            newLineTextAfterMerge = newLineTextAfterMerge.Remove(0, overlappingAmount);
+                            overallChanges.Add(adjustedFormatChange);
+                        }
+                        // Case 3: The beginning of the formatting change span overlaps with the end of the new line text.
+                        // Remove the overlapping text from the new line edit (the text is included in the formatting change).
+                        // Modify the formatting change span to be everything after the new line edit end (and make the endpoint relative to the original text).
+                        else
+                        {
+                            var overlappingAmount = newLineTextEnd - formattingEdit.Span.Start;
+                            var adjustedFormatChange = new TextChange(new TextSpan(newLineEdit.Span.End, formattingEdit.Span.Length - overlappingAmount), formattingEditText);
+
+                            // Remove the overlap at the end of the new line text.
+                            newLineTextAfterMerge = newLineTextAfterMerge.Substring(0, newLineTextAfterMerge.Length - overlappingAmount);
+                            overallChanges.Add(adjustedFormatChange);
+                        }
+                    }
+                }
+                
+                if (newLineTextAfterMerge != string.Empty)
+                {
+                    // Ensure the new line change comes before formatting changes in case of ties.
+                    overallChanges.Insert(0, new TextChange(newLineEdit.Span, newLineTextAfterMerge));
+                }
+
+                return overallChanges.ToImmutable();
             }
         }
 
