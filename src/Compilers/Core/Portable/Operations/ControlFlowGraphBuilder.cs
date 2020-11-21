@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -3735,7 +3735,7 @@ oneMoreTime:
         public override IOperation? VisitUsing(IUsingOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
-            HandleUsingOperationParts(operation.Resources, operation.Body, operation.DisposeMethod, operation.Locals, operation.IsAsynchronous);
+            HandleUsingOperationParts(operation.Resources, operation.Body, ((UsingOperation)operation).DisposeMethod, operation.Locals, operation.IsAsynchronous);
             return FinishVisitingStatement(operation);
         }
 
@@ -7006,7 +7006,7 @@ oneMoreTime:
             HandleUsingOperationParts(
                 resources: operation.DeclarationGroup,
                 body: logicalBlock,
-                disposeMethod: operation.DisposeMethod,
+                disposeMethod: ((UsingOperation)operation).DisposeMethod,
                 locals: ImmutableArray<ILocalSymbol>.Empty,
                 isAsynchronous: operation.IsAsynchronous);
 

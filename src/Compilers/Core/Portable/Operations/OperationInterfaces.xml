@@ -485,7 +485,7 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="DisposeMethod" Type="IMethodSymbol?">
+    <Property Name="DisposeMethod" Type="IMethodSymbol?" Internal="true">
       <Comments>
         <summary>The method that will be invoked to dispose the <see cref="Resources" />. This can be null in error scenarios.</summary>
       </Comments>
@@ -2939,7 +2939,7 @@
         <summary>True if this is an asynchronous using declaration.</summary>
       </Comments>
     </Property>
-    <Property Name="DisposeMethod" Type="IMethodSymbol?">
+    <Property Name="DisposeMethod" Type="IMethodSymbol?" Internal="true">
       <Comments>
         <summary>The method that will be invoked to dispose the declared instances. This can be null in error scenarios.</summary>
       </Comments>
