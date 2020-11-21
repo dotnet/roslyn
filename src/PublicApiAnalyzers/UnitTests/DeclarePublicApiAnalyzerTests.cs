@@ -2112,7 +2112,11 @@ C.C() -> void
 C.NewField -> int
 C.Property.get -> int{expectedEndOfFile}";
 
-            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(
+                source.NormalizeLineEndings(),
+                shippedText,
+                unshippedText.NormalizeLineEndings(),
+                fixedUnshippedText.NormalizeLineEndings());
         }
 
         [Fact]
