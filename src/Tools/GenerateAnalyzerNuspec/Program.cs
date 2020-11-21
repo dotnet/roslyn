@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#pragma warning disable CA1820, CS8600, IDE0057, IDE0062, IDE0078
+#pragma warning disable CA1820, CS8600, IDE0062, IDE0078
 
 using System;
 using System.Collections.Generic;
@@ -45,8 +45,8 @@ string repositoryCommit = null;
 foreach (string entry in metadataList)
 {
     int equals = entry.IndexOf('=');
-    string name = entry.Substring(0, equals);
-    string value = entry.Substring(equals + 1);
+    string name = entry[..equals];
+    string value = entry[(equals + 1)..];
     switch (name)
     {
         case "repositoryType": repositoryType = value; continue;
