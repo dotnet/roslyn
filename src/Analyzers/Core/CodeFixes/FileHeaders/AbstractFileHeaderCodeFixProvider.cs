@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -88,24 +89,39 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         private static SyntaxNode ReplaceHeader(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
         {
             var newHeaderTrivia = CreateNewHeader(syntaxFacts, fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString());
+
             var existingBanner = syntaxFacts.GetFileBanner(root);
             var allRootTrivia = root.GetLeadingTrivia();
-            var existingBannerIndizes = allRootTrivia
-                .Select((t, i) => (index: i, exists: existingBanner.Contains(allRootTrivia[i])))
-                .Where(t => t.exists)
-                .Select(t => t.index)
-                .Reverse()
-                .ToList();
+            var rootTriviaWithoutExisitingBanner = RemoveBannerFromRootTrivia(allRootTrivia, existingBanner);
+
+            // Add a blank line and any remaining preserved trivia after the header.
+            newHeaderTrivia = newHeaderTrivia.Add(newLineTrivia).Add(newLineTrivia).AddRange(rootTriviaWithoutExisitingBanner);
+
+            // Insert header at top of the file.
+            return root.WithLeadingTrivia(newHeaderTrivia);
+        }
+
+        private static SyntaxTriviaList RemoveBannerFromRootTrivia(SyntaxTriviaList allRootTrivia, ImmutableArray<SyntaxTrivia> banner)
+        {
+            if (banner.Length == 0)
+            {
+                return allRootTrivia;
+            }
+
+            var existingBannerIndizes = new Stack<int>(capacity: allRootTrivia.Count);
+            for (var i = 0; i < allRootTrivia.Count; i++)
+            {
+                if (banner.Contains(allRootTrivia[i]))
+                {
+                    existingBannerIndizes.Push(i);
+                }
+            }
             foreach (var index in existingBannerIndizes)
             {
                 allRootTrivia = allRootTrivia.RemoveAt(index);
             }
 
-            // Add a blank line and any remaining preserved trivia after the header.
-            newHeaderTrivia = newHeaderTrivia.Add(newLineTrivia).Add(newLineTrivia).AddRange(allRootTrivia);
-
-            // Insert header at top of the file.
-            return root.WithLeadingTrivia(newHeaderTrivia);
+            return allRootTrivia;
         }
 
         private static SyntaxNode AddHeader(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
