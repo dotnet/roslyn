@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#pragma warning disable CA1820, CS8600, IDE0062, IDE0078
+#pragma warning disable CA1820, IDE0062, IDE0078
 
 using System;
 using System.Collections.Generic;
@@ -37,10 +37,10 @@ result.AppendLine(@"<?xml version=""1.0""?>");
 result.AppendLine(@"<package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">");
 result.AppendLine(@"  <metadata>");
 
-string version = null;
-string repositoryType = null;
-string repositoryUrl = null;
-string repositoryCommit = null;
+string version = string.Empty;
+string repositoryType = string.Empty;
+string repositoryUrl = string.Empty;
+string repositoryCommit = string.Empty;
 
 foreach (string entry in metadataList)
 {
