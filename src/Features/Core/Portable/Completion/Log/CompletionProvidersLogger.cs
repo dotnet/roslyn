@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             CommitsOfExtensionMethodImportCompletionItem,
             ExtensionMethodCompletionPartialResultCount,
             ExtensionMethodCompletionTimeoutCount,
+            CommitUsingSemicolonToAddParenthesis,
         }
 
         internal static void LogTypeImportCompletionTicksDataPoint(int count)
@@ -84,6 +85,9 @@ namespace Microsoft.CodeAnalysis.Completion.Log
 
         internal static void LogExtensionMethodCompletionTimeoutCount() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTimeoutCount);
+
+        internal static void LogCommitUsingSemicolonToAddParenthesis() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitUsingSemicolonToAddParenthesis);
 
         internal static void ReportTelemetry()
         {

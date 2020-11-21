@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -150,6 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             if (ch == ';')
             {
+                CompletionProvidersLogger.LogCommitUsingSemicolonToAddParenthesis();
                 var insertionText = SymbolCompletionItem.GetInsertionText(item);
                 return insertionText + "()";
             }

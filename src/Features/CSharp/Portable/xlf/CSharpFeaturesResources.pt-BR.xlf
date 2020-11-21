@@ -89,12 +89,12 @@
       </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
-        <target state="new">Change to 'as' expression</target>
+        <target state="translated">Alterar para a expressão 'as'</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_to_cast">
         <source>Change to cast</source>
-        <target state="new">Change to cast</target>
+        <target state="translated">Alterar para conversão</target>
         <note />
       </trans-unit>
       <trans-unit id="Compare_to_0">
@@ -249,7 +249,7 @@
       </trans-unit>
       <trans-unit id="element_name">
         <source>&lt;element name&gt; : </source>
-        <target state="translated">&lt;nome do elemento:&gt;</target>
+        <target state="translated">&lt;nome do elemento&gt; :</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">

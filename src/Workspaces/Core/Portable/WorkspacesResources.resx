@@ -565,4 +565,8 @@
   <data name="Sync_namespace_to_folder_structure" xml:space="preserve">
     <value>Sync namespace to folder structure</value>
   </data>
+  <data name="CodeAction_{0}_did_not_produce_a_changed_solution" xml:space="preserve">
+    <value>CodeAction '{0}' did not produce a changed solution</value>
+    <comment>"CodeAction" is a specific type, and {0} represents the title shown by the action.</comment>
+  </data>
 </root>

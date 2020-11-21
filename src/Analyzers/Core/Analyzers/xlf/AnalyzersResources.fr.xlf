@@ -229,7 +229,7 @@
       </trans-unit>
       <trans-unit id="Remove_redundant_equality">
         <source>Remove redundant equality</source>
-        <target state="new">Remove redundant equality</target>
+        <target state="translated">Supprimer l'égalité redondante</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_parentheses">
@@ -334,7 +334,7 @@
       </trans-unit>
       <trans-unit id="Use_decrement_operator">
         <source>Use '--' operator</source>
-        <target state="new">Use '--' operator</target>
+        <target state="translated">Utiliser l'opérateur '--'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_explicitly_provided_tuple_name">
@@ -344,7 +344,7 @@
       </trans-unit>
       <trans-unit id="Use_increment_operator">
         <source>Use '++' operator</source>
-        <target state="new">Use '++' operator</target>
+        <target state="translated">Utiliser l'opérateur '++'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_inferred_member_name">

@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
         <source>The type '{0}' may not be used for a field of a record.</source>
-        <target state="new">The type '{0}' may not be used for a field of a record.</target>
+        <target state="translated">Le type '{0}' ne doit pas être utilisé pour un champ d'enregistrement.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFuncPointerArgCount">
@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
         <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
-        <target state="new">'{0}' is already listed in the interface list on type '{2}' as '{1}'.</target>
+        <target state="translated">'{0}' est déjà listé dans la liste d'interfaces du type '{2}' en tant que '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
@@ -319,7 +319,7 @@
       </trans-unit>
       <trans-unit id="ERR_EqualityContractRequiresGetter">
         <source>Record equality contract property '{0}' must have a get accessor.</source>
-        <target state="new">Record equality contract property '{0}' must have a get accessor.</target>
+        <target state="translated">La propriété de contrat d'égalité d'enregistrement '{0}' doit avoir un accesseur get.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -429,7 +429,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
         <source>A function pointer cannot be called with named arguments.</source>
-        <target state="new">A function pointer cannot be called with named arguments.</target>
+        <target state="translated">Impossible d'appeler un pointeur de fonction avec des arguments nommés.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -454,17 +454,17 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitObjectCreationIllegalTargetType">
         <source>The type '{0}' may not be used as the target type of new()</source>
-        <target state="new">The type '{0}' may not be used as the target type of new()</target>
+        <target state="translated">Le type '{0}' ne doit pas être utilisé en tant que type cible de new()</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitObjectCreationNoTargetType">
         <source>There is no target type for '{0}'</source>
-        <target state="new">There is no target type for '{0}'</target>
+        <target state="translated">Il n'existe aucun type cible pour '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitObjectCreationNotValid">
         <source>Use of new() is not valid in this context</source>
-        <target state="new">Use of new() is not valid in this context</target>
+        <target state="translated">L'utilisation de new() est non valide dans ce contexte</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
@@ -944,22 +944,22 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureDiscards">
         <source>discards</source>
-        <target state="translated">abandons</target>
+        <target state="translated">discards (éléments ignorés)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
-        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <target state="translated">L'assembly '{0}' contenant le type '{1}' référence le .NET Framework, ce qui n'est pas pris en charge.</target>
         <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
-        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+        <target state="translated">L'assembly chargé référence le .NET Framework, ce qui n'est pas pris en charge.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
-        <target state="new">target-typed object creation</target>
+        <target state="translated">création d'un objet typé cible</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -1325,7 +1325,7 @@
 -instrument:TestCoverage      Produire un assembly instrumenté pour collecter
                               les informations de couverture
 -sourcelink:&lt;fichier&gt;         Informations du lien source à incorporer dans le fichier PDB.
-
+ 
                        - ERREURS ET AVERTISSEMENTS -
 -warnaserror[+|-]             Signaler tous les avertissements comme des erreurs
 -warnaserror[+|-]:&lt;avertiss.&gt; Signaler des avertissements spécifiques comme des erreurs
@@ -1714,7 +1714,7 @@
       </trans-unit>
       <trans-unit id="IDS_Return">
         <source>return</source>
-        <target state="translated">retourner</target>
+        <target state="translated">de retour</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ThrowExpression">
@@ -2893,12 +2893,12 @@
       </trans-unit>
       <trans-unit id="WRN_UnreadRecordParameter">
         <source>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</source>
-        <target state="new">Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</target>
+        <target state="translated">Le paramètre '{0}' est non lu. Avez-vous oublié de l'utiliser pour initialiser la propriété portant ce nom ?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadRecordParameter_Title">
         <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
-        <target state="new">Parameter is unread. Did you forget to use it to initialize the property with that name?</target>
+        <target state="translated">Le paramètre est non lu. Avez-vous oublié de l'utiliser pour initialiser la propriété portant ce nom ?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
@@ -4148,7 +4148,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
-        <target state="needs-review-translation">Le modificateur 'partial' ne peut apparaître qu'immédiatement avant 'class', 'record', 'struct', 'interface' ou 'void'</target>
+        <target state="translated">Le modificateur 'partial' peut apparaître uniquement juste avant 'class', 'record', 'struct', 'interface' ou un type de retour de méthode.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">

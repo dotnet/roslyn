@@ -21,15 +21,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private TaskCompletionSource<object> DisconnectTaskCompletionSource { get; } = new TaskCompletionSource<object>();
 
         public NamedPipeServerStream Stream { get; }
+        public ICompilerServerLogger Logger { get; }
         public string LoggingIdentifier { get; }
         public bool IsDisposed { get; private set; }
 
         public Task DisconnectTask => DisconnectTaskCompletionSource.Task;
 
-        internal NamedPipeClientConnection(NamedPipeServerStream stream, string loggingIdentifier)
+        internal NamedPipeClientConnection(NamedPipeServerStream stream, string loggingIdentifier, ICompilerServerLogger logger)
         {
             Stream = stream;
             LoggingIdentifier = loggingIdentifier;
+            Logger = logger;
         }
 
         public void Dispose()
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 catch (Exception ex)
                 {
-                    CompilerServerLogger.LogException(ex, $"Error closing client connection {LoggingIdentifier}");
+                    Logger.LogException(ex, $"Error closing client connection {LoggingIdentifier}");
                 }
 
                 IsDisposed = true;
@@ -71,11 +73,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             {
                 try
                 {
-                    await BuildServerConnection.MonitorDisconnectAsync(Stream, LoggingIdentifier, DisconnectCancellationTokenSource.Token).ConfigureAwait(false);
+                    await BuildServerConnection.MonitorDisconnectAsync(Stream, LoggingIdentifier, Logger, DisconnectCancellationTokenSource.Token).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
-                    CompilerServerLogger.LogException(ex, $"Error monitoring disconnect {LoggingIdentifier}");
+                    Logger.LogException(ex, $"Error monitoring disconnect {LoggingIdentifier}");
                 }
                 finally
                 {

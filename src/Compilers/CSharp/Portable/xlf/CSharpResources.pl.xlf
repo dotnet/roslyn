@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
         <source>The type '{0}' may not be used for a field of a record.</source>
-        <target state="new">The type '{0}' may not be used for a field of a record.</target>
+        <target state="translated">Typ „{0}” nie może być używany dla pola rekordu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFuncPointerArgCount">
@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
         <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
-        <target state="new">'{0}' is already listed in the interface list on type '{2}' as '{1}'.</target>
+        <target state="translated">Element „{0}” znajduje się już na liście interfejsów typu „{2}” jako „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
@@ -319,7 +319,7 @@
       </trans-unit>
       <trans-unit id="ERR_EqualityContractRequiresGetter">
         <source>Record equality contract property '{0}' must have a get accessor.</source>
-        <target state="new">Record equality contract property '{0}' must have a get accessor.</target>
+        <target state="translated">Właściwość kontraktu równości rekordu „{0}” musi mieć metodę dostępu get.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -429,7 +429,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
         <source>A function pointer cannot be called with named arguments.</source>
-        <target state="new">A function pointer cannot be called with named arguments.</target>
+        <target state="translated">Nie można wywołać wskaźnika funkcji przy użyciu argumentów nazwanych.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -454,17 +454,17 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitObjectCreationIllegalTargetType">
         <source>The type '{0}' may not be used as the target type of new()</source>
-        <target state="new">The type '{0}' may not be used as the target type of new()</target>
+        <target state="translated">Typu „{0}” nie można używać jako typu docelowego wyrażenia new()</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitObjectCreationNoTargetType">
         <source>There is no target type for '{0}'</source>
-        <target state="new">There is no target type for '{0}'</target>
+        <target state="translated">Brak typu docelowego dla elementu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitObjectCreationNotValid">
         <source>Use of new() is not valid in this context</source>
-        <target state="new">Use of new() is not valid in this context</target>
+        <target state="translated">Użycie wyrażenia new() jest nieprawidłowe w tym kontekście</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
@@ -949,17 +949,17 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
-        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <target state="translated">Zestaw „{0}” zawierający typ „{1}” odwołuje się do platformy .NET Framework, co nie jest obsługiwane.</target>
         <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
-        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+        <target state="translated">Załadowany zestaw odwołuje się do platformy .NET Framework, co nie jest obsługiwane.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
-        <target state="new">target-typed object creation</target>
+        <target state="translated">tworzenie obiektu z typem docelowym</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -1263,35 +1263,35 @@
                              Opcje kompilatora Visual C#
 
                         - PLIKI WYJŚCIOWE -
--out:&lt;plik&gt;                   Określ nazwę pliku wyjściowego (domyślnie: nazwa podstawowa
+-out:&lt;plik&gt;                   Określ nazwę pliku wyjściowego (domyślnie: nazwa podstawowa 
                               pliku z klasą główną lub pierwszego pliku)
--target:exe                   Kompiluj plik wykonywalny konsoli (domyślnie) (krótka
+-target:exe                   Kompiluj plik wykonywalny konsoli (domyślnie) (krótka 
                               wersja: -t:exe)
--target:winexe                Kompiluj plik wykonywalny systemu Windows (krótka wersja:
+-target:winexe                Kompiluj plik wykonywalny systemu Windows (krótka wersja: 
                               -t:winexe)
 -target:library               Kompiluj bibliotekę (krótka wersja: -t:library)
--target:module                Kompiluj moduł, który można dodać do innego
+-target:module                Kompiluj moduł, który można dodać do innego 
                               zestawu (krótka wersja: -t:module)
--target:appcontainerexe       Kompiluj plik wykonywalny kontenera aplikacji (krótka wersja:
+-target:appcontainerexe       Kompiluj plik wykonywalny kontenera aplikacji (krótka wersja: 
                               -t:appcontainerexe)
--target:winmdobj              Kompiluj plik pośredni środowiska uruchomieniowego systemu Windows
+-target:winmdobj              Kompiluj plik pośredni środowiska uruchomieniowego systemu Windows 
                               przeznaczony dla narzędzia WinMDExp (krótka wersja: -t:winmdobj)
 -doc:&lt;plik&gt;                   Plik dokumentacji XML do wygenerowania
 -refout:&lt;plik&gt;                Dane wyjściowe zestawu odwołania do wygenerowania
 -platform:&lt;ciąg&gt;              Ogranicz platformy, na których można uruchamiać ten kod: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred lub
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred lub 
                               anycpu. Wartość domyślna to anycpu.
 
                         - PLIKI WEJŚCIOWE -
--recurse:&lt;symbol wieloznaczny&gt; Uwzględnij wszystkie pliki zawarte w bieżącym katalogu i
-                               podkatalogach zgodnie ze specyfikacją określoną przy użyciu
+-recurse:&lt;symbol wieloznaczny&gt; Uwzględnij wszystkie pliki zawarte w bieżącym katalogu i 
+                               podkatalogach zgodnie ze specyfikacją określoną przy użyciu 
                                symboli wieloznacznych
--reference:&lt;alias&gt;=&lt;plik&gt;     Odwołuj się do metadanych z określonego pliku
+-reference:&lt;alias&gt;=&lt;plik&gt;     Odwołuj się do metadanych z określonego pliku 
                               zestawu przy użyciu podanego aliasu (krótka wersja: -r)
--reference:&lt;lista_plików&gt;     Odwołuj się do metadanych z określonych
+-reference:&lt;lista_plików&gt;     Odwołuj się do metadanych z określonych 
                               plików zestawów (krótka wersja: -r)
 -addmodule:&lt;lista plików&gt;     Połącz określone moduły z tym zestawem
--link:&lt;lista_plików&gt;          Osadź metadane z określonych plików
+-link:&lt;lista_plików&gt;          Osadź metadane z określonych plików 
                               zestawów międzyoperacyjnych (krótka wersja: -l)
 -analyzer:&lt;lista_plików&gt;      Uruchom analizatory z tego zestawu
                               (krótka wersja: -a)
@@ -1307,16 +1307,16 @@
 -win32manifest:&lt;plik&gt;         Określ plik manifestu środowiska Win32 (xml)
 -nowin32manifest              Nie dołączaj domyślnego manifestu środowiska Win32
 -resource:&lt;informacje_o_zasobie&gt; Osadź określony zasób (krótka wersja: -res)
--linkresource:&lt;informacje_o_zasobie&gt; Połącz określony zasób z tym zestawem
-                               (krótka wersja: -linkres), gdzie format informacji o zasobie
+-linkresource:&lt;informacje_o_zasobie&gt; Połącz określony zasób z tym zestawem 
+                               (krótka wersja: -linkres), gdzie format informacji o zasobie 
                                to &lt;plik&gt;[,&lt;nazwa ciągu&gt;[,public|private]]
 
                         - GENEROWANIE KODU -
 -debug[+|-]                   Emituj informacje o debugowaniu
 -debug:{full|pdbonly|portable|embedded}
-                              Określ typ debugowania (wartość domyślna to „full”,
+                              Określ typ debugowania (wartość domyślna to „full”, 
                               wartość „portable” to format międzyplatformowy,
-                              a wartość „embedded” to format międzyplatformowy wbudowany w
+                              a wartość „embedded” to format międzyplatformowy wbudowany w 
                               docelowym pliku dll lub exe)
 -optimize[+|-]                Włącz optymalizacje (krótka wersja: -o)
 -deterministic                Utwórz zestaw deterministyczny
@@ -1343,9 +1343,15 @@
 -reportanalyzer               Zgłaszaj dodatkowe informacje analizatora, takie jak
                               czas wykonywania.
 -skipanalyzers[+|-]           Pomiń wykonywanie analizatorów diagnostycznych.
-
+ 
+                        -JĘZYK -
 -checked[+|-]                 Generuj operacje sprawdzenia przepełnienia
 -unsafe[+|-]                  Zezwalaj na niebezpieczny kod
+-define:&lt;lista symboli&gt;       Zdefiniuj symbole kompilacji warunkowej (krótka 
+                              wersja: -d)
+-langversion:?                Wyświetl dozwolone wartości dla wersji języka
+-langversion:&lt;ciąg&gt;           Określ wersję języka, na przykład
+                              „latest” (najnowsza wersja z uwzględnieniem wersji pomocniczych),
                               „default” (to samo co „latest”),
                               „latestmajor” (najnowsza wersja z pominięciem wersji pomocniczych),
                               „preview” (najnowsza wersja z uwzględnieniem funkcji w nieobsługiwanej wersji zapoznawczej),
@@ -1355,7 +1361,7 @@
                               Określ opcję kontekstu dopuszczającego wartość null: enable|disable|warnings|annotations.
 
                         - ZABEZPIECZENIA -
--delaysign[+|-]               Podpisz z opóźnieniem zestaw, używając tylko
+-delaysign[+|-]               Podpisz z opóźnieniem zestaw, używając tylko 
                               części publicznej klucza o silnej nazwie
 -publicsign[+|-]              Podpisz publicznie zestaw, używając tylko
                               części publicznej klucza o silnej nazwie
@@ -1376,34 +1382,34 @@
 -checksumalgorithm:&lt;algorytm&gt; Określ algorytm do obliczania sumy kontrolnej
                               pliku źródłowego przechowywanej w pliku PDB.
                               Obsługiwane wartości: SHA1 lub SHA256 (domyślnie).
--codepage:&lt;n&gt;                 Określ stronę kodową do użycia podczas otwierania
+-codepage:&lt;n&gt;                 Określ stronę kodową do użycia podczas otwierania 
                               plików źródłowych
 -utf8output                   Wyprowadź komunikaty kompilatora przy użyciu kodowania UTF-8
--main:&lt;typ&gt;                   Określ typ zawierający punkt wejścia
-                              (zignoruj wszystkie pozostałe możliwe punkty wejścia) (krótka
+-main:&lt;typ&gt;                   Określ typ zawierający punkt wejścia 
+                              (zignoruj wszystkie pozostałe możliwe punkty wejścia) (krótka 
                               wersja: -m)
 -fullpaths                    Kompilator generuje w pełni kwalifikowane ścieżki
--filealign:&lt;n&gt;                Określ wyrównanie stosowane dla sekcji
+-filealign:&lt;n&gt;                Określ wyrównanie stosowane dla sekcji 
                               plików wyjściowych
--pathmap:&lt;K1&gt;=&lt;W1&gt;,&lt;K2&gt;=&lt;W2&gt;,...
-                              Określ mapowanie dla nazw ścieżek źródłowych wyprowadzanych przez
+-pathmap:&lt;K1&gt;=&lt;W1&gt;,&lt;K2&gt;=&lt;W2&gt;,... 
+                              Określ mapowanie dla nazw ścieżek źródłowych wyprowadzanych przez 
                               kompilator.
--pdb:&lt;plik&gt;                   Określ nazwę pliku z informacjami o debugowaniu (domyślnie:
+-pdb:&lt;plik&gt;                   Określ nazwę pliku z informacjami o debugowaniu (domyślnie: 
                               nazwa pliku wyjściowego z rozszerzeniem pdb)
--errorendlocation             Wyprowadź wiersz i kolumnę lokalizacji końcowej dla
+-errorendlocation             Wyprowadź wiersz i kolumnę lokalizacji końcowej dla 
                               każdego błędu
 -preferreduilang              Określ nazwę preferowanego języka wyjściowego.
 -nosdkpath                    Wyłącz przeszukiwanie domyślnej ścieżki zestawu SDK dla zestawów biblioteki standardowej.
 -nostdlib[+|-]                Nie odwołuj się do biblioteki standardowej (mscorlib.dll)
 -subsystemversion:&lt;ciąg&gt;      Określ wersję podsystemu tego zestawu
--lib:&lt;lista plików&gt;           Określ dodatkowe katalogi do przeszukania pod kątem
+-lib:&lt;lista plików&gt;           Określ dodatkowe katalogi do przeszukania pod kątem 
                               odwołań
--errorreport:&lt;ciąg&gt;           Określ, w jaki sposób obsługiwać wewnętrzne błędy kompilatora:
-                              prompt, send, queue lub none. Wartość domyślna to
+-errorreport:&lt;ciąg&gt;           Określ, w jaki sposób obsługiwać wewnętrzne błędy kompilatora: 
+                              prompt, send, queue lub none. Wartość domyślna to 
                               queue.
--appconfig:&lt;plik&gt;             Określ plik konfiguracji aplikacji
+-appconfig:&lt;plik&gt;             Określ plik konfiguracji aplikacji 
                               zawierający ustawienia powiązania zestawu
--moduleassemblyname:&lt;ciąg&gt;    Nazwa zestawu, którego częścią
+-moduleassemblyname:&lt;ciąg&gt;    Nazwa zestawu, którego częścią 
                               ma być ten moduł
 -modulename:&lt;ciąg&gt;            Określ nazwę modułu źródłowego
 -generatedfilesout:&lt;katalog&gt;      Umieść pliki wygenerowane podczas kompilacji
@@ -2887,12 +2893,12 @@
       </trans-unit>
       <trans-unit id="WRN_UnreadRecordParameter">
         <source>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</source>
-        <target state="new">Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</target>
+        <target state="translated">Parametr „{0}” nie został odczytany. Czy zapomniano użyć go do zainicjowania właściwości o tej nazwie?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadRecordParameter_Title">
         <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
-        <target state="new">Parameter is unread. Did you forget to use it to initialize the property with that name?</target>
+        <target state="translated">Parametr nie został odczytany. Czy zapomniano użyć go do zainicjowania właściwości o tej nazwie?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
@@ -4142,7 +4148,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
-        <target state="needs-review-translation">Modyfikator „partial” może się pojawić tylko bezpośrednio przed typem „class”, „record” „struct”, „interface” lub „void”</target>
+        <target state="translated">Modyfikator „partial” może pojawić się tylko bezpośrednio przed słowem kluczowym „class”, „record” „struct”, „interface” lub zwracanym typem metody.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
