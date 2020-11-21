@@ -7006,7 +7006,7 @@ oneMoreTime:
             HandleUsingOperationParts(
                 resources: operation.DeclarationGroup,
                 body: logicalBlock,
-                disposeMethod: ((UsingOperation)operation).DisposeMethod,
+                disposeMethod: ((UsingDeclarationOperation)operation).DisposeMethod,
                 locals: ImmutableArray<ILocalSymbol>.Empty,
                 isAsynchronous: operation.IsAsynchronous);
 
