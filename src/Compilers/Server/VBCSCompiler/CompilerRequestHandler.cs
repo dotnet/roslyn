@@ -57,15 +57,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         private string SdkDirectory { get; }
 
-        internal CompilerServerHost(string clientDirectory, string sdkDirectory)
+        public ICompilerServerLogger Logger { get; }
+
+        internal CompilerServerHost(string clientDirectory, string sdkDirectory, ICompilerServerLogger logger)
         {
             ClientDirectory = clientDirectory;
             SdkDirectory = sdkDirectory;
+            Logger = logger;
         }
 
         private bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers)
         {
-            return AnalyzerConsistencyChecker.Check(baseDirectory, analyzers, AnalyzerAssemblyLoader);
+            return AnalyzerConsistencyChecker.Check(baseDirectory, analyzers, AnalyzerAssemblyLoader, logger: Logger);
         }
 
         public bool TryCreateCompiler(RunRequest request, BuildPaths buildPaths, [NotNullWhen(true)] out CommonCompiler? compiler)
@@ -96,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         public BuildResponse RunCompilation(RunRequest request, CancellationToken cancellationToken)
         {
-            Log($@"
+            Logger.Log($@"
 Run Compilation
   CurrentDirectory = '{request.WorkingDirectory}
   LIB = '{request.LibDirectory}'");
@@ -128,11 +131,11 @@ Run Compilation
                 return new AnalyzerInconsistencyBuildResponse();
             }
 
-            Log($"Begin {request.Language} compiler run");
+            Logger.Log($"Begin {request.Language} compiler run");
             TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
             int returnCode = compiler.Run(output, cancellationToken);
             var outputString = output.ToString();
-            Log(@$"
+            Logger.Log(@$"
 End {request.Language} Compilation complete.
 Return code: {returnCode}
 Output:
