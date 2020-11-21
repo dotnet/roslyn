@@ -4,6 +4,8 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -56,10 +58,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
-        protected internal override VSServerCapabilities GetCapabilities()
+        protected internal override async Task<VSServerCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken)
         {
             var capabilities = _defaultCapabilitiesProvider.GetCapabilities();
-            capabilities.SupportsDiagnosticRequests = _globalOptionService.GetOption(InternalDiagnosticsOptions.RazorDiagnosticMode) == DiagnosticMode.Pull;
+            capabilities.SupportsDiagnosticRequests = await this.Workspace.IsPullDiagnosticsAsync(InternalDiagnosticsOptions.RazorDiagnosticMode, cancellationToken).ConfigureAwait(false);
             // Razor doesn't use workspace symbols, so disable to prevent duplicate results (with LiveshareLanguageClient) in liveshare.
             capabilities.WorkspaceSymbolProvider = false;
             return capabilities;

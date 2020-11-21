@@ -4,6 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Options;
 
@@ -50,11 +52,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// diagnostics or push diagnostics.  Most clients should use this to ensure they see the proper set of
         /// diagnostics in their scenario (or an empty array if not in their scenario).
         /// </summary>
-        public ImmutableArray<DiagnosticData> GetPullDiagnostics(
-            Workspace workspace, Option2<DiagnosticMode> diagnosticMode)
+        public async Task<ImmutableArray<DiagnosticData>> GetPullDiagnosticsAsync(
+            Workspace workspace, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
         {
             // If push diagnostics are on, they get nothing since they're asking for pull diagnostics.
-            if (workspace.Options.GetOption(diagnosticMode) == DiagnosticMode.Push)
+            if (await workspace.IsPushDiagnosticsAsync(diagnosticMode, cancellationToken).ConfigureAwait(false))
                 return ImmutableArray<DiagnosticData>.Empty;
 
             return _diagnostics;
@@ -65,11 +67,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// diagnostics or push diagnostics.  Most clients should use this to ensure they see the proper set of
         /// diagnostics in their scenario (or an empty array if not in their scenario).
         /// </summary>
-        public ImmutableArray<DiagnosticData> GetPushDiagnostics(
-            Workspace workspace, Option2<DiagnosticMode> diagnosticMode)
+        public async Task<ImmutableArray<DiagnosticData>> GetPushDiagnosticsAsync(
+            Workspace workspace, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
         {
             // If pull diagnostics are on, they get nothing since they're asking for push diagnostics.
-            if (workspace.Options.GetOption(diagnosticMode) == DiagnosticMode.Pull)
+            if (await workspace.IsPullDiagnosticsAsync(diagnosticMode, cancellationToken).ConfigureAwait(false))
                 return ImmutableArray<DiagnosticData>.Empty;
 
             return _diagnostics;

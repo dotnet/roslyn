@@ -104,14 +104,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// capabilities.  The specification assures that the initialize request is sent only once.
         /// </summary>
         [JsonRpcMethod(Methods.InitializeName, UseSingleObjectParameterDeserialization = true)]
-        public Task<InitializeResult> InitializeAsync(InitializeParams initializeParams, CancellationToken cancellationToken)
+        public async Task<InitializeResult> InitializeAsync(InitializeParams initializeParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(_clientCapabilities != null, $"{nameof(InitializeAsync)} called multiple times");
             _clientCapabilities = (VSClientCapabilities)initializeParams.Capabilities;
-            return Task.FromResult(new InitializeResult
+            return new InitializeResult
             {
-                Capabilities = _languageClient.GetCapabilities(),
-            });
+                Capabilities = await _languageClient.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false),
+            };
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
@@ -578,8 +578,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var option = document.IsRazorDocument()
                 ? InternalDiagnosticsOptions.RazorDiagnosticMode
                 : InternalDiagnosticsOptions.NormalDiagnosticMode;
-            var diagnostics = diagnosticService.GetPushDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, id: null, includeSuppressedDiagnostics: false, option, cancellationToken)
-                                               .WhereAsArray(IncludeDiagnostic);
+            var pushDiagnostics = await diagnosticService.GetPushDiagnosticsAsync(document.Project.Solution.Workspace, document.Project.Id, document.Id, id: null, includeSuppressedDiagnostics: false, option, cancellationToken).ConfigureAwait(false);
+            var diagnostics = pushDiagnostics.WhereAsArray(IncludeDiagnostic);
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 

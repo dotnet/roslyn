@@ -4,6 +4,8 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -45,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         public override string Name
             => ServicesVSResources.CSharp_Visual_Basic_Language_Server_Client;
 
-        protected internal override VSServerCapabilities GetCapabilities()
+        protected internal override async Task<VSServerCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken)
             => new VSServerCapabilities
             {
                 TextDocumentSync = new TextDocumentSyncOptions
@@ -53,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                     Change = TextDocumentSyncKind.Incremental,
                     OpenClose = true,
                 },
-                SupportsDiagnosticRequests = _globalOptionService.GetOption(InternalDiagnosticsOptions.NormalDiagnosticMode) == DiagnosticMode.Pull,
+                SupportsDiagnosticRequests = await this.Workspace.IsPullDiagnosticsAsync(InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken).ConfigureAwait(false),
                 // This flag ensures that ctrl+, search locally uses the old editor APIs so that only ctrl+Q search is powered via LSP.
                 DisableGoToWorkspaceSymbols = true,
                 WorkspaceSymbolProvider = true,

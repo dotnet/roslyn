@@ -113,14 +113,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             }
         }
 
-        protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+        protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
         {
             // For closed files, go to the IDiagnosticService for results.  These won't necessarily be totally up to
             // date.  However, that's fine as these are closed files and won't be in the process of being edited.  So
             // any deviations in the spans of diagnostics shouldn't be impactful for the user.
-            var diagnostics = this.DiagnosticService.GetPullDiagnostics(document, includeSuppressedDiagnostics: false, diagnosticMode, cancellationToken);
-            return Task.FromResult(diagnostics);
+            var diagnostics = await this.DiagnosticService.GetPullDiagnosticsAsync(document, includeSuppressedDiagnostics: false, diagnosticMode, cancellationToken).ConfigureAwait(false);
+            return diagnostics;
         }
     }
 }

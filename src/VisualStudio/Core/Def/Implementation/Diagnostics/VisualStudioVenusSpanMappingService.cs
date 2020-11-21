@@ -12,8 +12,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {

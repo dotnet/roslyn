@@ -858,18 +858,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return diagnostics
             End Function
 
-            Public Function GetPullDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPullDiagnosticBuckets
-                Return GetDiagnosticsBuckets(workspace, projectId, documentId)
+            Public Function GetPullDiagnosticBucketsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticBucket)) Implements IDiagnosticService.GetPullDiagnosticBucketsAsync
+                Return GetDiagnosticsBucketsAsync(workspace, projectId, documentId)
             End Function
 
-            Public Function GetPushDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPushDiagnosticBuckets
-                Return GetDiagnosticsBuckets(workspace, projectId, documentId)
+            Public Function GetPushDiagnosticBucketsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of DiagnosticBucket)) Implements IDiagnosticService.GetPushDiagnosticBucketsAsync
+                Return GetDiagnosticsBucketsAsync(workspace, projectId, documentId)
             End Function
 
-            Private Function GetDiagnosticsBuckets(
+            Private Function GetDiagnosticsBucketsASync(
                     workspace As Workspace,
                     projectId As ProjectId,
-                    documentId As DocumentId) As ImmutableArray(Of DiagnosticBucket)
+                    documentId As DocumentId) As Task(Of ImmutableArray(Of DiagnosticBucket))
                 Assert.NotNull(workspace)
 
                 Dim diagnosticsArgs As ImmutableArray(Of DiagnosticBucket)
@@ -899,7 +899,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                                                 End Function).ToImmutableArrayOrEmpty()
                 End If
 
-                Return diagnosticsArgs
+                Return Task.FromResult(diagnosticsArgs)
             End Function
 
             Public Sub RaiseDiagnosticsUpdated(workspace As Workspace, ParamArray items As DiagnosticData())

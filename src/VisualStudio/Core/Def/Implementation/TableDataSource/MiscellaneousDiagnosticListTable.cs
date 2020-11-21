@@ -9,6 +9,7 @@ using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -34,10 +35,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             private readonly LiveTableDataSource _source;
 
-            public MiscellaneousDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
-                base(workspace, provider)
+            public MiscellaneousDiagnosticListTable(
+                IThreadingContext threadingContext,
+                Workspace workspace,
+                IDiagnosticService diagnosticService,
+                ITableManagerProvider provider)
+                : base(workspace, provider)
             {
-                _source = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
+                _source = new LiveTableDataSource(threadingContext, workspace, diagnosticService, IdentifierString);
 
                 AddInitialTableSource(workspace.CurrentSolution, _source);
                 ConnectWorkspaceEvents();

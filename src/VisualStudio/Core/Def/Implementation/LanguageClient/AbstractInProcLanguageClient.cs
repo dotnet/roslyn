@@ -27,8 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private readonly IDiagnosticService? _diagnosticService;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
-        private readonly Workspace _workspace;
         private readonly ILspSolutionProvider _solutionProvider;
+
+        protected readonly Workspace Workspace;
 
         /// <summary>
         /// Created when <see cref="ActivateAsync"/> is called.
@@ -75,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             string? diagnosticsClientName)
         {
             _requestHandlerProvider = requestHandlerProvider;
-            _workspace = workspace;
+            Workspace = workspace;
             _diagnosticService = diagnosticService;
             _listenerProvider = listenerProvider;
             _solutionProvider = solutionProvider;
@@ -85,9 +86,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// <summary>
         /// Can be overridden by subclasses to control what capabilities this language client has.
         /// </summary>
-        protected internal abstract VSServerCapabilities GetCapabilities();
+        protected internal abstract Task<VSServerCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken);
 
-        public Task<Connection> ActivateAsync(CancellationToken token)
+        public Task<Connection> ActivateAsync(CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(_languageServer?.Running == true, "The language server has not yet shutdown.");
 
@@ -97,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 serverStream,
                 serverStream,
                 _requestHandlerProvider,
-                _workspace,
+                Workspace,
                 _diagnosticService,
                 _listenerProvider,
                 _solutionProvider,
