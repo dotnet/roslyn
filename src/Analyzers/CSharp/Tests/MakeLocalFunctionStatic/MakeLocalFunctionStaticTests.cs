@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeLocalFunctionStatic
 
         private static readonly ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
         private static readonly ParseOptions CSharp8ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
+        private static readonly ParseOptions CSharp9ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
         public async Task TestAboveCSharp8()
@@ -509,6 +510,22 @@ class C
     }
 }",
 parseOptions: CSharp8ParseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+        [WorkItem(49539, "https://github.com/dotnet/roslyn/issues/49539")]
+        public async Task TestTopLevelStatements()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System;
+Console.WriteLine(Hello());
+string Hello() => ""Hello, world!"";
+", @"
+using System;
+Console.WriteLine(Hello());
+string Hello() => ""Hello, world!"";
+",
+parseOptions: CSharp9ParseOptions);
         }
     }
 }
