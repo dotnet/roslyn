@@ -292,25 +292,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                     using var _ = ArrayBuilder<ClassifiedTextRun>.GetInstance(out var classifiedTextRuns);
                     foreach (var span in classifiedSpans)
                     {
-                        // Case 1: Don't highlight. For example, if the user invokes FAR on 'x' in 'var x = 1', then 'var',
+                        // Default case: Don't highlight. For example, if the user invokes FAR on 'x' in 'var x = 1', then 'var',
                         // '=', and '1' should not be highlighted.
                         string? markerTagType = null;
 
-                        // Case 2: Highlight this span of text. For example, if the user invokes FAR on 'x' in 'var x = 1',
+                        // Case 1: Highlight this span of text. For example, if the user invokes FAR on 'x' in 'var x = 1',
                         // then 'x' should be highlighted.
                         if (span.TextSpan == documentSpan.SourceSpan)
                         {
-                            // Case 2a: Highlight a definition
+                            // Case 1a: Highlight a definition
                             if (id == definitionId)
                             {
                                 markerTagType = DefinitionHighlightTag.TagId;
                             }
-                            // Case 2b: Highlight a written reference
+                            // Case 1b: Highlight a written reference
                             else if (isWrittenTo)
                             {
                                 markerTagType = WrittenReferenceHighlightTag.TagId;
                             }
-                            // Case 2c: Highlight a read reference
+                            // Case 1c: Highlight a read reference
                             else
                             {
                                 markerTagType = ReferenceHighlightTag.TagId;
