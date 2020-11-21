@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private readonly Matcher<SyntaxTrivia> _oneOrMoreBlankLines;
 
         // Matches the following:
+        //
+        // ((whitespace* newline)+ | (directive)+)+
+        private readonly Matcher<SyntaxTrivia> _oneOrMoreBlankLinesOrPreprocessorDirectives;
+
+        // Matches the following:
         // 
         // (whitespace* (single-comment|multi-comment) whitespace* newline)+ OneOrMoreBlankLines
         private readonly Matcher<SyntaxTrivia> _bannerMatcher;
@@ -51,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 Matcher.Single<SyntaxTrivia>(IsWhitespaceTrivia, "\\b"));
             var endOfLine = Matcher.Single<SyntaxTrivia>(IsEndOfLineTrivia, "\\n");
             var singleBlankLine = Matcher.Sequence(whitespace, endOfLine);
-
+            var preprocessorDirective = Matcher.Single<SyntaxTrivia>(IsPreprocessorDirective, "#directive");
             var shebangComment = Matcher.Single<SyntaxTrivia>(IsShebangDirectiveTrivia, "#!");
             var singleLineComment = Matcher.Single<SyntaxTrivia>(IsSingleLineCommentTrivia, "//");
             var multiLineComment = Matcher.Single<SyntaxTrivia>(IsMultiLineCommentTrivia, "/**/");
@@ -61,7 +66,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             var commentLine = Matcher.Sequence(whitespace, anyCommentMatcher, whitespace, endOfLine);
 
+            var oneOrMorePreprocessorDirectives = Matcher.OneOrMore(preprocessorDirective);
             _oneOrMoreBlankLines = Matcher.OneOrMore(singleBlankLine);
+            _oneOrMoreBlankLinesOrPreprocessorDirectives = Matcher.OneOrMore(Matcher.Choice(_oneOrMoreBlankLines, oneOrMorePreprocessorDirectives));
+
             _bannerMatcher =
                 Matcher.Sequence(
                     Matcher.OneOrMore(commentLine),
@@ -334,13 +342,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             var leadingTrivia = firstToken.LeadingTrivia.ToList();
             var index = 0;
-            // Skip over new lines at the top of file
-            _oneOrMoreBlankLines.TryMatch(leadingTrivia, ref index);
+            // Skip over new lines and directives at the top of file
+            _oneOrMoreBlankLinesOrPreprocessorDirectives.TryMatch(leadingTrivia, ref index);
             var bannerStart = index;
 
             _fileBannerMatcher.TryMatch(leadingTrivia, ref index);
 
-            return ImmutableArray.CreateRange(leadingTrivia.GetRange(bannerStart, index-bannerStart));
+            return ImmutableArray.CreateRange(leadingTrivia.GetRange(bannerStart, index - bannerStart));
         }
 
         public bool ContainsInterleavedDirective(

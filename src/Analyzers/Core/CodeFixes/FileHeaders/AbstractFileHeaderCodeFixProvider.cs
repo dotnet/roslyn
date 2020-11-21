@@ -92,20 +92,37 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
             var existingBanner = syntaxFacts.GetFileBanner(root);
             var allRootTrivia = root.GetLeadingTrivia();
-            var rootTriviaWithoutExisitingBanner = RemoveBannerFromRootTrivia(allRootTrivia, existingBanner);
+            var (triviaToKeep, bannerInsertationIndex) = RemoveBannerFromRootTrivia(allRootTrivia, existingBanner);
 
-            // Add a blank line and any remaining preserved trivia after the header.
-            newHeaderTrivia = newHeaderTrivia.Add(newLineTrivia).Add(newLineTrivia).AddRange(rootTriviaWithoutExisitingBanner);
+            var trailingWhiteSpaceNewLineFromExisitingHeader = GetTrailingWhiteSpaceNewLineFromExisitingHeader(syntaxFacts, existingBanner);
+            if (trailingWhiteSpaceNewLineFromExisitingHeader.IsEmpty)
+            {
+                trailingWhiteSpaceNewLineFromExisitingHeader = trailingWhiteSpaceNewLineFromExisitingHeader.Add(newLineTrivia).Add(newLineTrivia);
+            }
+            // Append the whitespace and new lines as it was before
+            newHeaderTrivia = newHeaderTrivia.AddRange(trailingWhiteSpaceNewLineFromExisitingHeader);
+            // Insert the new header at the right position in exisiting trivia around the header
+            newHeaderTrivia = triviaToKeep.InsertRange(bannerInsertationIndex, newHeaderTrivia);
 
-            // Insert header at top of the file.
             return root.WithLeadingTrivia(newHeaderTrivia);
         }
 
-        private static SyntaxTriviaList RemoveBannerFromRootTrivia(SyntaxTriviaList allRootTrivia, ImmutableArray<SyntaxTrivia> banner)
+        private static ImmutableArray<SyntaxTrivia> GetTrailingWhiteSpaceNewLineFromExisitingHeader(ISyntaxFacts syntaxFacts, ImmutableArray<SyntaxTrivia> existingBanner)
+        {
+            var i = existingBanner.Length - 1;
+            while (syntaxFacts.IsWhitespaceOrEndOfLineTrivia(existingBanner[i]))
+            {
+                i--;
+            }
+
+            return existingBanner.RemoveRange(0, i + 1);
+        }
+
+        private static (SyntaxTriviaList triviaToKeep, int bannerInsertationIndex) RemoveBannerFromRootTrivia(SyntaxTriviaList allRootTrivia, ImmutableArray<SyntaxTrivia> banner)
         {
             if (banner.Length == 0)
             {
-                return allRootTrivia;
+                return (allRootTrivia, 0);
             }
 
             var existingBannerIndizes = new Stack<int>(capacity: allRootTrivia.Count);
@@ -116,12 +133,14 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                     existingBannerIndizes.Push(i);
                 }
             }
-            foreach (var index in existingBannerIndizes)
+
+            var index = 0;
+            while (existingBannerIndizes.Count > 0)
             {
+                index = existingBannerIndizes.Pop();
                 allRootTrivia = allRootTrivia.RemoveAt(index);
             }
-
-            return allRootTrivia;
+            return (allRootTrivia, index);
         }
 
         private static SyntaxNode AddHeader(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
