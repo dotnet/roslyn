@@ -332,11 +332,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         {
             Debug.Assert(firstToken.FullSpan.Start == 0);
 
-            var leadingTrivia = firstToken.LeadingTrivia;
+            var leadingTrivia = firstToken.LeadingTrivia.ToList();
             var index = 0;
-            _fileBannerMatcher.TryMatch(leadingTrivia.ToList(), ref index);
+            // Skip over new lines at the top of file
+            _oneOrMoreBlankLines.TryMatch(leadingTrivia, ref index);
+            var bannerStart = index;
 
-            return ImmutableArray.CreateRange(leadingTrivia.Take(index));
+            _fileBannerMatcher.TryMatch(leadingTrivia, ref index);
+
+            return ImmutableArray.CreateRange(leadingTrivia.GetRange(bannerStart, index-bannerStart));
         }
 
         public bool ContainsInterleavedDirective(
