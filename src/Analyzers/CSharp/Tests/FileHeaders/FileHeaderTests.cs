@@ -297,19 +297,19 @@ namespace Bar
         [Fact]
         public async Task TestValidFileHeaderWithMultiLineComments3Async()
         {
-            var testCode = @"/* Copyright (c) SomeCorp. All rights reserved.
+            var testCode = @"{|CS1035:|}[||]/* Copyright (c) SomeCorp. All rights reserved.
    Licensed under the ??? license. See LICENSE file in the project root for full license information.
 ";
+            var fixedCode = @"// Copyright (c) SomeCorp. All rights reserved.
+// Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
+{|CS1035:|}/* Copyright (c) SomeCorp. All rights reserved.
+   Licensed under the ??? license. See LICENSE file in the project root for full license information.
+";
             await new VerifyCS.Test
             {
                 TestCode = testCode,
-                ExpectedDiagnostics =
-                {
-                    // /0/Test0.cs(1,1): error CS1035: End-of-file found, '*/' expected
-                    DiagnosticResult.CompilerError("CS1035").WithSpan(1, 1, 1, 1),
-                },
-                FixedCode = testCode,
+                FixedCode = fixedCode,
                 EditorConfig = TestSettings,
             }.RunAsync();
         }
