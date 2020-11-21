@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace System.Collections
 {
-    internal static partial class HashHelpers
+    internal static class HashHelpers
     {
         public const uint HashCollisionThreshold = 100;
 

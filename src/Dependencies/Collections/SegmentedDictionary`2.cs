@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 
 using Internal.Runtime.CompilerServices;
 
@@ -12,16 +11,9 @@ namespace System.Collections.Generic
 {
     [DebuggerTypeProxy(typeof(IDictionaryDebugView<,>))]
     [DebuggerDisplay("Count = {Count}")]
-    [Serializable]
-    [TypeForwardedFrom("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
-    public class Dictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>, ISerializable, IDeserializationCallback where TKey : notnull
+    public class Dictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>
+        where TKey : notnull
     {
-        // constants for serialization
-        private const string VersionName = "Version"; // Do not rename (binary serialization)
-        private const string HashSizeName = "HashSize"; // Do not rename (binary serialization). Must save buckets.Length
-        private const string KeyValuePairsName = "KeyValuePairs"; // Do not rename (binary serialization)
-        private const string ComparerName = "Comparer"; // Do not rename (binary serialization)
-
         private int[]? _buckets;
         private Entry[]? _entries;
 #if TARGET_64BIT
@@ -129,14 +121,6 @@ namespace System.Collections.Generic
             {
                 Add(pair.Key, pair.Value);
             }
-        }
-
-        protected Dictionary(SerializationInfo info, StreamingContext context)
-        {
-            // We can't do anything with the keys and values until the entire graph has been deserialized
-            // and we have a resonable estimate that GetHashCode is not going to fail.  For the time being,
-            // we'll just cache this.  The graph is not valid until OnDeserialization has been called.
-            HashHelpers.SerializationInfoTable.Add(this, info);
         }
 
         public IEqualityComparer<TKey> Comparer
@@ -314,25 +298,6 @@ namespace System.Collections.Generic
 
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() =>
             new Enumerator(this, Enumerator.KeyValuePair);
-
-        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            if (info == null)
-            {
-                ThrowHelper.ThrowArgumentNullException(ExceptionArgument.info);
-            }
-
-            info.AddValue(VersionName, _version);
-            info.AddValue(ComparerName, Comparer, typeof(IEqualityComparer<TKey>));
-            info.AddValue(HashSizeName, _buckets == null ? 0 : _buckets.Length); // This is the length of the bucket array
-
-            if (_buckets != null)
-            {
-                var array = new KeyValuePair<TKey, TValue>[Count];
-                CopyTo(array, 0);
-                info.AddValue(KeyValuePairsName, array, typeof(KeyValuePair<TKey, TValue>[]));
-            }
-        }
 
         private ref TValue FindValue(TKey key)
         {
@@ -661,52 +626,6 @@ namespace System.Collections.Generic
             }
 
             return true;
-        }
-
-        public virtual void OnDeserialization(object? sender)
-        {
-            HashHelpers.SerializationInfoTable.TryGetValue(this, out SerializationInfo? siInfo);
-
-            if (siInfo == null)
-            {
-                // We can return immediately if this function is called twice.
-                // Note we remove the serialization info from the table at the end of this method.
-                return;
-            }
-
-            int realVersion = siInfo.GetInt32(VersionName);
-            int hashsize = siInfo.GetInt32(HashSizeName);
-            _comparer = (IEqualityComparer<TKey>)siInfo.GetValue(ComparerName, typeof(IEqualityComparer<TKey>))!; // When serialized if comparer is null, we use the default.
-
-            if (hashsize != 0)
-            {
-                Initialize(hashsize);
-
-                KeyValuePair<TKey, TValue>[]? array = (KeyValuePair<TKey, TValue>[]?)
-                    siInfo.GetValue(KeyValuePairsName, typeof(KeyValuePair<TKey, TValue>[]));
-
-                if (array == null)
-                {
-                    ThrowHelper.ThrowSerializationException(ExceptionResource.Serialization_MissingKeys);
-                }
-
-                for (int i = 0; i < array.Length; i++)
-                {
-                    if (array[i].Key == null)
-                    {
-                        ThrowHelper.ThrowSerializationException(ExceptionResource.Serialization_NullKey);
-                    }
-
-                    Add(array[i].Key, array[i].Value);
-                }
-            }
-            else
-            {
-                _buckets = null;
-            }
-
-            _version = realVersion;
-            HashHelpers.SerializationInfoTable.Remove(this);
         }
 
         private void Resize() => Resize(HashHelpers.ExpandPrime(_count), false);
