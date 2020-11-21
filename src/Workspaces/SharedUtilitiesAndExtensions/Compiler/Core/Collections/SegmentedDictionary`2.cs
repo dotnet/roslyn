@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     internal class SegmentedDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>
         where TKey : notnull
     {
-        private int[]? _buckets;
+        private SegmentedArray<int> _buckets;
         private Entry[]? _entries;
 #if TARGET_64BIT
         private ulong _fastModMultiplier;
@@ -212,10 +212,10 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             var count = _count;
             if (count > 0)
             {
-                RoslynDebug.Assert(_buckets != null, "_buckets should be non-null");
+                RoslynDebug.Assert(_buckets.Length > 0, "_buckets should be non-empty");
                 RoslynDebug.Assert(_entries != null, "_entries should be non-null");
 
-                Array.Clear(_buckets, 0, _buckets.Length);
+                SegmentedArray.Clear(_buckets, 0, _buckets.Length);
 
                 _count = 0;
                 _freeList = -1;
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
 
             ref var entry = ref RoslynUnsafe.NullRef<Entry>();
-            if (_buckets != null)
+            if (_buckets.Length > 0)
             {
                 RoslynDebug.Assert(_entries != null, "expected entries to be != null");
                 var comparer = _comparer;
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         private int Initialize(int capacity)
         {
             var size = HashHelpers.GetPrime(capacity);
-            var buckets = new int[size];
+            var buckets = new SegmentedArray<int>(size);
             var entries = new Entry[size];
 
             // Assign member variables after both arrays allocated to guard against corruption from OOM if second fails
@@ -452,11 +452,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.key);
             }
 
-            if (_buckets == null)
+            if (_buckets.Length == 0)
             {
                 Initialize(0);
             }
-            Debug.Assert(_buckets != null);
+            Debug.Assert(_buckets.Length > 0);
 
             var entries = _entries;
             RoslynDebug.Assert(entries != null, "expected entries to be non-null");
@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
 
             // Assign member variables after both arrays allocated to guard against corruption from OOM if second fails
-            _buckets = new int[newSize];
+            _buckets = new SegmentedArray<int>(newSize);
 #if TARGET_64BIT
             _fastModMultiplier = HashHelpers.GetFastModMultiplier((uint)newSize);
 #endif
@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.key);
             }
 
-            if (_buckets != null)
+            if (_buckets.Length > 0)
             {
                 RoslynDebug.Assert(_entries != null, "entries should be non-null");
                 uint collisionCount = 0;
@@ -765,7 +765,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.key);
             }
 
-            if (_buckets != null)
+            if (_buckets.Length > 0)
             {
                 RoslynDebug.Assert(_entries != null, "entries should be non-null");
                 uint collisionCount = 0;
@@ -942,7 +942,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             _version++;
 
-            if (_buckets == null)
+            if (_buckets.Length == 0)
             {
                 return Initialize(capacity);
             }
@@ -1124,11 +1124,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ref int GetBucket(uint hashCode)
         {
-            var buckets = _buckets!;
+            var buckets = _buckets;
 #if TARGET_64BIT
             return ref buckets[HashHelpers.FastMod(hashCode, (uint)buckets.Length, _fastModMultiplier)];
 #else
-            return ref buckets[hashCode % (uint)buckets.Length];
+            return ref buckets[(int)(hashCode % (uint)buckets.Length)];
 #endif
         }
 

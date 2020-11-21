@@ -190,6 +190,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Collections\OrdinalCasing.Icu.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\RandomizedStringEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\RoslynUnsafe.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedArrayHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedDictionary`2.cs" />
