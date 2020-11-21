@@ -72,9 +72,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            private void VisitParameters(ImmutableArray<ParameterSymbol> parameters, bool isVararg, StringBuilder builder)
+            private void VisitParameters(ImmutableArray<ParameterSymbol> parameters, bool isVararg, bool emitBrackets, StringBuilder builder)
             {
-                builder.Append('(');
+                if (emitBrackets)
+                {
+                    builder.Append('(');
+                }
                 bool needsComma = false;
 
                 foreach (var parameter in parameters)
@@ -93,7 +96,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Append(',');
                 }
 
-                builder.Append(')');
+                if (emitBrackets)
+                {
+                    builder.Append(')');
+                }
             }
 
             public override object VisitMethod(MethodSymbol symbol, StringBuilder builder)
@@ -110,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (symbol.Parameters.Any() || symbol.IsVararg)
                 {
-                    s_parameterOrReturnTypeInstance.VisitParameters(symbol.Parameters, symbol.IsVararg, builder);
+                    s_parameterOrReturnTypeInstance.VisitParameters(symbol.Parameters, symbol.IsVararg, emitBrackets: true, builder);
                 }
 
                 if (symbol.MethodKind == MethodKind.Conversion)
@@ -130,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (symbol.Parameters.Any())
                 {
-                    s_parameterOrReturnTypeInstance.VisitParameters(symbol.Parameters, false, builder);
+                    s_parameterOrReturnTypeInstance.VisitParameters(symbol.Parameters, false, emitBrackets: true, builder);
                 }
 
                 return null;
@@ -265,6 +271,96 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // System.Object.  However, the System.Object type must always have exactly this
                 // doc comment ID, so the hassle seems unjustifiable.
                 builder.Append("System.Object");
+
+                return null;
+            }
+
+            public override object VisitFunctionPointerType(FunctionPointerTypeSymbol symbol, StringBuilder builder)
+            {
+                FunctionPointerMethodSymbol signature = symbol.Signature;
+
+                builder.Append("delegate*");
+
+                switch (signature.CallingConvention)
+                {
+                    case Cci.CallingConvention.Default:
+                        {
+                            // no calling convention specified or managed
+                            // FunctionPointerMethodSymbol.getCallingConvention returns Default for both
+                            // TODO: should we always emit/omit `managed` keyword or add is specified property to FunctionPointerMethodSymbol
+                            builder.Append("managed");
+                            break;
+                        }
+                    case Cci.CallingConvention.Unmanaged:
+                        {
+                            // unmanaged generic or with modifiers (SuppressGCTransition)
+                            builder.Append("unmanaged");
+
+                            ImmutableArray<NamedTypeSymbol> callingConventionTypeSymbols = signature.UnmanagedCallingConventionTypes;
+                            if (callingConventionTypeSymbols.Length > 0)
+                            {
+                                builder.Append('[');
+                                for (int i = 0; i < callingConventionTypeSymbols.Length; i++)
+                                {
+                                    var callingConventionTypeSymbol = callingConventionTypeSymbols[i];
+                                    string callingConventionTypeName = callingConventionTypeSymbol.Name;
+
+                                    int index = callingConventionTypeName.IndexOf("CallConv");
+                                    if (index != -1)
+                                    {
+                                        callingConventionTypeName = callingConventionTypeName.Substring(index + "CallConv".Length);
+                                    }
+
+                                    builder.Append(callingConventionTypeName);
+
+                                    if (i < callingConventionTypeSymbols.Length - 1)
+                                    {
+                                        builder.Append(',');
+                                    }
+                                }
+                                builder.Append(']');
+                            }
+                            break;
+                        }
+                    case Cci.CallingConvention.CDecl:
+                        {
+                            builder.Append("unmanaged[Cdecl]");
+                            break;
+                        }
+                    case Cci.CallingConvention.FastCall:
+                        {
+                            builder.Append("unmanaged[Fastcall]");
+                            break;
+                        }
+                    case Cci.CallingConvention.Standard:
+                        {
+                            builder.Append("unmanaged[Stdcall]");
+                            break;
+                        }
+                    case Cci.CallingConvention.ThisCall:
+                        {
+                            builder.Append("unmanaged[Thiscall]");
+                            break;
+                        }
+                    default:
+                        {
+                            // TODO: throw unsupported exception?
+                            break;
+                        }
+                }
+
+                builder.Append('<');
+                ImmutableArray<ParameterSymbol> parameters = signature.Parameters;
+
+                s_parameterOrReturnTypeInstance.VisitParameters(parameters, isVararg: false, emitBrackets: false, builder);
+
+                if (parameters.Length > 0)
+                {
+                    builder.Append(',');
+                }
+
+                s_parameterOrReturnTypeInstance.Visit(signature.ReturnType, builder);
+                builder.Append('>');
 
                 return null;
             }

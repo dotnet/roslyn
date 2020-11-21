@@ -53,6 +53,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void M8((int x1, int x2, int x3, int x4, int x5, int x6, short x7, int x8) z) { }
         public void M9((int x1, int x2, int x3, int x4, int x5, int x6, short x7, (string y1, string y2)) z) { }
         public void M10((int x1, short x2) y, System.Tuple<int, short> z) { }
+        public unsafe void M11(delegate* <void> funcPtr) {}
+        public unsafe void M12(delegate* <int, void> funcPtr) {}
+        public unsafe void M13(delegate* <int, int> funcPtr) {}
+        public unsafe void M14(delegate* managed<void> funcPtr) {}
+        public unsafe void M15(delegate* managed<int, void> funcPtr) {}
+        public unsafe void M16(delegate* managed<int, int> funcPtr) {}
+        public unsafe void M17(delegate* unmanaged<void> funcPtr) {}
+        public unsafe void M18(delegate* unmanaged[Cdecl]<void> funcPtr) {}
+        public unsafe void M19(delegate* unmanaged[Stdcall]<void> funcPtr) {}
+        public unsafe void M20(delegate* unmanaged[Thiscall]<void> funcPtr) {}
+        public unsafe void M21(delegate* unmanaged[Fastcall]<void> funcPtr) {}
+        public unsafe void M22(delegate* unmanaged[Cdecl,SuppressGCTransition]<void> funcPtr) {}
+        public unsafe void M23(delegate* unmanaged[Stdcall,SuppressGCTransition]<void> funcPtr) {}
+        public unsafe void M24(delegate* unmanaged[Thiscall,SuppressGCTransition]<void> funcPtr) {}
+        public unsafe void M25(delegate* unmanaged[Fastcall,SuppressGCTransition]<void> funcPtr) {}
     }
     class MyList<T>
     {
@@ -248,6 +263,96 @@ class Test
             main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
 
             Assert.Equal(@"", main.GetDocumentationCommentXml().Trim());
+        }
+
+        [Fact(Skip = "TODO: omit managed keyword by default")]
+        public void TestFunctionPointerNoCallingConventionNoParameterReturnsVoid()
+        {
+            Assert.Equal("M:Acme.Widget.M11(delegate*<System.Void>)", _widgetClass.GetMembers("M11").Single().GetDocumentationCommentId());
+        }
+
+        [Fact(Skip = "TODO: omit managed keyword by default")]
+        public void TestFunctionPointerNoCallingConventionParameterReturnsVoid()
+        {
+            Assert.Equal("M:Acme.Widget.M12(delegate*<System.Int32,System.Void>)", _widgetClass.GetMembers("M12").Single().GetDocumentationCommentId());
+        }
+
+        [Fact(Skip = "TODO: omit managed keyword by default")]
+        public void TestFunctionPointerNoCallingConventionParameterReturnsInt()
+        {
+            Assert.Equal("M:Acme.Widget.M13(delegate*<System.Int32,System.Int32>)", _widgetClass.GetMembers("M13").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestFunctionPointerManagedCallingConventionNoParameterReturnsVoid()
+        {
+            Assert.Equal("M:Acme.Widget.M14(delegate*managed<System.Void>)", _widgetClass.GetMembers("M14").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestFunctionPointerManagedCallingConventionParameterReturnsVoid()
+        {
+            Assert.Equal("M:Acme.Widget.M15(delegate*managed<System.Int32,System.Void>)", _widgetClass.GetMembers("M15").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestFunctionPointerManagedCallingConventionParameterReturnsInt()
+        {
+            Assert.Equal("M:Acme.Widget.M16(delegate*managed<System.Int32,System.Int32>)", _widgetClass.GetMembers("M16").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionNoParameterReturnsVoid()
+        {
+            Assert.Equal("M:Acme.Widget.M17(delegate*unmanaged<System.Void>)", _widgetClass.GetMembers("M17").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionCdeclNoParameterReturnsVoid()
+        {
+            Assert.Equal("M:Acme.Widget.M18(delegate*unmanaged[Cdecl]<System.Void>)", _widgetClass.GetMembers("M18").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionStdcallNoParameterReturnsVoid()
+        {
+            Assert.Equal("M:Acme.Widget.M19(delegate*unmanaged[Stdcall]<System.Void>)", _widgetClass.GetMembers("M19").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionThiscallNoParameterReturnsVoid()
+        {
+            Assert.Equal("M:Acme.Widget.M20(delegate*unmanaged[Thiscall]<System.Void>)", _widgetClass.GetMembers("M20").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionFastcallNoParameterReturnsVoid()
+        {
+            Assert.Equal("M:Acme.Widget.M21(delegate*unmanaged[Fastcall]<System.Void>)", _widgetClass.GetMembers("M21").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionCdeclSuppressGCTransitionNoParameterReturnsVoid()
+        {
+            Assert.Equal("M:Acme.Widget.M22(delegate*unmanaged[Cdecl,SuppressGCTransition]<System.Void>)", _widgetClass.GetMembers("M22").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionStdcallSuppressGCTransitionNoParameterReturnsVoid()
+        {
+            Assert.Equal("M:Acme.Widget.M23(delegate*unmanaged[Stdcall,SuppressGCTransition]<System.Void>)", _widgetClass.GetMembers("M23").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionThiscallSuppressGCTransitionNoParameterReturnsVoid()
+        {
+            Assert.Equal("M:Acme.Widget.M24(delegate*unmanaged[Thiscall,SuppressGCTransition]<System.Void>)", _widgetClass.GetMembers("M24").Single().GetDocumentationCommentId());
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionFastcallSuppressGCTransitionNoParameterReturnsVoid()
+        {
+            Assert.Equal("M:Acme.Widget.M25(delegate*unmanaged[Fastcall,SuppressGCTransition]<System.Void>)", _widgetClass.GetMembers("M25").Single().GetDocumentationCommentId());
         }
     }
 }
