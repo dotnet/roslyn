@@ -65,7 +65,9 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             return GetTransformedSyntaxRootAsync(SyntaxFacts, FileHeaderHelper, newLineTrivia, document, cancellationToken);
         }
 
-        internal static async Task<SyntaxNode> GetTransformedSyntaxRootAsync(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, Document document, CancellationToken cancellationToken)
+        internal static async Task<SyntaxNode> GetTransformedSyntaxRootAsync(ISyntaxFacts syntaxFacts,
+            AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, Document document,
+            CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -86,7 +88,8 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 : ReplaceHeader(syntaxFacts, fileHeaderHelper, newLineTrivia, root, expectedFileHeader);
         }
 
-        private static SyntaxNode ReplaceHeader(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
+        private static SyntaxNode ReplaceHeader(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper,
+            SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
         {
             var newHeaderTrivia = CreateNewHeader(syntaxFacts, fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString());
 
@@ -97,18 +100,22 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var trailingWhiteSpaceNewLineFromExisitingHeader = GetTrailingWhiteSpaceNewLineFromExisitingHeader(syntaxFacts, existingBanner);
             if (trailingWhiteSpaceNewLineFromExisitingHeader.IsEmpty)
             {
-                trailingWhiteSpaceNewLineFromExisitingHeader = trailingWhiteSpaceNewLineFromExisitingHeader.Add(newLineTrivia).Add(newLineTrivia);
+                trailingWhiteSpaceNewLineFromExisitingHeader = trailingWhiteSpaceNewLineFromExisitingHeader
+                    .Add(newLineTrivia)
+                    .Add(newLineTrivia);
             }
             // Append the whitespace and new lines as it was before
             newHeaderTrivia = newHeaderTrivia.AddRange(trailingWhiteSpaceNewLineFromExisitingHeader);
-            // Insert the new header at the right position in exisiting trivia around the header
+            // Insert the new header at the right position in existing trivia around the header
             newHeaderTrivia = triviaToKeep.InsertRange(bannerInsertationIndex, newHeaderTrivia);
 
             return root.WithLeadingTrivia(newHeaderTrivia);
         }
 
-        private static ImmutableArray<SyntaxTrivia> GetTrailingWhiteSpaceNewLineFromExisitingHeader(ISyntaxFacts syntaxFacts, ImmutableArray<SyntaxTrivia> existingBanner)
+        private static ImmutableArray<SyntaxTrivia> GetTrailingWhiteSpaceNewLineFromExisitingHeader(ISyntaxFacts syntaxFacts,
+            ImmutableArray<SyntaxTrivia> existingBanner)
         {
+            // Search from the end to find the first non-whitespace or new line trivia
             var i = existingBanner.Length - 1;
             while (syntaxFacts.IsWhitespaceOrEndOfLineTrivia(existingBanner[i]))
             {
@@ -118,34 +125,41 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             return existingBanner.RemoveRange(0, i + 1);
         }
 
-        private static (SyntaxTriviaList triviaToKeep, int bannerInsertationIndex) RemoveBannerFromRootTrivia(SyntaxTriviaList allRootTrivia, ImmutableArray<SyntaxTrivia> banner)
+        private static (SyntaxTriviaList triviaToKeep, int bannerInsertationIndex) RemoveBannerFromRootTrivia(SyntaxTriviaList allRootTrivia,
+            ImmutableArray<SyntaxTrivia> banner)
         {
             if (banner.Length == 0)
             {
                 return (allRootTrivia, 0);
             }
 
-            var existingBannerIndizes = new Stack<int>(capacity: allRootTrivia.Count);
+            // create a stack of indices of banner trivia within all rootTrivia
+            var existingBannerIndices = new Stack<int>(capacity: allRootTrivia.Count);
             for (var i = 0; i < allRootTrivia.Count; i++)
             {
                 if (banner.Contains(allRootTrivia[i]))
                 {
-                    existingBannerIndizes.Push(i);
+                    existingBannerIndices.Push(i);
                 }
             }
 
+            // Remove all header trivia from the end. Keep track of "index". It is the start position of the old header 
+            // and will become the insert position of the new header later.
             var index = 0;
-            while (existingBannerIndizes.Count > 0)
+            while (existingBannerIndices.Count > 0)
             {
-                index = existingBannerIndizes.Pop();
+                index = existingBannerIndices.Pop();
                 allRootTrivia = allRootTrivia.RemoveAt(index);
             }
-            return (allRootTrivia, index);
+            return (triviaToKeep: allRootTrivia, bannerInsertationIndex: index);
         }
 
-        private static SyntaxNode AddHeader(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
+        private static SyntaxNode AddHeader(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper,
+            SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
         {
-            var newTrivia = CreateNewHeader(syntaxFacts, fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString()).Add(newLineTrivia).Add(newLineTrivia);
+            var newTrivia = CreateNewHeader(syntaxFacts, fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString())
+                .Add(newLineTrivia)
+                .Add(newLineTrivia);
 
             // Skip blank lines already at the beginning of the document, since we add our own
             var leadingTrivia = root.GetLeadingTrivia();
@@ -167,7 +181,8 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             return root.WithLeadingTrivia(newTrivia);
         }
 
-        private static SyntaxTriviaList CreateNewHeader(ISyntaxFacts syntaxFacts, string prefixWithLeadingSpaces, string expectedFileHeader, string newLineText)
+        private static SyntaxTriviaList CreateNewHeader(ISyntaxFacts syntaxFacts, string prefixWithLeadingSpaces,
+            string expectedFileHeader, string newLineText)
         {
             if (TryParseTemplateAsComment(syntaxFacts, expectedFileHeader, newLineText, out var parsedTemplate))
             {
@@ -180,7 +195,8 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             return syntaxFacts.ParseLeadingTrivia(newHeader);
         }
 
-        private static bool TryParseTemplateAsComment(ISyntaxFacts syntaxFacts, string expectedFileHeader, string newLineText, out SyntaxTriviaList result)
+        private static bool TryParseTemplateAsComment(ISyntaxFacts syntaxFacts, string expectedFileHeader,
+            string newLineText, out SyntaxTriviaList result)
         {
             var normalizedHeaderTemplate = GetNormalizedHeaderTemplate(expectedFileHeader, newLineText);
             var tryParseTemplate = syntaxFacts.ParseLeadingTrivia(normalizedHeaderTemplate);
