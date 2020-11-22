@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             }
             // Append the whitespace and new lines as it was before
             newHeaderTrivia = newHeaderTrivia.AddRange(trailingWhiteSpaceOrEndOfLineFromExisitingHeader);
-            // Insert the new header at the right position in existing trivia around the header
+            // Insert the new header at the right position in the existing trivia around the header
             newHeaderTrivia = triviaToKeep.InsertRange(bannerInsertationIndex, newHeaderTrivia);
 
             return root.WithLeadingTrivia(newHeaderTrivia);
