@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var allRootTrivia = root.GetLeadingTrivia();
             var (triviaToKeep, bannerInsertationIndex) = RemoveBannerFromRootTrivia(allRootTrivia, existingBanner);
 
-            var trailingWhiteSpaceNewLineFromExisitingHeader = GetTrailingWhiteSpaceNewLineFromExisitingHeader(syntaxFacts, existingBanner);
+            var trailingWhiteSpaceNewLineFromExisitingHeader = GetTrailingWhiteSpaceOrEndOfLineFromExisitingHeader(syntaxFacts, existingBanner);
             if (trailingWhiteSpaceNewLineFromExisitingHeader.IsEmpty)
             {
                 trailingWhiteSpaceNewLineFromExisitingHeader = trailingWhiteSpaceNewLineFromExisitingHeader
@@ -112,10 +112,10 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             return root.WithLeadingTrivia(newHeaderTrivia);
         }
 
-        private static ImmutableArray<SyntaxTrivia> GetTrailingWhiteSpaceNewLineFromExisitingHeader(ISyntaxFacts syntaxFacts,
+        private static ImmutableArray<SyntaxTrivia> GetTrailingWhiteSpaceOrEndOfLineFromExisitingHeader(ISyntaxFacts syntaxFacts,
             ImmutableArray<SyntaxTrivia> existingBanner)
         {
-            // Search from the end to find the first non-whitespace or new line trivia
+            // Search from the end to find the first non-whitespace or end of line trivia
             var i = existingBanner.Length - 1;
             while (syntaxFacts.IsWhitespaceOrEndOfLineTrivia(existingBanner[i]))
             {
