@@ -182,6 +182,16 @@
     <Compile Include="$(MSBuildThisFileDirectory)Collections\HashHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IDictionaryDebugView`2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IInternalStringEqualityComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+Builder+KeyCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+Builder+ValueCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+Builder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+Enumerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+KeyCollection+Enumerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+KeyCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+ValueCollection+Enumerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+ValueCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\InsertionBehavior.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\Marvin.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\Marvin.OrdinalIgnoreCase.cs" />
