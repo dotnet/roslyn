@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     {
         // s_basicLatin is covering the casing for the Basic Latin & C0 Controls range.
         // we are not lazy initializing this range because it is the most common used range and we'll cache it anyway very early.
-        private static readonly ushort [] s_basicLatin =
+        private static readonly ushort[] s_basicLatin =
         {
             // Upper Casing
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static char ToUpperInvariantMode(char c) => c <= '\u00FF' ? (char) s_basicLatin[(int)c] : c;
+        internal static char ToUpperInvariantMode(char c) => c <= '\u00FF' ? (char)s_basicLatin[(int)c] : c;
 
         public static void ToUpperInvariantMode(this ReadOnlySpan<char> source, Span<char> destination)
         {

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             return (int)(p1 ^ p0);
 
-        NotAscii:
+NotAscii:
             Debug.Assert(ucount <= int.MaxValue); // this should fit into a signed int
             return ComputeHash32OrdinalIgnoreCaseSlow(source.Slice((int)byteOffset / sizeof(char), (int)ucount), p0, p1);
         }

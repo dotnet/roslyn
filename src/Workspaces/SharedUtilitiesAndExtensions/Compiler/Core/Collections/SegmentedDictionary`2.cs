@@ -31,11 +31,20 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         private ValueCollection? _values;
         private const int StartOfFreeList = -3;
 
-        public SegmentedDictionary() : this(0, null) { }
+        public SegmentedDictionary()
+            : this(0, null)
+        {
+        }
 
-        public SegmentedDictionary(int capacity) : this(capacity, null) { }
+        public SegmentedDictionary(int capacity)
+            : this(capacity, null)
+        {
+        }
 
-        public SegmentedDictionary(IEqualityComparer<TKey>? comparer) : this(0, comparer) { }
+        public SegmentedDictionary(IEqualityComparer<TKey>? comparer)
+            : this(0, comparer)
+        {
+        }
 
         public SegmentedDictionary(int capacity, IEqualityComparer<TKey>? comparer)
         {
@@ -75,10 +84,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
         }
 
-        public SegmentedDictionary(IDictionary<TKey, TValue> dictionary) : this(dictionary, null) { }
+        public SegmentedDictionary(IDictionary<TKey, TValue> dictionary)
+            : this(dictionary, null)
+        {
+        }
 
-        public SegmentedDictionary(IDictionary<TKey, TValue> dictionary, IEqualityComparer<TKey>? comparer) :
-            this(dictionary != null ? dictionary.Count : 0, comparer)
+        public SegmentedDictionary(IDictionary<TKey, TValue> dictionary, IEqualityComparer<TKey>? comparer)
+            : this(dictionary != null ? dictionary.Count : 0, comparer)
         {
             if (dictionary == null)
             {
@@ -110,10 +122,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
         }
 
-        public SegmentedDictionary(IEnumerable<KeyValuePair<TKey, TValue>> collection) : this(collection, null) { }
+        public SegmentedDictionary(IEnumerable<KeyValuePair<TKey, TValue>> collection)
+            : this(collection, null)
+        {
+        }
 
-        public SegmentedDictionary(IEnumerable<KeyValuePair<TKey, TValue>> collection, IEqualityComparer<TKey>? comparer) :
-            this((collection as ICollection<KeyValuePair<TKey, TValue>>)?.Count ?? 0, comparer)
+        public SegmentedDictionary(IEnumerable<KeyValuePair<TKey, TValue>> collection, IEqualityComparer<TKey>? comparer)
+            : this((collection as ICollection<KeyValuePair<TKey, TValue>>)?.Count ?? 0, comparer)
         {
             if (collection == null)
             {
@@ -181,8 +196,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             Debug.Assert(modified); // If there was an existing key and the Add failed, an exception will already have been thrown.
         }
 
-        void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> keyValuePair) =>
-            Add(keyValuePair.Key, keyValuePair.Value);
+        void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> keyValuePair)
+            => Add(keyValuePair.Key, keyValuePair.Value);
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> keyValuePair)
         {
@@ -224,8 +239,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
         }
 
-        public bool ContainsKey(TKey key) =>
-            !RoslynUnsafe.IsNullRef(ref FindValue(key));
+        public bool ContainsKey(TKey key)
+            => !RoslynUnsafe.IsNullRef(ref FindValue(key));
 
         public bool ContainsValue(TValue value)
         {
@@ -297,10 +312,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
         }
 
-        public Enumerator GetEnumerator() => new Enumerator(this, Enumerator.KeyValuePair);
+        public Enumerator GetEnumerator()
+            => new(this, Enumerator.KeyValuePair);
 
-        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() =>
-            new Enumerator(this, Enumerator.KeyValuePair);
+        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+            => new Enumerator(this, Enumerator.KeyValuePair);
 
         private ref TValue FindValue(TKey key)
         {
@@ -417,13 +433,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             goto ReturnNotFound;
 
-        ConcurrentOperation:
+ConcurrentOperation:
             ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
-        ReturnFound:
+ReturnFound:
             ref var value = ref entry.value;
-        Return:
+Return:
             return ref value;
-        ReturnNotFound:
+ReturnNotFound:
             value = ref RoslynUnsafe.NullRef<TValue>();
             goto Return;
         }
@@ -631,7 +647,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return true;
         }
 
-        private void Resize() => Resize(HashHelpers.ExpandPrime(_count), false);
+        private void Resize()
+            => Resize(HashHelpers.ExpandPrime(_count), false);
 
         private void Resize(int newSize, bool forceNewHashCodes)
         {
@@ -845,13 +862,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return false;
         }
 
-        public bool TryAdd(TKey key, TValue value) =>
-            TryInsert(key, value, InsertionBehavior.None);
+        public bool TryAdd(TKey key, TValue value)
+            => TryInsert(key, value, InsertionBehavior.None);
 
         bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly => false;
 
-        void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(KeyValuePair<TKey, TValue>[] array, int index) =>
-            CopyTo(array, index);
+        void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(KeyValuePair<TKey, TValue>[] array, int index)
+            => CopyTo(array, index);
 
         void ICollection.CopyTo(Array array, int index)
         {
@@ -922,7 +939,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
         }
 
-        IEnumerator IEnumerable.GetEnumerator() => new Enumerator(this, Enumerator.KeyValuePair);
+        IEnumerator IEnumerable.GetEnumerator()
+            => new Enumerator(this, Enumerator.KeyValuePair);
 
         /// <summary>
         /// Ensures that the dictionary can hold up to 'capacity' entries without any further expansion of its backing storage
@@ -964,7 +982,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// dictionary.Clear();
         /// dictionary.TrimExcess();
         /// </remarks>
-        public void TrimExcess() => TrimExcess(Count);
+        public void TrimExcess()
+            => TrimExcess(Count);
 
         /// <summary>
         /// Sets the capacity of this dictionary to hold up 'capacity' entries without any further expansion of its backing storage
@@ -1111,7 +1130,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return false;
         }
 
-        IDictionaryEnumerator IDictionary.GetEnumerator() => new Enumerator(this, Enumerator.DictEntry);
+        IDictionaryEnumerator IDictionary.GetEnumerator()
+            => new Enumerator(this, Enumerator.DictEntry);
 
         void IDictionary.Remove(object key)
         {
@@ -1192,7 +1212,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             public KeyValuePair<TKey, TValue> Current => _current;
 
-            public void Dispose() { }
+            public void Dispose()
+            {
+            }
 
             object? IEnumerator.Current
             {
@@ -1279,7 +1301,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 _dictionary = dictionary;
             }
 
-            public Enumerator GetEnumerator() => new Enumerator(_dictionary);
+            public Enumerator GetEnumerator()
+                => new Enumerator(_dictionary);
 
             public void CopyTo(TKey[] array, int index)
             {
@@ -1311,14 +1334,14 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             bool ICollection<TKey>.IsReadOnly => true;
 
-            void ICollection<TKey>.Add(TKey item) =>
-                ThrowHelper.ThrowNotSupportedException(ExceptionResource.NotSupported_KeyCollectionSet);
+            void ICollection<TKey>.Add(TKey item)
+                => ThrowHelper.ThrowNotSupportedException(ExceptionResource.NotSupported_KeyCollectionSet);
 
-            void ICollection<TKey>.Clear() =>
-                ThrowHelper.ThrowNotSupportedException(ExceptionResource.NotSupported_KeyCollectionSet);
+            void ICollection<TKey>.Clear()
+                => ThrowHelper.ThrowNotSupportedException(ExceptionResource.NotSupported_KeyCollectionSet);
 
-            bool ICollection<TKey>.Contains(TKey item) =>
-                _dictionary.ContainsKey(item);
+            bool ICollection<TKey>.Contains(TKey item)
+                => _dictionary.ContainsKey(item);
 
             bool ICollection<TKey>.Remove(TKey item)
             {
@@ -1326,9 +1349,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 return false;
             }
 
-            IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator() => new Enumerator(_dictionary);
+            IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
+                => new Enumerator(_dictionary);
 
-            IEnumerator IEnumerable.GetEnumerator() => new Enumerator(_dictionary);
+            IEnumerator IEnumerable.GetEnumerator()
+                => new Enumerator(_dictionary);
 
             void ICollection.CopyTo(Array array, int index)
             {
@@ -1405,7 +1430,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     _currentKey = default;
                 }
 
-                public void Dispose() { }
+                public void Dispose()
+                {
+                }
 
                 public bool MoveNext()
                 {
@@ -1474,7 +1501,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 _dictionary = dictionary;
             }
 
-            public Enumerator GetEnumerator() => new Enumerator(_dictionary);
+            public Enumerator GetEnumerator()
+                => new Enumerator(_dictionary);
 
             public void CopyTo(TValue[] array, int index)
             {
@@ -1506,8 +1534,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             bool ICollection<TValue>.IsReadOnly => true;
 
-            void ICollection<TValue>.Add(TValue item) =>
-                ThrowHelper.ThrowNotSupportedException(ExceptionResource.NotSupported_ValueCollectionSet);
+            void ICollection<TValue>.Add(TValue item)
+                => ThrowHelper.ThrowNotSupportedException(ExceptionResource.NotSupported_ValueCollectionSet);
 
             bool ICollection<TValue>.Remove(TValue item)
             {
@@ -1515,14 +1543,17 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 return false;
             }
 
-            void ICollection<TValue>.Clear() =>
-                ThrowHelper.ThrowNotSupportedException(ExceptionResource.NotSupported_ValueCollectionSet);
+            void ICollection<TValue>.Clear()
+                => ThrowHelper.ThrowNotSupportedException(ExceptionResource.NotSupported_ValueCollectionSet);
 
-            bool ICollection<TValue>.Contains(TValue item) => _dictionary.ContainsValue(item);
+            bool ICollection<TValue>.Contains(TValue item)
+                => _dictionary.ContainsValue(item);
 
-            IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator() => new Enumerator(_dictionary);
+            IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
+                => new Enumerator(_dictionary);
 
-            IEnumerator IEnumerable.GetEnumerator() => new Enumerator(_dictionary);
+            IEnumerator IEnumerable.GetEnumerator()
+                => new Enumerator(_dictionary);
 
             void ICollection.CopyTo(Array array, int index)
             {
@@ -1599,7 +1630,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     _currentValue = default;
                 }
 
-                public void Dispose() { }
+                public void Dispose()
+                {
+                }
 
                 public bool MoveNext()
                 {

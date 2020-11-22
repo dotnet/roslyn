@@ -8,16 +8,14 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
-    internal sealed class IDictionaryDebugView<K, V> where K : notnull
+    internal sealed class IDictionaryDebugView<K, V>
+        where K : notnull
     {
         private readonly IDictionary<K, V> _dict;
 
         public IDictionaryDebugView(IDictionary<K, V> dictionary)
         {
-            if (dictionary == null)
-                throw new ArgumentNullException(nameof(dictionary));
-
-            _dict = dictionary;
+            _dict = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
@@ -38,10 +36,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         public DictionaryKeyCollectionDebugView(ICollection<TKey> collection)
         {
-            if (collection == null)
-                throw new ArgumentNullException(nameof(collection));
-
-            _collection = collection;
+            _collection = collection ?? throw new ArgumentNullException(nameof(collection));
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
@@ -62,10 +57,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         public DictionaryValueCollectionDebugView(ICollection<TValue> collection)
         {
-            if (collection == null)
-                throw new ArgumentNullException(nameof(collection));
-
-            _collection = collection;
+            _collection = collection ?? throw new ArgumentNullException(nameof(collection));
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
