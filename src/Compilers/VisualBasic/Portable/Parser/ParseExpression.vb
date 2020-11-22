@@ -1526,7 +1526,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
                 arguments.Add(namedArgument)
 
-            Loop While TryParseCommaInto( arguments)
+            Loop While TryParseCommaInto(arguments)
         End Sub
 
         ' File: Parser.cpp

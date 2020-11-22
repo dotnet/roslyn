@@ -2144,7 +2144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return result
 
         End Function
-        
+
         Friend Function TryParseComma(Byref comma As PunctuationSyntax) As Boolean
             Return TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma)
         End Function
@@ -3534,7 +3534,7 @@ checkNullable:
                 handlesClauseItems.Add(item)
 
             Loop While TryParseCommaInto(handlesClauseItems)
-            
+
             Return SyntaxFactory.HandlesClause(handlesKeyword, handlesClauseItems.ToListAndFree(_pool))
         End Function
 

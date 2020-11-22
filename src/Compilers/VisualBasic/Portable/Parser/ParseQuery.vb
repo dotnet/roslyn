@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 'Else
                 '    Exit Do
                 'End If
-            Loop While TryParseCommaInto( RangeVariables )
+            Loop While TryParseCommaInto(RangeVariables)
 
             Return RangeVariables.ToListAndFree(_pool)
         End Function
@@ -257,14 +257,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 RangeVariables.Add(rangeVar)
 
-                'If CurrentToken.Kind = SyntaxKind.CommaToken Then
-                '    Dim comma = DirectCast(CurrentToken, PunctuationSyntax)
-                '    GetNextToken()
-                '    TryEatNewLine()
-                '    RangeVariables.AddSeparator(comma)
-                'Else
-                '    Exit Do
-                'End If
             Loop While TryParseCommaInto(RangeVariables)
 
             Return RangeVariables.ToListAndFree(_pool)
@@ -1135,7 +1127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             operators.Add(ParseFromOperator(fromKw))
             ParseMoreQueryOperators(operators)
 
-            Return SyntaxFactory.QueryExpression( operators.ToListAndFree(_pool))
+            Return SyntaxFactory.QueryExpression(operators.ToListAndFree(_pool))
         End Function
 
         Private Function ParseAggregateQueryExpression(AggregateKw As KeywordSyntax) As QueryExpressionSyntax
@@ -1145,7 +1137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             operators.Add(ParseAggregateClause(AggregateKw))
 
-            Return SyntaxFactory.QueryExpression( operators.ToListAndFree(_pool))
+            Return SyntaxFactory.QueryExpression(operators.ToListAndFree(_pool))
         End Function
 
         Private Function ParseAggregateClause(AggregateKw As KeywordSyntax) As AggregateClauseSyntax

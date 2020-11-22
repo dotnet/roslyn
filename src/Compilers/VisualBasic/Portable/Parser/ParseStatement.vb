@@ -1304,9 +1304,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 clauses.Add(clause)
 
-            Loop While TryParseCommaInto( clauses)
+            Loop While TryParseCommaInto(clauses)
 
-            Dim clausesList = clauses.ToListAndFree(_pool) 
+            Dim clausesList = clauses.ToListAndFree(_pool)
             Dim statement = If(optionalPreserveKeyword Is Nothing,
                                SyntaxFactory.ReDimStatement(reDimKeyword, optionalPreserveKeyword, clausesList),
                                SyntaxFactory.ReDimPreserveStatement(reDimKeyword, optionalPreserveKeyword, clausesList)
@@ -1398,7 +1398,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         'TODO - rename ParseObsoleteAssignment
         Private Function ParseAssignmentStatement() As StatementSyntax
-            Debug.Assert(CurrentToken.Kind.IsIn( SyntaxKind.LetKeyword, SyntaxKind.SetKeyword), "Assignment statement parsing is lost.")
+            Debug.Assert(CurrentToken.Kind.IsIn( SyntaxKind.LetKeyword, SyntaxKind.SetKeyword),
+                         "Assignment statement parsing is lost.")
             ' Let and set are now illegal
 
             If CurrentToken.Kind = SyntaxKind.SetKeyword AndAlso

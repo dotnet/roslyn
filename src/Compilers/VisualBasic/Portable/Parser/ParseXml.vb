@@ -363,9 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.BadToken AndAlso
                          DirectCast(CurrentToken, BadTokenSyntax).SubKind = SyntaxSubKind.BeginDocTypeToken, "ParseDTD called on wrong token.")
 
-
-            Dim builder = _pool.Allocate(Of GreenNode)' SyntaxListBuilder(Of GreenNode).Create()
-
+            Dim builder = _pool.Allocate(Of GreenNode)
             Dim beginDocType = DirectCast(CurrentToken, BadTokenSyntax)
             builder.Add(beginDocType)
 
