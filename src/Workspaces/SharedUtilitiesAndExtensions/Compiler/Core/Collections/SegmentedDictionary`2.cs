@@ -108,9 +108,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 var entries = d._entries;
                 for (var i = 0; i < count; i++)
                 {
-                    if (entries[i].next >= -1)
+                    if (entries[i]._next >= -1)
                     {
-                        Add(entries[i].key, entries[i].value);
+                        Add(entries[i]._key, entries[i]._value);
                     }
                 }
                 return;
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             {
                 for (var i = 0; i < _count; i++)
                 {
-                    if (entries[i].next >= -1 && entries[i].value == null)
+                    if (entries[i]._next >= -1 && entries[i]._value == null)
                     {
                         return true;
                     }
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 // ValueType: Devirtualize with EqualityComparer<TValue>.Default intrinsic
                 for (var i = 0; i < _count; i++)
                 {
-                    if (entries[i].next >= -1 && EqualityComparer<TValue>.Default.Equals(entries[i].value, value))
+                    if (entries[i]._next >= -1 && EqualityComparer<TValue>.Default.Equals(entries[i]._value, value))
                     {
                         return true;
                     }
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 var defaultComparer = EqualityComparer<TValue>.Default;
                 for (var i = 0; i < _count; i++)
                 {
-                    if (entries[i].next >= -1 && defaultComparer.Equals(entries[i].value, value))
+                    if (entries[i]._next >= -1 && defaultComparer.Equals(entries[i]._value, value))
                     {
                         return true;
                     }
@@ -305,9 +305,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             var entries = _entries;
             for (var i = 0; i < count; i++)
             {
-                if (entries[i].next >= -1)
+                if (entries[i]._next >= -1)
                 {
-                    array[index++] = new KeyValuePair<TKey, TValue>(entries[i].key, entries[i].value);
+                    array[index++] = new KeyValuePair<TKey, TValue>(entries[i]._key, entries[i]._value);
                 }
             }
         }
@@ -351,12 +351,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                             }
 
                             entry = ref entries[i];
-                            if (entry.hashCode == hashCode && EqualityComparer<TKey>.Default.Equals(entry.key, key))
+                            if (entry._hashCode == hashCode && EqualityComparer<TKey>.Default.Equals(entry._key, key))
                             {
                                 goto ReturnFound;
                             }
 
-                            i = entry.next;
+                            i = entry._next;
 
                             collisionCount++;
                         } while (collisionCount <= (uint)entries.Length);
@@ -383,12 +383,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                             }
 
                             entry = ref entries[i];
-                            if (entry.hashCode == hashCode && defaultComparer.Equals(entry.key, key))
+                            if (entry._hashCode == hashCode && defaultComparer.Equals(entry._key, key))
                             {
                                 goto ReturnFound;
                             }
 
-                            i = entry.next;
+                            i = entry._next;
 
                             collisionCount++;
                         } while (collisionCount <= (uint)entries.Length);
@@ -415,12 +415,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                         }
 
                         entry = ref entries[i];
-                        if (entry.hashCode == hashCode && comparer.Equals(entry.key, key))
+                        if (entry._hashCode == hashCode && comparer.Equals(entry._key, key))
                         {
                             goto ReturnFound;
                         }
 
-                        i = entry.next;
+                        i = entry._next;
 
                         collisionCount++;
                     } while (collisionCount <= (uint)entries.Length);
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 ConcurrentOperation:
             ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
 ReturnFound:
-            ref var value = ref entry.value;
+            ref var value = ref entry._value;
 Return:
             return ref value;
 ReturnNotFound:
@@ -498,11 +498,11 @@ ReturnNotFound:
                             break;
                         }
 
-                        if (entries[i].hashCode == hashCode && EqualityComparer<TKey>.Default.Equals(entries[i].key, key))
+                        if (entries[i]._hashCode == hashCode && EqualityComparer<TKey>.Default.Equals(entries[i]._key, key))
                         {
                             if (behavior == InsertionBehavior.OverwriteExisting)
                             {
-                                entries[i].value = value;
+                                entries[i]._value = value;
                                 return true;
                             }
 
@@ -514,7 +514,7 @@ ReturnNotFound:
                             return false;
                         }
 
-                        i = entries[i].next;
+                        i = entries[i]._next;
 
                         collisionCount++;
                         if (collisionCount > (uint)entries.Length)
@@ -540,11 +540,11 @@ ReturnNotFound:
                             break;
                         }
 
-                        if (entries[i].hashCode == hashCode && defaultComparer.Equals(entries[i].key, key))
+                        if (entries[i]._hashCode == hashCode && defaultComparer.Equals(entries[i]._key, key))
                         {
                             if (behavior == InsertionBehavior.OverwriteExisting)
                             {
-                                entries[i].value = value;
+                                entries[i]._value = value;
                                 return true;
                             }
 
@@ -556,7 +556,7 @@ ReturnNotFound:
                             return false;
                         }
 
-                        i = entries[i].next;
+                        i = entries[i]._next;
 
                         collisionCount++;
                         if (collisionCount > (uint)entries.Length)
@@ -579,11 +579,11 @@ ReturnNotFound:
                         break;
                     }
 
-                    if (entries[i].hashCode == hashCode && comparer.Equals(entries[i].key, key))
+                    if (entries[i]._hashCode == hashCode && comparer.Equals(entries[i]._key, key))
                     {
                         if (behavior == InsertionBehavior.OverwriteExisting)
                         {
-                            entries[i].value = value;
+                            entries[i]._value = value;
                             return true;
                         }
 
@@ -595,7 +595,7 @@ ReturnNotFound:
                         return false;
                     }
 
-                    i = entries[i].next;
+                    i = entries[i]._next;
 
                     collisionCount++;
                     if (collisionCount > (uint)entries.Length)
@@ -611,8 +611,8 @@ ReturnNotFound:
             if (_freeCount > 0)
             {
                 index = _freeList;
-                Debug.Assert((StartOfFreeList - entries[_freeList].next) >= -1, "shouldn't overflow because `next` cannot underflow");
-                _freeList = StartOfFreeList - entries[_freeList].next;
+                Debug.Assert((StartOfFreeList - entries[_freeList]._next) >= -1, "shouldn't overflow because `next` cannot underflow");
+                _freeList = StartOfFreeList - entries[_freeList]._next;
                 _freeCount--;
             }
             else
@@ -629,10 +629,10 @@ ReturnNotFound:
             }
 
             ref var entry = ref entries![index];
-            entry.hashCode = hashCode;
-            entry.next = bucket - 1; // Value in _buckets is 1-based
-            entry.key = key;
-            entry.value = value; // Value in _buckets is 1-based
+            entry._hashCode = hashCode;
+            entry._next = bucket - 1; // Value in _buckets is 1-based
+            entry._key = key;
+            entry._value = value; // Value in _buckets is 1-based
             bucket = index + 1;
             _version++;
 
@@ -669,9 +669,9 @@ ReturnNotFound:
 
                 for (var i = 0; i < count; i++)
                 {
-                    if (entries[i].next >= -1)
+                    if (entries[i]._next >= -1)
                     {
-                        entries[i].hashCode = (uint)_comparer.GetHashCode(entries[i].key);
+                        entries[i]._hashCode = (uint)_comparer.GetHashCode(entries[i]._key);
                     }
                 }
 
@@ -688,10 +688,10 @@ ReturnNotFound:
 #endif
             for (var i = 0; i < count; i++)
             {
-                if (entries[i].next >= -1)
+                if (entries[i]._next >= -1)
                 {
-                    ref var bucket = ref GetBucket(entries[i].hashCode);
-                    entries[i].next = bucket - 1; // Value in _buckets is 1-based
+                    ref var bucket = ref GetBucket(entries[i]._hashCode);
+                    entries[i]._next = bucket - 1; // Value in _buckets is 1-based
                     bucket = i + 1;
                 }
             }
@@ -723,32 +723,32 @@ ReturnNotFound:
                 {
                     ref var entry = ref entries[i];
 
-                    if (entry.hashCode == hashCode && (_comparer?.Equals(entry.key, key) ?? EqualityComparer<TKey>.Default.Equals(entry.key, key)))
+                    if (entry._hashCode == hashCode && (_comparer?.Equals(entry._key, key) ?? EqualityComparer<TKey>.Default.Equals(entry._key, key)))
                     {
                         if (last < 0)
                         {
-                            bucket = entry.next + 1; // Value in buckets is 1-based
+                            bucket = entry._next + 1; // Value in buckets is 1-based
                         }
                         else
                         {
-                            entries[last].next = entry.next;
+                            entries[last]._next = entry._next;
                         }
 
                         Debug.Assert((StartOfFreeList - _freeList) < 0, "shouldn't underflow because max hashtable length is MaxPrimeArrayLength = 0x7FEFFFFD(2146435069) _freelist underflow threshold 2147483646");
-                        entry.next = StartOfFreeList - _freeList;
+                        entry._next = StartOfFreeList - _freeList;
 
 #if NETCOREAPP
                         if (RuntimeHelpers.IsReferenceOrContainsReferences<TKey>())
 #endif
                         {
-                            entry.key = default!;
+                            entry._key = default!;
                         }
 
 #if NETCOREAPP
                         if (RuntimeHelpers.IsReferenceOrContainsReferences<TValue>())
 #endif
                         {
-                            entry.value = default!;
+                            entry._value = default!;
                         }
 
                         _freeList = i;
@@ -757,7 +757,7 @@ ReturnNotFound:
                     }
 
                     last = i;
-                    i = entry.next;
+                    i = entry._next;
 
                     collisionCount++;
                     if (collisionCount > (uint)entries.Length)
@@ -795,34 +795,34 @@ ReturnNotFound:
                 {
                     ref var entry = ref entries[i];
 
-                    if (entry.hashCode == hashCode && (_comparer?.Equals(entry.key, key) ?? EqualityComparer<TKey>.Default.Equals(entry.key, key)))
+                    if (entry._hashCode == hashCode && (_comparer?.Equals(entry._key, key) ?? EqualityComparer<TKey>.Default.Equals(entry._key, key)))
                     {
                         if (last < 0)
                         {
-                            bucket = entry.next + 1; // Value in buckets is 1-based
+                            bucket = entry._next + 1; // Value in buckets is 1-based
                         }
                         else
                         {
-                            entries[last].next = entry.next;
+                            entries[last]._next = entry._next;
                         }
 
-                        value = entry.value;
+                        value = entry._value;
 
                         Debug.Assert((StartOfFreeList - _freeList) < 0, "shouldn't underflow because max hashtable length is MaxPrimeArrayLength = 0x7FEFFFFD(2146435069) _freelist underflow threshold 2147483646");
-                        entry.next = StartOfFreeList - _freeList;
+                        entry._next = StartOfFreeList - _freeList;
 
 #if NETCOREAPP
                         if (RuntimeHelpers.IsReferenceOrContainsReferences<TKey>())
 #endif
                         {
-                            entry.key = default!;
+                            entry._key = default!;
                         }
 
 #if NETCOREAPP
                         if (RuntimeHelpers.IsReferenceOrContainsReferences<TValue>())
 #endif
                         {
-                            entry.value = default!;
+                            entry._value = default!;
                         }
 
                         _freeList = i;
@@ -831,7 +831,7 @@ ReturnNotFound:
                     }
 
                     last = i;
-                    i = entry.next;
+                    i = entry._next;
 
                     collisionCount++;
                     if (collisionCount > (uint)entries.Length)
@@ -906,9 +906,9 @@ ReturnNotFound:
                 var entries = _entries;
                 for (var i = 0; i < _count; i++)
                 {
-                    if (entries[i].next >= -1)
+                    if (entries[i]._next >= -1)
                     {
-                        dictEntryArray[index++] = new DictionaryEntry(entries[i].key, entries[i].value);
+                        dictEntryArray[index++] = new DictionaryEntry(entries[i]._key, entries[i]._value);
                     }
                 }
             }
@@ -926,9 +926,9 @@ ReturnNotFound:
                     var entries = _entries;
                     for (var i = 0; i < count; i++)
                     {
-                        if (entries[i].next >= -1)
+                        if (entries[i]._next >= -1)
                         {
-                            objects[index++] = new KeyValuePair<TKey, TValue>(entries[i].key, entries[i].value);
+                            objects[index++] = new KeyValuePair<TKey, TValue>(entries[i]._key, entries[i]._value);
                         }
                     }
                 }
@@ -1014,13 +1014,13 @@ ReturnNotFound:
             var count = 0;
             for (var i = 0; i < oldCount; i++)
             {
-                var hashCode = oldEntries[i].hashCode; // At this point, we know we have entries.
-                if (oldEntries[i].next >= -1)
+                var hashCode = oldEntries[i]._hashCode; // At this point, we know we have entries.
+                if (oldEntries[i]._next >= -1)
                 {
                     ref var entry = ref entries[count];
                     entry = oldEntries[i];
                     ref var bucket = ref GetBucket(hashCode);
-                    entry.next = bucket - 1; // Value in _buckets is 1-based
+                    entry._next = bucket - 1; // Value in _buckets is 1-based
                     bucket = count + 1;
                     count++;
                 }
@@ -1154,15 +1154,15 @@ ReturnNotFound:
 
         private struct Entry
         {
-            public uint hashCode;
+            public uint _hashCode;
             /// <summary>
             /// 0-based index of next entry in chain: -1 means end of chain
             /// also encodes whether this entry _itself_ is part of the free list by changing sign and subtracting 3,
             /// so -2 means end of free list, -3 means index 0 but on free list, -4 means index 1 but on free list, etc.
             /// </summary>
-            public int next;
-            public TKey key;     // Key of entry
-            public TValue value; // Value of entry
+            public int _next;
+            public TKey _key;     // Key of entry
+            public TValue _value; // Value of entry
         }
 
         public struct Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>, IDictionaryEnumerator
@@ -1198,9 +1198,9 @@ ReturnNotFound:
                 {
                     ref var entry = ref _dictionary._entries[_index++];
 
-                    if (entry.next >= -1)
+                    if (entry._next >= -1)
                     {
-                        _current = new KeyValuePair<TKey, TValue>(entry.key, entry.value);
+                        _current = new KeyValuePair<TKey, TValue>(entry._key, entry._value);
                         return true;
                     }
                 }
@@ -1325,8 +1325,8 @@ ReturnNotFound:
                 var entries = _dictionary._entries;
                 for (var i = 0; i < count; i++)
                 {
-                    if (entries[i].next >= -1)
-                        array[index++] = entries[i].key;
+                    if (entries[i]._next >= -1)
+                        array[index++] = entries[i]._key;
                 }
             }
 
@@ -1400,8 +1400,8 @@ ReturnNotFound:
                     {
                         for (var i = 0; i < count; i++)
                         {
-                            if (entries[i].next >= -1)
-                                objects[index++] = entries[i].key;
+                            if (entries[i]._next >= -1)
+                                objects[index++] = entries[i]._key;
                         }
                     }
                     catch (ArrayTypeMismatchException)
@@ -1445,9 +1445,9 @@ ReturnNotFound:
                     {
                         ref var entry = ref _dictionary._entries[_index++];
 
-                        if (entry.next >= -1)
+                        if (entry._next >= -1)
                         {
-                            _currentKey = entry.key;
+                            _currentKey = entry._key;
                             return true;
                         }
                     }
@@ -1525,8 +1525,8 @@ ReturnNotFound:
                 var entries = _dictionary._entries;
                 for (var i = 0; i < count; i++)
                 {
-                    if (entries[i].next >= -1)
-                        array[index++] = entries[i].value;
+                    if (entries[i]._next >= -1)
+                        array[index++] = entries[i]._value;
                 }
             }
 
@@ -1600,8 +1600,8 @@ ReturnNotFound:
                     {
                         for (var i = 0; i < count; i++)
                         {
-                            if (entries[i].next >= -1)
-                                objects[index++] = entries[i].value!;
+                            if (entries[i]._next >= -1)
+                                objects[index++] = entries[i]._value!;
                         }
                     }
                     catch (ArrayTypeMismatchException)
@@ -1645,9 +1645,9 @@ ReturnNotFound:
                     {
                         ref var entry = ref _dictionary._entries[_index++];
 
-                        if (entry.next >= -1)
+                        if (entry._next >= -1)
                         {
-                            _currentValue = entry.value;
+                            _currentValue = entry._value;
                             return true;
                         }
                     }
