@@ -3,7 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
+using System.Collections;
+using System.Collections.Generic;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
@@ -11,15 +12,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     internal static class SegmentedArray
     {
         /// <seealso cref="Array.Clear(Array, int, int)"/>
-        internal static void Clear<T>(SegmentedArray<T> buckets, int index, int length)
+        internal static void Clear<T>(SegmentedArray<T> array, int index, int length)
         {
-            if (index < 0 || length < 0 || (uint)(index + length) > (uint)buckets.Length)
-                ThrowHelper.ThrowArgumentOutOfRangeException();
-
-            // TODO: Improve this algorithm
-            for (var i = 0; i < length; i++)
+            foreach (var memory in array.GetSegments(index, length))
             {
-                buckets[i + index] = default!;
+                memory.Span.Clear();
             }
         }
 
@@ -32,28 +29,18 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             if ((uint)length <= (uint)sourceArray.Length
                 && (uint)length <= (uint)destinationArray.Length)
             {
-                var sourcePages = (T[][])sourceArray.SyncRoot;
-                var destinationPages = (T[][])destinationArray.SyncRoot;
+                var sourceSegmentEnumerable = sourceArray.GetSegments(0, length);
+                var destinationSegmentEnumerable = destinationArray.GetSegments(0, length);
 
-                var remaining = length;
-                for (var i = 0; i < sourcePages.Length; i++)
+                using var sourceSegmentEnumerator = sourceSegmentEnumerable.GetEnumerator();
+                using var destinationSegmentEnumerator = destinationSegmentEnumerable.GetEnumerator();
+                while (sourceSegmentEnumerator.MoveNext())
                 {
-                    var sourcePage = sourcePages[i];
-                    var destinationPage = destinationPages[i];
-                    if (remaining <= sourcePage.Length)
-                    {
-                        Array.Copy(sourcePage, destinationPage, remaining);
-                        return;
-                    }
-                    else
-                    {
-                        Debug.Assert(sourcePage.Length == destinationPage.Length);
-                        Array.Copy(sourcePage, destinationPage, sourcePage.Length);
-                        remaining -= sourcePage.Length;
-                    }
+                    destinationSegmentEnumerator.MoveNext();
+                    sourceSegmentEnumerator.Current.CopyTo(destinationSegmentEnumerator.Current);
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                return;
             }
 
             if (length < 0)
@@ -64,6 +51,106 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 throw new ArgumentException(SR.Arg_LongerThanDestArray, nameof(destinationArray));
 
             throw ExceptionUtilities.Unreachable;
+        }
+
+        private static SegmentEnumerable<T> GetSegments<T>(this SegmentedArray<T> array, int offset, int length)
+            => new(array, offset, length);
+
+        private readonly struct SegmentEnumerable<T> : IEnumerable<Memory<T>>
+        {
+            private readonly SegmentedArray<T> _array;
+            private readonly int _offset;
+            private readonly int _length;
+
+            public SegmentEnumerable(SegmentedArray<T> array)
+            {
+                _array = array;
+                _offset = 0;
+                _length = array.Length;
+            }
+
+            public SegmentEnumerable(SegmentedArray<T> array, int offset, int length)
+            {
+                if (offset < 0 || length < 0 || (uint)(offset + length) > (uint)array.Length)
+                    ThrowHelper.ThrowArgumentOutOfRangeException();
+
+                _array = array;
+                _offset = offset;
+                _length = length;
+            }
+
+            public SegmentEnumerator<T> GetEnumerator()
+                => new SegmentEnumerator<T>((T[][])_array.SyncRoot, _offset, _length);
+
+            IEnumerator<Memory<T>> IEnumerable<Memory<T>>.GetEnumerator()
+                => GetEnumerator();
+
+            IEnumerator IEnumerable.GetEnumerator()
+                => GetEnumerator();
+        }
+
+        private struct SegmentEnumerator<T> : IEnumerator<Memory<T>>
+        {
+            private readonly T[][] _segments;
+            private readonly int _offset;
+            private readonly int _length;
+
+            private int _completed;
+            private Memory<T> _current;
+
+            public SegmentEnumerator(T[][] segments, int offset, int length)
+            {
+                _segments = segments;
+                _offset = offset;
+                _length = length;
+
+                _completed = 0;
+                _current = Memory<T>.Empty;
+            }
+
+            public Memory<T> Current => _current;
+
+            object IEnumerator.Current => _current;
+
+            public void Dispose()
+            {
+            }
+
+            public bool MoveNext()
+            {
+                if (_completed == _length)
+                {
+                    _current = Memory<T>.Empty;
+                    return false;
+                }
+
+                var segmentLength = _segments[0].Length;
+                if (_completed == 0)
+                {
+                    var firstSegment = _offset / segmentLength;
+                    var firstSegmentStart = firstSegment * segmentLength;
+                    var offset = _offset - firstSegmentStart;
+
+                    var segment = _segments[firstSegment];
+                    var remainingInSegment = segment.Length - offset;
+                    _current = segment.AsMemory().Slice(offset, Math.Min(remainingInSegment, _length));
+                    _completed = _current.Length;
+                    return true;
+                }
+                else
+                {
+                    var segment = _segments[(_completed + _offset) / segmentLength];
+                    _current = segment.AsMemory().Slice(0, Math.Min(segmentLength, _length - _completed));
+                    _completed += _current.Length;
+                    return true;
+                }
+            }
+
+            public void Reset()
+            {
+                _completed = 0;
+                _current = Memory<T>.Empty;
+            }
         }
     }
 }
