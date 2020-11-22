@@ -4389,7 +4389,7 @@ public class Source
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(49547, "https://github.com/dotnet/roslyn/issues/49547")]
         public void CallerMemberNameAttributeWithImplicitObjectCreation()
         {
             string source = @"
