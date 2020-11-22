@@ -931,7 +931,7 @@ namespace TestNamespace
         /// Verifies that the code fix will properly move comment trivia.
         /// </summary>
         [Fact]
-        public Task WhenInsidePreferred_UsingsInCompilationUnitWithCommentTrivia_TriviaMoved()
+        public Task WhenInsidePreferred_UsingsInCompilationUnitWithFileHeader_TriviaNotMoved()
         {
             var testCode = @"
 // Some comment
@@ -943,10 +943,10 @@ namespace TestNamespace
 }
 ";
 
-            var fixedTestCode = @"namespace TestNamespace
+            var fixedTestCode = @"// Some comment
+namespace TestNamespace
 {
 
-    // Some comment
     {|Warning:using System;|}
     {|Warning:using System.Threading;|}
 }
