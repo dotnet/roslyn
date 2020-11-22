@@ -2411,7 +2411,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     expressions.Add(Initializer)
 
                 Loop While TryParseCommaInto(expressions)
-                 
+
                 initializers = expressions.ToListAndFree(_pool)
 
             End If

@@ -1395,7 +1395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         'TODO - rename ParseObsoleteAssignment
         Private Function ParseAssignmentStatement() As StatementSyntax
-            Debug.Assert(CurrentToken.Kind.IsIn( SyntaxKind.LetKeyword, SyntaxKind.SetKeyword),
+            Debug.Assert(CurrentToken.Kind.IsIn(SyntaxKind.LetKeyword, SyntaxKind.SetKeyword),
                          "Assignment statement parsing is lost.")
             ' Let and set are now illegal
 
