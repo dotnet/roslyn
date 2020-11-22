@@ -23,6 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return (kind = kind0) Or (kind = kind1) Or (kind = kind2) Or (kind = kind3) Or (kind = kind4) Or
                    (kind = kind5) Or (kind = kind6) Or (kind = kind7) Or (kind = kind8) Or (kind = kind9)
         End Function
+
         <Extension>
         Function IsIn(kind As SyntaxKind,
                       kind0 As SyntaxKind, kind1 As SyntaxKind, kind2 As SyntaxKind, kind3 As SyntaxKind, kind4 As SyntaxKind,
@@ -30,6 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return (kind = kind0) Or (kind = kind1) Or (kind = kind2) Or (kind = kind3) Or (kind = kind4) Or
                    (kind = kind5) Or (kind = kind6) Or (kind = kind7) Or (kind = kind8)
         End Function
+        
         <Extension>
         Function IsIn(kind As SyntaxKind,
                       kind0 As SyntaxKind, kind1 As SyntaxKind, kind2 As SyntaxKind, kind3 As SyntaxKind, kind4 As SyntaxKind,
@@ -37,31 +39,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return (kind = kind0) Or (kind = kind1) Or (kind = kind2) Or (kind = kind3) Or (kind = kind4) Or
                    (kind = kind5) Or (kind = kind6) Or (kind = kind7)
         End Function
-                <Extension>
+        
+        <Extension>
         Function IsIn(kind As SyntaxKind,
                       kind0 As SyntaxKind, kind1 As SyntaxKind, kind2 As SyntaxKind, kind3 As SyntaxKind, kind4 As SyntaxKind,
                       kind5 As SyntaxKind, kind6 As SyntaxKind) As Boolean
             Return (kind = kind0) Or (kind = kind1) Or (kind = kind2) Or (kind = kind3) Or (kind = kind4) Or
                    (kind = kind5) Or (kind = kind6)
         End Function
-                <Extension>
+        
+        <Extension>
         Function IsIn(kind As SyntaxKind,
                       kind0 As SyntaxKind, kind1 As SyntaxKind, kind2 As SyntaxKind, kind3 As SyntaxKind, kind4 As SyntaxKind,
                       kind5 As SyntaxKind) As Boolean
             Return (kind = kind0) Or (kind = kind1) Or (kind = kind2) Or (kind = kind3) Or (kind = kind4) Or
                    (kind = kind5)
         End Function
-                <Extension>
+        
+        <Extension>
         Function IsIn(kind As SyntaxKind,
                       kind0 As SyntaxKind, kind1 As SyntaxKind, kind2 As SyntaxKind, kind3 As SyntaxKind, kind4 As SyntaxKind) As Boolean
             Return (kind = kind0) Or (kind = kind1) Or (kind = kind2) Or (kind = kind3) Or (kind = kind4)
         End Function
-                <Extension>
+        
+        <Extension>
         Function IsIn(kind As SyntaxKind,
                       kind0 As SyntaxKind, kind1 As SyntaxKind, kind2 As SyntaxKind, kind3 As SyntaxKind) As Boolean
             Return (kind = kind0) Or (kind = kind1) Or (kind = kind2) Or (kind = kind3)
         End Function
-                <Extension>
+        
+        <Extension>
         Function IsIn(kind As SyntaxKind,
                       kind0 As SyntaxKind, kind1 As SyntaxKind, kind2 As SyntaxKind) As Boolean
             Return (kind = kind0) Or (kind = kind1) Or (kind = kind2)
