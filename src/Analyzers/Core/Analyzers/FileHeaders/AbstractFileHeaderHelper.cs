@@ -11,10 +11,8 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 {
     internal abstract class AbstractFileHeaderHelper
     {
-        protected AbstractFileHeaderHelper(ISyntaxFacts syntaxFacts, ISyntaxKinds syntaxKinds)
+        protected AbstractFileHeaderHelper(ISyntaxFacts syntaxFacts)
         {
-            SingleLineCommentTriviaKind = syntaxKinds.SingleLineCommentTrivia;
-            MultiLineCommentTriviaKind = syntaxKinds.MultiLineCommentTrivia;
             SyntaxFacts = syntaxFacts;
         }
 
@@ -24,12 +22,6 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         public abstract string CommentPrefix { get; }
 
         protected abstract string GetTextContextOfComment(SyntaxTrivia commentTrivia);
-
-        /// <inheritdoc cref="ISyntaxKinds.SingleLineCommentTrivia"/>
-        private int SingleLineCommentTriviaKind { get; }
-
-        /// <inheritdoc cref="ISyntaxKinds.MultiLineCommentTrivia"/>
-        private int? MultiLineCommentTriviaKind { get; }
 
         private ISyntaxFacts SyntaxFacts { get; }
 
@@ -48,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
             foreach (var trivia in banner)
             {
-                if (trivia.RawKind == SingleLineCommentTriviaKind || trivia.RawKind == MultiLineCommentTriviaKind)
+                if (SyntaxFacts.IsRegularComment(trivia))
                 {
                     var comment = GetTextContextOfComment(trivia);
                     fileHeaderStart = Math.Min(trivia.FullSpan.Start, fileHeaderStart);

@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
         Public Shared ReadOnly Instance As VisualBasicFileHeaderHelper = New VisualBasicFileHeaderHelper()
 
         Private Sub New()
-            MyBase.New(VisualBasicSyntaxFacts.Instance, VisualBasicSyntaxKinds.Instance)
+            MyBase.New(VisualBasicSyntaxFacts.Instance)
         End Sub
 
         Public Overrides ReadOnly Property CommentPrefix As String

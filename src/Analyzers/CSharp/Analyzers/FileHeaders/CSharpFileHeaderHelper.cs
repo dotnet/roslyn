@@ -18,20 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
         public static readonly CSharpFileHeaderHelper Instance = new();
 
         private CSharpFileHeaderHelper()
-            : base(CSharpSyntaxFacts.Instance, CSharpSyntaxKinds.Instance)
+            : base(CSharpSyntaxFacts.Instance)
         {
         }
 
         public override string CommentPrefix => "//";
 
         protected override string GetTextContextOfComment(SyntaxTrivia commentTrivia)
-        {
-            if (commentTrivia.MatchesKind(SyntaxKind.SingleLineCommentTrivia, SyntaxKind.MultiLineCommentTrivia))
-            {
-                return commentTrivia.GetCommentText();
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(commentTrivia.Kind());
-        }
+            => commentTrivia.GetCommentText();
     }
 }
