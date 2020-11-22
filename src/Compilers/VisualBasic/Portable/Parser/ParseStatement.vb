@@ -485,9 +485,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseAnachronisticStatement() As StatementSyntax
             ' Assume CurrentToken is on ENDIF, WEND
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.EndIfKeyword OrElse
-                             CurrentToken.Kind = SyntaxKind.GosubKeyword OrElse
-                             CurrentToken.Kind = SyntaxKind.WendKeyword, "ParseAnachronisticEndIfStatement called on wrong token")
+            Debug.Assert(CurrentToken.Kind.IsIn(SyntaxKind.EndIfKeyword,
+                                                SyntaxKind.GosubKeyword,
+                                                SyntaxKind.WendKeyword), "ParseAnachronisticEndIfStatement called on wrong token")
 
             Dim keyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
 
@@ -1326,7 +1326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseHandlerStatement() As AddRemoveHandlerStatementSyntax
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.AddHandlerKeyword OrElse CurrentToken.Kind = SyntaxKind.RemoveHandlerKeyword, "Handler statement parsing confused.")
+            Debug.Assert(CurrentToken.Kind.IsIn(SyntaxKind.AddHandlerKeyword, SyntaxKind.RemoveHandlerKeyword), "Handler statement parsing confused.")
 
             Dim keyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             Dim kind = If(keyword.Kind = SyntaxKind.AddHandlerKeyword, SyntaxKind.AddHandlerStatement, SyntaxKind.RemoveHandlerStatement)
@@ -1364,9 +1364,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         'TODO - Rename ParseKeywordExpression and share with other statements that follow this pattern
         ' i.e. Throw, others?
         Private Function ParseExpressionBlockStatement() As StatementSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.WhileKeyword OrElse
-                             CurrentToken.Kind = SyntaxKind.WithKeyword OrElse
-                             CurrentToken.Kind = SyntaxKind.SyncLockKeyword, "ParseExpressionBlockStatement called on wrong token.")
+            Debug.Assert(CurrentToken.Kind.IsIn(syntaxKind.WhileKeyword,
+                                                SyntaxKind.WithKeyword,
+                                                SyntaxKind.SyncLockKeyword), "ParseExpressionBlockStatement called on wrong token.")
 
             Dim keyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
 
@@ -1398,7 +1398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         'TODO - rename ParseObsoleteAssignment
         Private Function ParseAssignmentStatement() As StatementSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.LetKeyword OrElse CurrentToken.Kind = SyntaxKind.SetKeyword, "Assignment statement parsing is lost.")
+            Debug.Assert(CurrentToken.Kind.IsIn( SyntaxKind.LetKeyword, SyntaxKind.SetKeyword), "Assignment statement parsing is lost.")
             ' Let and set are now illegal
 
             If CurrentToken.Kind = SyntaxKind.SetKeyword AndAlso
@@ -1557,7 +1557,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseLabel() As LabelStatementSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.IdentifierToken OrElse CurrentToken.Kind = SyntaxKind.IntegerLiteralToken)
+            Debug.Assert(CurrentToken.Kind.IsIn(SyntaxKind.IdentifierToken, SyntaxKind.IntegerLiteralToken))
 
             Dim labelName = ParseLabelReference()
 
@@ -1757,7 +1757,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' TryStatement
         ' FinallyStatement
         Private Function ParseStopOrEndStatement() As StopOrEndStatementSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.StopKeyword OrElse CurrentToken.Kind = SyntaxKind.EndKeyword, "ParseStopOrEndStatement called on wrong token.")
+            Debug.Assert(CurrentToken.Kind.IsIn(SyntaxKind.StopKeyword, SyntaxKind.EndKeyword), "ParseStopOrEndStatement called on wrong token.")
 
             Dim stopOrEndKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken()
@@ -1781,10 +1781,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim nextToken As SyntaxToken = PeekToken(1)
 
             ' change from Dev10: allowing as new with multiple variable names, e.g. "Using a, b As New C1()"
-            If nextToken.Kind = SyntaxKind.AsKeyword OrElse
-               nextToken.Kind = SyntaxKind.EqualsToken OrElse
-               nextToken.Kind = SyntaxKind.CommaToken OrElse
-               nextToken.Kind = SyntaxKind.QuestionToken Then
+            If nextToken.Kind.IsIn(SyntaxKind.AsKeyword,
+                                   SyntaxKind.EqualsToken,
+                                   SyntaxKind.CommaToken,
+                                   SyntaxKind.QuestionToken) Then
 
                 variables = ParseVariableDeclaration(allowAsNewWith:=True)
             Else

@@ -195,14 +195,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     ' See if this is a beginning of a query
                     If TryIdentifierAsContextualKeyword(start, keyword) Then
-                        If keyword.Kind = SyntaxKind.FromKeyword OrElse keyword.Kind = SyntaxKind.AggregateKeyword Then
+                        If keyword.Kind.IsIn(SyntaxKind.FromKeyword, SyntaxKind.AggregateKeyword) Then
 
                             term = ParsePotentialQuery(keyword)
                             If term IsNot Nothing Then
                                 Exit Select
                             End If
 
-                        ElseIf keyword.Kind = SyntaxKind.AsyncKeyword OrElse keyword.Kind = SyntaxKind.IteratorKeyword Then
+                        ElseIf keyword.Kind.IsIn(SyntaxKind.AsyncKeyword, SyntaxKind.IteratorKeyword) Then
 
                             Dim nextToken = PeekToken(1)
 
@@ -210,12 +210,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                 Dim possibleKeyword As KeywordSyntax = Nothing
                                 If TryTokenAsContextualKeyword(nextToken, possibleKeyword) AndAlso
                                    possibleKeyword.Kind <> keyword.Kind AndAlso
-                                   (possibleKeyword.Kind = SyntaxKind.AsyncKeyword OrElse possibleKeyword.Kind = SyntaxKind.IteratorKeyword) Then
+                                   possibleKeyword.Kind.IsIn(SyntaxKind.AsyncKeyword, SyntaxKind.IteratorKeyword) Then
                                     nextToken = PeekToken(2)
                                 End If
                             End If
 
-                            If nextToken.Kind = SyntaxKind.SubKeyword OrElse nextToken.Kind = SyntaxKind.FunctionKeyword Then
+                            If nextToken.Kind.IsIn(SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword) Then
                                 term = ParseLambda(parseModifiers:=True)
 
                                 Exit Select
@@ -510,7 +510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function CanStartConsequenceExpression(kind As SyntaxKind, qualified As Boolean) As Boolean
-            Return kind = SyntaxKind.DotToken OrElse kind = SyntaxKind.ExclamationToken OrElse (qualified AndAlso kind = SyntaxKind.OpenParenToken)
+            Return kind.IsIn(SyntaxKind.DotToken, SyntaxKind.ExclamationToken) OrElse (qualified AndAlso kind = SyntaxKind.OpenParenToken)
         End Function
 
         Private Shared Function TokenContainsFullWidthChars(tk As SyntaxToken) As Boolean
@@ -876,7 +876,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 '   From i In {} Select p = New Object From j In {} Select j
                 '
                 ' The second "From" starts a from query and is not an initializer.
-                If PeekToken(1).Kind = SyntaxKind.OpenBraceToken OrElse PeekToken(1).Kind = SyntaxKind.StatementTerminatorToken Then
+                If PeekToken(1).Kind.IsIn(SyntaxKind.OpenBraceToken, SyntaxKind.StatementTerminatorToken) Then
 
                     GetNextToken()
 
@@ -937,8 +937,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim current As SyntaxToken = CurrentToken
 
-            If current.Kind = SyntaxKind.IsKeyword OrElse
-               current.Kind = SyntaxKind.IsNotKeyword Then
+            If current.Kind.IsIn(SyntaxKind.IsKeyword, SyntaxKind.IsNotKeyword) Then
 
                 operatorToken = DirectCast(current, KeywordSyntax)
 
@@ -1575,10 +1574,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim keyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             Dim keywordKind As SyntaxKind = keyword.Kind
 
-            Debug.Assert(keywordKind = SyntaxKind.CTypeKeyword OrElse
-                    keywordKind = SyntaxKind.DirectCastKeyword OrElse
-                    keywordKind = SyntaxKind.TryCastKeyword,
-                    "Expected CTYPE or DIRECTCAST or TRYCAST token.")
+            Debug.Assert(keywordKind.IsIn(SyntaxKind.CTypeKeyword, SyntaxKind.DirectCastKeyword, SyntaxKind.TryCastKeyword),
+                         "Expected CTYPE or DIRECTCAST or TRYCAST token.")
 
             GetNextToken()
 
@@ -1646,8 +1643,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 _isInIteratorMethodDeclarationHeader = False
             End If
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.FunctionKeyword OrElse
-                         CurrentToken.Kind = SyntaxKind.SubKeyword,
+            Debug.Assert(CurrentToken.Kind.IsIn(SyntaxKind.FunctionKeyword, SyntaxKind.SubKeyword),
                          "ParseFunctionLambda called on wrong token.")
             ' The current token is on the function or delegate's name
 

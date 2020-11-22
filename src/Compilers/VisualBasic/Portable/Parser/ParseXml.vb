@@ -19,12 +19,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 13261 - 13261
         ' Expression* .Parser::ParseXmlExpression( [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseXmlExpression() As XmlNodeSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.LessThanToken OrElse
-                 CurrentToken.Kind = SyntaxKind.LessThanGreaterThanToken OrElse
-                 CurrentToken.Kind = SyntaxKind.LessThanSlashToken OrElse
-                 CurrentToken.Kind = SyntaxKind.BeginCDataToken OrElse
-                 CurrentToken.Kind = SyntaxKind.LessThanExclamationMinusMinusToken OrElse
-                 CurrentToken.Kind = SyntaxKind.LessThanQuestionToken, "ParseXmlMarkup called on the wrong token.")
+            Debug.Assert(CurrentToken.Kind.IsIn(SyntaxKind.LessThanToken,
+                                                SyntaxKind.LessThanGreaterThanToken,
+                                                SyntaxKind.LessThanSlashToken,
+                                                SyntaxKind.BeginCDataToken,
+                                                SyntaxKind.LessThanExclamationMinusMinusToken,
+                                                SyntaxKind.LessThanQuestionToken), "ParseXmlMarkup called on the wrong token.")
 
             ' The < token must be reset because a VB scanned < might following trivia attached to it.
             ResetCurrentToken(ScannerState.Content)
@@ -658,9 +658,9 @@ LessThanSlashTokenCase:
                             GetNextToken(nextState)
 
                             newKind = CurrentToken.Kind
-                        Loop While newKind = SyntaxKind.XmlTextLiteralToken OrElse
-                            newKind = SyntaxKind.XmlEntityLiteralToken OrElse
-                            newKind = SyntaxKind.DocumentationCommentLineBreakToken
+                        Loop While newKind.IsIn(SyntaxKind.XmlTextLiteralToken,
+                                                SyntaxKind.XmlEntityLiteralToken,
+                                                SyntaxKind.DocumentationCommentLineBreakToken)
 
                         Dim textResult = textTokens.ToListAndFree(_pool)
                         xml = SyntaxFactory.XmlText(textResult)
@@ -961,9 +961,9 @@ LessThanSlashTokenCase:
 
             If CurrentToken.Kind = SyntaxKind.XmlNameToken OrElse
                 (AllowNameAsExpression AndAlso CurrentToken.Kind = SyntaxKind.LessThanPercentEqualsToken) OrElse
-                CurrentToken.Kind = SyntaxKind.EqualsToken OrElse
-                CurrentToken.Kind = SyntaxKind.SingleQuoteToken OrElse
-                CurrentToken.Kind = SyntaxKind.DoubleQuoteToken Then
+                CurrentToken.Kind.IsIn(SyntaxKind.EqualsToken,
+                                       SyntaxKind.SingleQuoteToken,
+                                       SyntaxKind.DoubleQuoteToken) Then
 
                 ' /* AllowExpr */' /* IsBracketed */' 
                 Dim Name = ParseXmlQualifiedName(requireLeadingWhitespace, True, ScannerState.Element, ScannerState.Element)
@@ -1230,7 +1230,7 @@ lFailed:
                 End If
 
                 Dim modifier As KeywordSyntax = Nothing
-                While CurrentToken.Kind = SyntaxKind.ByValKeyword OrElse CurrentToken.Kind = SyntaxKind.ByRefKeyword
+                While CurrentToken.Kind.IsIn(SyntaxKind.ByValKeyword, SyntaxKind.ByRefKeyword)
                     If modifier Is Nothing Then
                         ' The first one
                         modifier = DirectCast(CurrentToken, KeywordSyntax)

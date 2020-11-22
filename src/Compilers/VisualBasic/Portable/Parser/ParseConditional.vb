@@ -21,8 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Function ParseConditionalCompilationStatement() As DirectiveTriviaSyntax
             ' # may be actually scanned as a date literal. This is an error.
-            If CurrentToken.Kind = SyntaxKind.DateLiteralToken OrElse
-                CurrentToken.Kind = SyntaxKind.BadToken Then
+            If CurrentToken.Kind.IsIn(SyntaxKind.DateLiteralToken, SyntaxKind.BadToken) Then
 
                 Dim missingHash = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.HashToken)
                 missingHash = missingHash.AddLeadingSyntax(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)(CurrentToken))
@@ -386,8 +385,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                          NameOf(ParseWarningDirective) & " called with token that is not an " & NameOf(SyntaxKind.IdentifierToken))
             Dim identifier = DirectCast(CurrentToken, IdentifierTokenSyntax)
 
-            Debug.Assert((identifier.PossibleKeywordKind = SyntaxKind.EnableKeyword) OrElse
-                         (identifier.PossibleKeywordKind = SyntaxKind.DisableKeyword),
+            Debug.Assert(identifier.PossibleKeywordKind.IsIn(SyntaxKind.EnableKeyword, SyntaxKind.DisableKeyword),
                          NameOf(ParseWarningDirective) & " called with token that is neither " & NameOf(SyntaxKind.EnableKeyword) & " nor " & NameOf(SyntaxKind.DisableKeyword))
             Dim enableOrDisableKeyword = _scanner.MakeKeyword(identifier)
 

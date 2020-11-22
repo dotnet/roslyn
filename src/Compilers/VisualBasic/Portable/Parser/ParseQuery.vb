@@ -414,8 +414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
 
                 If CurrentToken.Kind = SyntaxKind.QuestionToken AndAlso
-                    (PeekToken(1).Kind = SyntaxKind.InKeyword OrElse
-                      PeekToken(1).Kind = SyntaxKind.EqualsToken) Then
+                   PeekToken(1).Kind.IsIn(SyntaxKind.InKeyword, SyntaxKind.EqualsToken) Then
 
                     Dim unexpectedNullable As SyntaxToken = CurrentToken
                     varName = varName.AddTrailingSyntax(ReportSyntaxError(unexpectedNullable, ERRID.ERR_NullableTypeInferenceNotSupported))
@@ -879,9 +878,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 If TryGetTokenAndEatNewLine(SyntaxKind.AndKeyword, AndTk) Then
                     Continue Do
 
-                ElseIf CurrentToken.Kind = SyntaxKind.AndAlsoKeyword OrElse
-                       CurrentToken.Kind = SyntaxKind.OrKeyword OrElse
-                       CurrentToken.Kind = SyntaxKind.OrElseKeyword Then
+                ElseIf CurrentToken.Kind.IsIn(SyntaxKind.AndAlsoKeyword,
+                                              SyntaxKind.OrKeyword,
+                                              SyntaxKind.OrElseKeyword) Then
 
                     Exprs(Exprs.Count - 1) = Exprs(Exprs.Count - 1).AddTrailingSyntax(CurrentToken, ERRID.ERR_ExpectedAnd)
                     GetNextToken() ' consume bad token

@@ -686,8 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                     Dim kind As SyntaxKind = Nothing
-                    If TryTokenAsKeyword(nextToken, kind) AndAlso (kind = SyntaxKind.AssemblyKeyword OrElse
-                        kind = SyntaxKind.ModuleKeyword) Then
+                    If TryTokenAsKeyword(nextToken, kind) AndAlso kind.IsIn(SyntaxKind.AssemblyKeyword, SyntaxKind.ModuleKeyword) Then
                         ' Attribute statements can appear only at file level before any
                         ' declarations or option statements.
 
@@ -2039,8 +2038,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                     Exit Select
                                 End If
 
-                            ElseIf possibleKeyword.Kind = SyntaxKind.AsyncKeyword OrElse
-                                   possibleKeyword.Kind = SyntaxKind.IteratorKeyword Then
+                            ElseIf possibleKeyword.Kind.IsIn(SyntaxKind.AsyncKeyword, SyntaxKind.IteratorKeyword) Then
 
                                 Dim nextToken As SyntaxToken = PeekToken(1)
                                 If SyntaxFacts.IsSpecifier(nextToken.Kind) OrElse
@@ -2486,9 +2484,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim initializers As CoreInternalSyntax.SeparatedSyntaxList(Of FieldInitializerSyntax) = Nothing
 
-            If CurrentToken.Kind <> SyntaxKind.CloseBraceToken AndAlso
-                CurrentToken.Kind <> SyntaxKind.StatementTerminatorToken AndAlso
-                CurrentToken.Kind <> SyntaxKind.ColonToken Then
+            If Not CurrentToken.Kind.IsIn(SyntaxKind.CloseBraceToken, SyntaxKind.StatementTerminatorToken, SyntaxKind.ColonToken) Then
 
                 Dim expressions = _pool.AllocateSeparated(Of FieldInitializerSyntax)()
 
@@ -3410,9 +3406,7 @@ checkNullable:
             ' Specifiers are not valid on 'AddHandler', 'RemoveHandler' and 'RaiseEvent' methods.
 
             If modifiers.Any AndAlso
-                (methodKeyword.Kind = SyntaxKind.AddHandlerKeyword OrElse
-                methodKeyword.Kind = SyntaxKind.RemoveHandlerKeyword OrElse
-                methodKeyword.Kind = SyntaxKind.RaiseEventKeyword) Then
+               methodKeyword.Kind.IsIn(SyntaxKind.AddHandlerKeyword, SyntaxKind.RemoveHandlerKeyword, SyntaxKind.RaiseEventKeyword) Then
 
                 methodKeyword = ReportModifiersOnStatementError(ERRID.ERR_SpecifiersInvOnEventMethod, Nothing, modifiers, methodKeyword)
                 modifiers = Nothing
@@ -3485,9 +3479,9 @@ checkNullable:
                 Dim eventContainer As EventContainerSyntax
                 Dim eventMember As IdentifierNameSyntax
 
-                If CurrentToken.Kind = SyntaxKind.MyBaseKeyword OrElse
-                    CurrentToken.Kind = SyntaxKind.MyClassKeyword OrElse
-                    CurrentToken.Kind = SyntaxKind.MeKeyword Then
+                If CurrentToken.Kind.IsIn(SyntaxKind.MyBaseKeyword,
+                                          SyntaxKind.MyClassKeyword,
+                                          SyntaxKind.MeKeyword) Then
 
                     eventContainer = SyntaxFactory.KeywordEventContainer(DirectCast(CurrentToken, KeywordSyntax))
                     GetNextToken()
@@ -3640,9 +3634,9 @@ checkNullable:
                                           ByRef handlesClause As HandlesClauseSyntax,
                                           ByRef implementsClause As ImplementsClauseSyntax)
 
-            Debug.Assert(kind = SyntaxKind.SubStatement OrElse
-                         kind = SyntaxKind.SubNewStatement OrElse
-                         kind = SyntaxKind.DelegateSubStatement, "Wrong kind passed to ParseSubOrDelegateStatement")
+            Debug.Assert(kind.IsIn(SyntaxKind.SubStatement,
+                                   SyntaxKind.SubNewStatement,
+                                   SyntaxKind.DelegateSubStatement), "Wrong kind passed to ParseSubOrDelegateStatement")
 
             'The current token is on the Sub or Delegate's name
 
@@ -4067,9 +4061,9 @@ checkNullable:
             ' ====== Check for the obsolete style (Property Get, Property Set, Property Let)- not allowed any longer.
             Dim ident As IdentifierTokenSyntax
 
-            If CurrentToken.Kind = SyntaxKind.GetKeyword OrElse
-                CurrentToken.Kind = SyntaxKind.SetKeyword OrElse
-                CurrentToken.Kind = SyntaxKind.LetKeyword Then
+            If CurrentToken.Kind.IsIn(SyntaxKind.GetKeyword,
+                                      SyntaxKind.SetKeyword,
+                                      SyntaxKind.LetKeyword) Then
 
                 ident = ReportSyntaxError(ParseIdentifierAllowingKeyword(), ERRID.ERR_ObsoletePropertyGetLetSet)
 
