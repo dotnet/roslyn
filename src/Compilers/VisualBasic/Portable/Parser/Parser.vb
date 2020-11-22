@@ -3374,8 +3374,9 @@ checkNullable:
 
         ' This used to be ParsePropertyOrEventProcedureDefinition
         Private Function ParsePropertyOrEventAccessor(accessorKind As SyntaxKind, attributes As CoreInternalSyntax.SyntaxList(Of AttributeListSyntax), modifiers As CoreInternalSyntax.SyntaxList(Of KeywordSyntax)) As AccessorStatementSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.GetKeyword OrElse CurrentToken.Kind = SyntaxKind.SetKeyword OrElse
-                     CurrentToken.Kind = SyntaxKind.AddHandlerKeyword OrElse CurrentToken.Kind = SyntaxKind.RemoveHandlerKeyword OrElse CurrentToken.Kind = SyntaxKind.RaiseEventKeyword)
+            Debug.Assert(CurrentToken.Kind.IsIn(SyntaxKind.GetKeyword, SyntaxKind.SetKeyword,
+                                                SyntaxKind.AddHandlerKeyword, SyntaxKind.RemoveHandlerKeyword,
+                                                SyntaxKind.RaiseEventKeyword))
 
             Dim methodKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             If Not IsFirstStatementOnLine(CurrentToken) Then
@@ -3774,9 +3775,8 @@ checkNullable:
                                                        ByRef handlesClause As HandlesClauseSyntax,
                                                        ByRef implementsClause As ImplementsClauseSyntax)
 
-            Debug.Assert(
-                kind = SyntaxKind.FunctionStatement OrElse
-                kind = SyntaxKind.DelegateFunctionStatement, "Wrong kind passed to ParseFunctionOrDelegateStatement")
+            Debug.Assert(kind.IsIn(SyntaxKind.FunctionStatement, SyntaxKind.DelegateFunctionStatement),
+                         "Wrong kind passed to ParseFunctionOrDelegateStatement")
 
             'TODO - davidsch Can ParseFunctionOrDelegateDeclaration and
             'ParseSubOrDelegateDeclaration share more code? They are nearly the same.
@@ -4780,8 +4780,8 @@ checkNullable:
 
         Private Function ParseInheritsImplementsStatement(Attributes As CoreInternalSyntax.SyntaxList(Of AttributeListSyntax), Specifiers As CoreInternalSyntax.SyntaxList(Of KeywordSyntax)) As InheritsOrImplementsStatementSyntax
 
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.InheritsKeyword OrElse CurrentToken.Kind = SyntaxKind.ImplementsKeyword,
-                "ParseInheritsImplementsStatement called on the wrong token.")
+            Debug.Assert(CurrentToken.Kind.IsIn(SyntaxKind.InheritsKeyword, SyntaxKind.ImplementsKeyword),
+                         "ParseInheritsImplementsStatement called on the wrong token.")
 
             Dim keyword As KeywordSyntax = ReportModifiersOnStatementError(Attributes, Specifiers, DirectCast(CurrentToken, KeywordSyntax))
             Dim typeNames = Me._pool.AllocateSeparated(Of TypeSyntax)()

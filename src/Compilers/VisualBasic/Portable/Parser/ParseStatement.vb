@@ -754,11 +754,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
                 Loop
 
-                Dim statement = SyntaxFactory.NextStatement(nextKeyword, variables.ToList)
+                Return SyntaxFactory.NextStatement(nextKeyword, variables.ToListAndFree(_pool))
 
-                _pool.Free(variables)
-
-                Return statement
             End If
         End Function
 
@@ -930,7 +927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function GetLabelSyntaxForIdentifierOrLineNumber(ByVal labelName As SyntaxToken) As LabelSyntax
-            Debug.Assert(labelName.Kind = SyntaxKind.IntegerLiteralToken OrElse labelName.Kind = SyntaxKind.IdentifierToken)
+            Debug.Assert(labelName.Kind.IsIn(SyntaxKind.IntegerLiteralToken, SyntaxKind.IdentifierToken))
             Return If(labelName.Kind = SyntaxKind.IntegerLiteralToken, SyntaxFactory.NumericLabel(labelName), SyntaxFactory.IdentifierLabel(labelName))
         End Function
 

@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseIfDirective(hashToken As PunctuationSyntax, elseKeyword As KeywordSyntax) As IfDirectiveTriviaSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.IfKeyword OrElse CurrentToken.Kind = SyntaxKind.ElseIfKeyword)
+            Debug.Assert(CurrentToken.Kind.IsIn(SyntaxKind.IfKeyword, SyntaxKind.ElseIfKeyword))
 
             Dim ifKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken()
@@ -426,20 +426,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Loop
             End If
 
+            Dim errorCodesList = errorCodes.ToListAndFree(_pool)
             Dim statement As DirectiveTriviaSyntax = Nothing
             If enableOrDisableKeyword.Kind = SyntaxKind.EnableKeyword Then
                 statement = SyntaxFactory.EnableWarningDirectiveTrivia(
-                    hashToken, enableOrDisableKeyword, warningKeyword, errorCodes.ToList)
+                    hashToken, enableOrDisableKeyword, warningKeyword, errorCodesList)
             ElseIf enableOrDisableKeyword.Kind = SyntaxKind.DisableKeyword Then
                 statement = SyntaxFactory.DisableWarningDirectiveTrivia(
-                    hashToken, enableOrDisableKeyword, warningKeyword, errorCodes.ToList)
+                    hashToken, enableOrDisableKeyword, warningKeyword, errorCodesList)
             End If
 
             If statement IsNot Nothing Then
                 statement = CheckFeatureAvailability(Feature.WarningDirectives, statement)
             End If
 
-            Me._pool.Free(errorCodes)
             Return statement
         End Function
 
