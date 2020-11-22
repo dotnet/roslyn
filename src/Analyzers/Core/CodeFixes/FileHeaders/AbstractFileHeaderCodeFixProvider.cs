@@ -97,15 +97,15 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var allRootTrivia = root.GetLeadingTrivia();
             var (triviaToKeep, bannerInsertationIndex) = RemoveBannerFromRootTrivia(allRootTrivia, existingBanner);
 
-            var trailingWhiteSpaceNewLineFromExisitingHeader = GetTrailingWhiteSpaceOrEndOfLineFromExisitingHeader(syntaxFacts, existingBanner);
-            if (trailingWhiteSpaceNewLineFromExisitingHeader.IsEmpty)
+            var trailingWhiteSpaceOrEndOfLineFromExisitingHeader = GetTrailingWhiteSpaceOrEndOfLineFromExisitingHeader(syntaxFacts, existingBanner);
+            if (trailingWhiteSpaceOrEndOfLineFromExisitingHeader.IsEmpty)
             {
-                trailingWhiteSpaceNewLineFromExisitingHeader = trailingWhiteSpaceNewLineFromExisitingHeader
+                trailingWhiteSpaceOrEndOfLineFromExisitingHeader = trailingWhiteSpaceOrEndOfLineFromExisitingHeader
                     .Add(newLineTrivia)
                     .Add(newLineTrivia);
             }
             // Append the whitespace and new lines as it was before
-            newHeaderTrivia = newHeaderTrivia.AddRange(trailingWhiteSpaceNewLineFromExisitingHeader);
+            newHeaderTrivia = newHeaderTrivia.AddRange(trailingWhiteSpaceOrEndOfLineFromExisitingHeader);
             // Insert the new header at the right position in existing trivia around the header
             newHeaderTrivia = triviaToKeep.InsertRange(bannerInsertationIndex, newHeaderTrivia);
 
