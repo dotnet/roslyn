@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 return (allRootTrivia, 0);
             }
 
-            // create a stack of indices of banner trivia within all rootTrivia
+            // Create a stack of indices of banner trivia within all rootTrivia.
             var existingBannerIndices = new Stack<int>(capacity: allRootTrivia.Count);
             for (var i = 0; i < allRootTrivia.Count; i++)
             {
@@ -151,6 +151,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 index = existingBannerIndices.Pop();
                 allRootTrivia = allRootTrivia.RemoveAt(index);
             }
+
             return (triviaToKeep: allRootTrivia, bannerInsertationIndex: index);
         }
 
