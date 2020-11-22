@@ -850,14 +850,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 optionalAsClause = SyntaxFactory.SimpleAsClause([As], Nothing, Type)
             End If ' Else if "As" is not present, the error falls out as a "Syntax error" IN the caller
 
-            Dim names = _pool.AllocateSeparated(Of ModifiedIdentifierSyntax)()
-            names.Add(Declarator)
+            Dim names = _pool.AllocateSeparated(Of ModifiedIdentifierSyntax)().Add(Declarator).ToListAndFree(_pool)
+            Return SyntaxFactory.VariableDeclarator(names, optionalAsClause, Nothing)
 
-            Dim result = SyntaxFactory.VariableDeclarator(names.ToList, optionalAsClause, Nothing)
-
-            _pool.Free(names)
-
-            Return result
         End Function
 
         ' Parse a reference to a label, which can be an identifier or a line number.
@@ -1309,21 +1304,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 clauses.Add(clause)
 
-                Dim comma As PunctuationSyntax = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
+            Loop While TryParseCommaInto( clauses)
 
-                clauses.AddSeparator(comma)
-
-            Loop
-
+            Dim clausesList = clauses.ToListAndFree(_pool) 
             Dim statement = If(optionalPreserveKeyword Is Nothing,
-                               SyntaxFactory.ReDimStatement(reDimKeyword, optionalPreserveKeyword, clauses.ToList),
-                               SyntaxFactory.ReDimPreserveStatement(reDimKeyword, optionalPreserveKeyword, clauses.ToList)
+                               SyntaxFactory.ReDimStatement(reDimKeyword, optionalPreserveKeyword, clausesList),
+                               SyntaxFactory.ReDimPreserveStatement(reDimKeyword, optionalPreserveKeyword, clausesList)
                             )
-
-            _pool.Free(clauses)
 
             If CurrentToken.Kind = SyntaxKind.AsKeyword Then
                 statement = statement.AddTrailingSyntax(CurrentToken, ERRID.ERR_ObsoleteRedimAs)
@@ -1641,9 +1628,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 argumentsBuilder.Add(ParseArgument(RedimOrNewParent:=False))
             End If
 
-            Dim arguments As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax) = argumentsBuilder.ToList
-            _pool.Free(argumentsBuilder)
-
+            Dim arguments = argumentsBuilder.ToListAndFree(_pool)
             Dim closeParen As PunctuationSyntax = Nothing
             TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
 

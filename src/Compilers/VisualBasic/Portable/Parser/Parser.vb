@@ -2073,10 +2073,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 GetNextToken()
             Loop
 
-            Dim result = kwList.ToList
-            _pool.Free(kwList)
-
-            Return result
+            Return kwList.ToListAndFree(_pool)
         End Function
 
         ' /*********************************************************************
@@ -2149,13 +2146,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return result
 
         End Function
+        
+        Friend Function TryParseComma(Byref comma As PunctuationSyntax) As Boolean
+            Return TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma)
+        End Function
+
+        Friend Function TryParseCommaInto(Of T As GreenNode)(builder As SeparatedSyntaxListBuilder(Of T)) As Boolean
+            Dim comma As PunctuationSyntax = Nothing
+            Dim ok = TryParseComma(comma)
+            If ok Then builder.AddSeparator(comma)
+            Return ok
+        End Function
 
         Private Function ParseVariableDeclaration(allowAsNewWith As Boolean) As CoreInternalSyntax.SeparatedSyntaxList(Of VariableDeclaratorSyntax)
             Dim declarations = _pool.AllocateSeparated(Of VariableDeclaratorSyntax)()
-
-            Dim comma As PunctuationSyntax
             Dim checkForCustom As Boolean = True
-
             Dim declarators = _pool.AllocateSeparated(Of ModifiedIdentifierSyntax)()
             Do
                 declarators.Clear()
@@ -2175,14 +2180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     declarators.Add(declarator)
 
-                    comma = Nothing
-                    If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                        Exit Do
-                    End If
-
-                    declarators.AddSeparator(comma)
-
-                Loop
+                Loop While TryParseCommaInto(declarators)
 
                 Dim names = declarators.ToList
 
@@ -2201,21 +2199,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 declarations.Add(declaration)
 
-                comma = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
-
-                declarations.AddSeparator(comma)
-            Loop
+            Loop While TryParseCommaInto(declarations)
 
             _pool.Free(declarators)
 
-            Dim result = declarations.ToList
-
-            _pool.Free(declarations)
-
-            Return result
+            Return declarations.ToListAndFree(_pool)
         End Function
 
         ' Parses the as-clause and initializer for both locals, fields and properties
@@ -2424,17 +2412,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     expressions.Add(Initializer)
 
-                    Dim comma As PunctuationSyntax = Nothing
-                    If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                        expressions.AddSeparator(comma)
-                    Else
-                        Exit Do
-                    End If
-
-                Loop
-
-                initializers = expressions.ToList
-                _pool.Free(expressions)
+                Loop While TryParseCommaInto(expressions)
+                 
+                initializers = expressions.ToListAndFree(_pool)
 
             End If
 
@@ -2524,17 +2504,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     expressions.Add(initializer)
 
-                    Dim comma As PunctuationSyntax = Nothing
-                    If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                        expressions.AddSeparator(comma)
-                    Else
-                        Exit Do
-                    End If
+                Loop While TryParseCommaInto(expressions)
 
-                Loop
-
-                initializers = expressions.ToList
-                _pool.Free(expressions)
+                initializers = expressions.ToListAndFree(_pool)
 
             Else
                 ' Create a missing initializer
@@ -3027,8 +2999,7 @@ checkNullable:
                 elementBuilder.Add(_syntaxFactory.TypedTupleElement(missing))
             End If
 
-            Dim tupleElements = elementBuilder.ToList
-            _pool.Free(elementBuilder)
+            Dim tupleElements = elementBuilder.ToListAndFree(_pool)
 
             Dim tupleType = SyntaxFactory.TupleType(openParen, tupleElements, closeParen)
 
@@ -3153,7 +3124,6 @@ checkNullable:
 
             Dim typeNames = _pool.AllocateSeparated(Of TypeSyntax)()
             Dim typeName As TypeSyntax
-            Dim comma As PunctuationSyntax
 
             Do
                 typeName = Nothing
@@ -3192,22 +3162,13 @@ checkNullable:
 
                 typeNames.Add(typeName)
 
-                comma = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
-
-                Debug.Assert(comma IsNot Nothing)
-
-                typeNames.AddSeparator(comma)
-            Loop While True
+            Loop While TryParseCommaInto(typeNames)
 
             If openParen IsNot Nothing Then
                 TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
             End If
 
-            typeArguments = typeNames.ToList
-            _pool.Free(typeNames)
+            typeArguments = typeNames.ToListAndFree(_pool)
             genericArguments = SyntaxFactory.TypeArgumentList(openParen, [of], typeArguments, closeParen)
 
             Return genericArguments
@@ -3256,10 +3217,7 @@ checkNullable:
 
             Loop While CurrentToken.Kind = SyntaxKind.OpenParenToken
 
-            Dim result As CoreInternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax) = arrayModifiers.ToList
-            _pool.Free(arrayModifiers)
-
-            Return result
+            Return arrayModifiers.ToListANdFree(_pool)
         End Function
 
         ' davidsch - Just as ParseIdentifier was split into two ParseIdentifiers (nullable and non-nullable cases), ParseArrayDeclarator was split 
@@ -3329,10 +3287,7 @@ checkNullable:
                 innerArrayType = True
             Loop While CurrentToken.Kind = SyntaxKind.OpenParenToken
 
-            Dim modifiersArr As CoreInternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax) = arrayModifiers.ToList
-            _pool.Free(arrayModifiers)
-
-            Return SyntaxFactory.ModifiedIdentifier(elementType, optionalNullable, optionalArrayBounds, modifiersArr)
+            Return SyntaxFactory.ModifiedIdentifier(elementType, optionalNullable, optionalArrayBounds, arrayModifiers.ToListAndFree(_pool))
         End Function
 
         Private Function TryReinterpretAsArraySpecifier(argumentList As ArgumentListSyntax, ByRef arrayModifiers As CoreInternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax)) As Boolean
@@ -3375,15 +3330,11 @@ checkNullable:
                 separators.Add(sep)
             End While
 
-            Dim result = separators.ToList
-            _pool.Free(separators)
-
-            Return result
+            Return separators.ToListAndFree(_pool)
         End Function
 
         ' In Dev10 this was ParseArgument.
         Private Function ParseArgumentList() As CoreInternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax)
-            Dim comma As PunctuationSyntax
 
             Dim arguments = _pool.AllocateSeparated(Of ArgumentSyntax)()
 
@@ -3420,18 +3371,9 @@ checkNullable:
 
                 arguments.Add(arg)
 
-                comma = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
+            Loop While TryParseCommaInto(arguments)
 
-                arguments.AddSeparator(comma)
-            Loop
-
-            Dim result = arguments.ToList
-            _pool.Free(arguments)
-
-            Return result
+            Return arguments.ToListAndFree(_pool)
         End Function
 
         ' This used to be ParsePropertyOrEventProcedureDefinition
@@ -3497,10 +3439,7 @@ checkNullable:
             Debug.Assert(CurrentToken.Kind = SyntaxKind.ImplementsKeyword, "Implements list parsing lost.")
 
             Dim implementsKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
-            Dim ImplementsClauses As SeparatedSyntaxListBuilder(Of QualifiedNameSyntax) =
-                Me._pool.AllocateSeparated(Of QualifiedNameSyntax)()
-
-            Dim comma As PunctuationSyntax
+            Dim ImplementsClauses = Me._pool.AllocateSeparated(Of QualifiedNameSyntax)()
 
             GetNextToken()
 
@@ -3526,18 +3465,9 @@ checkNullable:
 
                 ImplementsClauses.Add(term)
 
-                comma = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
+            Loop While TryParseCommaInto(ImplementsClauses)
 
-                ImplementsClauses.AddSeparator(comma)
-            Loop
-
-            Dim result = ImplementsClauses.ToList
-            Me._pool.Free(ImplementsClauses)
-
-            Return SyntaxFactory.ImplementsClause(implementsKeyword, result)
+            Return SyntaxFactory.ImplementsClause(implementsKeyword, ImplementsClauses.ToListAndFree(_pool))
         End Function
 
         ' File: Parser.cpp
@@ -3548,8 +3478,7 @@ checkNullable:
             Debug.Assert(CurrentToken.Kind = SyntaxKind.HandlesKeyword, "Handles list parsing lost.")
 
             Dim handlesKeyword = DirectCast(CurrentToken, KeywordSyntax)
-            Dim handlesClauseItems As SeparatedSyntaxListBuilder(Of HandlesClauseItemSyntax) = Me._pool.AllocateSeparated(Of HandlesClauseItemSyntax)()
-            Dim comma As PunctuationSyntax
+            Dim handlesClauseItems = _pool.AllocateSeparated(Of HandlesClauseItemSyntax)()
 
             GetNextToken() ' get off the handles / comma token
             Do
@@ -3610,18 +3539,9 @@ checkNullable:
 
                 handlesClauseItems.Add(item)
 
-                comma = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
-
-                handlesClauseItems.AddSeparator(comma)
-            Loop
-
-            Dim result = handlesClauseItems.ToList
-            Me._pool.Free(handlesClauseItems)
-
-            Return SyntaxFactory.HandlesClause(handlesKeyword, result)
+            Loop While TryParseCommaInto(handlesClauseItems)
+            
+            Return SyntaxFactory.HandlesClause(handlesKeyword, handlesClauseItems.ToListAndFree(_pool))
         End Function
 
         ' /*********************************************************************
@@ -4323,7 +4243,6 @@ checkNullable:
             Dim openParen As PunctuationSyntax = Nothing
             Dim ofKeyword As KeywordSyntax = Nothing
             Dim closeParen As PunctuationSyntax = Nothing
-            Dim comma As PunctuationSyntax = Nothing
 
             TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen)
 
@@ -4394,19 +4313,12 @@ checkNullable:
 
                             constraints.Add(constraint)
 
-                            comma = Nothing
-                            If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                                constraints.AddSeparator(comma)
-                            Else
-                                Exit Do
-                            End If
-                        Loop
+                        Loop While TryParseCommaInto(constraints)
 
                         Dim closeBrace As PunctuationSyntax = Nothing
                         TryEatNewLineAndGetToken(SyntaxKind.CloseBraceToken, closeBrace, createIfMissing:=True)
 
-                        Dim constraintList = constraints.ToList
-                        Me._pool.Free(constraints)
+                        Dim constraintList = constraints.ToListAndFree(_pool)
 
                         typeParameterConstraintClause = SyntaxFactory.TypeParameterMultipleConstraintClause(asKeyword, openBrace, constraintList, closeBrace)
 
@@ -4426,13 +4338,8 @@ checkNullable:
 
                 typeParameters.Add(typeParameter)
 
-                comma = Nothing
-                If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    typeParameters.AddSeparator(comma)
-                Else
-                    Exit Do
-                End If
-            Loop
+
+            Loop While TryParseCommaInto(typeParameters)
 
             If openParen IsNot Nothing Then
                 If Not TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=False) Then
@@ -4445,9 +4352,7 @@ checkNullable:
                 End If
             End If
 
-            Dim separatedTypeParameters = typeParameters.ToList
-            Me._pool.Free(typeParameters)
-
+            Dim separatedTypeParameters = typeParameters.ToListAndFree(_pool)
             Dim result As TypeParameterListSyntax = SyntaxFactory.TypeParameterList(openParen, ofKeyword, separatedTypeParameters, closeParen)
 
             Debug.Assert(result IsNot Nothing)
@@ -4562,7 +4467,6 @@ checkNullable:
                                 parameters.Add(param)
                                 Exit Do
                             End If
-
                         Else
                             parameters.Add(param)
                             Exit Do
@@ -4580,12 +4484,7 @@ checkNullable:
 
             TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
 
-            Dim result = parameters.ToList()
-
-            _pool.Free(parameters)
-
-            Return result
-
+            Return parameters.ToListAndFree(_pool)
         End Function
 
         ' /*********************************************************************
@@ -4753,19 +4652,10 @@ checkNullable:
 
                 importsClauses.Add(ImportsClause)
 
-                Dim comma As PunctuationSyntax = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
+            Loop While TryParseCommaInto(importsClauses)
 
-                importsClauses.AddSeparator(comma)
-            Loop
+            Return SyntaxFactory.ImportsStatement(importsKeyword, importsClauses.ToListAndFree(_pool))
 
-            Dim result = importsClauses.ToList
-            Me._pool.Free(importsClauses)
-            Dim statement As ImportsStatementSyntax = SyntaxFactory.ImportsStatement(importsKeyword, result)
-
-            Return statement
         End Function
 
         ' File:Parser.cpp
@@ -4914,16 +4804,10 @@ checkNullable:
                 typeNames.Add(typeName)
 
                 'Eat a new line after "," but not "INHERITS" or "IMPLEMENTS"
-                Dim comma As PunctuationSyntax = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
 
-                typeNames.AddSeparator(comma)
-            Loop
+            Loop While TryParseCommaInto(typeNames)
 
-            Dim separatedTypeNames = typeNames.ToList
-            Me._pool.Free(typeNames)
+            Dim separatedTypeNames = typeNames.ToListAndFree(_pool)
 
             Dim result As InheritsOrImplementsStatementSyntax = Nothing
             Select Case (keyword.Kind)
@@ -5483,11 +5367,8 @@ checkNullable:
                 Nothing)
 
             attributes.Add(attribute)
-            attributeBlocks.Add(SyntaxFactory.AttributeList(lessThan, attributes.ToList(), greaterThan))
-            Dim result = attributeBlocks.ToList()
-            _pool.Free(attributes)
-            _pool.Free(attributeBlocks)
-            Return result
+            attributeBlocks.Add(SyntaxFactory.AttributeList(lessThan, attributes.ToListAndFree(_pool), greaterThan))
+            Return attributeBlocks.ToListAndFree(_pool)
         End Function
 
         ' File:Parser.cpp
@@ -5576,17 +5457,11 @@ checkNullable:
                         arguments = ParseParenthesizedArguments(attributeListParent:=True)
                     End If
 
-                    Dim attribute As AttributeSyntax = SyntaxFactory.Attribute(optionalTarget, typeName, arguments)
+                    Dim attribute = SyntaxFactory.Attribute(optionalTarget, typeName, arguments)
 
                     attributes.Add(attribute)
 
-                    Dim comma As PunctuationSyntax = Nothing
-                    If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                        Exit Do
-                    End If
-
-                    attributes.AddSeparator(comma)
-                Loop
+                Loop While TryParseCommaInto(attributes)
 
                 ResetCurrentToken(ScannerState.VB)
 
@@ -5608,9 +5483,8 @@ checkNullable:
 
             Loop While CurrentToken.Kind = SyntaxKind.LessThanToken
 
-            Dim result = attributeBlocks.ToList
+            Dim result = attributeBlocks.ToListAndFree(_pool)
             _pool.Free(attributes)
-            _pool.Free(attributeBlocks)
 
             Return result
         End Function

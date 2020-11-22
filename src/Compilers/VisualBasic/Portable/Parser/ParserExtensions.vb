@@ -16,6 +16,20 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Module ParserExtensions
 
+        <Extension>
+        Function ToListAndFree(Of T As GreenNode)(builder As SyntaxListBuilder(Of T), pool As SyntaxListPool) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of T)
+            Dim result = builder.ToList
+            pool.free(builder)
+            Return result
+        End Function
+
+        <Extension>
+        Function ToListAndFree(Of T As GreenNode)(builder As SeparatedSyntaxListBuilder(Of T), pool As SyntaxListPool) As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of T)
+            Dim result = builder.ToList
+            pool.free(builder)
+            Return result
+        End Function
+
         <Extension()>
         Friend Function Any(Of T As VisualBasicSyntaxNode)(this As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of T),
                                                     ParamArray kinds As SyntaxKind()) As Boolean

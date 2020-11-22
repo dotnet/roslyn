@@ -1293,9 +1293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 argumentBuilder.Add(SyntaxFactory.SimpleArgument(nameColonEquals:=Nothing, expression:=missing))
             End If
 
-            Dim arguments = argumentBuilder.ToList
-            _pool.Free(argumentBuilder)
-
+            Dim arguments = argumentBuilder.ToListAndFree(_pool)
             Dim tupleExpression = SyntaxFactory.TupleExpression(openParen, arguments, closeParen)
 
             tupleExpression = CheckFeatureAvailability(Feature.Tuples, tupleExpression)
@@ -1465,10 +1463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Loop
 
-            Dim result = arguments.ToList
-            _pool.Free(arguments)
-            Return result
-
+            Return arguments.ToListAndFree(_pool)
         End Function
 
         ''' <summary>After VB15.5 it is possible to use named arguments in non-trailing position, except in attribute lists (where it remains disallowed)</summary>
@@ -1530,14 +1525,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 End If
-
-                Dim comma As PunctuationSyntax = Nothing
-                TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma)
-                Debug.Assert(comma.Kind = SyntaxKind.CommaToken)
-
                 arguments.Add(namedArgument)
-                arguments.AddSeparator(comma)
-            Loop
+
+            Loop While TryParseCommaInto( arguments)
         End Sub
 
         ' File: Parser.cpp
@@ -1871,18 +1861,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Do
                 variables.Add(ParseVariable())
 
-                Dim comma As PunctuationSyntax = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
+            Loop While TryParseCommaInto(variables)
 
-                variables.AddSeparator(comma)
-            Loop
-
-            Dim result = variables.ToList
-            Me._pool.Free(variables)
-
-            Return result
+            Return variables.ToListAndFree(_pool)
         End Function
 
         Private Function ParseAwaitExpression(Optional awaitKeyword As KeywordSyntax = Nothing) As AwaitExpressionSyntax
