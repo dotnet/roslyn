@@ -1,4 +1,4 @@
-#pragma warning disable CA1820, CS8600, IDE0055, IDE0057, IDE0062, IDE0078, IDE0073
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -6,35 +6,28 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace GenerateAnalyzerNuspec
-{
-    public static class Program
-    {
-        public static void Main(string[] Args)
-        {
-
-string nuspecFile = Args[0];
-string assetsDir = Args[1];
-string projectDir = Args[2];
-string configuration = Args[3];
-string[] tfms = Args[4].Split(';');
-var metadataList = Args[5].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var fileList = Args[6].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var folderList = Args[7].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var assemblyList = Args[8].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var dependencyList = Args[9].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var libraryList = Args[10].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var rulesetsDir = Args[11];
-var editorconfigsDir = Args[12];
-var legacyRulesets = Args[13].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var artifactsBinDir = Args[14];
-var analyzerDocumentationFileDir = Args[15];
-var analyzerDocumentationFileName = Args[16];
-var analyzerSarifFileDir = Args[17];
-var analyzerSarifFileName = Args[18];
-var analyzerConfigurationFileDir = Args[19];
-var analyzerConfigurationFileName = Args[20];
-var globalAnalyzerConfigsDir = Args[21];
+string nuspecFile = args[0];
+string assetsDir = args[1];
+string projectDir = args[2];
+string configuration = args[3];
+string[] tfms = args[4].Split(';');
+var metadataList = args[5].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+var fileList = args[6].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+var folderList = args[7].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+var assemblyList = args[8].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+var dependencyList = args[9].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+var libraryList = args[10].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+var rulesetsDir = args[11];
+var editorconfigsDir = args[12];
+var legacyRulesets = args[13].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+var artifactsBinDir = args[14];
+var analyzerDocumentationFileDir = args[15];
+var analyzerDocumentationFileName = args[16];
+var analyzerSarifFileDir = args[17];
+var analyzerSarifFileName = args[18];
+var analyzerConfigurationFileDir = args[19];
+var analyzerConfigurationFileName = args[20];
+var globalAnalyzerConfigsDir = args[21];
 
 var result = new StringBuilder();
 
@@ -42,25 +35,25 @@ result.AppendLine(@"<?xml version=""1.0""?>");
 result.AppendLine(@"<package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">");
 result.AppendLine(@"  <metadata>");
 
-string version = null;
-string repositoryType = null;
-string repositoryUrl = null;
-string repositoryCommit = null;
+string version = string.Empty;
+string repositoryType = string.Empty;
+string repositoryUrl = string.Empty;
+string repositoryCommit = string.Empty;
 
 foreach (string entry in metadataList)
 {
     int equals = entry.IndexOf('=');
-    string name = entry.Substring(0, equals);
-    string value = entry.Substring(equals + 1);
+    string name = entry[..equals];
+    string value = entry[(equals + 1)..];
     switch (name)
     {
         case "repositoryType": repositoryType = value; continue;
         case "repositoryUrl": repositoryUrl = value; continue;
         case "repositoryCommit": repositoryCommit = value; continue;
-		case "license": result.AppendLine($"    <license type=\"expression\">{value}</license>"); continue;
+        case "license": result.AppendLine($"    <license type=\"expression\">{value}</license>"); continue;
     }
-    
-    if (value != "")
+
+    if (value.Length > 0)
     {
         result.AppendLine($"    <{name}>{value}</{name}>");
     }
@@ -92,8 +85,6 @@ result.AppendLine(@"  </metadata>");
 
 result.AppendLine(@"  <files>");
 
-string FileElement(string file, string target) => $@"    <file src=""{file}"" target=""{target}""/>";
-
 if (fileList.Length > 0 || assemblyList.Length > 0 || libraryList.Length > 0 || folderList.Length > 0)
 {
     const string csName = "CSharp";
@@ -118,11 +109,11 @@ if (fileList.Length > 0 || assemblyList.Length > 0 || libraryList.Length > 0 || 
         allTargets.Add(agnosticTarget);
     }
 
-    foreach (string assembly in assemblyList) 
+    foreach (string assembly in assemblyList)
     {
         IEnumerable<string> targets;
 
-		if (assembly.Contains(csName))
+        if (assembly.Contains(csName))
         {
             targets = new[] { csTarget };
         }
@@ -176,7 +167,7 @@ if (fileList.Length > 0 || assemblyList.Length > 0 || libraryList.Length > 0 || 
         foreach (var tfm in tfms)
         {
             var fileWithPath = Path.Combine(artifactsBinDir, Path.GetFileNameWithoutExtension(file), configuration, tfm, file);
-            
+
             // For multi-tfm case, file may not exist for all tfms.
             if (File.Exists(fileWithPath))
             {
@@ -193,10 +184,7 @@ if (fileList.Length > 0 || assemblyList.Length > 0 || libraryList.Length > 0 || 
             foreach (var file in Directory.EnumerateFiles(folderPath))
             {
                 var fileExtension = Path.GetExtension(file);
-                if (fileExtension == ".exe" ||
-                    fileExtension == ".dll" ||
-                    fileExtension == ".config" ||
-                    fileExtension == ".xml")
+                if (fileExtension is ".exe" or ".dll" or ".config" or ".xml")
                 {
                     var fileWithPath = Path.Combine(folderPath, file);
                     var targetPath = tfms.Length > 1 ? Path.Combine(folder, tfm) : folder;
@@ -293,6 +281,5 @@ result.AppendLine(@"  </files>");
 result.AppendLine(@"</package>");
 
 File.WriteAllText(nuspecFile, result.ToString());
-        }
-    }
-}
+
+static string FileElement(string file, string target) => $@"    <file src=""{file}"" target=""{target}""/>";
