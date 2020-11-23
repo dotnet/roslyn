@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,12 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         public ICollectionDebugView(ICollection<T> collection)
         {
-            if (collection == null)
-            {
-                throw new ArgumentNullException(nameof(collection));
-            }
-
-            _collection = collection;
+            _collection = collection ?? throw new ArgumentNullException(nameof(collection));
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
@@ -29,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             get
             {
-                T[] items = new T[_collection.Count];
+                var items = new T[_collection.Count];
                 _collection.CopyTo(items, 0);
                 return items;
             }
