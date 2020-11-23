@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../BasicVSResources.resx">
     <body>
+      <trans-unit id="Add_missing_imports_on_paste">
+        <source>Add missing imports on paste</source>
+        <target state="new">Add missing imports on paste</target>
+        <note>'import' is a Visual Basic keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
         <target state="translated">In operatori relazionali:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>
@@ -9,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments">
         <source>Insert ' at the start of new lines when writing ' comments</source>
-        <target state="new">Insert ' at the start of new lines when writing ' comments</target>
+        <target state="translated">Inserisci * all'inizio di nuove righe quando si scrivono commenti '</target>
         <note />
       </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
@@ -49,12 +54,12 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
         <source>Show hints for 'New' expressions</source>
-        <target state="new">Show hints for 'New' expressions</target>
+        <target state="translated">Mostra suggerimenti per le espressioni 'New'</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
-        <target state="needs-review-translation">Mostra elementi da spazi dei nomi non importati (sperimentale)</target>
+        <target state="translated">Mostra elementi da spazi dei nomi non importati</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">

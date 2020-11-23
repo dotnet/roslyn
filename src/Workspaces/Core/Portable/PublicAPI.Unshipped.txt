@@ -1,2 +1,8 @@
+Microsoft.CodeAnalysis.Project.GetSourceGeneratedDocumentAsync(Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.SourceGeneratedDocument>
+Microsoft.CodeAnalysis.Project.GetSourceGeneratedDocumentsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SourceGeneratedDocument>>
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RecordName = "record name" -> string
 Microsoft.CodeAnalysis.Editing.DeclarationKind.Record = 29 -> Microsoft.CodeAnalysis.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Solution.GetSourceGeneratedDocumentAsync(Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.SourceGeneratedDocument>
+Microsoft.CodeAnalysis.SourceGeneratedDocument
+Microsoft.CodeAnalysis.SourceGeneratedDocument.HintName.get -> string
+Microsoft.CodeAnalysis.SourceGeneratedDocument.SourceGenerator.get -> Microsoft.CodeAnalysis.ISourceGenerator

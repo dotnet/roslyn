@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-HANT" original="../BasicVSResources.resx">
     <body>
+      <trans-unit id="Add_missing_imports_on_paste">
+        <source>Add missing imports on paste</source>
+        <target state="new">Add missing imports on paste</target>
+        <note>'import' is a Visual Basic keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
         <target state="translated">在關係運算子中: = &lt;&gt; &lt; &gt; &lt;= &gt;= Like Is</target>
@@ -9,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments">
         <source>Insert ' at the start of new lines when writing ' comments</source>
-        <target state="new">Insert ' at the start of new lines when writing ' comments</target>
+        <target state="translated">撰寫 ' 註解時，於新行開頭插入 '</target>
         <note />
       </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
@@ -49,12 +54,12 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
         <source>Show hints for 'New' expressions</source>
-        <target state="new">Show hints for 'New' expressions</target>
+        <target state="translated">顯示 'New' 運算式的提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
-        <target state="needs-review-translation">顯示來自未匯入命名空間的項目 (實驗性)</target>
+        <target state="translated">顯示來自未匯入命名空間的項目</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">

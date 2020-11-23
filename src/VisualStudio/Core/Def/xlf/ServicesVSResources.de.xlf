@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="CSharp_Visual_Basic_Diagnostics_Language_Client">
         <source>C#/Visual Basic Diagnostics Language Client</source>
-        <target state="new">C#/Visual Basic Diagnostics Language Client</target>
+        <target state="translated">Client für C#-/Visual Basic-Diagnosesprache</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="Color_hints">
         <source>Color hints</source>
-        <target state="new">Color hints</target>
+        <target state="translated">Farbhinweise</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -164,7 +164,7 @@
       </trans-unit>
       <trans-unit id="Comments">
         <source>Comments</source>
-        <target state="new">Comments</target>
+        <target state="translated">Kommentare</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -189,17 +189,17 @@
       </trans-unit>
       <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
         <source>Display all hints while pressing Alt+F1</source>
-        <target state="new">Display all hints while pressing Alt+F1</target>
+        <target state="translated">Alle Hinweise beim Drücken von ALT+F1 anzeigen</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Disp_lay inline parameter name hints</source>
-        <target state="needs-review-translation">Hinweise zu In_lineparameternamen anzeigen</target>
+        <target state="translated">Hinweise zu In_lineparameternamen anzeigen</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_type_hints">
         <source>Display inline type hints</source>
-        <target state="new">Display inline type hints</target>
+        <target state="translated">Inlinetyphinweise anzeigen</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -229,12 +229,12 @@
       </trans-unit>
       <trans-unit id="Enable_Razor_pull_diagnostics_experimental_requires_restart">
         <source>Enable Razor 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="new">Enable Razor 'pull' diagnostics (experimental, requires restart)</target>
+        <target state="translated">Razor-Pull-Diagnose aktivieren (experimentell, Neustart erforderlich)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
         <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="new">Enable 'pull' diagnostics (experimental, requires restart)</target>
+        <target state="translated">Pull-Diagnose aktivieren (experimentell, Neustart erforderlich)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
@@ -304,7 +304,7 @@
       </trans-unit>
       <trans-unit id="Inline_Hints_experimental">
         <source>Inline Hints (experimental)</source>
-        <target state="new">Inline Hints (experimental)</target>
+        <target state="translated">Inlinehinweise (experimentell)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -569,7 +569,7 @@
       </trans-unit>
       <trans-unit id="New_Type_Name_colon">
         <source>New Type Name:</source>
-        <target state="new">New Type Name:</target>
+        <target state="translated">Neuer Typname:</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_public_methods">
@@ -814,22 +814,22 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">
         <source>Show hints for everything else</source>
-        <target state="new">Show hints for everything else</target>
+        <target state="translated">Hinweise für alles andere anzeigen</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
-        <target state="new">Show hints for lambda parameter types</target>
+        <target state="translated">Hinweise für Lambda-Parametertypen anzeigen</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_literals">
         <source>Show hints for literals</source>
-        <target state="new">Show hints for literals</target>
+        <target state="translated">Hinweise für Literale anzeigen</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_variables_with_inferred_types">
         <source>Show hints for variables with inferred types</source>
-        <target state="new">Show hints for variables with inferred types</target>
+        <target state="translated">Hinweise für Variablen mit abgeleiteten Typen anzeigen</target>
         <note />
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
@@ -839,12 +839,12 @@
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
         <source>Suppress hints when parameter name matches the method's intent</source>
-        <target state="new">Suppress hints when parameter name matches the method's intent</target>
+        <target state="translated">Hinweise unterdrücken, wenn der Parametername mit der Methodenabsicht übereinstimmt</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
         <source>Suppress hints when parameter names differ only by suffix</source>
-        <target state="new">Suppress hints when parameter names differ only by suffix</target>
+        <target state="translated">Hinweise unterdrücken, wenn sich Parameternamen nur durch das Suffix unterscheiden</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">

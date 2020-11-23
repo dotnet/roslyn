@@ -465,46 +465,46 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
-        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <target state="translated">包含類型 '{1}' 的組件 '{0}' 參考了 .NET Framework，此情形不受支援。</target>
         <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
-        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+        <target state="translated">載入的組件參考了 .NET Framework，此情形不受支援。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="new">Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</target>
+        <target state="translated">產生器 '{0}' 無法產生來源。其不會提供給輸出，並可能導致編譯錯誤。例外狀況的類型為 '{1}'，訊息為 '{2}'</target>
         <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
         <source>Generator threw the following exception:
 '{0}'.</source>
-        <target state="new">Generator threw the following exception:
-'{0}'.</target>
+        <target state="translated">產生器擲回了下列例外狀況:
+'{0}'。</target>
         <note>{0} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
-        <target state="new">Generator failed to generate source.</target>
+        <target state="translated">產生器無法產生來源。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
         <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="new">Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</target>
+        <target state="translated">產生器 '{0}' 無法初始化。其不會提供給輸出，並可能導致編譯錯誤。例外狀況的類型為 '{1}'，訊息為 '{2}'</target>
         <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
         <source>Generator threw the following exception:
 '{0}'.</source>
-        <target state="new">Generator threw the following exception:
-'{0}'.</target>
+        <target state="translated">產生器擲回了下列例外狀況:
+'{0}'。</target>
         <note>{0} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
-        <target state="new">Generator failed to initialize.</target>
+        <target state="translated">產生器無法初始化。</target>
         <note />
       </trans-unit>
       <trans-unit id="WrongNumberOfTypeArguments">
