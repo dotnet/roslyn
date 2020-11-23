@@ -27,8 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles
         // Parameters of positional record declarations should be ignored because they also
         // considered properties, and that naming style makes more sense
         protected override bool ShouldIgnore(ISymbol symbol)
-            => symbol.IsKind(SymbolKind.Parameter)
-            && IsParameterOfRecordDeclaration(symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax());
+            => (symbol.IsKind(SymbolKind.Parameter)
+            && IsParameterOfRecordDeclaration(symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()))
+            || !symbol.CanBeReferencedByName;
 
         private static bool IsParameterOfRecordDeclaration(SyntaxNode? node)
             => node is ParameterSyntax
