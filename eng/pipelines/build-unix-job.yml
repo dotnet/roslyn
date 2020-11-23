@@ -35,7 +35,7 @@ jobs:
       displayName: Build
 
     - script: ./eng/prepare-tests.sh
-      displayName: Prepare Tests
+      displayName: Prepare Test Payload
 
     - task: PublishPipelineArtifact@1
       displayName: Publish Test Payload

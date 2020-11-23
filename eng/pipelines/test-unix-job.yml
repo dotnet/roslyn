@@ -39,7 +39,7 @@ jobs:
     - checkout: none
 
     - task: DownloadPipelineArtifact@2
-      displayName: Download test payload
+      displayName: Download Test Payload
       inputs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
