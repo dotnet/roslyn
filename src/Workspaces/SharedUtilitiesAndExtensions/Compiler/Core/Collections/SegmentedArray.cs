@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
@@ -29,15 +30,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             if ((uint)length <= (uint)sourceArray.Length
                 && (uint)length <= (uint)destinationArray.Length)
             {
-                var sourceSegmentEnumerable = sourceArray.GetSegments(0, length);
-                var destinationSegmentEnumerable = destinationArray.GetSegments(0, length);
-
-                using var sourceSegmentEnumerator = sourceSegmentEnumerable.GetEnumerator();
-                using var destinationSegmentEnumerator = destinationSegmentEnumerable.GetEnumerator();
-                while (sourceSegmentEnumerator.MoveNext())
+                foreach (var (first, second) in GetSegments(sourceArray, destinationArray, length))
                 {
-                    destinationSegmentEnumerator.MoveNext();
-                    sourceSegmentEnumerator.Current.CopyTo(destinationSegmentEnumerator.Current);
+                    first.CopyTo(second);
                 }
 
                 return;
@@ -55,6 +50,220 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         private static SegmentEnumerable<T> GetSegments<T>(this SegmentedArray<T> array, int offset, int length)
             => new(array, offset, length);
+
+        private static AlignedSegmentEnumerable<T> GetSegments<T>(SegmentedArray<T> first, SegmentedArray<T> second, int length)
+            => new(first, second, length);
+
+#pragma warning disable IDE0051 // Remove unused private members (will be used in follow-up)
+        private static AlignedSegmentEnumerable<T> GetSegmentsAligned<T>(SegmentedArray<T> first, int firstOffset, SegmentedArray<T> second, int secondOffset, int length)
+            => new(first, firstOffset, second, secondOffset, length);
+
+        private static UnalignedSegmentEnumerable<T> GetSegmentsUnaligned<T>(SegmentedArray<T> first, int firstOffset, SegmentedArray<T> second, int secondOffset, int length)
+            => new(first, firstOffset, second, secondOffset, length);
+#pragma warning restore IDE0051 // Remove unused private members
+
+        private readonly struct AlignedSegmentEnumerable<T> : IEnumerable<(Memory<T> first, Memory<T> second)>
+        {
+            private readonly SegmentedArray<T> _first;
+            private readonly int _firstOffset;
+            private readonly SegmentedArray<T> _second;
+            private readonly int _secondOffset;
+            private readonly int _length;
+
+            public AlignedSegmentEnumerable(SegmentedArray<T> first, SegmentedArray<T> second, int length)
+                : this(first, 0, second, 0, length)
+            {
+            }
+
+            public AlignedSegmentEnumerable(SegmentedArray<T> first, int firstOffset, SegmentedArray<T> second, int secondOffset, int length)
+            {
+                _first = first;
+                _firstOffset = firstOffset;
+                _second = second;
+                _secondOffset = secondOffset;
+                _length = length;
+            }
+
+            public AlignedSegmentEnumerator<T> GetEnumerator()
+                => new((T[][])_first.SyncRoot, _firstOffset, (T[][])_second.SyncRoot, _secondOffset, _length);
+
+            IEnumerator<(Memory<T> first, Memory<T> second)> IEnumerable<(Memory<T> first, Memory<T> second)>.GetEnumerator()
+                => GetEnumerator();
+
+            IEnumerator IEnumerable.GetEnumerator()
+                => GetEnumerator();
+        }
+
+        private struct AlignedSegmentEnumerator<T> : IEnumerator<(Memory<T> first, Memory<T> second)>
+        {
+            private readonly T[][] _firstSegments;
+            private readonly int _firstOffset;
+            private readonly T[][] _secondSegments;
+            private readonly int _secondOffset;
+            private readonly int _length;
+
+            private int _completed;
+            private (Memory<T> first, Memory<T> second) _current;
+
+            public AlignedSegmentEnumerator(T[][] firstSegments, int firstOffset, T[][] secondSegments, int secondOffset, int length)
+            {
+                _firstSegments = firstSegments;
+                _firstOffset = firstOffset;
+                _secondSegments = secondSegments;
+                _secondOffset = secondOffset;
+                _length = length;
+
+                _completed = 0;
+                _current = (Memory<T>.Empty, Memory<T>.Empty);
+            }
+
+            public (Memory<T> first, Memory<T> second) Current => _current;
+
+            object IEnumerator.Current => _current;
+
+            public void Dispose()
+            {
+            }
+
+            public bool MoveNext()
+            {
+                if (_completed == _length)
+                {
+                    _current = (Memory<T>.Empty, Memory<T>.Empty);
+                    return false;
+                }
+
+                var segmentLength = _firstSegments[0].Length;
+                if (_completed == 0)
+                {
+                    var initialFirstSegment = _firstOffset / segmentLength;
+                    var initialFirstSegmentStart = initialFirstSegment * segmentLength;
+                    var initialSecondSegment = _secondOffset / segmentLength;
+                    var initialSecondSegmentStart = initialSecondSegment * segmentLength;
+                    var offset = _firstOffset - initialFirstSegmentStart;
+                    Debug.Assert(offset == (_secondOffset - initialSecondSegmentStart), "Aligned views must start at the same segment offset");
+
+                    var firstSegment = _firstSegments[initialFirstSegment];
+                    var secondSegment = _secondSegments[initialSecondSegment];
+                    var remainingInSegment = firstSegment.Length - offset;
+                    var currentSegmentLength = Math.Min(remainingInSegment, _length);
+                    _current = (firstSegment.AsMemory().Slice(offset, currentSegmentLength), secondSegment.AsMemory().Slice(offset, currentSegmentLength));
+                    _completed = currentSegmentLength;
+                    return true;
+                }
+                else
+                {
+                    var firstSegment = _firstSegments[(_completed + _firstOffset) / segmentLength];
+                    var secondSegment = _secondSegments[(_completed + _secondOffset) / segmentLength];
+                    var currentSegmentLength = Math.Min(segmentLength, _length - _completed);
+                    _current = (firstSegment.AsMemory().Slice(0, currentSegmentLength), secondSegment.AsMemory().Slice(0, currentSegmentLength));
+                    _completed += currentSegmentLength;
+                    return true;
+                }
+            }
+
+            public void Reset()
+            {
+                _completed = 0;
+                _current = (Memory<T>.Empty, Memory<T>.Empty);
+            }
+        }
+
+        private readonly struct UnalignedSegmentEnumerable<T> : IEnumerable<(Memory<T> first, Memory<T> second)>
+        {
+            private readonly SegmentedArray<T> _first;
+            private readonly int _firstOffset;
+            private readonly SegmentedArray<T> _second;
+            private readonly int _secondOffset;
+            private readonly int _length;
+
+            public UnalignedSegmentEnumerable(SegmentedArray<T> first, SegmentedArray<T> second, int length)
+                : this(first, 0, second, 0, length)
+            {
+            }
+
+            public UnalignedSegmentEnumerable(SegmentedArray<T> first, int firstOffset, SegmentedArray<T> second, int secondOffset, int length)
+            {
+                _first = first;
+                _firstOffset = firstOffset;
+                _second = second;
+                _secondOffset = secondOffset;
+                _length = length;
+            }
+
+            public UnalignedSegmentEnumerator<T> GetEnumerator()
+                => new((T[][])_first.SyncRoot, _firstOffset, (T[][])_second.SyncRoot, _secondOffset, _length);
+
+            IEnumerator<(Memory<T> first, Memory<T> second)> IEnumerable<(Memory<T> first, Memory<T> second)>.GetEnumerator()
+                => GetEnumerator();
+
+            IEnumerator IEnumerable.GetEnumerator()
+                => GetEnumerator();
+        }
+
+        private struct UnalignedSegmentEnumerator<T> : IEnumerator<(Memory<T> first, Memory<T> second)>
+        {
+            private readonly T[][] _firstSegments;
+            private readonly int _firstOffset;
+            private readonly T[][] _secondSegments;
+            private readonly int _secondOffset;
+            private readonly int _length;
+
+            private int _completed;
+            private (Memory<T> first, Memory<T> second) _current;
+
+            public UnalignedSegmentEnumerator(T[][] firstSegments, int firstOffset, T[][] secondSegments, int secondOffset, int length)
+            {
+                _firstSegments = firstSegments;
+                _firstOffset = firstOffset;
+                _secondSegments = secondSegments;
+                _secondOffset = secondOffset;
+                _length = length;
+
+                _completed = 0;
+                _current = (Memory<T>.Empty, Memory<T>.Empty);
+            }
+
+            public (Memory<T> first, Memory<T> second) Current => _current;
+
+            object IEnumerator.Current => _current;
+
+            public void Dispose()
+            {
+            }
+
+            public bool MoveNext()
+            {
+                if (_completed == _length)
+                {
+                    _current = (Memory<T>.Empty, Memory<T>.Empty);
+                    return false;
+                }
+
+                var segmentLength = Math.Max(_firstSegments[0].Length, _secondSegments[0].Length);
+                var initialFirstSegment = (_completed + _firstOffset) / segmentLength;
+                var initialFirstSegmentStart = initialFirstSegment * segmentLength;
+                var initialSecondSegment = (_completed + _secondOffset) / segmentLength;
+                var initialSecondSegmentStart = initialSecondSegment * segmentLength;
+                var firstOffset = _completed + _firstOffset - initialFirstSegmentStart;
+                var secondOffset = _completed + _secondOffset - initialSecondSegmentStart;
+
+                var firstSegment = _firstSegments[initialFirstSegment];
+                var secondSegment = _secondSegments[initialSecondSegment];
+                var remainingInFirstSegment = firstSegment.Length - firstOffset;
+                var remainingInSecondSegment = secondSegment.Length - secondOffset;
+                var currentSegmentLength = Math.Min(Math.Min(remainingInFirstSegment, remainingInSecondSegment), _length);
+                _current = (firstSegment.AsMemory().Slice(firstOffset, currentSegmentLength), secondSegment.AsMemory().Slice(secondOffset, currentSegmentLength));
+                _completed += currentSegmentLength;
+                return true;
+            }
+
+            public void Reset()
+            {
+                _completed = 0;
+                _current = (Memory<T>.Empty, Memory<T>.Empty);
+            }
+        }
 
         private readonly struct SegmentEnumerable<T> : IEnumerable<Memory<T>>
         {
