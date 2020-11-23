@@ -95,17 +95,23 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return null;
             }
 
-            // Insert a new line between the braces.
-            var newLineEdit = new TextChange(new TextSpan(closingPoint - 1, 0), Environment.NewLine);
-            var textWithNewLine = originalDocumentText.WithChanges(newLineEdit);
 
+            // If there is not already an empty line inserted between the braces, insert one.
+            TextChange? newLineEdit = null;
+            var textToFormat = originalDocumentText;
+            if (!HasExistingEmptyLineBetweenBraces(openingPoint, closingPoint, originalDocumentText))
+            {
+                newLineEdit = new TextChange(new TextSpan(closingPoint - 1, 0), Environment.NewLine);
+                textToFormat = originalDocumentText.WithChanges(newLineEdit.Value);
+            }
+            
             // Modify the closing point location to adjust for the newly inserted line.
             closingPoint += Environment.NewLine.Length;
 
             // Format the text that contains the newly inserted line.
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var (formattingChanges, newClosingPoint) = await FormatTrackingSpanAsync(
-                document.WithText(textWithNewLine),
+                document.WithText(textToFormat),
                 documentOptions,
                 openingPoint,
                 closingPoint,
@@ -113,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 braceFormattingIndentationRules: GetBraceIndentationFormattingRules(documentOptions),
                 cancellationToken).ConfigureAwait(false);
             closingPoint = newClosingPoint;
-            var formattedText = textWithNewLine.WithChanges(formattingChanges);
+            var formattedText = textToFormat.WithChanges(formattingChanges);
 
             // Get the empty line between the curly braces.
             var desiredCaretLine = GetLineBetweenCurlys(closingPoint, formattedText);
@@ -127,8 +133,18 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // The new line edit is calculated against the original text, d0, to get text d1.
             // The formatting edits are calculated against d1 to get text d2.
             // Merge the formatting and new line edits into a set of whitespace only text edits that all apply to d0.
-            var overallChanges = MergeFormatChangesIntoNewLineChange(newLineEdit, formattingChanges);
+            var overallChanges = newLineEdit != null ? MergeFormatChangesIntoNewLineChange(newLineEdit.Value, formattingChanges) : formattingChanges;
             return new BraceCompletionResult(overallChanges, caretPosition);
+
+            static bool HasExistingEmptyLineBetweenBraces(int openingPoint, int closingPoint, SourceText sourceText)
+            {
+                // Check if there is an empty new line between the braces already.  If not insert one.
+                // This handles razor cases where they insert an additional empty line before calling brace completion.
+                var openingPointLine = sourceText.Lines.GetLineFromPosition(openingPoint).LineNumber;
+                var closingPointLine = sourceText.Lines.GetLineFromPosition(closingPoint).LineNumber;
+
+                return closingPointLine - 1 > openingPointLine && sourceText.Lines[closingPointLine - 1].IsEmptyOrWhitespace();
+            }
 
             static TextLine GetLineBetweenCurlys(int closingPosition, SourceText text)
             {
