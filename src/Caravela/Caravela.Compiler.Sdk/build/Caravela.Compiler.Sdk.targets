@@ -41,10 +41,13 @@
 
             foreach (var group in groups)
             {
-                var sdk = group.Elements(ns + "dependency").SingleOrDefault(e => e.Attribute("id").Value == "Caravela.Compiler.Sdk");
+                var caravelaDependency = group.Elements(ns + "dependency").SingleOrDefault(e => e.Attribute("id").Value == "Caravela.Compiler.Sdk");
 
-                if (sdk != null)
-                    sdk.Attribute("id").Value = "Caravela.Compiler";
+                if (caravelaDependency != null)
+                {
+                    caravelaDependency.Attribute("id").Value = "Caravela.Compiler";
+                    caravelaDependency.Attribute("exclude")?.Remove();
+                }
             }
 
             doc.Save(NuspecFile);
