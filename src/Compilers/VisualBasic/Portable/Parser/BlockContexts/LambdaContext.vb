@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Sub New(statement As StatementSyntax, prevContext As BlockContext)
             MyBase.New(If(statement.Kind = SyntaxKind.FunctionLambdaHeader, SyntaxKind.MultiLineFunctionLambdaExpression, SyntaxKind.MultiLineSubLambdaExpression), statement, prevContext)
 
-            Debug.Assert(statement.Kind = SyntaxKind.FunctionLambdaHeader OrElse statement.Kind = SyntaxKind.SubLambdaHeader)
+            Debug.Assert(statement.Kind.IsIn(SyntaxKind.FunctionLambdaHeader, SyntaxKind.SubLambdaHeader))
             Debug.Assert(SyntaxFacts.IsMultiLineLambdaExpression(BlockKind))
         End Sub
 

@@ -38,8 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 'End the current block and add the block to the context above
                 'This must end not only the current block but the current method.
                 Dim declarationContext = FindNearest(Function(s) SyntaxFacts.IsMethodBlock(s) OrElse
-                                                                 s = SyntaxKind.ConstructorBlock OrElse
-                                                                 s = SyntaxKind.OperatorBlock OrElse
+                                                                 s.IsIn(SyntaxKind.ConstructorBlock, SyntaxKind.OperatorBlock) OrElse
                                                                  SyntaxFacts.IsAccessorBlock(s))
                 If declarationContext IsNot Nothing Then
                     Dim context = declarationContext.PrevBlock
@@ -61,8 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         SyntaxKind.ImportsStatement
 
                         Dim declarationContext = FindNearest(Function(s) SyntaxFacts.IsMethodBlock(s) OrElse
-                                                                 s = SyntaxKind.ConstructorBlock OrElse
-                                                                 s = SyntaxKind.OperatorBlock OrElse
+                                                                 s.IsIn(SyntaxKind.ConstructorBlock, SyntaxKind.OperatorBlock) OrElse
                                                                  SyntaxFacts.IsAccessorBlock(s) OrElse
                                                                  SyntaxFacts.IsMultiLineLambdaExpression(s) OrElse
                                                                  SyntaxFacts.IsSingleLineLambdaExpression(s))

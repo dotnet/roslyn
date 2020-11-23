@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Implements ISyntaxFactoryContext
 
         Private _beginStatement As StatementSyntax
-
+    
         Protected _parser As Parser
         Protected _statements As SyntaxListBuilder(Of StatementSyntax)
 
@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend ReadOnly Property IsLineIf As Boolean
             Get
-                Return _kind = SyntaxKind.SingleLineIfStatement OrElse _kind = SyntaxKind.SingleLineElseClause
+                Return _kind.IsIn(SyntaxKind.SingleLineIfStatement, SyntaxKind.SingleLineElseClause)
             End Get
         End Property
 
@@ -208,11 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Friend Function Body() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
-            Dim result = _statements.ToList()
-
-            _statements.Clear()
-
-            Return result
+            Return _statements.ToListAndClear(Of StatementSyntax)
         End Function
 
         ''' <summary>
@@ -240,22 +236,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Friend Function Body(Of T As StatementSyntax)() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of T)
-            Dim result = _statements.ToList(Of T)()
-
-            _statements.Clear()
-
-            Return result
+            Return _statements.ToListAndClear(Of T)
         End Function
 
         ' Same as Body(), but use a SyntaxListWithManyChildren if the
         ' body is large enough, so we get red node with weak children.
         Friend Function BodyWithWeakChildren() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             If IsLargeEnoughNonEmptyStatementList(_statements) Then
-                Dim result = New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(SyntaxList.List(CType(_statements, SyntaxListBuilder).ToArray))
-
-                _statements.Clear()
-
-                Return result
+                Return _statements.ToListAndClear(Of StatementSyntax)
             Else
                 Return Body()
             End If
@@ -278,11 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Friend Function BaseDeclarations(Of T As InheritsOrImplementsStatementSyntax)() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of T)
-
-            Dim result = _statements.ToList(Of T)()
-
-            _statements.Clear()
-            Return result
+            Return _statements.ToListAndClear(Of T)
         End Function
 
         Friend MustOverride Function Parse() As StatementSyntax

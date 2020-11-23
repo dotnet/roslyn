@@ -18,11 +18,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Sub New(contextKind As SyntaxKind, statement As StatementSyntax, prevContext As BlockContext)
             MyBase.New(contextKind, statement, prevContext)
 
-            Debug.Assert(contextKind = SyntaxKind.ModuleBlock OrElse contextKind = SyntaxKind.ClassBlock OrElse
-                              contextKind = SyntaxKind.StructureBlock OrElse contextKind = SyntaxKind.InterfaceBlock)
+            Debug.Assert(contextKind.IsIn(SyntaxKind.ModuleBlock, SyntaxKind.ClassBlock, SyntaxKind.StructureBlock,SyntaxKind.InterfaceBlock))
 
-            Debug.Assert(BlockKind = SyntaxKind.ModuleBlock OrElse BlockKind = SyntaxKind.ClassBlock OrElse
-                               BlockKind = SyntaxKind.StructureBlock OrElse BlockKind = SyntaxKind.InterfaceBlock)
+            Debug.Assert(BlockKind.IsIn(SyntaxKind.ModuleBlock, SyntaxKind.ClassBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock))
 
             _state = SyntaxKind.None
         End Sub

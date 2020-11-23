@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Add(node)
                             Return Me
                         End If
-                        _importsStmts = New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImportsStatementSyntax)(Body.Node)
+                        _importsStmts =  New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of ImportsStatementSyntax)(Body.Node)
                         _state = SyntaxKind.AttributesStatement
 
                     Case SyntaxKind.AttributesStatement
@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim rewriter As New DiagnosticRewriter()
 
                 If notClosedIfDirectives IsNot Nothing Then
-                    rewriter._notClosedIfDirectives =
+                    rewriter._notClosedIfDirectives = 
                         New HashSet(Of IfDirectiveTriviaSyntax)(ReferenceEqualityComparer.Instance)
 
                     For Each node In notClosedIfDirectives

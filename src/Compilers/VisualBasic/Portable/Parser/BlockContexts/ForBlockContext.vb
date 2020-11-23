@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Sub New(statement As StatementSyntax, prevContext As BlockContext)
             MyBase.New(If(statement.Kind = SyntaxKind.ForStatement, SyntaxKind.ForBlock, SyntaxKind.ForEachBlock), statement, prevContext)
 
-            Debug.Assert(statement.Kind = SyntaxKind.ForStatement OrElse statement.Kind = SyntaxKind.ForEachStatement)
+            Debug.Assert(statement.Kind.IsIn(SyntaxKind.ForStatement, SyntaxKind.ForEachStatement))
         End Sub
 
         Friend Overrides Function CreateBlockSyntax(endStmt As StatementSyntax) As VisualBasicSyntaxNode

@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         <Extension>
         Function ToListAndFree(Of T As GreenNode)(builder As SyntaxListBuilder(Of T), pool As SyntaxListPool) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of T)
-            Dim result = builder.ToList
+            Dim result = builder.ToList(Of T)
             pool.free(builder)
             Return result
         End Function
@@ -98,6 +98,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return result
         End Function
 
+        <Extension>
+        Function ToListAndClear(Of T As GreenNode, R As GreenNode)(ByRef builder As SyntaxListBuilder(Of T)) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of R)
+            Dim result = builder.ToList(Of R)
+            builder.Clear
+            Return result
+        End Function
+
+        <Extension>
+        Function ToListAndClear(Of R As GreenNode)(ByRef builder As SyntaxListBuilder) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of R)
+            Dim result = builder.ToList(Of R)
+            builder.Clear
+            Return result
+        End Function
         <Extension()>
         Friend Function Any(Of T As VisualBasicSyntaxNode)(this As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of T),
                                                     ParamArray kinds As SyntaxKind()) As Boolean

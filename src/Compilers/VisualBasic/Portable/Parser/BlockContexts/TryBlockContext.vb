@@ -77,9 +77,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 endStmt = SyntaxFactory.EndTryStatement(InternalSyntaxFactory.MissingKeyword(SyntaxKind.EndKeyword), InternalSyntaxFactory.MissingKeyword(SyntaxKind.TryKeyword))
             End If
 
-            Dim result = SyntaxFactory.TryBlock(beginStmt, Body(), _catchParts.ToList(), _optionalFinallyPart, DirectCast(endStmt, EndBlockStatementSyntax))
+            Dim result = SyntaxFactory.TryBlock(beginStmt, Body(), _catchParts.ToListAndFree(_parser._pool), _optionalFinallyPart, DirectCast(endStmt, EndBlockStatementSyntax))
 
-            _parser._pool.Free(_catchParts)
             FreeStatements()
 
             Return result

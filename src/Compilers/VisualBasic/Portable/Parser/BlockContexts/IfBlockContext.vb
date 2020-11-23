@@ -79,9 +79,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 endStmt = SyntaxFactory.EndIfStatement(InternalSyntaxFactory.MissingKeyword(SyntaxKind.EndKeyword), InternalSyntaxFactory.MissingKeyword(SyntaxKind.IfKeyword))
             End If
 
-            Dim result = SyntaxFactory.MultiLineIfBlock(DirectCast(begin, IfStatementSyntax), Body(), _elseIfBlocks.ToList(), _optionalElseBlock, DirectCast(endStmt, EndBlockStatementSyntax))
+            Dim result = SyntaxFactory.MultiLineIfBlock(DirectCast(begin, IfStatementSyntax), Body(), _elseIfBlocks.ToListAndFree(_parser._pool), _optionalElseBlock, DirectCast(endStmt, EndBlockStatementSyntax))
 
-            _parser._pool.Free(_elseIfBlocks)
             FreeStatements()
 
             Return result

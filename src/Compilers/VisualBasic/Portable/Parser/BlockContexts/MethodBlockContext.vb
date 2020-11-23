@@ -18,8 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyBase.New(contextKind, statement, prevContext)
 
             Debug.Assert(SyntaxFacts.IsMethodBlock(contextKind) OrElse
-                         contextKind = SyntaxKind.ConstructorBlock OrElse
-                         contextKind = SyntaxKind.OperatorBlock OrElse
+                         contextKind.IsIn(SyntaxKind.ConstructorBlock, SyntaxKind.OperatorBlock) OrElse
                          SyntaxFacts.IsAccessorBlock(contextKind) OrElse
                          SyntaxFacts.IsSingleLineLambdaExpression(contextKind) OrElse
                          SyntaxFacts.IsMultiLineLambdaExpression(contextKind))

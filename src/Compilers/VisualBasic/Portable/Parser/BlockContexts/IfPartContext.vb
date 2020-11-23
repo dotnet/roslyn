@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Sub New(kind As SyntaxKind, statement As StatementSyntax, prevContext As BlockContext)
             MyBase.New(kind, statement, prevContext)
 
-            Debug.Assert(kind = SyntaxKind.ElseIfBlock OrElse kind = SyntaxKind.ElseBlock)
+            Debug.Assert(kind.IsIn(SyntaxKind.ElseIfBlock, SyntaxKind.ElseBlock))
         End Sub
 
         Friend Overrides Function ProcessSyntax(node As VisualBasicSyntaxNode) As BlockContext
