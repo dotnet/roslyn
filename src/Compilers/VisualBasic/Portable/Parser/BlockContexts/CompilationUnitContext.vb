@@ -139,8 +139,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Class DiagnosticRewriter
             Inherits VisualBasicSyntaxRewriter
 
-            Private _notClosedIfDirectives As HashSet(Of IfDirectiveTriviaSyntax) = Nothing
-            Private _notClosedRegionDirectives As HashSet(Of RegionDirectiveTriviaSyntax) = Nothing
+            Private Shared s_IfDirectivePool As ObjectPool(Of PooledObjects.PooledHashSet(Of IfDirectiveTriviaSyntax)) =
+                PooledHashSet(Of IfDirectiveTriviaSyntax).CreatePool(ReferenceEqualityComparer.Instance)
+
+            Private Shared s_RegionDirectivePool As ObjectPool(Of PooledObjects.PooledHashSet(Of RegionDirectiveTriviaSyntax)) =
+                PooledHashSet(Of RegionDirectiveTriviaSyntax).CreatePool(ReferenceEqualityComparer.Instance)
+
+
+            Private _notClosedIfDirectives As PooledHashSet(Of IfDirectiveTriviaSyntax) = Nothing
+            Private _notClosedRegionDirectives As PooledHashSet(Of RegionDirectiveTriviaSyntax) = Nothing
             Private _notClosedExternalSourceDirective As ExternalSourceDirectiveTriviaSyntax = Nothing
             Private _regionsAreAllowedEverywhere As Boolean
 
@@ -163,8 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim rewriter As New DiagnosticRewriter()
 
                 If notClosedIfDirectives IsNot Nothing Then
-                    rewriter._notClosedIfDirectives =
-                        New HashSet(Of IfDirectiveTriviaSyntax)(ReferenceEqualityComparer.Instance)
+                       rewriter._notClosedIfDirectives = s_IfDirectivePool.Allocate()
 
                     For Each node In notClosedIfDirectives
                         rewriter._notClosedIfDirectives.Add(node)
@@ -172,8 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
 
                 If notClosedRegionDirectives IsNot Nothing Then
-                    rewriter._notClosedRegionDirectives =
-                        New HashSet(Of RegionDirectiveTriviaSyntax)(ReferenceEqualityComparer.Instance)
+                    rewriter._notClosedRegionDirectives = s_RegionDirectivePool.Allocate
 
                     For Each node In notClosedRegionDirectives
                         rewriter._notClosedRegionDirectives.Add(node)
@@ -197,6 +202,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Debug.Assert(rewriter._parentsOfRegionDirectivesAwaitingClosure.Count = 0) ' We never add parents of not closed #Region directives into this stack.
                     rewriter._declarationBlocksBeingVisited.Free()
                     rewriter._parentsOfRegionDirectivesAwaitingClosure.Free()
+                End If
+
+                If rewriter._notClosedRegionDirectives IsNot Nothing Then
+                    rewriter._notClosedRegionDirectives.Free()
+                End If
+
+                If rewriter._notClosedIfDirectives IsNot Nothing Then
+                    rewriter._notClosedIfDirectives.Free()
                 End If
 
                 Return result
