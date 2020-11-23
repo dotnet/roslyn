@@ -197,7 +197,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedArrayHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedDictionary`2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\SR.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\StackTraceHiddenAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\TemporaryArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\ThrowHelper.cs" />

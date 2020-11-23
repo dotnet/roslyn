@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         [DoesNotReturn]
         internal static void ThrowInvalidTypeWithPointersNotSupported(Type targetType)
         {
-            throw new ArgumentException(SR.Format(SR.Argument_InvalidTypeWithPointersNotSupported, targetType));
+            throw new ArgumentException(string.Format(SR.Argument_InvalidTypeWithPointersNotSupported, targetType));
         }
 
         [DoesNotReturn]
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         [DoesNotReturn]
         internal static void ThrowArgumentException_BadComparer(object? comparer)
         {
-            throw new ArgumentException(SR.Format(SR.Arg_BogusIComparer, comparer));
+            throw new ArgumentException(string.Format(SR.Arg_BogusIComparer, comparer));
         }
 #endif
 
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         private static ArgumentException GetAddingDuplicateWithKeyArgumentException(object? key)
         {
-            return new ArgumentException(SR.Format(SR.Argument_AddingDuplicateWithKey, key));
+            return new ArgumentException(string.Format(SR.Argument_AddingDuplicateWithKey, key));
         }
 
         [DoesNotReturn]
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         [DoesNotReturn]
         internal static void ThrowArgumentOutOfRangeException_PrecisionTooLarge()
         {
-            throw new ArgumentOutOfRangeException("precision", SR.Format(SR.Argument_PrecisionTooLarge, StandardFormat.MaxPrecision));
+            throw new ArgumentOutOfRangeException("precision", string.Format(SR.Argument_PrecisionTooLarge, StandardFormat.MaxPrecision));
         }
 
         [DoesNotReturn]
@@ -463,17 +463,17 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         private static ArgumentException GetWrongKeyTypeArgumentException(object? key, Type targetType)
         {
-            return new ArgumentException(SR.Format(SR.Arg_WrongType, key, targetType), nameof(key));
+            return new ArgumentException(string.Format(SR.Arg_WrongType, key, targetType), nameof(key));
         }
 
         private static ArgumentException GetWrongValueTypeArgumentException(object? value, Type targetType)
         {
-            return new ArgumentException(SR.Format(SR.Arg_WrongType, value, targetType), nameof(value));
+            return new ArgumentException(string.Format(SR.Arg_WrongType, value, targetType), nameof(value));
         }
 
         private static KeyNotFoundException GetKeyNotFoundException(object? key)
         {
-            return new KeyNotFoundException(SR.Format(SR.Arg_KeyNotFoundWithKey, key));
+            return new KeyNotFoundException(string.Format(SR.Arg_KeyNotFoundWithKey, key));
         }
 
         private static ArgumentOutOfRangeException GetArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
