@@ -1767,6 +1767,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             };
         }
 
+        public string GetSingleLineCommentPrefix() => "//";
+
         public override bool CanHaveAccessibility(SyntaxNode declaration)
         {
             switch (declaration.Kind())

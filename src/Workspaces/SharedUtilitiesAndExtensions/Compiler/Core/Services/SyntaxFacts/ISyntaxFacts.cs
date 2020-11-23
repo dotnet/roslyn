@@ -500,6 +500,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         string GetCommentPrefix(SyntaxTrivia trivia);
 
+        string GetSingleLineCommentPrefix();
+
         bool CanHaveAccessibility(SyntaxNode declaration);
 
         /// <summary>

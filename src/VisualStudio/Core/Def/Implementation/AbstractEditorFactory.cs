@@ -45,7 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         protected abstract string ContentTypeName { get; }
         protected abstract string LanguageName { get; }
         protected abstract SyntaxGenerator SyntaxGenerator { get; }
-        protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
 
         public void SetEncoding(bool value)
             => _encoding = value;
@@ -309,7 +308,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     var newLineTrivia = SyntaxGenerator.EndOfLine(newLineText);
                     return AbstractFileHeaderCodeFixProvider.GetTransformedSyntaxRootAsync(
                         SyntaxGenerator.SyntaxFacts,
-                        FileHeaderHelper,
                         newLineTrivia,
                         addedDocument,
                         cancellationToken);

@@ -1968,6 +1968,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Throw ExceptionUtilities.UnexpectedValue(trivia.Kind())
         End Function
 
+        Public Function GetSingleLineCommentPrefix() As String Implements ISyntaxFacts.GetSingleLineCommentPrefix
+            Return "'"
+        End Function
+
         Public Overrides Function CanHaveAccessibility(declaration As SyntaxNode) As Boolean Implements ISyntaxFacts.CanHaveAccessibility
             Select Case declaration.Kind
                 Case SyntaxKind.ClassBlock,

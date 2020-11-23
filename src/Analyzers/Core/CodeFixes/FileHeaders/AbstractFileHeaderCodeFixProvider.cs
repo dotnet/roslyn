@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             return GetTransformedSyntaxRootAsync(SyntaxFacts, newLineTrivia, document, cancellationToken);
         }
 
-        internal async Task<SyntaxNode> GetTransformedSyntaxRootAsync(ISyntaxFacts syntaxFacts,
+        internal static async Task<SyntaxNode> GetTransformedSyntaxRootAsync(ISyntaxFacts syntaxFacts,
             SyntaxTrivia newLineTrivia, Document document, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -87,9 +87,9 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 : ReplaceHeader(syntaxFacts, newLineTrivia, root, expectedFileHeader);
         }
 
-        private SyntaxNode ReplaceHeader(ISyntaxFacts syntaxFacts, SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
+        private static SyntaxNode ReplaceHeader(ISyntaxFacts syntaxFacts, SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
         {
-            var newHeaderTrivia = CreateNewHeader(syntaxFacts, CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString());
+            var newHeaderTrivia = CreateNewHeader(syntaxFacts, expectedFileHeader, newLineTrivia.ToFullString());
 
             var existingBanner = syntaxFacts.GetFileBanner(root);
             var allRootTrivia = root.GetLeadingTrivia();
@@ -153,9 +153,9 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             return (triviaToKeep: allRootTrivia, bannerInsertationIndex: index);
         }
 
-        private SyntaxNode AddHeader(ISyntaxFacts syntaxFacts, SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
+        private static SyntaxNode AddHeader(ISyntaxFacts syntaxFacts, SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
         {
-            var newTrivia = CreateNewHeader(syntaxFacts, CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString())
+            var newTrivia = CreateNewHeader(syntaxFacts, expectedFileHeader, newLineTrivia.ToFullString())
                 .Add(newLineTrivia)
                 .Add(newLineTrivia);
 
@@ -179,16 +179,15 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             return root.WithLeadingTrivia(newTrivia);
         }
 
-        private static SyntaxTriviaList CreateNewHeader(ISyntaxFacts syntaxFacts, string prefixWithLeadingSpaces,
-            string expectedFileHeader, string newLineText)
+        private static SyntaxTriviaList CreateNewHeader(ISyntaxFacts syntaxFacts, string expectedFileHeader, string newLineText)
         {
             if (TryParseTemplateAsComment(syntaxFacts, expectedFileHeader, newLineText, out var parsedTemplate))
             {
                 // The editorconfig file header can be parsed as a comment in the target language. We insert it as is.
                 return parsedTemplate;
             }
-
-            var copyrightText = GetCopyrightText(prefixWithLeadingSpaces, expectedFileHeader, newLineText);
+            var singleLineComment = syntaxFacts.GetSingleLineCommentPrefix();
+            var copyrightText = GetCopyrightText(singleLineComment, expectedFileHeader, newLineText);
             var newHeader = copyrightText;
             return syntaxFacts.ParseLeadingTrivia(newHeader);
         }
