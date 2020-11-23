@@ -165,6 +165,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         ? Glyph.CSharpProject
                         : Glyph.BasicProject;
 
+                // Until IPreviewDialogService is implemented, just execute all changes without user ability to pick and choose
+                if (previewService == null)
+                    return newSolution;
+
                 var changedSolution = previewService.PreviewChanges(
                     string.Format(EditorFeaturesResources.Preview_Changes_0, fixAllPreviewChangesTitle),
                     "vs.codefix.fixall",
