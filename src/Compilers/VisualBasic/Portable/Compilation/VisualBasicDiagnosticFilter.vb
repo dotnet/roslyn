@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' 2. Command line options (/nowarn, /warnaserror)
                 isSpecified = True
 
-                'ReportDiagnostic.Default' is added to SpecificDiagnosticOptions for "/warnaserror-:DiagnosticId",
+                ' 'ReportDiagnostic.Default' is added to SpecificDiagnosticOptions for "/warnaserror-:DiagnosticId",
                 If report = ReportDiagnostic.Default Then
                     specifiedWarnAsErrorMinus = True
                 End If
