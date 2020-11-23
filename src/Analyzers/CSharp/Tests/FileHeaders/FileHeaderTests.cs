@@ -825,5 +825,37 @@ file_header_template = Comment
                 EditorConfig = editorConfig,
             }.RunAsync();
         }
+
+        [Theory, CombinatorialData]
+        public async Task TestExistingHeaderLeadByOtherTrivia(
+            [CombinatorialValues(
+                "",
+                " ",
+                "\r\n",
+                "\r\n\r\n",
+                "#nullable enable\r\n",
+                "#nullable enable\r\n\r\n",
+                "#nullable enable\r\n#nullable disable\r\n",
+                "#nullable enable\r\n\r\n#nullable disable\r\n")] string triviaBeforeHeader,
+            [CombinatorialValues(
+                "// Comment\r\n",
+                "/* Comment */")] string existingComment)
+        {
+            var editorConfig = @"
+[*.cs]
+file_header_template = Comment
+";
+            var testCode = @$"{triviaBeforeHeader}{existingComment}
+namespace N
+{{
+}}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                EditorConfig = editorConfig,
+            }.RunAsync();
+        }
     }
 }
