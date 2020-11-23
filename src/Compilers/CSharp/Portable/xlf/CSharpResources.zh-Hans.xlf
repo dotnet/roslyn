@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
         <source>The type '{0}' may not be used for a field of a record.</source>
-        <target state="new">The type '{0}' may not be used for a field of a record.</target>
+        <target state="translated">类型“{0}”不能用于记录的字段。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFuncPointerArgCount">
@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
         <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
-        <target state="new">'{0}' is already listed in the interface list on type '{2}' as '{1}'.</target>
+        <target state="translated">“{0}”已作为“{1}”列入类型“{2}”的接口列表中。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
@@ -319,7 +319,7 @@
       </trans-unit>
       <trans-unit id="ERR_EqualityContractRequiresGetter">
         <source>Record equality contract property '{0}' must have a get accessor.</source>
-        <target state="new">Record equality contract property '{0}' must have a get accessor.</target>
+        <target state="translated">记录等同性合同属性“{0}”必须具有 get 访问器。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -429,7 +429,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
         <source>A function pointer cannot be called with named arguments.</source>
-        <target state="new">A function pointer cannot be called with named arguments.</target>
+        <target state="translated">不能使用命名参数调用函数指针。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -454,17 +454,17 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitObjectCreationIllegalTargetType">
         <source>The type '{0}' may not be used as the target type of new()</source>
-        <target state="new">The type '{0}' may not be used as the target type of new()</target>
+        <target state="translated">类型 "{0}" 不能用作 new() 目标类型</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitObjectCreationNoTargetType">
         <source>There is no target type for '{0}'</source>
-        <target state="new">There is no target type for '{0}'</target>
+        <target state="translated">"{0}" 没有目标类型</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitObjectCreationNotValid">
         <source>Use of new() is not valid in this context</source>
-        <target state="new">Use of new() is not valid in this context</target>
+        <target state="translated">在此上下文中使用 new() 无效</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
@@ -944,22 +944,22 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureDiscards">
         <source>discards</source>
-        <target state="translated">放弃</target>
+        <target state="translated">弃元</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
-        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <target state="translated">包含类型“{1}”的程序集“{0}”引用了 .NET Framework，而此操作不受支持。</target>
         <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
-        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+        <target state="translated">加载的程序集引用了 .NET Framework，而此操作不受支持。</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
-        <target state="new">target-typed object creation</target>
+        <target state="translated">创建目标类型对象</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -1259,7 +1259,7 @@
 -generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
                               specified directory.
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Visual C# 编译器选项
 
                        - 输出文件 -
@@ -1278,12 +1278,12 @@
                               (短格式: - t:winmdobj)
 -doc:&lt;file&gt;                   要生成的 XML 文档文件
 -refout:&lt;file&gt;                要生成的引用程序集输出
-
+ 
 -platform:&lt;string&gt;            限制可以运行此代码的平台: x86、
                               Itanium、x64、arm、arm64、 anycpu32bitpreferred 或
                               anycpu。默认值是 anycpu。
 
-                       - 输入文件 -
+                       - 输入文件 - 
 -recurse:&lt;wildcard&gt;           根据通配符规范包括当前目录和
                               子目录中的
                                所有文件
@@ -1297,7 +1297,7 @@
 -analyzer:&lt;file list&gt;         从此程序集运行分析器
                                (短格式: -a)
 -additionalfile:&lt;file list&gt;   不直接影响代码生成
-                              但由分析器用于生成错误或警报
+                              但由分析器用于生成错误或警报 
                               的其他文件。
 -embed                        在 PDB 中嵌入所有源文件。
 -embed:&lt;file list&gt;             在 PDB 中嵌入特定文件。
@@ -1310,7 +1310,7 @@
 -resource:&lt;resinfo&gt;           嵌入指定的资源(短格式: -res)
 - linkresource:&lt;resinfo&gt;       将指定资源关联到此程序集
                               (短格式: -linkres)，其中 resinfo 格式
-
+ 
                               是 &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
                        - 代码生成 -
@@ -1327,16 +1327,16 @@
 -instrument:TestCoverage      生成 已检测的程序集以收集
                                覆盖范围信息
 -sourcelink:&lt;file&gt;           要嵌入 PDB 的源链接信息。
-
+ 
                        - 错误和警报  -
 -warnaserror[+|-]             将所有警报报告为错误
 -warnaserror[+|-]:&lt;warn list&gt; 将特定警报报告为错误
                                (将 "nullable" 用于所有可为 null 的警报)
 -warn:&lt;n&gt;                     设置警报级别(0 或更高) (短格式: -w)
-
+ 
 -nowarn:&lt;warn list&gt;           禁用特定警报消息
                               (将 "nullable" 用于所有可为 null 的警报)
-
+ 
 -ruleset:&lt;file&gt;               指定禁用特定诊断的规则集
                               文件。
 -errorlog:&lt;file&gt; [,version=&lt;sarif_version&gt;]
@@ -1345,7 +1345,7 @@
                               sarif_version:{1|2|2.1} 默认值是 1. 2 和 2.1
                               这两者 都是指 SARIF 版本 2.1.0。
 -reportanalyzer               报告其他分析器信息，例如
-                              执行时间。
+                              执行时间。 
 -skipanalyzers[+|-]           跳过诊断分析器的执行。
 
                      - 语言 -
@@ -1386,7 +1386,7 @@
 -checksumalgorithm:&lt;alg&gt;      指定算法以计算存储在  PDB 中的源文件
                               校验和。支持的值是:
                               SHA1 或 SHA256 (默认)。
-
+ 
 -codepage:&lt;n&gt;                 指定打开源文件时使用的
                               代码页
 -utf8output                    采用 UTF-8 编码的输出编译器消息
@@ -2898,12 +2898,12 @@
       </trans-unit>
       <trans-unit id="WRN_UnreadRecordParameter">
         <source>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</source>
-        <target state="new">Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</target>
+        <target state="translated">参数“{0}”未读。是否忘记通过它来使用该名称初始化属性?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadRecordParameter_Title">
         <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
-        <target state="new">Parameter is unread. Did you forget to use it to initialize the property with that name?</target>
+        <target state="translated">参数未读。是否忘记通过它来使用该名称初始化属性?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
@@ -4153,7 +4153,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
-        <target state="needs-review-translation">"partial" 修饰符的后面只能紧跟 "class"、"record"、"struct"、"interface" 或 "void"</target>
+        <target state="translated">"partial" 修饰符的后面只能紧跟 "class"、"record"、"struct"、"interface" 或方法返回类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return method.AreLocalsZeroed;
                 }
-                else if (ContainingType is SourceNamedTypeSymbol type)
+                else if (ContainingType is SourceMemberContainerTypeSymbol type)
                 {
                     return type.AreLocalsZeroed;
                 }

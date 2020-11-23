@@ -32,6 +32,11 @@
         <target state="translated">Das Ändern des Dokuments "{0}" wird nicht unterstützt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CodeAction_{0}_did_not_produce_a_changed_solution">
+        <source>CodeAction '{0}' did not produce a changed solution</source>
+        <target state="new">CodeAction '{0}' did not produce a changed solution</target>
+        <note>"CodeAction" is a specific type, and {0} represents the title shown by the action.</note>
+      </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
         <target state="translated">Wichtige EditorConfig-Optionen</target>
@@ -191,6 +196,11 @@
         <source>Sync namespace to folder structure</source>
         <target state="translated">Namespace mit Ordnerstruktur synchronisieren</target>
         <note />
+      </trans-unit>
+      <trans-unit id="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed">
+        <source>The contents of a SourceGeneratedDocument may not be changed.</source>
+        <target state="new">The contents of a SourceGeneratedDocument may not be changed.</target>
+        <note>{locked:SourceGeneratedDocument}</note>
       </trans-unit>
       <trans-unit id="The_project_already_contains_the_specified_reference">
         <source>The project already contains the specified reference.</source>

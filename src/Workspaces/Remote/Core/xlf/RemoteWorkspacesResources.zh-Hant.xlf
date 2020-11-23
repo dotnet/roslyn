@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="FeatureName_AssetSynchronization">
         <source>Asset synchronization</source>
-        <target state="new">Asset synchronization</target>
+        <target state="translated">資產同步</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_AsynchronousOperationListener">
         <source>Asynchronous operation listener</source>
-        <target state="new">Asynchronous operation listener</target>
+        <target state="translated">非同步作業接聽程式</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_CodeLensReferences">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
-        <target state="new">Asset provider</target>
+        <target state="translated">資產提供者</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">
