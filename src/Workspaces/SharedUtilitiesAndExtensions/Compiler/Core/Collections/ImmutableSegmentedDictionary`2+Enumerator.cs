@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
-    internal partial struct ImmutableSegmentedDictionary<TKey, TValue>
+    internal partial class ImmutableSegmentedDictionary<TKey, TValue>
     {
         public struct Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>, IDictionaryEnumerator
         {

@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
-    internal readonly partial struct ImmutableSegmentedDictionary<TKey, TValue> : IImmutableDictionary<TKey, TValue>, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDictionary
+    internal partial class ImmutableSegmentedDictionary<TKey, TValue> : IImmutableDictionary<TKey, TValue>, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDictionary
         where TKey : notnull
     {
         public static readonly ImmutableSegmentedDictionary<TKey, TValue> Empty = new(new SegmentedDictionary<TKey, TValue>(), valueComparer: null);
@@ -28,10 +28,6 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         public IEqualityComparer<TKey> KeyComparer => _dictionary.Comparer;
 
         public IEqualityComparer<TValue> ValueComparer => _valueComparer;
-
-        public bool IsDefault => _dictionary is null;
-
-        public bool IsDefaultOrEmpty => IsDefault || IsEmpty;
 
         public int Count => _dictionary.Count;
 

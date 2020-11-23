@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
-    internal partial struct ImmutableSegmentedDictionary<TKey, TValue>
+    internal partial class ImmutableSegmentedDictionary<TKey, TValue>
     {
         public partial class Builder
         {

@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
-    internal partial struct ImmutableSegmentedDictionary<TKey, TValue>
+    internal partial class ImmutableSegmentedDictionary<TKey, TValue>
     {
         public readonly partial struct KeyCollection : IReadOnlyCollection<TKey>, ICollection<TKey>, ICollection
         {
