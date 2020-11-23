@@ -33,7 +33,7 @@
     <CodeStyleAnalyzerVersion>3.8.0-2.20414.4</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.8.181</VisualStudioEditorPackagesVersion>
     <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
-    <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>16.9.43</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
+    <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>16.9.101</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
     <MicrosoftVisualStudioShellPackagesVersion>16.8.30406.65-pre</MicrosoftVisualStudioShellPackagesVersion>
     <!-- The version of Roslyn we build Source Generators against that are built in this
          repository. This must be lower than MicrosoftNetCompilersToolsetVersion,
@@ -138,7 +138,7 @@
     <MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>16.5.301</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
     <MicrosoftVisualStudioLanguageServerProtocolVersion>$(MicrosoftVisualStudioLanguageServerProtocolPackagesVersion)</MicrosoftVisualStudioLanguageServerProtocolVersion>
     <MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>$(MicrosoftVisualStudioLanguageServerProtocolPackagesVersion)</MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>
-    <MicrosoftVisualStudioLanguageServerClientVersion>16.6.47</MicrosoftVisualStudioLanguageServerClientVersion>
+    <MicrosoftVisualStudioLanguageServerClientVersion>16.9.101</MicrosoftVisualStudioLanguageServerClientVersion>
     <MicrosoftVisualStudioLanguageStandardClassificationVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageStandardClassificationVersion>
     <MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion>2.0.1</MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion>
     <MicrosoftVisualStudioLiveShareWebEditorsVersion>2.2.0-preview1-t001</MicrosoftVisualStudioLiveShareWebEditorsVersion>
@@ -152,7 +152,7 @@
     <MicrosoftVisualStudioRemoteControlVersion>16.3.23</MicrosoftVisualStudioRemoteControlVersion>
     <MicrosoftVisualStudioSDKAnalyzersVersion>16.7.8</MicrosoftVisualStudioSDKAnalyzersVersion>
     <MicrosoftVisualStudioSetupConfigurationInteropVersion>1.16.30</MicrosoftVisualStudioSetupConfigurationInteropVersion>
-    <MicrosoftVisualStudioShell150Version>16.7.30021.50</MicrosoftVisualStudioShell150Version>
+    <MicrosoftVisualStudioShell150Version>16.7.30204.53-pre</MicrosoftVisualStudioShell150Version>
     <MicrosoftVisualStudioShellFrameworkVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellFrameworkVersion>
     <MicrosoftVisualStudioShellDesignVersion>15.7.27703</MicrosoftVisualStudioShellDesignVersion>
     <MicrosoftVisualStudioShellImmutable100Version>15.0.25415</MicrosoftVisualStudioShellImmutable100Version>
@@ -224,7 +224,7 @@
     <SystemThreadingTasksExtensionsVersion>4.5.4</SystemThreadingTasksExtensionsVersion>
     <SQLitePCLRawbundle_greenVersion>1.1.2</SQLitePCLRawbundle_greenVersion>
     <UIAComWrapperVersion>1.1.0.14</UIAComWrapperVersion>
-    <MicrosoftVSSDKBuildToolsVersion>16.7.3069</MicrosoftVSSDKBuildToolsVersion>
+    <MicrosoftVSSDKBuildToolsVersion>16.8.3036</MicrosoftVSSDKBuildToolsVersion>
     <MicrosoftVSSDKVSDConfigToolVersion>16.0.2032702</MicrosoftVSSDKVSDConfigToolVersion>
     <VSLangProjVersion>7.0.3301</VSLangProjVersion>
     <VSLangProj140Version>14.0.25030</VSLangProj140Version>
