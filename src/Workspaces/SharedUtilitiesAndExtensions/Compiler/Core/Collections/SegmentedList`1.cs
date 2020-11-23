@@ -1,26 +1,33 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#pragma warning disable
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-namespace System.Collections.Generic
+namespace Microsoft.CodeAnalysis.Shared.Collections
 {
-    // Implements a variable-size List that uses an array of objects to store the
-    // elements. A List has a capacity, which is the allocated length
-    // of the internal array. As elements are added to a List, the capacity
-    // of the List is automatically increased as required by reallocating the
+    // Implements a variable-size SegmentedList that uses an array of objects to store the
+    // elements. A SegmentedList has a capacity, which is the allocated length
+    // of the internal array. As elements are added to a SegmentedList, the capacity
+    // of the SegmentedList is automatically increased as required by reallocating the
     // internal array.
     //
     [DebuggerTypeProxy(typeof(ICollectionDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
     [Serializable]
     [TypeForwardedFrom("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
-    public class List<T> : IList<T>, IList, IReadOnlyList<T>
+    public class SegmentedList<T> : IList<T>, IList, IReadOnlyList<T>
     {
         private const int DefaultCapacity = 4;
+        private const int MaxArrayLength = 0x7FEFFFFF;
 
         internal T[] _items; // Do not rename (binary serialization)
         internal int _size; // Do not rename (binary serialization)
@@ -30,20 +37,20 @@ namespace System.Collections.Generic
         private static readonly T[] s_emptyArray = new T[0];
 #pragma warning restore CA1825
 
-        // Constructs a List. The list is initially empty and has a capacity
+        // Constructs a SegmentedList. The list is initially empty and has a capacity
         // of zero. Upon adding the first element to the list the capacity is
         // increased to DefaultCapacity, and then increased in multiples of two
         // as required.
-        public List()
+        public SegmentedList()
         {
             _items = s_emptyArray;
         }
 
-        // Constructs a List with a given initial capacity. The list is
+        // Constructs a SegmentedList with a given initial capacity. The list is
         // initially empty, but will have room for the given number of elements
         // before any reallocations are required.
         //
-        public List(int capacity)
+        public SegmentedList(int capacity)
         {
             if (capacity < 0)
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.capacity, ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
@@ -54,11 +61,11 @@ namespace System.Collections.Generic
                 _items = new T[capacity];
         }
 
-        // Constructs a List, copying the contents of the given collection. The
+        // Constructs a SegmentedList, copying the contents of the given collection. The
         // size and capacity of the new list will both be equal to the size of the
         // given collection.
         //
-        public List(IEnumerable<T> collection)
+        public SegmentedList(IEnumerable<T> collection)
         {
             if (collection == null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.collection);
@@ -123,17 +130,17 @@ namespace System.Collections.Generic
             }
         }
 
-        // Read-only property describing how many elements are in the List.
+        // Read-only property describing how many elements are in the SegmentedList.
         public int Count => _size;
 
         bool IList.IsFixedSize => false;
 
-        // Is this List read-only?
+        // Is this SegmentedList read-only?
         bool ICollection<T>.IsReadOnly => false;
 
         bool IList.IsReadOnly => false;
 
-        // Is this List synchronized (thread-safe)?
+        // Is this SegmentedList synchronized (thread-safe)?
         bool ICollection.IsSynchronized => false;
 
         // Synchronization root for this object.
@@ -209,7 +216,7 @@ namespace System.Collections.Generic
             }
         }
 
-        // Non-inline from List.Add to improve its code quality as uncommon path
+        // Non-inline from SegmentedList.Add to improve its code quality as uncommon path
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void AddWithResize(T item)
         {
@@ -283,27 +290,28 @@ namespace System.Collections.Generic
         public int BinarySearch(T item, IComparer<T>? comparer)
             => BinarySearch(0, Count, item, comparer);
 
-        // Clears the contents of List.
+        // Clears the contents of SegmentedList.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
             _version++;
-            if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+#if NETCOREAPP
+            if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
             {
-                int size = _size;
                 _size = 0;
-                if (size > 0)
-                {
-                    Array.Clear(_items, 0, size); // Clear the elements so that the gc can reclaim the references.
-                }
+                return;
             }
-            else
+#endif
+
+            int size = _size;
+            _size = 0;
+            if (size > 0)
             {
-                _size = 0;
+                Array.Clear(_items, 0, size); // Clear the elements so that the gc can reclaim the references.
             }
         }
 
-        // Contains returns true if the specified element is in the List.
+        // Contains returns true if the specified element is in the SegmentedList.
         // It does a linear, O(n) search.  Equality is determined by calling
         // EqualityComparer<T>.Default.Equals().
         //
@@ -329,14 +337,14 @@ namespace System.Collections.Generic
             return false;
         }
 
-        public List<TOutput> ConvertAll<TOutput>(Converter<T, TOutput> converter)
+        public SegmentedList<TOutput> ConvertAll<TOutput>(Converter<T, TOutput> converter)
         {
             if (converter == null)
             {
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.converter);
             }
 
-            List<TOutput> list = new List<TOutput>(_size);
+            SegmentedList<TOutput> list = new SegmentedList<TOutput>(_size);
             for (int i = 0; i < _size; i++)
             {
                 list._items[i] = converter(_items[i]);
@@ -345,12 +353,12 @@ namespace System.Collections.Generic
             return list;
         }
 
-        // Copies this List into array, which must be of a
+        // Copies this SegmentedList into array, which must be of a
         // compatible array type.
         public void CopyTo(T[] array)
             => CopyTo(array, 0);
 
-        // Copies this List into array, which must be of a
+        // Copies this SegmentedList into array, which must be of a
         // compatible array type.
         void ICollection.CopyTo(Array array, int arrayIndex)
         {
@@ -403,7 +411,7 @@ namespace System.Collections.Generic
                 int newCapacity = _items.Length == 0 ? DefaultCapacity : _items.Length * 2;
                 // Allow the list to grow to maximum possible capacity (~2G elements) before encountering overflow.
                 // Note that this check works even when _items.Length overflowed thanks to the (uint) cast
-                if ((uint)newCapacity > Array.MaxArrayLength) newCapacity = Array.MaxArrayLength;
+                if ((uint)newCapacity > MaxArrayLength) newCapacity = MaxArrayLength;
                 if (newCapacity < min) newCapacity = min;
                 Capacity = newCapacity;
             }
@@ -429,14 +437,14 @@ namespace System.Collections.Generic
             return default;
         }
 
-        public List<T> FindAll(Predicate<T> match)
+        public SegmentedList<T> FindAll(Predicate<T> match)
         {
             if (match == null)
             {
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.match);
             }
 
-            List<T> list = new List<T>();
+            SegmentedList<T> list = new SegmentedList<T>();
             for (int i = 0; i < _size; i++)
             {
                 if (match(_items[i]))
@@ -510,7 +518,7 @@ namespace System.Collections.Generic
 
             if (_size == 0)
             {
-                // Special case for 0 length List
+                // Special case for 0 length SegmentedList
                 if (startIndex != -1)
                 {
                     ThrowHelper.ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_Index();
@@ -578,7 +586,7 @@ namespace System.Collections.Generic
         IEnumerator IEnumerable.GetEnumerator()
             => new Enumerator(this);
 
-        public List<T> GetRange(int index, int count)
+        public SegmentedList<T> GetRange(int index, int count)
         {
             if (index < 0)
             {
@@ -595,7 +603,7 @@ namespace System.Collections.Generic
                 ThrowHelper.ThrowArgumentException(ExceptionResource.Argument_InvalidOffLen);
             }
 
-            List<T> list = new List<T>(count);
+            SegmentedList<T> list = new SegmentedList<T>(count);
             Array.Copy(_items, index, list._items, 0, count);
             list._size = count;
             return list;
@@ -695,7 +703,7 @@ namespace System.Collections.Generic
         // Inserts the elements of the given collection at a given index. If
         // required, the capacity of the list is increased to twice the previous
         // capacity or the new size, whichever is larger.  Ranges may be added
-        // to the end of the list by setting index to the List's size.
+        // to the end of the list by setting index to the SegmentedList's size.
         //
         public void InsertRange(int index, IEnumerable<T> collection)
         {
@@ -720,7 +728,7 @@ namespace System.Collections.Generic
                         Array.Copy(_items, index, _items, index + count, _size - index);
                     }
 
-                    // If we're inserting a List into itself, we want to be able to deal with that.
+                    // If we're inserting a SegmentedList into itself, we want to be able to deal with that.
                     if (this == c)
                     {
                         // Copy first part of _items to insert location
@@ -873,7 +881,9 @@ namespace System.Collections.Generic
                 }
             }
 
+#if NETCOREAPP
             if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+#endif
             {
                 Array.Clear(_items, freeIndex, _size - freeIndex); // Clear the elements so that the gc can reclaim the references.
             }
@@ -897,7 +907,9 @@ namespace System.Collections.Generic
             {
                 Array.Copy(_items, index + 1, _items, index, _size - index);
             }
+#if NETCOREAPP
             if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+#endif
             {
                 _items[_size] = default!;
             }
@@ -929,7 +941,9 @@ namespace System.Collections.Generic
                 }
 
                 _version++;
+#if NETCOREAPP
                 if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+#endif
                 {
                     Array.Clear(_items, _size, count);
                 }
@@ -1016,13 +1030,17 @@ namespace System.Collections.Generic
 
             if (_size > 1)
             {
-                ArraySortHelper<T>.Sort(new Span<T>(_items, 0, _size), comparison);
+#if NET
+                _items.AsSpan(0, _size).Sort(comparison);
+#else
+                Array.Sort<T>(_items, 0, _size, Comparer<T>.Create(comparison));
+#endif
             }
             _version++;
         }
 
-        // ToArray returns an array containing the contents of the List.
-        // This requires copying the List, which is an O(n) operation.
+        // ToArray returns an array containing the contents of the SegmentedList.
+        // This requires copying the SegmentedList, which is an O(n) operation.
         public T[] ToArray()
         {
             if (_size == 0)
@@ -1072,12 +1090,12 @@ namespace System.Collections.Generic
 
         public struct Enumerator : IEnumerator<T>, IEnumerator
         {
-            private readonly List<T> _list;
+            private readonly SegmentedList<T> _list;
             private int _index;
             private readonly int _version;
             private T? _current;
 
-            internal Enumerator(List<T> list)
+            internal Enumerator(SegmentedList<T> list)
             {
                 _list = list;
                 _index = 0;
@@ -1091,7 +1109,7 @@ namespace System.Collections.Generic
 
             public bool MoveNext()
             {
-                List<T> localList = _list;
+                SegmentedList<T> localList = _list;
 
                 if (_version == localList._version && ((uint)_index < (uint)localList._size))
                 {

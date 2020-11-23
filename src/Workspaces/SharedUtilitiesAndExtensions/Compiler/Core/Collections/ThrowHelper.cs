@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             throw GetArgumentException(ExceptionResource.Argument_CannotExtractScalar, argument);
         }
+#endif
 
         [DoesNotReturn]
         internal static void ThrowArgumentOutOfRange_IndexException()
@@ -104,7 +105,6 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             throw new ArgumentException(string.Format(SR.Arg_BogusIComparer, comparer));
         }
-#endif
 
         [DoesNotReturn]
         internal static void ThrowIndexArgumentOutOfRange_NeedNonNegNumException()
@@ -127,6 +127,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             throw GetArgumentOutOfRangeException(ExceptionArgument.length,
                                                     ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
         }
+#endif
 
         [DoesNotReturn]
         internal static void ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_Index()
@@ -142,6 +143,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                                                     ExceptionResource.ArgumentOutOfRange_Count);
         }
 
+#if false
         [DoesNotReturn]
         internal static void ThrowArgumentOutOfRange_Year()
         {
@@ -246,13 +248,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             throw new ArgumentOutOfRangeException(GetArgumentName(argument));
         }
 
-#if false
         [DoesNotReturn]
         internal static void ThrowArgumentOutOfRangeException(ExceptionArgument argument, ExceptionResource resource)
         {
             throw GetArgumentOutOfRangeException(argument, resource);
         }
 
+#if false
         [DoesNotReturn]
         internal static void ThrowArgumentOutOfRangeException(ExceptionArgument argument, int paramNumber, ExceptionResource resource)
         {
