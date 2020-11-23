@@ -23,7 +23,7 @@ namespace System.Collections.Generic
         private int _freeList;
         private int _freeCount;
         private int _version;
-        private IEqualityComparer<TKey>? _comparer;
+        private readonly IEqualityComparer<TKey>? _comparer;
         private KeyCollection? _keys;
         private ValueCollection? _values;
         private const int StartOfFreeList = -3;
@@ -49,26 +49,6 @@ namespace System.Collections.Generic
             if (comparer != null && comparer != EqualityComparer<TKey>.Default) // first check for null to avoid forcing default comparer instantiation unnecessarily
             {
                 _comparer = comparer;
-            }
-
-            // Special-case EqualityComparer<string>.Default, StringComparer.Ordinal, and StringComparer.OrdinalIgnoreCase.
-            // We use a non-randomized comparer for improved perf, falling back to a randomized comparer if the
-            // hash buckets become unbalanced.
-
-            if (typeof(TKey) == typeof(string))
-            {
-                if (_comparer is null)
-                {
-                    _comparer = (IEqualityComparer<TKey>)NonRandomizedStringEqualityComparer.WrappedAroundDefaultComparer;
-                }
-                else if (ReferenceEquals(_comparer, StringComparer.Ordinal))
-                {
-                    _comparer = (IEqualityComparer<TKey>)NonRandomizedStringEqualityComparer.WrappedAroundStringComparerOrdinal;
-                }
-                else if (ReferenceEquals(_comparer, StringComparer.OrdinalIgnoreCase))
-                {
-                    _comparer = (IEqualityComparer<TKey>)NonRandomizedStringEqualityComparer.WrappedAroundStringComparerOrdinalIgnoreCase;
-                }
             }
         }
 
@@ -127,14 +107,7 @@ namespace System.Collections.Generic
         {
             get
             {
-                if (typeof(TKey) == typeof(string))
-                {
-                    return (IEqualityComparer<TKey>)IInternalStringEqualityComparer.GetUnderlyingEqualityComparer((IEqualityComparer<string?>?)_comparer);
-                }
-                else
-                {
-                    return _comparer ?? EqualityComparer<TKey>.Default;
-                }
+                return _comparer ?? EqualityComparer<TKey>.Default;
             }
         }
 
@@ -616,24 +589,13 @@ namespace System.Collections.Generic
             entry.value = value; // Value in _buckets is 1-based
             bucket = index + 1;
             _version++;
-
-            // Value types never rehash
-            if (!typeof(TKey).IsValueType && collisionCount > HashHelpers.HashCollisionThreshold && comparer is NonRandomizedStringEqualityComparer)
-            {
-                // If we hit the collision threshold we'll need to switch to the comparer which is using randomized string hashing
-                // i.e. EqualityComparer<string>.Default.
-                Resize(entries.Length, true);
-            }
-
             return true;
         }
 
-        private void Resize() => Resize(HashHelpers.ExpandPrime(_count), false);
+        private void Resize() => Resize(HashHelpers.ExpandPrime(_count));
 
-        private void Resize(int newSize, bool forceNewHashCodes)
+        private void Resize(int newSize)
         {
-            // Value types never rehash
-            Debug.Assert(!forceNewHashCodes || !typeof(TKey).IsValueType);
             Debug.Assert(_entries != null, "_entries should be non-null");
             Debug.Assert(newSize >= _entries.Length);
 
@@ -641,25 +603,6 @@ namespace System.Collections.Generic
 
             int count = _count;
             Array.Copy(_entries, entries, count);
-
-            if (!typeof(TKey).IsValueType && forceNewHashCodes)
-            {
-                Debug.Assert(_comparer is NonRandomizedStringEqualityComparer);
-                _comparer = (IEqualityComparer<TKey>)((NonRandomizedStringEqualityComparer)_comparer).GetRandomizedEqualityComparer();
-
-                for (int i = 0; i < count; i++)
-                {
-                    if (entries[i].next >= -1)
-                    {
-                        entries[i].hashCode = (uint)_comparer.GetHashCode(entries[i].key);
-                    }
-                }
-
-                if (ReferenceEquals(_comparer, EqualityComparer<TKey>.Default))
-                {
-                    _comparer = null;
-                }
-            }
 
             // Assign member variables after both arrays allocated to guard against corruption from OOM if second fails
             _buckets = new int[newSize];
@@ -935,7 +878,7 @@ namespace System.Collections.Generic
             }
 
             int newSize = HashHelpers.GetPrime(capacity);
-            Resize(newSize, forceNewHashCodes: false);
+            Resize(newSize);
             return newSize;
         }
 
