@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     {
         private SegmentedArray<int> _buckets;
         private SegmentedArray<Entry> _entries;
-#if TARGET_64BIT
         private ulong _fastModMultiplier;
-#endif
         private int _count;
         private int _freeList;
         private int _freeCount;
@@ -425,9 +423,7 @@ ReturnNotFound:
 
             // Assign member variables after both arrays allocated to guard against corruption from OOM if second fails
             _freeList = -1;
-#if TARGET_64BIT
             _fastModMultiplier = HashHelpers.GetFastModMultiplier((uint)size);
-#endif
             _buckets = buckets;
             _entries = entries;
 
@@ -626,9 +622,7 @@ ReturnNotFound:
 
             // Assign member variables after both arrays allocated to guard against corruption from OOM if second fails
             _buckets = new SegmentedArray<int>(newSize);
-#if TARGET_64BIT
             _fastModMultiplier = HashHelpers.GetFastModMultiplier((uint)newSize);
-#endif
             for (var i = 0; i < count; i++)
             {
                 if (entries[i]._next >= -1)
@@ -1088,11 +1082,7 @@ ReturnNotFound:
         private ref int GetBucket(uint hashCode)
         {
             var buckets = _buckets;
-#if TARGET_64BIT
-            return ref buckets[HashHelpers.FastMod(hashCode, (uint)buckets.Length, _fastModMultiplier)];
-#else
-            return ref buckets[(int)(hashCode % (uint)buckets.Length)];
-#endif
+            return ref buckets[(int)HashHelpers.FastMod(hashCode, (uint)buckets.Length, _fastModMultiplier)];
         }
 
         private struct Entry
