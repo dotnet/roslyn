@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         protected abstract ISyntaxKinds SyntaxKinds { get; }
 
         protected abstract SyntaxTrivia EndOfLine(string text);
-        protected abstract string CommentPrefix { get; }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.FileHeaderMismatch);

@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
 
         protected override ISyntaxKinds SyntaxKinds => CSharpSyntaxKinds.Instance;
 
-        protected override string CommentPrefix => @"//";
-
         protected override SyntaxTrivia EndOfLine(string text)
             => SyntaxFactory.EndOfLine(text);
     }
