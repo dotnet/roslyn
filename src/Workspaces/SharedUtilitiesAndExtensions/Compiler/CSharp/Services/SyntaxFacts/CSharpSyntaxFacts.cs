@@ -1755,17 +1755,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public string GetCommentText(SyntaxTrivia trivia)
             => trivia.GetCommentText();
 
-        public string GetCommentPrefix(SyntaxTrivia trivia)
+        public string GetCommentPrefix(SyntaxTrivia trivia) => (SyntaxKind)trivia.RawKind switch
         {
-            return (SyntaxKind)trivia.RawKind switch
-            {
-                SyntaxKind.SingleLineCommentTrivia => "//",
-                SyntaxKind.SingleLineDocumentationCommentTrivia => "///",
-                SyntaxKind.MultiLineCommentTrivia => "/*",
-                SyntaxKind.MultiLineDocumentationCommentTrivia => "/**",
-                _ => throw ExceptionUtilities.UnexpectedValue(trivia),
-            };
-        }
+            SyntaxKind.SingleLineCommentTrivia => "//",
+            SyntaxKind.SingleLineDocumentationCommentTrivia => "///",
+            SyntaxKind.MultiLineCommentTrivia => "/*",
+            SyntaxKind.MultiLineDocumentationCommentTrivia => "/**",
+            _ => throw ExceptionUtilities.UnexpectedValue(trivia),
+        };
 
         public string GetSingleLineCommentPrefix() => "//";
 
