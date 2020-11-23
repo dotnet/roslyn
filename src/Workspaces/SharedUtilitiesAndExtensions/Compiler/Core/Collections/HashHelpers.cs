@@ -10,8 +10,6 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 {
     internal static class HashHelpers
     {
-        public const uint HashCollisionThreshold = 100;
-
         // This is the maximum prime smaller than Array.MaxArrayLength
         public const int MaxPrimeArrayLength = 0x7FEFFFFD;
 

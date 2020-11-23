@@ -181,7 +181,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\HashHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IDictionaryDebugView`2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\IInternalStringEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+Builder+KeyCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+Builder+ValueCollection.cs" />
@@ -193,12 +192,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+ValueCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\InsertionBehavior.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\Marvin.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\Marvin.OrdinalIgnoreCase.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\NonRandomizedStringEqualityComparer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\Ordinal.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\OrdinalCasing.Icu.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\RandomizedStringEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\RoslynUnsafe.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedArrayHelper.cs" />
@@ -222,7 +215,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VirtualCharSequence.Chunks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VirtualCharSequence.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VirtualCharSequence.Enumerator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\BitOperations.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticAnalyzerExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticDescriptorExtensions.cs" />
