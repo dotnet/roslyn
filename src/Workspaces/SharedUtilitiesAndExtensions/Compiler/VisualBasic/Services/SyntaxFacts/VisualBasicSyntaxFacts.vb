@@ -1948,6 +1948,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return Nothing
         End Function
 
+        Public Function GetCommentText(trivia As SyntaxTrivia) As String Implements ISyntaxFacts.GetCommentText
+            If Not trivia.IsKind(SyntaxKind.CommentTrivia) Then
+                Throw ExceptionUtilities.UnexpectedValue(trivia.Kind())
+            End If
+
+            Return trivia.ToFullString().Substring(1)
+        End Function
+
+        Public Function GetCommentPrefix(trivia As SyntaxTrivia) As String Implements ISyntaxFacts.GetCommentPrefix
+            Return "'"
+        End Function
+
         Public Overrides Function CanHaveAccessibility(declaration As SyntaxNode) As Boolean Implements ISyntaxFacts.CanHaveAccessibility
             Select Case declaration.Kind
                 Case SyntaxKind.ClassBlock,

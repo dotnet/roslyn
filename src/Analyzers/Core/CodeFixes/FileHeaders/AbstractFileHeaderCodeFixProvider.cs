@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 {
     internal abstract class AbstractFileHeaderCodeFixProvider : CodeFixProvider
     {
-        protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
         protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract ISyntaxKinds SyntaxKinds { get; }
 
         protected abstract SyntaxTrivia EndOfLine(string text);
+        protected abstract string CommentPrefix { get; }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.FileHeaderMismatch);
@@ -62,12 +62,11 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 #endif
             var newLineTrivia = EndOfLine(newLineText);
 
-            return GetTransformedSyntaxRootAsync(SyntaxFacts, FileHeaderHelper, newLineTrivia, document, cancellationToken);
+            return GetTransformedSyntaxRootAsync(SyntaxFacts, newLineTrivia, document, cancellationToken);
         }
 
-        internal static async Task<SyntaxNode> GetTransformedSyntaxRootAsync(ISyntaxFacts syntaxFacts,
-            AbstractFileHeaderHelper fileHeaderHelper, SyntaxTrivia newLineTrivia, Document document,
-            CancellationToken cancellationToken)
+        internal async Task<SyntaxNode> GetTransformedSyntaxRootAsync(ISyntaxFacts syntaxFacts,
+            SyntaxTrivia newLineTrivia, Document document, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -81,17 +80,16 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
             var expectedFileHeader = fileHeaderTemplate.Replace("{fileName}", Path.GetFileName(document.FilePath));
 
-            var fileHeader = fileHeaderHelper.ParseFileHeader(root);
+            var fileHeader = syntaxFacts.GetFileBanner(root);
 
-            return fileHeader.IsMissing
-                ? AddHeader(syntaxFacts, fileHeaderHelper, newLineTrivia, root, expectedFileHeader)
-                : ReplaceHeader(syntaxFacts, fileHeaderHelper, newLineTrivia, root, expectedFileHeader);
+            return fileHeader.Length == 0
+                ? AddHeader(syntaxFacts, newLineTrivia, root, expectedFileHeader)
+                : ReplaceHeader(syntaxFacts, newLineTrivia, root, expectedFileHeader);
         }
 
-        private static SyntaxNode ReplaceHeader(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper,
-            SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
+        private SyntaxNode ReplaceHeader(ISyntaxFacts syntaxFacts, SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
         {
-            var newHeaderTrivia = CreateNewHeader(syntaxFacts, fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString());
+            var newHeaderTrivia = CreateNewHeader(syntaxFacts, CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString());
 
             var existingBanner = syntaxFacts.GetFileBanner(root);
             var allRootTrivia = root.GetLeadingTrivia();
@@ -155,10 +153,9 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             return (triviaToKeep: allRootTrivia, bannerInsertationIndex: index);
         }
 
-        private static SyntaxNode AddHeader(ISyntaxFacts syntaxFacts, AbstractFileHeaderHelper fileHeaderHelper,
-            SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
+        private SyntaxNode AddHeader(ISyntaxFacts syntaxFacts, SyntaxTrivia newLineTrivia, SyntaxNode root, string expectedFileHeader)
         {
-            var newTrivia = CreateNewHeader(syntaxFacts, fileHeaderHelper.CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString())
+            var newTrivia = CreateNewHeader(syntaxFacts, CommentPrefix, expectedFileHeader, newLineTrivia.ToFullString())
                 .Add(newLineTrivia)
                 .Add(newLineTrivia);
 

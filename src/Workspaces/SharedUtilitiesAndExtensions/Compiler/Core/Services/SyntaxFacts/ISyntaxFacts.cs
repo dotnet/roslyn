@@ -496,6 +496,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
 
+        string GetCommentText(SyntaxTrivia trivia);
+
+        string GetCommentPrefix(SyntaxTrivia trivia);
+
         bool CanHaveAccessibility(SyntaxNode declaration);
 
         /// <summary>

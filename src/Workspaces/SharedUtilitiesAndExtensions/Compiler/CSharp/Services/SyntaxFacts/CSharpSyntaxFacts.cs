@@ -1752,6 +1752,21 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             throw ExceptionUtilities.UnexpectedValue(trivia.Kind());
         }
 
+        public string GetCommentText(SyntaxTrivia trivia)
+            => trivia.GetCommentText();
+
+        public string GetCommentPrefix(SyntaxTrivia trivia)
+        {
+            return (SyntaxKind)trivia.RawKind switch
+            {
+                SyntaxKind.SingleLineCommentTrivia => "//",
+                SyntaxKind.SingleLineDocumentationCommentTrivia => "///",
+                SyntaxKind.MultiLineCommentTrivia => "/*",
+                SyntaxKind.MultiLineDocumentationCommentTrivia => "/**",
+                _ => throw ExceptionUtilities.UnexpectedValue(trivia),
+            };
+        }
+
         public override bool CanHaveAccessibility(SyntaxNode declaration)
         {
             switch (declaration.Kind())

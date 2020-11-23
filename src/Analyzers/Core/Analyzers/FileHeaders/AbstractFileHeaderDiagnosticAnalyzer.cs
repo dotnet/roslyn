@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FileHeaders
@@ -26,7 +29,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             InvalidHeaderDescriptor = CreateDescriptorWithId(DescriptorId, invalidHeaderTitle, invalidHeaderMessage);
         }
 
-        protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
 
         internal DiagnosticDescriptor MissingHeaderDescriptor => Descriptor;
 
@@ -55,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 return;
             }
 
-            var fileHeader = FileHeaderHelper.ParseFileHeader(root);
+            var fileHeader = ParseFileHeader(root);
             if (fileHeader.IsMissing)
             {
                 context.ReportDiagnostic(Diagnostic.Create(MissingHeaderDescriptor, fileHeader.GetLocation(tree)));
@@ -110,5 +113,42 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         /// <returns>A normalized text for comparison.</returns>
         private static string NormalizeCopyrightText(string original)
             => original.Trim().Replace("\r\n", "\n");
+
+        private FileHeader ParseFileHeader(SyntaxNode root)
+        {
+            var banner = SyntaxFacts.GetFileBanner(root);
+            if (banner.Length == 0)
+            {
+                return GetMissingHeader(root);
+            }
+
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
+            int? fileHeaderStart = null;
+            int? fileHeaderEnd = null;
+            string? commentPrefix = null;
+
+            foreach (var trivia in banner)
+            {
+                if (SyntaxFacts.IsRegularComment(trivia))
+                {
+                    var comment = SyntaxFacts.GetCommentText(trivia);
+                    fileHeaderStart ??= trivia.FullSpan.Start;
+                    fileHeaderEnd = trivia.FullSpan.End;
+                    commentPrefix ??= SyntaxFacts.GetCommentPrefix(trivia);
+
+                    sb.AppendLine(comment.Trim());
+                }
+            }
+
+            return fileHeaderStart is int start && fileHeaderEnd is int end && commentPrefix is string { Length: var commentPrefixLength }
+                ? new FileHeader(sb.ToString(), start, end, commentPrefixLength)
+                : GetMissingHeader(root);
+
+            static FileHeader GetMissingHeader(SyntaxNode root)
+            {
+                var missingHeaderOffset = root.GetLeadingTrivia().FirstOrDefault(t => t.IsDirective).FullSpan.End;
+                return FileHeader.MissingFileHeader(missingHeaderOffset);
+            }
+        }
     }
 }

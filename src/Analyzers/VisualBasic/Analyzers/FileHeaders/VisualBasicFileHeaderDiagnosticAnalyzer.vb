@@ -4,6 +4,8 @@
 
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.FileHeaders
+Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
@@ -14,9 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
             MyBase.New(LanguageNames.VisualBasic)
         End Sub
 
-        Protected Overrides ReadOnly Property FileHeaderHelper As AbstractFileHeaderHelper
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts
             Get
-                Return VisualBasicFileHeaderHelper.Instance
+                Return VisualBasicSyntaxFacts.Instance
             End Get
         End Property
     End Class

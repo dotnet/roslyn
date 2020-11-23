@@ -20,12 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
         Public Sub New()
         End Sub
 
-        Protected Overrides ReadOnly Property FileHeaderHelper As AbstractFileHeaderHelper
-            Get
-                Return VisualBasicFileHeaderHelper.Instance
-            End Get
-        End Property
-
         Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts
             Get
                 Return VisualBasicSyntaxFacts.Instance
@@ -35,6 +29,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
         Protected Overrides ReadOnly Property SyntaxKinds As ISyntaxKinds
             Get
                 Return VisualBasicSyntaxKinds.Instance
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property CommentPrefix As String
+            Get
+                Return "'"
             End Get
         End Property
 
