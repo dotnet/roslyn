@@ -20,15 +20,14 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     //
     [DebuggerTypeProxy(typeof(ICollectionDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
-    [Serializable]
     internal class SegmentedList<T> : IList<T>, IList, IReadOnlyList<T>
     {
         private const int DefaultCapacity = 4;
         private const int MaxArrayLength = 0x7FEFFFFF;
 
-        internal T[] _items; // Do not rename (binary serialization)
-        internal int _size; // Do not rename (binary serialization)
-        private int _version; // Do not rename (binary serialization)
+        internal T[] _items;
+        internal int _size;
+        private int _version;
 
 #pragma warning disable CA1825 // avoid the extra generic instantiation for Array.Empty<T>()
         private static readonly T[] s_emptyArray = new T[0];
