@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Implements ISyntaxFactoryContext
 
         Private _beginStatement As StatementSyntax
-    
+
         Protected _parser As Parser
         Protected _statements As SyntaxListBuilder(Of StatementSyntax)
 

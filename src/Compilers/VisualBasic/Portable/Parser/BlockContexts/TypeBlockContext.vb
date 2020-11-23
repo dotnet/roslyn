@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Sub New(contextKind As SyntaxKind, statement As StatementSyntax, prevContext As BlockContext)
             MyBase.New(contextKind, statement, prevContext)
 
-            Debug.Assert(contextKind.IsIn(SyntaxKind.ModuleBlock, SyntaxKind.ClassBlock, SyntaxKind.StructureBlock,SyntaxKind.InterfaceBlock))
+            Debug.Assert(contextKind.IsIn(SyntaxKind.ModuleBlock, SyntaxKind.ClassBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock))
 
             Debug.Assert(BlockKind.IsIn(SyntaxKind.ModuleBlock, SyntaxKind.ClassBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock))
 
