@@ -70,7 +70,6 @@ run_analyzers=false
 prepare_machine=false
 warn_as_error=false
 properties=""
-disable_parallel_restore=false
 source_build=false
 
 docker=false
@@ -232,7 +231,7 @@ function BuildSolution {
   # NuGet often exceeds the limit of open files on Mac and Linux
   # https://github.com/NuGet/Home/issues/2163
   if [[ "$UNAME" == "Darwin" || "$UNAME" == "Linux" ]]; then
-    disable_parallel_restore=true
+    ulimit -n 6500
   fi
 
   if [[ "$test_ioperation" == true ]]; then
@@ -284,7 +283,6 @@ function BuildSolution {
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \
-    /p:RestoreDisableParallel=$disable_parallel_restore \
     /p:TestRuntimeAdditionalArguments=$test_runtime_args \
     /p:DotNetBuildFromSource=$source_build \
     $test_runtime \
