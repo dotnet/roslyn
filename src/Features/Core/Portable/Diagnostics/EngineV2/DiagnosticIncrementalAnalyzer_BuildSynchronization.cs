@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -127,14 +128,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        private ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> CreateAnalysisResults(
+        private ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> CreateAnalysisResults(
             Project project, ImmutableArray<StateSet> stateSets, ImmutableArray<DiagnosticData> diagnostics)
         {
             using var poolObject = SharedPools.Default<HashSet<string>>().GetPooledObject();
 
             var lookup = diagnostics.ToLookup(d => d.Id);
 
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
+            var builder = ImmutableSegmentedDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
             using var _ = PooledHashSet<DocumentId>.GetInstance(out var existingDocumentsInStateSet);
             foreach (var stateSet in stateSets)
             {

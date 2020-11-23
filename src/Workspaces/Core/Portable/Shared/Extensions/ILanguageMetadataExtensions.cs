@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -26,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return services.Where(s => s.Metadata.Language == languageName).Select(s => s.Value);
         }
 
-        public static ImmutableDictionary<string, ImmutableArray<Lazy<TInterface, TMetadata>>> ToPerLanguageMap<TInterface, TMetadata>(this IEnumerable<Lazy<TInterface, TMetadata>> services)
+        public static ImmutableSegmentedDictionary<string, ImmutableArray<Lazy<TInterface, TMetadata>>> ToPerLanguageMap<TInterface, TMetadata>(this IEnumerable<Lazy<TInterface, TMetadata>> services)
             where TMetadata : ILanguageMetadata
         {
-            var builder = ImmutableDictionary.CreateBuilder<string, ArrayBuilder<Lazy<TInterface, TMetadata>>>();
+            var builder = ImmutableSegmentedDictionary.CreateBuilder<string, ArrayBuilder<Lazy<TInterface, TMetadata>>>();
 
             foreach (var service in services)
             {
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 list.Add(service);
             }
 
-            return builder.Select(kvp => new KeyValuePair<string, ImmutableArray<Lazy<TInterface, TMetadata>>>(kvp.Key, kvp.Value.ToImmutableAndFree())).ToImmutableDictionary();
+            return builder.Select(kvp => new KeyValuePair<string, ImmutableArray<Lazy<TInterface, TMetadata>>>(kvp.Key, kvp.Value.ToImmutableAndFree())).ToImmutableSegmentedDictionary();
         }
 
         public static Dictionary<string, List<Lazy<TInterface, TMetadata>>> ToPerLanguageMapWithMultipleLanguages<TInterface, TMetadata>(this IEnumerable<Lazy<TInterface, TMetadata>> services)

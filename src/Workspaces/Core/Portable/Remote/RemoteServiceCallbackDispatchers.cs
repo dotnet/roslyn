@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -26,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private readonly ImmutableDictionary<Type, Lazy<IRemoteServiceCallbackDispatcher, ExportMetadata>> _callbackDispatchers;
+        private readonly ImmutableSegmentedDictionary<Type, Lazy<IRemoteServiceCallbackDispatcher, ExportMetadata>> _callbackDispatchers;
 
         public RemoteServiceCallbackDispatcherRegistry(IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, ExportMetadata>> dispatchers)
-            => _callbackDispatchers = dispatchers.ToImmutableDictionary(d => d.Metadata.ServiceInterface);
+            => _callbackDispatchers = dispatchers.ToImmutableSegmentedDictionary(d => d.Metadata.ServiceInterface);
 
         public IRemoteServiceCallbackDispatcher GetDispatcher(Type serviceType)
             => _callbackDispatchers[serviceType].Value;

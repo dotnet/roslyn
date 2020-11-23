@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 {
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
     internal static class DiagnosticAnalysisResultMap
     {
         public static DiagnosticAnalysisResultMap<TKey, TValue> Create<TKey, TValue>(
-            ImmutableDictionary<TKey, TValue> analysisResult,
+            ImmutableSegmentedDictionary<TKey, TValue> analysisResult,
             ImmutableDictionary<TKey, AnalyzerTelemetryInfo> telemetryInfo)
             where TKey : notnull
         {
@@ -26,14 +27,14 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         where TKey : notnull
     {
         public static readonly DiagnosticAnalysisResultMap<TKey, TValue> Empty = new(
-            ImmutableDictionary<TKey, TValue>.Empty,
+            ImmutableSegmentedDictionary<TKey, TValue>.Empty,
             ImmutableDictionary<TKey, AnalyzerTelemetryInfo>.Empty);
 
-        public readonly ImmutableDictionary<TKey, TValue> AnalysisResult;
+        public readonly ImmutableSegmentedDictionary<TKey, TValue> AnalysisResult;
         public readonly ImmutableDictionary<TKey, AnalyzerTelemetryInfo> TelemetryInfo;
 
         public DiagnosticAnalysisResultMap(
-            ImmutableDictionary<TKey, TValue> analysisResult,
+            ImmutableSegmentedDictionary<TKey, TValue> analysisResult,
             ImmutableDictionary<TKey, AnalyzerTelemetryInfo> telemetryInfo)
         {
             Debug.Assert(telemetryInfo.IsEmpty || telemetryInfo.Count == analysisResult.Count);

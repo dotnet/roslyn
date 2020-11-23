@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 compilationWithAnalyzers.Compilation, analyzers, skippedAnalyzersInfo,
                 compilationWithAnalyzers.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-            var result = builderMap.ToImmutableDictionary(kv => kv.Key, kv => DiagnosticAnalysisResult.CreateFromBuilder(kv.Value));
+            var result = builderMap.ToImmutableSegmentedDictionary(kv => kv.Key, kv => DiagnosticAnalysisResult.CreateFromBuilder(kv.Value));
             var telemetry = getTelemetryInfo
                 ? analysisResult.AnalyzerTelemetryInfo
                 : ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty;
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var documentIds = (documentAnalysisScope != null) ? ImmutableHashSet.Create(documentAnalysisScope.TextDocument.Id) : null;
 
             return new DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>(
-                result.Value.Diagnostics.ToImmutableDictionary(
+                result.Value.Diagnostics.ToImmutableSegmentedDictionary(
                     entry => analyzerMap[entry.analyzerId],
                     entry => DiagnosticAnalysisResult.Create(
                         project,

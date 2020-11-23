@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     {
                         Logger.Log(FunctionId.Diagnostics_ProjectDiagnostic, p => $"FSA off ({p.FilePath ?? p.Name})", project);
 
-                        return new ProjectAnalysisData(project.Id, VersionStamp.Default, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
+                        return new ProjectAnalysisData(project.Id, VersionStamp.Default, existingData.Result, ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
                     }
 
                     var result = await ComputeDiagnosticsAsync(compilationWithAnalyzers, project, stateSets, forceAnalyzerRun, existingData.Result, cancellationToken).ConfigureAwait(false);
@@ -153,8 +154,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return false;
         }
 
-        private static async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result, Project project, CancellationToken cancellationToken)
+        private static async Task<ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> RemoveCompilerSemanticErrorsIfProjectNotLoadedAsync(
+            ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result, Project project, CancellationToken cancellationToken)
         {
             // see whether solution is loaded successfully
             var projectLoadedSuccessfully = await project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
@@ -188,12 +189,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// Calculate all diagnostics for a given project using analyzers referenced by the project and specified IDE analyzers.
         /// </summary>
-        private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
+        private async Task<ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
             CompilationWithAnalyzers? compilationWithAnalyzers, Project project, ImmutableArray<DiagnosticAnalyzer> ideAnalyzers, bool forcedAnalysis, CancellationToken cancellationToken)
         {
             try
             {
-                var result = ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
+                var result = ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
 
                 // can be null if given project doesn't support compilation.
                 if (compilationWithAnalyzers?.Analyzers.Length > 0)
@@ -209,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // check whether there is IDE specific project diagnostic analyzer
-                return await MergeProjectDiagnosticAnalyzerDiagnosticsAsync(project, ideAnalyzers, compilationWithAnalyzers?.Compilation, result, cancellationToken).ConfigureAwait(false);
+                return await MergeProjectDiagnosticAnalyzerDiagnosticsAsync(project, ideAnalyzers, compilationWithAnalyzers?.Compilation, result.ToBuilder(), cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
@@ -217,9 +218,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
+        private async Task<ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsAsync(
             CompilationWithAnalyzers? compilationWithAnalyzers, Project project, IEnumerable<StateSet> stateSets, bool forcedAnalysis,
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, CancellationToken cancellationToken)
+            ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, CancellationToken cancellationToken)
         {
             try
             {
@@ -252,8 +253,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        private static ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> MergeExistingDiagnostics(
-            VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
+        private static ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> MergeExistingDiagnostics(
+            VersionStamp version, ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing, ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
         {
             // quick bail out.
             if (existing.IsEmpty)
@@ -261,6 +262,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return result;
             }
 
+            var builder = result.ToBuilder();
             foreach (var (analyzer, results) in existing)
             {
                 if (results.Version != version)
@@ -268,15 +270,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     continue;
                 }
 
-                result = result.SetItem(analyzer, results);
+                builder[analyzer] = results;
             }
 
-            return result;
+            return builder.ToImmutable();
         }
 
         private static bool TryReduceAnalyzersToRun(
             CompilationWithAnalyzers compilationWithAnalyzers, Project project, VersionStamp version,
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing,
+            ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing,
             out ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             analyzers = default;
@@ -310,11 +312,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return true;
         }
 
-        private static async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> MergeProjectDiagnosticAnalyzerDiagnosticsAsync(
+        private static async Task<ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> MergeProjectDiagnosticAnalyzerDiagnosticsAsync(
             Project project,
             ImmutableArray<DiagnosticAnalyzer> ideAnalyzers,
             Compilation? compilation,
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result,
+            ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Builder result,
             CancellationToken cancellationToken)
         {
             try
@@ -322,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
                 var (fileLoadAnalysisResult, failedDocuments) = await GetDocumentLoadFailuresAsync(project, version, cancellationToken).ConfigureAwait(false);
-                result = result.SetItem(FileContentLoadAnalyzer.Instance, fileLoadAnalysisResult);
+                result[FileContentLoadAnalyzer.Instance] = fileLoadAnalysisResult;
 
                 foreach (var analyzer in ideAnalyzers)
                 {
@@ -360,10 +362,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // merge the result to existing one.
                     // there can be existing one from compiler driver with empty set. overwrite it with
                     // ide one.
-                    result = result.SetItem(analyzer, DiagnosticAnalysisResult.CreateFromBuilder(builder));
+                    result[analyzer] = DiagnosticAnalysisResult.CreateFromBuilder(builder);
                 }
 
-                return result;
+                return result.ToImmutable();
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {

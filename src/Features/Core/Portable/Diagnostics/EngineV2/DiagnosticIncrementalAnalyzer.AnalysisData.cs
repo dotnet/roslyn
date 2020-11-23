@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -80,14 +81,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// <summary>
             /// Current data that matches the version
             /// </summary>
-            public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> Result;
+            public readonly ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> Result;
 
             /// <summary>
             /// When present, holds onto last data we broadcasted to outer world.
             /// </summary>
-            public readonly ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>? OldResult;
+            public readonly ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>? OldResult;
 
-            public ProjectAnalysisData(ProjectId projectId, VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
+            public ProjectAnalysisData(ProjectId projectId, VersionStamp version, ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
             {
                 ProjectId = projectId;
                 Version = version;
@@ -99,8 +100,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public ProjectAnalysisData(
                 ProjectId projectId,
                 VersionStamp version,
-                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> oldResult,
-                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> newResult)
+                ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> oldResult,
+                ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> newResult)
                 : this(projectId, version, newResult)
             {
                 OldResult = oldResult;
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 VersionStamp? version = null;
 
-                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
+                var builder = ImmutableSegmentedDictionary.CreateBuilder<DiagnosticAnalyzer, DiagnosticAnalysisResult>();
                 foreach (var stateSet in stateSets)
                 {
                     var state = stateSet.GetOrCreateProjectState(project.Id);
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (!version.HasValue)
                 {
                     // there is no saved data to return.
-                    return new ProjectAnalysisData(project.Id, VersionStamp.Default, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
+                    return new ProjectAnalysisData(project.Id, VersionStamp.Default, ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
                 }
 
                 return new ProjectAnalysisData(project.Id, version.Value, builder.ToImmutable());

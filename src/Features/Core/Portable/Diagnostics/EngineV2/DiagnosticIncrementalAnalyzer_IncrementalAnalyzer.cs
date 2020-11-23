@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -397,16 +398,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private void RaiseProjectDiagnosticsIfNeeded(
             Project project,
             IEnumerable<StateSet> stateSets,
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
+            ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
         {
-            RaiseProjectDiagnosticsIfNeeded(project, stateSets, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, result);
+            RaiseProjectDiagnosticsIfNeeded(project, stateSets, ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, result);
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(
             Project project,
             IEnumerable<StateSet> stateSets,
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> oldResult,
-            ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> newResult)
+            ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> oldResult,
+            ImmutableSegmentedDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> newResult)
         {
             if (oldResult.Count == 0 && newResult.Count == 0)
             {
