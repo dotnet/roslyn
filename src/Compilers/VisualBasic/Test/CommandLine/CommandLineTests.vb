@@ -10059,31 +10059,50 @@ End Class")
         End Sub
 
         <WorkItem(49446, "https://github.com/dotnet/roslyn/issues/49446")>
-        <CombinatorialData, Theory>
-        Public Sub TestWarnAsErrorMinusDoesNotNullifyEditorConfig(warnAsErrorMinus As Boolean)
-            Dim analyzer = New NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault:=True, defaultSeverity:=DiagnosticSeverity.Hidden, throwOnAllNamedTypes:=False)
+        <Theory>
+        <InlineData(False, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)>
+        <InlineData(True, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)>
+        <InlineData(False, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)>
+        <InlineData(False, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        Public Sub TestWarnAsErrorMinusDoesNotNullifyEditorConfig(warnAsErrorMinus As Boolean,
+                                                                  defaultSeverity As DiagnosticSeverity,
+                                                                  severityInConfigFile As DiagnosticSeverity?,
+                                                                  expectedEffectiveSeverity As DiagnosticSeverity)
+            Dim analyzer = New NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault:=True, defaultSeverity, throwOnAllNamedTypes:=False)
             Dim diagnosticId = analyzer.Descriptor.Id
 
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("test.vb").WriteAllText("
 Class C
 End Class")
+            Dim additionalFlags = {"/warnaserror+"}
 
-            Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($"
+            If severityInConfigFile.HasValue Then
+                Dim severityString = DiagnosticDescriptor.MapSeverityToReport(severityInConfigFile.Value).ToAnalyzerConfigString()
+                Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($"
 [*.vb]
-dotnet_diagnostic.{diagnosticId}.severity = warning")
+dotnet_diagnostic.{diagnosticId}.severity = {severityString}")
 
-            Dim additionalFlags = {"/warnaserror+", $"/analyzerconfig:{analyzerConfig.Path}"}
+                additionalFlags = additionalFlags.Append($"/analyzerconfig:{analyzerConfig.Path}").ToArray()
+            End If
 
-            Dim expectedWarningCount, expectedErrorCount As Integer
             If warnAsErrorMinus Then
                 additionalFlags = additionalFlags.Append($"/warnaserror-:{diagnosticId}").ToArray()
-                expectedWarningCount = 1
-                expectedErrorCount = 0
-            Else
-                expectedWarningCount = 0
-                expectedErrorCount = 1
             End If
+
+            Dim expectedWarningCount As Integer = 0, expectedErrorCount As Integer = 0
+            Select Case expectedEffectiveSeverity
+                Case DiagnosticSeverity.Warning
+                    expectedWarningCount = 1
+                Case DiagnosticSeverity.[Error]
+                    expectedErrorCount = 1
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(expectedEffectiveSeverity)
+            End Select
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False,
                          expectedWarningCount:=expectedWarningCount,
