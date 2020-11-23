@@ -180,6 +180,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\OperatorPlacementWhenWrappingPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\HashHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\ICollectionDebugView`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IDictionaryDebugView`2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+Builder+KeyCollection.cs" />
@@ -197,6 +198,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedArrayHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedDictionary`2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedList`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\StackTraceHiddenAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\TemporaryArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\ThrowHelper.cs" />
