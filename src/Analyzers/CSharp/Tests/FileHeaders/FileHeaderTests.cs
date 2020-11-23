@@ -857,5 +857,62 @@ namespace N
                 EditorConfig = editorConfig,
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TestExistingBlockCommentHeaderAndTextTemplateWithLeadingAsterix()
+        {
+            var editorConfig = @"
+[*.cs]
+file_header_template = Comment\n* Bullet point 1\n* Bullet point 2
+";
+            var testCode = @"
+/* Comment
+* Bullet point 1
+* Bullet point 2
+*/
+
+namespace N
+{
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                EditorConfig = editorConfig,
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("Comment", "// Comment", null)]
+        [InlineData("Comment", "/* Comment */", null)]
+        [InlineData("// Comment", "// Comment", null)]
+        [InlineData("// Comment", "[|/*|] Comment */", "// Comment")]
+        [InlineData("/* Comment */", "[|//|] Comment", "/* Comment */")]
+        [InlineData("/* Comment */", "/* Comment */", null)]
+        public async Task TestExistingHeaderAndTemplateCombinations(string template, string existingComment, string? replacedComment)
+        {
+            var editorConfig = @$"
+[*.cs]
+file_header_template = {template}
+";
+            var testCode = @$"{existingComment}
+
+namespace N
+{{
+}}";
+            var fixedCode = @$"{replacedComment ?? existingComment}
+
+namespace N
+{{
+}}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                EditorConfig = editorConfig,
+            }.RunAsync();
+        }
     }
 }
