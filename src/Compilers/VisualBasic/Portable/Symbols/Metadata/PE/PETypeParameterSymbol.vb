@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
     ''' </summary>
     ''' <remarks></remarks>
     Friend NotInheritable Class PETypeParameterSymbol
-        Inherits TypeParameterSymbol
+        Inherits SubstitutableTypeParameterSymbol
 
         Private ReadOnly _containingSymbol As Symbol ' Could be PENamedType or a PEMethod
         Private ReadOnly _handle As GenericParameterHandle

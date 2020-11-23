@@ -189,14 +189,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Public Overrides Function GetHashCode() As Integer
+            Public NotOverridable Overrides Function GetHashCode() As Integer
                 Return Hash.Combine(_containingModule, Hash.Combine(MetadataName, Hash.Combine(_namespaceName, Arity)))
             End Function
 
-            Public Overrides Function Equals(obj As Object) As Boolean
-                If Me Is obj Then
-                    Return True
-                End If
+            Protected NotOverridable Overrides Function SpecializedEquals(obj As InstanceErrorTypeSymbol) As Boolean
+                Debug.Assert(obj IsNot Me)
 
                 Dim other = TryCast(obj, TopLevel)
 
@@ -251,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Represents nested missing type.
         ''' </summary>
-        Friend Class Nested
+        Friend NotInheritable Class Nested
             Inherits MissingMetadataTypeSymbol
 
             Private ReadOnly _containingType As NamedTypeSymbol
@@ -259,6 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public Sub New(containingType As NamedTypeSymbol, name As String, arity As Integer, mangleName As Boolean)
                 MyBase.New(name, arity, mangleName)
                 Debug.Assert(containingType IsNot Nothing)
+                Debug.Assert(containingType.IsDefinition)
 
                 _containingType = containingType
             End Sub
@@ -290,10 +289,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Hash.Combine(_containingType, Hash.Combine(MetadataName, Arity))
             End Function
 
-            Public Overrides Function Equals(obj As Object) As Boolean
-                If Me Is obj Then
-                    Return True
-                End If
+            Protected Overrides Function SpecializedEquals(obj As InstanceErrorTypeSymbol) As Boolean
+                Debug.Assert(Me IsNot obj)
 
                 Dim other = TryCast(obj, Nested)
 

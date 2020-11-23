@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Manager.GetHashCode()
             End Function
 
-            Public Overrides Function Equals(obj As Object) As Boolean
+            Public Overrides Function Equals(obj As TypeSymbol, comparison As TypeCompareKind) As Boolean
                 If obj Is Me Then
                     Return True
                 End If

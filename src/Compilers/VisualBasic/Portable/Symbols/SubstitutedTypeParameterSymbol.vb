@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' Given a type A(Of IComparable).B(Of ), alpha-renamed type parameter T will have type constraint IComparable.
     ''' The rest will be exactly as for the original type parameter T. In fact, OriginalDefinition will return symbol for T.
     ''' </summary>
-    Friend Class SubstitutedTypeParameterSymbol
+    Friend NotInheritable Class SubstitutedTypeParameterSymbol
         Inherits TypeParameterSymbol
 
         ''' <summary>
@@ -39,6 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Sub New(originalDefinition As TypeParameterSymbol)
             Debug.Assert(originalDefinition.IsDefinition)
+            Debug.Assert(TypeOf originalDefinition Is SubstitutableTypeParameterSymbol) ' Required to ensure symmetrical equality
             _originalDefinition = originalDefinition
         End Sub
 
@@ -156,18 +157,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public Overrides Function GetHashCode() As Integer
+            Dim containingType = TryCast(_containingSymbol, SubstitutedNamedType)
+
+            If containingType IsNot Nothing AndAlso containingType.TypeSubstitution.WasConstructedForModifiers() Then
+                Return _originalDefinition.GetHashCode()
+            End If
+
             Return Hash.Combine(Me.Ordinal.GetHashCode(), _containingSymbol.GetHashCode())
         End Function
 
-        Public Overrides Function Equals(obj As Object) As Boolean
+        Public Overrides Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
+            Return Equals(TryCast(other, TypeParameterSymbol), comparison)
+        End Function
 
-            If Me Is obj Then
+        Private Overloads Function Equals(other As TypeParameterSymbol, comparison As TypeCompareKind) As Boolean
+
+            If Me Is other Then
                 Return True
             End If
 
-            Dim other = TryCast(obj, SubstitutedTypeParameterSymbol)
-
-            Return other IsNot Nothing AndAlso Me.Ordinal = other.Ordinal AndAlso Me.ContainingSymbol.Equals(other.ContainingSymbol)
+            Return other IsNot Nothing AndAlso Me.OriginalDefinition.Equals(other.OriginalDefinition) AndAlso Me.ContainingSymbol.Equals(other.ContainingSymbol, comparison)
         End Function
 
         ''' <summary>

@@ -769,15 +769,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Hash.Combine(_ordinal.GetHashCode(), Me.ContainingSymbol.GetHashCode())
             End Function
 
-            Public Overrides Function Equals(obj As Object) As Boolean
+            Public Overrides Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
+                Return Equals(TryCast(other, ReducedTypeParameterSymbol), comparison)
+            End Function
 
-                If Me Is obj Then
+            Public Overloads Function Equals(other As ReducedTypeParameterSymbol, comparison As TypeCompareKind) As Boolean
+
+                If Me Is other Then
                     Return True
                 End If
 
-                Dim other = TryCast(obj, ReducedTypeParameterSymbol)
-
-                Return other IsNot Nothing AndAlso Me._ordinal = other._ordinal AndAlso Me.ContainingSymbol.Equals(other.ContainingSymbol)
+                Return other IsNot Nothing AndAlso Me._ordinal = other._ordinal AndAlso Me.ContainingSymbol.Equals(other.ContainingSymbol, comparison)
             End Function
 
         End Class
