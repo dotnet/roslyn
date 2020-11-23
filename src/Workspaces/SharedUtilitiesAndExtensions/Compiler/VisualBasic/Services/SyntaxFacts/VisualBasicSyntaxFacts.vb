@@ -1949,15 +1949,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetCommentText(trivia As SyntaxTrivia) As String Implements ISyntaxFacts.GetCommentText
-            If Not trivia.IsKind(SyntaxKind.CommentTrivia) Then
-                Throw ExceptionUtilities.UnexpectedValue(trivia.Kind())
+            If trivia.IsKind(SyntaxKind.CommentTrivia) Then
+                Return trivia.ToFullString().Substring(1)
+            ElseIf trivia.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
+                Return trivia.ToFullString().Substring(3)
             End If
 
-            Return trivia.ToFullString().Substring(1)
+            Throw ExceptionUtilities.UnexpectedValue(trivia.Kind())
         End Function
 
         Public Function GetCommentPrefix(trivia As SyntaxTrivia) As String Implements ISyntaxFacts.GetCommentPrefix
-            Return "'"
+            If trivia.IsKind(SyntaxKind.CommentTrivia) Then
+                Return "'"
+            ElseIf trivia.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
+                Return "'''"
+            End If
+
+            Throw ExceptionUtilities.UnexpectedValue(trivia.Kind())
         End Function
 
         Public Overrides Function CanHaveAccessibility(declaration As SyntaxNode) As Boolean Implements ISyntaxFacts.CanHaveAccessibility
