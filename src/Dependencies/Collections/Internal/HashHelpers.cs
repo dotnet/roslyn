@@ -94,7 +94,10 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             ulong.MaxValue / divisor + 1;
 
         /// <summary>Performs a mod operation using the multiplier pre-computed with <see cref="GetFastModMultiplier"/>.</summary>
-        /// <remarks>This should only be used on 64-bit.</remarks>
+        /// <remarks>
+        /// PERF: This improves performance in 64-bit scenarios at the expense of performance in 32-bit scenarios. Since
+        /// we only build a single AnyCPU binary, we opt for improved performance in the 64-bit scenario.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint FastMod(uint value, uint divisor, ulong multiplier)
         {

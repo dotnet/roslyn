@@ -19,9 +19,7 @@ namespace Microsoft.CodeAnalysis.Collections
     {
         private int[]? _buckets;
         private Entry[]? _entries;
-#if TARGET_64BIT
         private ulong _fastModMultiplier;
-#endif
         private int _count;
         private int _freeList;
         private int _freeCount;
@@ -409,9 +407,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             // Assign member variables after both arrays allocated to guard against corruption from OOM if second fails
             _freeList = -1;
-#if TARGET_64BIT
             _fastModMultiplier = HashHelpers.GetFastModMultiplier((uint)size);
-#endif
             _buckets = buckets;
             _entries = entries;
 
@@ -609,9 +605,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             // Assign member variables after both arrays allocated to guard against corruption from OOM if second fails
             _buckets = new int[newSize];
-#if TARGET_64BIT
             _fastModMultiplier = HashHelpers.GetFastModMultiplier((uint)newSize);
-#endif
             for (var i = 0; i < count; i++)
             {
                 if (entries[i].next >= -1)
@@ -1068,11 +1062,7 @@ namespace Microsoft.CodeAnalysis.Collections
         private ref int GetBucket(uint hashCode)
         {
             var buckets = _buckets!;
-#if TARGET_64BIT
             return ref buckets[HashHelpers.FastMod(hashCode, (uint)buckets.Length, _fastModMultiplier)];
-#else
-            return ref buckets[hashCode % (uint)buckets.Length];
-#endif
         }
 
         private struct Entry
