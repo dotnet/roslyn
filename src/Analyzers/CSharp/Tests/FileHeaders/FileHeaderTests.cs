@@ -297,19 +297,13 @@ namespace Bar
         [Fact]
         public async Task TestValidFileHeaderWithMultiLineComments3Async()
         {
-            var testCode = @"{|CS1035:|}[||]/* Copyright (c) SomeCorp. All rights reserved.
-   Licensed under the ??? license. See LICENSE file in the project root for full license information.
-";
-            var fixedCode = @"// Copyright (c) SomeCorp. All rights reserved.
-// Licensed under the ??? license. See LICENSE file in the project root for full license information.
-
-{|CS1035:|}/* Copyright (c) SomeCorp. All rights reserved.
+            var testCode = @"{|CS1035:|}/* Copyright (c) SomeCorp. All rights reserved.
    Licensed under the ??? license. See LICENSE file in the project root for full license information.
 ";
             await new VerifyCS.Test
             {
                 TestCode = testCode,
-                FixedCode = fixedCode,
+                FixedCode = testCode,
                 EditorConfig = TestSettings,
             }.RunAsync();
         }
@@ -471,14 +465,12 @@ namespace Bar
         [Fact]
         public async Task TestInvalidFileHeaderWithWrongTextInUnterminatedMultiLineComment1Async()
         {
-            var testCode = @"{|CS1035:|}[||]/* Copyright (c) OtherCorp. All rights reserved.
+            var testCode = @"{|CS1035:|}[|/*|] Copyright (c) OtherCorp. All rights reserved.
  * Licensed under the ??? license. See LICENSE file in the project root for full license information.
 ";
             var fixedCode = @"// Copyright (c) SomeCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
-{|CS1035:|}/* Copyright (c) OtherCorp. All rights reserved.
- * Licensed under the ??? license. See LICENSE file in the project root for full license information.
 ";
 
             await new VerifyCS.Test
@@ -496,12 +488,11 @@ namespace Bar
         [Fact]
         public async Task TestInvalidFileHeaderWithWrongTextInUnterminatedMultiLineComment2Async()
         {
-            var testCode = @"{|CS1035:|}[||]/*/
+            var testCode = @"{|CS1035:|}[|/*|]/
 ";
             var fixedCode = @"// Copyright (c) SomeCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
-{|CS1035:|}/*/
 ";
 
             await new VerifyCS.Test
@@ -711,10 +702,10 @@ namespace Bar
         [InlineData(@"\n/* Leading and trailing new lines block comment */\n", "/* Leading and trailing new lines block comment */", null)]
         [InlineData(@"Comment", "\r\n\r\n[|/*|] Changed comment */\r\n\r\n// Some unrelated comment1\r\n\r\n", "\r\n\r\n// Comment\r\n\r\n// Some unrelated comment1\r\n\r\n")]
         [InlineData(@"Comment", "[|//|] Changed comment\r\n\r\n// Some unrelated comment", "// Comment\r\n\r\n// Some unrelated comment")]
-        [InlineData(@"Comment", "[|/*|] Changed comment*/\r\n// Some related comment", "// Comment")]
+        [InlineData(@"Comment", "[|/*|] Changed comment*/\r\n// Some related comment", "{|IDE0073://|} Comment\r\n// Some related comment")]
         [InlineData(@"Comment", "[|/*|] Changed comment*/\r\n\r\n// Some unrelated comment", "// Comment\r\n\r\n// Some unrelated comment")]
         [InlineData(@"/* Comment */", "[|//|] Changed comment\r\n\r\n// Some unrelated comment", "/* Comment */\r\n\r\n// Some unrelated comment")]
-        public async Task TestExisitingHeaderTemplateLooksCommentLike(string headerTemplate, string existingHeader, string? expectedHeader)
+        public async Task TestExistingHeaderTemplateLooksCommentLike(string headerTemplate, string existingHeader, string? expectedHeader)
         {
             var editorConfig = @$"
 [*.cs]
@@ -736,18 +727,103 @@ namespace Bar
 }}
 ";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = testCode,
-                FixedCode = fixedCode,
-                //FixedState =
-                //{
-                //    Sources = { fixedCode},
-                //    ExpectedDiagnostics = {new DiagnosticResult("IDE0073", DiagnosticSeverity.Hidden).WithSpan(1,1,1,3) },
-                //},
+                FixedState =
+                {
+                    Sources = { fixedCode },
+                    MarkupHandling = MarkupMode.Allow,
+                },
                 EditorConfig = editorConfig,
-            };
-            await test.RunAsync();
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("\r\n")]
+        [InlineData("\r\n\r\n")]
+        public async Task TestExistingHeaderFollowedByEOF_SingleLineComment(string whiteSpaceBeforeEOF)
+        {
+            var editorConfig = @"
+[*.cs]
+file_header_template = Comment
+";
+            var testCode = @$"// Comment{whiteSpaceBeforeEOF}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                EditorConfig = editorConfig,
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("\r\n")]
+        [InlineData("\r\n\r\n")]
+        public async Task TestExistingHeaderFollowedByEOF_MultiLineComment(string whiteSpaceBeforeEOF)
+        {
+            var editorConfig = @"
+[*.cs]
+file_header_template = Comment
+";
+            var testCode = @$"/* Comment */{whiteSpaceBeforeEOF}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                EditorConfig = editorConfig,
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(" ")]
+        [InlineData("\r\n")]
+        [InlineData("\r\n\r\n")]
+        public async Task TestExistingHeaderFollowedByNamespace_SingleLineComment(string whiteSpaceBeforeNamespace)
+        {
+            var editorConfig = @"
+[*.cs]
+file_header_template = Comment
+";
+            var testCode = @$"// Comment
+{whiteSpaceBeforeNamespace}namespace N
+{{
+}}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                EditorConfig = editorConfig,
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(" ")]
+        [InlineData("\r\n")]
+        [InlineData("\r\n\r\n")]
+        public async Task TestExistingHeaderFollowedByNamespace_MultiLineComment(string whiteSpaceBeforeNamespace)
+        {
+            var editorConfig = @"
+[*.cs]
+file_header_template = Comment
+";
+            var testCode = @$"/* Comment */{whiteSpaceBeforeNamespace}namespace N
+{{
+}}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                EditorConfig = editorConfig,
+            }.RunAsync();
         }
     }
 }

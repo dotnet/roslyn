@@ -74,10 +74,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 Matcher.Sequence(
                     Matcher.OneOrMore(commentLine),
                     _oneOrMoreBlankLines);
-            _fileBannerMatcher =
+            _fileBannerMatcher = Matcher.Choice(
+                Matcher.Sequence(
+                    multiLineComment,
+                    Matcher.Repeat(singleBlankLine)),
                 Matcher.Sequence(
                     Matcher.OneOrMore(commentLine),
-                    Matcher.Repeat(singleBlankLine));
+                    Matcher.Repeat(singleBlankLine)));
         }
 
         private bool IsWhitespaceTrivia(SyntaxTrivia trivia)
