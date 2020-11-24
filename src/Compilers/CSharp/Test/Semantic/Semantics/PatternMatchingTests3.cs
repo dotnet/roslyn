@@ -6193,6 +6193,8 @@ class C
         [InlineData("!(c is { })")]
         [InlineData("c is not C")]
         [InlineData("c is not { }")]
+        [InlineData("c is (not C)")]
+        [InlineData("c is (not { })")]
         public void IsNot_07(string pattern)
         {
             var source =
@@ -6458,9 +6460,170 @@ class C
             verifier.VerifyIL("C.M2", expectedIL);
         }
 
+        [Theory]
+        [InlineData("!(o is (C c1 and C c2))")]
+        [InlineData("o is not (C c1 and C c2)")]
+        public void IsNot_13(string pattern)
+        {
+            var source =
+$@"using static System.Console;
+class C
+{{
+    static void Main()
+    {{
+        M(new C());
+    }}
+    static void M(object o)
+    {{
+        if ({pattern}) return;
+        WriteLine(c1.F);
+        WriteLine(c2.F);
+    }}
+    object F = 42;
+}}";
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"42
+42");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       41 (0x29)
+  .maxstack  1
+  .locals init (C V_0, //c1
+                C V_1) //c2
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""C""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0011
+  IL_000a:  ldloc.0
+  IL_000b:  brfalse.s  IL_0011
+  IL_000d:  ldloc.0
+  IL_000e:  stloc.1
+  IL_000f:  br.s       IL_0012
+  IL_0011:  ret
+  IL_0012:  ldloc.0
+  IL_0013:  ldfld      ""object C.F""
+  IL_0018:  call       ""void System.Console.WriteLine(object)""
+  IL_001d:  ldloc.1
+  IL_001e:  ldfld      ""object C.F""
+  IL_0023:  call       ""void System.Console.WriteLine(object)""
+  IL_0028:  ret
+}");
+        }
+
+        [Theory]
+        [InlineData("!(c is { P: C c1, Q: C c2 })")]
+        [InlineData("c is not { P: C c1, Q: C c2 }")]
+        public void IsNot_14(string pattern)
+        {
+            var source =
+$@"using static System.Console;
+class C
+{{
+    static void Main()
+    {{
+        M(new C() {{ P = new C(), Q = new C() }});
+    }}
+    static void M(C c)
+    {{
+        if ({pattern}) return;
+        WriteLine(c1.F);
+        WriteLine(c2.F);
+    }}
+    object P {{ get; set; }}
+    object Q {{ get; set; }}
+    object F = 42;
+}}";
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"42
+42");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       57 (0x39)
+  .maxstack  1
+  .locals init (C V_0, //c1
+                C V_1) //c2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0021
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object C.P.get""
+  IL_0009:  isinst     ""C""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brfalse.s  IL_0021
+  IL_0012:  ldarg.0
+  IL_0013:  callvirt   ""object C.Q.get""
+  IL_0018:  isinst     ""C""
+  IL_001d:  stloc.1
+  IL_001e:  ldloc.1
+  IL_001f:  brtrue.s   IL_0022
+  IL_0021:  ret
+  IL_0022:  ldloc.0
+  IL_0023:  ldfld      ""object C.F""
+  IL_0028:  call       ""void System.Console.WriteLine(object)""
+  IL_002d:  ldloc.1
+  IL_002e:  ldfld      ""object C.F""
+  IL_0033:  call       ""void System.Console.WriteLine(object)""
+  IL_0038:  ret
+}");
+        }
+
+        [Theory]
+        [InlineData("!(c is { P: C c1, P: C c2 })")]
+        [InlineData("c is not { P: C c1, P: C c2 }")]
+        public void IsNot_15(string pattern)
+        {
+            var source =
+$@"using static System.Console;
+class C
+{{
+    static void Main()
+    {{
+        M(new C() {{ P = new C() }});
+    }}
+    static void M(C c)
+    {{
+        if ({pattern}) return;
+        WriteLine(c1.F);
+        WriteLine(c2.F);
+    }}
+    object P {{ get; set; }}
+    object F = 42;
+}}";
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"42
+42");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       46 (0x2e)
+  .maxstack  1
+  .locals init (C V_0, //c1
+                C V_1) //c2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0016
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object C.P.get""
+  IL_0009:  isinst     ""C""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brfalse.s  IL_0016
+  IL_0012:  ldloc.0
+  IL_0013:  stloc.1
+  IL_0014:  br.s       IL_0017
+  IL_0016:  ret
+  IL_0017:  ldloc.0
+  IL_0018:  ldfld      ""object C.F""
+  IL_001d:  call       ""void System.Console.WriteLine(object)""
+  IL_0022:  ldloc.1
+  IL_0023:  ldfld      ""object C.F""
+  IL_0028:  call       ""void System.Console.WriteLine(object)""
+  IL_002d:  ret
+}");
+        }
+
         [Fact]
         [WorkItem(49262, "https://github.com/dotnet/roslyn/issues/49262")]
-        public void IsNot_13()
+        public void IsNot_16()
         {
             var source =
 @"#nullable enable
