@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Persistence;
@@ -28,6 +29,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0)));
             return workspace;
+        }
+
+        public static Project AddEmptyProject(Solution solution, string languageName = LanguageNames.CSharp)
+        {
+            return solution.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Default,
+                    name: "TestProject",
+                    assemblyName: "TestProject",
+                    language: languageName)).Projects.Single();
         }
 
 #nullable disable

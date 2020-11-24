@@ -21,17 +21,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [UseExportProvider]
     public class SolutionWithSourceGeneratorTests : TestBase
     {
-        private static Project AddEmptyProject(Solution solution)
-        {
-            return solution.AddProject(
-                ProjectInfo.Create(
-                    ProjectId.CreateNewId(),
-                    VersionStamp.Default,
-                    name: "TestProject",
-                    assemblyName: "TestProject",
-                    language: LanguageNames.CSharp)).Projects.Single();
-        }
-
         [Theory]
         [CombinatorialData]
         public async Task SourceGeneratorBasedOnAdditionalFileGeneratesSyntaxTreesOnce(
