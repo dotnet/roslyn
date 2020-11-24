@@ -2,17 +2,36 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests.Persistence;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     internal static class SolutionTestHelpers
     {
+        public static Workspace CreateWorkspace(Type[]? additionalParts = null)
+            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
+
+        public static Workspace CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations()
+        {
+            var workspace = CreateWorkspace(new[]
+            {
+                typeof(TestProjectCacheService),
+                typeof(TestTemporaryStorageService)
+            });
+
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0)));
+            return workspace;
+        }
+
+#nullable disable
+
         public static void TestProperty<T, TValue>(T instance, Func<T, TValue, T> factory, Func<T, TValue> getter, TValue validNonDefaultValue, bool defaultThrows = false)
             where T : class
         {
@@ -73,5 +92,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Throws<ArgumentException>(() => factory(instanceWithNoItem, new TValue[] { item, item }));
             }
         }
+
+#nullable enable
     }
 }
