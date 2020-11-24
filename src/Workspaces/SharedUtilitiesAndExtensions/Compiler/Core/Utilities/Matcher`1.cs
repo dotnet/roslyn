@@ -36,5 +36,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         internal static Matcher<T> Single(Func<T, bool> predicate, string description)
             => new SingleMatcher(predicate, description);
+
+        internal static Matcher<T> SingleOrNone(Func<T, bool> predicate, string description)
+            => new SingleOrNoneMatcher(predicate, description);
     }
 }

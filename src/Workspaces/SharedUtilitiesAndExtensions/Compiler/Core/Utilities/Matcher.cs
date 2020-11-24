@@ -37,5 +37,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// </summary>
         public static Matcher<T> Single<T>(Func<T, bool> predicate, string description)
             => Matcher<T>.Single(predicate, description);
+
+        /// <summary>
+        /// Matcher equivalent to (m?)
+        /// </summary>
+        public static Matcher<T> SingleOrNone<T>(Func<T, bool> predicate, string description)
+            => Matcher<T>.SingleOrNone(predicate, description);
     }
 }
