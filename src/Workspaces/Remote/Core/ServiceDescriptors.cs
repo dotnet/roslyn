@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteGlobalNotificationDeliveryService), null),
             (typeof(IRemoteCodeLensReferencesService), null),
         });
-        
+
         internal readonly RemoteSerializationOptions Options;
         private readonly ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC)> _descriptors;
         private readonly string _componentLevelPrefix;

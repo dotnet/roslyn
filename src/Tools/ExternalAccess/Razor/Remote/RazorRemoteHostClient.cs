@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         public ValueTask<bool> TryInvokeAsync<TService>(Solution solution, Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken) where TService : class
             => _client.TryInvokeAsync<TService>(
-                solution, 
+                solution,
                 (service, solutionInfo, cancellationToken) => invocation(service, solutionInfo, cancellationToken),
                 cancellationToken);
 
