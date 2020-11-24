@@ -13,6 +13,9 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
+    /// <summary>
+    /// Wraps MessagePack or JSON serialization options/converters.
+    /// </summary>
     internal readonly struct RemoteSerializationOptions
     {
         internal static readonly RemoteSerializationOptions Default = new(ImmutableArray<IMessagePackFormatter>.Empty, ImmutableArray<IFormatterResolver>.Empty);

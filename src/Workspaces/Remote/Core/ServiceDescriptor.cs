@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// Describes Roslyn remote brokered service. 
     /// Adds Roslyn specific JSON converters and RPC settings to the default implementation.
     /// </summary>
-    internal sealed partial class ServiceDescriptor : ServiceJsonRpcDescriptor
+    internal sealed class ServiceDescriptor : ServiceJsonRpcDescriptor
     {
         private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new()
         {
