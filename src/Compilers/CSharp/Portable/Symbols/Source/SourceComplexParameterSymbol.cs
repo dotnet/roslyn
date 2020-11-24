@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // that never expires, then the failure mode will be to spin wait forever.
                 // For debug purposes let's instead use a token which expires after a modest amount of time
                 // to wait for the default syntax value to be available.
-                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
                 var token = cts.Token;
 #else
                 var token = CancellationToken.None;
