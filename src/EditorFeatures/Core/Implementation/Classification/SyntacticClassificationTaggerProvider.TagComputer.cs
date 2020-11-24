@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -273,27 +274,50 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             /// </summary>
             public IEnumerable<ITagSpan<IClassificationTag>> GetAllTags(NormalizedSnapshotSpanCollection spans, CancellationToken cancellationToken)
             {
+                // Retrieve the last snapshot we computed.
+                // Needs to be done under a lock as these can be changed on the background thread.
+                ITextSnapshot lastSnapshot;
+                Document lastDocument;
+
+                lock (_gate)
+                {
+                    lastSnapshot = _lastProcessedSnapshot;
+                    lastDocument = _lastProcessedDocument;
+                }
+
                 if (spans.IsEmpty() || _workspace == null)
                 {
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<IClassificationTag>>();
                 }
 
-                var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                var classificationService = document?.Project.LanguageServices.GetService<IClassificationService>();
+                var snapshot = spans[0].Snapshot;
+                var classificationService = _workspace.Services.GetLanguageServices(snapshot.ContentType)?.GetService<IClassificationService>();
                 if (classificationService == null)
                 {
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<IClassificationTag>>();
                 }
 
                 var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
-                foreach (var span in spans)
+                if (lastSnapshot.Version.ReiteratedVersionNumber == snapshot.Version.ReiteratedVersionNumber)
                 {
-                    classificationService.AddSyntacticClassificationsAsync(
-                        document, span.Span.ToTextSpan(), classifiedSpans, cancellationToken).Wait(cancellationToken);
+                    foreach (var span in spans)
+                    {
+                        AddClassifiedSpansForCurrentTree(
+                            classificationService, span, lastDocument, classifiedSpans);
+                    }
+                }
+                else
+                {
+                    var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    foreach (var span in spans)
+                    {
+                        classificationService.AddSyntacticClassificationsAsync(
+                            document, span.Span.ToTextSpan(), classifiedSpans, cancellationToken).Wait(cancellationToken);
+                    }
                 }
 
                 return ClassificationUtilities.ConvertAndReturnList(
-                    _typeMap, _subjectBuffer.CurrentSnapshot, classifiedSpans);
+                    _typeMap, snapshot, classifiedSpans);
             }
 
             private IEnumerable<ITagSpan<IClassificationTag>> GetTags(
