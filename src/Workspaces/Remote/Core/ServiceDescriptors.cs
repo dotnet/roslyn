@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private const string InterfaceNamePrefix = "IRemote";
         private const string InterfaceNameSuffix = "Service";
 
-        public static readonly ServiceDescriptors Instance = new(ServiceNameComponentLevelPrefix, GetFeatureDisplayName, ImmutableArray<IMessagePackFormatter>.Empty, ImmutableArray<IFormatterResolver>.Empty, new (Type, Type?)[]
+        public static readonly ServiceDescriptors Instance = new(ServiceNameComponentLevelPrefix, GetFeatureDisplayName, RemoteSerializationOptions.Default, new (Type, Type?)[]
         {
             (typeof(IRemoteAssetSynchronizationService), null),
             (typeof(IRemoteAsynchronousOperationListenerService), null),
@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteGlobalNotificationDeliveryService), null),
             (typeof(IRemoteCodeLensReferencesService), null),
         });
-
-        internal readonly MessagePackSerializerOptions Options;
+        
+        internal readonly RemoteSerializationOptions Options;
         private readonly ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC)> _descriptors;
         private readonly string _componentLevelPrefix;
         private readonly Func<string, string> _featureDisplayNameProvider;
@@ -78,11 +78,10 @@ namespace Microsoft.CodeAnalysis.Remote
         public ServiceDescriptors(
             string componentLevelPrefix,
             Func<string, string> featureDisplayNameProvider,
-            ImmutableArray<IMessagePackFormatter> additionalFormatters,
-            ImmutableArray<IFormatterResolver> additionalResolvers,
+            RemoteSerializationOptions serializationOptions,
             IEnumerable<(Type serviceInterface, Type? callbackInterface)> interfaces)
         {
-            Options = ServiceDescriptor.DefaultOptions.WithResolver(MessagePackFormatters.CreateResolver(additionalFormatters, additionalResolvers));
+            Options = serializationOptions;
             _componentLevelPrefix = componentLevelPrefix;
             _featureDisplayNameProvider = featureDisplayNameProvider;
             _descriptors = interfaces.ToImmutableDictionary(i => i.serviceInterface, i => CreateDescriptors(i.serviceInterface, i.callbackInterface));

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
@@ -65,37 +64,43 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         public ValueTask<bool> TryInvokeAsync<TService>(Func<TService, RazorRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask> invocation, object callbackTarget, CancellationToken cancellationToken) where TService : class
             => _client.TryInvokeAsync<TService>(
-                (service, callbackId, cancellationToken) => invocation(service, new RazorRemoteServiceCallbackIdWrapper(callbackId), cancellationToken),
+                (service, callbackId, cancellationToken) => invocation(service, callbackId, cancellationToken),
                 callbackTarget,
                 cancellationToken);
 
         public ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(Func<TService, RazorRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask<TResult>> invocation, object callbackTarget, CancellationToken cancellationToken) where TService : class
             => _client.TryInvokeAsync<TService, TResult>(
-                (service, callbackId, cancellationToken) => invocation(service, new RazorRemoteServiceCallbackIdWrapper(callbackId), cancellationToken),
+                (service, callbackId, cancellationToken) => invocation(service, callbackId, cancellationToken),
                 callbackTarget,
                 cancellationToken);
 
         // solution, no callback:
 
-        public ValueTask<bool> TryInvokeAsync<TService>(Solution solution, Func<TService, object, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken) where TService : class
-            => _client.TryInvokeAsync(solution, invocation, cancellationToken);
+        public ValueTask<bool> TryInvokeAsync<TService>(Solution solution, Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken) where TService : class
+            => _client.TryInvokeAsync<TService>(
+                solution, 
+                (service, solutionInfo, cancellationToken) => invocation(service, solutionInfo, cancellationToken),
+                cancellationToken);
 
-        public ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, object, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken) where TService : class
-            => _client.TryInvokeAsync(solution, invocation, cancellationToken);
+        public ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, RazorPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken) where TService : class
+            => _client.TryInvokeAsync<TService, TResult>(
+                solution,
+                (service, solutionInfo, cancellationToken) => invocation(service, solutionInfo, cancellationToken),
+                cancellationToken);
 
         // solution, callback:
 
-        public ValueTask<bool> TryInvokeAsync<TService>(Solution solution, Func<TService, object, RazorRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask> invocation, object callbackTarget, CancellationToken cancellationToken) where TService : class
+        public ValueTask<bool> TryInvokeAsync<TService>(Solution solution, Func<TService, RazorPinnedSolutionInfoWrapper, RazorRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask> invocation, object callbackTarget, CancellationToken cancellationToken) where TService : class
             => _client.TryInvokeAsync<TService>(
                 solution,
-                (service, solutionInfo, callbackId, cancellationToken) => invocation(service, solutionInfo, new RazorRemoteServiceCallbackIdWrapper(callbackId), cancellationToken),
+                (service, solutionInfo, callbackId, cancellationToken) => invocation(service, solutionInfo, callbackId, cancellationToken),
                 callbackTarget,
                 cancellationToken);
 
-        public ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, object, RazorRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask<TResult>> invocation, object callbackTarget, CancellationToken cancellationToken) where TService : class
+        public ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, RazorPinnedSolutionInfoWrapper, RazorRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask<TResult>> invocation, object callbackTarget, CancellationToken cancellationToken) where TService : class
             => _client.TryInvokeAsync<TService, TResult>(
                 solution,
-                (service, solutionInfo, callbackId, cancellationToken) => invocation(service, solutionInfo, new RazorRemoteServiceCallbackIdWrapper(callbackId), cancellationToken),
+                (service, solutionInfo, callbackId, cancellationToken) => invocation(service, solutionInfo, callbackId, cancellationToken),
                 callbackTarget,
                 cancellationToken);
     }

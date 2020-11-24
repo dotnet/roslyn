@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Immutable;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 
@@ -88,6 +90,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public virtual RemoteWorkspace GetWorkspace()
             => _lazyPrimaryWorkspace.Value;
+
+        public ValueTask<Solution> GetSolutionAsync(ServiceBrokerClient client, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        {
+            var assetSource = new SolutionAssetSource(client);
+            var workspace = GetWorkspace();
+            var assetProvider = workspace.CreateAssetProvider(solutionInfo, SolutionAssetCache, assetSource);
+            return workspace.GetSolutionAsync(assetProvider, solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
+        }
 
         private sealed class SimpleAssemblyLoader : IAssemblyLoader
         {

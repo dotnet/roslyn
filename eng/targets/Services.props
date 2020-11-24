@@ -12,7 +12,6 @@
   -->
   <ItemGroup>
     <ServiceHubService Include="roslynRemoteHost" ClassName="Microsoft.CodeAnalysis.Remote.RemoteHostService" />
-    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.WorkspaceSolutionProvider" ClassName="Microsoft.CodeAnalysis.Remote.RemoteWorkspaceSolutionProviderService+Factory" IsBrokered="true" Audience="Process" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.AssetSynchronization" ClassName="Microsoft.CodeAnalysis.Remote.RemoteAssetSynchronizationService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.AsynchronousOperationListener" ClassName="Microsoft.CodeAnalysis.Remote.RemoteAsynchronousOperationListenerService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DiagnosticAnalyzer" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDiagnosticAnalyzerService+Factory" IsBrokered="true" />

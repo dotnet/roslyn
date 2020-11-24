@@ -8,20 +8,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Framework;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Api
 {
-    internal static class UnitTestingBrokeredServiceImplementation
+    internal static class RazorBrokeredServiceImplementation
     {
         public static ValueTask<T> RunServiceAsync<T>(Func<CancellationToken, ValueTask<T>> implementation, CancellationToken cancellationToken)
-            => BrokeredServiceBase.RunServiceImplAsync(implementation, cancellationToken);
+            => BrokeredServiceBase.RunServiceImplAsync<T>(implementation, cancellationToken);
 
         public static ValueTask RunServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
             => BrokeredServiceBase.RunServiceImplAsync(implementation, cancellationToken);
 
-        public static ValueTask<Solution> GetSolutionAsync(this UnitTestingPinnedSolutionInfoWrapper solutionInfo, ServiceBrokerClient client, CancellationToken cancellationToken)
+        public static ValueTask<Solution> GetSolutionAsync(this RazorPinnedSolutionInfoWrapper solutionInfo, ServiceBrokerClient client, CancellationToken cancellationToken)
             => RemoteWorkspaceManager.Default.GetSolutionAsync(client, solutionInfo.UnderlyingObject, cancellationToken);
-
-        public static UnitTestingIncrementalAnalyzerProvider? TryRegisterAnalyzerProvider(string analyzerName, IUnitTestingIncrementalAnalyzerProviderImplementation provider)
-            => UnitTestingIncrementalAnalyzerProvider.TryRegister(RemoteWorkspaceManager.Default.GetWorkspace(), analyzerName, provider);
     }
 }

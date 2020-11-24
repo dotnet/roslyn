@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             ImmutableArray<IMessagePackFormatter> additionalFormatters,
             ImmutableArray<IFormatterResolver> additionalResolvers,
             IEnumerable<(Type serviceInterface, Type? callbackInterface)> interfaces)
-            => UnderlyingObject = new ServiceDescriptors(componentLevelPrefix, featureDisplayNameProvider, additionalFormatters, additionalResolvers, interfaces);
+            => UnderlyingObject = new ServiceDescriptors(componentLevelPrefix, featureDisplayNameProvider, new RemoteSerializationOptions(additionalFormatters, additionalResolvers), interfaces);
 
         /// <summary>
         /// To be called from a service factory in OOP.
@@ -32,6 +32,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             => UnderlyingObject.GetServiceDescriptorForServiceFactory(serviceInterface);
 
         public MessagePackSerializerOptions MessagePackOptions
-            => UnderlyingObject.Options;
+            => UnderlyingObject.Options.MessagePackOptions;
     }
 }

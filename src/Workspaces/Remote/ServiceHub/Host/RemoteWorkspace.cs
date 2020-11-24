@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return null;
         }
 
-        public async Task<Solution> GetSolutionAsync(
+        public async ValueTask<Solution> GetSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             bool fromPrimaryBranch,
