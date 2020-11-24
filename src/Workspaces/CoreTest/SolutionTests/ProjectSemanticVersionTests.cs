@@ -62,6 +62,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public async Task ChangingMethodSignatureChangesSemanticVersion_CSharp()
+        {
+            using var workspace = CreateWorkspace();
+            var document = AddEmptyProject(workspace.CurrentSolution)
+                .AddDocument("Hello.cs", "class C { void M() { } }");
+            var text = await document.GetTextAsync();
+            var position = text.ToString().LastIndexOf('(') + 1;
+
+            await AssertSemanticVersionChangedAsync(
+                document.Project,
+                document.WithText(text.Replace(position, length: 0, "int x = 10")).Project);
+        }
+
+        [Fact]
         public async Task AddingWhitespacePreservesSemanticVersion_CSharp()
         {
             using var workspace = CreateWorkspace();
@@ -157,6 +171,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await AssertSemanticVersionUnchangedAsync(
                 document.Project,
                 document.WithText(text.Replace(position, length: 0, "Dim x As Integer = 10")).Project);
+        }
+
+        [Fact]
+        public async Task ChangingMethodSignatureChangesSemanticVersion_VisualBasic()
+        {
+            using var workspace = CreateWorkspace();
+            var document = AddEmptyProject(workspace.CurrentSolution, LanguageNames.VisualBasic)
+                .AddDocument("Hello.vb", "Class C\r\nSub M()\r\n\r\nEnd Sub\r\nEnd Class");
+            var text = await document.GetTextAsync();
+            var position = text.ToString().IndexOf('(') + 1;
+
+            await AssertSemanticVersionChangedAsync(
+                document.Project,
+                document.WithText(text.Replace(position, length: 0, "Optional x As Integer = 10")).Project);
         }
 
         [Fact]
