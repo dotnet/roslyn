@@ -81,7 +81,7 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="needs-review-translation">Hinweise zu Inlineparameternamen anzeigen;
+        <target state="translated">Inlinehinweise anzeigen;
 Diagnoseinformationen für geschlossene Dateien anzeigen;
 Reguläre Ausdrücke farbig hervorheben;
 Zugehörige Komponenten unter dem Cursor markieren;
@@ -154,14 +154,14 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="needs-review-translation">Blockinhalte einziehen;
-Öffnende und schließende geschweifte Klammern einziehen;
-case-Inhalte einziehen;
-case-Inhalte einziehen (bei Block);
-case-Bezeichnungen einziehen;
-Bezeichnungseinzug;
-goto-Bezeichnungen in Spalte ganz links platzieren;
-Bezeichnungen normal einziehen;
+        <target state="translated">Blockinhalte einziehen; 
+Öffnende und schließende geschweifte Klammern einziehen; 
+case-Inhalte einziehen; 
+case-Inhalte einziehen (bei Block); 
+case-Bezeichnungen einziehen; 
+Bezeichnungseinzug; 
+goto-Bezeichnungen in Spalte ganz links platzieren; 
+Bezeichnungen normal einziehen; 
 goto-Bezeichnungen um eine Einzugsebene weiter links als die aktuelle Position platzieren;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>

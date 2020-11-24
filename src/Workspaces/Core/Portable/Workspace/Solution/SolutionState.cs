@@ -1738,9 +1738,6 @@ namespace Microsoft.CodeAnalysis
                 : SpecializedTasks.Null<Compilation>();
         }
 
-        internal Task<GeneratorDriverRunResult?> GetGeneratorDriverRunResultAsync(ProjectState projectState, CancellationToken cancellationToken)
-            => GetCompilationTracker(projectState.Id).GetGeneratorDriverRunResultAsync(this, cancellationToken);
-
         /// <summary>
         /// Return reference completeness for the given project and all projects this references.
         /// </summary>
@@ -1751,6 +1748,29 @@ namespace Microsoft.CodeAnalysis
             return project.SupportsCompilation
                 ? this.GetCompilationTracker(project.Id).HasSuccessfullyLoadedAsync(this, cancellationToken)
                 : project.HasAllInformation ? SpecializedTasks.True : SpecializedTasks.False;
+        }
+
+        /// <summary>
+        /// Returns the generated document states for source generated documents.
+        /// </summary>
+        public Task<ImmutableArray<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(ProjectState project, CancellationToken cancellationToken)
+        {
+            return project.SupportsCompilation
+                ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, cancellationToken)
+                : SpecializedTasks.EmptyImmutableArray<SourceGeneratedDocumentState>();
+        }
+
+        /// <summary>
+        /// Returns the <see cref="SourceGeneratedDocumentState"/> for a source generated document that has already been generated and observed.
+        /// </summary>
+        /// <remarks>
+        /// This is only safe to call if you already have seen the SyntaxTree or equivalent that indicates the document state has already been
+        /// generated. This method exists to implement <see cref="Solution.GetDocument(SyntaxTree?)"/> and is best avoided unless you're doing something
+        /// similarly tricky like that.
+        /// </remarks>
+        public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentForAlreadyGeneratedId(DocumentId documentId)
+        {
+            return GetCompilationTracker(documentId.ProjectId).TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
         }
 
         /// <summary>

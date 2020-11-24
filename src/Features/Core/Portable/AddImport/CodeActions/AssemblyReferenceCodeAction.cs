@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
@@ -23,17 +24,6 @@ namespace Microsoft.CodeAnalysis.AddImport
                 Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.ReferenceAssemblySymbol);
             }
 
-            private Task<string?> ResolvePathAsync(CancellationToken cancellationToken)
-            {
-                var assemblyResolverService = OriginalDocument.Project.Solution.Workspace.Services.GetRequiredService<IFrameworkAssemblyPathResolver>();
-
-                return assemblyResolverService.ResolveAssemblyPathAsync(
-                    OriginalDocument.Project.Id,
-                    FixData.AssemblyReferenceAssemblyName,
-                    FixData.AssemblyReferenceFullyQualifiedTypeName,
-                    cancellationToken);
-            }
-
             protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
                 => ComputeOperationsAsync(isPreview: true, cancellationToken);
 
@@ -45,21 +35,82 @@ namespace Microsoft.CodeAnalysis.AddImport
                 var newDocument = await GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
                 var newProject = newDocument.Project;
 
-                // Now add the actual assembly reference.
-                if (!isPreview)
+                if (isPreview)
                 {
-                    var resolvedPath = await ResolvePathAsync(cancellationToken).ConfigureAwait(false);
-                    if (!string.IsNullOrWhiteSpace(resolvedPath))
-                    {
-                        var service = OriginalDocument.Project.Solution.Workspace.Services.GetRequiredService<IMetadataService>();
-                        var reference = service.GetReference(resolvedPath, MetadataReferenceProperties.Assembly);
-                        newProject = newProject.WithMetadataReferences(
-                            newProject.MetadataReferences.Concat(reference));
-                    }
+                    // If this is a preview, just return an ApplyChangesOperation for the updated document
+                    var operation = new ApplyChangesOperation(newProject.Solution);
+                    return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(operation);
+                }
+                else
+                {
+                    // Otherwise return an operation that can apply the text changes and add the reference
+                    var operation = new AddAssemblyReferenceCodeActionOperation(
+                        FixData.AssemblyReferenceAssemblyName,
+                        FixData.AssemblyReferenceFullyQualifiedTypeName,
+                        newProject);
+                    return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(operation);
+                }
+            }
+
+            private sealed class AddAssemblyReferenceCodeActionOperation : CodeActionOperation
+            {
+                private readonly string _assemblyReferenceAssemblyName;
+                private readonly string _assemblyReferenceFullyQualifiedTypeName;
+                private readonly Project _newProject;
+
+                public AddAssemblyReferenceCodeActionOperation(
+                    string assemblyReferenceAssemblyName,
+                    string assemblyReferenceFullyQualifiedTypeName,
+                    Project newProject)
+                {
+                    _assemblyReferenceAssemblyName = assemblyReferenceAssemblyName;
+                    _assemblyReferenceFullyQualifiedTypeName = assemblyReferenceFullyQualifiedTypeName;
+                    _newProject = newProject;
                 }
 
-                var operation = new ApplyChangesOperation(newProject.Solution);
-                return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(operation);
+                internal override bool ApplyDuringTests => true;
+
+                public override void Apply(Workspace workspace, CancellationToken cancellationToken)
+                {
+                    var operation = GetApplyChangesOperation(workspace);
+                    if (operation is null)
+                        return;
+
+                    operation.Apply(workspace, cancellationToken);
+                }
+
+                internal override bool TryApply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+                {
+                    var operation = GetApplyChangesOperation(workspace);
+                    if (operation is null)
+                        return false;
+
+                    return operation.TryApply(workspace, progressTracker, cancellationToken);
+                }
+
+                private ApplyChangesOperation? GetApplyChangesOperation(Workspace workspace)
+                {
+                    var resolvedPath = ResolvePath(workspace);
+                    if (string.IsNullOrWhiteSpace(resolvedPath))
+                        return null;
+
+                    var service = workspace.Services.GetRequiredService<IMetadataService>();
+                    var reference = service.GetReference(resolvedPath, MetadataReferenceProperties.Assembly);
+                    var newProject = _newProject.WithMetadataReferences(
+                        _newProject.MetadataReferences.Concat(reference));
+
+                    return new ApplyChangesOperation(newProject.Solution);
+                }
+
+                private string? ResolvePath(Workspace workspace)
+                {
+                    var assemblyResolverService = workspace.Services.GetRequiredService<IFrameworkAssemblyPathResolver>();
+
+                    return assemblyResolverService.ResolveAssemblyPath(
+                        _newProject.Id,
+                        _assemblyReferenceAssemblyName,
+                        _assemblyReferenceFullyQualifiedTypeName);
+                }
             }
         }
     }

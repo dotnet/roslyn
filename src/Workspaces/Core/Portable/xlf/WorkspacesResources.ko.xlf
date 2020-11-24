@@ -32,6 +32,11 @@
         <target state="translated">'{0}' 문서 변경은 지원되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CodeAction_{0}_did_not_produce_a_changed_solution">
+        <source>CodeAction '{0}' did not produce a changed solution</source>
+        <target state="new">CodeAction '{0}' did not produce a changed solution</target>
+        <note>"CodeAction" is a specific type, and {0} represents the title shown by the action.</note>
+      </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
         <target state="translated">코어 EditorConfig 옵션</target>
@@ -191,6 +196,11 @@
         <source>Sync namespace to folder structure</source>
         <target state="translated">네임스페이스를 폴더 구조로 동기화</target>
         <note />
+      </trans-unit>
+      <trans-unit id="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed">
+        <source>The contents of a SourceGeneratedDocument may not be changed.</source>
+        <target state="new">The contents of a SourceGeneratedDocument may not be changed.</target>
+        <note>{locked:SourceGeneratedDocument}</note>
       </trans-unit>
       <trans-unit id="The_project_already_contains_the_specified_reference">
         <source>The project already contains the specified reference.</source>

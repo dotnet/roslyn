@@ -9,12 +9,12 @@
       </trans-unit>
       <trans-unit id="Copying_selection_to_Interactive_Window">
         <source>Copying selection to Interactive Window.</source>
-        <target state="translated">Die Auswahl wird in Interactive Window kopiert.</target>
+        <target state="translated">Die Auswahl wird in Interactive-Fenster kopiert.</target>
         <note />
       </trans-unit>
       <trans-unit id="Executing_selection_in_Interactive_Window">
         <source>Executing selection in Interactive Window.</source>
-        <target state="translated">Die Auswahl wird in Interactive Window ausgeführt.</target>
+        <target state="translated">Die Auswahl wird im Interactive-Fenster ausgeführt.</target>
         <note />
       </trans-unit>
       <trans-unit id="Interactive_host_process_platform">
@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="The_references_command_is_not_supported_in_this_Interactive_Window_implementation">
         <source>The references command is not supported in this Interactive Window implementation.</source>
-        <target state="translated">Der Befehl "references" wird in dieser Interactive Window-Implementierung nicht unterstützt.</target>
+        <target state="translated">Der Befehl "references" wird in dieser Implementierung von Interactive-Fenster nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_the_execution_environment_to_the_initial_state_keep_history">
