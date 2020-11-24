@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         public readonly ITypeSymbol ElementType;
 
-        public readonly IMethodSymbol? GetEnumeratorMethod;
+        public readonly IMethodSymbol GetEnumeratorMethod;
         public readonly IPropertySymbol CurrentProperty;
         public readonly IMethodSymbol MoveNextMethod;
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public ForEachLoopOperationInfo(
             ITypeSymbol elementType,
-            IMethodSymbol? getEnumeratorMethod,
+            IMethodSymbol getEnumeratorMethod,
             IPropertySymbol currentProperty,
             IMethodSymbol moveNextMethod,
             bool isAsynchronous,

@@ -1650,11 +1650,10 @@ namespace Microsoft.CodeAnalysis.Operations
                                     ? compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable)
                                     : compilation.GetSpecialType(SpecialType.System_IDisposable);
 
-                var enumeratorImplementsDisposable = enumeratorInfoOpt.NeedsDisposal && (object)enumeratorInfoOpt.GetEnumeratorMethod != null 
-                                                        ? compilation.Conversions.ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorMethod.ReturnType,
-                                                                                                                     iDisposable,
-                                                                                                                     ref useSiteDiagnostics).IsImplicit
-                                                        : false;
+                var enumeratorImplementsDisposable = enumeratorInfoOpt.NeedsDisposal
+                                                     && compilation.Conversions.ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorMethod.ReturnType,
+                                                                                                                   iDisposable,
+                                                                                                                   ref useSiteDiagnostics).IsImplicit;
 
                 info = new ForEachLoopOperationInfo(enumeratorInfoOpt.ElementType.GetPublicSymbol(),
                                                     enumeratorInfoOpt.GetEnumeratorMethod.GetPublicSymbol(),
