@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             var whitespace = Matcher.Repeat(
                 Matcher.Single<SyntaxTrivia>(IsWhitespaceTrivia, "\\b"));
             var endOfLine = Matcher.Single<SyntaxTrivia>(IsEndOfLineTrivia, "\\n");
+            var optionalEndOfLine = Matcher.SingleOrNone<SyntaxTrivia>(IsEndOfLineTrivia, "\\n?");
             var singleBlankLine = Matcher.Sequence(whitespace, endOfLine);
             var preprocessorDirective = Matcher.Single<SyntaxTrivia>(IsPreprocessorDirective, "#directive");
             var shebangComment = Matcher.Single<SyntaxTrivia>(IsShebangDirectiveTrivia, "#!");
@@ -74,13 +75,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 Matcher.Sequence(
                     Matcher.OneOrMore(commentLine),
                     _oneOrMoreBlankLines);
-            _fileBannerMatcher = Matcher.Choice(
-                Matcher.Sequence(
-                    multiLineComment,
-                    Matcher.Repeat(singleBlankLine)),
-                Matcher.Sequence(
-                    Matcher.OneOrMore(commentLine),
-                    Matcher.Repeat(singleBlankLine)));
+
+            var singleLineCommentWithWhitespace = Matcher.Sequence(whitespace, singleLineComment, whitespace);
+            var multiLineCommentWithWhitespace = Matcher.Sequence(whitespace, multiLineComment, whitespace);
+            _fileBannerMatcher = Matcher.Sequence(
+                Matcher.Choice(
+                    multiLineCommentWithWhitespace,
+                    Matcher.OneOrMore(Matcher.Sequence(singleLineCommentWithWhitespace, optionalEndOfLine))),
+                Matcher.Repeat(singleBlankLine));
         }
 
         private bool IsWhitespaceTrivia(SyntaxTrivia trivia)
