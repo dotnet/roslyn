@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
-        private BulkObservableCollection<BaseDiagnosticItem>? _diagnosticItems;
+        private BulkObservableCollection<DiagnosticItem>? _diagnosticItems;
         private ReportDiagnostic _generalDiagnosticOption;
         private ImmutableDictionary<string, ReportDiagnostic>? _specificDiagnosticOptions;
         private AnalyzerConfigOptionsResult? _analyzerConfigOptions;
@@ -42,7 +42,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         protected IAnalyzersCommandHandler CommandHandler { get; }
 
         public abstract AnalyzerReference? AnalyzerReference { get; }
-        protected abstract BaseDiagnosticItem CreateItem(DiagnosticDescriptor diagnostic, ReportDiagnostic effectiveSeverity, string language);
 
         public abstract object SourceItem { get; }
 
@@ -83,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     _specificDiagnosticOptions = project.CompilationOptions!.SpecificDiagnosticOptions;
                     _analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
-                    _diagnosticItems = CreateDiagnosticItems(project.Language, project.CompilationOptions, _analyzerConfigOptions);
+                    _diagnosticItems = CreateDiagnosticItems(project.Id, project.Language, project.CompilationOptions, _analyzerConfigOptions);
 
                     Workspace.WorkspaceChanged += OnWorkspaceChangedLookForOptionsChanges;
                 }
@@ -96,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        private BulkObservableCollection<BaseDiagnosticItem> CreateDiagnosticItems(string language, CompilationOptions options, AnalyzerConfigOptionsResult? analyzerConfigOptions)
+        private BulkObservableCollection<DiagnosticItem> CreateDiagnosticItems(ProjectId projectId, string language, CompilationOptions options, AnalyzerConfigOptionsResult? analyzerConfigOptions)
         {
             // Within an analyzer assembly, an individual analyzer may report multiple different diagnostics
             // with the same ID. Or, multiple analyzers may report diagnostics with the same ID. Or a
@@ -109,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             Contract.ThrowIfFalse(HasItems);
 
-            var collection = new BulkObservableCollection<BaseDiagnosticItem>();
+            var collection = new BulkObservableCollection<DiagnosticItem>();
             collection.AddRange(
                 AnalyzerReference.GetAnalyzers(language)
                 .SelectMany(a => _diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(a))
@@ -119,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 {
                     var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
                     var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(options, analyzerConfigOptions);
-                    return CreateItem(selectedDiagnostic, effectiveSeverity, language);
+                    return new DiagnosticItem(projectId, AnalyzerReference, selectedDiagnostic, effectiveSeverity, language, CommandHandler);
                 }));
 
             return collection;

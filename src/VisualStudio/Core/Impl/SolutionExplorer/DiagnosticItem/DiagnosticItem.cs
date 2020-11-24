@@ -10,33 +10,40 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes.Configuration;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    internal abstract partial class BaseDiagnosticItem : BaseItem
+    internal partial class DiagnosticItem : BaseItem
     {
-        public string Language { get; }
+        private readonly AnalyzerReference _analyzerReference;
+        private readonly IAnalyzersCommandHandler _commandHandler;
+        private readonly string _language;
+
+        public ProjectId ProjectId { get; }
         public DiagnosticDescriptor Descriptor { get; }
         public ReportDiagnostic EffectiveSeverity { get; private set; }
 
         public override event PropertyChangedEventHandler? PropertyChanged;
 
-        public BaseDiagnosticItem(DiagnosticDescriptor descriptor, ReportDiagnostic effectiveSeverity, string language)
+        public DiagnosticItem(ProjectId projectId, AnalyzerReference analyzerReference, DiagnosticDescriptor descriptor, ReportDiagnostic effectiveSeverity, string language, IAnalyzersCommandHandler commandHandler)
             : base(descriptor.Id + ": " + descriptor.Title)
         {
+            ProjectId = projectId;
+            _analyzerReference = analyzerReference;
             Descriptor = descriptor;
             EffectiveSeverity = effectiveSeverity;
-            Language = language;
+            _language = language;
+            _commandHandler = commandHandler;
         }
 
         public override ImageMoniker IconMoniker
             => MapEffectiveSeverityToIconMoniker(EffectiveSeverity);
 
-        public abstract ProjectId ProjectId { get; }
-        protected abstract AnalyzerReference AnalyzerReference { get; }
+        public override IContextMenuController ContextMenuController => _commandHandler.DiagnosticContextMenuController;
 
         public override object GetBrowseObject()
         {
@@ -44,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         }
 
         public Uri? GetHelpLink()
-            => BrowserHelper.GetHelpLink(Descriptor, Language);
+            => BrowserHelper.GetHelpLink(Descriptor, _language);
 
         internal void UpdateEffectiveSeverity(ReportDiagnostic newEffectiveSeverity)
         {
@@ -77,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             var ruleSetDocument = XDocument.Load(pathToRuleSet);
 
-            ruleSetDocument.SetSeverity(AnalyzerReference.Display, Descriptor.Id, value);
+            ruleSetDocument.SetSeverity(_analyzerReference.Display, Descriptor.Id, value);
 
             ruleSetDocument.Save(pathToRuleSet);
         }

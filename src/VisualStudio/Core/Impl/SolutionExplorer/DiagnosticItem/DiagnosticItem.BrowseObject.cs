@@ -10,13 +10,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    internal abstract partial class BaseDiagnosticItem
+    internal sealed partial class DiagnosticItem
     {
         internal class BrowseObject : LocalizableProperties
         {
-            private readonly BaseDiagnosticItem _diagnosticItem;
+            private readonly DiagnosticItem _diagnosticItem;
 
-            public BrowseObject(BaseDiagnosticItem diagnosticItem)
+            public BrowseObject(DiagnosticItem diagnosticItem)
             {
                 _diagnosticItem = diagnosticItem;
             }
@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             [Browsable(false)]
-            public BaseDiagnosticItem DiagnosticItem
+            public DiagnosticItem DiagnosticItem
             {
                 get { return _diagnosticItem; }
             }

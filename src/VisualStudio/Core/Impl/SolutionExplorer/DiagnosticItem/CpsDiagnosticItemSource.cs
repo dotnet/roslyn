@@ -43,11 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public override AnalyzerReference? AnalyzerReference => _analyzerReference;
 
-        protected override BaseDiagnosticItem CreateItem(DiagnosticDescriptor diagnostic, ReportDiagnostic effectiveSeverity, string language)
-        {
-            return new CpsDiagnosticItem(this, diagnostic, effectiveSeverity, language);
-        }
-
         private void OnWorkspaceChangedLookForAnalyzer(object sender, WorkspaceChangeEventArgs e)
         {
             if (e.Kind == WorkspaceChangeKind.SolutionCleared ||
