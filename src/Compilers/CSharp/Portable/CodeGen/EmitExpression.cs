@@ -3127,7 +3127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitSymbolToken(typeSymbol, node.Syntax);
                     break;
                 case MethodSymbol methodSymbol:
-                    EmitSymbolToken(methodSymbol, node.Syntax, null);
+                    EmitSymbolToken(methodSymbol, node.Syntax, null, encodeAsRawDefinitionToken: true);
                     break;
                 case FieldSymbol fieldSymbol:
                     EmitSymbolToken(fieldSymbol, node.Syntax);

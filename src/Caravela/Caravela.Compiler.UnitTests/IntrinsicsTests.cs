@@ -73,6 +73,40 @@ class G
         }
 
         [Fact]
+        public void GetGenericMethodHandle()
+        {
+            var originalCode = @"
+class C
+{
+    void M<T>() {}
+}";
+
+            var comp1 = CreateCompilation(originalCode);
+            comp1.VerifyDiagnostics();
+
+            var symbol = comp1.GetSymbolsWithName("M").Single();
+
+            var docId = DocumentationCommentId.CreateDeclarationId(symbol);
+
+            var generatedCode = $@"
+using System;
+
+class G
+{{
+    RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(""{docId}"");
+}}";
+
+            var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, new[] { MetadataReference.CreateFromFile(typeof(Intrinsics).Assembly.Location) });
+            CompileAndVerify(comp2).VerifyDiagnostics().VerifyIL("G.M", @"
+{
+    // Code size        6 (0x6)
+    .maxstack  1
+    IL_0000:  ldtoken    ""void C.M<T>()""
+    IL_0005:  ret
+}");
+        }
+
+        [Fact]
         public void GetFieldHandle()
         {
             var originalCode = @"
