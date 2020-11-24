@@ -10,10 +10,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using RestSharp;
 using System.Collections.Immutable;
-using Newtonsoft.Json;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace RunTests
 {
@@ -123,18 +122,19 @@ namespace RunTests
 
         private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken)
         {
-            if (!CheckAssemblyList(options))
-            {
-                return ExitFailure;
-            }
-
             var testExecutor = CreateTestExecutor(options);
             var testRunner = new TestRunner(options, testExecutor);
             var start = DateTime.Now;
             var assemblyInfoList = GetAssemblyList(options);
+            if (assemblyInfoList.Count == 0)
+            {
+                ConsoleUtil.WriteLine(ConsoleColor.Red, "No assemblies to test");
+                return ExitFailure;
+            }
 
+            var assemblyCount = assemblyInfoList.GroupBy(x => x.AssemblyPath).Count();
             ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpFilePath}");
-            ConsoleUtil.WriteLine($"Running {options.Assemblies.Count} test assemblies in {assemblyInfoList.Count} partitions");
+            ConsoleUtil.WriteLine($"Running {assemblyCount} test assemblies in {assemblyInfoList.Count} partitions");
 
             var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;
@@ -273,44 +273,58 @@ namespace RunTests
             return null;
         }
 
-        /// <summary>
-        /// Quick sanity check to look over the set of assemblies to make sure they are valid and something was
-        /// specified.
-        /// </summary>
-        private static bool CheckAssemblyList(Options options)
-        {
-            var anyMissing = false;
-            foreach (var assemblyPath in options.Assemblies)
-            {
-                if (!File.Exists(assemblyPath))
-                {
-                    ConsoleUtil.WriteLine(ConsoleColor.Red, $"The file '{assemblyPath}' does not exist, is an invalid file name, or you do not have sufficient permissions to read the specified file.");
-                    anyMissing = true;
-                }
-            }
-
-            if (anyMissing)
-            {
-                return false;
-            }
-
-            if (options.Assemblies.Count == 0)
-            {
-                ConsoleUtil.WriteLine("No test assemblies specified.");
-                return false;
-            }
-
-            return true;
-        }
-
         private static List<AssemblyInfo> GetAssemblyList(Options options)
         {
             var scheduler = new AssemblyScheduler(options);
             var list = new List<AssemblyInfo>();
+            var assemblyPaths = GetAssemblyFilePaths(options);
 
-            foreach (var assemblyPath in options.Assemblies.OrderByDescending(x => new FileInfo(x).Length))
+            foreach (var assemblyPath in assemblyPaths.OrderByDescending(x => new FileInfo(x.FilePath).Length))
             {
-                list.AddRange(scheduler.Schedule(assemblyPath).Select(x => new AssemblyInfo(x, options.TargetFramework, options.Platform)));
+                list.AddRange(scheduler.Schedule(assemblyPath.FilePath).Select(x => new AssemblyInfo(x, assemblyPath.TargetFramework, options.Platform)));
+            }
+
+            return list;
+        }
+
+        private static List<(string FilePath, string TargetFramework)> GetAssemblyFilePaths(Options options)
+        {
+            var list = new List<(string, string)>();
+            var binDirectory = Path.Combine(options.ArtifactsDirectory, "bin");
+            foreach (var project in Directory.EnumerateDirectories(binDirectory, "*", SearchOption.TopDirectoryOnly))
+            {
+                var name = Path.GetFileName(project);
+                var include = false;
+                foreach (var pattern in options.IncludeFilter)
+                {
+                    if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
+                    {
+                        include = true;
+                    }
+                }
+
+                if (!include)
+                {
+                    continue;
+                }
+
+                foreach (var pattern in options.ExcludeFilter)
+                {
+                    if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
+                    {
+                        continue;
+                    }
+                }
+
+                var fileName = $"{name}.dll";
+                foreach (var targetFramework in options.TargetFrameworks)
+                {
+                    var filePath = Path.Combine(project, options.Configuration, targetFramework, fileName);
+                    if (File.Exists(filePath))
+                    {
+                        list.Add((filePath, targetFramework));
+                    }
+                }
             }
 
             return list;
@@ -353,7 +367,6 @@ namespace RunTests
                 trait: options.Trait,
                 noTrait: options.NoTrait,
                 includeHtml: options.IncludeHtml,
-                testVsi: options.TestVsi,
                 retry: options.Retry);
             return new ProcessTestExecutor(testExecutionOptions);
         }
