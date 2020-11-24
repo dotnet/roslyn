@@ -17,10 +17,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
     [Export(typeof(IAttachedCollectionSourceProvider))]
-    [Name("AnalyzersFolderProvider")]
+    [Name(nameof(AnalyzersFolderItemSourceProvider))]
     [Order(Before = HierarchyItemsProviderNames.Contains)]
     [AppliesToProject("(CSharp | VisualBasic) & !CPS")] // in the CPS case, the Analyzers folder is created by the project system
-    internal class AnalyzersFolderItemProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
+    internal class AnalyzersFolderItemSourceProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
     {
         private readonly IAnalyzersCommandHandler _commandHandler;
         private IHierarchyItemToProjectIdMap? _projectMap;
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         [ImportingConstructor]
-        public AnalyzersFolderItemProvider(
+        public AnalyzersFolderItemSourceProvider(
             VisualStudioWorkspace workspace,
             [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler)
         {

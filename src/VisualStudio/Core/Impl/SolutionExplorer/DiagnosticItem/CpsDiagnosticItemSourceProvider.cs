@@ -19,10 +19,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
     [Export(typeof(IAttachedCollectionSourceProvider))]
-    [Name(nameof(CpsDiagnosticItemProvider))]
+    [Name(nameof(CpsDiagnosticItemSourceProvider))]
     [Order]
     [AppliesToProject("(CSharp | VisualBasic) & CPS")]
-    internal sealed class CpsDiagnosticItemProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
+    internal sealed class CpsDiagnosticItemSourceProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
     {
         private readonly IAnalyzersCommandHandler _commandHandler;
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CpsDiagnosticItemProvider(
+        public CpsDiagnosticItemSourceProvider(
             [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler,
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
             VisualStudioWorkspace workspace)
