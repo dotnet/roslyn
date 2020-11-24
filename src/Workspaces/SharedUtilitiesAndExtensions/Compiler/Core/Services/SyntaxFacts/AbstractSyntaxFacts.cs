@@ -76,8 +76,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     Matcher.OneOrMore(commentLine),
                     _oneOrMoreBlankLines);
 
-            var singleLineCommentWithWhitespace = Matcher.Sequence(whitespace, singleLineComment, whitespace);
-            var multiLineCommentWithWhitespace = Matcher.Sequence(whitespace, multiLineComment, whitespace);
+            var singleLineCommentWithWhitespace = Matcher.Sequence(whitespace, Matcher.Choice(singleLineComment, singleLineDocumentationComment), whitespace);
+            var multiLineCommentWithWhitespace = Matcher.Sequence(whitespace, Matcher.Choice(multiLineComment, multiLineDocumentationComment), whitespace);
             _fileBannerMatcher = Matcher.Sequence(
                 Matcher.Choice(
                     multiLineCommentWithWhitespace,
