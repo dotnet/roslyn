@@ -95,7 +95,6 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return null;
             }
 
-
             // If there is not already an empty line inserted between the braces, insert one.
             TextChange? newLineEdit = null;
             var textToFormat = originalDocumentText;
@@ -104,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 newLineEdit = new TextChange(new TextSpan(closingPoint - 1, 0), Environment.NewLine);
                 textToFormat = originalDocumentText.WithChanges(newLineEdit.Value);
             }
-            
+
             // Modify the closing point location to adjust for the newly inserted line.
             closingPoint += Environment.NewLine.Length;
 
@@ -229,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                         }
                     }
                 }
-                
+
                 if (newLineTextAfterMerge != string.Empty)
                 {
                     // Ensure the new line change comes before formatting changes in case of ties.
