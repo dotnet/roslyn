@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+    <PropertyGroup>
+        <HelixSource>roslyn-helix-dev</HelixSource>
+        <HelixType>test/stuff</HelixType>
+        <HelixBuild>23456.01</HelixBuild>
+        <HelixTargetQueues>Windows.10.Amd64.Open</HelixTargetQueues>
+        <Creator>rigibson</Creator>
+        <IncludeDotNetCli>true</IncludeDotNetCli>
+        <DotNetCliPackageType>sdk</DotNetCliPackageType>
+        <HelixCorrelationPayload>$(RepoRoot)/artifacts/testPayload</HelixCorrelationPayload>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <HelixWorkItem Include="Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests">
+            <Command>dotnet tool restore</Command>
+            <Command>dotnet pwsh rehydrate.ps1</Command>
+            <Command>dotnet test ./artifacts/bin/Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests/Debug/net5.0/Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests.dll</Command>
+        </HelixWorkItem>
+    </ItemGroup>
+</Project>

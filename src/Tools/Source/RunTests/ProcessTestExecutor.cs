@@ -103,6 +103,14 @@ namespace RunTests
             return result;
         }
 
+        private string MakeHelixWorkItemProject(AssemblyInfo assemblyInfo)
+        {
+            var commandLineArguments = GetCommandLineArguments(assemblyInfo);
+            var project = @"
+";
+            return project;
+        }
+
         private async Task<TestResult> RunTestAsyncInternal(AssemblyInfo assemblyInfo, bool retry, CancellationToken cancellationToken)
         {
             try
