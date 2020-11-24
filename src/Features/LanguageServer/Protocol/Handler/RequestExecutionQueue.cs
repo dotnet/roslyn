@@ -134,17 +134,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     {
                         completion.SetCanceled();
 
-                        // Tell the queue to ignore any mutations from this request, not that we've given it a chance
-                        // to make any
-                        return false;
+                        return;
                     }
 
                     try
                     {
                         var result = await handler.HandleRequestAsync(request, context, cancellationToken).ConfigureAwait(false);
                         completion.SetResult(result);
-                        // Tell the queue that this was successful so that mutations (if any) can be applied
-                        return true;
                     }
                     catch (OperationCanceledException ex)
                     {
@@ -152,13 +148,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
                     catch (Exception exception)
                     {
-                        // Pass the exception to the task completion source, so the caller of the ExecuteAsync method can observe but
-                        // don't let it escape from this callback, so it doesn't affect the queue processing.
+                        // Pass the exception to the task completion source, so the caller of the ExecuteAsync method can react
                         completion.SetException(exception);
-                    }
 
-                    // Tell the queue to ignore any mutations from this request
-                    return false;
+                        // Also allow the exception to flow back to the request queue to handle as appropriate
+                        throw;
+                    }
                 }, requestCancellationToken);
 
             var didEnqueue = _queue.TryEnqueue(item);
@@ -189,18 +184,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     if (work.MutatesSolutionState)
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                        var ranToCompletion = await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
+                        await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
 
                         // Now that we've mutated our solution, clear out our saved state to ensure it gets recalculated
                         _lspSolutionCache.Remove(context.Solution.Workspace);
-
-                        if (!ranToCompletion)
-                        {
-                            // If the handling of the request failed, the exception will bubble back up to the caller, and we
-                            // request shutdown because we're in an invalid state
-                            OnRequestServerShutdown($"An error occurred processing a mutating request and the solution is in an invalid state. Check LSP client logs for any error information.");
-                            break;
-                        }
                     }
                     else
                     {
