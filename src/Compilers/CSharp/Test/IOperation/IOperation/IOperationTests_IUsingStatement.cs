@@ -1904,6 +1904,7 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1} {R2}
+
 .locals {R1}
 {
     CaptureIds: [1]
@@ -1955,7 +1956,7 @@ Block[B0] - Entry
                         IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
-           Next (Regular) Block[B6]
+            Next (Regular) Block[B8]
                 Finalizing: {R5}
                 Leaving: {R4} {R3} {R1}
     }
@@ -1963,14 +1964,31 @@ Block[B0] - Entry
     {
         Block[B5] - Block
             Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B7]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: NotDisposable, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B5]
             Statements (1)
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
-                  Children(1):
-                      IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: NotDisposable, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+                  Instance Receiver: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (ExplicitReference)
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: NotDisposable, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+                  Arguments(0)
+            Next (Regular) Block[B7]
+        Block[B7] - Block
+            Predecessors: [B5] [B6]
+            Statements (0)
             Next (StructuredExceptionHandling) Block[null]
     }
 }
-Block[B6] - Exit
+Block[B8] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
@@ -2010,7 +2028,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     CaptureIds: [0]
@@ -2019,7 +2036,6 @@ Block[B0] - Entry
         Statements (0)
         Jump if False (Regular) to Block[B3]
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean, IsInvalid) (Syntax: 'b')
-
         Next (Regular) Block[B2]
     Block[B2] - Block
         Predecessors: [B1]
@@ -2030,7 +2046,6 @@ Block[B0] - Entry
                   Instance Receiver: 
                     IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'GetDisposable')
                   Arguments(0)
-
         Next (Regular) Block[B4]
             Entering: {R2} {R3}
     Block[B3] - Block
@@ -2039,10 +2054,8 @@ Block[B0] - Entry
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'input')
               Value: 
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: MyDisposable, IsInvalid) (Syntax: 'input')
-
         Next (Regular) Block[B4]
             Entering: {R2} {R3}
-
     .try {R2, R3}
     {
         Block[B4] - Block
@@ -2055,7 +2068,6 @@ Block[B0] - Entry
                         IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
-
             Next (Regular) Block[B6]
                 Finalizing: {R4}
                 Leaving: {R3} {R2} {R1}
@@ -2065,13 +2077,17 @@ Block[B0] - Entry
         Block[B5] - Block
             Predecessors (0)
             Statements (1)
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... e() : input')
-                  Children(1):
-                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyDisposable, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... e() : input')
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... e() : input')
+                  Instance Receiver: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... e() : input')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (NoConversion)
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyDisposable, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... e() : input')
+                  Arguments(0)
             Next (StructuredExceptionHandling) Block[null]
     }
 }
-
 Block[B6] - Exit
     Predecessors: [B4]
     Statements (0)
@@ -2148,7 +2164,7 @@ Block[B0] - Entry
                         IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
-            Next (Regular) Block[B6]
+            Next (Regular) Block[B8]
                 Finalizing: {R4}
                 Leaving: {R3} {R2} {R1}
     }
@@ -2156,14 +2172,31 @@ Block[B0] - Entry
     {
         Block[B5] - Block
             Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B7]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... >() : input')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyDisposable, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... >() : input')
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B5]
             Statements (1)
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... >() : input')
-                  Children(1):
-                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyDisposable, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... >() : input')
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... >() : input')
+                  Instance Receiver: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... >() : input')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (Unboxing)
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyDisposable, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... >() : input')
+                  Arguments(0)
+            Next (Regular) Block[B7]
+        Block[B7] - Block
+            Predecessors: [B5] [B6]
+            Statements (0)
             Next (StructuredExceptionHandling) Block[null]
     }
 }
-Block[B6] - Exit
+Block[B8] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
@@ -2254,7 +2287,7 @@ Block[B0] - Entry
                         IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
-            Next (Regular) Block[B6]
+            Next (Regular) Block[B8]
                 Finalizing: {R5}
                 Leaving: {R4} {R3} {R1}
     }
@@ -2262,14 +2295,31 @@ Block[B0] - Entry
     {
         Block[B5] - Block
             Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B7]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: MyDisposable?, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B5]
             Statements (1)
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
-                  Children(1):
-                      IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: MyDisposable?, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+                  Instance Receiver: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (NoConversion)
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: MyDisposable?, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+                  Arguments(0)
+            Next (Regular) Block[B7]
+        Block[B7] - Block
+            Predecessors: [B5] [B6]
+            Statements (0)
             Next (StructuredExceptionHandling) Block[null]
     }
 }
-Block[B6] - Exit
+Block[B8] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
@@ -5769,9 +5819,14 @@ Block[B0] - Entry
         Block[B3] - Block
             Predecessors (0)
             Statements (1)
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'x = new P()')
-                  Children(1):
-                      ILocalReferenceOperation: x (OperationKind.LocalReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'x = new P()')
+                IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'x = new P()')
+                  Instance Receiver: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'x = new P()')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (NoConversion)
+                      Operand: 
+                        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'x = new P()')
+                  Arguments(0)
             Next (StructuredExceptionHandling) Block[null]
     }
 }

@@ -3905,6 +3905,13 @@ oneMoreTime:
             EnterRegion(finallyRegion);
             AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block));
 
+            // In error recovery scenarios, we may not have a dispose method.
+            // We'll attempt to make a best guess at the interface, if it's available
+            disposeMethod ??= (isAsynchronous
+                                ? _compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)
+                                : _compilation.CommonGetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose)
+                              )?.GetISymbol() as IMethodSymbol;
+
             if (disposeMethod is object)
             {
                 ITypeSymbol iDisposable = isAsynchronous
