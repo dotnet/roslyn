@@ -392,12 +392,9 @@ namespace Microsoft.CodeAnalysis
         public Task<VersionStamp> GetLatestDocumentVersionAsync(CancellationToken cancellationToken)
             => _lazyLatestDocumentVersion.GetValueAsync(cancellationToken);
 
-        public Task<VersionStamp> GetLatestDocumentTopLevelChangeVersionAsync(CancellationToken cancellationToken)
-            => _lazyLatestDocumentTopLevelChangeVersion.GetValueAsync(cancellationToken);
-
         public async Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default)
         {
-            var docVersion = await this.GetLatestDocumentTopLevelChangeVersionAsync(cancellationToken).ConfigureAwait(false);
+            var docVersion = await _lazyLatestDocumentTopLevelChangeVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return docVersion.GetNewerVersion(this.Version);
         }
 
