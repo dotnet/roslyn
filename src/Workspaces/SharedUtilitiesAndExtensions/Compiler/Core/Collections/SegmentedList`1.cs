@@ -25,13 +25,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         private const int DefaultCapacity = 4;
         private const int MaxArrayLength = 0x7FEFFFFF;
 
-        internal T[] _items;
+        internal SegmentedArray<T> _items;
         internal int _size;
         private int _version;
 
-#pragma warning disable CA1825 // avoid the extra generic instantiation for Array.Empty<T>()
-        private static readonly T[] s_emptyArray = new T[0];
-#pragma warning restore CA1825
+        private static readonly SegmentedArray<T> s_emptyArray = new(0);
 
         // Constructs a SegmentedList. The list is initially empty and has a capacity
         // of zero. Upon adding the first element to the list the capacity is
@@ -54,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             if (capacity == 0)
                 _items = s_emptyArray;
             else
-                _items = new T[capacity];
+                _items = new SegmentedArray<T>(capacity);
         }
 
         // Constructs a SegmentedList, copying the contents of the given collection. The
@@ -72,22 +70,32 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 if (count == 0)
                 {
                     _items = s_emptyArray;
+                    return;
                 }
                 else
                 {
-                    _items = new T[count];
-                    c.CopyTo(_items, 0);
-                    _size = count;
+                    _items = new SegmentedArray<T>(count);
+                    if ((T[][])_items.SyncRoot is { Length: 1 } segments)
+                    {
+                        c.CopyTo(segments[0], 0);
+                        _size = count;
+                        return;
+                    }
                 }
+
+                // Continue below to add the items
             }
             else
             {
                 _items = s_emptyArray;
-                using var en = collection!.GetEnumerator();
-                while (en.MoveNext())
-                {
-                    Add(en.Current);
-                }
+
+                // Continue below to add the items
+            }
+
+            using var en = collection!.GetEnumerator();
+            while (en.MoveNext())
+            {
+                Add(en.Current);
             }
         }
 
@@ -109,10 +117,10 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 {
                     if (value > 0)
                     {
-                        var newItems = new T[value];
+                        var newItems = new SegmentedArray<T>(value);
                         if (_size > 0)
                         {
-                            Array.Copy(_items, newItems, _size);
+                            SegmentedArray.Copy(_items, newItems, _size);
                         }
                         _items = newItems;
                     }
@@ -275,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             if (_size - index < count)
                 ThrowHelper.ThrowArgumentException(ExceptionResource.Argument_InvalidOffLen);
 
-            return Array.BinarySearch<T>(_items, index, count, item, comparer);
+            return SegmentedArray.BinarySearch<T>(_items, index, count, item, comparer);
         }
 
         public int BinarySearch(T item)
@@ -301,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             _size = 0;
             if (size > 0)
             {
-                Array.Clear(_items, 0, size); // Clear the elements so that the gc can reclaim the references.
+                SegmentedArray.Clear(_items, 0, size); // Clear the elements so that the gc can reclaim the references.
             }
         }
 
@@ -364,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             try
             {
                 // Array.Copy will check for NULL.
-                Array.Copy(_items, 0, array!, arrayIndex, _size);
+                SegmentedArray.Copy(_items, 0, array!, arrayIndex, _size);
             }
             catch (ArrayTypeMismatchException)
             {
@@ -384,13 +392,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
 
             // Delegate rest of error checking to Array.Copy.
-            Array.Copy(_items, index, array, arrayIndex, count);
+            SegmentedArray.Copy(_items, index, array, arrayIndex, count);
         }
 
         public void CopyTo(T[] array, int arrayIndex)
         {
             // Delegate rest of error checking to Array.Copy.
-            Array.Copy(_items, 0, array, arrayIndex, _size);
+            SegmentedArray.Copy(_items, 0, array, arrayIndex, _size);
         }
 
         // Ensures that the capacity of this list is at least the given minimum
@@ -601,7 +609,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
 
             var list = new SegmentedList<T>(count);
-            Array.Copy(_items, index, list._items, 0, count);
+            SegmentedArray.Copy(_items, index, list._items, 0, count);
             list._size = count;
             return list;
         }
@@ -615,7 +623,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         // search.
         //
         public int IndexOf(T item)
-            => Array.IndexOf(_items, item, 0, _size);
+            => SegmentedArray.IndexOf(_items, item, 0, _size);
 
         int IList.IndexOf(object? item)
         {
@@ -639,7 +647,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             if (index > _size)
                 ThrowHelper.ThrowArgumentOutOfRange_IndexException();
-            return Array.IndexOf(_items, item, index, _size - index);
+            return SegmentedArray.IndexOf(_items, item, index, _size - index);
         }
 
         // Returns the index of the first occurrence of a given value in a range of
@@ -659,7 +667,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             if (count < 0 || index > _size - count)
                 ThrowHelper.ThrowCountArgumentOutOfRange_ArgumentOutOfRange_Count();
 
-            return Array.IndexOf(_items, item, index, count);
+            return SegmentedArray.IndexOf(_items, item, index, count);
         }
 
         // Inserts an element into this list at a given index. The size of the list
@@ -677,7 +685,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 EnsureCapacity(_size + 1);
             if (index < _size)
             {
-                Array.Copy(_items, index, _items, index + 1, _size - index);
+                SegmentedArray.Copy(_items, index, _items, index + 1, _size - index);
             }
             _items[index] = item;
             _size++;
@@ -723,21 +731,23 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     EnsureCapacity(_size + count);
                     if (index < _size)
                     {
-                        Array.Copy(_items, index, _items, index + count, _size - index);
+                        SegmentedArray.Copy(_items, index, _items, index + count, _size - index);
                     }
 
                     // If we're inserting a SegmentedList into itself, we want to be able to deal with that.
                     if (this == c)
                     {
                         // Copy first part of _items to insert location
-                        Array.Copy(_items, 0, _items, index, index);
+                        SegmentedArray.Copy(_items, 0, _items, index, index);
                         // Copy last part of _items back to inserted location
-                        Array.Copy(_items, index + count, _items, index * 2, _size - index);
+                        SegmentedArray.Copy(_items, index + count, _items, index * 2, _size - index);
                     }
                     else
                     {
-                        c.CopyTo(_items, index);
+                        foreach (var item in c)
+                            Add(item);
                     }
+
                     _size += count;
                 }
             }
@@ -824,7 +834,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.count, ExceptionResource.ArgumentOutOfRange_BiggerThanCollection);
             }
 
-            return Array.LastIndexOf(_items, item, index, count);
+            return SegmentedArray.LastIndexOf(_items, item, index, count);
         }
 
         // Removes the element at the given index. The size of the list is
@@ -884,7 +894,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
 #endif
             {
-                Array.Clear(_items, freeIndex, _size - freeIndex); // Clear the elements so that the gc can reclaim the references.
+                SegmentedArray.Clear(_items, freeIndex, _size - freeIndex); // Clear the elements so that the gc can reclaim the references.
             }
 
             var result = _size - freeIndex;
@@ -904,7 +914,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             _size--;
             if (index < _size)
             {
-                Array.Copy(_items, index + 1, _items, index, _size - index);
+                SegmentedArray.Copy(_items, index + 1, _items, index, _size - index);
             }
 #if NETCOREAPP
             if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
@@ -936,7 +946,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 _size -= count;
                 if (index < _size)
                 {
-                    Array.Copy(_items, index + count, _items, index, _size - index);
+                    SegmentedArray.Copy(_items, index + count, _items, index, _size - index);
                 }
 
                 _version++;
@@ -944,7 +954,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
 #endif
                 {
-                    Array.Clear(_items, _size, count);
+                    SegmentedArray.Clear(_items, _size, count);
                 }
             }
         }
@@ -975,7 +985,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             if (count > 1)
             {
-                Array.Reverse(_items, index, count);
+                SegmentedArray.Reverse(_items, index, count);
             }
             _version++;
         }
@@ -1015,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             if (count > 1)
             {
-                Array.Sort<T>(_items, index, count, comparer);
+                SegmentedArray.Sort<T>(_items, index, count, comparer);
             }
             _version++;
         }
@@ -1032,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 #if NET
                 _items.AsSpan(0, _size).Sort(comparison);
 #else
-                Array.Sort<T>(_items, 0, _size, Comparer<T>.Create(comparison));
+                SegmentedArray.Sort<T>(_items, 0, _size, Comparer<T>.Create(comparison));
 #endif
             }
             _version++;
@@ -1044,11 +1054,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             if (_size == 0)
             {
-                return s_emptyArray;
+                return Array.Empty<T>();
             }
 
             var array = new T[_size];
-            Array.Copy(_items, array, _size);
+            SegmentedArray.Copy(_items, array, _size);
             return array;
         }
 

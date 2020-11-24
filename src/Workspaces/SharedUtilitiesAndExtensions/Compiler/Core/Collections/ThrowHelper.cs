@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             throw GetArgumentOutOfRangeException(ExceptionArgument.value,
                                                     ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
         }
+#endif
 
         [DoesNotReturn]
         internal static void ThrowLengthArgumentOutOfRange_ArgumentOutOfRange_NeedNonNegNum()
@@ -127,7 +128,6 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             throw GetArgumentOutOfRangeException(ExceptionArgument.length,
                                                     ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
         }
-#endif
 
         [DoesNotReturn]
         internal static void ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_Index()
@@ -278,6 +278,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             throw new InvalidOperationException(SR.Memory_OutstandingReferences);
         }
+#endif
 
         [DoesNotReturn]
         internal static void ThrowInvalidOperationException(ExceptionResource resource, Exception e)
@@ -285,6 +286,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             throw new InvalidOperationException(GetResourceString(resource), e);
         }
 
+#if false
         [DoesNotReturn]
         internal static void ThrowSerializationException(ExceptionResource resource)
         {
