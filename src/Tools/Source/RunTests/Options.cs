@@ -82,6 +82,11 @@ namespace RunTests
         public bool Sequential { get; set; }
 
         /// <summary>
+        /// Whether to run test partitions as Helix work items.
+        /// </summary>
+        public bool UseHelix { get; set; }
+
+        /// <summary>
         /// Path to the dotnet executable we should use for running dotnet test
         /// </summary>
         public string DotnetFilePath { get; set; }
@@ -124,6 +129,7 @@ namespace RunTests
             var includeFilter = new List<string>();
             var excludeFilter = new List<string>();
             var sequential = false;
+            var helix = false;
             var retry = false;
             string? traits = null;
             string? noTraits = null;
@@ -144,6 +150,7 @@ namespace RunTests
                 { "platform=", "Platform to test: x86 or x64", (string s) => platform = s },
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
+                { "helix", "Run tests on Helix", o => helix = o is object },
                 { "traits=", "xUnit traits to include (semicolon delimited)", (string s) => traits = s },
                 { "notraits=", "xUnit traits to exclude (semicolon delimited)", (string s) => noTraits = s },
                 { "timeout=", "Minute timeout to limit the tests to", (int i) => timeout = i },
@@ -168,7 +175,8 @@ namespace RunTests
                 return null;
             }
 
-            artifactsPath ??= TryGetArtifactsPath();
+            artifactsPath ??= "artifacts";
+            _ = TryGetArtifactsPath(); // FIXME
             dotnetFilePath ??= TryGetDotNetPath();
             if (includeFilter.Count == 0)
             {
@@ -224,6 +232,7 @@ namespace RunTests
                 ProcDumpFilePath = procDumpFilePath,
                 CollectDumps = collectDumps,
                 Sequential = sequential,
+                UseHelix = helix,
                 IncludeHtml = includeHtml,
                 Trait = traits,
                 NoTrait = noTraits,

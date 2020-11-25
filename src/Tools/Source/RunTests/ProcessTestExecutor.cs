@@ -36,13 +36,14 @@ namespace RunTests
             var typeInfoList = assemblyInfo.PartitionInfo.TypeInfoList;
             if (typeInfoList.Length > 0 || !string.IsNullOrWhiteSpace(Options.Trait) || !string.IsNullOrWhiteSpace(Options.NoTrait))
             {
-                builder.Append(" --filter ");
+                builder.Append(@" --filter """);
                 var any = false;
                 foreach (var typeInfo in typeInfoList)
                 {
                     MaybeAddSeparator();
                     builder.Append(typeInfo.FullName);
                 }
+                builder.Append(@"""");
 
                 if (Options.Trait is object)
                 {
@@ -101,14 +102,6 @@ namespace RunTests
             }
 
             return result;
-        }
-
-        private string MakeHelixWorkItemProject(AssemblyInfo assemblyInfo)
-        {
-            var commandLineArguments = GetCommandLineArguments(assemblyInfo);
-            var project = @"
-";
-            return project;
         }
 
         private async Task<TestResult> RunTestAsyncInternal(AssemblyInfo assemblyInfo, bool retry, CancellationToken cancellationToken)

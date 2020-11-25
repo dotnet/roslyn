@@ -33,6 +33,13 @@ namespace RunTests
 
         internal static async Task<int> Main(string[] args)
         {
+            var currentDir = Directory.GetCurrentDirectory();
+            while (Path.GetFileName(currentDir) is not (null or "artifacts"))
+                currentDir = Path.GetDirectoryName(currentDir);
+            // go one above "artifacts"
+            currentDir = Path.GetDirectoryName(currentDir);
+            Directory.SetCurrentDirectory(currentDir);
+
             Logger.Log("RunTest command line");
             Logger.Log(string.Join(" ", args));
 
@@ -136,7 +143,9 @@ namespace RunTests
             ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpFilePath}");
             ConsoleUtil.WriteLine($"Running {assemblyCount} test assemblies in {assemblyInfoList.Count} partitions");
 
-            var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
+            var result = options.UseHelix
+                ? await testRunner.RunAllOnHelixAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true)
+                : await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;
 
             ConsoleUtil.WriteLine($"Test execution time: {elapsed}");

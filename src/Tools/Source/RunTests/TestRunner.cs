@@ -7,8 +7,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,6 +41,76 @@ namespace RunTests
         {
             _testExecutor = testExecutor;
             _options = options;
+        }
+
+        internal async Task<RunAllResult> RunAllOnHelixAsync(IEnumerable<AssemblyInfo> assemblyInfoList, CancellationToken cancellationToken)
+        {
+            // TODO: does having an accurate branch name matter?
+            var sourceBranch = Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCH");
+            if (sourceBranch is null)
+            {
+                sourceBranch = "local";
+                Environment.SetEnvironmentVariable("BUILD_SOURCEBRANCH", sourceBranch);
+            }
+
+            if (Environment.GetEnvironmentVariable("BUILD_REPOSITORY_NAME") is null)
+                Environment.SetEnvironmentVariable("BUILD_REPOSITORY_NAME", "dotnet/roslyn");
+
+            if (Environment.GetEnvironmentVariable("SYSTEM_TEAMPROJECT") is null)
+                Environment.SetEnvironmentVariable("SYSTEM_TEAMPROJECT", "dnceng");
+
+            if (Environment.GetEnvironmentVariable("BUILD_REASON") is null)
+                Environment.SetEnvironmentVariable("BUILD_REASON", "pr");
+
+            var useAzurePipelinesReporting = Environment.GetEnvironmentVariable("SYSTEM_ACCESSTOKEN") is not null;
+
+            var buildId = Environment.GetEnvironmentVariable("Build.BuildNumber") ?? "0";
+
+            var workItems = assemblyInfoList.Select(ai => makeHelixWorkItemProject(ai));
+            var project = @"
+<Project Sdk=""Microsoft.DotNet.Helix.Sdk"" DefaultTargets=""Test"">
+    <PropertyGroup>
+        <HelixSource>pr/" + sourceBranch + @"</HelixSource>
+        <HelixType>test</HelixType>
+        <HelixBuild>" + buildId + @"</HelixBuild>
+        <HelixTargetQueues>Windows.10.Amd64.Open</HelixTargetQueues>
+        <Creator>rigibson</Creator>
+        <IncludeDotNetCli>true</IncludeDotNetCli>
+        <DotNetCliPackageType>sdk</DotNetCliPackageType>
+        <EnableAzurePipelinesReporter>" + (useAzurePipelinesReporting ? "true" : "false") + @"</EnableAzurePipelinesReporter>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <HelixCorrelationPayload Include=""$(RepoRoot)artifacts/testPayload"" />"
+        + string.Join("", workItems) + @"
+    </ItemGroup>
+</Project>
+";
+
+            File.WriteAllText("helix-tmp.csproj", project);
+            var process = ProcessRunner.CreateProcess(_options.DotnetFilePath, "build helix-tmp.csproj", cancellationToken: cancellationToken);
+            var result = await process.Result;
+
+            // TODO: it seems prohibitively difficult to extract and pass through meaningful results when running using a generated csproj.
+            // TODO: how do we handle publishing stuff like proc dumps when test runs have crashes?
+            return new RunAllResult(result.ExitCode == 0, ImmutableArray<TestResult>.Empty, ImmutableArray<ProcessResult>.Empty);
+
+            string makeHelixWorkItemProject(AssemblyInfo assemblyInfo)
+            {
+                var commandLineArguments = _testExecutor.GetCommandLineArguments(assemblyInfo);
+                commandLineArguments = SecurityElement.Escape(commandLineArguments);
+                var workItem = @"
+        <HelixWorkItem Include=""" + assemblyInfo.DisplayName + @""">
+            <Command>
+                cd %HELIX_CORRELATION_PAYLOAD%
+                dotnet tool restore
+                dotnet pwsh ./rehydrate.ps1
+                dotnet " + commandLineArguments + @"
+            </Command>
+        </HelixWorkItem>
+";
+                return workItem;
+            }
         }
 
         internal async Task<RunAllResult> RunAllAsync(IEnumerable<AssemblyInfo> assemblyInfoList, CancellationToken cancellationToken)
