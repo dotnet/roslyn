@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         //
         // <start-of-file> (whitespace* (single-comment|multi-comment) whitespace* newline)+ blankLine*
         private readonly Matcher<SyntaxTrivia> _fileBannerMatcher;
+        private readonly Matcher<SyntaxTrivia> _fileBannerMatcherEof;
 
         protected AbstractSyntaxFacts()
         {
@@ -78,10 +79,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             var singleLineCommentWithWhitespace = Matcher.Sequence(whitespace, Matcher.Choice(singleLineComment, singleLineDocumentationComment), whitespace);
             var multiLineCommentWithWhitespace = Matcher.Sequence(whitespace, Matcher.Choice(multiLineComment, multiLineDocumentationComment), whitespace);
-            _fileBannerMatcher = Matcher.Sequence(
+            _fileBannerMatcherEof = Matcher.Sequence(
                 Matcher.Choice(
                     multiLineCommentWithWhitespace,
                     Matcher.OneOrMore(Matcher.Sequence(singleLineCommentWithWhitespace, optionalEndOfLine))),
+                Matcher.Repeat(singleBlankLine));
+            _fileBannerMatcher = Matcher.Sequence(
+                Matcher.Choice(
+                    multiLineCommentWithWhitespace,
+                    Matcher.OneOrMore(Matcher.Sequence(singleLineCommentWithWhitespace, endOfLine))),
                 Matcher.Repeat(singleBlankLine));
         }
 
@@ -351,9 +357,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             _oneOrMoreBlankLinesOrPreprocessorDirectives.TryMatch(leadingTrivia, ref index);
             var bannerStart = index;
 
-            _fileBannerMatcher.TryMatch(leadingTrivia, ref index);
+            var matcher = firstToken.RawKind == SyntaxKinds.EndOfFileToken
+                ? _fileBannerMatcherEof
+                : _fileBannerMatcher;
 
-            return ImmutableArray.CreateRange(leadingTrivia.GetRange(bannerStart, index - bannerStart));
+            if (matcher.TryMatch(leadingTrivia, ref index))
+            {
+                return ImmutableArray.CreateRange(leadingTrivia.GetRange(bannerStart, index - bannerStart));
+            }
+
+            return ImmutableArray<SyntaxTrivia>.Empty;
         }
 
         public bool ContainsInterleavedDirective(
