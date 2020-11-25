@@ -1186,7 +1186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression defaultValue;
             if (callerSourceLocation is object && parameter.IsCallerLineNumber)
             {
-                int line = GetCallerLocation(syntax).SourceTree.GetDisplayLineNumber(callerSourceLocation.SourceSpan);
+                int line = callerSourceLocation.SourceTree.GetDisplayLineNumber(callerSourceLocation.SourceSpan);
                 defaultValue = new BoundLiteral(syntax, ConstantValue.Create(line), Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
             }
             else if (callerSourceLocation is object && parameter.IsCallerFilePath)
