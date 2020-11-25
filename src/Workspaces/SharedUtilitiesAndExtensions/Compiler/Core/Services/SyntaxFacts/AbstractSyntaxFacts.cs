@@ -82,11 +82,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             _fileBannerMatcherEof = CreateFileBannerMatcher(optionalEndOfLine);
             _fileBannerMatcher = CreateFileBannerMatcher(endOfLine);
 
-            Matcher<SyntaxTrivia> CreateFileBannerMatcher(Matcher<SyntaxTrivia> endOfLineForSingleLineComments)
+            Matcher<SyntaxTrivia> CreateFileBannerMatcher(Matcher<SyntaxTrivia> endOfLineMatcher)
                 => Matcher.Sequence(
                     Matcher.Choice(
-                        multiLineCommentWithWhitespace,
-                        Matcher.OneOrMore(Matcher.Sequence(singleLineCommentWithWhitespace, endOfLineForSingleLineComments))),
+                        Matcher.Sequence(multiLineCommentWithWhitespace, endOfLineMatcher),
+                        Matcher.OneOrMore(Matcher.Sequence(singleLineCommentWithWhitespace, endOfLineMatcher))),
                     Matcher.Repeat(singleBlankLine));
         }
 
