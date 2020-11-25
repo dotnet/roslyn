@@ -12,11 +12,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     internal sealed class TestableCompilerServerHost : ICompilerServerHost
     {
-        internal Func<RunRequest, CancellationToken, BuildResponse> RunCompilation;
+        internal Func<RunRequest, CancellationToken, BuildResponse> RunCompilation { get; }
+        public ICompilerServerLogger Logger { get; }
 
-        internal TestableCompilerServerHost(Func<RunRequest, CancellationToken, BuildResponse> runCompilation = null)
+        internal TestableCompilerServerHost(Func<RunRequest, CancellationToken, BuildResponse> runCompilation = null, ICompilerServerLogger logger = null)
         {
             RunCompilation = runCompilation;
+            Logger = logger ?? EmptyCompilerServerLogger.Instance;
         }
 
         BuildResponse ICompilerServerHost.RunCompilation(RunRequest request, CancellationToken cancellationToken)

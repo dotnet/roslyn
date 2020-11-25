@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-HANS" original="../CSharpVSResources.resx">
     <body>
+      <trans-unit id="Add_missing_using_directives_on_paste">
+        <source>Add missing using directives on paste</source>
+        <target state="new">Add missing using directives on paste</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
         <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
         <target state="translated">应用所有 C# 格式规则(缩进、换行、间隔)</target>
@@ -9,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="needs-review-translation">自动显示参数列表中的完成列表(实验性)</target>
+        <target state="translated">自动显示参数列表中的完成列表(实验性)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -59,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
         <source>Insert // at the start of new lines when writing // comments</source>
-        <target state="new">Insert // at the start of new lines when writing // comments</target>
+        <target state="translated">编写 // 注释时，在新行开头插入 //</target>
         <note />
       </trans-unit>
       <trans-unit id="Inside_namespace">
@@ -84,7 +89,7 @@
       </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
-        <target state="new">Prefer implicit object creation when type is apparent</target>
+        <target state="translated">类型明显时首选隐式对象创建</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
@@ -119,12 +124,12 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
         <source>Show hints for 'new' expressions</source>
-        <target state="new">Show hints for 'new' expressions</target>
+        <target state="translated">显示 "new" 表达式的提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
-        <target state="needs-review-translation">显示 unimported 命名空间中的项(实验)</target>
+        <target state="translated">显示 unimported 命名空间中的项</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

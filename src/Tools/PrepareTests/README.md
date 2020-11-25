@@ -56,7 +56,7 @@ of all file paths which are this MVID
 where the name is the MVID. 
 1. For every other file in `bin` which is not a duplicate create a hard link
 in `.duplicates` with the same relative path.
-1. Create a file, `rehydrate.cmd`, that will restore all the duplicate files
+1. Create a file, `rehydrate.ps1`, that will restore all the duplicate files
 by creating a hard link into `.duplicates`. This file will be run on the test
 machine.
 

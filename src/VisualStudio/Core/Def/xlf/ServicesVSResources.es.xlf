@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="CSharp_Visual_Basic_Diagnostics_Language_Client">
         <source>C#/Visual Basic Diagnostics Language Client</source>
-        <target state="new">C#/Visual Basic Diagnostics Language Client</target>
+        <target state="translated">Cliente de lenguaje de diagnóstico de C#/Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="Color_hints">
         <source>Color hints</source>
-        <target state="new">Color hints</target>
+        <target state="translated">Sugerencias de color</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -164,7 +164,7 @@
       </trans-unit>
       <trans-unit id="Comments">
         <source>Comments</source>
-        <target state="new">Comments</target>
+        <target state="translated">Comentarios</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -189,17 +189,17 @@
       </trans-unit>
       <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
         <source>Display all hints while pressing Alt+F1</source>
-        <target state="new">Display all hints while pressing Alt+F1</target>
+        <target state="translated">Mostrar todas las sugerencias al presionar Alt+F1</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Disp_lay inline parameter name hints</source>
-        <target state="needs-review-translation">_Mostrar sugerencias de nombre de parámetro insertado</target>
+        <target state="translated">_Mostrar sugerencias de nombre de parámetro insertadas</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_type_hints">
         <source>Display inline type hints</source>
-        <target state="new">Display inline type hints</target>
+        <target state="translated">Mostrar sugerencias de tipo insertado</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -229,12 +229,12 @@
       </trans-unit>
       <trans-unit id="Enable_Razor_pull_diagnostics_experimental_requires_restart">
         <source>Enable Razor 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="new">Enable Razor 'pull' diagnostics (experimental, requires restart)</target>
+        <target state="translated">Habilitar diagnósticos "pull" de Razor (experimental, requiere reiniciar)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
         <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="new">Enable 'pull' diagnostics (experimental, requires restart)</target>
+        <target state="translated">Habilitar diagnósticos "pull" (experimental, requiere reiniciar)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
@@ -304,7 +304,7 @@
       </trans-unit>
       <trans-unit id="Inline_Hints_experimental">
         <source>Inline Hints (experimental)</source>
-        <target state="new">Inline Hints (experimental)</target>
+        <target state="translated">Sugerencias en línea (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -569,7 +569,7 @@
       </trans-unit>
       <trans-unit id="New_Type_Name_colon">
         <source>New Type Name:</source>
-        <target state="new">New Type Name:</target>
+        <target state="translated">Nombre de tipo nuevo:</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_public_methods">
@@ -814,22 +814,22 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">
         <source>Show hints for everything else</source>
-        <target state="new">Show hints for everything else</target>
+        <target state="translated">Mostrar sugerencias para todo lo demás</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
-        <target state="new">Show hints for lambda parameter types</target>
+        <target state="translated">Mostrar sugerencias para los tipos de parámetros lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_literals">
         <source>Show hints for literals</source>
-        <target state="new">Show hints for literals</target>
+        <target state="translated">Mostrar sugerencias para los literales</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_variables_with_inferred_types">
         <source>Show hints for variables with inferred types</source>
-        <target state="new">Show hints for variables with inferred types</target>
+        <target state="translated">Mostrar sugerencias para las variables con tipos inferidos</target>
         <note />
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
@@ -839,12 +839,12 @@
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
         <source>Suppress hints when parameter name matches the method's intent</source>
-        <target state="new">Suppress hints when parameter name matches the method's intent</target>
+        <target state="translated">Suprimir las sugerencias cuando el nombre del parámetro coincida con la intención del método</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
         <source>Suppress hints when parameter names differ only by suffix</source>
-        <target state="new">Suppress hints when parameter names differ only by suffix</target>
+        <target state="translated">Suprimir las sugerencias cuando los nombres de parámetro solo se diferencien por el sufijo</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -1851,7 +1851,7 @@ Use la lista desplegable para ver y cambiar a otros proyectos a los que puede pe
 3. Establezca la variable de entorno “TraceDesignTime” en true (TraceDesignTime=true).
 4. Elimine el archivo .suo en el directorio .vs.
 5. Reinicie VS desde el símbolo del sistema donde estableció la variable de entorno (devenv).
-6. Abra la solución.
+6. Abra la solución. 
 7. Compruebe “{0}”y busque las tareas con errores (FAILED).</target>
         <note />
       </trans-unit>
@@ -2359,9 +2359,9 @@ Your use of the Decompiler is optional.  Microsoft is not responsible and discla
 
 I agree to all of the foregoing:</source>
         <target state="translated">IMPORTANTE: Visual Studio incluye la funcionalidad de descompilación ("Descompilador") que permite la reproducción de código fuente a partir de código binario. Al acceder al Descompilador y usarlo, acepta los términos de licencia de Visual Studio y los términos del Descompilador que figuran a continuación. Si no acepta la combinación de estos términos, no acceda al Descompilador ni lo use.
-
+ 
 Reconoce que el código binario y el código fuente pueden estar protegidos por leyes de marca comercial y copyright. Antes de usar el Descompilador en cualquier código binario, primero debe:
-(i) confirmar que los términos de licencia que rigen el uso del código binario no incluyen ninguna disposición que le prohíba descompilar el software; o bien,
+(i) confirmar que los términos de licencia que rigen el uso del código binario no incluyen ninguna disposición que le prohíba descompilar el software; o bien, 
 (ii) obtener permiso del propietario del software para descompilar el código fuente.
 
 Su uso del Descompilador es opcional. Microsoft no es responsable y renuncia a toda responsabilidad con respecto a su uso del Descompilador que infrinja cualquier ley o término de licencia de software que prohíba la descompilación del mismo.

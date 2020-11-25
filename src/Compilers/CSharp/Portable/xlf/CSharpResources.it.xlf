@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
         <source>The type '{0}' may not be used for a field of a record.</source>
-        <target state="new">The type '{0}' may not be used for a field of a record.</target>
+        <target state="translated">Il tipo '{0}' non può essere usato per un campo di un record.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFuncPointerArgCount">
@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
         <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
-        <target state="new">'{0}' is already listed in the interface list on type '{2}' as '{1}'.</target>
+        <target state="translated">'{0}' è già incluso nell'elenco di interfacce nel tipo '{2}' come '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateNullSuppression">
@@ -319,7 +319,7 @@
       </trans-unit>
       <trans-unit id="ERR_EqualityContractRequiresGetter">
         <source>Record equality contract property '{0}' must have a get accessor.</source>
-        <target state="new">Record equality contract property '{0}' must have a get accessor.</target>
+        <target state="translated">La proprietà '{0}' del contratto di uguaglianza record deve contenere una funzione di accesso get.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
@@ -429,7 +429,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
         <source>A function pointer cannot be called with named arguments.</source>
-        <target state="new">A function pointer cannot be called with named arguments.</target>
+        <target state="translated">Non è possibile chiamare un puntatore a funzione con argomenti denominati.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -454,17 +454,17 @@
       </trans-unit>
       <trans-unit id="ERR_ImplicitObjectCreationIllegalTargetType">
         <source>The type '{0}' may not be used as the target type of new()</source>
-        <target state="new">The type '{0}' may not be used as the target type of new()</target>
+        <target state="translated">Non è possibile usare il tipo '{0}' come tipo di destinazione di new()</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitObjectCreationNoTargetType">
         <source>There is no target type for '{0}'</source>
-        <target state="new">There is no target type for '{0}'</target>
+        <target state="translated">Non esiste alcun tipo di destinazione per '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitObjectCreationNotValid">
         <source>Use of new() is not valid in this context</source>
-        <target state="new">Use of new() is not valid in this context</target>
+        <target state="translated">Non è possibile usare new() in questo contesto</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitRangeIndexerWithName">
@@ -944,22 +944,22 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureDiscards">
         <source>discards</source>
-        <target state="translated">rimuove</target>
+        <target state="translated">rimozioni</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
-        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <target state="translated">L'assembly '{0}' che contiene il tipo '{1}' fa riferimento a .NET Framework, che non è supportato.</target>
         <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
-        <target state="new">The loaded assembly references .NET Framework, which is not supported.</target>
+        <target state="translated">L'assembly caricato fa riferimento a .NET Framework, che non è supportato.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
-        <target state="new">target-typed object creation</target>
+        <target state="translated">creazione di oggetti con tipo di destinazione</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -1288,7 +1288,7 @@
                               ai caratteri jolly specificati
 -reference:&lt;alias&gt;=&lt;file&gt;     Crea un riferimento ai metadati dal file di assembly specificato
                               usando l'alias indicato. Forma breve: -r
--reference:&lt;elenco file&gt;        Crea un riferimento ai metadati dai file di assembly
+-reference:&lt;elenco file&gt;        Crea un riferimento ai metadati dai file di assembly 
                               specificati. Forma breve: -r
 -addmodule:&lt;elenco file&gt;        Collega i moduli specificati in questo assembly
 -link:&lt;elenco file&gt;             Incorpora metadati dai file di assembly di
@@ -1325,7 +1325,7 @@
 -instrument:TestCoverage      Produce un assembly instrumentato per raccogliere
                               informazioni sul code coverage
 -sourcelink:&lt;file&gt;            Informazioni sul collegamento all'origine da incorporare nel file PDB.
-
+ 
                        - ERRORI E AVVISI -
 -warnaserror[+|-]             Segnala tutti gli avvisi come errori
 -warnaserror[+|-]:&lt;elenco avvisi&gt; Segnala determinati avvisi come errori
@@ -1379,7 +1379,7 @@
 
                        - AVANZATE -
 -baseaddress:&lt;indirizzo&gt;        Indirizzo di base della libreria da compilare
--checksumalgorithm:&lt;alg&gt;      Consente di specificare l'algoritmo per calcolare il checksum
+-checksumalgorithm:&lt;alg&gt;      Consente di specificare l'algoritmo per calcolare il checksum 
                               del file di origine archiviato nel file PDB. I valori supportati sono:
                               SHA1 o SHA256 (impostazione predefinita).
 -codepage:&lt;n&gt;                 Consente di specificare la tabella codici da usare all'apertura dei file
@@ -2893,12 +2893,12 @@
       </trans-unit>
       <trans-unit id="WRN_UnreadRecordParameter">
         <source>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</source>
-        <target state="new">Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</target>
+        <target state="translated">Il parametro '{0}' non è stato letto. Si è dimenticato di usarlo per inizializzare la proprietà con tale nome?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadRecordParameter_Title">
         <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
-        <target state="new">Parameter is unread. Did you forget to use it to initialize the property with that name?</target>
+        <target state="translated">Il parametro non è stato letto. Si è dimenticato di usarlo per inizializzare la proprietà con tale nome?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
@@ -4148,7 +4148,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
-        <target state="needs-review-translation">Il modificatore 'partial' può trovarsi solo immediatamente prima di 'class', 'record', 'struct', 'interface' o 'void'</target>
+        <target state="translated">Il modificatore 'partial' può trovarsi solo immediatamente prima di 'class', 'record', 'struct', 'interface' o il tipo restituito di un metodo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">

@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
         <source>Changes must be within bounds of SourceText</source>
-        <target state="new">Changes must be within bounds of SourceText</target>
+        <target state="translated">Değişiklikler, SourceText sınırları içinde olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">

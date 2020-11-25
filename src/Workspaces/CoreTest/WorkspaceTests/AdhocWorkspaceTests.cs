@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static AdhocWorkspace CreateWorkspace(Type[] additionalParts = null)
             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
 
-        private static AdhocWorkspace CreateWorkspaceWithRecoverableSyntaxTrees()
+        public static AdhocWorkspace CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations()
         {
             var workspace = CreateWorkspace(new[]
             {
@@ -414,7 +414,7 @@ language: LanguageNames.CSharp);
         [CombinatorialData]
         public async Task TestUpdatedDocumentTextIsObservablyConstantAsync(bool recoverable)
         {
-            var workspace = recoverable ? CreateWorkspaceWithRecoverableSyntaxTrees() : CreateWorkspace();
+            var workspace = recoverable ? CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations() : CreateWorkspace();
             await CheckUpdatedDocumentTextIsObservablyConstantAsync(workspace);
         }
 
