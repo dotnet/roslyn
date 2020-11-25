@@ -11251,13 +11251,23 @@ tryAgain:
                     // following a cast.
                     return !forPattern || this.CurrentToken.Kind switch
                     {
-                        SyntaxKind.PlusToken => true,
-                        SyntaxKind.MinusToken => true,
-                        SyntaxKind.AmpersandToken => true,
-                        SyntaxKind.AsteriskToken => true,
+                        SyntaxKind.PlusToken or
+                        SyntaxKind.MinusToken or
+                        SyntaxKind.AmpersandToken or
+                        SyntaxKind.AsteriskToken or
                         SyntaxKind.DotDotToken => true,
-                        _ => CanFollowCast(this.CurrentToken.Kind)
+                        // If the parenthesized type is followed by a binary pattern, it is not a cast.
+                        SyntaxKind.IdentifierToken when isBinaryPattern() => false,
+                        var tk => CanFollowCast(tk)
                     };
+
+                    bool isBinaryPattern()
+                    {
+                        if (this.CurrentToken.ContextualKind is not (SyntaxKind.OrKeyword or SyntaxKind.AndKeyword))
+                            return false;
+                        EatToken();
+                        return IsPossibleSubpatternElement();
+                    }
 
                 case ScanTypeFlags.GenericTypeOrMethod:
                 case ScanTypeFlags.GenericTypeOrExpression:

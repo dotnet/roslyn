@@ -9462,6 +9462,59 @@ switch (e)
             EOF();
         }
 
+        [Fact, WorkItem(49354, "https://github.com/dotnet/roslyn/issues/49354")]
+        public void TypePattern_07()
+        {
+            UsingStatement(@"_ = e is (int) or string;",
+                TestOptions.RegularWithPatternCombinators
+            );
+
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.OrPattern);
+                        {
+                            N(SyntaxKind.ParenthesizedPattern);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TypePattern);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.OrKeyword);
+                            N(SyntaxKind.TypePattern);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.StringKeyword);
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
         [Fact]
         public void CompoundPattern_01()
         {
@@ -10438,6 +10491,55 @@ switch (e)
                                     {
                                         N(SyntaxKind.NumericLiteralToken, "1");
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("or")]
+        [InlineData("and")]
+        [InlineData("not")]
+        public void CastExpressionInPattern_02(string identifier)
+        {
+            UsingStatement($"_ = e is (int){identifier};",
+                TestOptions.RegularWithPatternCombinators
+            );
+
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.ConstantPattern);
+                        {
+                            N(SyntaxKind.CastExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, identifier);
                                 }
                             }
                         }
