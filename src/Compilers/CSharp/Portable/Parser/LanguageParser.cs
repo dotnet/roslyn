@@ -11277,7 +11277,7 @@ tryAgain:
                         else
                         {
                             // If the parenthesized type is followed by a binary pattern token, it is not a cast.
-                            // Such as `(int) or string;`
+                            // Such as `(int) or string`
                             return IsPossibleSubpatternElement();
                         }
                     }

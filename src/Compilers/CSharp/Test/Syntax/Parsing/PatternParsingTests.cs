@@ -10620,7 +10620,7 @@ switch (e)
             UsingStatement($"_ = e is {left} {SyntaxFacts.GetText(opKind)} {right};",
                 TestOptions.RegularWithPatternCombinators
             );
-            
+
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);
