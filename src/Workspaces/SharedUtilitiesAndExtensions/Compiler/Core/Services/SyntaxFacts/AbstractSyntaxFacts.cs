@@ -79,16 +79,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             var singleLineCommentWithWhitespace = Matcher.Sequence(whitespace, Matcher.Choice(singleLineComment, singleLineDocumentationComment), whitespace);
             var multiLineCommentWithWhitespace = Matcher.Sequence(whitespace, Matcher.Choice(multiLineComment, multiLineDocumentationComment), whitespace);
-            _fileBannerMatcherEof = Matcher.Sequence(
-                Matcher.Choice(
-                    multiLineCommentWithWhitespace,
-                    Matcher.OneOrMore(Matcher.Sequence(singleLineCommentWithWhitespace, optionalEndOfLine))),
-                Matcher.Repeat(singleBlankLine));
-            _fileBannerMatcher = Matcher.Sequence(
-                Matcher.Choice(
-                    multiLineCommentWithWhitespace,
-                    Matcher.OneOrMore(Matcher.Sequence(singleLineCommentWithWhitespace, endOfLine))),
-                Matcher.Repeat(singleBlankLine));
+            _fileBannerMatcherEof = CreateFileBannerMatcher(optionalEndOfLine);
+            _fileBannerMatcher = CreateFileBannerMatcher(endOfLine);
+
+            Matcher<SyntaxTrivia> CreateFileBannerMatcher(Matcher<SyntaxTrivia> endOfLineForSingleLineComments)
+                => Matcher.Sequence(
+                    Matcher.Choice(
+                        multiLineCommentWithWhitespace,
+                        Matcher.OneOrMore(Matcher.Sequence(singleLineCommentWithWhitespace, endOfLineForSingleLineComments))),
+                    Matcher.Repeat(singleBlankLine));
         }
 
         private bool IsWhitespaceTrivia(SyntaxTrivia trivia)
