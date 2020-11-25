@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    internal partial class LegacyDiagnosticItemSource : BaseDiagnosticItemSource
+    internal partial class LegacyDiagnosticItemSource : BaseDiagnosticAndGeneratorItemSource
     {
         private readonly AnalyzerItem _item;
 

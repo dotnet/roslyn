@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -18,18 +17,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    internal abstract partial class BaseDiagnosticItemSource : IAttachedCollectionSource
+    internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttachedCollectionSource
     {
         private static readonly DiagnosticDescriptorComparer s_comparer = new DiagnosticDescriptorComparer();
 
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
-        private BulkObservableCollection<DiagnosticItem>? _diagnosticItems;
+        private BulkObservableCollection<BaseItem>? _items;
         private ReportDiagnostic _generalDiagnosticOption;
         private ImmutableDictionary<string, ReportDiagnostic>? _specificDiagnosticOptions;
         private AnalyzerConfigOptionsResult? _analyzerConfigOptions;
 
-        public BaseDiagnosticItemSource(Workspace workspace, ProjectId projectId, IAnalyzersCommandHandler commandHandler, IDiagnosticAnalyzerService diagnosticAnalyzerService)
+        public BaseDiagnosticAndGeneratorItemSource(Workspace workspace, ProjectId projectId, IAnalyzersCommandHandler commandHandler, IDiagnosticAnalyzerService diagnosticAnalyzerService)
         {
             Workspace = workspace;
             ProjectId = projectId;
@@ -50,9 +49,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             get
             {
-                if (_diagnosticItems != null)
+                if (_items != null)
                 {
-                    return _diagnosticItems.Count > 0;
+                    return _items.Count > 0;
                 }
 
                 if (AnalyzerReference == null)
@@ -67,7 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     return false;
                 }
 
-                return AnalyzerReference.GetAnalyzers(project.Language).Length > 0;
+                return AnalyzerReference.GetAnalyzers(project.Language).Any() ||
+                       AnalyzerReference.GetGenerators(project.Language).Any();
             }
         }
 
@@ -75,27 +75,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             get
             {
-                if (_diagnosticItems == null)
+                if (_items == null)
                 {
                     var project = Workspace.CurrentSolution.GetRequiredProject(ProjectId);
                     _generalDiagnosticOption = project.CompilationOptions!.GeneralDiagnosticOption;
                     _specificDiagnosticOptions = project.CompilationOptions!.SpecificDiagnosticOptions;
                     _analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
-                    _diagnosticItems = CreateDiagnosticItems(project.Id, project.Language, project.CompilationOptions, _analyzerConfigOptions);
+                    _items = CreateDiagnosticAndGeneratorItems(project.Id, project.Language, project.CompilationOptions, _analyzerConfigOptions);
 
                     Workspace.WorkspaceChanged += OnWorkspaceChangedLookForOptionsChanges;
                 }
 
                 Logger.Log(
                     FunctionId.SolutionExplorer_DiagnosticItemSource_GetItems,
-                    KeyValueLogMessage.Create(m => m["Count"] = _diagnosticItems.Count));
+                    KeyValueLogMessage.Create(m => m["Count"] = _items.Count));
 
-                return _diagnosticItems;
+                return _items;
             }
         }
 
-        private BulkObservableCollection<DiagnosticItem> CreateDiagnosticItems(ProjectId projectId, string language, CompilationOptions options, AnalyzerConfigOptionsResult? analyzerConfigOptions)
+        private BulkObservableCollection<BaseItem> CreateDiagnosticAndGeneratorItems(ProjectId projectId, string language, CompilationOptions options, AnalyzerConfigOptionsResult? analyzerConfigOptions)
         {
             // Within an analyzer assembly, an individual analyzer may report multiple different diagnostics
             // with the same ID. Or, multiple analyzers may report diagnostics with the same ID. Or a
@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             Contract.ThrowIfFalse(HasItems);
 
-            var collection = new BulkObservableCollection<DiagnosticItem>();
+            var collection = new BulkObservableCollection<BaseItem>();
             collection.AddRange(
                 AnalyzerReference.GetAnalyzers(language)
                 .SelectMany(a => _diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(a))
@@ -120,6 +120,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(options, analyzerConfigOptions);
                     return new DiagnosticItem(projectId, AnalyzerReference, selectedDiagnostic, effectiveSeverity, language, CommandHandler);
                 }));
+
+            collection.AddRange(
+                AnalyzerReference.GetGenerators(language)
+                .Select(g => new SourceGeneratorItem(projectId, g, AnalyzerReference)));
 
             return collection;
         }
@@ -175,9 +179,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     _specificDiagnosticOptions = newSpecificDiagnosticOptions;
                     _analyzerConfigOptions = newAnalyzerConfigOptions;
 
-                    Contract.ThrowIfNull(_diagnosticItems, "We only subscribe to events after we create the items, so this should not be null.");
+                    Contract.ThrowIfNull(_items, "We only subscribe to events after we create the items, so this should not be null.");
 
-                    foreach (var item in _diagnosticItems)
+                    foreach (var item in _items.OfType<DiagnosticItem>())
                     {
                         var effectiveSeverity = item.Descriptor.GetEffectiveSeverity(project.CompilationOptions, newAnalyzerConfigOptions);
                         item.UpdateEffectiveSeverity(effectiveSeverity);
