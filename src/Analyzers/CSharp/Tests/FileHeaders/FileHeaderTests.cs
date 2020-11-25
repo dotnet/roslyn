@@ -804,24 +804,33 @@ file_header_template = Comment
         }
 
         [Theory]
-        [InlineData("")]
-        [InlineData(" ")]
-        [InlineData("\r\n")]
-        [InlineData("\r\n\r\n")]
-        public async Task TestExistingHeaderFollowedByNamespace_MultiLineComment(string whiteSpaceBeforeNamespace)
+        [InlineData("", "// Comment\r\n\r\n")]
+        [InlineData(" ", "// Comment\r\n\r\n")]
+        [InlineData("\r\n", null)]
+        [InlineData("\r\n\r\n", null)]
+        public async Task TestExistingHeaderFollowedByNamespace_MultiLineComment(string whiteSpaceBeforeNamespace, string replacedHeader)
         {
             var editorConfig = @"
 [*.cs]
 file_header_template = Comment
 ";
-            var testCode = @$"/* Comment */{whiteSpaceBeforeNamespace}namespace N
+            var commentStart = replacedHeader is null
+                ? "/*"
+                : "[||]/*";
+
+            var testCode = $@"{commentStart} Comment */{whiteSpaceBeforeNamespace}namespace N
+{{
+}}";
+            var fixedCode = replacedHeader == null
+                ? testCode
+                : @$"{replacedHeader}/* Comment */{whiteSpaceBeforeNamespace}namespace N
 {{
 }}";
 
             await new VerifyCS.Test
             {
                 TestCode = testCode,
-                FixedCode = testCode,
+                FixedCode = fixedCode,
                 EditorConfig = editorConfig,
             }.RunAsync();
         }
