@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         public virtual ImageSource? Icon => null;
         public virtual ImageMoniker IconMoniker => default;
         public virtual ImageSource? ExpandedIcon => null;
-        public virtual ImageMoniker ExpandedIconMoniker => default;
+        public virtual ImageMoniker ExpandedIconMoniker => IconMoniker;
 
         public bool AllowIconTheming => true;
         public bool AllowExpandedIconTheming => true;
