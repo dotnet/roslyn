@@ -61,6 +61,7 @@ param (
   [switch]$testCoreClr,
   [switch]$testIOperation,
   [switch]$sequential,
+  [switch]$helix,
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -388,6 +389,10 @@ function TestUsingRunTests() {
 
   if ($sequential) {
     $args += " --sequential"
+  }
+
+  if ($helix) {
+    $args += " --helix"
   }
 
   try {
