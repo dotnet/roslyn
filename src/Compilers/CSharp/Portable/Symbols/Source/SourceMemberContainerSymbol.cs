@@ -3034,7 +3034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var members = ArrayBuilder<Symbol>.GetInstance(builder.NonTypeNonIndexerMembers.Count + 1);
             foreach (var member in builder.NonTypeNonIndexerMembers)
             {
-                switch(member)
+                switch (member)
                 {
                     case FieldSymbol:
                     case EventSymbol:
