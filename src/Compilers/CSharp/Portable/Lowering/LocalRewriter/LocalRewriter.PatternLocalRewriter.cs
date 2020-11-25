@@ -408,7 +408,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(loweredInput.Type is { });
 
                 // We share input variables if there is no when clause (because a when clause might mutate them).
-                bool anyWhenClause = decisionDag.TopologicallySortedNodes.Any(node => isWhenClause(node));
+                bool anyWhenClause =
+                    decisionDag.TopologicallySortedNodes
+                    .Any(node => node is BoundWhenDecisionDagNode { WhenExpression: { ConstantValue: null } });
 
                 var inputDagTemp = BoundDagTemp.ForOriginalInput(loweredInput);
                 if ((loweredInput.Kind == BoundKind.Local || loweredInput.Kind == BoundKind.Parameter)
@@ -469,9 +471,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(savedInputExpression != null);
                 return decisionDag;
-
-                static bool isWhenClause(BoundDecisionDagNode node) =>
-                    node is BoundWhenDecisionDagNode { WhenExpression: { ConstantValue: null } };
 
                 static bool usesOriginalInput(BoundDecisionDagNode node)
                 {
