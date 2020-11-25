@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseImplicitObjectCreationTests
@@ -589,6 +590,78 @@ class C
     {
         C c2 = new();
     });
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [WorkItem(49291, "https://github.com/dotnet/roslyn/issues/49291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestListOfTuplesWithLabels()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System.Collections.Generic;
+class C
+{
+    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new [|List<(int SomeName, int SomeOtherName, int YetAnotherName)>|]();
+}",
+                FixedCode = @"
+using System.Collections.Generic;
+class C
+{
+    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new();
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [WorkItem(49291, "https://github.com/dotnet/roslyn/issues/49291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestListOfTuplesWithoutLabels()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System.Collections.Generic;
+class C
+{
+    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new [|List<(int, int, int)>|]();
+}",
+                FixedCode = @"
+using System.Collections.Generic;
+class C
+{
+    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new();
+}",
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [WorkItem(49291, "https://github.com/dotnet/roslyn/issues/49291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitObjectCreation)]
+        public async Task TestListOfTuplesWithoutLabelsAsLocal()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new [|List<(int, int, int)>|]();
+    }
+}",
+                FixedCode = @"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new();
+    }
 }",
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
             }.RunAsync();
