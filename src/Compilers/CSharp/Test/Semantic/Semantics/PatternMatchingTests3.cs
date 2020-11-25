@@ -6236,6 +6236,7 @@ class C
         [InlineData("c is not (not not C c1)")]
         [InlineData("c is not not (not C c1)")]
         [InlineData("c is not { } c1")]
+        [InlineData("!(c is not not { } c1)")]
         public void IsNot_08(string pattern)
         {
             var source =
