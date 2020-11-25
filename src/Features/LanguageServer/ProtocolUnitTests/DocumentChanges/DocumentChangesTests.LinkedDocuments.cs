@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
         private static Task<Solution> GetLSPSolution(Handler.RequestExecutionQueue queue, Uri uri)
         {
-            return queue.ExecuteAsync(false, new GetLSPSolutionHandler(), uri, new ClientCapabilities(), null, CancellationToken.None);
+            return queue.ExecuteAsync(false, new GetLSPSolutionHandler(), uri, new ClientCapabilities(), null, "test/getLSPSolution", CancellationToken.None);
         }
 
         private class GetLSPSolutionHandler : IRequestHandler<Uri, Solution>
