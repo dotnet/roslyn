@@ -1646,7 +1646,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
                 var compilation = (CSharpCompilation)_semanticModel.Compilation;
 
-                var iDisposable = enumeratorInfoOpt.IsAsync 
+                var iDisposable = enumeratorInfoOpt.IsAsync
                                     ? compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable)
                                     : compilation.GetSpecialType(SpecialType.System_IDisposable);
 
