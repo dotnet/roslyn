@@ -340,9 +340,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.EmitToken(symbol, syntaxNode, _diagnostics);
         }
 
-        private void EmitSymbolToken(TypeSymbol symbol, SyntaxNode syntaxNode)
+        private void EmitSymbolToken(TypeSymbol symbol, SyntaxNode syntaxNode, bool needDeclaration = false)
         {
-            EmitTypeReferenceToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode);
+            EmitTypeReferenceToken(_module.Translate(symbol, syntaxNode, _diagnostics, needDeclaration), syntaxNode);
         }
 
         private void EmitSymbolToken(MethodSymbol method, SyntaxNode syntaxNode, BoundArgListOperator optArgList, bool encodeAsRawDefinitionToken = false, bool needDeclaration = false)

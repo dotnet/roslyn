@@ -999,7 +999,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal sealed override Cci.ITypeReference Translate(
             TypeSymbol typeSymbol,
             SyntaxNode syntaxNodeOpt,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool needDeclaration = false)
         {
             Debug.Assert(diagnostics != null);
 
@@ -1013,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
-                    return Translate((NamedTypeSymbol)typeSymbol, syntaxNodeOpt, diagnostics);
+                    return Translate((NamedTypeSymbol)typeSymbol, syntaxNodeOpt, diagnostics, needDeclaration: needDeclaration);
 
                 case SymbolKind.PointerType:
                     return Translate((PointerTypeSymbol)typeSymbol);

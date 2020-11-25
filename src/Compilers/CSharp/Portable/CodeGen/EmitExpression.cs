@@ -3124,7 +3124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             switch (node.Symbol)
             {
                 case TypeSymbol typeSymbol:
-                    EmitSymbolToken(typeSymbol, node.Syntax);
+                    EmitSymbolToken(typeSymbol, node.Syntax, needDeclaration: true);
                     break;
                 case MethodSymbol methodSymbol:
                     EmitSymbolToken(methodSymbol, node.Syntax, null, needDeclaration: true);

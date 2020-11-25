@@ -244,7 +244,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Friend NotOverridable Overrides Function Translate(
             typeSymbol As TypeSymbol,
             syntaxNodeOpt As SyntaxNode,
-            diagnostics As DiagnosticBag
+            diagnostics As DiagnosticBag,
+            Optional needDeclaration As Boolean = False
         ) As Microsoft.Cci.ITypeReference
             Debug.Assert(diagnostics IsNot Nothing)
 
@@ -252,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Case SymbolKind.ArrayType
                     Return Translate(DirectCast(typeSymbol, ArrayTypeSymbol))
                 Case SymbolKind.NamedType, SymbolKind.ErrorType
-                    Return Translate(DirectCast(typeSymbol, NamedTypeSymbol), syntaxNodeOpt, diagnostics)
+                    Return Translate(DirectCast(typeSymbol, NamedTypeSymbol), syntaxNodeOpt, diagnostics, needDeclaration)
                 Case SymbolKind.TypeParameter
                     Return Translate(DirectCast(typeSymbol, TypeParameterSymbol))
                 Case Else
