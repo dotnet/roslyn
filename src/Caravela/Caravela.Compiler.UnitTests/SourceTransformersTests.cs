@@ -137,7 +137,7 @@ error RE0001: Transformer 'TransformerOrderTransformer1' failed: System.Exceptio
             var transformedDir = dir.CreateDirectory("transformed");
             var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
 is_global = true
-build_property.CompilerTransformedFilesOutputPath = {transformedDir.Path}");
+build_property.CaravelaCompilerTransformedFilesOutputPath = {transformedDir.Path}");
 
             var args = new[] { "/t:library", $"/analyzerconfig:{analyzerConfig.Path}", src1.Path, src2.Path, "/out:lib.dll" };
 
