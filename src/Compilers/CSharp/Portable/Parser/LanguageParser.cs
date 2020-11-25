@@ -11256,17 +11256,35 @@ tryAgain:
                         SyntaxKind.AmpersandToken or
                         SyntaxKind.AsteriskToken or
                         SyntaxKind.DotDotToken => true,
-                        // If the parenthesized type is followed by a binary pattern, it is not a cast.
                         SyntaxKind.IdentifierToken when isBinaryPattern() => false,
                         var tk => CanFollowCast(tk)
                     };
 
                     bool isBinaryPattern()
                     {
-                        if (this.CurrentToken.ContextualKind is not (SyntaxKind.OrKeyword or SyntaxKind.AndKeyword))
+                        if (!isBinaryPatternKeyword())
+                        {
                             return false;
+                        }
+
                         EatToken();
-                        return IsPossibleSubpatternElement();
+                        if (isBinaryPatternKeyword())
+                        {
+                            // If the parenthesized type is doubly followed by binary pattern tokens, it is a cast.
+                            // Such as `(int)or or string`
+                            return false;
+                        }
+                        else
+                        {
+                            // If the parenthesized type is followed by a binary pattern token, it is not a cast.
+                            // Such as `(int) or string;`
+                            return IsPossibleSubpatternElement();
+                        }
+                    }
+
+                    bool isBinaryPatternKeyword()
+                    {
+                        return this.CurrentToken.ContextualKind is SyntaxKind.OrKeyword or SyntaxKind.AndKeyword;
                     }
 
                 case ScanTypeFlags.GenericTypeOrMethod:
