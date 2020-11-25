@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             {
                 ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext => await ChangeSignatureWithContextAsync(changeSignatureAnalyzedSucceedContext, cancellationToken).ConfigureAwait(false),
                 CannotChangeSignatureAnalyzedContext cannotChangeSignatureAnalyzedContext => new ChangeSignatureResult(succeeded: false, changeSignatureFailureKind: cannotChangeSignatureAnalyzedContext.CannotChangeSignatureReason),
-                _ => s_ChangeSignatureResultFailure,
+                _ => throw ExceptionUtilities.Unreachable,
             };
         }
 
