@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExtensionOrder(After:=NameOf(ObjectCreationCompletionProvider))>
     <[Shared]>
     Partial Friend Class EnumCompletionProvider
-        Inherits AbstractSymbolCompletionProvider
+        Inherits AbstractEnumCompletionProvider
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
