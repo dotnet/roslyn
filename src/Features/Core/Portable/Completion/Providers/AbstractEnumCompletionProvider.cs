@@ -125,5 +125,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols) => s_rules;
+
+        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        {
+            var insertionText = SymbolCompletionItem.GetInsertionText(selectedItem);
+            return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, insertionText));
+        }
     }
 }
