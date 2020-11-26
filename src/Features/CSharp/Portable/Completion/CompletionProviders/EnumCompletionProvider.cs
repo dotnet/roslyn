@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var ch = text[characterPosition];
             return ch is ' ' or '(' or '=' ||
-                SyntaxFacts.IsIdentifierStartCharacter(ch) && options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp);
+                (SyntaxFacts.IsIdentifierStartCharacter(ch) && options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp));
         }
 
         internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(' ', '(', '=');
@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override string GetInsertionText(CompletionItem item, char ch)
             => SymbolCompletionItem.GetInsertionText(item);
 
-        protected override (string displayText, string suffix, string insertionText) GetDefaultDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context)
+        protected override (string displayText, string suffix, string insertionText) GetDefaultDisplayAndSuffixAndInsertionText(ISymbol symbol,
+            SyntaxContext context)
             => CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context);
     }
 }
