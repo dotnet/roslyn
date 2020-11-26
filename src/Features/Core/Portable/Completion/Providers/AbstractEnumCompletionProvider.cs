@@ -17,11 +17,15 @@ using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using System.Linq;
 using Microsoft.CodeAnalysis.Recommendations;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractEnumCompletionProvider : AbstractSymbolCompletionProvider
     {
+        private static readonly CompletionItemRules s_rules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect);
+
         protected abstract (string displayText, string suffix, string insertionText) GetDefaultDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context);
 
         protected override Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
@@ -100,5 +104,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return GetDefaultDisplayAndSuffixAndInsertionText(symbol, context);
         }
+
+        protected override CompletionItem CreateItem(CompletionContext completionContext, string displayText,
+            string displayTextSuffix, string insertionText, List<ISymbol> symbols, SyntaxContext context, bool preselect,
+            SupportedPlatformData supportedPlatformData)
+        {
+            var rules = GetCompletionItemRules(symbols);
+            rules = rules.WithMatchPriority(preselect ? MatchPriority.Preselect : MatchPriority.Default);
+
+            return SymbolCompletionItem.CreateWithSymbolId(
+                displayText: displayText,
+                displayTextSuffix: displayTextSuffix,
+                insertionText: insertionText,
+                filterText: GetFilterText(symbols[0], displayText, context),
+                symbols: symbols,
+                contextPosition: context.Position,
+                sortText: insertionText,
+                supportedPlatforms: supportedPlatformData,
+                rules: rules);
+        }
+
+        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols) => s_rules;
     }
 }

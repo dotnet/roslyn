@@ -45,31 +45,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function CreateItem(completionContext As CompletionContext,
-                displayText As String, displayTextSuffix As String, insertionText As String,
-                symbols As List(Of ISymbol), context As SyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
-            Dim rules = GetCompletionItemRules(symbols)
-            rules = rules.WithMatchPriority(If(preselect, MatchPriority.Preselect, MatchPriority.Default))
-
-            Return SymbolCompletionItem.CreateWithSymbolId(
-                displayText:=displayText,
-                displayTextSuffix:=displayTextSuffix,
-                insertionText:=insertionText,
-                filterText:=GetFilterText(symbols(0), displayText, context),
-                symbols:=symbols,
-                contextPosition:=context.Position,
-                sortText:=insertionText,
-                supportedPlatforms:=supportedPlatformData,
-                rules:=rules)
-        End Function
-
-        Private Shared ReadOnly s_rules As CompletionItemRules =
-            CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect)
-
-        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol)) As CompletionItemRules
-            Return s_rules
-        End Function
-
         Public Overrides Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
             Dim insertionText As String = SymbolCompletionItem.GetInsertionText(selectedItem)
             Return Task.FromResult(Of TextChange?)(New TextChange(selectedItem.Span, insertionText))
