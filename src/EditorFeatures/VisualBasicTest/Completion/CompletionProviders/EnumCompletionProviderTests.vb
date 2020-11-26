@@ -120,7 +120,7 @@ Enum Goo
     AMember
     BMember
     CMember
-End
+End Enum
 ]]></Text>.Value
 
             Await VerifyItemExistsAsync(markup, "Goo.AMember", usePreviousCharAsTrigger:=True)
@@ -142,7 +142,7 @@ Enum Goo
     AMember
     BMember
     CMember
-End
+End Enum
 ]]></Text>.Value
 
             Await VerifyItemExistsAsync(markup, "Goo.AMember", usePreviousCharAsTrigger:=True)
