@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractEnumCompletionProvider : AbstractSymbolCompletionProvider
     {
+        protected abstract (string displayText, string suffix, string insertionText) GetDefaultDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context);
+
         protected override Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var span = new TextSpan(position, 0);
             var enumType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault: true, cancellationToken: cancellationToken);
 
-            if (enumType.TypeKind != TypeKind.Enum)
+            if (enumType is not { TypeKind: TypeKind.Enum })
                 return SpecializedTasks.EmptyImmutableArray<ISymbol>();
 
             var hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language);
@@ -76,6 +78,27 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var otherInstances = otherSymbols.WhereAsArray(s => Equals(enumType, s.GetSymbolType()));
 
             return Task.FromResult(otherInstances.Concat(enumType));
+        }
+
+        // PERF: Cached values for GetDisplayAndInsertionText. Cuts down on the number of calls to ToMinimalDisplayString for large enums.
+        private (INamedTypeSymbol? containingType, SyntaxContext? context, string? containingTypeText) _cachedDisplayAndInsertionText;
+
+        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context)
+        {
+            if (symbol.ContainingType != null && symbol.ContainingType.TypeKind == TypeKind.Enum)
+            {
+                if (!Equals(_cachedDisplayAndInsertionText.containingType, symbol.ContainingType) || _cachedDisplayAndInsertionText.context != context)
+                {
+                    var displayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType).WithLocalOptions(SymbolDisplayLocalOptions.None);
+                    var containingTypeText = symbol.ContainingType.ToMinimalDisplayString(context.SemanticModel, context.Position, displayFormat);
+                    _cachedDisplayAndInsertionText = (symbol.ContainingType, context, containingTypeText);
+                }
+
+                var text = _cachedDisplayAndInsertionText.containingTypeText + "." + symbol.Name;
+                return (text, "", text);
+            }
+
+            return GetDefaultDisplayAndSuffixAndInsertionText(symbol, context);
         }
     }
 }

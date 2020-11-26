@@ -36,25 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create(" "c, "("c, "="c)
 
-        ' PERF: Cached values for GetDisplayAndInsertionText. Cuts down on the number of calls to ToMinimalDisplayString for large enums.
-        Private _cachedDisplayAndInsertionTextContainingType As INamedTypeSymbol
-        Private _cachedDisplayAndInsertionTextContext As SyntaxContext
-        Private _cachedDisplayAndInsertionTextContainingTypeText As String
-
-        Protected Overrides Function GetDisplayAndSuffixAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, suffix As String, insertionText As String)
-            If symbol.ContainingType IsNot Nothing AndAlso symbol.ContainingType.TypeKind = TypeKind.Enum Then
-                If Not Equals(_cachedDisplayAndInsertionTextContainingType, symbol.ContainingType) OrElse _cachedDisplayAndInsertionTextContext IsNot context Then
-                    Dim displayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType).WithLocalOptions(SymbolDisplayLocalOptions.None)
-                    Dim displayService = context.GetLanguageService(Of ISymbolDisplayService)()
-                    _cachedDisplayAndInsertionTextContainingTypeText = symbol.ContainingType.ToMinimalDisplayString(context.SemanticModel, context.Position, displayFormat)
-                    _cachedDisplayAndInsertionTextContainingType = symbol.ContainingType
-                    _cachedDisplayAndInsertionTextContext = context
-                End If
-
-                Dim text As String = _cachedDisplayAndInsertionTextContainingTypeText & "." & symbol.Name
-                Return (text, "", text)
-            End If
-
+        Protected Overrides Function GetDefaultDisplayAndSuffixAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, suffix As String, insertionText As String)
             Return CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context)
         End Function
 
