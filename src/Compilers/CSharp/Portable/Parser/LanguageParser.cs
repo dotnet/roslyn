@@ -11280,6 +11280,8 @@ tryAgain:
                             EatToken();
                         }
 
+                        // In case a combinator token is used as a constant, we explicitly check that a pattern is NOT followed.
+                        // Such as `(e is (int)or or >= 0)` versus `(e is (int) or or)`
                         return lastTokenIsBinaryOperator == IsPossibleSubpatternElement();
                     }
 
