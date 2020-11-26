@@ -415,6 +415,34 @@ class C
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestNotInTrivia()
+        {
+            var markup = @"
+class C
+{
+    public void M(DayOfWeek day)
+    {
+        switch (day)
+        {
+            case DayOfWeek.A:
+            case DayOfWeek.B// $$
+                :
+                    break;
+        }
+    }
+
+    enum DayOfWeek
+    {
+        A,
+        B
+    }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestCommitOnComma()
         {
             var markup = @"
