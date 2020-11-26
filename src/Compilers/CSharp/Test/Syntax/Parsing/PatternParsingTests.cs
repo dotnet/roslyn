@@ -10671,7 +10671,7 @@ switch (e)
             UsingStatement($"_ = e is (int) {SyntaxFacts.GetText(opKind)} {right};",
                 TestOptions.RegularWithPatternCombinators
             );
-            
+
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);
@@ -10723,7 +10723,8 @@ switch (e)
         {
             UsingStatement(@"switch (e) { case {} and {}: break; }",
                 TestOptions.RegularWithPatternCombinators
-                );
+            );
+
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
