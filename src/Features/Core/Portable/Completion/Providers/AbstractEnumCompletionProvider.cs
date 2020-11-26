@@ -50,5 +50,32 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return Task.FromResult(result);
         }
+
+        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        {
+            var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
+            if (syntaxFacts.IsInNonUserCode(context.SyntaxTree, context.Position, cancellationToken)) // Removed: || context.SyntaxTree.IsInSkippedText(position, cancellationToken)
+                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+
+            if (context.TargetToken.RawKind == syntaxFacts.SyntaxKinds.DotToken)
+                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+
+            var typeInferenceService = context.GetLanguageService<ITypeInferenceService>();
+            var span = new TextSpan(position, 0);
+            var enumType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault: true, cancellationToken: cancellationToken);
+
+            if (enumType.TypeKind != TypeKind.Enum)
+                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+
+            var hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language);
+
+            var otherSymbols = context.SemanticModel.LookupSymbols(position).WhereAsArray(s =>
+                s.MatchesKind(SymbolKind.Field, SymbolKind.Local, SymbolKind.Parameter, SymbolKind.Property) &&
+                s.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation));
+
+            var otherInstances = otherSymbols.WhereAsArray(s => Equals(enumType, s.GetSymbolType()));
+
+            return Task.FromResult(otherInstances.Concat(enumType));
+        }
     }
 }

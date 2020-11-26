@@ -26,37 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetSymbolsAsync(
-                context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
-
-            If context.SyntaxTree.IsInNonUserCode(context.Position, cancellationToken) OrElse
-                context.SyntaxTree.IsInSkippedText(position, cancellationToken) Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
-            End If
-
-            If context.TargetToken.IsKind(SyntaxKind.DotToken) Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
-            End If
-
-            Dim typeInferenceService = context.GetLanguageService(Of ITypeInferenceService)()
-            Dim span = New TextSpan(position, 0)
-            Dim enumType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault:=True, cancellationToken:=cancellationToken)
-
-            If enumType.TypeKind <> TypeKind.Enum Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
-            End If
-
-            Dim hideAdvancedMembers = options.GetOption(CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language)
-
-            Dim otherSymbols = context.SemanticModel.LookupSymbols(position).WhereAsArray(
-                Function(s) s.MatchesKind(SymbolKind.Field, SymbolKind.Local, SymbolKind.Parameter, SymbolKind.Property) AndAlso
-                    s.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation))
-
-            Dim otherInstances = otherSymbols.WhereAsArray(Function(s) Equals(enumType, GetTypeFromSymbol(s)))
-
-            Return Task.FromResult(otherInstances.Concat(enumType))
-        End Function
-
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return text(characterPosition) = " "c OrElse
                 text(characterPosition) = "("c OrElse
@@ -66,14 +35,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create(" "c, "("c, "="c)
-
-        Private Shared Function GetTypeFromSymbol(symbol As ISymbol) As ITypeSymbol
-            Dim symbolType = If(TryCast(symbol, IFieldSymbol)?.Type,
-                             If(TryCast(symbol, ILocalSymbol)?.Type,
-                             If(TryCast(symbol, IParameterSymbol)?.Type,
-                                TryCast(symbol, IPropertySymbol)?.Type)))
-            Return symbolType
-        End Function
 
         ' PERF: Cached values for GetDisplayAndInsertionText. Cuts down on the number of calls to ToMinimalDisplayString for large enums.
         Private _cachedDisplayAndInsertionTextContainingType As INamedTypeSymbol
