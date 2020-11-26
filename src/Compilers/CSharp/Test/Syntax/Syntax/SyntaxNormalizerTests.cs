@@ -220,6 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             TestNormalizeDeclaration("class i1\r\n{\r\nint\r\np\r\n{\r\nget;\r\n}\r\n}", "class i1\r\n{\r\n  int p { get; }\r\n}");
             TestNormalizeDeclaration("class i2\r\n{\r\nint\r\np\r\n{\r\nget=>1;\r\n}\r\n}", "class i2\r\n{\r\n  int p { get => 1; }\r\n}");
+            TestNormalizeDeclaration("class i2a\r\n{\r\nint _p;\r\nint\r\np\r\n{\r\nget=>\r\n_p;set\r\n=>_p\r\n=value\r\n;\r\n}\r\n}", "class i2a\r\n{\r\n  int _p;\r\n  int p { get => _p; set => _p = value; }\r\n}");
             TestNormalizeDeclaration("class i3\r\n{\r\nint\r\np\r\n{\r\nget{}\r\n}\r\n}", "class i3\r\n{\r\n  int p\r\n  {\r\n    get\r\n    {\r\n    }\r\n  }\r\n}");
             TestNormalizeDeclaration("class i4\r\n{\r\nint\r\np\r\n{\r\nset;\r\n}\r\n}", "class i4\r\n{\r\n  int p { set; }\r\n}");
             TestNormalizeDeclaration("class i5\r\n{\r\nint\r\np\r\n{\r\nset{}\r\n}\r\n}", "class i5\r\n{\r\n  int p\r\n  {\r\n    set\r\n    {\r\n    }\r\n  }\r\n}");
@@ -229,6 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("class i9\r\n{\r\nint\r\np\r\n{\r\nget=>1;\r\nset{z=1;}\r\n}\r\n}", "class i9\r\n{\r\n  int p\r\n  {\r\n    get => 1;\r\n    set\r\n    {\r\n      z = 1;\r\n    }\r\n  }\r\n}");
             TestNormalizeDeclaration("class ia\r\n{\r\nint\r\np\r\n{\r\nget{}\r\nset;\r\n}\r\n}", "class ia\r\n{\r\n  int p\r\n  {\r\n    get\r\n    {\r\n    }\r\n\r\n    set;\r\n  }\r\n}");
             TestNormalizeDeclaration("class ib\r\n{\r\nint\r\np\r\n{\r\nget;\r\nset{}\r\n}\r\n}", "class ib\r\n{\r\n  int p\r\n  {\r\n    get;\r\n    set\r\n    {\r\n    }\r\n  }\r\n}");
+
+            // properties with initalizers
             TestNormalizeDeclaration("class i4\r\n{\r\nint\r\np\r\n{\r\nset;\r\n}=1;\r\n}", "class i4\r\n{\r\n  int p { set; } = 1;\r\n}");
             TestNormalizeDeclaration("class i5\r\n{\r\nint\r\np\r\n{\r\nset{}\r\n}=1;\r\n}", "class i5\r\n{\r\n  int p\r\n  {\r\n    set\r\n    {\r\n    }\r\n  } = 1;\r\n}");
             TestNormalizeDeclaration("class i6\r\n{\r\nint\r\np\r\n{\r\ninit;\r\n}=1;\r\n}", "class i6\r\n{\r\n  int p { init; } = 1;\r\n}");
@@ -251,6 +254,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("class i9\r\n{\r\nint\r\nthis[b c]\r\n{\r\nget=>1;\r\nset{z=1;}\r\n}\r\n}", "class i9\r\n{\r\n  int this[b c]\r\n  {\r\n    get => 1;\r\n    set\r\n    {\r\n      z = 1;\r\n    }\r\n  }\r\n}");
             TestNormalizeDeclaration("class ia\r\n{\r\nint\r\nthis[b c]\r\n{\r\nget{}\r\nset;\r\n}\r\n}", "class ia\r\n{\r\n  int this[b c]\r\n  {\r\n    get\r\n    {\r\n    }\r\n\r\n    set;\r\n  }\r\n}");
             TestNormalizeDeclaration("class ib\r\n{\r\nint\r\nthis[b c]\r\n{\r\nget;\r\nset{}\r\n}\r\n}", "class ib\r\n{\r\n  int this[b c]\r\n  {\r\n    get;\r\n    set\r\n    {\r\n    }\r\n  }\r\n}");
+
+            // events
+            TestNormalizeDeclaration("class a\r\n{\r\npublic\r\nevent\r\nw\r\ne;\r\n}", "class a\r\n{\r\n  public event w e;\r\n}");
+            TestNormalizeDeclaration("abstract class b\r\n{\r\nevent\r\nw\r\ne\r\n;\r\n}", "abstract class b\r\n{\r\n  event w e;\r\n}");
+            TestNormalizeDeclaration("interface c1\r\n{\r\nevent\r\nw\r\ne\r\n;\r\n}", "interface c1\r\n{\r\n  event w e;\r\n}");
+            TestNormalizeDeclaration("interface c2 : c1\r\n{\r\nabstract\r\nevent\r\nw\r\nc1\r\n.\r\ne\r\n;\r\n}", "interface c2 : c1\r\n{\r\n  abstract event w c1.e;\r\n}");
+            TestNormalizeDeclaration("class d\r\n{\r\nevent w x;\r\nevent\r\nw\r\ne\r\n{\r\nadd\r\n=>\r\nx+=\r\nvalue;\r\nremove\r\n=>x\r\n-=\r\nvalue;\r\n}}", "class d\r\n{\r\n  event w x;\r\n  event w e { add => x += value; remove => x -= value; }\r\n}");
+            TestNormalizeDeclaration("class e\r\n{\r\nevent w e\r\n{\r\nadd{}\r\nremove{\r\n}\r\n}\r\n}", "class e\r\n{\r\n  event w e\r\n  {\r\n    add\r\n    {\r\n    }\r\n\r\n    remove\r\n    {\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class f\r\n{\r\nevent w x;\r\nevent w e\r\n{\r\nadd\r\n{\r\nx\r\n+=\r\nvalue;\r\n}\r\nremove\r\n{\r\nx\r\n-=\r\nvalue;\r\n}\r\n}\r\n}", "class f\r\n{\r\n  event w x;\r\n  event w e\r\n  {\r\n    add\r\n    {\r\n      x += value;\r\n    }\r\n\r\n    remove\r\n    {\r\n      x -= value;\r\n    }\r\n  }\r\n}");
+            TestNormalizeDeclaration("class g\r\n{\r\nextern\r\nevent\r\nw\r\ne\r\n=\r\nnull\r\n;\r\n}", "class g\r\n{\r\n  extern event w e = null;\r\n}");
+            TestNormalizeDeclaration("class h\r\n{\r\npublic event w e\r\n{\r\nadd\r\n=>\r\nc\r\n(\r\n);\r\nremove\r\n=>\r\nd(\r\n);\r\n}\r\n}", "class h\r\n{\r\n  public event w e { add => c(); remove => d(); }\r\n}");
+            TestNormalizeDeclaration("class i\r\n{\r\nevent w e\r\n{\r\nadd;\r\nremove;\r\n}\r\n}", "class i\r\n{\r\n  event w e { add; remove; }\r\n}");
 
             // fields
             TestNormalizeDeclaration("class a{b c;}", "class a\r\n{\r\n  b c;\r\n}");
