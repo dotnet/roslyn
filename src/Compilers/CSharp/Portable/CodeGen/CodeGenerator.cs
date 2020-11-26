@@ -350,9 +350,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.EmitToken(_module.Translate(method, syntaxNode, _diagnostics, optArgList, needDeclaration: needDeclaration || encodeAsRawDefinitionToken), syntaxNode, _diagnostics, encodeAsRawDefinitionToken);
         }
 
-        private void EmitSymbolToken(FieldSymbol symbol, SyntaxNode syntaxNode)
+        private void EmitSymbolToken(FieldSymbol symbol, SyntaxNode syntaxNode, bool needDeclaration = false)
         {
-            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics);
+            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics, needDeclaration), syntaxNode, _diagnostics);
         }
 
         private void EmitSignatureToken(FunctionPointerTypeSymbol symbol, SyntaxNode syntaxNode)

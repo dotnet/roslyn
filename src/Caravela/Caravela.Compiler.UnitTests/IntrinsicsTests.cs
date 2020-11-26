@@ -171,6 +171,39 @@ class G
         }
 
         [Fact]
+        public void GetFieldInGenericTypeHandle()
+        {
+            var originalCode = @"
+class C<T>
+{
+    int f;
+}";
+
+            var comp1 = CreateCompilation(originalCode);
+
+            var symbol = comp1.GetSymbolsWithName("f").Single();
+
+            var docId = DocumentationCommentId.CreateDeclarationId(symbol);
+
+            var generatedCode = $@"
+using System;
+
+class G
+{{
+    RuntimeFieldHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeFieldHandle(""{docId}"");
+}}";
+
+            var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, new[] { MetadataReference.CreateFromFile(typeof(Intrinsics).Assembly.Location) });
+            CompileAndVerify(comp2).VerifyIL("G.M", @"
+{
+    // Code size        6 (0x6)
+    .maxstack  1
+    IL_0000:  ldtoken    ""int C<T>.f""
+    IL_0005:  ret
+}");
+        }
+
+        [Fact]
         public void WrongArgumentType()
         {
             var code = @"

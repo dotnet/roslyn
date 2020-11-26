@@ -3130,7 +3130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitSymbolToken(methodSymbol, node.Syntax, null, needDeclaration: true);
                     break;
                 case FieldSymbol fieldSymbol:
-                    EmitSymbolToken(fieldSymbol, node.Syntax);
+                    EmitSymbolToken(fieldSymbol, node.Syntax, needDeclaration: true);
                     break;
                 default: throw ExceptionUtilities.Unreachable;
             }
