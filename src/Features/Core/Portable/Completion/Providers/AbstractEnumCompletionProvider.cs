@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts.IsInNonUserCode(context.SyntaxTree, context.Position, cancellationToken)) // Removed: || context.SyntaxTree.IsInSkippedText(position, cancellationToken)
+            var node = syntaxFacts.FindTokenOnLeftOfPosition(context.SyntaxTree.GetRoot(cancellationToken), position, includeSkipped: true).Parent;
+            if (syntaxFacts.IsInNonUserCode(context.SyntaxTree, context.Position, cancellationToken) || syntaxFacts.IsSkippedTokensTrivia(node)) // Note: IsSkippedTokensTrivia implementation is probably buggy
                 return SpecializedTasks.EmptyImmutableArray<ISymbol>();
 
             if (context.TargetToken.RawKind == syntaxFacts.SyntaxKinds.DotToken)
