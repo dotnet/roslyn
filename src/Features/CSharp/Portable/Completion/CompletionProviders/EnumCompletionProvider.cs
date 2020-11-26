@@ -34,11 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             var ch = text[characterPosition];
-            return ch is ' ' or '(' or '=' ||
+            return ch is ' ' or '(' or '=' or ':' ||
                 (SyntaxFacts.IsIdentifierStartCharacter(ch) && options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp));
         }
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(' ', '(', '=');
+        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(' ', '(', '=', ':');
 
         protected override async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
