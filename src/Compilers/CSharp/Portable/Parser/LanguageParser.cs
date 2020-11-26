@@ -11256,7 +11256,7 @@ tryAgain:
                         SyntaxKind.AmpersandToken or
                         SyntaxKind.AsteriskToken or
                         SyntaxKind.DotDotToken => true,
-                        SyntaxKind.IdentifierToken when isBinaryPattern() => false,
+                        SyntaxKind.IdentifierToken => !isBinaryPattern(),
                         var tk => CanFollowCast(tk)
                     };
 

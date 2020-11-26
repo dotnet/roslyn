@@ -10723,8 +10723,7 @@ switch (e)
         {
             UsingStatement(@"switch (e) { case {} and {}: break; }",
                 TestOptions.RegularWithPatternCombinators
-            );
-
+                );
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
