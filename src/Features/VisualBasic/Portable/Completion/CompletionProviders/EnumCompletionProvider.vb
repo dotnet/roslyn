@@ -26,40 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetPreselectedSymbolsAsync(
-                context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
-
-            If context.SyntaxTree.IsInNonUserCode(context.Position, cancellationToken) Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
-            End If
-
-            ' This providers provides fully qualified names, eg "DayOfWeek.Monday"
-            ' Don't run after dot because SymbolCompletionProvider will provide
-            ' members in situations like Dim x = DayOfWeek.$$
-            If context.TargetToken.IsKind(SyntaxKind.DotToken) Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
-            End If
-
-            Dim typeInferenceService = context.GetLanguageService(Of ITypeInferenceService)()
-            Dim enumType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault:=True, cancellationToken:=cancellationToken)
-
-            If enumType.TypeKind <> TypeKind.Enum Then
-                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
-            End If
-
-            Dim hideAdvancedMembers = options.GetOption(CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language)
-
-            ' We'll want to build a list of the actual enum members and all accessible instances of that enum, too
-            Dim result = enumType.GetMembers().Where(
-                Function(m As ISymbol) As Boolean
-                    Return m.Kind = SymbolKind.Field AndAlso
-                        DirectCast(m, IFieldSymbol).IsConst AndAlso
-                        m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)
-                End Function).ToImmutableArray()
-
-            Return Task.FromResult(result)
-        End Function
-
         Protected Overrides Function GetSymbolsAsync(
                 context As SyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
 
