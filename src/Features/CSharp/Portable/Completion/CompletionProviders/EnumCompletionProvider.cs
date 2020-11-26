@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(EnumCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(ObjectCreationCompletionProvider))]
+    [ExtensionOrder(After = nameof(ObjectAndWithInitializerCompletionProvider))]
     [Shared]
     internal class EnumCompletionProvider : AbstractEnumCompletionProvider
     {
