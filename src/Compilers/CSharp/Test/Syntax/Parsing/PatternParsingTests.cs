@@ -10662,6 +10662,62 @@ switch (e)
             EOF();
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void DesignatorAsConstant_01(
+            [CombinatorialValues(SyntaxKind.AndKeyword, SyntaxKind.OrKeyword)] SyntaxKind opKind,
+            [CombinatorialValues("and", "or")] string right)
+        {
+            UsingStatement($"_ = e is (int) {SyntaxFacts.GetText(opKind)} {right};",
+                TestOptions.RegularWithPatternCombinators
+            );
+            
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(opKind == SyntaxKind.AndKeyword ? SyntaxKind.AndPattern : SyntaxKind.OrPattern);
+                        {
+                            N(SyntaxKind.ParenthesizedPattern);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TypePattern);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(opKind);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, right);
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
         [Fact]
         public void ConjunctiveFollowedByPropertyPattern_01()
         {

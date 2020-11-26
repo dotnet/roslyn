@@ -11267,19 +11267,20 @@ tryAgain:
                             return false;
                         }
 
+                        bool lastTokenIsBinaryOperator = true;
+
                         EatToken();
-                        if (isBinaryPatternKeyword())
+                        while (isBinaryPatternKeyword())
                         {
-                            // If the parenthesized type is doubly followed by binary pattern tokens, it is a cast.
+                            // If the parenthesized type is followed by an even-number of binary pattern tokens, it is a cast.
                             // Such as `(int)or or string`
-                            return false;
-                        }
-                        else
-                        {
-                            // If the parenthesized type is followed by a binary pattern token, it is not a cast.
+                            // If the parenthesized type is followed by an odd-number of binary pattern token, it is not a cast.
                             // Such as `(int) or string`
-                            return IsPossibleSubpatternElement();
+                            lastTokenIsBinaryOperator = !lastTokenIsBinaryOperator;
+                            EatToken();
                         }
+
+                        return lastTokenIsBinaryOperator == IsPossibleSubpatternElement();
                     }
 
                     bool isBinaryPatternKeyword()
