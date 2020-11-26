@@ -32,34 +32,40 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         public ValueTask<bool> TryInvokeAsync(Func<TService, UnitTestingRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
             => UnderlyingObject.TryInvokeAsync(
-                (service, callbackId, cancellationToken) => invocation(service, new UnitTestingRemoteServiceCallbackIdWrapper(callbackId), cancellationToken),
+                (service, callbackId, cancellationToken) => invocation(service, callbackId, cancellationToken),
                 cancellationToken);
 
         public ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Func<TService, UnitTestingRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
             => UnderlyingObject.TryInvokeAsync(
-                (service, callbackId, cancellationToken) => invocation(service, new UnitTestingRemoteServiceCallbackIdWrapper(callbackId), cancellationToken),
+                (service, callbackId, cancellationToken) => invocation(service, callbackId, cancellationToken),
                 cancellationToken);
 
         // solution, no callback
 
-        public ValueTask<bool> TryInvokeAsync(Solution solution, Func<TService, object, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
-            => UnderlyingObject.TryInvokeAsync(solution, invocation, cancellationToken);
+        public ValueTask<bool> TryInvokeAsync(Solution solution, Func<TService, UnitTestingPinnedSolutionInfoWrapper, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+            => UnderlyingObject.TryInvokeAsync(
+                solution,
+                (service, solutionInfo, cancellationToken) => invocation(service, solutionInfo, cancellationToken),
+                cancellationToken);
 
-        public ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Solution solution, Func<TService, object, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
-            => UnderlyingObject.TryInvokeAsync(solution, invocation, cancellationToken);
+        public ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Solution solution, Func<TService, UnitTestingPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+            => UnderlyingObject.TryInvokeAsync(
+                solution,
+                (service, solutionInfo, cancellationToken) => invocation(service, solutionInfo, cancellationToken),
+                cancellationToken);
 
         // solution, callback
 
-        public ValueTask<bool> TryInvokeAsync(Solution solution, Func<TService, object, UnitTestingRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+        public ValueTask<bool> TryInvokeAsync(Solution solution, Func<TService, UnitTestingPinnedSolutionInfoWrapper, UnitTestingRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
             => UnderlyingObject.TryInvokeAsync(
                 solution,
-                (service, solutionInfo, callbackId, cancellationToken) => invocation(service, solutionInfo, new UnitTestingRemoteServiceCallbackIdWrapper(callbackId), cancellationToken),
+                (service, solutionInfo, callbackId, cancellationToken) => invocation(service, solutionInfo, callbackId, cancellationToken),
                 cancellationToken);
 
-        public ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Solution solution, Func<TService, object, UnitTestingRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+        public ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Solution solution, Func<TService, UnitTestingPinnedSolutionInfoWrapper, UnitTestingRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
             => UnderlyingObject.TryInvokeAsync(
                 solution,
-                (service, solutionInfo, callbackId, cancellationToken) => invocation(service, solutionInfo, new UnitTestingRemoteServiceCallbackIdWrapper(callbackId), cancellationToken),
+                (service, solutionInfo, callbackId, cancellationToken) => invocation(service, solutionInfo, callbackId, cancellationToken),
                 cancellationToken);
     }
 }

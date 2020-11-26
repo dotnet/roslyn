@@ -38,56 +38,61 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         public UnitTestingRemoteServiceConnectionWrapper<TService> CreateConnection<TService>(object? callbackTarget) where TService : class
             => new(_client.CreateConnection<TService>(_serviceDescriptors.UnderlyingObject, _callbackDispatchers, callbackTarget));
 
+
         // no solution, no callback:
 
-        public ValueTask<bool> TryInvokeAsync<TService>(Func<TService, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken) where TService : class
-            => _client.TryInvokeAsync(invocation, cancellationToken);
+        public async ValueTask<bool> TryInvokeAsync<TService>(Func<TService, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken) where TService : class
+        {
+            using var connection = CreateConnection<TService>(callbackTarget: null);
+            return await connection.TryInvokeAsync(invocation, cancellationToken).ConfigureAwait(false);
+        }
 
-        public ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(Func<TService, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken) where TService : class
-            => _client.TryInvokeAsync(invocation, cancellationToken);
+        public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(Func<TService, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken) where TService : class
+        {
+            using var connection = CreateConnection<TService>(callbackTarget: null);
+            return await connection.TryInvokeAsync(invocation, cancellationToken).ConfigureAwait(false);
+        }
 
         // no solution, callback:
 
-        public ValueTask<bool> TryInvokeAsync<TService>(Func<TService, UnitTestingRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask> invocation, object callbackTarget, CancellationToken cancellationToken) where TService : class
-            => _client.TryInvokeAsync<TService>(
-                (service, callbackId, cancellationToken) => invocation(service, callbackId, cancellationToken),
-                callbackTarget,
-                cancellationToken);
+        public async ValueTask<bool> TryInvokeAsync<TService>(Func<TService, UnitTestingRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask> invocation, object callbackTarget, CancellationToken cancellationToken) where TService : class
+        {
+            using var connection = CreateConnection<TService>(callbackTarget);
+            return await connection.TryInvokeAsync(invocation, cancellationToken).ConfigureAwait(false);
+        }
 
-        public ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(Func<TService, UnitTestingRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask<TResult>> invocation, object callbackTarget, CancellationToken cancellationToken) where TService : class
-            => _client.TryInvokeAsync<TService, TResult>(
-                (service, callbackId, cancellationToken) => invocation(service, callbackId, cancellationToken),
-                callbackTarget,
-                cancellationToken);
+        public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(Func<TService, UnitTestingRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask<TResult>> invocation, object callbackTarget, CancellationToken cancellationToken) where TService : class
+        {
+            using var connection = CreateConnection<TService>(callbackTarget);
+            return await connection.TryInvokeAsync(invocation, cancellationToken).ConfigureAwait(false);
+        }
 
         // solution, no callback:
 
-        public ValueTask<bool> TryInvokeAsync<TService>(Solution solution, Func<TService, UnitTestingPinnedSolutionInfoWrapper, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken) where TService : class
-            => _client.TryInvokeAsync<TService>(
-                solution,
-                (service, solutionInfo, cancellationToken) => invocation(service, solutionInfo, cancellationToken),
-                cancellationToken);
+        public async ValueTask<bool> TryInvokeAsync<TService>(Solution solution, Func<TService, UnitTestingPinnedSolutionInfoWrapper, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken) where TService : class
+        {
+            using var connection = CreateConnection<TService>(callbackTarget: null);
+            return await connection.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
+        }
 
-        public ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, UnitTestingPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken) where TService : class
-            => _client.TryInvokeAsync<TService, TResult>(
-                solution,
-                (service, solutionInfo, cancellationToken) => invocation(service, solutionInfo, cancellationToken),
-                cancellationToken);
+        public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, UnitTestingPinnedSolutionInfoWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken) where TService : class
+        {
+            using var connection = CreateConnection<TService>(callbackTarget: null);
+            return await connection.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
+        }
 
         // solution, callback:
 
-        public ValueTask<bool> TryInvokeAsync<TService>(Solution solution, Func<TService, UnitTestingPinnedSolutionInfoWrapper, UnitTestingRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask> invocation, object callbackTarget, CancellationToken cancellationToken) where TService : class
-            => _client.TryInvokeAsync<TService>(
-                solution,
-                (service, solutionInfo, callbackId, cancellationToken) => invocation(service, solutionInfo, callbackId, cancellationToken),
-                callbackTarget,
-                cancellationToken);
+        public async ValueTask<bool> TryInvokeAsync<TService>(Solution solution, Func<TService, UnitTestingPinnedSolutionInfoWrapper, UnitTestingRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask> invocation, object callbackTarget, CancellationToken cancellationToken) where TService : class
+        {
+            using var connection = CreateConnection<TService>(callbackTarget);
+            return await connection.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
+        }
 
-        public ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, UnitTestingPinnedSolutionInfoWrapper, UnitTestingRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask<TResult>> invocation, object callbackTarget, CancellationToken cancellationToken) where TService : class
-            => _client.TryInvokeAsync<TService, TResult>(
-                solution,
-                (service, solutionInfo, callbackId, cancellationToken) => invocation(service, solutionInfo, callbackId, cancellationToken),
-                callbackTarget,
-                cancellationToken);
+        public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, UnitTestingPinnedSolutionInfoWrapper, UnitTestingRemoteServiceCallbackIdWrapper, CancellationToken, ValueTask<TResult>> invocation, object callbackTarget, CancellationToken cancellationToken) where TService : class
+        {
+            using var connection = CreateConnection<TService>(callbackTarget);
+            return await connection.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
+        }
     }
 }
