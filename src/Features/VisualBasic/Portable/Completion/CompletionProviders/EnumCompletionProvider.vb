@@ -8,7 +8,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
@@ -34,19 +33,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.VisualBasic)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = ImmutableHashSet.Create(" "c, "("c, "="c)
+        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) =
+            ImmutableHashSet.Create(" "c, "("c, "="c)
 
-        Protected Overrides Function GetDefaultDisplayAndSuffixAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, suffix As String, insertionText As String)
-            Return CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context)
+        Protected Overrides Function GetDefaultDisplayAndSuffixAndInsertionText(symbol As ISymbol,
+                context As SyntaxContext) As (displayText As String, suffix As String, insertionText As String)
+            Return GetDisplayAndSuffixAndInsertionText(symbol, context)
         End Function
 
-        Protected Overrides Async Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
+        Protected Overrides Async Function CreateContextAsync(document As Document, position As Integer,
+                cancellationToken As CancellationToken) As Task(Of SyntaxContext)
             Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(False)
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
         Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
-            Return CompletionUtilities.GetInsertionTextAtInsertionTime(item, ch)
+            Return GetInsertionTextAtInsertionTime(item, ch)
         End Function
     End Class
 End Namespace
