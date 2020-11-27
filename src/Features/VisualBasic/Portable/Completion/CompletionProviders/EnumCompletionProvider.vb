@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Protected Overrides Function GetDefaultDisplayAndSuffixAndInsertionText(symbol As ISymbol,
                 context As SyntaxContext) As (displayText As String, suffix As String, insertionText As String)
-            Return GetDisplayAndSuffixAndInsertionText(symbol, context)
+            Return CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context)
         End Function
 
         Protected Overrides Async Function CreateContextAsync(document As Document, position As Integer,
