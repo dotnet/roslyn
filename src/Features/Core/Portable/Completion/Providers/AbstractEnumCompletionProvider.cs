@@ -71,7 +71,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var typeInferenceService = context.GetLanguageService<ITypeInferenceService>();
-            var span = new TextSpan(position, 0);
             var enumType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault: true, cancellationToken: cancellationToken);
 
             if (enumType?.TypeKind != TypeKind.Enum)
