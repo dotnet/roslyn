@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.LanguageServerProtocol;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Scripting;
@@ -51,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<string, (ProjectId projectId, SourceTextContainer textContainer)> _monikersToProjectIdAndContainer = new Dictionary<string, (ProjectId, SourceTextContainer)>();
 
         private readonly ImmutableArray<MetadataReference> _metadataReferences;
-
+        private readonly ILspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
         private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffinitization;
 
         [ImportingConstructor]
@@ -61,7 +62,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IMetadataAsSourceFileService fileTrackingMetadataAsSourceService,
             VisualStudioWorkspace visualStudioWorkspace,
-            SVsServiceProvider serviceProvider)
+            SVsServiceProvider serviceProvider,
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService)
             : base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
         {
             _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
@@ -77,6 +79,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
 
             _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
+
+            _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
+            _lspWorkspaceRegistrationService.Register(this);
         }
 
         void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy _, IVsWindowFrame __) => TrackOpenedDocument(moniker, textBuffer);
@@ -106,6 +111,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void RegisterLanguage(Guid languageGuid, string languageName, string scriptExtension)
             => _languageInformationByLanguageGuid.Add(languageGuid, new LanguageInformation(languageName, scriptExtension));
+
+        protected override void Dispose(bool finalize)
+        {
+            if (!finalize)
+            {
+                _lspWorkspaceRegistrationService.Unregister(this);
+            }
+
+            base.Dispose(finalize);
+        }
 
         private LanguageInformation TryGetLanguageInformation(string filename)
         {

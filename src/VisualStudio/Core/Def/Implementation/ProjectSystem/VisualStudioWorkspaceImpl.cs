@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.LanguageServerProtocol;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -109,6 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private bool _documentOptionsProvidersInitialized = false;
 
         private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
+        private readonly ILspWorkspaceRegistrationService _lspRegistrationSerivce;
         private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
 
         public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider)
@@ -146,6 +148,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>(),
                     exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
                     _threadingContext), isThreadSafe: true);
+
+            _lspRegistrationSerivce = exportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
+            _lspRegistrationSerivce.Register(this);
         }
 
         internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;
@@ -1391,6 +1396,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _textBufferFactoryService.TextBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 _projectionBufferFactoryService.ProjectionBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 FileWatchedReferenceFactory.ReferenceChanged -= RefreshMetadataReferencesForFile;
+
+                _lspRegistrationSerivce.Unregister(this);
             }
 
             base.Dispose(finalize);
