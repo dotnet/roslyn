@@ -563,5 +563,37 @@ class C
 
             await VerifyItemExistsAsync(markup, "FileAttributes.Hidden");
         }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestMultipleEnumsCausedByOverloads()
+        {
+            var markup = @"
+class C
+{
+    public enum Color
+    {
+        Red,
+        Green,
+    }
+
+    public enum Palette
+    {
+        AccentColor1,
+        AccentColor2,
+    }
+
+    public void SetColor(Color color) { }
+    public void SetColor(Palette palette) { }
+
+    public void Main()
+    {
+        SetColor($$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Color.Red");
+            await VerifyItemExistsAsync(markup, "Palette.AccentColor1");
+        }
     }
 }
