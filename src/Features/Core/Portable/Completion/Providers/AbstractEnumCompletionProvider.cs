@@ -45,8 +45,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language);
 
             // We'll want to build a list of the actual enum members and all accessible instances of that enum, too
-            var result = enumType.GetMembers().OfType<IFieldSymbol>().Where(f =>
-                f.IsConst && f.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)).ToImmutableArray();
+            var result = enumType.GetMembers().OfType<IFieldSymbol>()
+                .Where(f =>
+                    f.IsConst &&
+                    f.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation))
+                .ToImmutableArray<ISymbol>();
 
             return Task.FromResult(result);
         }
