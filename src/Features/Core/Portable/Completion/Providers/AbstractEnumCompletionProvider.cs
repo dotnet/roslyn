@@ -37,15 +37,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return SpecializedTasks.EmptyImmutableArray<ISymbol>();
 
             var typeInferenceService = context.GetLanguageService<ITypeInferenceService>();
-            var enumType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault: true, cancellationToken: cancellationToken);
-
-            if (enumType?.TypeKind != TypeKind.Enum)
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+            var inferedTypes = typeInferenceService.InferTypes(context.SemanticModel, position, cancellationToken);
 
             var hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language);
 
             // We'll want to build a list of the actual enum members and all accessible instances of that enum, too
-            var result = enumType.GetMembers().OfType<IFieldSymbol>()
+            var result = inferedTypes
+                .Where(s => s.TypeKind == TypeKind.Enum)
+                .SelectMany(e => e.GetMembers().OfType<IFieldSymbol>())
                 .Where(f =>
                     f.IsConst &&
                     f.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation))
