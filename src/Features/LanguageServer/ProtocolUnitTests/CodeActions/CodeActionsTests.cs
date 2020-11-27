@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var exportProvider = ((TestWorkspace)workspace).ExportProvider.GetExportedValue<ILspSolutionProvider>();
             var result = Assert.IsType<TestLspSolutionProvider>(exportProvider);
 
-            return result.GetDocument(textDocument);
+            return result.GetDocument(textDocument, null);
         }
     }
 }

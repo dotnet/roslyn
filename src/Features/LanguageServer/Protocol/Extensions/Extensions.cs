@@ -23,6 +23,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return ProtocolConversions.GetUriFromFilePath(document.FilePath);
         }
 
+        public static Document? GetDocument(this ILspSolutionProvider provider, TextDocumentIdentifier textDocument, string? clientName)
+        {
+            var (documentId, solution) = provider.FindDocumentAndSolution(textDocument, clientName);
+
+            return solution.GetDocument(documentId);
+        }
+
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
         {
             return GetDocuments<Document>(solution, documentUri, (s, i) => s.GetRequiredDocument(i));

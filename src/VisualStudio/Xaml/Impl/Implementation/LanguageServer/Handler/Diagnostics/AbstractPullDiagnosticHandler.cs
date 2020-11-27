@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 {
                     if (previousResult.TextDocument != null)
                     {
-                        var document = _solutionProvider.GetDocument(previousResult.TextDocument);
+                        var document = _solutionProvider.GetDocument(previousResult.TextDocument, context.ClientName);
                         if (document == null)
                         {
                             // We can no longer get this document, return null for both diagnostics and resultId
