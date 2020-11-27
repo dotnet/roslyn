@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 IsAccessorListWithoutAccessorsWithBlockBody(next.Parent.Parent))
             {
                 // when the accessors are formatted inline, the separator is needed
-                // unless there is a semicolon. For example: "{ get; set; }"
+                // unless there is a semicolon. For example: "{ get; set; }" 
                 return !next.IsKind(SyntaxKind.SemicolonToken);
             }
 
