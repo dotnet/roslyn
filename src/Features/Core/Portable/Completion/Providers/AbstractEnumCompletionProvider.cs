@@ -65,6 +65,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return SpecializedTasks.EmptyImmutableArray<ISymbol>();
             }
 
+            // This providers provides fully qualified names, eg "DayOfWeek.Monday"
+            // Don't run after dot because SymbolCompletionProvider will provide
+            // members in situations like Dim x = DayOfWeek.$$
             if (context.TargetToken.RawKind == syntaxFacts.SyntaxKinds.DotToken)
             {
                 return SpecializedTasks.EmptyImmutableArray<ISymbol>();
