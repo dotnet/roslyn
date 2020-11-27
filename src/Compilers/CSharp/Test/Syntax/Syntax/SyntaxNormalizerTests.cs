@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "class x\r\n{\r\n  int _g;\r\n  int G\r\n  {\r\n    get\r\n    {\r\n      return _g;\r\n    }\r\n\r\n    init;\r\n  }\r\n\r\n  int H\r\n  {\r\n    get;\r\n    set\r\n    {\r\n      _g = 12;\r\n    }\r\n  }\r\n}");
 
             TestNormalizeDeclaration("class i1\r\n{\r\nint\r\np\r\n{\r\nget;\r\n}\r\n}", "class i1\r\n{\r\n  int p { get; }\r\n}");
-            TestNormalizeDeclaration("class i2\r\n{\r\nint\r\np\r\n{\r\nget=>1;\r\n}\r\n}", "class i2\r\n{\r\n  int p { get => 1; }\r\n}");
+            TestNormalizeDeclaration("class i2\r\n{\r\nint\r\np\r\n{\r\nget=>2;\r\n}\r\n}", "class i2\r\n{\r\n  int p { get => 2; }\r\n}");
             TestNormalizeDeclaration("class i2a\r\n{\r\nint _p;\r\nint\r\np\r\n{\r\nget=>\r\n_p;set\r\n=>_p\r\n=value\r\n;\r\n}\r\n}", "class i2a\r\n{\r\n  int _p;\r\n  int p { get => _p; set => _p = value; }\r\n}");
             TestNormalizeDeclaration("class i3\r\n{\r\nint\r\np\r\n{\r\nget{}\r\n}\r\n}", "class i3\r\n{\r\n  int p\r\n  {\r\n    get\r\n    {\r\n    }\r\n  }\r\n}");
             TestNormalizeDeclaration("class i4\r\n{\r\nint\r\np\r\n{\r\nset;\r\n}\r\n}", "class i4\r\n{\r\n  int p { set; }\r\n}");
