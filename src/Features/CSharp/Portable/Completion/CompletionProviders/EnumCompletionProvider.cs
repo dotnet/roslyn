@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             var ch = text[characterPosition];
-            return ch is ' ' or '(' or '=' or ':' ||
+            return this.TriggerCharacters.Contains(ch) ||
                 (SyntaxFacts.IsIdentifierStartCharacter(ch) && options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp));
         }
 
@@ -49,8 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override string GetInsertionText(CompletionItem item, char ch)
             => SymbolCompletionItem.GetInsertionText(item);
 
-        protected override (string displayText, string suffix, string insertionText) GetDefaultDisplayAndSuffixAndInsertionText(ISymbol symbol,
-            SyntaxContext context)
+        protected override (string displayText, string suffix, string insertionText) GetDefaultDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context)
             => CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context);
     }
 }

@@ -39,22 +39,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var typeInferenceService = context.GetLanguageService<ITypeInferenceService>();
             var enumType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault: true, cancellationToken: cancellationToken);
 
-            if (enumType is not { TypeKind: TypeKind.Enum })
+            if (enumType?.TypeKind != TypeKind.Enum)
                 return SpecializedTasks.EmptyImmutableArray<ISymbol>();
 
             var hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language);
 
             // We'll want to build a list of the actual enum members and all accessible instances of that enum, too
-            var result = enumType.GetMembers().Where(m =>
-                m.Kind == SymbolKind.Field &&
-                ((IFieldSymbol)m).IsConst &&
-                m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)).ToImmutableArray();
+            var result = enumType.GetMembers().OfType<IFieldSymbol>().Where(f =>
+                f.IsConst && f.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)).ToImmutableArray();
 
             return Task.FromResult(result);
         }
 
-        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(SyntaxContext context, int position,
-            OptionSet options, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(
+            SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
             var node = syntaxFacts.FindTokenOnLeftOfPosition(context.SyntaxTree.GetRoot(cancellationToken), position, includeSkipped: true).Parent;
@@ -73,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var span = new TextSpan(position, 0);
             var enumType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault: true, cancellationToken: cancellationToken);
 
-            if (enumType is not { TypeKind: TypeKind.Enum })
+            if (enumType?.TypeKind != TypeKind.Enum)
             {
                 return SpecializedTasks.EmptyImmutableArray<ISymbol>();
             }
