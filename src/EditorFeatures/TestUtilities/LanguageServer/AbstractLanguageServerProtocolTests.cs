@@ -60,15 +60,17 @@ namespace Roslyn.Test.Utilities
                 _workspace = workspace;
             }
 
-            public Solution GetCurrentSolutionForMainWorkspace()
+            public (DocumentId?, Solution) FindDocumentAndSolution(LSP.TextDocumentIdentifier? textDocument, string? clientName)
             {
                 Contract.ThrowIfNull(_workspace);
-                return _workspace.CurrentSolution;
-            }
 
-            public ImmutableArray<Document> GetDocuments(Uri documentUri)
-            {
-                return GetCurrentSolutionForMainWorkspace().GetDocuments(documentUri);
+                var solution = _workspace.CurrentSolution;
+                if (textDocument is null)
+                {
+                    return (null, solution);
+                }
+
+                return (solution.GetDocument(textDocument)?.Id, solution);
             }
         }
 
