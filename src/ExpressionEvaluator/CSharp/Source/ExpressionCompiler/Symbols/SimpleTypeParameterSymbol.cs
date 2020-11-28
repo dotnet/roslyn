@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System;
@@ -50,6 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        public override bool IsReferenceTypeFromConstraintTypes
+        {
+            get { return false; }
+        }
+
         internal override bool? ReferenceTypeConstraintIsNullable
         {
             get { return false; }
@@ -60,6 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool? IsNotNullable => null;
 
         public override bool HasValueTypeConstraint
+        {
+            get { return false; }
+        }
+
+        public override bool IsValueTypeFromConstraintTypes
         {
             get { return false; }
         }

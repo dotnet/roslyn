@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,6 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -61,6 +64,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         if (document == null)
                         {
                             return currentModel;
+                        }
+
+                        // Let LSP handle signature help in the cloud scenario
+                        var workspaceContextService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
+                        if (workspaceContextService.IsCloudEnvironmentClient())
+                        {
+                            return null;
                         }
 
                         if (triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand)
@@ -116,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                                     .WithSelectedParameter(selection.SelectedParameter);
                     }
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -207,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                     return (bestProvider, bestItems);
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
                 {
                     return (null, null);
                 }

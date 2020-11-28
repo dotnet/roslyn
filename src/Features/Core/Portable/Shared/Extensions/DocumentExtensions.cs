@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static bool ShouldHideAdvancedMembers(this Document document)
         {
-            // Since we don't actually have a way to configure this per-document, we can fetch from the core workspace
-            return document.Project.Solution.Workspace.Options.GetOption(CompletionOptions.HideAdvancedMembers, document.Project.Language);
+            // Since we don't actually have a way to configure this per-document, we can fetch from the solution
+            return document.Project.Solution.Options.GetOption(CompletionOptions.HideAdvancedMembers, document.Project.Language);
         }
 
         public static async Task<Document> ReplaceNodeAsync<TNode>(this Document document, TNode oldNode, TNode newNode, CancellationToken cancellationToken) where TNode : SyntaxNode

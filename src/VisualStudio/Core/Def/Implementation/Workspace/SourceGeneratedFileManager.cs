@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -39,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
+        private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffintizedObject;
         private readonly IAsynchronousOperationListener _listener;
         private readonly IVsRunningDocumentTable _runningDocumentTable;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
@@ -54,8 +54,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// <summary>
         /// Map of currently open generated files; the key is the generated full file path.
         /// </summary>
-        private readonly Dictionary<string, OpenSourceGeneratedFile> _openFiles = new Dictionary<string, OpenSourceGeneratedFile>();
+        private readonly Dictionary<string, OpenSourceGeneratedFile> _openFiles = new();
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
+
+        private readonly Dictionary<Guid, GeneratedFileDirectoryInfo> _directoryInfoOnDiskByContainingDirectoryId = new();
+
+        /// <summary>
+        /// When we have to put a placeholder file on disk, we put it in a directory named by a GUID. We store information we need in
+        /// <see cref="_directoryInfoOnDiskByContainingDirectoryId"/>, so that way we don't have to pack the information into the path itself.
+        /// If we put the GUIDs and string names directly as components of the path, we quickly run into MAX_PATH. If we had a way to do virtual
+        /// monikers that don't run into MAX_PATH issues then we absolutely would want to get rid of this.
+        /// </summary>
+        private class GeneratedFileDirectoryInfo
+        {
+            public GeneratedFileDirectoryInfo(string generatorAssemblyName, string generatorTypeName)
+            {
+                GeneratorAssemblyName = generatorAssemblyName;
+                GeneratorTypeName = generatorTypeName;
+            }
+
+            public string GeneratorAssemblyName { get; }
+            public string GeneratorTypeName { get; }
+        }
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -70,8 +90,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             _serviceProvider = serviceProvider;
             _threadingContext = threadingContext;
+            _foregroundThreadAffintizedObject = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
             _textDocumentFactoryService = textDocumentFactoryService;
-            _temporaryDirectory = Path.Combine(Path.GetTempPath(), "VisualStudioSourceGeneratedDocuments");
+            _temporaryDirectory = Path.Combine(Path.GetTempPath(), "VSGeneratedDocuments");
             _visualStudioWorkspace = visualStudioWorkspace;
             _visualStudioDocumentNavigationService = visualStudioDocumentNavigationService;
 
@@ -89,20 +110,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 this);
         }
 
-        public void NavigateToSourceGeneratedFile(Project project, ISourceGenerator generator, string generatedSourceHintName, TextSpan sourceSpan)
+        public void NavigateToSourceGeneratedFile(SourceGeneratedDocument document, TextSpan sourceSpan)
         {
+            _foregroundThreadAffintizedObject.AssertIsForeground();
+
             // We will create an file name to represent this generated file; the Visual Studio shell APIs imply you can use a URI,
             // but most URIs are blocked other than file:// and http://; they also get extra handling to attempt to download the file so
             // those aren't really usable anyways.
 
-            // We put all the files related to the same project in a single directory
-            var generatorType = generator.GetType();
-            var projectDirectory = Path.Combine(_temporaryDirectory, project.Id.Id.ToString());
-            Directory.CreateDirectory(projectDirectory);
+            var generatorType = document.SourceGenerator.GetType();
+            var generatorAssemblyName = generatorType.Assembly.GetName().Name ?? string.Empty;
+            var generatorFullName = generatorType.FullName;
 
-            // The file name we generate here is chosen to match the compiler's choice, so the debugger can recognize the files should match.
-            // This can only be changed if the compiler changes the algorithm as well.
-            var temporaryFilePath = Path.Combine(projectDirectory, $"{generatorType.Module.ModuleVersionId}_{generatorType.FullName}_{generatedSourceHintName}");
+            // Do we have a directory we can put this in?
+            Guid? guidForDirectory = null;
+
+            foreach (var (existingGuid, existingInformation) in _directoryInfoOnDiskByContainingDirectoryId)
+            {
+                if (existingInformation.GeneratorAssemblyName == generatorAssemblyName &&
+                    existingInformation.GeneratorTypeName == generatorFullName)
+                {
+                    guidForDirectory = existingGuid;
+                    break;
+                }
+            }
+
+            if (guidForDirectory == null)
+            {
+                guidForDirectory = Guid.NewGuid();
+                _directoryInfoOnDiskByContainingDirectoryId.Add(guidForDirectory.Value, new GeneratedFileDirectoryInfo(generatorAssemblyName, generatorFullName));
+            }
+
+            // The file name speciically is chosen to match the compiler's choice, so the debugger can recognize the files should match.
+            // This can only be changed if the compiler changes the algorithm as well. The directory itself we can of course change.
+            var temporaryFilePath = Path.Combine(
+                _temporaryDirectory,
+                document.Project.Id.Id.ToString(),
+                guidForDirectory.Value.ToString(),
+                document.HintName);
+
+            Directory.CreateDirectory(Path.GetDirectoryName(temporaryFilePath));
 
             // Don't write to the file if it's already there, as that potentially triggers a file reload
             if (!File.Exists(temporaryFilePath))
@@ -131,39 +178,48 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        public bool TryParseGeneratedFilePath(
+        public bool TryGetGeneratedFileInformation(
             string filePath,
             [NotNullWhen(true)] out ProjectId? projectId,
             [NotNullWhen(true)] out string? generatorTypeName,
+            [NotNullWhen(true)] out string? generatorAssemblyName,
             [NotNullWhen(true)] out string? generatedSourceHintName)
         {
+            _foregroundThreadAffintizedObject.AssertIsForeground();
+
+            projectId = null;
+            generatorTypeName = null;
+            generatorAssemblyName = null;
+            generatedSourceHintName = null;
+
             if (!filePath.StartsWith(_temporaryDirectory))
             {
-                projectId = null;
-                generatorTypeName = null;
-                generatedSourceHintName = null;
                 return false;
             }
 
-            string fileName = Path.GetFileName(filePath);
-            string[] parts = fileName.Split(new[] { '_' }, count: 3);
+            var fileInfo = new FileInfo(filePath);
+            if (!Guid.TryParse(fileInfo.Directory.Name, out var guid) ||
+                !_directoryInfoOnDiskByContainingDirectoryId.TryGetValue(guid, out var directoryInfo))
+            {
+                return false;
+            }
 
-            generatorTypeName = parts[1];
-            generatedSourceHintName = parts[2];
-
-            projectId = ProjectId.CreateFromSerialized(Guid.Parse(new FileInfo(filePath).Directory.Name));
+            projectId = ProjectId.CreateFromSerialized(Guid.Parse(fileInfo.Directory.Parent.Name));
+            generatorTypeName = directoryInfo.GeneratorTypeName;
+            generatorAssemblyName = directoryInfo.GeneratorAssemblyName;
+            generatedSourceHintName = fileInfo.Name;
 
             return true;
         }
 
         void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? windowFrame)
         {
-            if (TryParseGeneratedFilePath(moniker, out var projectId, out var generatorTypeName, out var generatedSourceHintName))
+            if (TryGetGeneratedFileInformation(moniker, out var projectId, out var generatorTypeName, out var generatorAssemblyName, out var generatedSourceHintName))
             {
                 // Attach to the text buffer if we haven't already
                 if (!_openFiles.TryGetValue(moniker, out OpenSourceGeneratedFile openFile))
                 {
-                    openFile = new OpenSourceGeneratedFile(this, textBuffer, _visualStudioWorkspace, projectId, generatorTypeName, generatedSourceHintName, _threadingContext);
+                    openFile = new OpenSourceGeneratedFile(this, textBuffer, _visualStudioWorkspace, projectId, generatorTypeName, generatorAssemblyName, generatedSourceHintName, _threadingContext);
                     _openFiles.Add(moniker, openFile);
                     _threadingContext.JoinableTaskFactory.Run(() => openFile.UpdateBufferContentsAsync(CancellationToken.None));
 
@@ -203,6 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private readonly Workspace _workspace;
             private readonly ProjectId _projectId;
             private readonly string _generatorTypeName;
+            private readonly string _generatorAssemblyName;
             private readonly string _generatedSourceHintName;
 
             /// <summary>
@@ -216,7 +273,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             /// A cancellation token used for any background updating of this file; this is cancelled on the UI thread
             /// when the file is closed.
             /// </summary>
-            private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+            private readonly CancellationTokenSource _cancellationTokenSource = new();
 
             /// <summary>
             /// A queue used to batch updates to the file.
@@ -235,7 +292,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private ImageMoniker _currentWindowFrameImageMoniker = default;
             private IVsInfoBarUIElement? _currentWindowFrameInfoBarElement = null;
 
-            public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, Workspace workspace, ProjectId projectId, string generatorTypeName, string generatedSourceHintName, IThreadingContext threadingContext)
+            public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, Workspace workspace, ProjectId projectId, string generatorTypeName, string generatorAssemblyName, string generatedSourceHintName, IThreadingContext threadingContext)
                 : base(threadingContext, assertIsForeground: true)
             {
                 _fileManager = fileManager;
@@ -243,6 +300,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _workspace = workspace;
                 _projectId = projectId;
                 _generatorTypeName = generatorTypeName;
+                _generatorAssemblyName = generatorAssemblyName;
                 _generatedSourceHintName = generatedSourceHintName;
 
                 // We'll create a read-only region for the file, but it'll be a dynamic region we can temporarily suspend
@@ -283,7 +341,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public async Task UpdateBufferContentsAsync(CancellationToken cancellationToken)
             {
-                GeneratedSourceResult? generatedSource = null;
+                SourceText? generatedSource = null;
                 var project = _workspace.CurrentSolution.GetProject(_projectId);
 
                 // Locals correspond to the equivalently-named fields; we'll assign these and then assign to the fields while on the
@@ -298,28 +356,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
                 else
                 {
+                    var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+                    var generatedDocument = generatedDocuments.SingleOrDefault(d =>
+                        d.SourceGenerator.GetType().FullName.Equals(_generatorTypeName) &&
+                        d.SourceGenerator.GetType().Assembly.GetName().Name.Equals(_generatorAssemblyName));
 
-                    var generatorDriverRunResults = await project.GetGeneratorDriverRunResultAsync(cancellationToken).ConfigureAwait(false);
-                    var generatorRunResult = generatorDriverRunResults?.Results.SingleOrNull(r => r.Generator.GetType().FullName == _generatorTypeName);
-
-                    if (generatorRunResult == null)
+                    if (generatedDocument != null)
                     {
-                        windowFrameMessageToShow = string.Format(ServicesVSResources.The_generator_0_that_generated_this_file_has_been_removed_from_the_project, _generatorTypeName);
-                        windowFrameImageMonikerToShow = KnownMonikers.StatusError;
+                        windowFrameMessageToShow = string.Format(ServicesVSResources.This_file_is_autogenerated_by_0_and_cannot_be_edited, _generatorTypeName);
+                        windowFrameImageMonikerToShow = default;
+                        generatedSource = await generatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
-                        generatedSource = generatorRunResult.Value.GeneratedSources.SingleOrNull(r => r.HintName == _generatedSourceHintName);
-
-                        if (generatedSource == null)
+                        // The file isn't there anymore; do we still have the generator at all?
+                        if (project.AnalyzerReferences.Any(a => a.GetGenerators(project.Language).Any(g => g.GetType().Assembly.GetName().Name.Equals(_generatorAssemblyName))))
                         {
                             windowFrameMessageToShow = string.Format(ServicesVSResources.The_generator_0_that_generated_this_file_has_stopped_generating_this_file, _generatorTypeName);
                             windowFrameImageMonikerToShow = KnownMonikers.StatusError;
                         }
                         else
                         {
-                            windowFrameMessageToShow = string.Format(ServicesVSResources.This_file_is_autogenerated_by_0_and_cannot_be_edited, _generatorTypeName);
-                            windowFrameImageMonikerToShow = default;
+                            windowFrameMessageToShow = string.Format(ServicesVSResources.The_generator_0_that_generated_this_file_has_been_removed_from_the_project, _generatorTypeName);
+                            windowFrameImageMonikerToShow = KnownMonikers.StatusError;
                         }
                     }
                 }
@@ -330,7 +389,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _windowFrameImageMonikerToShow = windowFrameImageMonikerToShow;
 
                 // Update the text if we have new text
-                if (generatedSource.HasValue)
+                if (generatedSource != null)
                 {
                     try
                     {
@@ -340,14 +399,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         // Ensure the encoding matches; this is necessary for debugger checksums to match what is in the PDB.
                         if (_fileManager._textDocumentFactoryService.TryGetTextDocument(_textBuffer, out var textDocument))
                         {
-                            textDocument.Encoding = generatedSource.Value.SourceText.Encoding;
+                            textDocument.Encoding = generatedSource.Encoding;
                         }
 
                         // We'll ask the editor to do the diffing for us so updates don't refresh the entire buffer
                         using (var edit = _textBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
                         {
                             // TODO: make the edit in some nicer way than creating a massive string
-                            edit.Replace(startPosition: 0, _textBuffer.CurrentSnapshot.Length, generatedSource.Value.SourceText.ToString());
+                            edit.Replace(startPosition: 0, _textBuffer.CurrentSnapshot.Length, generatedSource.ToString());
                             edit.Apply();
                         }
                     }

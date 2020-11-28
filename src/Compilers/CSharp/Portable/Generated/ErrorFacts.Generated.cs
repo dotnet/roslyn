@@ -247,9 +247,13 @@
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                 case ErrorCode.WRN_IsPatternAlways:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
+                case ErrorCode.WRN_ParameterNotNullIfNotNull:
+                case ErrorCode.WRN_ReturnNotNullIfNotNull:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                 case ErrorCode.WRN_PrecedenceInversion:
+                case ErrorCode.WRN_AnalyzerReferencesFramework:
+                case ErrorCode.WRN_RecordEqualsWithoutGetHashCode:
                 case ErrorCode.WRN_RecordNamedDisallowed:
                 case ErrorCode.WRN_UnassignedThisAutoProperty:
                 case ErrorCode.WRN_UnassignedThis:
@@ -262,6 +266,7 @@
                 case ErrorCode.WRN_SyncAndAsyncEntryPoints:
                 case ErrorCode.WRN_ParameterIsStaticClass:
                 case ErrorCode.WRN_ReturnTypeIsStaticClass:
+                case ErrorCode.WRN_UnreadRecordParameter:
                     return true;
                 default:
                     return false;

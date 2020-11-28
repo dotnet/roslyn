@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -16,13 +18,13 @@ namespace Microsoft.CodeAnalysis.Notification
         private const string GlobalOperationStartedEventName = "GlobalOperationStarted";
         private const string GlobalOperationStoppedEventName = "GlobalOperationStopped";
 
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
-        private readonly HashSet<GlobalOperationRegistration> _registrations = new HashSet<GlobalOperationRegistration>();
-        private readonly HashSet<string> _operations = new HashSet<string>();
+        private readonly HashSet<GlobalOperationRegistration> _registrations = new();
+        private readonly HashSet<string> _operations = new();
 
         private readonly TaskQueue _eventQueue;
-        private readonly EventMap _eventMap = new EventMap();
+        private readonly EventMap _eventMap = new();
 
         public GlobalOperationNotificationService(IAsynchronousOperationListener listener)
             => _eventQueue = new TaskQueue(listener, TaskScheduler.Default);

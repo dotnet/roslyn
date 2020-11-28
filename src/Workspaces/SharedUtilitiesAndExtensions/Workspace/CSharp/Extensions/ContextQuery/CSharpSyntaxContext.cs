@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsFunctionPointerTypeArgumentContext;
 
         private CSharpSyntaxContext(
-            Workspace workspace,
+            Workspace? workspace,
             SemanticModel semanticModel,
             int position,
             SyntaxToken leftToken,
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
             => CreateContextWorker(workspace, semanticModel, position, cancellationToken);
 
-        private static CSharpSyntaxContext CreateContextWorker(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        private static CSharpSyntaxContext CreateContextWorker(Workspace? workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
 
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             var isDestructorTypeContext = targetToken.IsKind(SyntaxKind.TildeToken) &&
                                             targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
-                                            targetToken.Parent.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration);
+                                            targetToken.Parent.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordDeclaration);
 
             // Typing a dot after a numeric expression (numericExpression.) 
             // - maybe a start of MemberAccessExpression like numericExpression.Member.
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // but we want to be sure that the attribute itself (i.e. the open square bracket, '[') is in a
             // type declaration context.
             if (token.Kind() == SyntaxKind.OpenBracketToken &&
-                token.Parent.Kind() == SyntaxKind.AttributeList &&
+                token.Parent.IsKind(SyntaxKind.AttributeList) &&
                 this.SyntaxTree.IsTypeDeclarationContext(
                     token.SpanStart, contextOpt: null, validModifiers: null, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
             {
@@ -308,8 +308,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         public bool IsTypeDeclarationContext(
-            ISet<SyntaxKind> validModifiers = null,
-            ISet<SyntaxKind> validTypeDeclarations = null,
+            ISet<SyntaxKind>? validModifiers = null,
+            ISet<SyntaxKind>? validTypeDeclarations = null,
             bool canBePartial = false,
             CancellationToken cancellationToken = default)
         {
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = this.TargetToken;
 
             if (token.Kind() == SyntaxKind.OpenBracketToken &&
-                token.Parent.Kind() == SyntaxKind.AttributeList &&
+                token.Parent.IsKind(SyntaxKind.AttributeList) &&
                 this.SyntaxTree.IsMemberDeclarationContext(
                     token.SpanStart, contextOpt: null, validModifiers: null, validTypeDeclarations: validTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
             {
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = TargetToken;
 
             if (token.Kind() == SyntaxKind.OpenBracketToken &&
-                token.Parent.Kind() == SyntaxKind.AttributeList &&
+                token.Parent.IsKind(SyntaxKind.AttributeList) &&
                 token.Parent.Parent is StatementSyntax)
             {
                 return true;
@@ -348,8 +348,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         public bool IsMemberDeclarationContext(
-            ISet<SyntaxKind> validModifiers = null,
-            ISet<SyntaxKind> validTypeDeclarations = null,
+            ISet<SyntaxKind>? validModifiers = null,
+            ISet<SyntaxKind>? validTypeDeclarations = null,
             bool canBePartial = false,
             CancellationToken cancellationToken = default)
         {

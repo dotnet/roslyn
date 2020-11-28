@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
     internal static partial class ConflictResolver
     {
-        private static readonly SymbolDisplayFormat s_metadataSymbolDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_metadataSymbolDisplayFormat = new(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeConstraints | SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
@@ -58,7 +56,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
                         solution,
                         (service, solutionInfo, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, serializableLocationSet, replacementText, nonConflictSymbolIds, cancellationToken),
-                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
                     if (result.HasValue && result.Value != null)
@@ -293,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 // A NullReferenceException is happening in this method, but the dumps do not
                 // contain information about this stack frame because this method is async and
@@ -338,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                 if (symbol.IsOverride)
                 {
-                    var overriddenSymbol = symbol.OverriddenMember();
+                    var overriddenSymbol = symbol.GetOverriddenMember();
 
                     if (overriddenSymbol != null)
                     {

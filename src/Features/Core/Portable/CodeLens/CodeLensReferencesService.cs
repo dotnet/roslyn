@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
     internal sealed class CodeLensReferencesService : ICodeLensReferencesService
     {
         private static readonly SymbolDisplayFormat MethodDisplayFormat =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
@@ -288,6 +290,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                             switch (parts[index + 1].Kind)
                             {
                                 case SymbolDisplayPartKind.ClassName:
+                                case SymbolDisplayPartKind.RecordName:
                                 case SymbolDisplayPartKind.DelegateName:
                                 case SymbolDisplayPartKind.EnumName:
                                 case SymbolDisplayPartKind.ErrorTypeName:
@@ -307,6 +310,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                         }
 
                         previousWasClass = part.Kind == SymbolDisplayPartKind.ClassName ||
+                                           part.Kind == SymbolDisplayPartKind.RecordName ||
                                            part.Kind == SymbolDisplayPartKind.InterfaceName ||
                                            part.Kind == SymbolDisplayPartKind.StructName;
                     }

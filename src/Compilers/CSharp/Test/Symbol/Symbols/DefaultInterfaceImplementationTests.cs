@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -9463,7 +9465,7 @@ public partial interface I1
                 // (10,27): error CS0762: Cannot create delegate from method 'I1.M2()' because it is a partial method without an implementing declaration
                 //         new System.Action(M2).Invoke();
                 Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M2").WithArguments("I1.M2()").WithLocation(10, 27),
-                // (13,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (13,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial static void M4();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(13, 5)
                 );
@@ -38724,10 +38726,10 @@ interface I19
                 // (62,20): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual static I13() => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I13").WithArguments("virtual").WithLocation(62, 20),
-                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial static I14();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
-                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial static I14();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
                 // (70,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
@@ -38739,10 +38741,10 @@ interface I19
                 // (70,20): error CS0542: 'I15': member names cannot be the same as their enclosing type
                 //     static partial I15();
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I15").WithArguments("I15").WithLocation(70, 20),
-                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial static I16() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),
-                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial static I16() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),
                 // (78,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
@@ -59249,6 +59251,168 @@ interface I1<out T1, in T2>
         }
 
         [Fact]
+        public void VarianceSafety_13()
+        {
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        I2<string, string>.P1 = ""a"";
+        I2<string, string>.P2 = ""b"";
+        System.Console.WriteLine(I2<string, string>.P1);
+        System.Console.WriteLine(I2<string, string>.P2);
+    }
+}
+
+interface I2<out T1, in T2>
+{
+    static T1 P1 { get; set; }
+    static T2 P2 { get; set; }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular8,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (15,12): error CS8904: Invalid variance: The type parameter 'T1' must be invariantly valid on 'I2<T1, T2>.P1' unless language version 'preview' or greater is used. 'T1' is covariant.
+                //     static T1 P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T1").WithArguments("I2<T1, T2>.P1", "T1", "covariant", "invariantly", "preview").WithLocation(15, 12),
+                // (16,12): error CS8904: Invalid variance: The type parameter 'T2' must be invariantly valid on 'I2<T1, T2>.P2' unless language version 'preview' or greater is used. 'T2' is contravariant.
+                //     static T2 P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T2").WithArguments("I2<T1, T2>.P2", "T2", "contravariant", "invariantly", "preview").WithLocation(16, 12)
+                );
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+#if false   // https://github.com/dotnet/roslyn/issues/46533: enable this branch once https://github.com/dotnet/runtime/issues/39612 is fixed
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"a
+b").VerifyDiagnostics();
+#else
+            compilation1.VerifyEmitDiagnostics();
+#endif
+        }
+
+        [Fact]
+        public void VarianceSafety_14()
+        {
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(I2<string, string>.M1(""a""));
+        System.Console.WriteLine(I2<string, string>.M2(""b""));
+    }
+}
+
+interface I2<out T1, in T2>
+{
+    static T1 M1(T1 x) => x;
+    static T2 M2(T2 x) => x;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular8,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (13,18): error CS8904: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.M1(T1)' unless language version 'preview' or greater is used. 'T1' is covariant.
+                //     static T1 M1(T1 x) => x;
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T1").WithArguments("I2<T1, T2>.M1(T1)", "T1", "covariant", "contravariantly", "preview").WithLocation(13, 18),
+                // (14,12): error CS8904: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.M2(T2)' unless language version 'preview' or greater is used. 'T2' is contravariant.
+                //     static T2 M2(T2 x) => x;
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T2").WithArguments("I2<T1, T2>.M2(T2)", "T2", "contravariant", "covariantly", "preview").WithLocation(14, 12)
+                );
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+#if false   // https://github.com/dotnet/roslyn/issues/46533: enable this branch once https://github.com/dotnet/runtime/issues/39612 is fixed
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"a
+b").VerifyDiagnostics();
+#else
+            compilation1.VerifyEmitDiagnostics();
+#endif
+        }
+
+        [Fact]
+        public void VarianceSafety_15()
+        {
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        I2<string, string>.E1 += Print1;
+        I2<string, string>.E2 += Print2;
+        I2<string, string>.Raise();
+    }
+
+    static void Print1(System.Func<string, string> x)
+    {
+        System.Console.WriteLine(x(""a""));
+    }
+
+    static void Print2(System.Func<string, string> x)
+    {
+        System.Console.WriteLine(x(""b""));
+    }
+}
+
+interface I2<out T1, in T2>
+{
+    static event System.Action<System.Func<T1, T1>> E1;
+    static event System.Action<System.Func<T2, T2>> E2;
+
+    static void Raise()
+    {
+        E1(Print);
+        E2(Print);
+    }
+
+    static T3 Print<T3>(T3 x)
+    {
+        return x;
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular8,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (24,53): error CS8904: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.E1' unless language version 'preview' or greater is used. 'T1' is covariant.
+                //     static event System.Action<System.Func<T1, T1>> E1;
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "E1").WithArguments("I2<T1, T2>.E1", "T1", "covariant", "contravariantly", "preview").WithLocation(24, 53),
+                // (25,53): error CS8904: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.E2' unless language version 'preview' or greater is used. 'T2' is contravariant.
+                //     static event System.Action<System.Func<T2, T2>> E2;
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "E2").WithArguments("I2<T1, T2>.E2", "T2", "contravariant", "covariantly", "preview").WithLocation(25, 53)
+                );
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+#if false   // https://github.com/dotnet/roslyn/issues/46533: enable this branch once https://github.com/dotnet/runtime/issues/39612 is fixed
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"a
+b").VerifyDiagnostics();
+#else
+            compilation1.VerifyEmitDiagnostics();
+#endif
+        }
+
+        [Fact]
         [WorkItem(1029574, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1029574")]
         public void Errors_01()
         {
@@ -59858,6 +60022,123 @@ interface I1<T>
                 // (3,16): error CS1513: } expected
                 //     object A.B{
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 16)
+                );
+        }
+
+        [Fact, WorkItem(49341, "https://github.com/dotnet/roslyn/issues/49341")]
+        public void RefReturningAutoProperty_01()
+        {
+            var source1 =
+@"
+interface IA
+{
+    static ref int PA { get;}
+}
+
+interface IB
+{
+    static ref int PB { get; set;}
+}
+
+interface IC
+{
+    static ref int PC { set;}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (4,20): error CS8145: Auto-implemented properties cannot return by reference
+                //     static ref int PA { get;}
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PA").WithArguments("IA.PA").WithLocation(4, 20),
+                // (9,20): error CS8145: Auto-implemented properties cannot return by reference
+                //     static ref int PB { get; set;}
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PB").WithArguments("IB.PB").WithLocation(9, 20),
+                // (9,30): error CS8147: Properties which return by reference cannot have set accessors
+                //     static ref int PB { get; set;}
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("IB.PB.set").WithLocation(9, 30),
+                // (14,20): error CS8146: Properties which return by reference must have a get accessor
+                //     static ref int PC { set;}
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithArguments("IC.PC").WithLocation(14, 20)
+                );
+        }
+
+        [Fact, WorkItem(49341, "https://github.com/dotnet/roslyn/issues/49341")]
+        public void RefReturningAutoProperty_02()
+        {
+            var source1 =
+@"
+interface IA
+{
+    ref int PA { get;}
+}
+
+interface IB
+{
+    ref int PB { get; set;}
+}
+
+interface IC
+{
+    ref int PC { set;}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (9,23): error CS8147: Properties which return by reference cannot have set accessors
+                //     ref int PB { get; set;}
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("IB.PB.set").WithLocation(9, 23),
+                // (14,13): error CS8146: Properties which return by reference must have a get accessor
+                //     ref int PC { set;}
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithArguments("IC.PC").WithLocation(14, 13)
+                );
+        }
+
+        [Fact, WorkItem(49341, "https://github.com/dotnet/roslyn/issues/49341")]
+        public void RefReturningAutoProperty_03()
+        {
+            var source1 =
+@"
+interface IA
+{
+    sealed ref int PA { get;}
+}
+
+interface IB
+{
+    sealed ref int PB { get; set;}
+}
+
+interface IC
+{
+    sealed ref int PC { set;}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (4,25): error CS0501: 'IA.PA.get' must declare a body because it is not marked abstract, extern, or partial
+                //     sealed ref int PA { get;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("IA.PA.get").WithLocation(4, 25),
+                // (9,25): error CS0501: 'IB.PB.get' must declare a body because it is not marked abstract, extern, or partial
+                //     sealed ref int PB { get; set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("IB.PB.get").WithLocation(9, 25),
+                // (9,30): error CS8147: Properties which return by reference cannot have set accessors
+                //     sealed ref int PB { get; set;}
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("IB.PB.set").WithLocation(9, 30),
+                // (9,30): error CS0501: 'IB.PB.set' must declare a body because it is not marked abstract, extern, or partial
+                //     sealed ref int PB { get; set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("IB.PB.set").WithLocation(9, 30),
+                // (14,20): error CS8146: Properties which return by reference must have a get accessor
+                //     sealed ref int PC { set;}
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithArguments("IC.PC").WithLocation(14, 20),
+                // (14,25): error CS0501: 'IC.PC.set' must declare a body because it is not marked abstract, extern, or partial
+                //     sealed ref int PC { set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("IC.PC.set").WithLocation(14, 25)
                 );
         }
     }

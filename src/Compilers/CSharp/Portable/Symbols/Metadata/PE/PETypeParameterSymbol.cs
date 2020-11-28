@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -451,6 +453,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        public override bool IsReferenceTypeFromConstraintTypes
+        {
+            get
+            {
+                return CalculateIsReferenceTypeFromConstraintTypes(ConstraintTypesNoUseSiteDiagnostics);
+            }
+        }
+
         /// <summary>
         /// Returns the byte value from the (single byte) NullableAttribute or nearest
         /// NullableContextAttribute. Returns 0 if neither attribute is specified.
@@ -548,6 +558,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 return (_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0;
+            }
+        }
+
+        public override bool IsValueTypeFromConstraintTypes
+        {
+            get
+            {
+                Debug.Assert(!HasValueTypeConstraint);
+                return CalculateIsValueTypeFromConstraintTypes(ConstraintTypesNoUseSiteDiagnostics);
             }
         }
 

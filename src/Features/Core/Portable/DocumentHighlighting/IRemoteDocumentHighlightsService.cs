@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         public DocumentHighlights Rehydrate(Solution solution)
-            => new DocumentHighlights(solution.GetDocument(DocumentId), HighlightSpans);
+            => new(solution.GetDocument(DocumentId), HighlightSpans);
 
         public static SerializableDocumentHighlights Dehydrate(DocumentHighlights highlights)
             => new(highlights.Document.Id, highlights.HighlightSpans);

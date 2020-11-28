@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
     internal class HighlighterViewTaggerProvider : AsynchronousViewTaggerProvider<KeywordHighlightTag>
     {
         private readonly IHighlightingService _highlightingService;
-        private static readonly PooledObjects.ObjectPool<List<TextSpan>> s_listPool = new PooledObjects.ObjectPool<List<TextSpan>>(() => new List<TextSpan>());
+        private static readonly PooledObjects.ObjectPool<List<TextSpan>> s_listPool = new(() => new List<TextSpan>());
 
         // Whenever an edit happens, clear all highlights.  When moving the caret, preserve 
         // highlights if the caret stays within an existing tag.

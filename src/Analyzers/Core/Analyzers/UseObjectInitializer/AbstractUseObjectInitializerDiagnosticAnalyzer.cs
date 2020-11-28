@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -49,6 +47,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         protected abstract bool AreObjectInitializersSupported(SyntaxNodeAnalysisContext context);
 
+        protected abstract bool IsValidContainingStatement(TStatementSyntax node);
+
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             if (!AreObjectInitializersSupported(context))
@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
             if (containingStatement == null)
+            {
+                return;
+            }
+
+            if (!IsValidContainingStatement(containingStatement))
             {
                 return;
             }
@@ -119,7 +124,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             {
                 var end = FadeOutOperatorToken
                     ? syntaxFacts.GetOperatorTokenOfMemberAccessExpression(match.MemberAccessExpression).Span.End
-                    : syntaxFacts.GetExpressionOfMemberAccessExpression(match.MemberAccessExpression).Span.End;
+                    : syntaxFacts.GetExpressionOfMemberAccessExpression(match.MemberAccessExpression)!.Span.End;
 
                 var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
                     match.MemberAccessExpression.SpanStart, end));

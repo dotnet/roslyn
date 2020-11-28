@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 extern alias csc;
 extern alias vbc;
 
@@ -38,9 +40,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             utf8output: false,
             output: string.Empty);
 
-        internal static BuildRequest CreateEmptyCSharpWithKeepAlive(TimeSpan keepAlive) => BuildRequest.Create(
+        internal static BuildRequest CreateEmptyCSharpWithKeepAlive(TimeSpan keepAlive, string workingDirectory, string tempDirectory = null) => BuildRequest.Create(
             RequestLanguage.CSharpCompile,
             Array.Empty<string>(),
+            workingDirectory,
+            tempDirectory ?? Path.GetTempPath(),
             compilerHash: BuildProtocolConstants.GetCommitHash(),
             keepAlive: keepAlive.TotalSeconds.ToString());
 
@@ -51,17 +55,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         internal CancellationTokenSource CancellationTokenSource { get; }
         internal Task<TestableDiagnosticListener> ServerTask { get; }
         internal string PipeName { get; }
+        internal ICompilerServerLogger Logger { get; }
 
-        internal ServerData(CancellationTokenSource cancellationTokenSource, string pipeName, Task<TestableDiagnosticListener> serverTask)
+        internal ServerData(CancellationTokenSource cancellationTokenSource, string pipeName, ICompilerServerLogger logger, Task<TestableDiagnosticListener> serverTask)
         {
             CancellationTokenSource = cancellationTokenSource;
             PipeName = pipeName;
+            Logger = logger;
             ServerTask = serverTask;
         }
 
         internal async Task<BuildResponse> SendAsync(BuildRequest request, CancellationToken cancellationToken = default)
         {
-            using var client = await BuildServerConnection.TryConnectToServerAsync(PipeName, Timeout.Infinite, cancellationToken).ConfigureAwait(false);
+            using var client = await BuildServerConnection.TryConnectToServerAsync(PipeName, Timeout.Infinite, Logger, cancellationToken).ConfigureAwait(false);
             await request.WriteAsync(client).ConfigureAwait(false);
             return await BuildResponse.ReadAsync(client).ConfigureAwait(false);
         }
@@ -107,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         internal static string GetPipeName() => Guid.NewGuid().ToString().Substring(0, 10);
 
         internal static async Task<ServerData> CreateServer(
+            ICompilerServerLogger logger,
             string pipeName = null,
             ICompilerServerHost compilerServerHost = null,
             IClientConnectionHost clientConnectionHost = null,
@@ -114,8 +121,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             // The total pipe path must be < 92 characters on Unix, so trim this down to 10 chars
             pipeName ??= GetPipeName();
-            compilerServerHost ??= BuildServerController.CreateCompilerServerHost();
-            clientConnectionHost ??= BuildServerController.CreateClientConnectionHost(pipeName);
+            compilerServerHost ??= BuildServerController.CreateCompilerServerHost(logger);
+            clientConnectionHost ??= BuildServerController.CreateClientConnectionHost(pipeName, logger);
             keepAlive ??= TimeSpan.FromMilliseconds(-1);
 
             var listener = new TestableDiagnosticListener();
@@ -141,18 +148,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 await Task.Yield();
             }
 
-            return new ServerData(cts, pipeName, task);
+            return new ServerData(cts, pipeName, logger, task);
         }
 
         internal static BuildClient CreateBuildClient(
             RequestLanguage language,
+            ICompilerServerLogger logger,
             CompileFunc compileFunc = null,
             TextWriter textWriter = null,
             int? timeoutOverride = null)
         {
             compileFunc = compileFunc ?? GetCompileFunc(language);
             textWriter = textWriter ?? new StringWriter();
-            return new BuildClient(language, compileFunc, timeoutOverride: timeoutOverride);
+            return new BuildClient(language, compileFunc, logger, timeoutOverride: timeoutOverride);
         }
 
         internal static CompileFunc GetCompileFunc(RequestLanguage language)

@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 {
@@ -10,12 +12,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         where TSyntaxKind : struct
         where TSyntaxNode : EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode>
     {
-        public readonly TSyntaxNode Node;
+        public readonly TSyntaxNode? Node;
         public readonly EmbeddedSyntaxToken<TSyntaxKind> Token;
 
         private EmbeddedSyntaxNodeOrToken(TSyntaxNode node) : this()
         {
-            Debug.Assert(node != null);
+            RoslynDebug.AssertNotNull(node);
             Node = node;
         }
 
@@ -25,12 +27,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             Token = token;
         }
 
+        [MemberNotNullWhen(true, nameof(Node))]
         public bool IsNode => Node != null;
 
         public static implicit operator EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>(TSyntaxNode node)
-            => new EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>(node);
+            => new(node);
 
         public static implicit operator EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>(EmbeddedSyntaxToken<TSyntaxKind> token)
-            => new EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>(token);
+            => new(token);
     }
 }

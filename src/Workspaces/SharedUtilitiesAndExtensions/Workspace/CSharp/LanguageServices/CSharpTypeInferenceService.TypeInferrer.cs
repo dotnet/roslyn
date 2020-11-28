@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -458,10 +460,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var info = SemanticModel.GetSymbolInfo(invocation, CancellationToken);
                 var methods = info.GetBestOrAllSymbols().OfType<IMethodSymbol>();
 
-                // Overload resolution (see DevDiv 611477) in certain extension method cases
-                // can result in GetSymbolInfo returning nothing. In this case, get the 
-                // method group info, which is what signature help already does.
-                if (info.Symbol == null)
+                // 1. Overload resolution (see DevDiv 611477) in certain extension method cases
+                // can result in GetSymbolInfo returning nothing. 
+                // 2. when trying to infer the type of the first argument, it's possible that nothing corresponding to
+                // the argument is typed and there exists an overload with 0 parameter as a viable match.
+                // In one of these cases, get the method group info, which is what signature help already does.
+                if (info.Symbol == null ||
+                    argumentOpt == null && info.Symbol is IMethodSymbol method && method.Parameters.Length == 0)
                 {
                     var memberGroupMethods =
                         SemanticModel.GetMemberGroup(invocation.Expression, CancellationToken)
@@ -1227,18 +1232,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
+                var enumerableType = forEachStatementSyntax.AwaitKeyword == default
+                    ? this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
+                    : this.Compilation.GetTypeByMetadataName(typeof(IAsyncEnumerable<>).FullName);
+
+                enumerableType ??= this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
+
                 // foreach (int v = Goo())
                 var variableTypes = GetTypes(forEachStatementSyntax.Type);
                 if (!variableTypes.Any())
                 {
                     return CreateResult(
-                        this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
+                        enumerableType
                             .Construct(Compilation.GetSpecialType(SpecialType.System_Object)));
                 }
 
-                var type = this.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
-
-                return variableTypes.Select(v => new TypeInferenceInfo(type.Construct(v.InferredType)));
+                return variableTypes.Select(v => new TypeInferenceInfo(enumerableType.Construct(v.InferredType)));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInForStatement(ForStatementSyntax forStatement, ExpressionSyntax expressionOpt = null, SyntaxToken? previousToken = null)

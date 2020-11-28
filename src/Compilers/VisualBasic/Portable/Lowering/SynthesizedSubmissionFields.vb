@@ -84,12 +84,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Sub AddToType(containingType As NamedTypeSymbol, moduleBeingBuilt As PEModuleBuilder)
             For Each field In FieldSymbols
-                moduleBeingBuilt.AddSynthesizedDefinition(containingType, field)
+                moduleBeingBuilt.AddSynthesizedDefinition(containingType, field.GetCciAdapter())
             Next
 
             Dim hostObjectField As FieldSymbol = GetHostObjectField()
             If hostObjectField IsNot Nothing Then
-                moduleBeingBuilt.AddSynthesizedDefinition(containingType, hostObjectField)
+                moduleBeingBuilt.AddSynthesizedDefinition(containingType, hostObjectField.GetCciAdapter())
             End If
         End Sub
     End Class

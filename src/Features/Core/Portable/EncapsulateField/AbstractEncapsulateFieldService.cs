@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -109,7 +111,6 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                     var result = await client.TryInvokeAsync<IRemoteEncapsulateFieldService, ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>>(
                         solution,
                         (service, solutionInfo, cancellationToken) => service.EncapsulateFieldsAsync(solutionInfo, document.Id, fieldSymbolKeys, updateReferences, cancellationToken),
-                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
                     if (!result.HasValue)
@@ -416,7 +417,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             // Trim leading "m_"
             if (baseName.Length >= 2 && baseName[0] == 'm' && baseName[1] == '_')
             {
-                baseName = baseName.Substring(2);
+                baseName = baseName[2..];
             }
 
             // Take original name if no characters left
@@ -428,10 +429,10 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             // Make the first character upper case using the "en-US" culture.  See discussion at
             // https://github.com/dotnet/roslyn/issues/5524.
             var firstCharacter = EnUSCultureInfo.TextInfo.ToUpper(baseName[0]);
-            return firstCharacter.ToString() + baseName.Substring(1);
+            return firstCharacter.ToString() + baseName[1..];
         }
 
-        private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
+        private static readonly CultureInfo EnUSCultureInfo = new("en-US");
 
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {

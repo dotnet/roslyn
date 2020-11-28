@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,7 +15,6 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -34,12 +35,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-            return GetSemanticClassificationsAsync(document, span);
+            return await GetSemanticClassificationsAsync(document, span);
         }
 
         [Theory]
@@ -193,6 +194,24 @@ class C
 }",
                 testHost,
                 Class("dynamic"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        public async Task DynamicAsRecordName(TestHost testHost)
+        {
+            await TestAsync(
+@"record dynamic
+{
+}
+
+class C
+{
+    dynamic d;
+}",
+                testHost,
+                Record("dynamic"));
         }
 
         [Theory]
@@ -4391,6 +4410,38 @@ class X
             Keyword("nameof"),
             Static("Method"),
             Method("Method"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        public async Task BasicRecordClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record R
+{
+    R r;
+
+    R() { }
+}",
+                testHost,
+                Record("R"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        public async Task ParameterizedRecordClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record R(int X, int Y);
+
+class C
+{
+    R r;
+}",
+                testHost,
+                Record("R"));
         }
     }
 }

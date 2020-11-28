@@ -2,16 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics
 {
     public abstract partial class AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest : AbstractDiagnosticProviderBasedUserDiagnosticTest
     {
+        public AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
         protected internal override string GetLanguage() => LanguageNames.CSharp;

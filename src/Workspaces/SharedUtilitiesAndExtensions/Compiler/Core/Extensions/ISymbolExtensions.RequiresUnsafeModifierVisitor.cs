@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         private class RequiresUnsafeModifierVisitor : SymbolVisitor<bool>
         {
-            private readonly HashSet<ISymbol> _visited = new HashSet<ISymbol>();
+            private readonly HashSet<ISymbol> _visited = new();
 
             public override bool DefaultVisit(ISymbol node)
             {

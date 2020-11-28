@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -19,6 +17,8 @@ using System.Xml.XPath;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
+
+using static Microsoft.CodeAnalysis.Shared.Utilities.EditorBrowsableHelpers;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -38,29 +38,37 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <summary>
         /// Checks a given symbol for browsability based on its declaration location, attributes 
         /// explicitly limiting browsability, and whether showing of advanced members is enabled. 
-        /// The optional attribute constructor parameters may be used to specify the symbols of the
+        /// The optional editorBrowsableInfo parameters may be used to specify the symbols of the
         /// constructors of the various browsability limiting attributes because finding these 
-        /// repeatedly over a large list of symbols can be slow. If providing these constructor 
-        /// symbols, they should be in the format provided by 
-        /// EditorBrowsableHelpers.GetSpecial*AttributeConstructor(). If these are not provided,
+        /// repeatedly over a large list of symbols can be slow. If these are not provided,
         /// they will be found in the compilation.
         /// </summary>
         public static bool IsEditorBrowsable(
             this ISymbol symbol,
             bool hideAdvancedMembers,
             Compilation compilation,
-            IMethodSymbol? editorBrowsableAttributeConstructor = null,
-            List<IMethodSymbol>? typeLibTypeAttributeConstructors = null,
-            List<IMethodSymbol>? typeLibFuncAttributeConstructors = null,
-            List<IMethodSymbol>? typeLibVarAttributeConstructors = null,
-            INamedTypeSymbol? hideModuleNameAttribute = null)
+            EditorBrowsableInfo editorBrowsableInfo = default)
+        {
+            return IsEditorBrowsableWithState(
+                symbol,
+                hideAdvancedMembers,
+                compilation,
+                editorBrowsableInfo).isBrowsable;
+        }
+
+        // In addition to given symbol's browsability, also returns its EditorBrowsableState if it contains EditorBrowsableAttribute.
+        public static (bool isBrowsable, bool isEditorBrowsableStateAdvanced) IsEditorBrowsableWithState(
+            this ISymbol symbol,
+            bool hideAdvancedMembers,
+            Compilation compilation,
+            EditorBrowsableInfo editorBrowsableInfo = default)
         {
             // Namespaces can't have attributes, so just return true here.  This also saves us a 
             // costly check if this namespace has any locations in source (since a merged namespace
             // needs to go collect all the locations).
             if (symbol.Kind == SymbolKind.Namespace)
             {
-                return true;
+                return (isBrowsable: true, isEditorBrowsableStateAdvanced: false);
             }
 
             // check for IsImplicitlyDeclared so we don't spend time examining VB's embedded types.
@@ -68,7 +76,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // have attributes, so it can't be hidden by them.
             if (symbol.IsImplicitlyDeclared)
             {
-                return true;
+                return (isBrowsable: true, isEditorBrowsableStateAdvanced: false);
+            }
+
+            if (editorBrowsableInfo.IsDefault)
+            {
+                editorBrowsableInfo = new EditorBrowsableInfo(compilation);
             }
 
             // Ignore browsability limiting attributes if the symbol is declared in source.
@@ -77,53 +90,44 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (symbol.Locations.All(loc => loc.IsInSource))
             {
                 // The HideModuleNameAttribute still applies to Modules defined in source
-                return !IsBrowsingProhibitedByHideModuleNameAttribute(symbol, compilation, hideModuleNameAttribute);
+                return (!IsBrowsingProhibitedByHideModuleNameAttribute(symbol, editorBrowsableInfo.HideModuleNameAttribute), isEditorBrowsableStateAdvanced: false);
             }
 
-            return !IsBrowsingProhibited(
-                symbol,
-                hideAdvancedMembers,
-                compilation,
-                editorBrowsableAttributeConstructor,
-                typeLibTypeAttributeConstructors,
-                typeLibFuncAttributeConstructors,
-                typeLibVarAttributeConstructors,
-                hideModuleNameAttribute);
+            var (isProhibited, isEditorBrowsableStateAdvanced) = IsBrowsingProhibited(symbol, hideAdvancedMembers, editorBrowsableInfo);
+
+            return (!isProhibited, isEditorBrowsableStateAdvanced);
         }
 
-        private static bool IsBrowsingProhibited(
+        private static (bool isProhibited, bool isEditorBrowsableStateAdvanced) IsBrowsingProhibited(
             ISymbol symbol,
             bool hideAdvancedMembers,
-            Compilation compilation,
-            IMethodSymbol? editorBrowsableAttributeConstructor,
-            List<IMethodSymbol>? typeLibTypeAttributeConstructors,
-            List<IMethodSymbol>? typeLibFuncAttributeConstructors,
-            List<IMethodSymbol>? typeLibVarAttributeConstructors,
-            INamedTypeSymbol? hideModuleNameAttribute)
+            EditorBrowsableInfo editorBrowsableInfo)
         {
             var attributes = symbol.GetAttributes();
             if (attributes.Length == 0)
             {
-                return false;
+                return (isProhibited: false, isEditorBrowsableStateAdvanced: false);
             }
 
-            return IsBrowsingProhibitedByEditorBrowsableAttribute(attributes, hideAdvancedMembers, compilation, editorBrowsableAttributeConstructor)
-                || IsBrowsingProhibitedByTypeLibTypeAttribute(attributes, compilation, typeLibTypeAttributeConstructors)
-                || IsBrowsingProhibitedByTypeLibFuncAttribute(attributes, compilation, typeLibFuncAttributeConstructors)
-                || IsBrowsingProhibitedByTypeLibVarAttribute(attributes, compilation, typeLibVarAttributeConstructors)
-                || IsBrowsingProhibitedByHideModuleNameAttribute(symbol, compilation, hideModuleNameAttribute, attributes);
+            var (isProhibited, isEditorBrowsableStateAdvanced) = IsBrowsingProhibitedByEditorBrowsableAttribute(attributes, hideAdvancedMembers, editorBrowsableInfo.EditorBrowsableAttributeConstructor);
+
+            return ((isProhibited
+                || IsBrowsingProhibitedByTypeLibTypeAttribute(attributes, editorBrowsableInfo.TypeLibTypeAttributeConstructors)
+                || IsBrowsingProhibitedByTypeLibFuncAttribute(attributes, editorBrowsableInfo.TypeLibFuncAttributeConstructors)
+                || IsBrowsingProhibitedByTypeLibVarAttribute(attributes, editorBrowsableInfo.TypeLibVarAttributeConstructors)
+                || IsBrowsingProhibitedByHideModuleNameAttribute(symbol, editorBrowsableInfo.HideModuleNameAttribute, attributes)), isEditorBrowsableStateAdvanced);
         }
 
         private static bool IsBrowsingProhibitedByHideModuleNameAttribute(
-            ISymbol symbol, Compilation compilation, INamedTypeSymbol? hideModuleNameAttribute, ImmutableArray<AttributeData> attributes = default)
+            ISymbol symbol, INamedTypeSymbol? hideModuleNameAttribute, ImmutableArray<AttributeData> attributes = default)
         {
-            if (!symbol.IsModuleType())
+            if (hideModuleNameAttribute == null || !symbol.IsModuleType())
             {
                 return false;
             }
 
             attributes = attributes.IsDefault ? symbol.GetAttributes() : attributes;
-            hideModuleNameAttribute ??= compilation.HideModuleNameAttribute();
+
             foreach (var attribute in attributes)
             {
                 if (Equals(attribute.AttributeClass, hideModuleNameAttribute))
@@ -135,13 +139,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        private static bool IsBrowsingProhibitedByEditorBrowsableAttribute(
-            ImmutableArray<AttributeData> attributes, bool hideAdvancedMembers, Compilation compilation, IMethodSymbol? constructor)
+        private static (bool isProhibited, bool isEditorBrowsableStateAdvanced) IsBrowsingProhibitedByEditorBrowsableAttribute(
+            ImmutableArray<AttributeData> attributes, bool hideAdvancedMembers, IMethodSymbol? constructor)
         {
-            constructor ??= EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(compilation);
             if (constructor == null)
             {
-                return false;
+                return (isProhibited: false, isEditorBrowsableStateAdvanced: false);
             }
 
             foreach (var attribute in attributes)
@@ -154,41 +157,45 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     var state = (EditorBrowsableState)attribute.ConstructorArguments.First().Value;
 #nullable enable
 
-                    if (EditorBrowsableState.Never == state ||
-                        (hideAdvancedMembers && EditorBrowsableState.Advanced == state))
+                    if (EditorBrowsableState.Never == state)
                     {
-                        return true;
+                        return (isProhibited: true, isEditorBrowsableStateAdvanced: false);
+                    }
+
+                    if (EditorBrowsableState.Advanced == state)
+                    {
+                        return (isProhibited: hideAdvancedMembers, isEditorBrowsableStateAdvanced: true);
                     }
                 }
             }
 
-            return false;
+            return (isProhibited: false, isEditorBrowsableStateAdvanced: false);
         }
 
         private static bool IsBrowsingProhibitedByTypeLibTypeAttribute(
-            ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol>? constructors)
+            ImmutableArray<AttributeData> attributes, ImmutableArray<IMethodSymbol> constructors)
         {
             return IsBrowsingProhibitedByTypeLibAttributeWorker(
                 attributes,
-                constructors ?? EditorBrowsableHelpers.GetSpecialTypeLibTypeAttributeConstructors(compilation),
+                constructors,
                 TypeLibTypeFlagsFHidden);
         }
 
         private static bool IsBrowsingProhibitedByTypeLibFuncAttribute(
-            ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol>? constructors)
+            ImmutableArray<AttributeData> attributes, ImmutableArray<IMethodSymbol> constructors)
         {
             return IsBrowsingProhibitedByTypeLibAttributeWorker(
                 attributes,
-                constructors ?? EditorBrowsableHelpers.GetSpecialTypeLibFuncAttributeConstructors(compilation),
+                constructors,
                 TypeLibFuncFlagsFHidden);
         }
 
         private static bool IsBrowsingProhibitedByTypeLibVarAttribute(
-            ImmutableArray<AttributeData> attributes, Compilation compilation, List<IMethodSymbol>? constructors)
+            ImmutableArray<AttributeData> attributes, ImmutableArray<IMethodSymbol> constructors)
         {
             return IsBrowsingProhibitedByTypeLibAttributeWorker(
                 attributes,
-                constructors ?? EditorBrowsableHelpers.GetSpecialTypeLibVarAttributeConstructors(compilation),
+                constructors,
                 TypeLibVarFlagsFHidden);
         }
 
@@ -197,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private const int TypeLibVarFlagsFHidden = 0x0040;
 
         private static bool IsBrowsingProhibitedByTypeLibAttributeWorker(
-            ImmutableArray<AttributeData> attributes, List<IMethodSymbol> attributeConstructors, int hiddenFlag)
+            ImmutableArray<AttributeData> attributes, ImmutableArray<IMethodSymbol> attributeConstructors, int hiddenFlag)
         {
             foreach (var attribute in attributes)
             {
@@ -458,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
                 else if (memberSymbol.IsOverride)
                 {
-                    return memberSymbol.OverriddenMember();
+                    return memberSymbol.GetOverriddenMember();
                 }
 
                 if (memberSymbol is IMethodSymbol methodSymbol)
@@ -639,12 +646,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // Since all symbols are from the same compilation, find the required attribute
             // constructors once and reuse.
-
-            var editorBrowsableAttributeConstructor = EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(compilation);
-            var typeLibTypeAttributeConstructors = EditorBrowsableHelpers.GetSpecialTypeLibTypeAttributeConstructors(compilation);
-            var typeLibFuncAttributeConstructors = EditorBrowsableHelpers.GetSpecialTypeLibFuncAttributeConstructors(compilation);
-            var typeLibVarAttributeConstructors = EditorBrowsableHelpers.GetSpecialTypeLibVarAttributeConstructors(compilation);
-            var hideModuleNameAttribute = compilation.HideModuleNameAttribute();
+            var editorBrowsableInfo = new EditorBrowsableInfo(compilation);
 
             // PERF: HasUnsupportedMetadata may require recreating the syntax tree to get the base class, so first
             // check to see if we're referencing a symbol defined in source.
@@ -654,13 +656,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 !s.IsDestructor() &&
                 s.IsEditorBrowsable(
                     arg.hideAdvancedMembers,
-                    arg.compilation,
-                    arg.editorBrowsableAttributeConstructor,
-                    arg.typeLibTypeAttributeConstructors,
-                    arg.typeLibFuncAttributeConstructors,
-                    arg.typeLibVarAttributeConstructors,
-                    arg.hideModuleNameAttribute),
-                (hideAdvancedMembers, compilation, editorBrowsableAttributeConstructor, typeLibTypeAttributeConstructors, typeLibFuncAttributeConstructors, typeLibVarAttributeConstructors, hideModuleNameAttribute));
+                    arg.editorBrowsableInfo.Compilation,
+                    arg.editorBrowsableInfo),
+                (hideAdvancedMembers, editorBrowsableInfo));
         }
 
         private static ImmutableArray<T> RemoveOverriddenSymbolsWithinSet<T>(this ImmutableArray<T> symbols) where T : ISymbol
@@ -669,11 +667,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             foreach (var symbol in symbols)
             {
-                var overriddenMember = symbol.OverriddenMember();
+                var overriddenMember = symbol.GetOverriddenMember();
                 if (overriddenMember != null && !overriddenSymbols.Contains(overriddenMember))
-                {
                     overriddenSymbols.Add(overriddenMember);
-                }
             }
 
             return symbols.WhereAsArray(s => !overriddenSymbols.Contains(s));

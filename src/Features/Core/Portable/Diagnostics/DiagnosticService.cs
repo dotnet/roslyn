@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,6 +14,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -116,8 +120,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 Debug.Assert(_updateSources.Contains(source));
 
+                // The diagnostic service itself caches all diagnostics produced by the IDiagnosticUpdateSource's.  As
+                // such, we want to grab all the diagnostics (regardless of push/pull setting) and cache inside
+                // ourselves.  Later, when anyone calls GetDiagnostics or GetDiagnosticBuckets we will check if their 
+                // push/pull request matches the current user setting and return these if appropriate.
+                var diagnostics = args.GetAllDiagnosticsRegardlessOfPushPullSetting();
+
                 // check cheap early bail out
-                if (args.Diagnostics.Length == 0 && !_map.ContainsKey(source))
+                if (diagnostics.Length == 0 && !_map.ContainsKey(source))
                 {
                     // no new diagnostic, and we don't have update source for it.
                     return false;
@@ -127,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // distinguish them. so we separate diagnostics per workspace map.
                 var workspaceMap = _map.GetOrAdd(source, _ => new Dictionary<Workspace, Dictionary<object, Data>>());
 
-                if (args.Diagnostics.Length == 0 && !workspaceMap.ContainsKey(args.Workspace))
+                if (diagnostics.Length == 0 && !workspaceMap.ContainsKey(args.Workspace))
                 {
                     // no new diagnostic, and we don't have workspace for it.
                     return false;
@@ -136,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var diagnosticDataMap = workspaceMap.GetOrAdd(args.Workspace, _ => new Dictionary<object, Data>());
 
                 diagnosticDataMap.Remove(args.Id);
-                if (diagnosticDataMap.Count == 0 && args.Diagnostics.Length == 0)
+                if (diagnosticDataMap.Count == 0 && diagnostics.Length == 0)
                 {
                     workspaceMap.Remove(args.Workspace);
 
@@ -148,10 +158,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return true;
                 }
 
-                if (args.Diagnostics.Length > 0)
+                if (diagnostics.Length > 0)
                 {
                     // save data only if there is a diagnostic
-                    var data = source.SupportGetDiagnostics ? new Data(args) : new Data(args, args.Diagnostics);
+                    var data = source.SupportGetDiagnostics ? new Data(args) : new Data(args, diagnostics);
                     diagnosticDataMap.Add(args.Id, data);
                 }
 
@@ -189,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
         {
-            AssertIfNull(e.Diagnostics);
+            AssertIfNull(e.GetAllDiagnosticsRegardlessOfPushPullSetting());
 
             // all events are serialized by async event handler
             RaiseDiagnosticsUpdated((IDiagnosticUpdateSource)sender, e);
@@ -201,9 +211,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             RaiseDiagnosticsCleared((IDiagnosticUpdateSource)sender);
         }
 
-        public IEnumerable<DiagnosticData> GetDiagnostics(
-            Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+        ImmutableArray<DiagnosticData> IDiagnosticService.GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            => GetPushDiagnostics(workspace, projectId, documentId, id, includeSuppressedDiagnostics, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken);
+
+        public ImmutableArray<DiagnosticData> GetPullDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+            => GetDiagnostics(workspace, projectId, documentId, id, includeSuppressedDiagnostics, forPullDiagnostics: true, diagnosticMode, cancellationToken);
+
+        public ImmutableArray<DiagnosticData> GetPushDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+            => GetDiagnostics(workspace, projectId, documentId, id, includeSuppressedDiagnostics, forPullDiagnostics: false, diagnosticMode, cancellationToken);
+
+        private ImmutableArray<DiagnosticData> GetDiagnostics(
+            Workspace workspace,
+            ProjectId projectId,
+            DocumentId documentId,
+            object id,
+            bool includeSuppressedDiagnostics,
+            bool forPullDiagnostics,
+            Option2<DiagnosticMode> diagnosticMode,
+            CancellationToken cancellationToken)
         {
+            // If this is a pull client, but pull diagnostics is not on, then they get nothing.  Similarly, if this is a
+            // push client and pull diagnostics are on, they get nothing.
+            var isPull = workspace.Options.GetOption(diagnosticMode) == DiagnosticMode.Pull;
+            if (forPullDiagnostics != isPull)
+                return ImmutableArray<DiagnosticData>.Empty;
+
             if (id != null)
             {
                 // get specific one
@@ -214,108 +246,110 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics, cancellationToken);
         }
 
-        private IEnumerable<DiagnosticData> GetSpecificDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+        private ImmutableArray<DiagnosticData> GetSpecificDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
+            using var _ = ArrayBuilder<Data>.GetInstance(out var buffer);
+
             foreach (var source in _updateSources)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                buffer.Clear();
                 if (source.SupportGetDiagnostics)
                 {
                     var diagnostics = source.GetDiagnostics(workspace, projectId, documentId, id, includeSuppressedDiagnostics, cancellationToken);
-                    if (diagnostics != null && diagnostics.Length > 0)
-                    {
+                    if (diagnostics.Length > 0)
                         return diagnostics;
-                    }
                 }
                 else
                 {
-                    using var pool = SharedPools.Default<List<Data>>().GetPooledObject();
+                    AppendMatchingData(source, workspace, projectId, documentId, id, buffer);
+                    Debug.Assert(buffer.Count == 0 || buffer.Count == 1);
 
-                    AppendMatchingData(source, workspace, projectId, documentId, id, pool.Object);
-                    Debug.Assert(pool.Object.Count == 0 || pool.Object.Count == 1);
-
-                    if (pool.Object.Count == 1)
+                    if (buffer.Count == 1)
                     {
-                        var diagnostics = pool.Object[0].Diagnostics;
-                        return !includeSuppressedDiagnostics ? FilterSuppressedDiagnostics(diagnostics) : diagnostics;
+                        var diagnostics = buffer[0].Diagnostics;
+                        return includeSuppressedDiagnostics
+                            ? diagnostics
+                            : diagnostics.NullToEmpty().WhereAsArray(d => !d.IsSuppressed);
                     }
                 }
             }
 
-            return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
+            return ImmutableArray<DiagnosticData>.Empty;
         }
 
-        private static IEnumerable<DiagnosticData> FilterSuppressedDiagnostics(ImmutableArray<DiagnosticData> diagnostics)
-        {
-            if (!diagnostics.IsDefault)
-            {
-                foreach (var diagnostic in diagnostics)
-                {
-                    if (!diagnostic.IsSuppressed)
-                    {
-                        yield return diagnostic;
-                    }
-                }
-            }
-        }
-
-        private IEnumerable<DiagnosticData> GetDiagnostics(
+        private ImmutableArray<DiagnosticData> GetDiagnostics(
             Workspace workspace, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
+            using var _1 = ArrayBuilder<DiagnosticData>.GetInstance(out var result);
+            using var _2 = ArrayBuilder<Data>.GetInstance(out var buffer);
             foreach (var source in _updateSources)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                buffer.Clear();
                 if (source.SupportGetDiagnostics)
                 {
-                    foreach (var diagnostic in source.GetDiagnostics(workspace, projectId, documentId, null, includeSuppressedDiagnostics, cancellationToken))
-                    {
-                        AssertIfNull(diagnostic);
-                        yield return diagnostic;
-                    }
+                    result.AddRange(source.GetDiagnostics(workspace, projectId, documentId, id: null, includeSuppressedDiagnostics, cancellationToken));
                 }
                 else
                 {
-                    using var list = SharedPools.Default<List<Data>>().GetPooledObject();
+                    AppendMatchingData(source, workspace, projectId, documentId, id: null, buffer);
 
-                    AppendMatchingData(source, workspace, projectId, documentId, null, list.Object);
-
-                    foreach (var data in list.Object)
+                    foreach (var data in buffer)
                     {
                         foreach (var diagnostic in data.Diagnostics)
                         {
                             AssertIfNull(diagnostic);
                             if (includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
-                            {
-                                yield return diagnostic;
-                            }
+                                result.Add(diagnostic);
                         }
                     }
                 }
             }
+
+            return result.ToImmutable();
         }
 
-        public IEnumerable<UpdatedEventArgs> GetDiagnosticsUpdatedEventArgs(
-            Workspace workspace, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
+        public ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(Workspace workspace, ProjectId projectId, DocumentId documentId, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+            => GetDiagnosticBuckets(workspace, projectId, documentId, forPullDiagnostics: true, diagnosticMode, cancellationToken);
+
+        public ImmutableArray<DiagnosticBucket> GetPushDiagnosticBuckets(Workspace workspace, ProjectId projectId, DocumentId documentId, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+            => GetDiagnosticBuckets(workspace, projectId, documentId, forPullDiagnostics: false, diagnosticMode, cancellationToken);
+
+        private ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(
+            Workspace workspace,
+            ProjectId projectId,
+            DocumentId documentId,
+            bool forPullDiagnostics,
+            Option2<DiagnosticMode> diagnosticMode,
+            CancellationToken cancellationToken)
         {
+            // If this is a pull client, but pull diagnostics is not on, then they get nothing.  Similarly, if this is a
+            // push client and pull diagnostics are on, they get nothing.
+            var isPull = workspace.Options.GetOption(diagnosticMode) == DiagnosticMode.Pull;
+            if (forPullDiagnostics != isPull)
+                return ImmutableArray<DiagnosticBucket>.Empty;
+
+            using var _1 = ArrayBuilder<DiagnosticBucket>.GetInstance(out var result);
+            using var _2 = ArrayBuilder<Data>.GetInstance(out var buffer);
+
             foreach (var source in _updateSources)
             {
+                buffer.Clear();
                 cancellationToken.ThrowIfCancellationRequested();
 
-                using var list = SharedPools.Default<List<Data>>().GetPooledObject();
-
-                AppendMatchingData(source, workspace, projectId, documentId, null, list.Object);
-
-                foreach (var data in list.Object)
-                {
-                    yield return new UpdatedEventArgs(data.Id, data.Workspace, data.ProjectId, data.DocumentId);
-                }
+                AppendMatchingData(source, workspace, projectId, documentId, id: null, buffer);
+                foreach (var data in buffer)
+                    result.Add(new DiagnosticBucket(data.Id, data.Workspace, data.ProjectId, data.DocumentId));
             }
+
+            return result.ToImmutable();
         }
 
         private void AppendMatchingData(
-            IDiagnosticUpdateSource source, Workspace workspace, ProjectId projectId, DocumentId documentId, object id, List<Data> list)
+            IDiagnosticUpdateSource source, Workspace workspace, ProjectId projectId, DocumentId documentId, object id, ArrayBuilder<Data> list)
         {
             Contract.ThrowIfNull(workspace);
 
@@ -349,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static bool TryAddData<T>(Workspace workspace, T key, Data data, Func<Data, T> keyGetter, List<Data> result) where T : class
+        private static bool TryAddData<T>(Workspace workspace, T key, Data data, Func<Data, T> keyGetter, ArrayBuilder<Data> result) where T : class
         {
             if (key == null)
             {
@@ -412,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

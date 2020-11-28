@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -152,7 +150,7 @@ record C(int x, string y)
 
             var x = (SourcePropertySymbolBase)c.GetProperty("x");
             Assert.NotNull(x.GetMethod);
-            Assert.Equal(MethodKind.PropertyGet, x.GetMethod.MethodKind);
+            Assert.Equal(MethodKind.PropertyGet, x.GetMethod!.MethodKind);
             Assert.Equal(SpecialType.System_Int32, x.Type.SpecialType);
             Assert.False(x.IsReadOnly);
             Assert.False(x.IsWriteOnly);
@@ -177,7 +175,7 @@ record C(int x, string y)
             Assert.Equal(Accessibility.Public, getAccessor.DeclaredAccessibility);
 
             var setAccessor = x.SetMethod;
-            Assert.Equal(x, setAccessor.AssociatedSymbol);
+            Assert.Equal(x, setAccessor!.AssociatedSymbol);
             Assert.True(setAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, setAccessor.ContainingSymbol);
             Assert.Equal(c, setAccessor.ContainingType);
@@ -186,7 +184,7 @@ record C(int x, string y)
 
             var y = (SourcePropertySymbolBase)c.GetProperty("y");
             Assert.NotNull(y.GetMethod);
-            Assert.Equal(MethodKind.PropertyGet, y.GetMethod.MethodKind);
+            Assert.Equal(MethodKind.PropertyGet, y.GetMethod!.MethodKind);
             Assert.Equal(SpecialType.System_Int32, y.Type.SpecialType);
             Assert.False(y.IsReadOnly);
             Assert.False(y.IsWriteOnly);
@@ -210,7 +208,7 @@ record C(int x, string y)
             Assert.Equal(c, getAccessor.ContainingType);
 
             setAccessor = y.SetMethod;
-            Assert.Equal(y, setAccessor.AssociatedSymbol);
+            Assert.Equal(y, setAccessor!.AssociatedSymbol);
             Assert.True(setAccessor.IsImplicitlyDeclared);
             Assert.Equal(c, setAccessor.ContainingSymbol);
             Assert.Equal(c, setAccessor.ContainingType);
@@ -232,6 +230,9 @@ record C(int X, int Y)
                 // (4,17): error CS8872: 'C.Equals(C)' must allow overriding because the containing record is not sealed.
                 //     public bool Equals(C c) => throw null;
                 Diagnostic(ErrorCode.ERR_NotOverridableAPIInRecord, "Equals").WithArguments("C.Equals(C)").WithLocation(4, 17),
+                // (4,17): warning CS8851: 'C' defines 'Equals' but not 'GetHashCode'
+                //     public bool Equals(C c) => throw null;
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("C").WithLocation(4, 17),
                 // (5,26): error CS0111: Type 'C' already defines a member called 'Equals' with the same parameter types
                 //     public override bool Equals(object o) => false;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "C").WithLocation(5, 26)
@@ -266,7 +267,11 @@ record C(int X, int Y)
         Console.WriteLine(c.Equals(c));
     }
     public virtual bool Equals(C c) => false;
-}", expectedOutput: "False").VerifyDiagnostics();
+}", expectedOutput: "False").VerifyDiagnostics(
+    // (10,25): warning CS8851: 'C' defines 'Equals' but not 'GetHashCode'
+    //     public virtual bool Equals(C c) => false;
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("C").WithLocation(10, 25)
+);
         }
 
         [Fact]
@@ -304,7 +309,11 @@ sealed record C(int X, int Y)
     }
     public bool Equals(C c) => X == c.X && Y == c.Y;
 }", expectedOutput: @"True
-False").VerifyDiagnostics();
+False").VerifyDiagnostics(
+    // (13,17): warning CS8851: 'C' defines 'Equals' but not 'GetHashCode'
+    //     public bool Equals(C c) => X == c.X && Y == c.Y;
+    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("C").WithLocation(13, 17)
+);
 
             verifier.VerifyIL("C.Equals(object)", @"
 {
@@ -1211,7 +1220,7 @@ partial public record C
 }
 ";
             CreateCompilation(src).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial public record C
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1)
                 );
@@ -1556,6 +1565,72 @@ class C
   IL_001a:  pop
   IL_001b:  ret
 }");
+        }
+
+        [Fact]
+        [WorkItem(49286, "https://github.com/dotnet/roslyn/issues/49286")]
+        public void RecordWithEventImplicitlyImplementingAnInterface()
+        {
+            var src = @"
+using System;
+
+public interface I1
+{
+    event Action E1;
+}
+
+public record R1 : I1
+{
+    public event Action E1 {  add { } remove { } }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(49286, "https://github.com/dotnet/roslyn/issues/49286")]
+        public void RecordWithPropertyImplicitlyImplementingAnInterface()
+        {
+            var src = @"
+using System;
+
+public interface I1
+{
+    Action P1 { get; set; }
+}
+
+public record R1 : I1
+{
+    public Action P1 {  get; set; }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(49286, "https://github.com/dotnet/roslyn/issues/49286")]
+        public void RecordWithMethodImplicitlyImplementingAnInterface()
+        {
+            var src = @"
+using System;
+
+public interface I1
+{
+    Action M1();
+}
+
+public record R1 : I1
+{
+    public Action M1() => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

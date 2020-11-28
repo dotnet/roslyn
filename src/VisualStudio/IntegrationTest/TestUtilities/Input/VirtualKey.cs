@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
 {
     public enum VirtualKey : byte
@@ -81,6 +83,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
         Y = 0x59,
         Z = 0x5A,
 
-        Period = 0xBE
+        Period = 0xBE,
+
+        /// <summary>
+        /// Used for miscellaneous characters; it can vary by keyboard.<br/>
+        /// For the US standard keyboard, the '[{' key.
+        /// </summary>
+        VK_OEM_4 = 0xDB,
+
+        /// <summary>
+        /// Used for miscellaneous characters; it can vary by keyboard.<br/>
+        /// For the US standard keyboard, the ']}' key.
+        /// </summary>
+        VK_OEM_6 = 0xDD,
     }
 }

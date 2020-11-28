@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Resources;
+using System.Runtime;
+using MessagePack;
+using MessagePack.Formatters;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeLens;
@@ -21,9 +23,9 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.TodoComments;
-using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -31,38 +33,60 @@ namespace Microsoft.CodeAnalysis.Remote
     /// <summary>
     /// Service descriptors of brokered Roslyn ServiceHub services.
     /// </summary>
-    internal static class ServiceDescriptors
+    internal sealed class ServiceDescriptors
     {
         /// <summary>
         /// Brokered services must be defined in Microsoft.VisualStudio service namespace in order to be considered first party.
         /// </summary>
-        internal const string ServiceNamePrefix = "Microsoft.VisualStudio.LanguageServices.";
+        internal const string ServiceNameTopLevelPrefix = "Microsoft.VisualStudio.";
+
+        internal const string ServiceNameComponentLevelPrefix = "LanguageServices.";
 
         private const string InterfaceNamePrefix = "IRemote";
         private const string InterfaceNameSuffix = "Service";
 
-        internal static readonly ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64)> Descriptors = ImmutableDictionary.CreateRange(new[]
+        public static readonly ServiceDescriptors Instance = new(ServiceNameComponentLevelPrefix, GetFeatureDisplayName, ImmutableArray<IMessagePackFormatter>.Empty, ImmutableArray<IFormatterResolver>.Empty, new (Type, Type?)[]
         {
-            CreateDescriptors(typeof(IRemoteTodoCommentsDiscoveryService), callbackInterface: typeof(ITodoCommentsListener)),
-            CreateDescriptors(typeof(IRemoteDesignerAttributeDiscoveryService), callbackInterface: typeof(IDesignerAttributeListener)),
-            CreateDescriptors(typeof(IRemoteProjectTelemetryService), callbackInterface: typeof(IProjectTelemetryListener)),
-            CreateDescriptors(typeof(IRemoteDiagnosticAnalyzerService)),
-            CreateDescriptors(typeof(IRemoteSemanticClassificationService)),
-            CreateDescriptors(typeof(IRemoteSemanticClassificationCacheService)),
-            CreateDescriptors(typeof(IRemoteDocumentHighlightsService)),
-            CreateDescriptors(typeof(IRemoteEncapsulateFieldService)),
-            CreateDescriptors(typeof(IRemoteRenamerService)),
-            CreateDescriptors(typeof(IRemoteConvertTupleToStructCodeRefactoringService)),
-            CreateDescriptors(typeof(IRemoteSymbolFinderService), callbackInterface: typeof(IRemoteSymbolFinderService.ICallback)),
-            CreateDescriptors(typeof(IRemoteFindUsagesService), callbackInterface: typeof(IRemoteFindUsagesService.ICallback)),
-            CreateDescriptors(typeof(IRemoteNavigateToSearchService)),
-            CreateDescriptors(typeof(IRemoteMissingImportDiscoveryService), callbackInterface: typeof(IRemoteMissingImportDiscoveryService.ICallback)),
-            CreateDescriptors(typeof(IRemoteSymbolSearchUpdateService), callbackInterface: typeof(ISymbolSearchLogService)),
-            CreateDescriptors(typeof(IRemoteExtensionMethodImportCompletionService)),
-            CreateDescriptors(typeof(IRemoteDependentTypeFinderService)),
-            CreateDescriptors(typeof(IRemoteGlobalNotificationDeliveryService)),
-            CreateDescriptors(typeof(IRemoteCodeLensReferencesService)),
+            (typeof(IRemoteAssetSynchronizationService), null),
+            (typeof(IRemoteAsynchronousOperationListenerService), null),
+            (typeof(IRemoteTodoCommentsDiscoveryService), typeof(IRemoteTodoCommentsDiscoveryService.ICallback)),
+            (typeof(IRemoteDesignerAttributeDiscoveryService), typeof(IRemoteDesignerAttributeDiscoveryService.ICallback)),
+            (typeof(IRemoteProjectTelemetryService), typeof(IRemoteProjectTelemetryService.ICallback)),
+            (typeof(IRemoteDiagnosticAnalyzerService), null),
+            (typeof(IRemoteSemanticClassificationService), null),
+            (typeof(IRemoteSemanticClassificationCacheService), null),
+            (typeof(IRemoteDocumentHighlightsService), null),
+            (typeof(IRemoteEncapsulateFieldService), null),
+            (typeof(IRemoteRenamerService), null),
+            (typeof(IRemoteConvertTupleToStructCodeRefactoringService), null),
+            (typeof(IRemoteSymbolFinderService), typeof(IRemoteSymbolFinderService.ICallback)),
+            (typeof(IRemoteFindUsagesService), typeof(IRemoteFindUsagesService.ICallback)),
+            (typeof(IRemoteNavigateToSearchService), null),
+            (typeof(IRemoteMissingImportDiscoveryService), typeof(IRemoteMissingImportDiscoveryService.ICallback)),
+            (typeof(IRemoteSymbolSearchUpdateService), typeof(IRemoteSymbolSearchUpdateService.ICallback)),
+            (typeof(IRemoteExtensionMethodImportCompletionService), null),
+            (typeof(IRemoteDependentTypeFinderService), null),
+            (typeof(IRemoteGlobalNotificationDeliveryService), null),
+            (typeof(IRemoteCodeLensReferencesService), null),
         });
+
+        internal readonly MessagePackSerializerOptions Options;
+        private readonly ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC)> _descriptors;
+        private readonly string _componentLevelPrefix;
+        private readonly Func<string, string> _featureDisplayNameProvider;
+
+        public ServiceDescriptors(
+            string componentLevelPrefix,
+            Func<string, string> featureDisplayNameProvider,
+            ImmutableArray<IMessagePackFormatter> additionalFormatters,
+            ImmutableArray<IFormatterResolver> additionalResolvers,
+            IEnumerable<(Type serviceInterface, Type? callbackInterface)> interfaces)
+        {
+            Options = ServiceDescriptor.DefaultOptions.WithResolver(MessagePackFormatters.CreateResolver(additionalFormatters, additionalResolvers));
+            _componentLevelPrefix = componentLevelPrefix;
+            _featureDisplayNameProvider = featureDisplayNameProvider;
+            _descriptors = interfaces.ToImmutableDictionary(i => i.serviceInterface, i => CreateDescriptors(i.serviceInterface, i.callbackInterface));
+        }
 
         internal static string GetServiceName(Type serviceInterface)
         {
@@ -74,26 +98,59 @@ namespace Microsoft.CodeAnalysis.Remote
             return interfaceName.Substring(InterfaceNamePrefix.Length, interfaceName.Length - InterfaceNamePrefix.Length - InterfaceNameSuffix.Length);
         }
 
-        internal static string GetQualifiedServiceName(Type serviceInterface)
-            => ServiceNamePrefix + GetServiceName(serviceInterface);
+        internal string GetQualifiedServiceName(Type serviceInterface)
+            => ServiceNameTopLevelPrefix + _componentLevelPrefix + GetServiceName(serviceInterface);
 
-        private static KeyValuePair<Type, (ServiceDescriptor, ServiceDescriptor)> CreateDescriptors(Type serviceInterface, Type? callbackInterface = null)
+        private (ServiceDescriptor, ServiceDescriptor, ServiceDescriptor) CreateDescriptors(Type serviceInterface, Type? callbackInterface)
         {
             Contract.ThrowIfFalse(callbackInterface == null || callbackInterface.IsInterface);
 
-            var serviceName = GetQualifiedServiceName(serviceInterface);
-            var descriptor32 = ServiceDescriptor.CreateRemoteServiceDescriptor(serviceName, callbackInterface);
-            var descriptor64 = ServiceDescriptor.CreateRemoteServiceDescriptor(serviceName + RemoteServiceName.Suffix64, callbackInterface);
-            return new(serviceInterface, (descriptor32, descriptor64));
+            var qualifiedServiceName = GetQualifiedServiceName(serviceInterface);
+            var descriptor32 = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName, Options, _featureDisplayNameProvider, callbackInterface);
+            var descriptor64 = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + RemoteServiceName.Suffix64, Options, _featureDisplayNameProvider, callbackInterface);
+            var descriptor64ServerGC = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + RemoteServiceName.Suffix64 + RemoteServiceName.SuffixServerGC, Options, _featureDisplayNameProvider, callbackInterface);
+            return (descriptor32, descriptor64, descriptor64ServerGC);
         }
 
-        public static ServiceRpcDescriptor GetServiceDescriptor(Type serviceType, bool isRemoteHost64Bit)
+        public ServiceDescriptor GetServiceDescriptorForServiceFactory(Type serviceType)
+            => GetServiceDescriptor(serviceType, isRemoteHost64Bit: IntPtr.Size == 8, isRemoteHostServerGC: GCSettings.IsServerGC);
+
+        public ServiceDescriptor GetServiceDescriptor(Type serviceType, bool isRemoteHost64Bit, bool isRemoteHostServerGC)
         {
-            var (descriptor32, descriptor64) = Descriptors[serviceType];
-            return isRemoteHost64Bit ? descriptor64 : descriptor32;
+            var (descriptor32, descriptor64, descriptor64ServerGC) = _descriptors[serviceType];
+            return (isRemoteHost64Bit, isRemoteHostServerGC) switch
+            {
+                (true, false) => descriptor64,
+                (true, true) => descriptor64ServerGC,
+                _ => descriptor32,
+            };
         }
 
-        internal static string GetFeatureName(Type serviceInterface)
-            => RemoteWorkspacesResources.GetResourceString("FeatureName_" + GetServiceName(serviceInterface));
+        internal static string GetFeatureDisplayName(string qualifiedServiceName)
+        {
+            var prefixLength = qualifiedServiceName.LastIndexOf('.') + 1;
+            Contract.ThrowIfFalse(prefixLength > 0);
+
+            var suffixLength = qualifiedServiceName.EndsWith(RemoteServiceName.Suffix64, StringComparison.Ordinal)
+                ? RemoteServiceName.Suffix64.Length
+                : qualifiedServiceName.EndsWith(RemoteServiceName.Suffix64 + RemoteServiceName.SuffixServerGC, StringComparison.Ordinal) ? RemoteServiceName.Suffix64.Length + RemoteServiceName.SuffixServerGC.Length : 0;
+            var shortName = qualifiedServiceName.Substring(prefixLength, qualifiedServiceName.Length - prefixLength - suffixLength);
+
+            return RemoteWorkspacesResources.GetResourceString("FeatureName_" + shortName);
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly ServiceDescriptors _serviceDescriptors;
+
+            internal TestAccessor(ServiceDescriptors serviceDescriptors)
+                => _serviceDescriptors = serviceDescriptors;
+
+            public ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC)> Descriptors
+                => _serviceDescriptors._descriptors;
+        }
     }
 }

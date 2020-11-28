@@ -35,10 +35,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static SymbolUsageInfo Create(ValueUsageInfo valueUsageInfo)
-            => new SymbolUsageInfo(valueUsageInfo, typeOrNamespaceUsageInfoOpt: null);
+            => new(valueUsageInfo, typeOrNamespaceUsageInfoOpt: null);
 
         public static SymbolUsageInfo Create(TypeOrNamespaceUsageInfo typeOrNamespaceUsageInfo)
-            => new SymbolUsageInfo(valueUsageInfoOpt: null, typeOrNamespaceUsageInfo);
+            => new(valueUsageInfoOpt: null, typeOrNamespaceUsageInfo);
 
         public bool IsReadFrom()
             => ValueUsageInfoOpt.HasValue && ValueUsageInfoOpt.Value.IsReadFrom();
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
         public bool IsNameOnly()
             => ValueUsageInfoOpt.HasValue && ValueUsageInfoOpt.Value.IsNameOnly();
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is SymbolUsageInfo && Equals((SymbolUsageInfo)obj);
 
         public bool Equals(SymbolUsageInfo other)
@@ -59,9 +59,12 @@ namespace Microsoft.CodeAnalysis
                 return other.ValueUsageInfoOpt.HasValue &&
                     ValueUsageInfoOpt.Value == other.ValueUsageInfoOpt.Value;
             }
-
-            return other.TypeOrNamespaceUsageInfoOpt.HasValue &&
-                TypeOrNamespaceUsageInfoOpt.Value == other.TypeOrNamespaceUsageInfoOpt.Value;
+            else
+            {
+                RoslynDebug.Assert(TypeOrNamespaceUsageInfoOpt.HasValue);
+                return other.TypeOrNamespaceUsageInfoOpt.HasValue &&
+                    TypeOrNamespaceUsageInfoOpt.Value == other.TypeOrNamespaceUsageInfoOpt.Value;
+            }
         }
 
         public override int GetHashCode()

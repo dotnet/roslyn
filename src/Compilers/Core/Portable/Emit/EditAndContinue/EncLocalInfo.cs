@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(other.Type != null);
 
             return this.SlotInfo.Equals(other.SlotInfo) &&
-                   this.Type.Equals(other.Type) &&
+                   Cci.SymbolEquivalentEqualityComparer.Instance.Equals(this.Type, other.Type) &&
                    this.Constraints == other.Constraints &&
                    this.isUnused == other.isUnused;
         }
@@ -72,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(this.Type != null);
 
             return Hash.Combine(this.SlotInfo.GetHashCode(),
-                   Hash.Combine(this.Type.GetHashCode(),
+                   Hash.Combine(Cci.SymbolEquivalentEqualityComparer.Instance.GetHashCode(this.Type),
                    Hash.Combine((int)this.Constraints,
                    Hash.Combine(isUnused, 0))));
         }

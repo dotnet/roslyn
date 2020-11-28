@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -43,6 +41,8 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         protected abstract SyntaxToken Token(TSyntaxKind kind);
         protected abstract TAssignmentSyntax Assignment(
             TSyntaxKind assignmentOpKind, TExpressionSyntax left, SyntaxToken syntaxToken, TExpressionSyntax right);
+        protected abstract TExpressionSyntax Increment(TExpressionSyntax left);
+        protected abstract TExpressionSyntax Decrement(TExpressionSyntax left);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -78,6 +78,16 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
                         syntaxFacts.GetPartsOfBinaryExpression(rightOfAssign,
                             out _, out var opToken, out var rightExpr);
+
+                        if (diagnostic.Properties.ContainsKey(UseCompoundAssignmentUtilities.Increment))
+                        {
+                            return Increment((TExpressionSyntax)leftOfAssign);
+                        }
+
+                        if (diagnostic.Properties.ContainsKey(UseCompoundAssignmentUtilities.Decrement))
+                        {
+                            return Decrement((TExpressionSyntax)leftOfAssign);
+                        }
 
                         var assignmentOpKind = _binaryToAssignmentMap[syntaxKinds.Convert<TSyntaxKind>(rightOfAssign.RawKind)];
                         var compoundOperator = Token(_assignmentToTokenMap[assignmentOpKind]);

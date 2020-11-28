@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         public const string TagId = "RoslynConflictTag";
 
-        public static readonly ConflictTag Instance = new ConflictTag();
+        public static readonly ConflictTag Instance = new();
 
         private ConflictTag()
             : base(TagId)

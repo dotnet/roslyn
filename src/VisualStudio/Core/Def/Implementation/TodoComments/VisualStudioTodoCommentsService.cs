@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -43,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
 
         private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>> _documentToInfos
-            = new ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>>();
+            = new();
 
         /// <summary>
         /// Remote service connection. Created on demand when we startup and then
@@ -55,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
         /// </summary>
         private readonly TaskCompletionSource<AsyncBatchingWorkQueue<DocumentAndComments>> _workQueueSource
-            = new TaskCompletionSource<AsyncBatchingWorkQueue<DocumentAndComments>>();
+            = new();
 
         public event EventHandler<TodoItemsUpdatedArgs>? TodoListUpdated;
 
@@ -94,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             {
                 // Cancellation is normal (during VS closing).  Just ignore.
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
                 // Otherwise report a watson for any other exception.  Don't bring down VS.  This is
                 // a BG service we don't want impacting the user experience.
@@ -120,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // todo comments it will call back into us to notify VS about it.
-            _lazyConnection = await client.CreateConnectionAsync<IRemoteTodoCommentsDiscoveryService>(callbackTarget: this, cancellationToken).ConfigureAwait(false);
+            _lazyConnection = client.CreateConnection<IRemoteTodoCommentsDiscoveryService>(callbackTarget: this);
 
             // Now that we've started, let the VS todo list know to start listening to us
             _eventListenerTracker.EnsureEventListener(_workspace, this);
@@ -128,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             // Now kick off scanning in the OOP process.
             // If the call fails an error has already been reported and there is nothing more to do.
             _ = await _lazyConnection.TryInvokeAsync(
-                (service, cancellationToken) => service.ComputeTodoCommentsAsync(cancellationToken),
+                (service, callbackId, cancellationToken) => service.ComputeTodoCommentsAsync(callbackId, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -211,13 +209,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 : ImmutableArray<TodoCommentData>.Empty;
         }
 
-        public IEnumerable<UpdatedEventArgs> GetTodoItemsUpdatedEventArgs(
-            Workspace workspace, CancellationToken cancellationToken)
-        {
-            // Don't need to implement this.  OOP pushes all items over to VS.  So there's no need
-            return SpecializedCollections.EmptyEnumerable<UpdatedEventArgs>();
-        }
-
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
@@ -228,7 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 var workQueue = await _workQueueSource.Task.ConfigureAwait(false);
                 workQueue.AddWork(new DocumentAndComments(documentId, infos));
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 // report NFW before returning back to the remote process
                 throw ExceptionUtilities.Unreachable;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     {
         private class LogService : ForegroundThreadAffinitizedObject, ISymbolSearchLogService
         {
-            private static readonly LinkedList<string> s_log = new LinkedList<string>();
+            private static readonly LinkedList<string> s_log = new();
 
             private readonly IVsActivityLog _activityLog;
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -49,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             _serviceProvider = serviceProvider;
 
-            var componentModel = _serviceProvider.GetService<SComponentModel, IComponentModel>();
+            var componentModel = IServiceProviderExtensions.GetService<SComponentModel, IComponentModel>(_serviceProvider);
             _editorAdaptersFactory = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             _metadataAsSourceFileService = componentModel.GetService<IMetadataAsSourceFileService>();
             _sourceGeneratedFileManager = componentModel.GetService<SourceGeneratedFileManager>();
@@ -79,17 +77,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
                     return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options);
                 }
-                else
-                {
-                    // This may be a file from a source generator; if so let's go to it instead
-                    var generatorRunResult = project.GetGeneratorDriverRunResultAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
-                    if (generatorRunResult.TryGetGeneratorAndHint(sourceLocation.SourceTree!, out var generator, out var hintName))
-                    {
-                        _sourceGeneratedFileManager.NavigateToSourceGeneratedFile(project, generator, hintName, sourceLocation.SourceSpan);
-                        return true;
-                    }
-                }
             }
 
             // We don't have a source document, so show the Metadata as Source view in a preview tab.
@@ -118,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 if (navInfo != null)
                 {
-                    var navigationTool = _serviceProvider.GetService<SVsObjBrowser, IVsNavigationTool>();
+                    var navigationTool = IServiceProviderExtensions.GetService<SVsObjBrowser, IVsNavigationTool>(_serviceProvider);
                     return navigationTool.NavigateToNavInfo(navInfo) == VSConstants.S_OK;
                 }
 
@@ -146,10 +133,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation, cancellationToken).WaitAndGetResult(cancellationToken);
 
-            var vsRunningDocumentTable4 = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>();
+            var vsRunningDocumentTable4 = IServiceProviderExtensions.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>(_serviceProvider);
             var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
 
-            var openDocumentService = _serviceProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
+            var openDocumentService = IServiceProviderExtensions.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>(_serviceProvider);
             openDocumentService.OpenDocumentViaProject(result.FilePath, VSConstants.LOGVIEWID.TextView_guid, out var localServiceProvider, out var hierarchy, out var itemId, out var windowFrame);
 
             var documentCookie = vsRunningDocumentTable4.GetDocumentCookie(result.FilePath);

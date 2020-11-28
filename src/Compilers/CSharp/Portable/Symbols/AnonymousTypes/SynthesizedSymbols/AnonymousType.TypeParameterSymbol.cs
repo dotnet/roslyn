@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -70,6 +72,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
+            public override bool IsReferenceTypeFromConstraintTypes
+            {
+                get { return false; }
+            }
+
             internal override bool? ReferenceTypeConstraintIsNullable
             {
                 get { return false; }
@@ -80,6 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override bool? IsNotNullable => null;
 
             public override bool HasValueTypeConstraint
+            {
+                get { return false; }
+            }
+
+            public override bool IsValueTypeFromConstraintTypes
             {
                 get { return false; }
             }

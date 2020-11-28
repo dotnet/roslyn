@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
@@ -42,10 +46,64 @@ namespace Microsoft.CodeAnalysis.Structure
         }
 
         public override async Task<BlockStructure> GetBlockStructureAsync(
-            Document document, CancellationToken cancellationToken)
+            Document document,
+            CancellationToken cancellationToken)
         {
-            var context = new BlockStructureContext(document, cancellationToken);
-            foreach (var provider in _providers)
+            var context = await CreateContextAsync(document, cancellationToken).ConfigureAwait(false);
+            return await GetBlockStructureAsync(context, _providers).ConfigureAwait(false);
+        }
+
+        public override BlockStructure GetBlockStructure(
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            var context = CreateContextAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+            return GetBlockStructure(context, _providers);
+        }
+
+        public async Task<BlockStructure> GetBlockStructureAsync(
+            SyntaxTree syntaxTree,
+            OptionSet options,
+            bool isMetadataAsSource,
+            CancellationToken cancellationToken)
+        {
+            var context = CreateContext(syntaxTree, options, isMetadataAsSource, cancellationToken);
+            return await GetBlockStructureAsync(context, _providers).ConfigureAwait(false);
+        }
+
+        public BlockStructure GetBlockStructure(
+            SyntaxTree syntaxTree,
+            OptionSet options,
+            bool isMetadataAsSource,
+            CancellationToken cancellationToken)
+        {
+            var context = CreateContext(syntaxTree, options, isMetadataAsSource, cancellationToken);
+            return GetBlockStructure(context, _providers);
+        }
+
+        private static async Task<BlockStructureContext> CreateContextAsync(Document document, CancellationToken cancellationToken)
+        {
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var options = document.Project.Solution.Options;
+            var isMetadataAsSource = document.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
+            return CreateContext(syntaxTree, options, isMetadataAsSource, cancellationToken);
+        }
+
+        private static BlockStructureContext CreateContext(
+            SyntaxTree syntaxTree,
+            OptionSet options,
+            bool isMetadataAsSource,
+            CancellationToken cancellationToken)
+        {
+            var optionProvider = new BlockStructureOptionProvider(options, isMetadataAsSource);
+            return new BlockStructureContext(syntaxTree, optionProvider, cancellationToken);
+        }
+
+        private static async Task<BlockStructure> GetBlockStructureAsync(
+            BlockStructureContext context,
+            ImmutableArray<BlockStructureProvider> providers)
+        {
+            foreach (var provider in providers)
             {
                 await provider.ProvideBlockStructureAsync(context).ConfigureAwait(false);
             }
@@ -53,11 +111,11 @@ namespace Microsoft.CodeAnalysis.Structure
             return CreateBlockStructure(context);
         }
 
-        public override BlockStructure GetBlockStructure(
-            Document document, CancellationToken cancellationToken)
+        private static BlockStructure GetBlockStructure(
+            BlockStructureContext context,
+            ImmutableArray<BlockStructureProvider> providers)
         {
-            var context = new BlockStructureContext(document, cancellationToken);
-            foreach (var provider in _providers)
+            foreach (var provider in providers)
             {
                 provider.ProvideBlockStructure(context);
             }
@@ -67,15 +125,14 @@ namespace Microsoft.CodeAnalysis.Structure
 
         private static BlockStructure CreateBlockStructure(BlockStructureContext context)
         {
-            var options = context.Document.Project.Solution.Workspace.Options;
-            var language = context.Document.Project.Language;
+            var language = context.SyntaxTree.Options.Language;
 
-            var showIndentGuidesForCodeLevelConstructs = options.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, language);
-            var showIndentGuidesForDeclarationLevelConstructs = options.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, language);
-            var showIndentGuidesForCommentsAndPreprocessorRegions = options.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, language);
-            var showOutliningForCodeLevelConstructs = options.GetOption(BlockStructureOptions.ShowOutliningForCodeLevelConstructs, language);
-            var showOutliningForDeclarationLevelConstructs = options.GetOption(BlockStructureOptions.ShowOutliningForDeclarationLevelConstructs, language);
-            var showOutliningForCommentsAndPreprocessorRegions = options.GetOption(BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions, language);
+            var showIndentGuidesForCodeLevelConstructs = context.OptionProvider.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, language);
+            var showIndentGuidesForDeclarationLevelConstructs = context.OptionProvider.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, language);
+            var showIndentGuidesForCommentsAndPreprocessorRegions = context.OptionProvider.GetOption(BlockStructureOptions.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, language);
+            var showOutliningForCodeLevelConstructs = context.OptionProvider.GetOption(BlockStructureOptions.ShowOutliningForCodeLevelConstructs, language);
+            var showOutliningForDeclarationLevelConstructs = context.OptionProvider.GetOption(BlockStructureOptions.ShowOutliningForDeclarationLevelConstructs, language);
+            var showOutliningForCommentsAndPreprocessorRegions = context.OptionProvider.GetOption(BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions, language);
 
             using var _ = ArrayBuilder<BlockSpan>.GetInstance(out var updatedSpans);
             foreach (var span in context.Spans)

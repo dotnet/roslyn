@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
             }
         }
-#nullable restore
+#nullable disable
 
         internal SyntaxReference SyntaxRef
         {
@@ -449,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 #endif
         }
-#nullable restore
+#nullable disable
 
         internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
@@ -884,54 +886,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void DecodeUnmanagedCallersOnlyAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(arguments.AttributeSyntaxOpt != null);
-            if (!IsStatic || MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction))
-            {
-                // `UnmanagedCallersOnly` can only be applied to ordinary static methods or local functions.
-                arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, arguments.AttributeSyntaxOpt.Location);
-            }
 
             arguments.GetOrCreateData<MethodWellKnownAttributeData>().UnmanagedCallersOnlyAttributeData =
-                DecodeUnmanagedCallersOnlyAttributeData(arguments.Attribute, arguments.AttributeSyntaxOpt.Location, arguments.Diagnostics);
+                DecodeUnmanagedCallersOnlyAttributeData(this, arguments.Attribute, arguments.AttributeSyntaxOpt.Location, arguments.Diagnostics);
 
-            var (returnTypeSyntax, genericTypeParameters) = SyntaxNode switch
-            {
-                MethodDeclarationSyntax m => (m.ReturnType, m.TypeParameterList),
-                LocalFunctionStatementSyntax l => (l.ReturnType, l.TypeParameterList),
-                _ => default
-            };
+            bool reportedError = CheckAndReportValidUnmanagedCallersOnlyTarget(arguments.AttributeSyntaxOpt.Name.Location, arguments.Diagnostics);
 
-            if (returnTypeSyntax is null)
+            var returnTypeSyntax = this.ExtractReturnTypeSyntax();
+
+            // If there is no return type (such as a property definition), Dummy.GetRoot() is returned.
+            if (ReferenceEquals(returnTypeSyntax, CSharpSyntaxTree.Dummy.GetRoot()))
             {
-                // We already issued an error for these above. We don't immediately bail out so we can error on invalid
-                // calling convention types as well, but erroring on parameter or return types will likely just be noise.
-                Debug.Assert(MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction));
+                // If there's no syntax for the return type, then we already errored because this isn't a valid
+                // unmanagedcallersonly target (it's a property getter/setter or some other non-regular-method).
+                // Any more errors would just be noise.
+                Debug.Assert(reportedError);
                 return;
-            }
-
-            if (isGenericMethod(this) || ContainingType.IsGenericType)
-            {
-                arguments.Diagnostics.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, arguments.AttributeSyntaxOpt.Name.Location);
             }
 
             checkAndReportManagedTypes(ReturnType, returnTypeSyntax, isParam: false, arguments.Diagnostics);
             foreach (var param in Parameters)
             {
                 checkAndReportManagedTypes(param.Type, param.GetNonNullSyntaxNode(), isParam: true, arguments.Diagnostics);
-            }
-
-            static bool isGenericMethod([DisallowNull] MethodSymbol? method)
-            {
-                do
-                {
-                    if (method.IsGenericMethod)
-                    {
-                        return true;
-                    }
-
-                    method = method.ContainingSymbol as MethodSymbol;
-                } while (method is not null);
-
-                return false;
             }
 
             static void checkAndReportManagedTypes(TypeSymbol type, SyntaxNode syntax, bool isParam, DiagnosticBag diagnostics)
@@ -956,8 +932,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(type.ManagedKindNoUseSiteDiagnostics);
                 }
             }
+
+            static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(SourceMethodSymbolWithAttributes @this, CSharpAttributeData attribute, Location location, DiagnosticBag diagnostics)
+            {
+                Debug.Assert(attribute.AttributeClass is not null);
+                ImmutableHashSet<CodeAnalysis.Symbols.INamedTypeSymbolInternal>? callingConventionTypes = null;
+                if (attribute.CommonNamedArguments is { IsDefaultOrEmpty: false } namedArgs)
+                {
+                    var systemType = @this.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type);
+
+                    foreach (var (key, value) in attribute.CommonNamedArguments)
+                    {
+                        // Technically, CIL can define a field and a property with the same name. However, such a
+                        // member results in an Ambiguous Member error, and we never get to this piece of code at all.
+                        // See UnmanagedCallersOnly_PropertyAndFieldNamedCallConvs for an example
+                        bool isField = attribute.AttributeClass.GetMembers(key).Any(
+                            static (m, systemType) => m is FieldSymbol { Type: ArrayTypeSymbol { ElementType: NamedTypeSymbol elementType } } && elementType.Equals(systemType, TypeCompareKind.ConsiderEverything),
+                            systemType);
+
+                        var namedArgumentDecoded = TryDecodeUnmanagedCallersOnlyCallConvsField(key, value, isField, location, diagnostics);
+
+                        if (namedArgumentDecoded.IsCallConvs)
+                        {
+                            callingConventionTypes = namedArgumentDecoded.CallConvs;
+                        }
+                    }
+                }
+
+                return UnmanagedCallersOnlyAttributeData.Create(callingConventionTypes);
+            }
         }
-#nullable restore
+#nullable disable
 
         internal sealed override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {

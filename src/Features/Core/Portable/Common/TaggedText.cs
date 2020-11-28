@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -223,6 +225,9 @@ namespace Microsoft.CodeAnalysis
                 case TextTags.AnonymousTypeIndicator:
                 case TextTags.Text:
                     return ClassificationTypeNames.Text;
+
+                case TextTags.Record:
+                    return ClassificationTypeNames.RecordName;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(taggedTextTag);

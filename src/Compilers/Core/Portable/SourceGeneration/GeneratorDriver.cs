@@ -6,12 +6,11 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
-
-#nullable enable
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -241,7 +240,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(generatorState.Info.Initialized);
 
                 // we create a new context for each run of the generator. We'll never re-use existing state, only replace anything we have 
-                var context = new GeneratorExecutionContext(compilation, state.ParseOptions, state.AdditionalTexts.NullToEmpty(), state.OptionsProvider, generatorState.SyntaxReceiver);
+                var context = new GeneratorExecutionContext(compilation, state.ParseOptions, state.AdditionalTexts.NullToEmpty(), state.OptionsProvider, generatorState.SyntaxReceiver, CreateSourcesCollection());
                 try
                 {
                     generator.Execute(context);
@@ -280,7 +279,9 @@ namespace Microsoft.CodeAnalysis
                 if (edit.AcceptedBy(generatorState.Info))
                 {
                     // attempt to apply the edit
-                    var context = new GeneratorEditContext(generatorState.SourceTexts.ToImmutableArray(), cancellationToken);
+                    var previousSources = CreateSourcesCollection();
+                    previousSources.AddRange(generatorState.SourceTexts);
+                    var context = new GeneratorEditContext(previousSources, cancellationToken);
                     var succeeded = edit.TryApply(generatorState.Info, context);
                     if (!succeeded)
                     {
@@ -290,7 +291,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // update the state with the new edits
-                    var additionalSources = context.AdditionalSources.ToImmutableAndFree();
+                    var additionalSources = previousSources.ToImmutableAndFree();
                     state = state.With(generatorStates: state.GeneratorStates.SetItem(i, new GeneratorState(generatorState.Info, sourceTexts: additionalSources, trees: ParseAdditionalSources(generator, additionalSources, cancellationToken), diagnostics: ImmutableArray<Diagnostic>.Empty)));
                 }
             }
@@ -335,10 +336,10 @@ namespace Microsoft.CodeAnalysis
         {
             var trees = ArrayBuilder<SyntaxTree>.GetInstance(generatedSources.Length);
             var type = generator.GetType();
-            var prefix = $"{type.Module.ModuleVersionId}_{type.FullName}";
+            var prefix = GetFilePathPrefixForGenerator(generator);
             foreach (var source in generatedSources)
             {
-                trees.Add(ParseGeneratedSourceText(source, $"{prefix}_{source.HintName}", cancellationToken));
+                trees.Add(ParseGeneratedSourceText(source, Path.Combine(prefix, source.HintName), cancellationToken));
             }
             return trees.ToImmutableAndFree();
         }
@@ -384,10 +385,18 @@ namespace Microsoft.CodeAnalysis
             return new GeneratorState(generatorState.Info, e, diagnostic);
         }
 
+        internal static string GetFilePathPrefixForGenerator(ISourceGenerator generator)
+        {
+            var type = generator.GetType();
+            return Path.Combine(type.Assembly.GetName().Name ?? string.Empty, type.FullName!);
+        }
+
         internal abstract CommonMessageProvider MessageProvider { get; }
 
         internal abstract GeneratorDriver FromState(GeneratorDriverState state);
 
         internal abstract SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken);
+
+        internal abstract AdditionalSourcesCollection CreateSourcesCollection();
     }
 }

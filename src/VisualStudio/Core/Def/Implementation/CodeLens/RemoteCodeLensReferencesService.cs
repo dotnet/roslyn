@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -47,7 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, ReferenceCount?>(
                         solution,
                         (service, solutionInfo, cancellationToken) => service.GetReferenceCountAsync(solutionInfo, documentId, syntaxNode.Span, maxSearchResults, cancellationToken),
-                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
                     return result.HasValue ? result.Value : null;
@@ -94,7 +91,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, ImmutableArray<ReferenceMethodDescriptor>?>(
                         solution,
                         (service, solutionInfo, cancellationToken) => service.FindReferenceMethodsAsync(solutionInfo, documentId, syntaxNode.Span, cancellationToken),
-                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
                     return result.HasValue ? result.Value : null;
@@ -120,7 +116,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, string>(
                         solution,
                         (service, solutionInfo, cancellationToken) => service.GetFullyQualifiedNameAsync(solutionInfo, documentId, syntaxNode.Span, cancellationToken),
-                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
                     return result.HasValue ? result.Value : null;
@@ -169,6 +164,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 }
 
                 var excerpter = document.Services.GetService<IDocumentExcerptService>();
+                if (excerpter == null)
+                {
+                    continue;
+                }
+
                 var referenceExcerpt = await excerpter.TryExcerptAsync(document, span, ExcerptMode.SingleLine, cancellationToken).ConfigureAwait(false);
                 var tooltipExcerpt = await excerpter.TryExcerptAsync(document, span, ExcerptMode.Tooltip, cancellationToken).ConfigureAwait(false);
 
@@ -253,7 +253,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, ImmutableArray<ReferenceLocationDescriptor>?>(
                     solution,
                     (service, solutionInfo, cancellationToken) => service.FindReferenceLocationsAsync(solutionInfo, documentId, syntaxNode.Span, cancellationToken),
-                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
                 return result.HasValue ? result.Value : null;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -94,6 +96,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 if (LocalFunction)
                 {
                     destination = InsertionPoint.With(callSiteDocument).GetContext();
+
+                    // No valid location to insert the new method call.
+                    if (destination == null)
+                    {
+                        return await CreateGeneratedCodeAsync(
+                            OperationStatus.NoValidLocationToInsertMethodCall, callSiteDocument, cancellationToken).ConfigureAwait(false);
+                    }
+
                     var localMethod = codeGenerationService.CreateMethodDeclaration(
                         method: result.Data,
                         options: new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, options: Options, parseOptions: destination?.SyntaxTree.Options));

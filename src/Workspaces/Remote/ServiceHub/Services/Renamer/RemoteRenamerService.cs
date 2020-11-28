@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -109,7 +107,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        [return: NotNullIfNotNull("nonConflictSymbolIds")]
         private static async Task<ImmutableHashSet<ISymbol>?> GetNonConflictSymbolsAsync(Solution solution, ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds, CancellationToken cancellationToken)
         {
             if (nonConflictSymbolIds.IsDefault)

@@ -183,4 +183,13 @@
   <data name="FeatureName_TodoCommentsDiscovery" xml:space="preserve">
     <value>TODO comments discovery</value>
   </data>
+  <data name="FeatureName_AsynchronousOperationListener" xml:space="preserve">
+    <value>Asynchronous operation listener</value>
+  </data>
+  <data name="FeatureName_AssetSynchronization" xml:space="preserve">
+    <value>Asset synchronization</value>
+  </data>
+  <data name="FeatureName_SolutionAssetProvider" xml:space="preserve">
+    <value>Asset provider</value>
+  </data>
 </root>

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 this.TypeStylePreference = stylePreferences;
 
                 IsTypeApparentInContext =
-                        declaration.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax varDecl)
+                        declaration.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax? varDecl)
                      && IsTypeApparentInDeclaration(varDecl, semanticModel, TypeStylePreference, cancellationToken);
 
                 IsInIntrinsicTypeContext =
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             /// <summary>
             /// Returns true for type that are arrays/nullable/pointer types of special types
             /// </summary>
-            private static bool IsMadeOfSpecialTypes(ITypeSymbol type)
+            private static bool IsMadeOfSpecialTypes([NotNullWhen(true)] ITypeSymbol? type)
             {
                 if (type == null)
                 {
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     semanticModel.GetTypeInfo(typeSyntax).Type?.IsSpecialType() == true;
             }
 
-            private static TypeSyntax GetTypeSyntaxFromDeclaration(SyntaxNode declarationStatement)
+            private static TypeSyntax? GetTypeSyntaxFromDeclaration(SyntaxNode declarationStatement)
                 => declarationStatement switch
                 {
                     VariableDeclarationSyntax varDecl => varDecl.Type,

@@ -42,5 +42,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Function IsFinalSemicolonOfUsingOrExtern(directive As SyntaxNode, token As SyntaxToken) As Boolean
             Return False
         End Function
+
+        Protected Overrides Function ShouldProvideParenthesisCompletionAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of Boolean)
+            Return Task.FromResult(False)
+        End Function
     End Class
 End Namespace

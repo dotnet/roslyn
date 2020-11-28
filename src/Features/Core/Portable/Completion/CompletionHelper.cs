@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,11 +15,11 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal sealed class CompletionHelper
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> _patternMatcherMap =
-             new Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher>();
+             new();
 
-        private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
+        private static readonly CultureInfo EnUSCultureInfo = new("en-US");
         private readonly bool _isCaseSensitive;
 
         public CompletionHelper(bool isCaseSensitive)
@@ -64,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Completion
             if (lastDotIndex >= 0)
             {
                 var afterDotPosition = lastDotIndex + 1;
-                var textAfterLastDot = completionItemText.Substring(afterDotPosition);
+                var textAfterLastDot = completionItemText[afterDotPosition..];
 
                 var match = GetMatchWorker(textAfterLastDot, pattern, culture, includeMatchSpans);
                 if (match != null)

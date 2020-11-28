@@ -10,15 +10,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo
 {
     internal interface IFSharpNavigateToSearchService
     {
-        IImmutableSet<string> KindsProvided
-        {
-            get;
-        }
+        IImmutableSet<string> KindsProvided { get; }
 
-        bool CanFilter
-        {
-            get;
-        }
+        bool CanFilter { get; }
 
         Task<ImmutableArray<FSharpNavigateToSearchResult>> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken);
         Task<ImmutableArray<FSharpNavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken);
