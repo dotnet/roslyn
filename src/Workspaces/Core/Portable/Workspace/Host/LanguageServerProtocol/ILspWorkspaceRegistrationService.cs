@@ -6,12 +6,26 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Host.LanguageServerProtocol
 {
+    /// <summary>
+    /// Allows workspaces to register themselves to be considered when LSP requests come in. Any workspace
+    /// registered will be probed for a matching document/solution which can be given to the request handler
+    /// to operate on.
+    /// </summary>
     public interface ILspWorkspaceRegistrationService
     {
+        /// <summary>
+        /// Get all current registrations.
+        /// </summary>
         ImmutableArray<Workspace> GetAllRegistrations();
 
+        /// <summary>
+        /// Register the specified workspace for consideration for LSP requests.
+        /// </summary>
         void Register(Workspace workspace);
 
+        /// <summary>
+        /// Unregister the specified workspace.
+        /// </summary>
         void Unregister(Workspace workspace);
     }
 }
