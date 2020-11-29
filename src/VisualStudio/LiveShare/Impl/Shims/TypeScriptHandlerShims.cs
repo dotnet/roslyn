@@ -194,7 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
             var textDocument = requestHandler.GetTextDocumentIdentifier(request);
 
-            var (documentId, solution) = provider.GetDocumentAndSolution(textDocument, clientName);
+            var (documentId, solution) = provider.FindDocumentAndSolution(textDocument, clientName);
             var document = solution.GetDocument(documentId);
 
             return new LSP.RequestContext(solution, clientCapabilities, clientName, document, new NoOpDocumentChangeTracker());

@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
@@ -27,17 +25,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             _projectService = projectService;
         }
 
-        public Solution GetCurrentSolutionForMainWorkspace()
+        public (DocumentId?, Solution) FindDocumentAndSolution(TextDocumentIdentifier? textDocument, string? clientName)
         {
-            return _solutionProvider.GetCurrentSolutionForMainWorkspace();
-        }
-
-        public ImmutableArray<Document> GetDocuments(Uri documentUri)
-        {
-            if (documentUri.IsAbsoluteUri == true)
+            if (textDocument is { Uri: { IsAbsoluteUri: true } documentUri })
+            {
                 _projectService.TrackOpenDocument(documentUri.LocalPath);
+            }
 
-            return _solutionProvider.GetDocuments(documentUri);
+            return _solutionProvider.FindDocumentAndSolution(textDocument, clientName);
         }
     }
 }
