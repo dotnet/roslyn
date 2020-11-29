@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // There are multiple possible solutions that we could be interested in, so we need to find the document
             // first and then get the solution from there. If we're not given a document, this will return the default
             // solution
-            var (documentId, workspaceSolution) = _solutionProvider.GetDocumentAndSolution(queueItem.TextDocument, queueItem.ClientName);
+            var (documentId, workspaceSolution) = _solutionProvider.FindDocumentAndSolution(queueItem.TextDocument, queueItem.ClientName);
 
             var lspSolution = GetLSPSolution(workspaceSolution);
 
