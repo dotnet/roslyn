@@ -1098,9 +1098,12 @@ End Class
 
             propertySymbol = GetPropertySymbol(compilation, bindings, "c.vb", "Property P As Integer", propertySyntax)
             Assert.NotNull(propertySymbol)
+            Assert.Null(propertySymbol.BackingField)
 
             propertySymbol = GetPropertySymbol(compilation, bindings, "c.vb", "Property Q As Object", propertySyntax)
             Assert.NotNull(propertySymbol)
+            Assert.NotNull(propertySymbol.BackingField)
+            Assert.Equal(propertySymbol, propertySymbol.BackingField.AssociatedSymbol)
 
             propertySymbol = GetPropertySymbol(compilation, bindings, "c.vb", "Property R(index As Integer)", propertySyntax)
             Assert.NotNull(propertySymbol)
