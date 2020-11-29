@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public IMethodSymbol SetMethod => _symbol.SetMethod;
 
+            public IFieldSymbol BackingField => _symbol.BackingField;
+
             public ITypeSymbol Type => _symbol.Type;
 
             public NullableAnnotation NullableAnnotation => _symbol.NullableAnnotation;

@@ -88,5 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
         public ImmutableArray<CustomModifier> TypeCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
+        public IFieldSymbol BackingField => null;
     }
 }
