@@ -382,7 +382,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 var solutionProvider = workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
 
                 var languageServer = new InProcLanguageServer(
-                    languageClient: null!,
+                    languageClient: new TestLanguageClient(),
                     inputStream,
                     outputStream,
                     protocol,
@@ -565,6 +565,19 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     return Task.CompletedTask;
                 }
             }
+        }
+
+        private class TestLanguageClient : AbstractInProcLanguageClient
+        {
+            public TestLanguageClient()
+                : base(null!, null!, null, null!, null!, null)
+            {
+            }
+
+            public override string Name => nameof(LspDiagnosticsTests);
+
+            protected internal override LSP.VSServerCapabilities GetCapabilities() => new();
+
         }
     }
 }
