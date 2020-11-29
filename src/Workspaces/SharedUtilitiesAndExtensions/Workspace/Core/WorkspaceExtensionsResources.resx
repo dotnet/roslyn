@@ -144,4 +144,7 @@
   <data name="Warning_colon_Declaration_changes_scope_and_may_change_meaning" xml:space="preserve">
     <value>Warning: Declaration changes scope and may change meaning.</value>
   </data>
+  <data name="Applying_fix_all" xml:space="preserve">
+    <value>Applying 'fix all'</value>
+  </data>
 </root>

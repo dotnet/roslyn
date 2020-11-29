@@ -16,4 +16,31 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         void ItemCompleted();
         void Clear();
     }
+
+    internal class NoOpProgressTracker : IProgressTracker
+    {
+        public static readonly IProgressTracker Instance = new NoOpProgressTracker();
+
+        private NoOpProgressTracker()
+        {
+        }
+
+        public string Description { get => null; set { } }
+
+        public int CompletedItems => 0;
+
+        public int TotalItems => 0;
+
+        public void AddItems(int count)
+        {
+        }
+
+        public void Clear()
+        {
+        }
+
+        public void ItemCompleted()
+        {
+        }
+    }
 }

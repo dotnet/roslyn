@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 _showPreviewChangesDialog);
         }
 
-        internal override async Task<Solution> GetChangedSolutionAsync(
+        internal sealed override async Task<Solution> GetChangedSolutionAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -55,8 +55,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var service = FixAllState.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
 
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
-            return await service.GetFixAllChangedSolutionAsync(
-                new FixAllContext(FixAllState, progressTracker, cancellationToken)).ConfigureAwait(false);
+            var fixAllContext = new FixAllContext(FixAllState, progressTracker, cancellationToken);
+
+            if (progressTracker != null)
+                progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
+
+            return await service.GetFixAllChangedSolutionAsync(fixAllContext).ConfigureAwait(false);
         }
 
         private static bool IsInternalCodeFixProvider(CodeFixProvider fixer)

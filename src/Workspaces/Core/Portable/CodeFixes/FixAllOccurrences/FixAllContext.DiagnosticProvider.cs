@@ -57,9 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
                             fixAllContext.CancellationToken))
                     {
-                        return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(
-                            fixAllContext,
-                            fixAllContext.ProgressTracker).ConfigureAwait(false);
+                        return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
                     }
                 }
             }

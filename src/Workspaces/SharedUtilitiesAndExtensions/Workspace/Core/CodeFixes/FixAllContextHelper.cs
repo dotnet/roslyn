@@ -13,11 +13,21 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
+    internal static class FixAllContextExtensions
+    {
+        public static IProgressTracker GetProgressTracker(this FixAllContext context)
+        {
+#if CODE_STYLE
+            return NoOpProgressTracker.Instance;
+#else
+            return context.ProgressTracker;
+#endif
+        }
+    }
+
     internal static class FixAllContextHelper
     {
-        public static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
-            FixAllContext fixAllContext,
-            IProgressTracker? progressTrackerOpt)
+        public static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllContext fixAllContext)
         {
             var cancellationToken = fixAllContext.CancellationToken;
 
@@ -48,7 +58,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         .Where(p => p.Language == project.Language)
                         .ToImmutableArray();
 
-                    progressTrackerOpt?.AddItems(projectsToFix.Length);
+                    var progressTracker = fixAllContext.GetProgressTracker();
+                    progressTracker.AddItems(projectsToFix.Length);
 
                     var diagnostics = new ConcurrentDictionary<ProjectId, ImmutableArray<Diagnostic>>();
                     var tasks = new Task[projectsToFix.Length];
@@ -60,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         {
                             var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false);
                             diagnostics.TryAdd(projectToFix.Id, projectDiagnostics);
-                            progressTrackerOpt?.ItemCompleted();
+                            progressTracker.ItemCompleted();
                         }, cancellationToken);
                     }
 
@@ -141,15 +152,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Document? triggerDocument,
             Project triggerProject)
         {
-            string diagnosticId;
-            if (diagnosticIds.Count == 1)
-            {
-                diagnosticId = diagnosticIds.Single();
-            }
-            else
-            {
-                diagnosticId = string.Join(",", diagnosticIds.ToArray());
-            }
+            var diagnosticId = string.Join(",", diagnosticIds);
 
             switch (fixAllScope)
             {

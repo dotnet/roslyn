@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -36,12 +37,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (fixAllContext.Document != null)
             {
                 var documentsAndDiagnosticsToFixMap = await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false);
-                return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
+                return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
             }
             else
             {
                 var projectsAndDiagnosticsToFixMap = await fixAllContext.GetProjectDiagnosticsToFixAsync().ConfigureAwait(false);
-                return await GetFixAsync(projectsAndDiagnosticsToFixMap, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
+                return await GetFixAsync(projectsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
             }
         }
 
@@ -49,14 +50,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private async Task<CodeAction?> GetFixAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
-            FixAllState fixAllState, CancellationToken cancellationToken)
+            FixAllContext fixAllContext)
         {
+            var cancellationToken = fixAllContext.CancellationToken;
             if (documentsAndDiagnosticsToFixMap?.Any() == true)
             {
+                var fixAllState = fixAllContext.State;
                 FixAllLogger.LogDiagnosticsStats(fixAllState.CorrelationId, documentsAndDiagnosticsToFixMap);
 
-                var diagnosticsAndCodeActions = await GetDiagnosticsAndCodeActionsAsync(
-                    documentsAndDiagnosticsToFixMap, fixAllState, cancellationToken).ConfigureAwait(false);
+                var diagnosticsAndCodeActions = await GetDiagnosticsAndCodeActionsAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
 
                 if (diagnosticsAndCodeActions.Length > 0)
                 {
@@ -75,9 +77,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private async Task<ImmutableArray<(Diagnostic diagnostic, CodeAction action)>> GetDiagnosticsAndCodeActionsAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
-            FixAllState fixAllState, CancellationToken cancellationToken)
+            FixAllContext fixAllContext)
         {
+            var cancellationToken = fixAllContext.CancellationToken;
+            var fixAllState = fixAllContext.State;
             var fixesBag = new ConcurrentBag<(Diagnostic diagnostic, CodeAction action)>();
+
             using (Logger.LogBlock(
                 FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Fixes,
                 FixAllLogger.CreateCorrelationLogMessage(fixAllState.CorrelationId),
@@ -85,24 +90,46 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var tasks = new List<Task>();
+                var progressTracker = fixAllContext.GetProgressTracker();
+                progressTracker.Description = WorkspaceExtensionsResources.Applying_fix_all;
 
-                foreach (var kvp in documentsAndDiagnosticsToFixMap)
+                using var _1 = ArrayBuilder<Task>.GetInstance(out var tasks);
+                using var _2 = ArrayBuilder<Document>.GetInstance(out var documentsToFix);
+
+                foreach  (var (document, diagnosticsToFix) in documentsAndDiagnosticsToFixMap)
                 {
-                    var document = kvp.Key;
-                    var diagnosticsToFix = kvp.Value;
-                    Debug.Assert(!diagnosticsToFix.IsDefaultOrEmpty);
                     if (!diagnosticsToFix.IsDefaultOrEmpty)
-                    {
-                        tasks.Add(AddDocumentFixesAsync(
-                            document, diagnosticsToFix, fixesBag, fixAllState, cancellationToken));
-                    }
+                        documentsToFix.Add(document);
+                }
+
+                progressTracker.AddItems(documentsToFix.Count);
+
+                foreach (var document in documentsToFix)
+                {
+                    var diagnosticsToFix = documentsAndDiagnosticsToFixMap[document];
+                    tasks.Add(AddDocumentFixesAsync(
+                        document, diagnosticsToFix, fixesBag, fixAllState, progressTracker, cancellationToken));
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
             return fixesBag.ToImmutableArray();
+        }
+
+        private async Task AddDocumentFixesAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
+            FixAllState fixAllState, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await this.AddDocumentFixesAsync(document, diagnostics, fixes, fixAllState, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                progressTracker.ItemCompleted();
+            }
         }
 
         protected virtual async Task AddDocumentFixesAsync(
@@ -134,8 +161,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private async Task<CodeAction?> GetFixAsync(
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectsAndDiagnosticsToFixMap,
-            FixAllState fixAllState, CancellationToken cancellationToken)
+            FixAllContext fixAllContext)
         {
+            var cancellationToken = fixAllContext.CancellationToken;
+            var fixAllState = fixAllContext.State;
+
             if (projectsAndDiagnosticsToFixMap != null && projectsAndDiagnosticsToFixMap.Any())
             {
                 FixAllLogger.LogDiagnosticsStats(fixAllState.CorrelationId, projectsAndDiagnosticsToFixMap);
