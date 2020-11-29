@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public IEventSymbol? OverriddenEvent => _symbol.OverriddenEvent;
             public IMethodSymbol? RaiseMethod => _symbol.RaiseMethod;
             public IMethodSymbol? RemoveMethod => _symbol.RemoveMethod;
+            public IFieldSymbol? BackingField => _symbol.BackingField;
             public ITypeSymbol Type => _symbol.Type;
             public NullableAnnotation NullableAnnotation => _symbol.NullableAnnotation;
         }

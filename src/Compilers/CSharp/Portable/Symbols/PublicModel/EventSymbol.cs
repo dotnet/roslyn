@@ -62,6 +62,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
+        IFieldSymbol? IEventSymbol.BackingField
+        {
+            get
+            {
+                return _underlying.AssociatedField.GetPublicSymbol();
+            }
+        }
+
         IEventSymbol IEventSymbol.OriginalDefinition
         {
             get

@@ -47,6 +47,11 @@ namespace Microsoft.CodeAnalysis
         IMethodSymbol? RaiseMethod { get; }
 
         /// <summary>
+        /// The backing field of the event, or null if the event does not use a backing field.
+        /// </summary>
+        IFieldSymbol? BackingField { get; }
+
+        /// <summary>
         /// The original definition of the event. If the event is constructed from another
         /// symbol by type substitution, OriginalDefinition gets the original symbol, as it was 
         /// defined in source or metadata.
