@@ -3,45 +3,53 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.LanguageServerProtocol;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
     [Export(typeof(ILspSolutionProvider)), Shared]
     internal class VisualStudioLspSolutionProvider : ILspSolutionProvider
     {
-        private readonly VisualStudioWorkspace _visualStudioWorkspace;
-        private readonly MiscellaneousFilesWorkspace _miscellaneousFilesWorkspace;
+        private readonly ILspWorkspaceRegistrationService _registrationService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioLspSolutionProvider(VisualStudioWorkspace visualStudioWorkspace, MiscellaneousFilesWorkspace miscellaneousFilesWorkspace)
+        public VisualStudioLspSolutionProvider(ILspWorkspaceRegistrationService registrationService)
         {
-            _visualStudioWorkspace = visualStudioWorkspace;
-            _miscellaneousFilesWorkspace = miscellaneousFilesWorkspace;
+            _registrationService = registrationService;
         }
 
-        public Solution GetCurrentSolutionForMainWorkspace()
+        public (DocumentId?, Solution) FindDocumentAndSolution(TextDocumentIdentifier? textDocument, string? clientName)
         {
-            return _visualStudioWorkspace.CurrentSolution;
-        }
+            // Assume the first workspace registered is the main one
+            var mainWorkspace = _registrationService.GetAllRegistrations().First();
 
-        public ImmutableArray<Document> GetDocuments(Uri documentUri)
-        {
-            // First check the VS workspace for matching documents.
-            var documents = _visualStudioWorkspace.CurrentSolution.GetDocuments(documentUri);
-            if (documents.IsEmpty)
+            // if we weren't asked for a document, then we just return the main solution
+            if (textDocument is null)
             {
-                // If there's none in the VS workspace, then check the misc files workspace.
-                documents = _miscellaneousFilesWorkspace.CurrentSolution.GetDocuments(documentUri);
+                return (null, mainWorkspace.CurrentSolution);
             }
 
-            return documents;
+            foreach (var workspace in _registrationService.GetAllRegistrations())
+            {
+                var documents = workspace.CurrentSolution.GetDocuments(textDocument.Uri, clientName);
+
+                if (!documents.IsEmpty)
+                {
+                    var document = documents.FindDocumentInProjectContext(textDocument);
+
+                    return (document.Id, document.Project.Solution);
+                }
+            }
+
+            // If we couldn't find the document then we don't know what solution, so just return the main one
+            return (null, mainWorkspace.CurrentSolution);
         }
     }
 }
