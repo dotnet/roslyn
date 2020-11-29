@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Analyzers.SimplifyInterpolation;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -23,5 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
 
         protected override ISyntaxFacts GetSyntaxFacts()
             => CSharpSyntaxFacts.Instance;
+
+        protected override Helpers GetHelpers() => new CSharpHelpers();
     }
 }

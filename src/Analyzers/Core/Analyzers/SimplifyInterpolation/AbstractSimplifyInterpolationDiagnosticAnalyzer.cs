@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
 
+        protected virtual Helpers GetHelpers() => new();
+
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 return;
             }
 
-            Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
+            GetHelpers().UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
                 GetVirtualCharService(), GetSyntaxFacts(), interpolation, out _, out var alignment, out _,
                 out var formatString, out var unnecessaryLocations);
 

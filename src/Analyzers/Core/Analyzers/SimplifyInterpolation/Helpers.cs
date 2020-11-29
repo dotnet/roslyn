@@ -14,9 +14,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 {
-    internal static class Helpers
+    internal class Helpers
     {
-        public static void UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
+        protected virtual SyntaxNode GetPreservedInvocationInstanceSyntax(IInvocationOperation invocationOperation)
+        {
+            return invocationOperation.Instance.Syntax;
+        }
+
+        public void UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
             IVirtualCharService virtualCharService, ISyntaxFacts syntaxFacts, IInterpolationOperation interpolation,
             out TExpressionSyntax? unwrapped, out TExpressionSyntax? alignment, out bool negate,
             out string? formatString, out ImmutableArray<Location> unnecessaryLocations)
@@ -65,7 +70,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             }
         }
 
-        private static void UnwrapFormatString(
+        private void UnwrapFormatString(
             IVirtualCharService virtualCharService, ISyntaxFacts syntaxFacts, IOperation expression, out IOperation unwrapped,
             out string? formatString, List<TextSpan> unnecessarySpans)
         {
@@ -83,7 +88,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                     formatString = value;
 
                     unnecessarySpans.AddRange(invocation.Syntax.Span
-                        .Subtract(invocation.Instance.Syntax.FullSpan)
+                        .Subtract(GetPreservedInvocationInstanceSyntax(invocation).FullSpan)
                         .Subtract(GetSpanWithinLiteralQuotes(virtualCharService, literal.Syntax.GetFirstToken())));
                     return;
                 }
@@ -103,7 +108,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                     formatString = "";
 
                     unnecessarySpans.AddRange(invocation.Syntax.Span
-                        .Subtract(invocation.Instance.Syntax.FullSpan));
+                        .Subtract(GetPreservedInvocationInstanceSyntax(invocation).FullSpan));
                     return;
                 }
             }
@@ -120,7 +125,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 : TextSpan.FromBounds(sequence.First().Span.Start, sequence.Last().Span.End);
         }
 
-        private static void UnwrapAlignmentPadding<TExpressionSyntax>(
+        private void UnwrapAlignmentPadding<TExpressionSyntax>(
             IOperation expression, out IOperation unwrapped,
             out TExpressionSyntax? alignment, out bool negate, List<TextSpan> unnecessarySpans)
             where TExpressionSyntax : SyntaxNode
@@ -147,7 +152,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                                 negate = targetName == nameof(string.PadRight);
 
                                 unnecessarySpans.AddRange(invocation.Syntax.Span
-                                    .Subtract(invocation.Instance.Syntax.FullSpan)
+                                    .Subtract(GetPreservedInvocationInstanceSyntax(invocation).FullSpan)
                                     .Subtract(alignmentSyntax.FullSpan));
                                 return;
                             }

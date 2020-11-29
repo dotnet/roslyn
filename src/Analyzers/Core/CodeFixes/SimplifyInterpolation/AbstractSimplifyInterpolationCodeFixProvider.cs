@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
+        protected virtual Helpers GetHelpers() => new();
+
         protected abstract TInterpolationSyntax WithExpression(TInterpolationSyntax interpolation, TExpressionSyntax expression);
         protected abstract TInterpolationSyntax WithAlignmentClause(TInterpolationSyntax interpolation, TInterpolationAlignmentClause alignmentClause);
         protected abstract TInterpolationSyntax WithFormatClause(TInterpolationSyntax interpolation, TInterpolationFormatClause? formatClause);
@@ -55,6 +57,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+            var helpers = GetHelpers();
+
             foreach (var diagnostic in diagnostics)
             {
                 var loc = diagnostic.AdditionalLocations[0];
@@ -62,7 +66,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 if (interpolation?.Syntax is TInterpolationSyntax interpolationSyntax &&
                     interpolationSyntax.Parent is TInterpolatedStringExpressionSyntax interpolatedString)
                 {
-                    Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
+                    helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
                         document.GetRequiredLanguageService<IVirtualCharLanguageService>(),
                         document.GetRequiredLanguageService<ISyntaxFactsService>(), interpolation, out var unwrapped,
                         out var alignment, out var negate, out var formatString, out _);
