@@ -1002,5 +1002,25 @@ class B : C
     }
 }");
         }
+
+        [Fact, WorkItem(49647, "https://github.com/dotnet/roslyn/issues/49647")]
+        public async Task ConditionalExpressionMustRemainParenthesized()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? 1 : 2){|Unnecessary:[||].ToString()|}}"";
+    }
+}",
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? 1 : 2)}"";
+    }
+}");
+        }
     }
 }
