@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
-        private readonly ILspSolutionProvider _solutionProvider;
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
@@ -42,20 +41,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CodeActionsCache codeActionsCache,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
-            ILspSolutionProvider solutionProvider,
             IThreadingContext threadingContext)
         {
             _codeActionsCache = codeActionsCache;
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
-            _solutionProvider = solutionProvider;
             _threadingContext = threadingContext;
+        }
+
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.ExecuteCommandParams request)
+        {
+            var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
+            return runRequest.TextDocument;
         }
 
         public async Task<object> HandleRequestAsync(LSP.ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
-            var document = _solutionProvider.GetDocument(runRequest.TextDocument);
+            var document = context.Document;
 
             Contract.ThrowIfNull(document);
 
