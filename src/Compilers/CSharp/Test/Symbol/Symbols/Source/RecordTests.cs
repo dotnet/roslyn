@@ -1566,5 +1566,71 @@ class C
   IL_001b:  ret
 }");
         }
+
+        [Fact]
+        [WorkItem(49286, "https://github.com/dotnet/roslyn/issues/49286")]
+        public void RecordWithEventImplicitlyImplementingAnInterface()
+        {
+            var src = @"
+using System;
+
+public interface I1
+{
+    event Action E1;
+}
+
+public record R1 : I1
+{
+    public event Action E1 {  add { } remove { } }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(49286, "https://github.com/dotnet/roslyn/issues/49286")]
+        public void RecordWithPropertyImplicitlyImplementingAnInterface()
+        {
+            var src = @"
+using System;
+
+public interface I1
+{
+    Action P1 { get; set; }
+}
+
+public record R1 : I1
+{
+    public Action P1 {  get; set; }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(49286, "https://github.com/dotnet/roslyn/issues/49286")]
+        public void RecordWithMethodImplicitlyImplementingAnInterface()
+        {
+            var src = @"
+using System;
+
+public interface I1
+{
+    Action M1();
+}
+
+public record R1 : I1
+{
+    public Action M1() => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }

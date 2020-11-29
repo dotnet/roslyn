@@ -3034,6 +3034,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var members = ArrayBuilder<Symbol>.GetInstance(builder.NonTypeNonIndexerMembers.Count + 1);
             foreach (var member in builder.NonTypeNonIndexerMembers)
             {
+                switch (member)
+                {
+                    case FieldSymbol:
+                    case EventSymbol:
+                    case MethodSymbol { MethodKind: not (MethodKind.Ordinary or MethodKind.Constructor) }:
+                        continue;
+                }
+
                 if (!memberSignatures.ContainsKey(member))
                 {
                     memberSignatures.Add(member, member);
