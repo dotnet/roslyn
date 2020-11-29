@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 {
     internal class Helpers
     {
-        protected virtual SyntaxNode GetPreservedInvocationInstanceSyntax(IInvocationOperation invocationOperation)
+        protected virtual SyntaxNode GetPreservedInterpolationExpressionSyntax(IOperation operation)
         {
-            return invocationOperation.Instance.Syntax;
+            return operation.Syntax;
         }
 
         public void UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 UnwrapFormatString(virtualCharService, syntaxFacts, expression, out expression, out formatString, unnecessarySpans);
             }
 
-            unwrapped = expression.Syntax as TExpressionSyntax;
+            unwrapped = GetPreservedInterpolationExpressionSyntax(expression) as TExpressionSyntax;
 
             unnecessaryLocations =
                 unnecessarySpans.OrderBy(t => t.Start)
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                     formatString = value;
 
                     unnecessarySpans.AddRange(invocation.Syntax.Span
-                        .Subtract(GetPreservedInvocationInstanceSyntax(invocation).FullSpan)
+                        .Subtract(GetPreservedInterpolationExpressionSyntax(invocation.Instance).FullSpan)
                         .Subtract(GetSpanWithinLiteralQuotes(virtualCharService, literal.Syntax.GetFirstToken())));
                     return;
                 }
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                     formatString = "";
 
                     unnecessarySpans.AddRange(invocation.Syntax.Span
-                        .Subtract(GetPreservedInvocationInstanceSyntax(invocation).FullSpan));
+                        .Subtract(GetPreservedInterpolationExpressionSyntax(invocation.Instance).FullSpan));
                     return;
                 }
             }
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                                 negate = targetName == nameof(string.PadRight);
 
                                 unnecessarySpans.AddRange(invocation.Syntax.Span
-                                    .Subtract(GetPreservedInvocationInstanceSyntax(invocation).FullSpan)
+                                    .Subtract(GetPreservedInterpolationExpressionSyntax(invocation.Instance).FullSpan)
                                     .Subtract(alignmentSyntax.FullSpan));
                                 return;
                             }
