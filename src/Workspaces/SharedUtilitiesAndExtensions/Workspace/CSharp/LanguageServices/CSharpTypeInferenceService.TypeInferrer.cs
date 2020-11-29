@@ -1623,12 +1623,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                if (nameColon.Parent is ArgumentSyntax argumentSyntax)
+                return nameColon.Parent switch
                 {
-                    return InferTypeInArgument(argumentSyntax);
-                }
-
-                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                    ArgumentSyntax argumentSyntax => InferTypeInArgument(argumentSyntax),
+                    SubpatternSyntax subPattern => InferTypeInSubpattern(subPattern, subPattern.Pattern),
+                    _ => SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>()
+                };
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInMemberAccessExpression(

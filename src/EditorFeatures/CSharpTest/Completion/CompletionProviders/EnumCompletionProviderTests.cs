@@ -595,5 +595,130 @@ class C
             await VerifyItemExistsAsync(markup, "Color.Red");
             await VerifyItemExistsAsync(markup, "Palette.AccentColor1");
         }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestPatterns_Is_ConstPattern()
+        {
+            var markup = @"
+class C
+{
+    public enum Color
+    {
+        Red,
+        Green,
+    }
+
+    public void M(Color c)
+    {
+        var isRed = c is $$;
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Color.Red");
+        }
+
+        [Theory]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("")]
+        [InlineData("Col")]
+        [InlineData("Red")]
+        public async Task TestPatterns_Is_PropertyPattern(string partialWritten)
+        {
+            var markup = @$"
+public enum Color
+{{
+    Red,
+    Green,
+}}
+
+class C
+{{
+    public Color Color {{ get; }}
+
+    public void M()
+    {{
+        var isRed = this is {{ Color: {partialWritten}$$
+    }}
+}}
+";
+            await VerifyItemExistsAsync(markup, "Color.Red");
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestPatterns_Is_PropertyPattern_NotAfterEnumDot()
+        {
+            var markup = @$"
+public enum Color
+{{
+    Red,
+    Green,
+}}
+
+class C
+{{
+    public Color Color {{ get; }}
+
+    public void M()
+    {{
+        var isRed = this is {{ Color: Color.R$$
+    }}
+}}
+";
+            await VerifyItemIsAbsentAsync(markup, "Color.Red");
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestPatterns_SwitchStatement_PropertyPattern()
+        {
+            var markup = @"
+public enum Color
+{
+    Red,
+    Green,
+}
+
+class C
+{
+    public Color Color { get; }
+
+    public void M()
+    {
+        switch (this)
+        {
+            case { Color: $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Color.Red");
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestPatterns_SwitchExpression_PropertyPattern()
+        {
+            var markup = @"
+public enum Color
+{
+    Red,
+    Green,
+}
+
+class C
+{
+    public Color Color { get; }
+
+    public void M()
+    {
+        var isRed = this switch
+        {
+            { Color: $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Color.Red");
+        }
     }
 }
