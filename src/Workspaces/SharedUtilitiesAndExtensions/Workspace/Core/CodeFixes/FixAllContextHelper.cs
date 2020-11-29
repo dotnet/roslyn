@@ -61,6 +61,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         .Where(p => p.Language == project.Language)
                         .ToImmutableArray();
 
+                    // Update the progress dialog with the count of projects to actually fix. We'll update the progress
+                    // bar as we get all the documents in AddDocumentDiagnosticsAsync.
+
                     progressTracker.AddItems(projectsToFix.Length);
 
                     var diagnostics = new ConcurrentDictionary<ProjectId, ImmutableArray<Diagnostic>>();

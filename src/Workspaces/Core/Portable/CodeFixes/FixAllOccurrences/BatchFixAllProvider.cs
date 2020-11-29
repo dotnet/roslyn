@@ -97,8 +97,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 using var _2 = ArrayBuilder<Document>.GetInstance(out var documentsToFix);
 
                 // Determine the set of documents to actually fix.  We can also use this to update the progress bar with
-                // the amount of remaining work to perform.
-                foreach  (var (document, diagnosticsToFix) in documentsAndDiagnosticsToFixMap)
+                // the amount of remaining work to perform.  We'll update the progress bar as we compute each fix in
+                // AddDocumentFixesAsync.
+                foreach (var (document, diagnosticsToFix) in documentsAndDiagnosticsToFixMap)
                 {
                     if (!diagnosticsToFix.IsDefaultOrEmpty)
                         documentsToFix.Add(document);

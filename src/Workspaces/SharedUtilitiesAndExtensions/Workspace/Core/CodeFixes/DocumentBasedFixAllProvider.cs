@@ -99,6 +99,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             using var _1 = PooledHashSet<Document>.GetInstance(out var documentsToFix);
             using var _2 = PooledDictionary<DocumentId, Task<SyntaxNode?>>.GetInstance(out var documentIdToNewNode);
 
+            // Determine the set of documents to actually fix.  We can also use this to update the progress bar with
+            // the amount of remaining work to perform.  We'll update the progress bar as we perform each fix in
+            // FixAllInDocumentAsync.
+
             foreach (var document in documents)
             {
                 // Don't bother examining any documents that aren't in the list of docs that
