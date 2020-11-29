@@ -121,7 +121,7 @@
     <value>Add public types and members to the declared API</value>
   </data>
   <data name="DeclarePublicApiMessage" xml:space="preserve">
-    <value>Symbol '{0}' is not part of the declared API.</value>
+    <value>Symbol '{0}' is not part of the declared API</value>
   </data>
   <data name="DeclarePublicApiDescription" xml:space="preserve">
     <value>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
@@ -131,7 +131,7 @@
     <value>Annotate nullability of public types and members in the declared API</value>
   </data>
   <data name="AnnotatePublicApiMessage" xml:space="preserve">
-    <value>Symbol '{0}' is missing nullability annotations in the declared API.</value>
+    <value>Symbol '{0}' is missing nullability annotations in the declared API</value>
   </data>
   <data name="AnnotatePublicApiDescription" xml:space="preserve">
     <value>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</value>
@@ -151,7 +151,7 @@
     <value>Public members should not use oblivious types</value>
   </data>
   <data name="ObliviousPublicApiMessage" xml:space="preserve">
-    <value>Symbol '{0}' uses some oblivious reference types.</value>
+    <value>Symbol '{0}' uses some oblivious reference types</value>
   </data>
   <data name="ObliviousPublicApiDescription" xml:space="preserve">
     <value>All public members should use either nullable or non-nullable reference types, but no oblivious reference types.</value>
@@ -167,7 +167,7 @@
     <value>When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
   </data>
   <data name="ExposedNoninstantiableTypeMessage" xml:space="preserve">
-    <value>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</value>
+    <value>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</value>
   </data>
   <data name="ExposedNoninstantiableTypeTitle" xml:space="preserve">
     <value>Constructor make noninheritable base class inheritable</value>
@@ -188,7 +188,7 @@
     <value>Do not duplicate symbols in public API files</value>
   </data>
   <data name="DuplicateSymbolsInPublicApiFilesMessage" xml:space="preserve">
-    <value>The symbol '{0}' appears more than once in the public API files.</value>
+    <value>The symbol '{0}' appears more than once in the public API files</value>
   </data>
   <data name="PublicImplicitConstructorErrorMessageName" xml:space="preserve">
     <value>implicit constructor for '{0}'</value>
@@ -200,7 +200,7 @@
     <value>Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</value>
   </data>
   <data name="OverloadWithOptionalParametersShouldHaveMostParametersTitle" xml:space="preserve">
-    <value>Public API with optional parameter(s) should have the most parameters amongst its public overloads.</value>
+    <value>Public API with optional parameter(s) should have the most parameters amongst its public overloads</value>
   </data>
   <data name="OverloadWithOptionalParametersShouldHaveMostParametersMessage" xml:space="preserve">
     <value>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</value>

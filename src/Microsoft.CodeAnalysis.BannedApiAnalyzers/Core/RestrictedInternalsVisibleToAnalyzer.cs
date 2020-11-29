@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
     {
         public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             id: DiagnosticIds.RestrictedInternalsVisibleToRuleId,
-            title: BannedApiAnalyzerResources.RestrictedInternalsVisibleToTitle,
-            messageFormat: BannedApiAnalyzerResources.RestrictedInternalsVisibleToMessage,
+            title: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.RestrictedInternalsVisibleToTitle), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
+            messageFormat: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.RestrictedInternalsVisibleToMessage), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Error,  // Force build break on invalid external access.
             isEnabledByDefault: true,
-            description: BannedApiAnalyzerResources.RestrictedInternalsVisibleToDescription,
+            description: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.RestrictedInternalsVisibleToDescription), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
             helpLinkUri: null, // TODO: Add help link
             customTags: WellKnownDiagnosticTags.Telemetry);
 
@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 {
                     // Look for ctor: "RestrictedInternalsVisibleToAttribute(string assemblyName, params string[] namespaces)"
                     if (!Equals(assemblyAttribute.AttributeClass, restrictedInternalsVisibleToAttribute) ||
+                        assemblyAttribute.AttributeConstructor is null ||
                         assemblyAttribute.AttributeConstructor.Parameters.Length != 2 ||
                         assemblyAttribute.AttributeConstructor.Parameters[0].Type.SpecialType != SpecialType.System_String ||
                         assemblyAttribute.AttributeConstructor.Parameters[1].Type is not IArrayTypeSymbol arrayType ||
