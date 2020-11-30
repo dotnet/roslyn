@@ -120,5 +120,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsImplicitlyDeclared
             => true;
+
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        {
+            base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
+
+            if (!allAttributeSyntaxNodes.IsEmpty && _property.IsAutoPropertyWithGetAccessor)
+            {
+                CheckForFieldTargetedAttribute(diagnostics);
+            }
+        }
+
+        private void CheckForFieldTargetedAttribute(DiagnosticBag diagnostics)
+        {
+            var languageVersion = this.DeclaringCompilation.LanguageVersion;
+            if (languageVersion.AllowAttributesOnBackingFields())
+            {
+                return;
+            }
+
+            foreach (var attribute in AttributeDeclarationSyntaxList)
+            {
+                if (attribute.Target?.GetAttributeLocation() == AttributeLocation.Field)
+                {
+                    diagnostics.Add(
+                        new CSDiagnosticInfo(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable,
+                            languageVersion.ToDisplayString(),
+                            new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAttributesOnBackingFields.RequiredVersion())),
+                        attribute.Target.Location);
+                }
+            }
+        }
     }
 }

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Mono.Options;
 
 namespace RunTests
@@ -28,22 +29,6 @@ namespace RunTests
         public bool IncludeHtml { get; set; }
 
         /// <summary>
-        /// Use the 64 bit test runner.
-        /// </summary>
-        public bool Test64 { get; set; }
-
-        /// <summary>
-        /// Target framework used to run the tests, e.g. "net472".
-        /// This is currently only used to name the test result files.
-        /// </summary>
-        public string TargetFramework { get; set; }
-
-        /// <summary>
-        /// Use the open integration test runner.
-        /// </summary>
-        public bool TestVsi { get; set; }
-
-        /// <summary>
         /// Display the results files.
         /// </summary>
         public Display Display { get; set; }
@@ -58,10 +43,18 @@ namespace RunTests
         /// </summary>
         public string? NoTrait { get; set; }
 
+        public string Configuration { get; set; }
+
         /// <summary>
-        /// Set of assemblies to test.
+        /// The set of target frameworks that should be probed for test assemblies.
         /// </summary>
-        public List<string> Assemblies { get; set; } = new List<string>();
+        public List<string> TargetFrameworks { get; set; } = new List<string>();
+
+        public List<string> IncludeFilter { get; set; } = new List<string>();
+
+        public List<string> ExcludeFilter { get; set; } = new List<string>();
+
+        public string ArtifactsDirectory { get; }
 
         /// <summary>
         /// Time after which the runner should kill the xunit process and exit with a failure.
@@ -107,15 +100,17 @@ namespace RunTests
 
         public Options(
             string dotnetFilePath,
+            string artifactsDirectory,
+            string configuration,
             string testResultsDirectory,
             string logFilesDirectory,
-            string targetFramework,
             string platform)
         {
             DotnetFilePath = dotnetFilePath;
+            ArtifactsDirectory = artifactsDirectory;
+            Configuration = configuration;
             TestResultsDirectory = testResultsDirectory;
             LogFilesDirectory = logFilesDirectory;
-            TargetFramework = targetFramework;
             Platform = platform;
         }
 
@@ -123,25 +118,30 @@ namespace RunTests
         {
             string? dotnetFilePath = null;
             var platform = "x64";
-            var testVsi = false;
             var includeHtml = false;
-            var targetFramework = "net472";
+            var targetFrameworks = new List<string>();
+            var configuration = "Debug";
+            var includeFilter = new List<string>();
+            var excludeFilter = new List<string>();
             var sequential = false;
             var retry = false;
             string? traits = null;
             string? noTraits = null;
             int? timeout = null;
-            string resultFileDirectory = Path.Combine(Directory.GetCurrentDirectory(), "TestResults");
+            string? resultFileDirectory = null;
             string? logFileDirectory = null;
             var display = Display.None;
             var collectDumps = false;
             string? procDumpFilePath = null;
+            string? artifactsPath = null;
             var optionSet = new OptionSet()
             {
                 { "dotnet=", "Path to dotnet", (string s) => dotnetFilePath = s },
+                { "configuration=", "Configuration to test: Debug or Release", (string s) => configuration = s },
+                { "tfm=", "Target framework to test", (string s) => targetFrameworks.Add(s) },
+                { "include=", "Expression for including unit test dlls: default *.UnitTests.dll", (string s) => includeFilter.Add(s) },
+                { "exclude=", "Expression for excluding unit test dlls: default is empty", (string s) => excludeFilter.Add(s) },
                 { "platform=", "Platform to test: x86 or x64", (string s) => platform = s },
-                { "tfm=", "Target framework to test", (string s) => targetFramework = s },
-                { "testvsi", "Test Visual Studio", o => testVsi = o is object },
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
                 { "traits=", "xUnit traits to include (semicolon delimited)", (string s) => traits = s },
@@ -150,6 +150,7 @@ namespace RunTests
                 { "out=", "Test result file directory", (string s) => resultFileDirectory = s },
                 { "logs=", "Log file directory", (string s) => logFileDirectory = s },
                 { "display=", "Display", (Display d) => display = d },
+                { "artifactspath=", "Path to the artifacts directory", (string s) => artifactsPath = s },
                 { "procdumppath=", "Path to procdump", (string s) => procDumpFilePath = s },
                 { "collectdumps", "Whether or not to gather dumps on timeouts and crashes", o => collectDumps = o is object },
                 { "retry", "Retry failed test a few times", o => retry = o is object },
@@ -166,6 +167,25 @@ namespace RunTests
                 optionSet.WriteOptionDescriptions(Console.Out);
                 return null;
             }
+
+            artifactsPath ??= TryGetArtifactsPath();
+            dotnetFilePath ??= TryGetDotNetPath();
+            if (includeFilter.Count == 0)
+            {
+                includeFilter.Add(".*UnitTests.*");
+            }
+
+            if (targetFrameworks.Count == 0)
+            {
+                targetFrameworks.Add("net472");
+            }
+
+            if (artifactsPath is null || !Directory.Exists(artifactsPath))
+            {
+                Console.WriteLine($"Did not find artifacts directory at {artifactsPath}");
+                return null;
+            }
+            resultFileDirectory ??= Path.Combine(artifactsPath, "TestResults");
 
             if (dotnetFilePath is null || !File.Exists(dotnetFilePath))
             {
@@ -191,13 +211,15 @@ namespace RunTests
 
             return new Options(
                 dotnetFilePath: dotnetFilePath,
+                artifactsDirectory: artifactsPath,
+                configuration: configuration,
                 testResultsDirectory: resultFileDirectory,
                 logFilesDirectory: logFileDirectory,
-                targetFramework: targetFramework,
                 platform: platform)
             {
-                Assemblies = assemblyList,
-                TestVsi = testVsi,
+                TargetFrameworks = targetFrameworks,
+                IncludeFilter = includeFilter,
+                ExcludeFilter = excludeFilter,
                 Display = display,
                 ProcDumpFilePath = procDumpFilePath,
                 CollectDumps = collectDumps,
@@ -208,6 +230,30 @@ namespace RunTests
                 Timeout = timeout is { } t ? TimeSpan.FromMinutes(t) : null,
                 Retry = retry,
             };
+
+            static string? TryGetArtifactsPath()
+            {
+                var path = AppContext.BaseDirectory;
+                while (path is object && Path.GetFileName(path) != "artifacts")
+                {
+                    path = Path.GetDirectoryName(path);
+                }
+
+                return path;
+            }
+
+            static string? TryGetDotNetPath()
+            {
+                var dir = RuntimeEnvironment.GetRuntimeDirectory();
+                var programName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dotnet.exe" : "dotnet";
+
+                while (dir != null && !File.Exists(Path.Combine(dir, programName)))
+                {
+                    dir = Path.GetDirectoryName(dir);
+                }
+
+                return dir == null ? null : Path.Combine(dir, programName);
+            }
         }
     }
 }

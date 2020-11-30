@@ -18159,7 +18159,7 @@ True
 
             var equalityContractGet = equalityContract.GetMethod;
             Assert.Equal("System.Type B.EqualityContract { get; }", equalityContract.ToTestDisplayString());
-            Assert.Equal(Accessibility.Protected, equalityContractGet.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Protected, equalityContractGet!.DeclaredAccessibility);
             Assert.False(equalityContractGet.IsAbstract);
             Assert.False(equalityContractGet.IsVirtual);
             Assert.True(equalityContractGet.IsOverride);
@@ -18275,7 +18275,7 @@ B
 
             var equalityContractGet = equalityContract.GetMethod;
             Assert.Equal("System.Type B.EqualityContract { get; }", equalityContract.ToTestDisplayString());
-            Assert.Equal(Accessibility.Protected, equalityContractGet.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Protected, equalityContractGet!.DeclaredAccessibility);
             Assert.False(equalityContractGet.IsAbstract);
             Assert.False(equalityContractGet.IsVirtual);
             Assert.True(equalityContractGet.IsOverride);
@@ -18348,7 +18348,7 @@ B
 
             var equalityContractGet = equalityContract.GetMethod;
             Assert.Equal("System.Type B.EqualityContract { get; }", equalityContract.ToTestDisplayString());
-            Assert.Equal(modifiers == "sealed " ? Accessibility.Private : Accessibility.Protected, equalityContractGet.DeclaredAccessibility);
+            Assert.Equal(modifiers == "sealed " ? Accessibility.Private : Accessibility.Protected, equalityContractGet!.DeclaredAccessibility);
             Assert.False(equalityContractGet.IsAbstract);
             Assert.Equal(modifiers != "sealed ", equalityContractGet.IsVirtual);
             Assert.False(equalityContractGet.IsOverride);

@@ -3034,6 +3034,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var members = ArrayBuilder<Symbol>.GetInstance(builder.NonTypeNonIndexerMembers.Count + 1);
             foreach (var member in builder.NonTypeNonIndexerMembers)
             {
+                switch (member)
+                {
+                    case FieldSymbol:
+                    case EventSymbol:
+                    case MethodSymbol { MethodKind: not (MethodKind.Ordinary or MethodKind.Constructor) }:
+                        continue;
+                }
+
                 if (!memberSignatures.ContainsKey(member))
                 {
                     memberSignatures.Add(member, member);
@@ -3291,7 +3299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     if (existingMember is null)
                     {
-                        addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false, diagnostics));
+                        addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false));
                     }
                     else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
                         && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
@@ -3299,7 +3307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // There already exists a member corresponding to the candidate synthesized property.
                         if (isInherited && prop.IsAbstract)
                         {
-                            addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: true, diagnostics));
+                            addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: true));
                         }
                         else
                         {
@@ -3320,6 +3328,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         existingOrAddedMembers.Add(property);
                         members.Add(property);
+                        Debug.Assert(property.GetMethod is object);
+                        Debug.Assert(property.SetMethod is object);
                         members.Add(property.GetMethod);
                         members.Add(property.SetMethod);
                         members.Add(property.BackingField);
@@ -3393,7 +3403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!memberSignatures.TryGetValue(targetProperty, out Symbol? existingEqualityContractProperty))
                 {
-                    equalityContract = new SynthesizedRecordEqualityContractProperty(this, diagnostics);
+                    equalityContract = new SynthesizedRecordEqualityContractProperty(this);
                     members.Add(equalityContract);
                     members.Add(equalityContract.GetMethod);
                 }

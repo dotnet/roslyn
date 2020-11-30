@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 return;
             }
 
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _info);
+            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel.Compilation, _info);
             if (detector == null)
             {
                 return;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         {
             if (token.RawKind == _info.StringLiteralTokenKind)
             {
-                var tree = detector.TryParseRegexPattern(token, cancellationToken);
+                var tree = detector.TryParseRegexPattern(token, context.SemanticModel, cancellationToken);
                 if (tree != null)
                 {
                     foreach (var diag in tree.Diagnostics)

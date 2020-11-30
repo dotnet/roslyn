@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
@@ -208,6 +209,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public new void OnParseOptionsChanged(ProjectId projectId, ParseOptions parseOptions)
             => base.OnParseOptionsChanged(projectId, parseOptions);
 
+        public new void OnAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)
+            => base.OnAnalyzerReferenceAdded(projectId, analyzerReference);
+
         public void OnDocumentRemoved(DocumentId documentId, bool closeDocument = false)
         {
             if (closeDocument && this.IsDocumentOpen(documentId))
@@ -305,7 +309,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var hostProject = this.GetTestProject(info.Id.ProjectId);
             var hostDocument = new TestHostDocument(
                 text.ToString(), info.Name, info.SourceCodeKind,
-                info.Id, folders: info.Folders, exportProvider: ExportProvider);
+                info.Id, info.FilePath, info.Folders, ExportProvider,
+                info.DocumentServiceProvider);
             hostProject.AddDocument(hostDocument);
             this.OnDocumentAdded(hostDocument.ToDocumentInfo());
         }
@@ -701,12 +706,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
             => true;
 
-        internal override async Task<bool> CanAddProjectReferenceAsync(ProjectId referencingProject, ProjectId referencedProject, CancellationToken cancellationToken)
+        internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {
-            // VisualStudioWorkspace switches to the main thread for this call, so do the same thing here to catch tests
+            // VisualStudioWorkspace asserts the main thread for this call, so do the same thing here to catch tests
             // that fail to account for this possibility.
             var threadingContext = ExportProvider.GetExportedValue<IThreadingContext>();
-            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+            Contract.ThrowIfFalse(threadingContext.HasMainThread && threadingContext.JoinableTaskContext.IsOnMainThread);
             return true;
         }
 

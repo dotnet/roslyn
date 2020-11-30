@@ -351,5 +351,33 @@ class C
     end sub
 end class")
         End Function
+
+        <WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        Public Async Function TestMyBase() As Task
+            Await TestInRegularAndScriptAsync(
+"
+''' Testing keyword [||]MyBase.
+class C(Of TKey)
+end class",
+"
+''' Testing keyword <see langword=""MyBase""/>.
+class C(Of TKey)
+end class")
+        End Function
+
+        <WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)>
+        Public Async Function TestMyClass() As Task
+            Await TestInRegularAndScriptAsync(
+"
+''' Testing keyword [||]MyClass.
+class C(Of TKey)
+end class",
+"
+''' Testing keyword <see langword=""MyClass""/>.
+class C(Of TKey)
+end class")
+        End Function
     End Class
 End Namespace

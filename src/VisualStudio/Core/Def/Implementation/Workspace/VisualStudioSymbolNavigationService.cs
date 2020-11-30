@@ -77,17 +77,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
                     return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options);
                 }
-                else
-                {
-                    // This may be a file from a source generator; if so let's go to it instead
-                    var generatorRunResult = project.GetGeneratorDriverRunResultAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
-                    if (generatorRunResult.TryGetGeneratorAndHint(sourceLocation.SourceTree!, out var generator, out var hintName))
-                    {
-                        _sourceGeneratedFileManager.NavigateToSourceGeneratedFile(project, generator, hintName, sourceLocation.SourceSpan);
-                        return true;
-                    }
-                }
             }
 
             // We don't have a source document, so show the Metadata as Source view in a preview tab.

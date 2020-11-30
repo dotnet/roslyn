@@ -4388,5 +4388,39 @@ public class Source
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("A.M(B)", "A.M(string)").WithLocation(8, 11)
                 );
         }
+
+        [Fact, WorkItem(49547, "https://github.com/dotnet/roslyn/issues/49547")]
+        public void CallerMemberNameAttributeWithImplicitObjectCreation()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Foo
+{
+    public string Caller { get; set; }
+    public Foo([CallerMemberName] string caller = ""?"") => Caller = caller;
+    public void PrintCaller() => Console.WriteLine(Caller);
+}
+
+class Program
+{
+    static void Main()
+    {            
+        Foo f1 = new Foo();
+        f1.PrintCaller();
+
+        Foo f2 = new();
+        f2.PrintCaller();
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"Main
+Main");
+        }
     }
 }
