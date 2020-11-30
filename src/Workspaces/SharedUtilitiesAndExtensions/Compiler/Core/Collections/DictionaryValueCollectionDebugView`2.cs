@@ -8,23 +8,22 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
-    internal sealed class IDictionaryDebugView<K, V>
-        where K : notnull
+    internal sealed class DictionaryValueCollectionDebugView<TKey, TValue>
     {
-        private readonly IDictionary<K, V> _dict;
+        private readonly ICollection<TValue> _collection;
 
-        public IDictionaryDebugView(IDictionary<K, V> dictionary)
+        public DictionaryValueCollectionDebugView(ICollection<TValue> collection)
         {
-            _dict = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
+            _collection = collection ?? throw new ArgumentNullException(nameof(collection));
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public KeyValuePair<K, V>[] Items
+        public TValue[] Items
         {
             get
             {
-                var items = new KeyValuePair<K, V>[_dict.Count];
-                _dict.CopyTo(items, 0);
+                var items = new TValue[_collection.Count];
+                _collection.CopyTo(items, 0);
                 return items;
             }
         }

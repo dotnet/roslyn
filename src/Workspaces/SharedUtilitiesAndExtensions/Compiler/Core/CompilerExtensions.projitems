@@ -179,6 +179,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\NotificationOption2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\OperatorPlacementWhenWrappingPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\DictionaryKeyCollectionDebugView`2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\DictionaryValueCollectionDebugView`2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\HashHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\ICollectionDebugView`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IDictionaryDebugView`2.cs" />
