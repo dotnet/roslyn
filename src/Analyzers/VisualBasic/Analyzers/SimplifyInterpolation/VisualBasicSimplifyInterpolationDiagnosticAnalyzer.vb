@@ -13,7 +13,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicSimplifyInterpolationDiagnosticAnalyzer
-        Inherits AbstractSimplifyInterpolationDiagnosticAnalyzer(Of InterpolationSyntax, ExpressionSyntax)
+        Inherits AbstractSimplifyInterpolationDiagnosticAnalyzer(Of
+            InterpolationSyntax,
+            ExpressionSyntax,
+            TernaryConditionalExpressionSyntax,
+            ParenthesizedExpressionSyntax)
 
         Protected Overrides Function GetVirtualCharService() As IVirtualCharService
             Return VisualBasicVirtualCharService.Instance
