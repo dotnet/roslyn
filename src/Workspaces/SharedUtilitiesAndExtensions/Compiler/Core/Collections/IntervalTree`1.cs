@@ -107,17 +107,17 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             where TIntrospector : struct, IIntervalIntrospector<T>
             => this.GetIntervalsThatMatch(start, length, Tests<TIntrospector>.ContainsTest, in introspector);
 
-        public void FillWithIntervalsThatOverlapWith<TIntrospector>(int start, int length, ArrayBuilder<T> builder, in TIntrospector introspector)
+        public void FillWithIntervalsThatOverlapWith<TIntrospector>(int start, int length, ref TemporaryArray<T> builder, in TIntrospector introspector)
             where TIntrospector : struct, IIntervalIntrospector<T>
-            => this.FillWithIntervalsThatMatch(start, length, Tests<TIntrospector>.OverlapsWithTest, builder, in introspector, stopAfterFirst: false);
+            => this.FillWithIntervalsThatMatch(start, length, Tests<TIntrospector>.OverlapsWithTest, ref builder, in introspector, stopAfterFirst: false);
 
-        public void FillWithIntervalsThatIntersectWith<TIntrospector>(int start, int length, ArrayBuilder<T> builder, in TIntrospector introspector)
+        public void FillWithIntervalsThatIntersectWith<TIntrospector>(int start, int length, ref TemporaryArray<T> builder, in TIntrospector introspector)
             where TIntrospector : struct, IIntervalIntrospector<T>
-            => this.FillWithIntervalsThatMatch(start, length, Tests<TIntrospector>.IntersectsWithTest, builder, in introspector, stopAfterFirst: false);
+            => this.FillWithIntervalsThatMatch(start, length, Tests<TIntrospector>.IntersectsWithTest, ref builder, in introspector, stopAfterFirst: false);
 
-        public void FillWithIntervalsThatContain<TIntrospector>(int start, int length, ArrayBuilder<T> builder, in TIntrospector introspector)
+        public void FillWithIntervalsThatContain<TIntrospector>(int start, int length, ref TemporaryArray<T> builder, in TIntrospector introspector)
             where TIntrospector : struct, IIntervalIntrospector<T>
-            => this.FillWithIntervalsThatMatch(start, length, Tests<TIntrospector>.ContainsTest, builder, in introspector, stopAfterFirst: false);
+            => this.FillWithIntervalsThatMatch(start, length, Tests<TIntrospector>.ContainsTest, ref builder, in introspector, stopAfterFirst: false);
 
         public bool HasIntervalThatIntersectsWith<TIntrospector>(int position, in TIntrospector introspector)
             where TIntrospector : struct, IIntervalIntrospector<T>
@@ -138,7 +138,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         private bool Any<TIntrospector>(int start, int length, TestInterval<TIntrospector> testInterval, in TIntrospector introspector)
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
-            var matches = FillWithIntervalsThatMatch(start, length, testInterval, builder: null, in introspector, stopAfterFirst: true);
+            using var result = TemporaryArray<T>.Empty;
+            var matches = FillWithIntervalsThatMatch(start, length, testInterval, ref result.AsRef(), in introspector, stopAfterFirst: true);
             return matches > 0;
         }
 
@@ -146,15 +147,15 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             int start, int length, TestInterval<TIntrospector> testInterval, in TIntrospector introspector)
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
-            var result = ArrayBuilder<T>.GetInstance();
-            FillWithIntervalsThatMatch(start, length, testInterval, result, in introspector, stopAfterFirst: false);
-            return result.ToImmutableAndFree();
+            using var result = TemporaryArray<T>.Empty;
+            FillWithIntervalsThatMatch(start, length, testInterval, ref result.AsRef(), in introspector, stopAfterFirst: false);
+            return result.ToImmutableAndClear();
         }
 
         /// <returns>The number of matching intervals found by the method.</returns>
         private int FillWithIntervalsThatMatch<TIntrospector>(
             int start, int length, TestInterval<TIntrospector> testInterval,
-            ArrayBuilder<T>? builder, in TIntrospector introspector,
+            ref TemporaryArray<T> builder, in TIntrospector introspector,
             bool stopAfterFirst)
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             var matches = FillWithIntervalsThatMatch(
                 start, length, testInterval,
-                builder, in introspector,
+                ref builder, in introspector,
                 stopAfterFirst, candidates);
 
             s_stackPool.ClearAndFree(candidates);
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         /// <returns>The number of matching intervals found by the method.</returns>
         private int FillWithIntervalsThatMatch<TIntrospector>(
             int start, int length, TestInterval<TIntrospector> testInterval,
-            ArrayBuilder<T>? builder, in TIntrospector introspector,
+            ref TemporaryArray<T> builder, in TIntrospector introspector,
             bool stopAfterFirst, Stack<(Node? node, bool firstTime)> candidates)
             where TIntrospector : struct, IIntervalIntrospector<T>
         {
@@ -202,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     if (testInterval(currentNode.Value, start, length, in introspector))
                     {
                         matches++;
-                        builder?.Add(currentNode.Value);
+                        builder.Add(currentNode.Value);
 
                         if (stopAfterFirst)
                         {

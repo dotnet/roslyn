@@ -6,16 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
@@ -222,7 +219,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken.ThrowIfCancellationRequested();
                 assemblySymbol ??= await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-                Bind(node, assemblySymbol.GlobalNamespace, ref Unsafe.AsRef(in results), cancellationToken);
+                Bind(node, assemblySymbol.GlobalNamespace, ref results.AsRef(), cancellationToken);
             }
 
             return results.ToImmutableAndClear();
@@ -462,7 +459,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             else
             {
                 using var containerSymbols = TemporaryArray<ISymbol>.Empty;
-                Bind(node.ParentIndex, rootContainer, ref Unsafe.AsRef(in containerSymbols), cancellationToken);
+                Bind(node.ParentIndex, rootContainer, ref containerSymbols.AsRef(), cancellationToken);
                 foreach (var containerSymbol in containerSymbols)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -559,7 +556,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 tempBuilder.Clear();
 
-                Bind(derivedTypeIndex, compilation.GlobalNamespace, ref Unsafe.AsRef(in tempBuilder), cancellationToken);
+                Bind(derivedTypeIndex, compilation.GlobalNamespace, ref tempBuilder.AsRef(), cancellationToken);
                 foreach (var symbol in tempBuilder)
                 {
                     if (symbol is INamedTypeSymbol namedType)

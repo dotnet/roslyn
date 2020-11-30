@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         protected override void CollectBlockSpans(
             DocumentationCommentTriviaSyntax documentationComment,
-            ArrayBuilder<BlockSpan> spans,
+            ref TemporaryArray<BlockSpan> spans,
             BlockStructureOptionProvider optionProvider,
             CancellationToken cancellationToken)
         {
