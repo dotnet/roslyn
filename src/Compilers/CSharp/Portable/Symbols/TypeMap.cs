@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 TypeParameterSymbol tp = typeParameters[i];
                 TypeWithAnnotations ta = typeArguments[i];
-                if (!ta.Is(tp))
+                if (!ta.IsTypeParameterWithIgnoredNullability(tp))
                 {
                     Mapping.Add(tp, ta);
                 }
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 TypeParameterSymbol tp = from[i];
                 TypeWithAnnotations ta = to[i];
-                if (!ta.Is(tp))
+                if (!ta.IsTypeParameterWithIgnoredNullability(tp))
                 {
                     mapping.Add(tp, ta);
                 }

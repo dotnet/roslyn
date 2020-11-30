@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < n; i++)
             {
-                if (!typeArguments[i].Is(typeParameters[i]))
+                if (!typeArguments[i].IsTypeParameterWithIgnoredNullability(typeParameters[i]))
                 {
                     return false;
                 }

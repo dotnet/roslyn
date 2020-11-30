@@ -143,8 +143,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharp.NullableAnnotation.Oblivious when type.IsValueType => CodeAnalysis.NullableAnnotation.NotAnnotated,
                 CSharp.NullableAnnotation.Oblivious => CodeAnalysis.NullableAnnotation.None,
 
-                // Type arguments on a definition carry this annotation, for example.
-                CSharp.NullableAnnotation.Ignored when !type.IsTypeParameter() => throw ExceptionUtilities.UnexpectedValue(annotation),
                 CSharp.NullableAnnotation.Ignored => CodeAnalysis.NullableAnnotation.None,
 
                 _ => throw ExceptionUtilities.UnexpectedValue(annotation)

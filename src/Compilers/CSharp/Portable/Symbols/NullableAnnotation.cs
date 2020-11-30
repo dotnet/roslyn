@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Whenever the compiler needs to do a substitution without affecting the nullable annotation.
-        /// Used on type arguments for definitions, and indexed/placeholder type parameters.
+        /// Used on definitions (original or from alpha rename), and indexed/placeholder type parameters.
         /// </summary>
         Ignored,
 

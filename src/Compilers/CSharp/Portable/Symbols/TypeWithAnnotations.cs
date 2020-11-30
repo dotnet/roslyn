@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Is this the given type parameter?
         /// </summary>
-        public bool Is(TypeParameterSymbol other)
+        public bool IsTypeParameterWithIgnoredNullability(TypeParameterSymbol other)
         {
             return NullableAnnotation == NullableAnnotation.Ignored && ((object)DefaultType == other) &&
                    CustomModifiers.IsEmpty;
@@ -688,6 +688,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((object)newTypeSymbol != typeSymbol)
             {
+                return WithTypeAndModifiers(newTypeSymbol, CustomModifiers);
+            }
+
+            return this;
+        }
+
+        public TypeWithAnnotations SetIgnoredNullabilityForReferenceTypes()
+        { // TODO2
+            var typeSymbol = Type;
+            var newTypeSymbol = typeSymbol.SetIgnoredNullabilityForReferenceTypes();
+
+            if (NullableAnnotation != NullableAnnotation.Ignored)
+            {
+                if (!typeSymbol.IsValueType)
+                {
+                    return CreateNonLazyType(newTypeSymbol, NullableAnnotation.Ignored, CustomModifiers);
+                }
+            }
+
+            if ((object)newTypeSymbol != typeSymbol)
+            {
+                //return new TypeWithAnnotations(DefaultType, NullableAnnotation.Ignored, _extensions);
                 return WithTypeAndModifiers(newTypeSymbol, CustomModifiers);
             }
 

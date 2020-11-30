@@ -638,6 +638,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static readonly Func<TypeWithAnnotations, TypeWithAnnotations> s_setUnknownNullability =
             (type) => type.SetUnknownNullabilityForReferenceTypes();
 
+        internal TypeSymbol SetIgnoredNullabilityForReferenceTypes()
+        {
+            return SetNullabilityForReferenceTypes(s_setIgnoredNullability);
+        }
+
+        private static readonly Func<TypeWithAnnotations, TypeWithAnnotations> s_setIgnoredNullability =
+            (type) => type.SetIgnoredNullabilityForReferenceTypes();
+
+
         /// <summary>
         /// Merges features of the type with another type where there is an identity conversion between them.
         /// The features to be merged are

@@ -381,6 +381,7 @@ public class C
             Assert.True(symbols.Count > 0);
             TestRoundTrip(symbols, compilation);
         }
+
         [Fact]
         public void TestExtensionMethodReferences()
         {

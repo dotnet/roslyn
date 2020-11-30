@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 typeArgsForConstruct = typeArgs.ZipAsArray(
                     method.TypeParameters,
-                    (t, tp) => t.HasType ? t : TypeWithAnnotations.Create(tp));
+                    (t, tp) => t.HasType ? t : TypeWithAnnotations.Create(tp, NullableAnnotation.Ignored));
             }
 
             return method.Construct(typeArgsForConstruct);
