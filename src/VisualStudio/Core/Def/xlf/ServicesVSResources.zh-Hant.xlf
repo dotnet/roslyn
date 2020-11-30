@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../ServicesVSResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../ServicesVSResources.resx">
     <body>
       <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
         <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
@@ -94,12 +94,12 @@
       </trans-unit>
       <trans-unit id="Bitness32">
         <source>32-bit</source>
-        <target state="new">32-bit</target>
+        <target state="translated">32 位元</target>
         <note />
       </trans-unit>
       <trans-unit id="Bitness64">
         <source>64-bit</source>
-        <target state="new">64-bit</target>
+        <target state="translated">64 位元</target>
         <note />
       </trans-unit>
       <trans-unit id="Build_plus_live_analysis_NuGet_package">
@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="CSharp_Visual_Basic_Diagnostics_Language_Client">
         <source>C#/Visual Basic Diagnostics Language Client</source>
-        <target state="new">C#/Visual Basic Diagnostics Language Client</target>
+        <target state="translated">C#/Visual Basic 診斷語言用戶端</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="Color_hints">
         <source>Color hints</source>
-        <target state="new">Color hints</target>
+        <target state="translated">色彩提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -164,7 +164,7 @@
       </trans-unit>
       <trans-unit id="Comments">
         <source>Comments</source>
-        <target state="new">Comments</target>
+        <target state="translated">註解</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -189,17 +189,17 @@
       </trans-unit>
       <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
         <source>Display all hints while pressing Alt+F1</source>
-        <target state="new">Display all hints while pressing Alt+F1</target>
+        <target state="translated">按 Alt+F1 時顯示所有提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Disp_lay inline parameter name hints</source>
-        <target state="new">Disp_lay inline parameter name hints</target>
+        <target state="translated">顯示內嵌參數名稱提示(_L)</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_type_hints">
         <source>Display inline type hints</source>
-        <target state="new">Display inline type hints</target>
+        <target state="translated">顯示內嵌類型提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -229,12 +229,12 @@
       </trans-unit>
       <trans-unit id="Enable_Razor_pull_diagnostics_experimental_requires_restart">
         <source>Enable Razor 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="new">Enable Razor 'pull' diagnostics (experimental, requires restart)</target>
+        <target state="translated">啟用 Razor 'pull' 診斷 (實驗性，需要重新啟動)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
         <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="new">Enable 'pull' diagnostics (experimental, requires restart)</target>
+        <target state="translated">啟用 'pull' 診斷 (實驗性，需要重新啟動)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
@@ -259,7 +259,7 @@
       </trans-unit>
       <trans-unit id="Extract_Base_Class">
         <source>Extract Base Class</source>
-        <target state="new">Extract Base Class</target>
+        <target state="translated">擷取基底類別</target>
         <note />
       </trans-unit>
       <trans-unit id="Finish">
@@ -304,7 +304,7 @@
       </trans-unit>
       <trans-unit id="Inline_Hints_experimental">
         <source>Inline Hints (experimental)</source>
-        <target state="new">Inline Hints (experimental)</target>
+        <target state="translated">內嵌提示 (實驗性)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -399,12 +399,12 @@
       </trans-unit>
       <trans-unit id="Name_conflicts_with_an_existing_type_name">
         <source>Name conflicts with an existing type name.</source>
-        <target state="new">Name conflicts with an existing type name.</target>
+        <target state="translated">名稱與現有類型名稱衝突。</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_is_not_a_valid_0_identifier">
         <source>Name is not a valid {0} identifier.</source>
-        <target state="new">Name is not a valid {0} identifier.</target>
+        <target state="translated">名稱不是有效的 {0} 識別碼。</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
@@ -569,7 +569,7 @@
       </trans-unit>
       <trans-unit id="New_Type_Name_colon">
         <source>New Type Name:</source>
-        <target state="new">New Type Name:</target>
+        <target state="translated">新的型別名稱:</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_public_methods">
@@ -594,7 +594,7 @@
       </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
         <source>Optional parameters must provide a default value</source>
-        <target state="translated">選擇性參數必須提供預設值。</target>
+        <target state="translated">選擇性參數必須提供預設值</target>
         <note />
       </trans-unit>
       <trans-unit id="Optional_with_default_value_colon">
@@ -814,22 +814,22 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">
         <source>Show hints for everything else</source>
-        <target state="new">Show hints for everything else</target>
+        <target state="translated">顯示所有其他項目的提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
-        <target state="new">Show hints for lambda parameter types</target>
+        <target state="translated">顯示 Lambda 參數類型的提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_literals">
         <source>Show hints for literals</source>
-        <target state="new">Show hints for literals</target>
+        <target state="translated">顯示常值的提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_variables_with_inferred_types">
         <source>Show hints for variables with inferred types</source>
-        <target state="new">Show hints for variables with inferred types</target>
+        <target state="translated">顯示有推斷類型之變數的提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
@@ -839,12 +839,12 @@
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
         <source>Suppress hints when parameter name matches the method's intent</source>
-        <target state="new">Suppress hints when parameter name matches the method's intent</target>
+        <target state="translated">當參數名稱符合方法的意圖時，不出現提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
         <source>Suppress hints when parameter names differ only by suffix</source>
-        <target state="new">Suppress hints when parameter names differ only by suffix</target>
+        <target state="translated">當參數名稱只有尾碼不同時，不出現提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -854,17 +854,17 @@
       </trans-unit>
       <trans-unit id="The_generator_0_that_generated_this_file_has_been_removed_from_the_project">
         <source>The generator '{0}' that generated this file has been removed from the project; this file is no longer being included in your project.</source>
-        <target state="new">The generator '{0}' that generated this file has been removed from the project; this file is no longer being included in your project.</target>
+        <target state="translated">已從專案中移除產生此檔案的產生器 '{0}'; 此檔案已不再包含在您的專案中。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_generator_0_that_generated_this_file_has_stopped_generating_this_file">
         <source>The generator '{0}' that generated this file has stopped generating this file; this file is no longer being included in your project.</source>
-        <target state="new">The generator '{0}' that generated this file has stopped generating this file; this file is no longer being included in your project.</target>
+        <target state="translated">產生此檔案的產生器 '{0}' 已停止產生此檔案; 此檔案已不再包含在您的專案中。</target>
         <note />
       </trans-unit>
       <trans-unit id="This_file_is_autogenerated_by_0_and_cannot_be_edited">
         <source>This file is auto-generated by the generator '{0}' and cannot be edited.</source>
-        <target state="new">This file is auto-generated by the generator '{0}' and cannot be edited.</target>
+        <target state="translated">此檔案是由產生器 '{0}' 自動產生，無法加以編輯。</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">
@@ -909,7 +909,7 @@
       </trans-unit>
       <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
         <source>Use 64-bit process for code analysis (requires restart)</source>
-        <target state="new">Use 64-bit process for code analysis (requires restart)</target>
+        <target state="translated">使用 64 位元處理序進行程式碼分析 (需要重新啟動)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
@@ -1109,12 +1109,12 @@
       </trans-unit>
       <trans-unit id="generated_by_0_suffix">
         <source>[generated by {0}]</source>
-        <target state="new">[generated by {0}]</target>
+        <target state="translated">[由 {0} 產生]</target>
         <note>{0} is the name of a generator.</note>
       </trans-unit>
       <trans-unit id="generated_suffix">
         <source>[generated]</source>
-        <target state="new">[generated]</target>
+        <target state="translated">[已產生]</target>
         <note />
       </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">
@@ -2358,15 +2358,15 @@ You acknowledge that binary code and source code might be protected by copyright
 Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
 
 I agree to all of the foregoing:</source>
-        <target state="new">IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
+        <target state="translated">注意事項: Visual Studio 包含能從二進位程式碼重新產生原始程式碼的反向組譯功能 (「解編程式」)。存取及使用此解編程式，即表示貴用戶同意 Visual Studio 授權條款及下方的解編程式條款。若貴用戶不同意這些合併條款，請勿存取或使用解編程式。
 
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
+貴用戶了解二進位程式碼及原始程式碼可能為著作權及商標法所保護。在針對任何二進位程式碼使用解編程式前，貴用戶首先需要:
+(i) 確認管理貴用戶使用二進位程式碼的授權條款未禁止貴用戶反向組譯軟體; 或
+(ii) 向軟體擁有者取得反向組譯二進位程式碼的權限。
 
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
+貴用戶可自行選擇是否要使用解編程式。Microsoft 聲明不為貴用戶在使用編譯程式時觸犯的法律，或任何禁止反向解譯軟體的軟體授權條約承擔任何責任。
 
-I agree to all of the foregoing:</target>
+我同意以上條款:</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiler_Legal_Notice_Title">

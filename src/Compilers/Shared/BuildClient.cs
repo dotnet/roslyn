@@ -51,16 +51,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         private readonly RequestLanguage _language;
         private readonly CompileFunc _compileFunc;
+        private readonly ICompilerServerLogger _logger;
         private readonly CreateServerFunc _createServerFunc;
         private readonly int? _timeoutOverride;
 
         /// <summary>
         /// When set it overrides all timeout values in milliseconds when communicating with the server.
         /// </summary>
-        internal BuildClient(RequestLanguage language, CompileFunc compileFunc, CreateServerFunc createServerFunc = null, int? timeoutOverride = null)
+        internal BuildClient(RequestLanguage language, CompileFunc compileFunc, ICompilerServerLogger logger, CreateServerFunc createServerFunc = null, int? timeoutOverride = null)
         {
             _language = language;
             _compileFunc = compileFunc;
+            _logger = logger;
             _createServerFunc = createServerFunc ?? BuildServerConnection.TryCreateServerCore;
             _timeoutOverride = timeoutOverride;
         }
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 : RuntimeEnvironment.GetRuntimeDirectory();
         }
 
-        internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc)
+        internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc, ICompilerServerLogger logger)
         {
             var sdkDir = GetSystemSdkDirectory();
             if (RuntimeHostInfo.IsCoreClrRuntime)
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
             }
 
-            var client = new BuildClient(language, compileFunc);
+            var client = new BuildClient(language, compileFunc, logger);
             var clientDir = AppContext.BaseDirectory;
             var workingDir = Directory.GetCurrentDirectory();
             var tempDir = BuildServerConnection.GetTempPath(workingDir);
@@ -272,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string libDirectory,
             CancellationToken cancellationToken)
         {
-            return RunServerCompilationCoreAsync(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, _timeoutOverride, _createServerFunc, cancellationToken);
+            return RunServerCompilationCoreAsync(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, _timeoutOverride, _createServerFunc, _logger, cancellationToken);
         }
 
         private static Task<BuildResponse> RunServerCompilationCoreAsync(
@@ -284,6 +286,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string libEnvVariable,
             int? timeoutOverride,
             CreateServerFunc createServerFunc,
+            ICompilerServerLogger logger,
             CancellationToken cancellationToken)
         {
             var alt = new BuildPathsAlt(
@@ -301,6 +304,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 libEnvVariable,
                 timeoutOverride,
                 createServerFunc,
+                logger,
                 cancellationToken);
         }
 

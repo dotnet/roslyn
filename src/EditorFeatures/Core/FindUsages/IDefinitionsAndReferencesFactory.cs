@@ -149,22 +149,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
                             sourceLocations.Add(documentLocation);
                         }
-                        else
-                        {
-                            // Was this a source generated tree? If so, we don't have a document representaion (yet) so
-                            // we'll create a metadata symbol which will later be handled by the symbol navigation service
-                            // that way. Once we represent generated source trees as propery documents, we'll update the code above
-                            // to correctly make this item.
-                            var project = solution.GetOriginatingProject(definition);
-                            var generatorRunResult = await project.GetGeneratorDriverRunResultAsync(cancellationToken).ConfigureAwait(false);
-
-                            if (generatorRunResult.TryGetGeneratorAndHint(location.SourceTree, out _, out _))
-                            {
-                                return DefinitionItem.CreateMetadataDefinition(
-                                    tags, displayParts, nameDisplayParts, solution,
-                                    definition, properties, displayIfNoReferences);
-                            }
-                        }
                     }
                 }
             }

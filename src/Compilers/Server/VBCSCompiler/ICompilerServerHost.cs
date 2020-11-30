@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal interface ICompilerServerHost
     {
+        ICompilerServerLogger Logger { get; }
+
         BuildResponse RunCompilation(RunRequest request, CancellationToken cancellationToken);
     }
 }

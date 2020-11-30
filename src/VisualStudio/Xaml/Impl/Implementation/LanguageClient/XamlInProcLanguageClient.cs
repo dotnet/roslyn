@@ -51,8 +51,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 OnAutoInsertProvider = new DocumentOnAutoInsertOptions { TriggerCharacters = new[] { "=", "/", ">" } },
                 TextDocumentSync = new TextDocumentSyncOptions
                 {
-                    Change = TextDocumentSyncKind.None
+                    Change = TextDocumentSyncKind.None,
+                    OpenClose = false
                 },
+                SupportsDiagnosticRequests = true,
             };
     }
 }

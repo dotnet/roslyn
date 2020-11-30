@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal class CSharpSimplifyInterpolationCodeFixProvider : AbstractSimplifyInterpolationCodeFixProvider<
         InterpolationSyntax, ExpressionSyntax, InterpolationAlignmentClauseSyntax,
-        InterpolationFormatClauseSyntax, InterpolatedStringExpressionSyntax>
+        InterpolationFormatClauseSyntax, InterpolatedStringExpressionSyntax,
+        ConditionalExpressionSyntax, ParenthesizedExpressionSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

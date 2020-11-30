@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryCast;
@@ -8288,6 +8286,112 @@ class C
 }";
 
             await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
+        }
+
+        [WorkItem(49140, "https://github.com/dotnet/roslyn/issues/49140")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveBitwiseNotOfUnsignedExtendedValue1()
+        {
+            var source =
+@"
+class C
+{
+    public static ulong P(ulong a, uint b)
+    {
+        return a & ~(ulong)b;
+    }
+}";
+
+            var test = new VerifyCS.Test()
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9
+            };
+
+            await test.RunAsync();
+        }
+
+        [WorkItem(49140, "https://github.com/dotnet/roslyn/issues/49140")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveBitwiseNotOfUnsignedExtendedValue2()
+        {
+            var source =
+@"
+class C
+{
+    public static nuint N(nuint a, uint b)
+    {
+        return a & ~(nuint)b;
+    }
+}";
+
+            var test = new VerifyCS.Test()
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9
+            };
+
+            await test.RunAsync();
+        }
+
+        [WorkItem(49140, "https://github.com/dotnet/roslyn/issues/49140")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveBitwiseNotOfSignExtendedValue1()
+        {
+
+            var test = new VerifyCS.Test()
+            {
+                TestCode = @"
+class C
+{
+    public static long P(long a, int b)
+    {
+        return a & ~[|(long)|]b;
+    }
+}",
+                FixedCode = @"
+class C
+{
+    public static long P(long a, int b)
+    {
+        return a & ~b;
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9
+            };
+
+            await test.RunAsync();
+        }
+
+        [WorkItem(49140, "https://github.com/dotnet/roslyn/issues/49140")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveBitwiseNotOfSignExtendedValue2()
+        {
+
+            var test = new VerifyCS.Test()
+            {
+                TestCode = @"
+class C
+{
+    public static nint N(nint a, int b)
+    {
+        return a & ~[|(nint)|]b;
+    }
+}",
+                FixedCode = @"
+class C
+{
+    public static nint N(nint a, int b)
+    {
+        return a & ~b;
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9
+            };
+
+            await test.RunAsync();
         }
     }
 }

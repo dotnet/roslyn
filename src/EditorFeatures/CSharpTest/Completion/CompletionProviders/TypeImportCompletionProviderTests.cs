@@ -1562,6 +1562,96 @@ namespace Foo
             }
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCommitWithSemicolonForParameterlessConstructor()
+        {
+            var markup = @"
+namespace AA
+{
+    public class C
+    {
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            var c = new $$
+        }
+    }
+}";
+
+            var expected = @"
+using AA;
+
+namespace AA
+{
+    public class C
+    {
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            var c = new C();
+        }
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "C", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCommitWithSemicolonUnderNonObjectCreationContext()
+        {
+            var markup = @"
+namespace AA
+{
+    public class C
+    {
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            $$
+        }
+    }
+}";
+
+            var expected = @"
+using AA;
+
+namespace AA
+{
+    public class C
+    {
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            C;
+        }
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "C", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
+        }
+
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null, CompletionItemFlags? flags = null)
             => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, flags: flags);
 

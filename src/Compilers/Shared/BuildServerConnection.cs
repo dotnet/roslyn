@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
     }
 
-    internal delegate bool CreateServerFunc(string clientDir, string pipeName);
+    internal delegate bool CreateServerFunc(string clientDir, string pipeName, ICompilerServerLogger logger);
 
     internal sealed class BuildServerConnection
     {
@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             BuildPathsAlt buildPaths,
             string? keepAlive,
             string? libEnvVariable,
+            ICompilerServerLogger logger,
             CancellationToken cancellationToken)
         {
             var pipeNameOpt = sharedCompilationId ?? GetPipeNameForPath(buildPaths.ClientDirectory);
@@ -97,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 libEnvVariable,
                 timeoutOverride: null,
                 createServerFunc: TryCreateServerCore,
+                logger: logger,
                 cancellationToken: cancellationToken);
         }
 
@@ -109,6 +111,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string? libEnvVariable,
             int? timeoutOverride,
             CreateServerFunc createServerFunc,
+            ICompilerServerLogger logger,
             CancellationToken cancellationToken)
         {
             if (pipeName is null)
@@ -127,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return new IncorrectHashBuildResponse();
             }
 
-            var pipeTask = tryConnectToServer(pipeName, buildPaths, timeoutOverride, createServerFunc, cancellationToken);
+            var pipeTask = tryConnectToServer(pipeName, buildPaths, timeoutOverride, createServerFunc, logger, cancellationToken);
             if (pipeTask is null)
             {
                 return new RejectedBuildResponse("Failed to connect to server");
@@ -149,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                                                       keepAlive: keepAlive,
                                                       libDirectory: libEnvVariable);
 
-                    return await TryCompileAsync(pipe, request, cancellationToken).ConfigureAwait(false);
+                    return await TryCompileAsync(pipe, request, logger, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -161,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 BuildPathsAlt buildPaths,
                 int? timeoutOverride,
                 CreateServerFunc createServerFunc,
+                ICompilerServerLogger logger,
                 CancellationToken cancellationToken)
             {
                 var originalThreadId = Thread.CurrentThread.ManagedThreadId;
@@ -213,9 +217,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     bool wasServerRunning = WasServerMutexOpen(serverMutexName);
                     var timeout = wasServerRunning ? timeoutExistingProcess : timeoutNewProcess;
 
-                    if (wasServerRunning || createServerFunc(clientDir, pipeName))
+                    if (wasServerRunning || createServerFunc(clientDir, pipeName, logger))
                     {
-                        pipeTask = TryConnectToServerAsync(pipeName, timeout, cancellationToken);
+                        pipeTask = TryConnectToServerAsync(pipeName, timeout, logger, cancellationToken);
                     }
 
                     return pipeTask;
@@ -240,9 +244,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Try to compile using the server. Returns a null-containing Task if a response
         /// from the server cannot be retrieved.
         /// </summary>
-        private static async Task<BuildResponse> TryCompileAsync(NamedPipeClientStream pipeStream,
-                                                            BuildRequest request,
-                                                            CancellationToken cancellationToken)
+        private static async Task<BuildResponse> TryCompileAsync(
+            NamedPipeClientStream pipeStream,
+            BuildRequest request,
+            ICompilerServerLogger logger,
+            CancellationToken cancellationToken)
         {
             BuildResponse response;
             using (pipeStream)
@@ -250,26 +256,26 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 // Write the request
                 try
                 {
-                    Log("Begin writing request");
+                    logger.Log("Begin writing request");
                     await request.WriteAsync(pipeStream, cancellationToken).ConfigureAwait(false);
-                    Log("End writing request");
+                    logger.Log("End writing request");
                 }
                 catch (Exception e)
                 {
-                    LogException(e, "Error writing build request.");
+                    logger.LogException(e, "Error writing build request.");
                     return new RejectedBuildResponse($"Error writing build request: {e.Message}");
                 }
 
                 // Wait for the compilation and a monitor to detect if the server disconnects
                 var serverCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-                Log("Begin reading response");
+                logger.Log("Begin reading response");
 
                 var responseTask = BuildResponse.ReadAsync(pipeStream, serverCts.Token);
-                var monitorTask = MonitorDisconnectAsync(pipeStream, "client", serverCts.Token);
+                var monitorTask = MonitorDisconnectAsync(pipeStream, "client", logger, serverCts.Token);
                 await Task.WhenAny(responseTask, monitorTask).ConfigureAwait(false);
 
-                Log("End reading response");
+                logger.Log("End reading response");
 
                 if (responseTask.IsCompleted)
                 {
@@ -280,13 +286,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     }
                     catch (Exception e)
                     {
-                        LogException(e, "Error reading response");
+                        logger.LogException(e, "Error reading response");
                         response = new RejectedBuildResponse($"Error reading response: {e.Message}");
                     }
                 }
                 else
                 {
-                    LogError("Client disconnect");
+                    logger.LogError("Client disconnect");
                     response = new RejectedBuildResponse($"Client disconnected");
                 }
 
@@ -304,7 +310,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         internal static async Task MonitorDisconnectAsync(
             PipeStream pipeStream,
-            string? identifier = null,
+            string identifier,
+            ICompilerServerLogger logger,
             CancellationToken cancellationToken = default)
         {
             var buffer = Array.Empty<byte>();
@@ -325,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 {
                     // It is okay for this call to fail.  Errors will be reflected in the
                     // IsConnected property which will be read on the next iteration of the
-                    LogException(e, $"Error poking pipe {identifier}.");
+                    logger.LogException(e, $"Error poking pipe {identifier}.");
                 }
             }
         }
@@ -343,6 +350,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         internal static async Task<NamedPipeClientStream?> TryConnectToServerAsync(
             string pipeName,
             int timeoutMs,
+            ICompilerServerLogger logger,
             CancellationToken cancellationToken)
         {
             NamedPipeClientStream? pipeStream = null;
@@ -351,12 +359,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 // Machine-local named pipes are named "\\.\pipe\<pipename>".
                 // We use the SHA1 of the directory the compiler exes live in as the pipe name.
                 // The NamedPipeClientStream class handles the "\\.\pipe\" part for us.
-                Log("Attempt to open named pipe '{0}'", pipeName);
+                logger.Log("Attempt to open named pipe '{0}'", pipeName);
 
                 pipeStream = NamedPipeUtil.CreateClient(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
                 cancellationToken.ThrowIfCancellationRequested();
 
-                Log("Attempt to connect named pipe '{0}'", pipeName);
+                logger.Log("Attempt to connect named pipe '{0}'", pipeName);
                 try
                 {
                     // NamedPipeClientStream.ConnectAsync on the "full" framework has a bug where it
@@ -378,11 +386,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     // IOException: The server is connected to another client and the
                     //              time-out period has expired.
 
-                    LogException(e, $"Connecting to server timed out after {timeoutMs} ms");
+                    logger.LogException(e, $"Connecting to server timed out after {timeoutMs} ms");
                     pipeStream.Dispose();
                     return null;
                 }
-                Log("Named pipe '{0}' connected", pipeName);
+                logger.Log("Named pipe '{0}' connected", pipeName);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -390,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 if (!NamedPipeUtil.CheckPipeConnectionOwnership(pipeStream))
                 {
                     pipeStream.Dispose();
-                    LogError("Owner of named pipe is incorrect");
+                    logger.LogError("Owner of named pipe is incorrect");
                     return null;
                 }
 
@@ -398,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             catch (Exception e) when (!(e is TaskCanceledException || e is OperationCanceledException))
             {
-                LogException(e, "Exception while connecting to process");
+                logger.LogException(e, "Exception while connecting to process");
                 pipeStream?.Dispose();
                 return null;
             }
@@ -411,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return RuntimeHostInfo.GetProcessInfo(serverPathWithoutExtension, commandLineArgs);
         }
 
-        internal static bool TryCreateServerCore(string clientDir, string pipeName)
+        internal static bool TryCreateServerCore(string clientDir, string pipeName, ICompilerServerLogger logger)
         {
             var serverInfo = GetServerProcessInfo(clientDir, pipeName);
 
@@ -436,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 PROCESS_INFORMATION processInfo;
 
-                Log("Attempting to create process '{0}'", serverInfo.processFilePath);
+                logger.Log("Attempting to create process '{0}'", serverInfo.processFilePath);
 
                 var builder = new StringBuilder($@"""{serverInfo.processFilePath}"" {serverInfo.commandLineArguments}");
 
@@ -454,13 +462,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 if (success)
                 {
-                    Log("Successfully created process with process id {0}", processInfo.dwProcessId);
+                    logger.Log("Successfully created process with process id {0}", processInfo.dwProcessId);
                     CloseHandle(processInfo.hProcess);
                     CloseHandle(processInfo.hThread);
                 }
                 else
                 {
-                    LogError("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
+                    logger.LogError("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
                 }
                 return success;
             }
