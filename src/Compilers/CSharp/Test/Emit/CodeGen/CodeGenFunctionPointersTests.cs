@@ -10849,6 +10849,156 @@ unsafe
 ");
         }
 
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void RefAssignment()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe
+{
+    int i = 1;
+    delegate*<ref int, ref int> ptr = &ReturnByRef;
+    ref readonly int iRef = ref ptr(ref i);
+    i = 2;
+    System.Console.WriteLine(iRef);
+    
+    static ref int ReturnByRef(ref int i) => ref i;
+}", expectedOutput: "2");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (int V_0, //i
+                delegate*<ref int, ref int> V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldftn      ""ref int <Program>$.<<Main>$>g__ReturnByRef|0_0(ref int)""
+  IL_0008:  stloc.1
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldloc.1
+  IL_000c:  calli      ""delegate*<ref int, ref int>""
+  IL_0011:  ldc.i4.2
+  IL_0012:  stloc.0
+  IL_0013:  ldind.i4
+  IL_0014:  call       ""void System.Console.WriteLine(int)""
+  IL_0019:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void RefAssignmentThroughTernary()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe
+{
+    int i = 1;
+    int i2 = 3;
+    delegate*<ref int, ref int> ptr = &ReturnByRef;
+    ref readonly int iRef = ref false ? ref i2 : ref ptr(ref i);
+    i = 2;
+    System.Console.WriteLine(iRef);
+    
+    static ref int ReturnByRef(ref int i) => ref i;
+}", expectedOutput: "2");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (int V_0, //i
+                delegate*<ref int, ref int> V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldftn      ""ref int <Program>$.<<Main>$>g__ReturnByRef|0_0(ref int)""
+  IL_0008:  stloc.1
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldloc.1
+  IL_000c:  calli      ""delegate*<ref int, ref int>""
+  IL_0011:  ldc.i4.2
+  IL_0012:  stloc.0
+  IL_0013:  ldind.i4
+  IL_0014:  call       ""void System.Console.WriteLine(int)""
+  IL_0019:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void RefReturnThroughTernary()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe
+{
+    int i = 1;
+    int i2 = 3;
+    ref int iRef = ref ReturnPtrByRef(&ReturnByRef, ref i, ref i2);
+    iRef = 2;
+    System.Console.WriteLine(i);
+    
+    static ref int ReturnPtrByRef(delegate*<ref int, ref int> ptr, ref int i, ref int i2)
+        => ref false ? ref i2 : ref ptr(ref i);
+
+    static ref int ReturnByRef(ref int i) => ref i;
+}", expectedOutput: "2");
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, int>, ref int, ref int)", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (delegate*<ref int, ref int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.1
+  IL_0003:  ldloc.0
+  IL_0004:  calli      ""delegate*<ref int, ref int>""
+  IL_0009:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        public void PassedAsByRefParameter()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe
+{
+    int i = 1;
+    delegate*<ref int, ref int> ptr = &ReturnByRef;
+    ref readonly int iRef = ref ptr(ref ptr(ref i));
+    i = 2;
+    System.Console.WriteLine(iRef);
+    
+    static ref int ReturnByRef(ref int i) => ref i;
+}", expectedOutput: "2");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  .locals init (int V_0, //i
+                delegate*<ref int, ref int> V_1,
+                delegate*<ref int, ref int> V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldftn      ""ref int <Program>$.<<Main>$>g__ReturnByRef|0_0(ref int)""
+  IL_0008:  dup
+  IL_0009:  stloc.1
+  IL_000a:  stloc.2
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  ldloc.2
+  IL_000e:  calli      ""delegate*<ref int, ref int>""
+  IL_0013:  ldloc.1
+  IL_0014:  calli      ""delegate*<ref int, ref int>""
+  IL_0019:  ldc.i4.2
+  IL_001a:  stloc.0
+  IL_001b:  ldind.i4
+  IL_001c:  call       ""void System.Console.WriteLine(int)""
+  IL_0021:  ret
+}
+");
+        }
+
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
         private static readonly BlobContentId s_contentId = new BlobContentId(s_guid, 0x04030201);
 
