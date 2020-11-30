@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 #pragma warning disable RS0005 // Do not use generic CodeAction.Create to create CodeAction
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             RoslynDebug.AssertNotNull(fixAllContext.Document);
 
-            var documentDiagnosticsToFix = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext, progressTrackerOpt: null).ConfigureAwait(false);
+            var documentDiagnosticsToFix = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
             if (!documentDiagnosticsToFix.TryGetValue(fixAllContext.Document, out var diagnostics))
             {
                 return fixAllContext.Document;
@@ -92,9 +94,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private async Task<Solution> GetSolutionFixesAsync(FixAllContext fixAllContext, ImmutableArray<Document> documents)
         {
-            var documentDiagnosticsToFix = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext, progressTrackerOpt: null).ConfigureAwait(false);
+            var documentDiagnosticsToFix = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
 
-            using var _ = PooledDictionary<DocumentId, Task<SyntaxNode?>>.GetInstance(out var documentIdToNewNode);
+            using var _1 = PooledHashSet<Document>.GetInstance(out var documentsToFix);
+            using var _2 = PooledDictionary<DocumentId, Task<SyntaxNode?>>.GetInstance(out var documentIdToNewNode);
+
+            // Determine the set of documents to actually fix.  We can also use this to update the progress bar with
+            // the amount of remaining work to perform.  We'll update the progress bar as we perform each fix in
+            // FixAllInDocumentAsync.
+
             foreach (var document in documents)
             {
                 // Don't bother examining any documents that aren't in the list of docs that
@@ -102,7 +110,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 if (!documentDiagnosticsToFix.TryGetValue(document, out var diagnostics))
                     continue;
 
-                documentIdToNewNode.Add(document.Id, FixAllInDocumentAsync(fixAllContext, document, diagnostics));
+                documentsToFix.Add(document);
+            }
+
+            var progressTracker = fixAllContext.GetProgressTracker();
+            progressTracker.Description = WorkspaceExtensionsResources.Applying_fix_all;
+            progressTracker.AddItems(documentsToFix.Count);
+
+            foreach (var document in documentsToFix)
+            {
+                // Upper loop ensures that this indexing will always succeed.
+                var diagnostics = documentDiagnosticsToFix[document];
+                documentIdToNewNode.Add(document.Id, FixAllInDocumentAsync(fixAllContext, progressTracker, document, diagnostics));
             }
 
             // Allow the processing of all the documents to happen concurrently.
@@ -119,6 +138,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             return solution;
+        }
+
+        private async Task<SyntaxNode?> FixAllInDocumentAsync(
+            FixAllContext fixAllContext,
+            IProgressTracker progressTracker,
+            Document document,
+            ImmutableArray<Diagnostic> diagnostics)
+        {
+            try
+            {
+                return await this.FixAllInDocumentAsync(fixAllContext, document, diagnostics).ConfigureAwait(false);
+            }
+            finally
+            {
+                progressTracker.ItemCompleted();
+            }
         }
 
         private Task<Solution> GetProjectFixesAsync(FixAllContext fixAllContext, Project project)
