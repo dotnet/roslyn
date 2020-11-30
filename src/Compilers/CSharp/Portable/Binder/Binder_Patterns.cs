@@ -117,8 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // decisionDag, whenTrueLabel, and whenFalseLabel represent the decision DAG and
-            // branch labels for the original pattern rather than the inner pattern.
+            // decisionDag, whenTrueLabel, and whenFalseLabel represent the decision DAG for the inner pattern,
+            // after removing any outer 'not's, so consumers will need to compensate for negated patterns.
             return new BoundIsPatternExpression(
                 node, expression, pattern, decisionDag, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, boolType, hasErrors);
 

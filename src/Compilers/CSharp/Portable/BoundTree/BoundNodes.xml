@@ -2022,9 +2022,9 @@
     <Field Name="Format" Type="BoundLiteral?"/>
   </Node>
   
-    <!-- An 'is' pattern. The fields represent the complete pattern, including any 'not'.
-         For assignment in negated patterns (such as lowering and definite assignment of 'is not Type t'),
-         that requires assigning at WhenFalseLabel rather than WhenTrueLabel. -->
+    <!-- An 'is pattern'. The fields DecisionDag, WhenTrueLabel, and WhenFalseLabel represent the inner pattern
+         after removing any outer 'not's, so consumers (such as lowering and definite assignment of the local in
+         'is not Type t') will need to compensate for negated patterns. -->
   <Node Name="BoundIsPatternExpression" Base="BoundExpression">
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
