@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         public UnitTestingRemoteServiceConnectionWrapper<TService> CreateConnection<TService>(object? callbackTarget) where TService : class
             => new(_client.CreateConnection<TService>(_serviceDescriptors.UnderlyingObject, _callbackDispatchers, callbackTarget));
 
-
         // no solution, no callback:
 
         public async ValueTask<bool> TryInvokeAsync<TService>(Func<TService, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken) where TService : class
