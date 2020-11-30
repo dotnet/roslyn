@@ -804,7 +804,7 @@ public class C
 {
     void M()
     {
-        var v = $""{1}{(""string"")}"";
+        var v = $""{1}{""string""}"";
     }
 }");
         }
@@ -930,6 +930,105 @@ class C
         Console.WriteLine($""{Hello} {World}"");
     }
 }");
+        }
+
+        [WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [InlineData(@"[|""a"" + $""{1:000}""|]",
+                     @"$""a{1:000}""")]
+        [InlineData(@"[|""a"" + $""b{1:000}""|]",
+                     @"$""ab{1:000}""")]
+        [InlineData(@"[|$""a{1:000}"" + ""b""|]",
+                     @"$""a{1:000}b""")]
+        [InlineData(@"[|""a"" + $""b{1:000}c"" + ""d""|]",
+                     @"$""ab{1:000}cd""")]
+        [InlineData(@"[|""a"" + $""{1:000}b"" + ""c""|]",
+                     @"$""a{1:000}bc""")]
+        [InlineData(@"[|""a"" + $""{1:000}"" + $""{2:000}"" + ""b""|]",
+                     @"$""a{1:000}{2:000}b""")]
+        [InlineData(@"[|@""a"" + @$""{1:000}""|]",
+                     @"$@""a{1:000}""")]
+        [InlineData(@"[|@""a"" + $""{1:000}""|]",
+                     @"$@""a{$""{1:000}""}""")]
+        [InlineData(@"[|""a"" + @$""{1:000}""|]",
+                     @"$""a{@$""{1:000}""}""")]
+        public async Task TestInliningOfInterpolatedString(string before, string after)
+        {
+            var initialMarkup = $@"
+class C
+{{
+    void M() {{
+        {before}
+    }}
+}}";
+            var expected = $@"
+class C
+{{
+    void M() {{
+        {after}
+    }}
+}}";
+            await TestInRegularAndScriptAsync(initialMarkup, expected);
+        }
+
+        [WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [InlineData(@"""\t"" [|+|] 1",
+                   @"$""\t{1}""")]
+        [InlineData(@"""😀"" [|+|] 1",
+                   @"$""😀{1}""")]
+        [InlineData(@"""\u2764"" [|+|] 1",
+                   @"$""\u2764{1}""")]
+        [InlineData(@"""\"""" [|+|] 1",
+                   @"$""\""{1}""")]
+        [InlineData(@"""{}"" [|+|] 1",
+                   @"$""{{}}{1}""")]
+        public async Task TestUnicodeAndEscapeHandling(string before, string after)
+        {
+            var initialMarkup = $@"
+class C
+{{
+    void M() {{
+        {before}
+    }}
+}}";
+            var expected = $@"
+class C
+{{
+    void M() {{
+        {after}
+    }}
+}}";
+            await TestInRegularAndScriptAsync(initialMarkup, expected);
+        }
+
+        [WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [InlineData(@"""a"" [|+|] (1 + 1)",
+                   @"$""a{1 + 1}""")]
+        [InlineData(@"""a"" [||]+ (1 + 1) + ""b"" + (2 + 2)",
+                   @"$""a{1 + 1}b{2 + 2}""")]
+        [InlineData(@"""a"" [|+|] (true ? ""t"" : ""f"")",
+                   @"$""a{(true ? ""t"" : ""f"")}""")]
+        [InlineData(@"""a"" [|+|] $""{(1 + 1)}""",
+                   @"$""a{(1 + 1)}""")]
+        public async Task TestRemovalOfSuperflousParenthesis(string before, string after)
+        {
+            var initialMarkup = $@"
+class C
+{{
+    void M() {{
+        {before}
+    }}
+}}";
+            var expected = $@"
+class C
+{{
+    void M() {{
+        {after}
+    }}
+}}";
+            await TestInRegularAndScriptAsync(initialMarkup, expected);
         }
     }
 }

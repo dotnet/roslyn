@@ -2407,5 +2407,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Function IsLocalFunction(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLocalFunction
             Return False
         End Function
+
+        Public Sub GetPartsOfInterpolationExpression(node As SyntaxNode, ByRef stringStartToken As SyntaxToken, ByRef contents As SyntaxList(Of SyntaxNode), ByRef stringEndToken As SyntaxToken) Implements ISyntaxFacts.GetPartsOfInterpolationExpression
+            Dim interpolatedStringExpressionSyntax As InterpolatedStringExpressionSyntax = DirectCast(node, InterpolatedStringExpressionSyntax)
+            stringStartToken = interpolatedStringExpressionSyntax.DollarSignDoubleQuoteToken
+            contents = interpolatedStringExpressionSyntax.Contents
+            stringEndToken = interpolatedStringExpressionSyntax.DoubleQuoteToken
+        End Sub
+
+        Public Function IsVerbatimInterpolatedStringExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsVerbatimInterpolatedStringExpression
+            Return False
+        End Function
     End Class
 End Namespace

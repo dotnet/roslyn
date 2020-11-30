@@ -90,5 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int? GlobalStatement => (int)SyntaxKind.GlobalStatement;
 
         public int Interpolation => (int)SyntaxKind.Interpolation;
+        public int InterpolatedStringExpression => (int)SyntaxKind.InterpolatedStringExpression;
+        public int InterpolatedStringText => (int)SyntaxKind.InterpolatedStringText;
     }
 }
