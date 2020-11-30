@@ -2022,6 +2022,9 @@
     <Field Name="Format" Type="BoundLiteral?"/>
   </Node>
   
+    <!-- An 'is' pattern. The fields represent the complete pattern, including any 'not'.
+         For assignment in negated patterns (such as lowering and definite assignment of 'is not Type t'),
+         that requires assigning at WhenFalseLabel rather than WhenTrueLabel. -->
   <Node Name="BoundIsPatternExpression" Base="BoundExpression">
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
