@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     _addNullCheckOptionValue = addNullChecksOption.Value;
                 }
 
-                var addNullChecks = (addNullChecksOption?.Value).GetValueOrDefault();
+                var addNullChecks = (addNullChecksOption?.Value ?? false);
                 var state = await State.TryGenerateAsync(
                     _service, _document, _textSpan, _containingType,
                     result.Members, cancellationToken).ConfigureAwait(false);

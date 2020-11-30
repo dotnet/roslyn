@@ -1299,8 +1299,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Should this be optimized for perf (caching for VT<0> to VT<7>, etc.)?
             If Not IsUnboundGenericType AndAlso
-                (ContainingSymbol?.Kind = SymbolKind.Namespace).GetValueOrDefault() AndAlso
-                (ContainingNamespace.ContainingNamespace?.IsGlobalNamespace).GetValueOrDefault() AndAlso
+                If(ContainingSymbol?.Kind = SymbolKind.Namespace, False) AndAlso
+                If(ContainingNamespace.ContainingNamespace?.IsGlobalNamespace, False) AndAlso
                 Name = TupleTypeSymbol.TupleTypeName AndAlso
                 ContainingNamespace.Name = MetadataHelpers.SystemString Then
 

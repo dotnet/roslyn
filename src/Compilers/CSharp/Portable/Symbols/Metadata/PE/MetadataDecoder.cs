@@ -406,8 +406,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                         // Let's use a trick. To make sure the kind is the same, make sure
                         // base type is the same.
-                        SpecialType baseSpecialType = (candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType).GetValueOrDefault();
-                        if (baseSpecialType == SpecialType.None || baseSpecialType != (baseType?.SpecialType).GetValueOrDefault())
+                        SpecialType baseSpecialType = (candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType ?? SpecialType.None);
+                        if (baseSpecialType == SpecialType.None || baseSpecialType != (baseType?.SpecialType ?? SpecialType.None))
                         {
                             continue;
                         }
