@@ -1164,39 +1164,43 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override void ReportLambdaAttributeRudeEdits(SemanticModel oldModel, SyntaxNode oldLambdaBody, SemanticModel newModel, SyntaxNode newLambdaBody, List<RudeEditDiagnostic> diagnostics, bool hadSignatureEdits, CancellationToken cancellationToken)
         {
-            if (IsLocalFunctionBody(oldLambdaBody) && IsLocalFunctionBody(newLambdaBody))
+            // Changes from lambda to local are covered by the method above, so we can just bail out here
+            // if both old and new aren't local functions
+            if (!IsLocalFunctionBody(oldLambdaBody) || !IsLocalFunctionBody(newLambdaBody))
             {
-                var newLambda = (LocalFunctionStatementSyntax)GetLambda(newLambdaBody);
-                var oldLambda = (LocalFunctionStatementSyntax)GetLambda(oldLambdaBody);
+                return;
+            }
 
-                var reportDiagnostic = false;
-                if (!oldLambda.AttributeLists.SequenceEqual(newLambda.AttributeLists))
-                {
-                    reportDiagnostic = true;
-                }
+            var newLocalFunction = (LocalFunctionStatementSyntax)GetLambda(newLambdaBody);
+            var oldLocalFunction = (LocalFunctionStatementSyntax)GetLambda(oldLambdaBody);
 
-                // If the old and new signatures have changed then we don't need to report rude edits for attributes on parameters
-                // so we can skip this bit
-                if (!hadSignatureEdits)
+            var reportDiagnostic = false;
+            if (!oldLocalFunction.AttributeLists.SequenceEqual(newLocalFunction.AttributeLists))
+            {
+                reportDiagnostic = true;
+            }
+
+            // If the old and new signatures have changed then we don't need to report rude edits for attributes on parameters
+            // so we can skip this bit
+            if (!hadSignatureEdits)
+            {
+                for (var i = 0; i < oldLocalFunction.ParameterList.Parameters.Count; i++)
                 {
-                    for (var i = 0; i < oldLambda.ParameterList.Parameters.Count; i++)
+                    if (!oldLocalFunction.ParameterList.Parameters[i].AttributeLists.SequenceEqual(newLocalFunction.ParameterList.Parameters[i].AttributeLists))
                     {
-                        if (!oldLambda.ParameterList.Parameters[i].AttributeLists.SequenceEqual(newLambda.ParameterList.Parameters[i].AttributeLists))
-                        {
-                            reportDiagnostic = true;
-                            break;
-                        }
+                        reportDiagnostic = true;
+                        break;
                     }
                 }
+            }
 
-                if (reportDiagnostic)
-                {
-                    diagnostics.Add(new RudeEditDiagnostic(
-                        RudeEditKind.Update,
-                        GetDiagnosticSpan(newLambda, EditKind.Update),
-                        newLambda,
-                        new[] { GetDisplayName(newLambda) }));
-                }
+            if (reportDiagnostic)
+            {
+                diagnostics.Add(new RudeEditDiagnostic(
+                    RudeEditKind.Update,
+                    GetDiagnosticSpan(newLocalFunction, EditKind.Update),
+                    newLocalFunction,
+                    new[] { GetDisplayName(newLocalFunction) }));
             }
         }
 
