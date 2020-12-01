@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var originatingDocument = context.Document;
             var position = context.Position;
 
-            var syntaxTree = await context.Document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await originatingDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true);
             var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 preprocessorNames.AddRange(currentSyntaxTree.Options.PreprocessorSymbolNames);
             }
 
+            // Keep all the preprocessor symbol names together.  We don't want to intermingle them with any keywords we
+            // include (like `true/false`)
             var order = 0;
             foreach (var name in preprocessorNames.OrderBy(a => a))
             {
