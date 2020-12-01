@@ -3739,7 +3739,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 reportDiagnostic = true;
             }
 
-            // If the old and new signatures are the same then we are safe to compare parameter attributes more easily
+            // If the old and new signatures have changed then we don't need to report rude edits for attributes on parameters
+            // so we can skip this bit
             if (!hadSignatureEdits)
             {
                 for (var i = 0; i < oldLambdaSymbol.Parameters.Length; i++)
