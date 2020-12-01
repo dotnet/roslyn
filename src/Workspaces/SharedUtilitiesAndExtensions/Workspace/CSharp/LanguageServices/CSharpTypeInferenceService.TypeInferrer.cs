@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -213,6 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AttributeTargetSpecifierSyntax attributeTargetSpecifier => InferTypeInAttributeTargetSpecifier(attributeTargetSpecifier, token),
                     AwaitExpressionSyntax awaitExpression => InferTypeInAwaitExpression(awaitExpression, token),
                     BinaryExpressionSyntax binaryExpression => InferTypeInBinaryOrAssignmentExpression(binaryExpression, binaryExpression.OperatorToken, binaryExpression.Left, binaryExpression.Right, previousToken: token),
+                    BinaryPatternSyntax binaryPattern => GetPatternTypesFromOperation(binaryPattern),
                     BracketedArgumentListSyntax bracketedArgumentList => InferTypeInBracketedArgumentList(bracketedArgumentList, token),
                     CastExpressionSyntax castExpression => InferTypeInCastExpression(castExpression, previousToken: token),
                     CatchDeclarationSyntax catchDeclaration => InferTypeInCatchDeclaration(catchDeclaration, token),
@@ -237,10 +239,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     PostfixUnaryExpressionSyntax postfixUnary => InferTypeInPostfixUnaryExpression(postfixUnary, token),
                     PrefixUnaryExpressionSyntax prefixUnary => InferTypeInPrefixUnaryExpression(prefixUnary, token),
                     ReturnStatementSyntax returnStatement => InferTypeForReturnStatement(returnStatement, token),
+                    SingleVariableDesignationSyntax singleVariableDesignationSyntax => InferTypeForSingleVariableDesignation(singleVariableDesignationSyntax),
                     SwitchLabelSyntax switchLabel => InferTypeInSwitchLabel(switchLabel, token),
                     SwitchStatementSyntax switchStatement => InferTypeInSwitchStatement(switchStatement, token),
                     ThrowStatementSyntax throwStatement => InferTypeInThrowStatement(throwStatement, token),
                     TupleExpressionSyntax tupleExpression => InferTypeInTupleExpression(tupleExpression, token),
+                    UnaryPatternSyntax unaryPattern => GetPatternTypesFromOperation(unaryPattern),
                     UsingStatementSyntax usingStatement => InferTypeInUsingStatement(usingStatement, token),
                     WhenClauseSyntax whenClause => InferTypeInWhenClause(whenClause, token),
                     WhileStatementSyntax whileStatement => InferTypeInWhileStatement(whileStatement, token),
@@ -1477,6 +1481,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
+            private IEnumerable<TypeInferenceInfo> InferTypeForSingleVariableDesignation(SingleVariableDesignationSyntax singleVariableDesignation)
+            {
+                if (singleVariableDesignation.Parent is DeclarationPatternSyntax declarationPattern)
+                {
+                    // c is Color.Red or $$
+                    // "or" is not parsed as part of a BinaryPattern until the right hand side
+                    // is written. By making sure, the identifier
+                    // is "or" or "and", we can assume a BinaryPattern is upcoming.
+                    var identifier = singleVariableDesignation.Identifier;
+                    if (identifier.HasMatchingText(SyntaxKind.OrKeyword) ||
+                        identifier.HasMatchingText(SyntaxKind.AndKeyword))
+                    {
+                        return GetPatternTypesFromOperation(declarationPattern);
+                    }
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
             private IEnumerable<TypeInferenceInfo> InferTypeInIsPatternExpression(
                 IsPatternExpressionSyntax isPatternExpression,
                 SyntaxNode child)
@@ -1488,6 +1511,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (child == isPatternExpression.Pattern)
                 {
                     return GetTypes(isPatternExpression.Expression);
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
+            private IEnumerable<TypeInferenceInfo> GetPatternTypesFromOperation(PatternSyntax pattern)
+            {
+                if (this.SemanticModel.GetOperation(pattern, CancellationToken) is IPatternOperation patternOperation)
+                {
+                    var resultType = patternOperation.NarrowedType.IsErrorType()
+                        ? patternOperation.InputType
+                        : patternOperation.NarrowedType;
+                    return CreateResult(resultType);
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();

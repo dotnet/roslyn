@@ -596,26 +596,44 @@ class C
             await VerifyItemExistsAsync(markup, "Palette.AccentColor1");
         }
 
-        [Fact]
+        [Theory]
         [Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestPatterns_Is_ConstPattern()
+        [InlineData("")]
+        [InlineData("Re")]
+        [InlineData("Col")]
+        [InlineData("Color.Green or", false)]
+        [InlineData("Color.Green or ")]
+        [InlineData("(Color.Green or ")] // start of: is (Color.Red or Color.Green) and not Color.Blue
+        [InlineData("Color.Green or Re")]
+        [InlineData("Color.Green or Color.Red or ")]
+        [InlineData("Color.Green orWrittenWrong ", false)]
+        [InlineData("not ")]
+        [InlineData("not Re")]
+        public async Task TestPatterns_Is_ConstUnaryAndBinaryPattern(string isPattern, bool shouldOfferRed = true)
         {
-            var markup = @"
+            var markup = @$"
 class C
-{
+{{
     public enum Color
-    {
+    {{
         Red,
         Green,
-    }
+    }}
 
     public void M(Color c)
-    {
-        var isRed = c is $$;
-    }
-}
+    {{
+        var isRed = c is {isPattern}$$;
+    }}
+}}
 ";
-            await VerifyItemExistsAsync(markup, "Color.Red");
+            if (shouldOfferRed)
+            {
+                await VerifyItemExistsAsync(markup, "Color.Red");
+            }
+            else
+            {
+                await VerifyItemIsAbsentAsync(markup, "Color.Red");
+            }
         }
 
         [Theory]
@@ -623,6 +641,10 @@ class C
         [InlineData("")]
         [InlineData("Col")]
         [InlineData("Red")]
+        [InlineData("Color.Green or ")]
+        [InlineData("Color.Green or Re")]
+        [InlineData("not ")]
+        [InlineData("not Re")]
         public async Task TestPatterns_Is_PropertyPattern(string partialWritten)
         {
             var markup = @$"
