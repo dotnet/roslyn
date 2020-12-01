@@ -110,7 +110,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private bool _documentOptionsProvidersInitialized = false;
 
         private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
-        private readonly ILspWorkspaceRegistrationService _lspRegistrationSerivce;
         private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
 
         public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider)
@@ -149,8 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
                     _threadingContext), isThreadSafe: true);
 
-            _lspRegistrationSerivce = exportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
-            _lspRegistrationSerivce.Register(this);
+            RegisterForLsp();
         }
 
         internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;
@@ -1396,8 +1394,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _textBufferFactoryService.TextBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 _projectionBufferFactoryService.ProjectionBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 FileWatchedReferenceFactory.ReferenceChanged -= RefreshMetadataReferencesForFile;
-
-                _lspRegistrationSerivce.Unregister(this);
             }
 
             base.Dispose(finalize);

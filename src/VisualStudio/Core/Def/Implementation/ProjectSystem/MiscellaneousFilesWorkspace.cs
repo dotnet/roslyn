@@ -52,7 +52,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<string, (ProjectId projectId, SourceTextContainer textContainer)> _monikersToProjectIdAndContainer = new Dictionary<string, (ProjectId, SourceTextContainer)>();
 
         private readonly ImmutableArray<MetadataReference> _metadataReferences;
-        private readonly ILspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
         private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffinitization;
 
         [ImportingConstructor]
@@ -80,8 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
 
-            _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-            _lspWorkspaceRegistrationService.Register(this);
+            RegisterForLsp();
         }
 
         void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy _, IVsWindowFrame __) => TrackOpenedDocument(moniker, textBuffer);
@@ -111,16 +109,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void RegisterLanguage(Guid languageGuid, string languageName, string scriptExtension)
             => _languageInformationByLanguageGuid.Add(languageGuid, new LanguageInformation(languageName, scriptExtension));
-
-        protected override void Dispose(bool finalize)
-        {
-            if (!finalize)
-            {
-                _lspWorkspaceRegistrationService.Unregister(this);
-            }
-
-            base.Dispose(finalize);
-        }
 
         private LanguageInformation TryGetLanguageInformation(string filename)
         {

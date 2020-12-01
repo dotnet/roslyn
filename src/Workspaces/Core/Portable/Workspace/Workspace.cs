@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.LanguageServerProtocol;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.EditorConfig;
@@ -38,6 +40,8 @@ namespace Microsoft.CodeAnalysis
         private readonly BranchId _primaryBranchId;
 
         private readonly IOptionService _optionService;
+
+        private readonly ILspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
         private readonly SemaphoreSlim _serializationLock = new(initialCount: 1);
@@ -94,6 +98,9 @@ namespace Microsoft.CodeAnalysis
             _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: SpecializedCollections.EmptyReadOnlyList<AnalyzerReference>());
 
             _optionService.RegisterDocumentOptionsProvider(EditorConfigDocumentOptionsProviderFactory.Create());
+
+            var exportProvider = (IMefHostExportProvider)this.Services.HostServices;
+            _lspWorkspaceRegistrationService = exportProvider.GetExports<ILspWorkspaceRegistrationService>().Single().Value;
         }
 
         internal void LogTestMessage(string message)
@@ -352,6 +359,16 @@ namespace Microsoft.CodeAnalysis
             => this.ClearOpenDocument(documentId);
 
         /// <summary>
+        /// Allows workspaces to register themselves to be considered when LSP requests come in. Any workspace
+        /// registered will be probed for a matching document/solution which can be given to the request handler
+        /// to operate on.
+        /// </summary>
+        protected void RegisterForLsp()
+        {
+            _lspWorkspaceRegistrationService.Register(this);
+        }
+
+        /// <summary>
         /// Disposes this workspace. The workspace can longer be used after it is disposed.
         /// </summary>
         public void Dispose()
@@ -370,6 +387,7 @@ namespace Microsoft.CodeAnalysis
                 this.ClearSolutionData();
 
                 this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
+
             }
 
             (_optionService as IWorkspaceOptionService)?.OnWorkspaceDisposed(this);
@@ -382,6 +400,8 @@ namespace Microsoft.CodeAnalysis
             {
                 disposableService.Dispose();
             }
+
+            _lspWorkspaceRegistrationService?.Unregister(this);
         }
 
         #region Host API
