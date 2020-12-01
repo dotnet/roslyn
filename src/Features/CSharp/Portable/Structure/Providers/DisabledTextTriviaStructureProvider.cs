@@ -5,7 +5,7 @@
 #nullable disable
 
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
@@ -15,16 +15,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         public override void CollectBlockSpans(
             SyntaxTrivia trivia,
-            ArrayBuilder<BlockSpan> spans,
+            ref TemporaryArray<BlockSpan> spans,
             BlockStructureOptionProvider optionProvider,
             CancellationToken cancellationToken)
         {
-            CollectBlockSpans(trivia.SyntaxTree, trivia, spans, cancellationToken);
+            CollectBlockSpans(trivia.SyntaxTree, trivia, ref spans, cancellationToken);
         }
 
         public static void CollectBlockSpans(
             SyntaxTree syntaxTree, SyntaxTrivia trivia,
-            ArrayBuilder<BlockSpan> spans, CancellationToken cancellationToken)
+            ref TemporaryArray<BlockSpan> spans, CancellationToken cancellationToken)
         {
             // We'll always be leading trivia of some token.
             var startPos = trivia.FullSpan.Start;

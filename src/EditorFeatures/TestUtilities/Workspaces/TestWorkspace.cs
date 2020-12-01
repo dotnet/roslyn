@@ -706,12 +706,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)
             => true;
 
-        internal override async Task<bool> CanAddProjectReferenceAsync(ProjectId referencingProject, ProjectId referencedProject, CancellationToken cancellationToken)
+        internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {
-            // VisualStudioWorkspace switches to the main thread for this call, so do the same thing here to catch tests
+            // VisualStudioWorkspace asserts the main thread for this call, so do the same thing here to catch tests
             // that fail to account for this possibility.
             var threadingContext = ExportProvider.GetExportedValue<IThreadingContext>();
-            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+            Contract.ThrowIfFalse(threadingContext.HasMainThread && threadingContext.JoinableTaskContext.IsOnMainThread);
             return true;
         }
 

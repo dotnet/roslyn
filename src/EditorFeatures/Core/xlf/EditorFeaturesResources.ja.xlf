@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
-        <target state="new">Inline Hints</target>
+        <target state="translated">インラインのヒント</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="Split_comment">
         <source>Split comment</source>
-        <target state="new">Split comment</target>
+        <target state="translated">コメントの分割</target>
         <note />
       </trans-unit>
       <trans-unit id="String_Escape_Character">
@@ -259,7 +259,7 @@
       </trans-unit>
       <trans-unit id="User_Types_Records">
         <source>User Types - Records</source>
-        <target state="new">User Types - Records</target>
+        <target state="translated">ユーザー タイプ - レコード</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Structures">

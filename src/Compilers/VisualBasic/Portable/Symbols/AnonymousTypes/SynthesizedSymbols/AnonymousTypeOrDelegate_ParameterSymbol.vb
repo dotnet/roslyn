@@ -13,26 +13,26 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Friend NotInheritable Class AnonymousTypeManager
 
-        Private NotInheritable Class AnonymousDelegateParameterSymbol
+        Private NotInheritable Class AnonymousTypeOrDelegateParameterSymbol
             Inherits SynthesizedParameterSymbol
 
-            Public ReadOnly CorrespondingInvokeParameter As Integer
+            Public ReadOnly CorrespondingInvokeParameterOrProperty As Integer
 
             Public Sub New(
-                container As SynthesizedDelegateMethodSymbol,
+                container As MethodSymbol,
                 type As TypeSymbol, ordinal As Integer,
                 isByRef As Boolean,
                 name As String,
-                Optional correspondingInvokeParameter As Integer = -1
+                Optional correspondingInvokeParameterOrProperty As Integer = -1
             )
                 MyBase.New(container, type, ordinal, isByRef, name)
-                Me.CorrespondingInvokeParameter = correspondingInvokeParameter
+                Me.CorrespondingInvokeParameterOrProperty = correspondingInvokeParameterOrProperty
             End Sub
 
             Public Overrides ReadOnly Property MetadataName As String
                 Get
-                    If CorrespondingInvokeParameter <> -1 Then
-                        Return DirectCast(_container.ContainingSymbol, AnonymousDelegateTemplateSymbol).GetAdjustedName(CorrespondingInvokeParameter)
+                    If CorrespondingInvokeParameterOrProperty <> -1 Then
+                        Return DirectCast(_container.ContainingSymbol, AnonymousTypeOrDelegateTemplateSymbol).GetAdjustedName(CorrespondingInvokeParameterOrProperty)
                     End If
 
                     Return MyBase.MetadataName

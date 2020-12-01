@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
         <source>Changes must be within bounds of SourceText</source>
-        <target state="new">Changes must be within bounds of SourceText</target>
+        <target state="translated">변경 내용은 SourceText의 범위 내에 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">

@@ -652,7 +652,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="No_valid_location_to_insert_method_call">
         <source>No valid location to insert method call.</source>
-        <target state="new">No valid location to insert method call.</target>
+        <target state="translated">Není k dispozici žádné platné umístění, kam vložit volání metody.</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -1887,7 +1887,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="The_assembly_0_containing_type_1_references_NET_Framework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
-        <target state="new">The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</target>
+        <target state="translated">Sestavení {0}, které obsahuje typ {1}, se odkazuje na architekturu .NET Framework, což se nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2092,12 +2092,12 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
         <source>'{0}' cannot be null or empty.</source>
-        <target state="needs-review-translation">Hodnota {0} nemůže být null nebo prázdná.</target>
+        <target state="translated">Hodnota {0} nemůže být nulová a toto pole nemůže být prázdné.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_whitespace">
         <source>'{0}' cannot be null or whitespace.</source>
-        <target state="needs-review-translation">Hodnota {0} nemůže být null ani prázdný znak.</target>
+        <target state="translated">Hodnota {0} nemůže být null ani prázdný znak.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">

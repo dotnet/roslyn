@@ -4,11 +4,14 @@
 
 #nullable disable
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.TestSourceGenerator;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -49,6 +52,43 @@ internal static class Program
             VisualStudio.Editor.GoToDefinition();
             Assert.Equal($"{HelloWorldGenerator.GeneratedClassName}.cs {ServicesVSResources.generated_suffix}", VisualStudio.Shell.GetActiveWindowCaption());
             Assert.Equal(HelloWorldGenerator.GeneratedClassName, VisualStudio.Editor.GetSelectedText());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        public void FindReferencesForFileWithDefinitionInSourceGeneratedFile()
+        {
+            VisualStudio.Editor.SetText(@"using System;
+internal static class Program
+{
+    public static void Main()
+    {
+        Console.WriteLine(" + HelloWorldGenerator.GeneratedClassName + @".GetMessage());
+    }
+}");
+
+            VisualStudio.Editor.PlaceCaret(HelloWorldGenerator.GeneratedClassName);
+            VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
+
+            string programReferencesCaption = $"'{HelloWorldGenerator.GeneratedClassName}' references";
+            var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
+
+            Assert.Collection(
+                results,
+                new Action<Reference>[]
+                {
+                    reference =>
+                    {
+                        Assert.Equal(expected: "internal class HelloWorld", actual: reference.Code);
+                        Assert.Equal(expected: 1, actual: reference.Line);
+                        Assert.Equal(expected: 15, actual: reference.Column);
+                    },
+                    reference =>
+                    {
+                        Assert.Equal(expected: "Console.WriteLine(" + HelloWorldGenerator.GeneratedClassName + ".GetMessage());", actual: reference.Code);
+                        Assert.Equal(expected: 5, actual: reference.Line);
+                        Assert.Equal(expected: 26, actual: reference.Column);
+                    }
+                });
         }
     }
 }
