@@ -1157,6 +1157,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return True
             End Select
         End Function
+
+        Protected Overrides Sub ReportLambdaAttributeRudeEdits(oldModel As SemanticModel, oldLambdaBody As SyntaxNode, newModel As SemanticModel, newLambdaBody As SyntaxNode, diagnostics As List(Of RudeEditDiagnostic), hadSignatureEdits As Boolean, cancellationToken As CancellationToken)
+            ' VB doesn't have local functions, so this is not applicable
+        End Sub
 #End Region
 
 #Region "Diagnostic Info"
