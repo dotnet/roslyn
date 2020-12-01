@@ -3710,58 +3710,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private void ReportLambdaAttributeRudeEdits(SemanticModel oldModel,
+        protected abstract void ReportLambdaAttributeRudeEdits(SemanticModel oldModel,
             SyntaxNode oldLambdaBody,
             SemanticModel newModel,
             SyntaxNode newLambdaBody,
             List<RudeEditDiagnostic> diagnostics,
             bool hadSignatureEdits,
-            CancellationToken cancellationToken)
-        {
-            var newLambda = GetLambda(newLambdaBody);
-            var oldLambda = GetLambda(oldLambdaBody);
-
-            Debug.Assert(IsNestedFunction(newLambda) == IsNestedFunction(oldLambda));
-
-            // queries are analyzed separately
-            if (!IsNestedFunction(newLambda))
-            {
-                return;
-            }
-
-            var oldLambdaSymbol = GetLambdaExpressionSymbol(oldModel, oldLambda, cancellationToken);
-            var newLambdaSymbol = GetLambdaExpressionSymbol(newModel, newLambda, cancellationToken);
-
-            var reportDiagnostic = false;
-            if (!oldLambdaSymbol.GetAttributes().SequenceEqual(newLambdaSymbol.GetAttributes()) ||
-                !oldLambdaSymbol.GetReturnTypeAttributes().SequenceEqual(newLambdaSymbol.GetReturnTypeAttributes()))
-            {
-                reportDiagnostic = true;
-            }
-
-            // If the old and new signatures have changed then we don't need to report rude edits for attributes on parameters
-            // so we can skip this bit
-            if (!hadSignatureEdits)
-            {
-                for (var i = 0; i < oldLambdaSymbol.Parameters.Length; i++)
-                {
-                    if (!oldLambdaSymbol.Parameters[i].GetAttributes().SequenceEqual(newLambdaSymbol.Parameters[i].GetAttributes()))
-                    {
-                        reportDiagnostic = true;
-                        break;
-                    }
-                }
-            }
-
-            if (reportDiagnostic)
-            {
-                diagnostics.Add(new RudeEditDiagnostic(
-                    RudeEditKind.Update,
-                    GetDiagnosticSpan(newLambda, EditKind.Update),
-                    newLambda,
-                    new[] { GetDisplayName(newLambda) }));
-            }
-        }
+            CancellationToken cancellationToken);
 
         protected virtual void ReportLambdaSignatureRudeEdits(
             SemanticModel oldModel,
