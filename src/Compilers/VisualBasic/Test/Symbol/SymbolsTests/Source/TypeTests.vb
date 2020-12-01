@@ -3943,11 +3943,28 @@ BC31091: Import of type 'C(Of ).D(Of )' from assembly or module 'TypeSymbolGetHa
             AssertHashCodesMatch(definition, t1)
         End Sub
 
-        Private Shared Sub AssertHashCodesMatch(c As TypeSymbol, c2 As TypeSymbol)
+        Private Shared Sub AssertHashCodesMatch(c As NamedTypeSymbol, c2 As NamedTypeSymbol)
             Assert.False(c.IsSameType(c2, TypeCompareKind.ConsiderEverything))
             Assert.True(c.IsSameType(c2, (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)))
+            Assert.False(c2.IsSameType(c, TypeCompareKind.ConsiderEverything))
+            Assert.True(c2.IsSameType(c, (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)))
 
             Assert.Equal(c2.GetHashCode(), c.GetHashCode())
+
+            If c.Arity <> 0 Then
+                Dim ctp = c.TypeParameters(0)
+                Dim ctp2 = c2.TypeParameters(0)
+
+                If ctp IsNot ctp2 Then
+                    Assert.False(ctp.IsSameType(ctp2, TypeCompareKind.ConsiderEverything))
+                    Assert.True(ctp.IsSameType(ctp2, (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)))
+
+                    Assert.False(ctp2.IsSameType(ctp, TypeCompareKind.ConsiderEverything))
+                    Assert.True(ctp2.IsSameType(ctp, (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)))
+
+                    Assert.Equal(ctp2.GetHashCode(), ctp.GetHashCode())
+                End If
+            End If
         End Sub
     End Class
 
