@@ -3760,12 +3760,20 @@ class C
         [Fact]
         public void EmptyConstInterpolatedString()
         {
-            CreateCompilation(@"
-class C
+            CompileAndVerify(@"
+public class C
 {
-    const string s = $"""";
+    public const string s = $"""";
+
+    static void Main()
+    {
+        System.Console.WriteLine(s);
+    }
 }
-", parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+", parseOptions: TestOptions.RegularPreview, expectedOutput: "", symbolValidator: module =>
+{
+    Assert.Equal(string.Empty, module.GlobalNamespace.GetTypeMember("C").GetField("s").ConstantValue);
+});
         }
     }
 
