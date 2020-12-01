@@ -7173,25 +7173,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundInterpolatedString : BoundExpression
     {
-        public BoundInterpolatedString(SyntaxNode syntax, ImmutableArray<BoundExpression> parts, TypeSymbol? type, bool hasErrors = false)
+        public BoundInterpolatedString(SyntaxNode syntax, ImmutableArray<BoundExpression> parts, ConstantValue? constantValueOpt, TypeSymbol? type, bool hasErrors = false)
             : base(BoundKind.InterpolatedString, syntax, type, hasErrors || parts.HasErrors())
         {
 
             RoslynDebug.Assert(!parts.IsDefault, "Field 'parts' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Parts = parts;
+            this.ConstantValueOpt = constantValueOpt;
         }
 
 
         public ImmutableArray<BoundExpression> Parts { get; }
+
+        public ConstantValue? ConstantValueOpt { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitInterpolatedString(this);
 
-        public BoundInterpolatedString Update(ImmutableArray<BoundExpression> parts, TypeSymbol? type)
+        public BoundInterpolatedString Update(ImmutableArray<BoundExpression> parts, ConstantValue? constantValueOpt, TypeSymbol? type)
         {
-            if (parts != this.Parts || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (parts != this.Parts || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundInterpolatedString(this.Syntax, parts, type, this.HasErrors);
+                var result = new BoundInterpolatedString(this.Syntax, parts, constantValueOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10750,7 +10753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundExpression> parts = this.VisitList(node.Parts);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(parts, type);
+            return node.Update(parts, node.ConstantValueOpt, type);
         }
         public override BoundNode? VisitStringInsert(BoundStringInsert node)
         {
@@ -13013,12 +13016,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(parts, infoAndType.Type);
+                updatedNode = node.Update(parts, node.ConstantValueOpt, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(parts, node.Type);
+                updatedNode = node.Update(parts, node.ConstantValueOpt, node.Type);
             }
             return updatedNode;
         }
@@ -14929,6 +14932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitInterpolatedString(BoundInterpolatedString node, object? arg) => new TreeDumperNode("interpolatedString", null, new TreeDumperNode[]
         {
             new TreeDumperNode("parts", null, from x in node.Parts select Visit(x, null)),
+            new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
