@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Host.LanguageServerProtocol
     /// registered will be probed for a matching document/solution which can be given to the request handler
     /// to operate on.
     /// </summary>
-    public interface ILspWorkspaceRegistrationService
+    internal interface ILspWorkspaceRegistrationService
     {
         /// <summary>
         /// Get all current registrations.
