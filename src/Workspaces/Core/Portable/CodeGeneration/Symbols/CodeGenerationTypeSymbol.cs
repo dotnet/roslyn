@@ -78,6 +78,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         bool ITypeSymbol.IsReadOnly => Modifiers.IsReadOnly;
 
+        bool ITypeSymbol.IsRecord => throw new System.NotImplementedException();
+
         public NullableAnnotation NullableAnnotation { get; }
 
         public ITypeSymbol WithNullableAnnotation(NullableAnnotation nullableAnnotation)

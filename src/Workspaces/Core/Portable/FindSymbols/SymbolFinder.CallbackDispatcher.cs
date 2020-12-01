@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Composition;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 
@@ -10,8 +13,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     public static partial class SymbolFinder
     {
+        [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteSymbolFinderService)), Shared]
         internal sealed class CallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteSymbolFinderService.ICallback
         {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public CallbackDispatcher()
+            {
+            }
+
             private FindLiteralsServerCallback GetFindLiteralsCallback(RemoteServiceCallbackId callbackId)
                 => (FindLiteralsServerCallback)GetCallback(callbackId);
 

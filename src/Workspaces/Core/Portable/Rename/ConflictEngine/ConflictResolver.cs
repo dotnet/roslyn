@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                 if (symbol.IsOverride)
                 {
-                    var overriddenSymbol = symbol.OverriddenMember();
+                    var overriddenSymbol = symbol.GetOverriddenMember();
 
                     if (overriddenSymbol != null)
                     {

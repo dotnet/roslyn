@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxList<TNode>);
             }
 
-            var newGreen = GreenNode.CreateList(items.Select(n => n.Green));
+            var newGreen = GreenNode.CreateList(items, static n => n.Green);
             return new SyntaxList<TNode>(newGreen!.CreateRed());
         }
 

@@ -42,6 +42,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             => solution.WithChangedOptionsFrom(remoteWorkpace.Options);
 
         [Fact]
+        [Obsolete]
         public void TestRemoteHostCreation()
         {
             var remoteLogger = new TraceSource("inprocRemoteClient");

@@ -4,14 +4,24 @@
 
 #nullable disable
 
+using System;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
+    [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteSymbolSearchUpdateService)), Shared]
     internal sealed class SymbolSearchCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteSymbolSearchUpdateService.ICallback
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public SymbolSearchCallbackDispatcher()
+        {
+        }
+
         private ISymbolSearchLogService GetLogService(RemoteServiceCallbackId callbackId)
             => (ISymbolSearchLogService)GetCallback(callbackId);
 

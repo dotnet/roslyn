@@ -106,8 +106,8 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = diagnosticService.GetDiagnostics(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, forPullDiagnostics:=False, CancellationToken.None)
+                Dim diagnostics = diagnosticService.GetPushDiagnostics(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
 
                 Assert.Single(diagnostics)
             End Using
@@ -144,8 +144,8 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = diagnosticService.GetDiagnostics(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, forPullDiagnostics:=False, CancellationToken.None)
+                Dim diagnostics = diagnosticService.GetPushDiagnostics(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
 
                 ' error CS0246: The type or namespace name 'M' could not be found
                 AssertEx.Equal({"CS0246"}, diagnostics.Select(Function(d) d.Id))
@@ -183,8 +183,8 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = diagnosticService.GetDiagnostics(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, forPullDiagnostics:=False, CancellationToken.None)
+                Dim diagnostics = diagnosticService.GetPushDiagnostics(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
 
                 ' error CS1002: ; expected
                 ' error CS0246: The type or namespace name 'M' could not be found
@@ -225,8 +225,8 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = diagnosticService.GetDiagnostics(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, forPullDiagnostics:=False, CancellationToken.None)
+                Dim diagnostics = diagnosticService.GetPushDiagnostics(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
 
                 AssertEx.Empty(diagnostics)
             End Using
@@ -308,7 +308,7 @@ End Class
                 GetType(NoCompilationContentTypeLanguageService),
                 GetType(NoCompilationContentTypeDefinitions))
 
-            Using workspace = TestWorkspace.CreateWorkspace(test, openDocuments:=True, composition:=Composition)
+            Using workspace = TestWorkspace.CreateWorkspace(test, openDocuments:=True, composition:=composition)
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(analyzerMap)
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
@@ -328,8 +328,8 @@ End Class
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = diagnosticService.GetDiagnostics(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, forPullDiagnostics:=False, CancellationToken.None)
+                Dim diagnostics = diagnosticService.GetPushDiagnostics(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
 
                 Assert.Single(diagnostics)
             End Using

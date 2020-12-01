@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
                     expectedValueSourceLine: expectedValueSourceLine);
             }
 
-            Assert.Equal(((Cci.IMethodDefinition)methodData.Method).CallingConvention, expectedGeneric ? Cci.CallingConvention.Generic : Cci.CallingConvention.Default);
+            Assert.Equal(((Cci.IMethodDefinition)methodData.Method.GetCciAdapter()).CallingConvention, expectedGeneric ? Cci.CallingConvention.Generic : Cci.CallingConvention.Default);
         }
 
         internal static void VerifyResolutionRequests(EEMetadataReferenceResolver resolver, (AssemblyIdentity, AssemblyIdentity, int)[] expectedRequests)

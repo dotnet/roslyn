@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
                     // remove specified prefix
                     var prefix = rule.NamingStyle.Prefix;
                     newBaseName = newBaseName.StartsWith(prefix)
-                        ? newBaseName.Substring(prefix.Length)
+                        ? newBaseName[prefix.Length..]
                         : newBaseName;
 
                     // remove specified suffix

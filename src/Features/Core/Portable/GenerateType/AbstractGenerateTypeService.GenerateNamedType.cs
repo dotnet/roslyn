@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -20,13 +21,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
 {
     internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNameSyntax, TObjectCreationExpressionSyntax, TExpressionSyntax, TTypeDeclarationSyntax, TArgumentSyntax>
     {
-        internal abstract IMethodSymbol GetDelegatingConstructor(
-            SemanticDocument document,
-            TObjectCreationExpressionSyntax objectCreation,
-            INamedTypeSymbol namedType,
-            ISet<IMethodSymbol> candidates,
-            CancellationToken cancellationToken);
-
         private partial class Editor
         {
             private INamedTypeSymbol GenerateNamedType()
@@ -141,30 +135,32 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // just call into that instead of generating fields.
                 if (_state.BaseTypeOrInterfaceOpt != null)
                 {
-                    if (_state.BaseTypeOrInterfaceOpt.TypeKind == TypeKind.Interface && argumentList.Count == 0)
+                    if (_state.BaseTypeOrInterfaceOpt.TypeKind == TypeKind.Interface || argumentList.Count == 0)
                     {
-                        // No need to add the default constructor if our base type is going to be
-                        // 'object'.  We get that constructor for free.
+                        // No need to add the default constructor if our base type is going to be 'object' or if we
+                        // would be calling the empty constructor.  We get that base constructor implicitly.
                         return;
                     }
 
-                    var accessibleInstanceConstructors = _state.BaseTypeOrInterfaceOpt.InstanceConstructors.Where(
-                        IsSymbolAccessible).ToSet();
+                    // Synthesize some parameter symbols so we can see if these particular parameters could map to the
+                    // parameters of any of the constructors we have in our base class.  This will have the added
+                    // benefit of allowing us to infer better types for complex type-less expressions (like lambdas).
+                    var syntaxFacts = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+                    var refKinds = argumentList.SelectAsArray(a => syntaxFacts.GetRefKindOfArgument(a));
+                    var parameters = parameterTypes.Zip(refKinds,
+                        (t, r) => CodeGenerationSymbolFactory.CreateParameterSymbol(r, t, name: "")).ToImmutableArray();
 
-                    if (accessibleInstanceConstructors.Any())
+                    var expressions = GetArgumentExpressions(argumentList);
+                    var delegatedConstructor = _state.BaseTypeOrInterfaceOpt.InstanceConstructors.FirstOrDefault(
+                        c => GenerateConstructorHelpers.CanDelegateTo(_semanticDocument, parameters, expressions, c));
+
+                    if (delegatedConstructor != null)
                     {
-                        var delegatedConstructor = _service.GetDelegatingConstructor(
-                            _semanticDocument,
-                            _state.ObjectCreationExpressionOpt,
-                            _state.BaseTypeOrInterfaceOpt,
-                            accessibleInstanceConstructors,
-                            _cancellationToken);
-                        if (delegatedConstructor != null)
-                        {
-                            // There was a best match.  Call it directly.  
-                            AddBaseDelegatingConstructor(delegatedConstructor, members);
-                            return;
-                        }
+                        // There was a constructor match in the base class.  Synthesize a constructor of our own with
+                        // the same parameter types that calls into that.
+                        var factory = _semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
+                        members.Add(factory.CreateBaseDelegatingConstructor(delegatedConstructor, DetermineName()));
+                        return;
                     }
                 }
 
@@ -183,22 +179,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         members.Add(generatedProperty);
                     }
                 }
-            }
-
-            private void AddBaseDelegatingConstructor(
-                IMethodSymbol methodSymbol,
-                ArrayBuilder<ISymbol> members)
-            {
-                // If we're generating a constructor to delegate into the no-param base constructor
-                // then we can just elide the constructor entirely.
-                if (methodSymbol.Parameters.Length == 0)
-                {
-                    return;
-                }
-
-                var factory = _semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
-                members.Add(factory.CreateBaseDelegatingConstructor(
-                    methodSymbol, DetermineName()));
             }
 
             private void AddFieldDelegatingConstructor(

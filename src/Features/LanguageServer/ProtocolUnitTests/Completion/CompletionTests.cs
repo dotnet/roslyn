@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var completionParams = CreateCompletionParams(locations["caret"].Single(), triggerCharacter: "\0", LSP.CompletionTriggerKind.Invoked);
             var expected = CreateCompletionItem("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" },
-                completionParams, preselect: true, commitCharacters: ImmutableArray.Create(' ', '(', '[', '{'));
+                completionParams, preselect: true, commitCharacters: ImmutableArray.Create(' ', '(', '[', '{', ';'));
 
             var results = await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());

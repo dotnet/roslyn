@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -73,7 +71,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private SyntaxAnnotation GetRealAnnotation(TAnnotation annotation)
+        private SyntaxAnnotation? GetRealAnnotation(TAnnotation annotation)
         {
             _realAnnotationMap.TryGetValue(annotation, out var realAnnotation);
             return realAnnotation;
@@ -107,6 +105,7 @@ namespace Roslyn.Utilities
         {
             foreach (var ra in realAnnotations)
             {
+                Contract.ThrowIfNull(ra.Data);
                 if (_annotationMap.TryGetValue(ra.Data, out var annotation))
                 {
                     yield return annotation;
@@ -178,7 +177,7 @@ namespace Roslyn.Utilities
             => node.GetAnnotatedNodesAndTokens(_annotationKind);
 
         public IEnumerable<SyntaxNode> GetAnnotatedNodes(SyntaxNode node)
-            => node.GetAnnotatedNodesAndTokens(_annotationKind).Where(nt => nt.IsNode).Select(nt => nt.AsNode());
+            => node.GetAnnotatedNodesAndTokens(_annotationKind).Where(nt => nt.IsNode).Select(nt => nt.AsNode()!);
 
         public IEnumerable<SyntaxToken> GetAnnotatedTokens(SyntaxNode node)
             => node.GetAnnotatedNodesAndTokens(_annotationKind).Where(nt => nt.IsToken).Select(nt => nt.AsToken());
@@ -190,7 +189,7 @@ namespace Roslyn.Utilities
             => node.GetAnnotatedNodesAndTokens(_annotationKind).Where(nt => this.HasAnnotations<TSpecificAnnotation>(nt));
 
         public IEnumerable<SyntaxNode> GetAnnotatedNodes<TSpecificAnnotation>(SyntaxNode node) where TSpecificAnnotation : TAnnotation
-            => node.GetAnnotatedNodesAndTokens(_annotationKind).Where(nt => nt.IsNode && this.HasAnnotations<TSpecificAnnotation>(nt)).Select(nt => nt.AsNode());
+            => node.GetAnnotatedNodesAndTokens(_annotationKind).Where(nt => nt.IsNode && this.HasAnnotations<TSpecificAnnotation>(nt)).Select(nt => nt.AsNode()!);
 
         public IEnumerable<SyntaxToken> GetAnnotatedTokens<TSpecificAnnotation>(SyntaxNode node) where TSpecificAnnotation : TAnnotation
             => node.GetAnnotatedNodesAndTokens(_annotationKind).Where(nt => nt.IsToken && this.HasAnnotations<TSpecificAnnotation>(nt)).Select(nt => nt.AsToken());

@@ -66,7 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     name,
                     locations,
                     syntax.GetReference(),
-                    ConstantValue.Unset,
                     isParams,
                     isExtensionMethodThis);
             }
@@ -88,7 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 name,
                 locations,
                 syntax.GetReference(),
-                ConstantValue.Unset,
                 isParams,
                 isExtensionMethodThis);
         }
@@ -136,7 +134,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _name,
                     _locations,
                     this.SyntaxReference,
-                    this.ExplicitDefaultConstantValue,
                     newIsParams,
                     this.IsExtensionMethodThis);
             }
@@ -153,7 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _name,
                 _locations,
                 this.SyntaxReference,
-                this.ExplicitDefaultConstantValue,
                 newIsParams,
                 this.IsExtensionMethodThis);
         }

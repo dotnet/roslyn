@@ -381,7 +381,6 @@ class Program
                         }
                     },
                     SymbolKind.NamedType);
-                throw new NotImplementedException();
             }
         }
     }

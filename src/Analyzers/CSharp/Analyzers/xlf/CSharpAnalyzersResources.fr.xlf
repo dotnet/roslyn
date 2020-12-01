@@ -27,6 +27,11 @@
         <target state="translated">L'appel de délégué peut être simplifié.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Discard_can_be_removed">
+        <source>Discard can be removed</source>
+        <target state="translated">Vous pouvez supprimer le discard</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="translated">L'indexation peut être simplifiée</target>
@@ -80,6 +85,11 @@
       <trans-unit id="Remove_unnecessary_suppression_operator">
         <source>Remove unnecessary suppression operator</source>
         <target state="translated">Supprimer l'opérateur de suppression inutile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnessary_discard">
+        <source>Remove unnecessary discard</source>
+        <target state="translated">Supprimer tout discard inutile</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_default_expression">
@@ -204,7 +214,7 @@
       </trans-unit>
       <trans-unit id="Use_new">
         <source>Use 'new(...)'</source>
-        <target state="new">Use 'new(...)'</target>
+        <target state="translated">Utiliser 'new(...)'</target>
         <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_pattern_matching">
@@ -269,12 +279,12 @@
       </trans-unit>
       <trans-unit id="new_expression_can_be_simplified">
         <source>'new' expression can be simplified</source>
-        <target state="new">'new' expression can be simplified</target>
+        <target state="translated">L'expression 'new' peut être simplifiée</target>
         <note />
       </trans-unit>
       <trans-unit id="typeof_can_be_converted_ to_nameof">
         <source>'typeof' can be converted  to 'nameof'</source>
-        <target state="new">'typeof' can be converted  to 'nameof'</target>
+        <target state="translated">'typeof' peut être converti en 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">

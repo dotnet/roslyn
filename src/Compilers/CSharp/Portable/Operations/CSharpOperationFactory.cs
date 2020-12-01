@@ -596,11 +596,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ConstantValue constantValue = boundIndexerAccess.ConstantValue;
             bool isImplicit = boundIndexerAccess.WasCompilerGenerated;
 
-            MethodSymbol accessor = boundIndexerAccess.UseSetterForDefaultArgumentGeneration
-                ? property.GetOwnOrInheritedSetMethod()
-                : property.GetOwnOrInheritedGetMethod();
-
-            if (!boundIndexerAccess.OriginalIndexersOpt.IsDefault || boundIndexerAccess.ResultKind == LookupResultKind.OverloadResolutionFailure || accessor == null || accessor.OriginalDefinition is ErrorMethodSymbol)
+            if (!boundIndexerAccess.OriginalIndexersOpt.IsDefault || boundIndexerAccess.ResultKind == LookupResultKind.OverloadResolutionFailure)
             {
                 return new CSharpLazyInvalidOperation(this, boundIndexerAccess, _semanticModel, syntax, type, constantValue, isImplicit);
             }
@@ -1613,18 +1609,17 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                      false,
                                                     enumeratorInfoOpt.CurrentConversion,
                                                     boundForEachStatement.ElementConversion,
-                                                    getEnumeratorArguments: enumeratorInfoOpt.GetEnumeratorMethod is { IsExtensionMethod: true, Parameters: var parameters } enumeratorMethod
+                                                    getEnumeratorArguments: enumeratorInfoOpt.GetEnumeratorMethod is { IsExtensionMethod: true } enumeratorMethod
                                                         ? Operation.SetParentOperation(
                                                             DeriveArguments(
                                                                 boundForEachStatement,
                                                                 enumeratorInfoOpt.Binder,
                                                                 enumeratorMethod,
-                                                                enumeratorMethod,
                                                                 ImmutableArray.Create(boundForEachStatement.Expression),
                                                                 argumentNamesOpt: default,
                                                                 argumentsToParametersOpt: default,
+                                                                defaultArguments: default,
                                                                 argumentRefKindsOpt: default,
-                                                                parameters,
                                                                 expanded: false,
                                                                 boundForEachStatement.Expression.Syntax,
                                                                 invokedAsExtensionMethod: true),

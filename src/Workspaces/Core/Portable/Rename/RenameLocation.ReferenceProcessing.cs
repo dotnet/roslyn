@@ -221,10 +221,10 @@ namespace Microsoft.CodeAnalysis.Rename
                     return ((IMethodSymbol)symbol).AssociatedSymbol;
                 }
 
-                if (symbol.IsOverride && symbol.OverriddenMember() != null)
+                if (symbol.IsOverride && symbol.GetOverriddenMember() != null)
                 {
                     var originalSourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(
-                        symbol.OverriddenMember(), solution, cancellationToken).ConfigureAwait(false);
+                        symbol.GetOverriddenMember(), solution, cancellationToken).ConfigureAwait(false);
 
                     if (originalSourceSymbol != null)
                     {

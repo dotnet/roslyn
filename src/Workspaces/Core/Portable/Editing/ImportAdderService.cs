@@ -59,12 +59,13 @@ namespace Microsoft.CodeAnalysis.Editing
             var nodes = root.DescendantNodesAndSelf(overlapsWithSpan).Where(overlapsWithSpan);
 
             var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+            var allowInHiddenRegions = document.CanAddImportsInHiddenRegions();
 
             if (strategy == Strategy.AddImportsFromSymbolAnnotations)
-                return await AddImportDirectivesFromSymbolAnnotationsAsync(document, nodes, addImportsService, generator, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                return await AddImportDirectivesFromSymbolAnnotationsAsync(document, nodes, addImportsService, generator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
 
             if (strategy == Strategy.AddImportsFromSyntaxes)
-                return await AddImportDirectivesFromSyntaxesAsync(document, nodes, addImportsService, generator, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                return await AddImportDirectivesFromSyntaxesAsync(document, nodes, addImportsService, generator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
 
             throw ExceptionUtilities.UnexpectedValue(strategy);
         }
@@ -111,6 +112,7 @@ namespace Microsoft.CodeAnalysis.Editing
             IAddImportsService addImportsService,
             SyntaxGenerator generator,
             bool placeSystemNamespaceFirst,
+            bool allowInHiddenRegions,
             CancellationToken cancellationToken)
         {
             using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var importsToAdd);
@@ -158,7 +160,9 @@ namespace Microsoft.CodeAnalysis.Editing
 
             var context = first.GetCommonRoot(last);
 
-            root = addImportsService.AddImports(model.Compilation, root, context, importsToAdd, generator, placeSystemNamespaceFirst, cancellationToken);
+            root = addImportsService.AddImports(
+                model.Compilation, root, context, importsToAdd, generator,
+                placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
 
             return document.WithSyntaxRoot(root);
         }
@@ -169,6 +173,7 @@ namespace Microsoft.CodeAnalysis.Editing
             IAddImportsService addImportsService,
             SyntaxGenerator generator,
             bool placeSystemNamespaceFirst,
+            bool allowInHiddenRegions,
             CancellationToken cancellationToken)
         {
             using var _ = PooledDictionary<INamespaceSymbol, SyntaxNode>.GetInstance(out var importToSyntax);
@@ -234,7 +239,9 @@ namespace Microsoft.CodeAnalysis.Editing
             if (importsToAdd.Length == 0)
                 return document;
 
-            root = addImportsService.AddImports(model.Compilation, root, context, importsToAdd, generator, placeSystemNamespaceFirst, cancellationToken);
+            root = addImportsService.AddImports(
+                model.Compilation, root, context, importsToAdd, generator,
+                placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
             return document.WithSyntaxRoot(root);
         }
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -13,6 +11,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// <summary>
         /// format given snapshot and apply text changes to buffer
         /// </summary>
-        public static void FormatAndApplyToBuffer(this ITextSnapshot snapshot, TextSpan span, IEnumerable<AbstractFormattingRule> rules, CancellationToken cancellationToken)
+        public static void FormatAndApplyToBuffer(this ITextSnapshot snapshot, TextSpan span, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             rules = GetFormattingRules(document, rules, span);
 
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
             var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var changes = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(span), document.Project.Solution.Workspace, documentOptions, rules, cancellationToken);
 
@@ -51,10 +50,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             }
         }
 
-        private static IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, IEnumerable<AbstractFormattingRule> rules, TextSpan span)
+        private static IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, IEnumerable<AbstractFormattingRule>? rules, TextSpan span)
         {
             var workspace = document.Project.Solution.Workspace;
-            var formattingRuleFactory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+            var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
             var position = (span.Start + span.End) / 2;
 
             return SpecializedCollections.SingletonEnumerable(formattingRuleFactory.CreateRule(document, position)).Concat(rules ?? Formatter.GetDefaultFormattingRules(document));
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// <see cref="GetFullyLoadedOpenDocumentInCurrentContextWithChanges(ITextSnapshot, IUIThreadOperationContext, IThreadingContext)"/>.
         /// otherwise, one can get into a deadlock
         /// </summary>
-        public static async Task<Document> GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+        public static async Task<Document?> GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
             this ITextSnapshot snapshot, IUIThreadOperationContext operationContext)
         {
             // just get a document from whatever we have
@@ -99,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot)"/>
         /// once <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken)"/> returns
         /// </summary>
-        public static Document GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
+        public static Document? GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
             this ITextSnapshot snapshot, IUIThreadOperationContext operationContext, IThreadingContext threadingContext)
         {
             // make sure this is only called from UI thread

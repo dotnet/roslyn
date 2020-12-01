@@ -83,6 +83,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly Option2<int> UseEnhancedColors = new(
             nameof(FeatureOnOffOptions), nameof(UseEnhancedColors), defaultValue: 1,
             storageLocations: new RoamingProfileStorageLocation("WindowManagement.Options.UseEnhancedColorsForManagedLanguages"));
+
+        public static readonly PerLanguageOption2<bool> AddImportsOnPaste = new(
+            nameof(FeatureOnOffOptions), nameof(AddImportsOnPaste), defaultValue: false);
     }
 
     [ExportOptionProvider, Shared]
@@ -112,6 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.RefactoringVerification,
             FeatureOnOffOptions.StreamingGoToImplementation,
             FeatureOnOffOptions.NavigateToDecompiledSources,
-            FeatureOnOffOptions.UseEnhancedColors);
+            FeatureOnOffOptions.UseEnhancedColors,
+            FeatureOnOffOptions.AddImportsOnPaste);
     }
 }

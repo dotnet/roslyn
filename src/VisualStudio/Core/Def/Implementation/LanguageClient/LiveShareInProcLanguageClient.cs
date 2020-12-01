@@ -30,10 +30,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         public LiveShareInProcLanguageClient(
             LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
+            IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspSolutionProvider solutionProvider,
             DefaultCapabilitiesProvider defaultCapabilitiesProvider)
-            : base(languageServerProtocol, workspace, listenerProvider, solutionProvider, diagnosticsClientName: null)
+            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, diagnosticsClientName: null)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }

@@ -592,6 +592,13 @@ Done:
             End Get
         End Property
 
+        Private ReadOnly Property ITypeSymbol_IsRecord As Boolean Implements ITypeSymbol.IsRecord
+            Get
+                ' VB does not have records
+                Return False
+            End Get
+        End Property
+
         Private Function ITypeSymbol_ToDisplayString(topLevelNullability As NullableFlowState, Optional format As SymbolDisplayFormat = Nothing) As String Implements ITypeSymbol.ToDisplayString
             Return ToDisplayString(format)
         End Function

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,6 +12,7 @@ namespace Roslyn.Utilities
     internal static class PooledBuilderExtensions
     {
         public static Dictionary<K, V> ToDictionaryAndFree<K, V>(this PooledDictionary<K, V> builders)
+            where K : notnull
         {
             var dictionary = new Dictionary<K, V>(builders.Count);
 
@@ -27,6 +26,7 @@ namespace Roslyn.Utilities
         }
 
         public static Dictionary<K, ImmutableArray<V>> ToMultiDictionaryAndFree<K, V>(this PooledDictionary<K, ArrayBuilder<V>> builders)
+            where K : notnull
         {
             var dictionary = new Dictionary<K, ImmutableArray<V>>(builders.Count);
 
@@ -40,6 +40,7 @@ namespace Roslyn.Utilities
         }
 
         public static ImmutableDictionary<K, ImmutableArray<V>> ToImmutableMultiDictionaryAndFree<K, V>(this PooledDictionary<K, ArrayBuilder<V>> builders)
+            where K : notnull
         {
             var result = ImmutableDictionary.CreateBuilder<K, ImmutableArray<V>>();
 

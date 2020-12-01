@@ -589,7 +589,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
                         // We splice on the last occurrence of '.' to account for filenames containing periods.
                         var nameExtensionSplitIndex = mostRecentHeaderText.LastIndexOf('.');
                         var fileName = mostRecentHeaderText.Substring(0, nameExtensionSplitIndex);
-                        var splicedFileExtensions = mostRecentHeaderText.Substring(nameExtensionSplitIndex + 1).Split(',', ' ', '{', '}');
+                        var splicedFileExtensions = mostRecentHeaderText[(nameExtensionSplitIndex + 1)..].Split(',', ' ', '{', '}');
 
                         // Replacing characters in the header with the regex equivalent.
                         fileName = fileName.Replace(".", @"\.");
@@ -749,7 +749,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             {
                 // Insert a newline if not already present
                 var lines = result.Lines;
-                var lastLine = lines.Count > 0 ? lines[lines.Count - 1] : default;
+                var lastLine = lines.Count > 0 ? lines[^1] : default;
                 var prefix = string.Empty;
                 if (lastLine.ToString().Trim().Length != 0)
                 {

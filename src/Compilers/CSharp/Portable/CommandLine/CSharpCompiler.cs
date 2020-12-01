@@ -233,36 +233,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// entrypoint, then csc will produce "b.exe" and "b.pdb" in the output directory,
         /// with assembly name "b" and module name "b.exe" embedded in the file.
         /// </summary>
-        protected override string? GetOutputFileName(Compilation compilation, CancellationToken cancellationToken)
+        protected override string GetOutputFileName(Compilation compilation, CancellationToken cancellationToken)
         {
-            if (Arguments.OutputFileName == null)
+            if (Arguments.OutputFileName is object)
             {
-                Debug.Assert(Arguments.CompilationOptions.OutputKind.IsApplication());
+                return Arguments.OutputFileName;
+            }
 
-                var comp = (CSharpCompilation)compilation;
+            Debug.Assert(Arguments.CompilationOptions.OutputKind.IsApplication());
 
-                Symbol? entryPoint = comp.ScriptClass;
-                if (entryPoint is null)
+            var comp = (CSharpCompilation)compilation;
+
+            Symbol? entryPoint = comp.ScriptClass;
+            if (entryPoint is null)
+            {
+                var method = comp.GetEntryPoint(cancellationToken);
+                if (method is object)
                 {
-                    var method = comp.GetEntryPoint(cancellationToken);
-                    if (method is object)
-                    {
-                        entryPoint = method.PartialImplementationPart ?? method;
-                    }
-                    else
-                    {
-                        // no entrypoint found - an error will be reported and the compilation won't be emitted
-                        return "error";
-                    }
+                    entryPoint = method.PartialImplementationPart ?? method;
                 }
+                else
+                {
+                    // no entrypoint found - an error will be reported and the compilation won't be emitted
+                    return "error";
+                }
+            }
 
-                string entryPointFileName = PathUtilities.GetFileName(entryPoint.Locations.First().SourceTree!.FilePath);
-                return Path.ChangeExtension(entryPointFileName, ".exe");
-            }
-            else
-            {
-                return base.GetOutputFileName(compilation, cancellationToken);
-            }
+            string entryPointFileName = PathUtilities.GetFileName(entryPoint.Locations.First().SourceTree!.FilePath);
+            return Path.ChangeExtension(entryPointFileName, ".exe");
         }
 
         internal override bool SuppressDefaultResponseFile(IEnumerable<string> args)

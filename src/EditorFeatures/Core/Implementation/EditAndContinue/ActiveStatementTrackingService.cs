@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
 
             // fire and forget on a background thread:
-            _ = newSession.TrackActiveSpansAsync();
+            _ = Task.Run(() => newSession.TrackActiveSpansAsync()).ReportNonFatalErrorAsync();
 
             TrackingChanged?.Invoke();
         }
@@ -161,19 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 }
             }
 
-            internal Task TrackActiveSpansAsync()
-            {
-                try
-                {
-                    return Task.Run(() => TrackActiveSpansAsync(_cancellationSource.Token), _cancellationSource.Token);
-                }
-                catch (TaskCanceledException)
-                {
-                    return Task.CompletedTask;
-                }
-            }
-
-            private async Task TrackActiveSpansAsync(CancellationToken cancellationToken)
+            internal async Task TrackActiveSpansAsync()
             {
                 try
                 {
@@ -183,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                         return;
                     }
 
-                    var baseActiveStatementSpans = await _encService.GetBaseActiveStatementSpansAsync(openDocumentIds, cancellationToken).ConfigureAwait(false);
+                    var baseActiveStatementSpans = await _encService.GetBaseActiveStatementSpansAsync(openDocumentIds, _cancellationSource.Token).ConfigureAwait(false);
                     if (baseActiveStatementSpans.IsDefault)
                     {
                         // Edit session not in progress.

@@ -11,7 +11,7 @@
     <Compile Include="..\..\..\Test\Resources\Core\ResourceLoader.cs" Link="ResourceLoader.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\CSharp\Microsoft.CodeAnalysis.CSharp.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\csc\csc.csproj" ReferenceOutputAssembly="false" OutputItemType="RoslynReferenceToDependencyDirectory" />
     <ProjectReference Include="..\..\..\..\Interactive\csi\csi.csproj" ReferenceOutputAssembly="false" OutputItemType="CsiReferenceToDependencyDirectory" />

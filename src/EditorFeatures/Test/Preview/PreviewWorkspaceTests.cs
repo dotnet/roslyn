@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             Assert.True(taskSource.Task.IsCompleted);
 
             var args = taskSource.Task.Result;
-            Assert.True(args.GetDiagnostics(previewWorkspace, forPullDiagnostics: false).Length > 0);
+            Assert.True(args.GetPushDiagnostics(previewWorkspace, InternalDiagnosticsOptions.NormalDiagnosticMode).Length > 0);
         }
 
         [WpfFact]

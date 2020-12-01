@@ -84,7 +84,7 @@ namespace IdeCoreBenchmarks
 
         private async Task<int> SearchAsync(Project project, ImmutableArray<Document> priorityDocuments)
         {
-            var service = project.LanguageServices.GetService<INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate>();
+            var service = project.LanguageServices.GetService<INavigateToSearchService>();
             var searchTask = service.SearchProjectAsync(project, priorityDocuments, "Document", service.KindsProvided, CancellationToken.None);
 
             var results = await searchTask.ConfigureAwait(false);

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,9 +16,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using DocumentMap = MultiDictionary<Document, (ISymbol symbol, IReferenceFinder finder)>;
-    using ProjectMap = MultiDictionary<Project, (ISymbol symbol, IReferenceFinder finder)>;
-    using ProjectToDocumentMap = Dictionary<Project, MultiDictionary<Document, (ISymbol symbol, IReferenceFinder finder)>>;
+    using DocumentMap = Dictionary<Document, HashSet<(ISymbol symbol, IReferenceFinder finder)>>;
+    using ProjectMap = Dictionary<Project, HashSet<(ISymbol symbol, IReferenceFinder finder)>>;
+    using ProjectToDocumentMap = Dictionary<Project, Dictionary<Document, HashSet<(ISymbol symbol, IReferenceFinder finder)>>>;
 
     internal partial class FindReferencesSearchEngine
     {
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     foreach (var document in documents)
                     {
                         finalMap.GetOrAdd(document.Project, s_createDocumentMap)
-                                .Add(document, (symbol, finder));
+                                .MultiAdd(document, (symbol, finder));
                     }
                 }
 
@@ -92,7 +90,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         {
                             if (scope == null || scope.Contains(project))
                             {
-                                projectMap.Add(project, (symbol, finder));
+                                projectMap.MultiAdd(project, (symbol, finder));
                             }
                         }
                     }
@@ -151,8 +149,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                         // Defer to the language to see if it wants to cascade here in some special way.
                         var symbolProject = _solution.GetProject(searchSymbol.ContainingAssembly);
-                        var service = symbolProject?.LanguageServices.GetService<ILanguageServiceReferenceFinder>();
-                        if (service != null)
+                        if (symbolProject?.LanguageServices.GetService<ILanguageServiceReferenceFinder>() is { } service)
                         {
                             symbols = await service.DetermineCascadedSymbolsAsync(
                                 searchSymbol, symbolProject, _cancellationToken).ConfigureAwait(false);
@@ -185,7 +182,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private ImmutableHashSet<Project> GetProjectScope()
+        private ImmutableHashSet<Project>? GetProjectScope()
         {
             if (_documents == null)
             {

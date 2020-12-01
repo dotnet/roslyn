@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         AddSymbols(semanticModel, documentGroup, result);
                     }
 
+                    // Keep compilation alive so that GetSemanticModelAsync remains cheap
                     GC.KeepAlive(compilation);
                 }
             }

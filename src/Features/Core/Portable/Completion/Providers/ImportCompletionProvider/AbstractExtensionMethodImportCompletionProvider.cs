@@ -37,13 +37,34 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
                 {
-                    var items = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
+                    using var nestedTokenSource = new CancellationTokenSource();
+                    using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
+
+                    var getItemsTask = Task.Run(() => ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
                         completionContext.Document,
                         completionContext.Position,
                         receiverTypeSymbol,
                         namespaceInScope,
                         forceIndexCreation: isExpandedCompletion,
-                        cancellationToken).ConfigureAwait(false);
+                        linkedTokenSource.Token));
+
+                    var timeoutInMilliseconds = completionContext.Options.GetOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion);
+
+                    // Timebox is enabled if timeout value is >= 0 and we are not triggered via expander
+                    if (timeoutInMilliseconds >= 0 && !isExpandedCompletion)
+                    {
+                        // timeout == 0 means immediate timeout (for testing purpose)
+                        if (timeoutInMilliseconds == 0 || await Task.WhenAny(getItemsTask, Task.Delay(timeoutInMilliseconds, linkedTokenSource.Token)).ConfigureAwait(false) != getItemsTask)
+                        {
+                            nestedTokenSource.Cancel();
+                            CompletionProvidersLogger.LogExtensionMethodCompletionTimeoutCount();
+                            return;
+                        }
+                    }
+
+                    // Either the timebox is not enabled, so we need to wait until the operation for complete,
+                    // or there's no timeout, and we now have all completion items ready.
+                    var items = await getItemsTask.ConfigureAwait(false);
 
                     var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
                     completionContext.AddItems(items.Select(i => Convert(i, receiverTypeKey)));

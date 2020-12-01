@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpSimplifyInterpolationDiagnosticAnalyzer : AbstractSimplifyInterpolationDiagnosticAnalyzer<
-        InterpolationSyntax, ExpressionSyntax>
+        InterpolationSyntax, ExpressionSyntax, ConditionalExpressionSyntax, ParenthesizedExpressionSyntax>
     {
         protected override IVirtualCharService GetVirtualCharService()
             => CSharpVirtualCharService.Instance;

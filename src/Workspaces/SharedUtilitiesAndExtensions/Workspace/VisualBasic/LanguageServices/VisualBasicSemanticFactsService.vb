@@ -7,8 +7,10 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     <ExportLanguageServiceFactory(GetType(ISemanticFactsService), LanguageNames.VisualBasic), [Shared]>
@@ -129,6 +131,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function ISemanticFactsService_GenerateUniqueName(baseName As String, usedNames As IEnumerable(Of String)) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueName
             Return MyBase.GenerateUniqueName(baseName, usedNames)
+        End Function
+
+        Public Function ClassifyConversion(semanticModel As SemanticModel, expression As SyntaxNode, destination As ITypeSymbol) As CommonConversion Implements ISemanticFactsService.ClassifyConversion
+            Return semanticModel.ClassifyConversion(DirectCast(expression, ExpressionSyntax), destination).ToCommonConversion()
         End Function
     End Class
 End Namespace

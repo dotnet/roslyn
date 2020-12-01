@@ -2234,6 +2234,34 @@ using System.B;
             AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
         }
 
+        [Fact, WorkItem(49492, "https://github.com/dotnet/roslyn/issues/49492")]
+        public void PreserveAnnotationsOnMultiLineTrivia()
+        {
+            var text = @"
+namespace TestApp
+{
+    class Test
+    {
+    /* __marker__ */
+    }
+}
+";
+
+            var position = text.IndexOf("/* __marker__ */");
+            var syntaxTree = CSharpSyntaxTree.ParseText(text);
+            var root = syntaxTree.GetRoot();
+
+            var annotation = new SyntaxAnnotation("marker");
+            var markerTrivia = root.FindTrivia(position, findInsideTrivia: true);
+            var annotatedMarkerTrivia = markerTrivia.WithAdditionalAnnotations(annotation);
+            root = root.ReplaceTrivia(markerTrivia, annotatedMarkerTrivia);
+
+            var formattedRoot = Formatter.Format(root, new AdhocWorkspace());
+            var annotatedTrivia = formattedRoot.GetAnnotatedTrivia("marker");
+
+            Assert.Single(annotatedTrivia);
+        }
+
         private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> changedOptionSet = null)
         {
             using var workspace = TestWorkspace.CreateCSharp(code);

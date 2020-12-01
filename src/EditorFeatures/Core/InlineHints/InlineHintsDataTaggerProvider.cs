@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -35,6 +36,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         private readonly IAsynchronousOperationListener _listener;
 
         protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
+
+        /// <summary>
+        /// We want to make sure that if the user edits the space that the tag exists in that it goes away and they
+        /// don't see stale tags sticking around in random locations until the next update.  A good example of when this
+        /// is desirable is 'cut line'. If the tags aren't removed, then the line will be gone but the tags will remain
+        /// at whatever points the tracking spans moved them to.
+        /// </summary>
+        protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits;
 
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         [ImportingConstructor]
@@ -92,6 +101,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             var hints = await service.GetInlineHintsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
             foreach (var hint in hints)
             {
+                // If we don't have any text to actually show the user, then don't make a tag.
+                if (hint.DisplayParts.Sum(p => p.ToString().Length) == 0)
+                    continue;
+
                 context.AddTag(new TagSpan<InlineHintDataTag>(
                     hint.Span.ToSnapshotSpan(snapshotSpan.Snapshot),
                     new InlineHintDataTag(hint)));

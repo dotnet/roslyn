@@ -698,8 +698,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             }
 
             private bool IsEntryPoint(IMethodSymbol methodSymbol)
-                => (methodSymbol.Name == WellKnownMemberNames.EntryPointMethodName || methodSymbol.Name == "<Main>$") &&  // https://github.com/dotnet/roslyn/issues/45110 Switch to using WellKnownMemberNames.TopLevelStatementsEntryPointMethodName
-                                                                                                                          // once src\CodeStyle\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj is able to use the latest version of the type.
+                => methodSymbol.Name is WellKnownMemberNames.EntryPointMethodName or WellKnownMemberNames.TopLevelStatementsEntryPointMethodName &&
                    methodSymbol.IsStatic &&
                    (methodSymbol.ReturnsVoid ||
                     methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||
@@ -725,7 +724,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 {
                     if (methodSymbol.Name.StartsWith(prefix))
                     {
-                        var suffix = methodSymbol.Name.Substring(prefix.Length);
+                        var suffix = methodSymbol.Name[prefix.Length..];
                         return suffix.Length > 0 &&
                             methodSymbol.ContainingType.GetMembers(suffix).Any(m => m is IPropertySymbol);
                     }

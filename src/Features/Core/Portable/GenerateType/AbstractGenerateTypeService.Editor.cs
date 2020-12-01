@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     if (namespaceToGenerateInto == rootNamespace ||
                         namespaceToGenerateInto.StartsWith(rootNamespace + ".", StringComparison.Ordinal))
                     {
-                        namespaceToGenerateInto = namespaceToGenerateInto.Substring(rootNamespace.Length);
+                        namespaceToGenerateInto = namespaceToGenerateInto[rootNamespace.Length..];
                     }
                 }
 
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     if (rootNamespaceLength > -1)
                     {
                         // True, Remove the RootNamespace
-                        namespaceToGenerateInto = namespaceToGenerateInto.Substring(rootNamespaceLength);
+                        namespaceToGenerateInto = namespaceToGenerateInto[rootNamespaceLength..];
                     }
                     else
                     {
@@ -553,10 +553,16 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return new CodeActionOperation[] { new ApplyChangesOperation(codeGenResult.Project.Solution) };
             }
 
-            private IList<ITypeSymbol> GetArgumentTypes(IList<TArgumentSyntax> argumentList)
+            private ImmutableArray<ITypeSymbol> GetArgumentTypes(IList<TArgumentSyntax> argumentList)
             {
                 var types = argumentList.Select(a => _service.DetermineArgumentType(_semanticDocument.SemanticModel, a, _cancellationToken));
-                return types.Select(FixType).ToList();
+                return types.SelectAsArray(FixType);
+            }
+
+            private ImmutableArray<TExpressionSyntax> GetArgumentExpressions(IList<TArgumentSyntax> argumentList)
+            {
+                var syntaxFacts = _semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                return argumentList.SelectAsArray(a => (TExpressionSyntax)syntaxFacts.GetExpressionOfArgument(a));
             }
 
             private ITypeSymbol FixType(

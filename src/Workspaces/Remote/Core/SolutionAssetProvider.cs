@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class SolutionAssetProvider : ISolutionAssetProvider
     {
-        public const string ServiceName = ServiceDescriptors.ServiceNamePrefix + "SolutionAssetProvider";
+        public const string ServiceName = ServiceDescriptors.ServiceNameTopLevelPrefix + ServiceDescriptors.ServiceNameComponentLevelPrefix + "SolutionAssetProvider";
 
-        internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceName);
+        internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceName, ServiceDescriptors.GetFeatureDisplayName);
 
         private readonly HostWorkspaceServices _services;
 

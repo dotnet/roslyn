@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 loadOnly,
                 createAsync: () => CreateMetadataSymbolTreeInfoAsync(solution, checksum, reference),
                 keySuffix: "_Metadata_" + filePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerAsync(solution, checksum, filePath, names, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(solution, checksum, filePath, nodes)),
                 cancellationToken: cancellationToken);
             Contract.ThrowIfFalse(result != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
             return result;

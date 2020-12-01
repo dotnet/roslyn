@@ -21,6 +21,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
     internal abstract class AbstractInProcLanguageClient : ILanguageClient
     {
         private readonly string? _diagnosticsClientName;
+        /// <summary>
+        /// Legacy support for LSP push diagnostics.
+        /// </summary>
+        private readonly IDiagnosticService? _diagnosticService;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
         private readonly Workspace _workspace;
@@ -65,12 +69,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         public AbstractInProcLanguageClient(
             AbstractRequestHandlerProvider requestHandlerProvider,
             VisualStudioWorkspace workspace,
+            IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspSolutionProvider solutionProvider,
             string? diagnosticsClientName)
         {
             _requestHandlerProvider = requestHandlerProvider;
             _workspace = workspace;
+            _diagnosticService = diagnosticService;
             _listenerProvider = listenerProvider;
             _solutionProvider = solutionProvider;
             _diagnosticsClientName = diagnosticsClientName;
@@ -92,6 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 serverStream,
                 _requestHandlerProvider,
                 _workspace,
+                _diagnosticService,
                 _listenerProvider,
                 _solutionProvider,
                 clientName: _diagnosticsClientName);

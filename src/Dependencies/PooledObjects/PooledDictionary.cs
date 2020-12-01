@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -13,6 +11,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
     // Dictionary that can be recycled via an object pool
     // NOTE: these dictionaries always have the default comparer.
     internal sealed partial class PooledDictionary<K, V> : Dictionary<K, V>
+        where K : notnull
     {
         private readonly ObjectPool<PooledDictionary<K, V>> _pool;
 
@@ -43,8 +42,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         // if someone needs to create a pool;
         public static ObjectPool<PooledDictionary<K, V>> CreatePool(IEqualityComparer<K> keyComparer)
         {
-            ObjectPool<PooledDictionary<K, V>> pool = null;
-            pool = new ObjectPool<PooledDictionary<K, V>>(() => new PooledDictionary<K, V>(pool, keyComparer), 128);
+            ObjectPool<PooledDictionary<K, V>>? pool = null;
+            pool = new ObjectPool<PooledDictionary<K, V>>(() => new PooledDictionary<K, V>(pool!, keyComparer), 128);
             return pool;
         }
 

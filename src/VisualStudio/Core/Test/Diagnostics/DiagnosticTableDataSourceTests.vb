@@ -821,14 +821,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticService.DiagnosticsUpdated
 
-            Public Function GetDiagnostics(
+            <Obsolete>
+            Public Function GetDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticService.GetDiagnostics
+                Return GetPushDiagnostics(workspace, projectId, documentId, id, includeSuppressedDiagnostics, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken)
+            End Function
+
+            Public Function GetPullDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticService.GetPullDiagnostics
+                Return GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics)
+            End Function
+
+            Public Function GetPushDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticService.GetPushDiagnostics
+                Return GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics)
+            End Function
+
+            Private Function GetDiagnostics(
                     workspace As Workspace,
                     projectId As ProjectId,
                     documentId As DocumentId,
-                    id As Object,
-                    reportSuppressedDiagnostics As Boolean,
-                    forPullDiagnostics As Boolean,
-                    CancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticService.GetDiagnostics
+                    includeSuppressedDiagnostics As Boolean) As ImmutableArray(Of DiagnosticData)
                 Assert.NotNull(workspace)
 
                 Dim diagnostics As ImmutableArray(Of DiagnosticData)
@@ -841,19 +851,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     diagnostics = Items.ToImmutableArrayOrEmpty()
                 End If
 
-                If Not reportSuppressedDiagnostics Then
+                If Not includeSuppressedDiagnostics Then
                     diagnostics = diagnostics.WhereAsArray(Function(d) Not d.IsSuppressed)
                 End If
 
                 Return diagnostics
             End Function
 
-            Public Function GetDiagnosticsArgs(
+            Public Function GetPullDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPullDiagnosticBuckets
+                Return GetDiagnosticsBuckets(workspace, projectId, documentId)
+            End Function
+
+            Public Function GetPushDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPushDiagnosticBuckets
+                Return GetDiagnosticsBuckets(workspace, projectId, documentId)
+            End Function
+
+            Private Function GetDiagnosticsBuckets(
                     workspace As Workspace,
                     projectId As ProjectId,
-                    documentId As DocumentId,
-                    forPullDiagnostics As Boolean,
-                    cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetDiagnosticBuckets
+                    documentId As DocumentId) As ImmutableArray(Of DiagnosticBucket)
                 Assert.NotNull(workspace)
 
                 Dim diagnosticsArgs As ImmutableArray(Of DiagnosticBucket)

@@ -3555,7 +3555,7 @@ end structure
                     Assert.NotNull(hostProtectionAttr)
 
                     ' Verify type security attributes
-                    Dim type = DirectCast([module].GlobalNamespace.GetMember("EventDescriptor"), Microsoft.Cci.ITypeDefinition)
+                    Dim type = DirectCast([module].GlobalNamespace.GetMember("EventDescriptor").GetCciAdapter(), Microsoft.Cci.ITypeDefinition)
                     Debug.Assert(type.HasDeclarativeSecurity)
                     Dim typeSecurityAttributes As IEnumerable(Of Microsoft.Cci.SecurityAttribute) = type.SecurityAttributes
 
