@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 collectionTypes.Contains(createdType.OriginalDefinition) &&
                 !createdType.TypeArguments.IsEmpty &&
                 IsSymbolType(createdType.TypeArguments[0], symbolType) &&
-                !objectCreation.Arguments.Any(arg => arg.Type.Equals(symbolEqualityComparerType)))
+                !objectCreation.Arguments.Any(arg => IsSymbolType(arg.Type, symbolEqualityComparerType)))
             {
                 context.ReportDiagnostic(objectCreation.CreateDiagnostic(CollectionRule));
             }
