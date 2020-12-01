@@ -8057,13 +8057,13 @@ public class AA
         ' We want to ignore these items in CommitIfUnique.
         ' This situation should not happen. Tests with this provider were added to cover protective scenarios.
         <ExportCompletionProvider(NameOf(IntelliCodeMockWeirdProvider), LanguageNames.CSharp)>
-                            <[Shared]>
-                                <PartNotDiscoverable>
+        <[Shared]>
+        <PartNotDiscoverable>
         Private Class IntelliCodeMockWeirdProvider
             Inherits IntelliCodeMockProvider
 
             <ImportingConstructor>
-                                        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
                 MyBase.New()
             End Sub
