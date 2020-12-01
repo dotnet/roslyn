@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Test.Utilities;
 using Xunit;
@@ -858,6 +859,31 @@ public class C
             .Where(x => x.IsAsync)
             .ToLookup(x => x.ContainingType, x => x, SymbolEqualityComparer.Default);
     }
+}",
+                        SymbolEqualityComparerStubCSharp,
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(4470, "https://github.com/dotnet/roslyn-analyzers/issues/4470")]
+        public async Task RS1024_InvocationArgumentTypeIsNull()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+
+public class C
+{
+    private readonly HashSet<ITypeSymbol> _types = [|new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default)|];
 }",
                         SymbolEqualityComparerStubCSharp,
                     },
