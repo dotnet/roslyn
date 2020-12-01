@@ -831,5 +831,38 @@ End Class",
                 },
             }.RunAsync();
         }
+
+        [Fact, WorkItem(4469, "https://github.com/dotnet/roslyn-analyzers/issues/4469")]
+        public async Task RS1024_SymbolEqualityComparerDefault()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+
+public class C
+{
+    public void M(IEnumerable<ISymbol> e, ISymbol symbol, INamedTypeSymbol type)
+    {
+        e.Contains(symbol, SymbolEqualityComparer.Default);
+
+        var asyncMethods = type.GetMembers()
+            .OfType<IMethodSymbol>()
+            .Where(x => x.IsAsync)
+            .ToLookup(x => x.ContainingType, x => x, SymbolEqualityComparer.Default);
+    }
+}",
+                        SymbolEqualityComparerStubCSharp,
+                    },
+                },
+            }.RunAsync();
+        }
     }
 }

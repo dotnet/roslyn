@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         if (symbolEqualityComparerType != null &&
                             possibleMethodTypes.Contains(method.ContainingType.OriginalDefinition) &&
                             HasFirstTypeArgumentSymbolType(method, symbolType) &&
-                            !invocationOperation.Arguments.Any(arg => arg.Type != null && arg.Type.Equals(symbolEqualityComparerType)))
+                            !invocationOperation.Arguments.Any(arg => IsSymbolType(arg.Value, symbolEqualityComparerType)))
                         {
                             context.ReportDiagnostic(invocationOperation.CreateDiagnostic(CollectionRule));
                         }
