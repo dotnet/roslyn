@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                     if (IsPartialMethodDefinitionPart(x) != IsPartialMethodDefinitionPart(y) ||
                         IsPartialMethodImplementationPart(x) != IsPartialMethodImplementationPart(y) ||
-                        x.IsDefinition != y.IsDefinition ||
+                        //x.IsDefinition != y.IsDefinition || // TODO2
                         IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
                         x.Arity != y.Arity ||
                         x.Parameters.Length != y.Parameters.Length ||
