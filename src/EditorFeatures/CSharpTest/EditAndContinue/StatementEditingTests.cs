@@ -6979,6 +6979,66 @@ interface I
         }
 
         [Fact]
+        public void LocalFunction_CombineAttributeLists()
+        {
+            var src1 = "class C { void M() { [A][B]void L() { } } }";
+            var src2 = "class C { void M() { [A, B]void L() { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { [A][B]void L() { } }]@10 -> [void M() { [A, B]void L() { } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
+        }
+
+        [Fact]
+        public void LocalFunction_SplitAttributeLists()
+        {
+            var src1 = "class C { void M() { [A, B]void L() { } } }";
+            var src2 = "class C { void M() { [A][B]void L() { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { [A, B]void L() { } }]@10 -> [void M() { [A][B]void L() { } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
+        }
+
+        [Fact]
+        public void LocalFunction_ChangeAttributeListTarget1()
+        {
+            var src1 = "class C { void M() { [return: A]void L() { } } }";
+            var src2 = "class C { void M() { [A]void L() { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { [return: A]void L() { } }]@10 -> [void M() { [A]void L() { } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
+        }
+
+        [Fact]
+        public void LocalFunction_ChangeAttributeListTarget2()
+        {
+            var src1 = "class C { void M() { [A]void L() { } } }";
+            var src2 = "class C { void M() { [return: A]void L() { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { [A]void L() { } }]@10 -> [void M() { [return: A]void L() { } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
+        }
+
+        [Fact]
         public void LocalFunction_ReturnType_AddAttribute()
         {
             var src1 = "class C { void M() { int L() { return 1; } } }";
