@@ -72,14 +72,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
             public void Start()
             {
+                this.AssertIsForeground();
                 // Brace completion is not cancellable.
-                if (!this.Start(CancellationToken.None))
+                if (!this.TryStart(CancellationToken.None))
                 {
                     EndSession();
                 }
             }
 
-            private bool Start(CancellationToken cancellationToken)
+            private bool TryStart(CancellationToken cancellationToken)
             {
                 this.AssertIsForeground();
                 var closingSnapshotPoint = ClosingPoint.GetPoint(SubjectBuffer.CurrentSnapshot);
