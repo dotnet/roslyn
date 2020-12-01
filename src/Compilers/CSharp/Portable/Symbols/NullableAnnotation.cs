@@ -32,5 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Type is annotated with '?' - string?, T?.
         /// </summary>
         Annotated,
+
+        /// <summary>
+        /// Used locally in override/implementation checks.
+        /// </summary>
+        Ignored,
     }
 }

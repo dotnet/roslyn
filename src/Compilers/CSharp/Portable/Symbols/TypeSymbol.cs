@@ -1770,7 +1770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (implementedMethod.IsGenericMethod)
                             {
-                                implementedMethod = implementedMethod.Construct(implementingMethod.TypeArgumentsWithAnnotations);
+                                implementedMethod = implementedMethod.Construct(TypeMap.TypeParametersAsTypeSymbolsWithIgnoredAnnotations(implementingMethod.TypeParameters));
                             }
 
                             SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(

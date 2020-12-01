@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return typeParameters.SelectAsArray((tp) => TypeWithAnnotations.Create(tp));
         }
 
+        internal static ImmutableArray<TypeWithAnnotations> TypeParametersAsTypeSymbolsWithIgnoredAnnotations(ImmutableArray<TypeParameterSymbol> typeParameters)
+        {
+            return typeParameters.SelectAsArray((tp) => TypeWithAnnotations.Create(tp, NullableAnnotation.Ignored));
+        }
+
         internal static ImmutableArray<TypeSymbol> AsTypeSymbols(ImmutableArray<TypeWithAnnotations> typesOpt)
         {
             return typesOpt.IsDefault ? default : typesOpt.SelectAsArray(AsTypeSymbol);

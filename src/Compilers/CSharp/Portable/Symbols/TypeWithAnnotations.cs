@@ -429,6 +429,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal TypeWithAnnotations SubstituteTypeCore(AbstractTypeMap typeMap)
         {
+            // Ignored may only appear on a replacement type and will not survive the substitution (ie. the original annotation wins over Ignored)
+            Debug.Assert(NullableAnnotation != NullableAnnotation.Ignored);
+
             var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
             TypeSymbol typeSymbol = this.Type;
             var newTypeWithModifiers = typeMap.SubstituteType(typeSymbol);
@@ -437,6 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(newTypeWithModifiers.NullableAnnotation.IsOblivious() || (typeSymbol.IsNullableType() && newTypeWithModifiers.NullableAnnotation.IsAnnotated()));
                 Debug.Assert(newTypeWithModifiers.CustomModifiers.IsEmpty);
+                Debug.Assert(NullableAnnotation != NullableAnnotation.Ignored);
 
                 if (typeSymbol.Equals(newTypeWithModifiers.Type, TypeCompareKind.ConsiderEverything) &&
                     newCustomModifiers == CustomModifiers)
@@ -457,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return this; // substitution had no effect on the type or modifiers
             }
-            else if (Is((TypeParameterSymbol)typeSymbol))
+            else if (Is((TypeParameterSymbol)typeSymbol) && newTypeWithModifiers.NullableAnnotation != NullableAnnotation.Ignored)
             {
                 return newTypeWithModifiers;
             }
@@ -476,6 +480,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 newAnnotation = NullableAnnotation.Annotated;
             }
             else if (IsIndexedTypeParameter(newTypeWithModifiers.Type))
+            {
+                newAnnotation = NullableAnnotation;
+            }
+            else if (newTypeWithModifiers.NullableAnnotation == NullableAnnotation.Ignored)
             {
                 newAnnotation = NullableAnnotation;
             }
