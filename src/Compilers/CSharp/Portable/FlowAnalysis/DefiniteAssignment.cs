@@ -724,22 +724,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value.ConstantValue != ConstantValue.Null;
             }
 
-            if (type?.SpecialType == SpecialType.System_String && value.Kind == BoundKind.InterpolatedString)
-            {
-                // In C# 9 and before, interpolated string values were never constant, so field initializers
-                // that used them were always considered used. We now consider interpolated strings that are
-                // made up of only constant expressions to be constant values, but for backcompat we consider
-                // the writes to be uses anyway.
-                return true;
-            }
-
             if ((object)type != null && type.IsPointerOrFunctionPointer())
             {
                 // We always suppress the warning for pointer types.
                 return true;
             }
 
-            if (value.ConstantValue != null) return false;
+            // In C# 9 and before, interpolated string values were never constant, so field initializers
+            // that used them were always considered used. We now consider interpolated strings that are
+            // made up of only constant expressions to be constant values, but for backcompat we consider
+            // the writes to be uses anyway.
+            if (value is { ConstantValue: not null, Kind: not BoundKind.InterpolatedString }) return false;
             switch (value.Kind)
             {
                 case BoundKind.Conversion:
