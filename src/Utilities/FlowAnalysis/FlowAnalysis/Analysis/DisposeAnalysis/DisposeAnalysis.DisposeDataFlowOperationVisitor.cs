@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 }
 
                 // Handle user option for additional excluded types
-                if (DataFlowAnalysisContext.ExcludedSymbols.Contains(instanceType))
+                if (DataFlowAnalysisContext.IsConfiguredToSkipAnalysis(instanceType))
                 {
                     return defaultValue;
                 }

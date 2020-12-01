@@ -38,8 +38,8 @@
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiMessage">
-        <source>Symbol '{0}' is missing nullability annotations in the declared API.</source>
-        <target state="translated">El símbolo "{0}" no tiene anotaciones de nulabilidad en la API declarada.</target>
+        <source>Symbol '{0}' is missing nullability annotations in the declared API</source>
+        <target state="needs-review-translation">El símbolo "{0}" no tiene anotaciones de nulabilidad en la API declarada.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiTitle">
@@ -63,8 +63,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiMessage">
-        <source>Symbol '{0}' is not part of the declared API.</source>
-        <target state="translated">El símbolo "{0}" no forma parte de la API declarada.</target>
+        <source>Symbol '{0}' is not part of the declared API</source>
+        <target state="needs-review-translation">El símbolo "{0}" no forma parte de la API declarada.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiTitle">
@@ -73,8 +73,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
-        <source>The symbol '{0}' appears more than once in the public API files.</source>
-        <target state="translated">El símbolo "{0}" aparece más de una vez en los archivos de la API pública.</target>
+        <source>The symbol '{0}' appears more than once in the public API files</source>
+        <target state="needs-review-translation">El símbolo "{0}" aparece más de una vez en los archivos de la API pública.</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesTitle">
@@ -93,8 +93,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
-        <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</source>
-        <target state="translated">El constructor convierte su clase base no heredable en heredable, por lo que expone sus miembros protegidos.</target>
+        <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</source>
+        <target state="needs-review-translation">El constructor convierte su clase base no heredable en heredable, por lo que expone sus miembros protegidos.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeTitle">
@@ -108,8 +108,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiMessage">
-        <source>Symbol '{0}' uses some oblivious reference types.</source>
-        <target state="translated">El símbolo "{0}" utiliza algunos tipos de referencia inconscientes.</target>
+        <source>Symbol '{0}' uses some oblivious reference types</source>
+        <target state="needs-review-translation">El símbolo "{0}" utiliza algunos tipos de referencia inconscientes.</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiTitle">
@@ -123,8 +123,8 @@
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
-        <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads.</source>
-        <target state="translated">La API pública con parámetros opcionales debe tener la mayoría de los parámetros entre sus sobrecargas públicas</target>
+        <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads</source>
+        <target state="needs-review-translation">La API pública con parámetros opcionales debe tener la mayoría de los parámetros entre sus sobrecargas públicas</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFileMissingMessage">

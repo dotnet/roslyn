@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             uint defaultMaxInterproceduralMethodCallChain = 1, // By default, we only want to track method calls one level down.
             bool pessimisticAnalysis = false)
         {
-            Debug.Assert(!owningSymbol.IsConfiguredToSkipAnalysis(analyzerOptions, rule, compilation, cancellationToken));
+            Debug.Assert(!analyzerOptions.IsConfiguredToSkipAnalysis(rule, owningSymbol, compilation, cancellationToken));
 
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                    analyzerOptions, rule, topmostBlock.Syntax.SyntaxTree, compilation, interproceduralAnalysisKind, cancellationToken, defaultMaxInterproceduralMethodCallChain);

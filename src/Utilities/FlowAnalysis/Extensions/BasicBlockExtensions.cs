@@ -137,6 +137,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return false;
         }
 
+        /// <summary>
+        /// Returns true if the given basic block is the first block of a compiler generated finally region.
+        /// </summary>
+        public static bool IsFirstBlockOfCompilerGeneratedFinally(this BasicBlock basicBlock, ControlFlowGraph cfg)
+        {
+            if (!basicBlock.IsFirstBlockOfRegionKind(ControlFlowRegionKind.Finally, out var finallyRegion))
+            {
+                return false;
+            }
+
+            foreach (var operation in finallyRegion.DescendantOperations(cfg))
+            {
+                if (!operation.IsImplicit)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         internal static ControlFlowRegion? GetInnermostRegionStartedByBlock(this BasicBlock basicBlock, ControlFlowRegionKind regionKind)
         {
             if (basicBlock.EnclosingRegion?.FirstBlockOrdinal != basicBlock.Ordinal)

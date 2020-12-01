@@ -1112,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     {
                         // Diagnostic Id for rule '{0}' must be a non-null constant.
                         string arg1 = ((IFieldInitializerOperation)operationAnalysisContext.Operation).InitializedFields.Single().Name;
-                        var diagnostic = Diagnostic.Create(DiagnosticIdMustBeAConstantRule, argument.Value.Syntax.GetLocation(), arg1);
+                        var diagnostic = argument.Value.CreateDiagnostic(DiagnosticIdMustBeAConstantRule, arg1);
                         operationAnalysisContext.ReportDiagnostic(diagnostic);
                     }
 

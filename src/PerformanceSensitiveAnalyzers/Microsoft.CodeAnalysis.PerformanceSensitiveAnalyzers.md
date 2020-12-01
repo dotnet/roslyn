@@ -105,7 +105,7 @@ Explicit new array type allocation
 |Category|Performance|
 |Enabled|True|
 |Severity|Info|
-|CodeFix|False|
+|CodeFix|True|
 ---
 
 ## HAA0502: Explicit new reference type allocation
@@ -117,7 +117,7 @@ Explicit new reference type allocation
 |Category|Performance|
 |Enabled|True|
 |Severity|Info|
-|CodeFix|False|
+|CodeFix|True|
 ---
 
 ## [HAA0503](http://msdn.microsoft.com/en-us/library/bb397696.aspx): Explicit new anonymous object allocation

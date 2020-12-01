@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         /// This boolean field determines if we should perform an optimistic OR a pessimistic analysis.
         /// For example, invoking a lambda method for which we do not know the target method being invoked can change/invalidate the current global flow state.
         /// An optimistic points to analysis assumes that the global flow state doesn't change for such scenarios.
-        /// A pessimistic points to analysis resets the the global flow state to an unknown state for such scenarios.
+        /// A pessimistic points to analysis resets the global flow state to an unknown state for such scenarios.
         /// </param>
         /// <param name="cancellationToken">Token to cancel analysis.</param>
         /// <param name="valueContentAnalysisResult">Optional value content analysis result, if <paramref name="performValueContentAnalysis"/> is true</param>
