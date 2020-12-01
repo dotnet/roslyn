@@ -1079,5 +1079,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 tokenOnLeftOfPosition.Parent.IsKind(SyntaxKind.TupleExpression, SyntaxKind.TupleType)
         End Function
 
+        <Extension()>
+        Public Function IsInPreprocessorExpressionContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
+            Dim directive As DirectiveTriviaSyntax = Nothing
+            If Not IsInPreprocessorDirectiveContext(syntaxTree, position, cancellationToken, directive) Then
+                Return False
+            End If
+
+            If TypeOf directive IsNot IfDirectiveTriviaSyntax Then
+                Return False
+            End If
+
+            Dim leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
+            Dim targetToken = syntaxTree.GetTargetToken(position, cancellationToken)
+
+            Select Case targetToken.Kind()
+                Case SyntaxKind.IfKeyword,
+                     SyntaxKind.ElseIfKeyword,
+                     SyntaxKind.NotKeyword,
+                     SyntaxKind.OpenParenToken,
+                     SyntaxKind.NotKeyword,
+                     SyntaxKind.OrKeyword,
+                     SyntaxKind.OrElseKeyword,
+                     SyntaxKind.AndKeyword,
+                     SyntaxKind.AndAlsoKeyword
+                    Return True
+            End Select
+
+            Return False
+        End Function
     End Module
 End Namespace
