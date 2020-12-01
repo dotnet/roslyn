@@ -442,7 +442,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // PERF: VSadov specifically replaced the short-circuited operators in changeset #24717.
             if (selfIsDeclaration | otherIsDeclaration)
             {
-                return selfIsDeclaration & otherIsDeclaration;
+                if ((compareKind & TypeCompareKind.ObliviousNullableModifierMatchesIgnored) == 0)
+                {
+                    return selfIsDeclaration & otherIsDeclaration;
+                }
             }
 
             // This checks if the type parameters on the method itself have been substituted in the same way.

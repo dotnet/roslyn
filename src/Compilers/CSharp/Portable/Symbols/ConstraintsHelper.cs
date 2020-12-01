@@ -1376,7 +1376,7 @@ hasRelatedInterfaces:
                 return false;
             }
 
-            Debug.Assert(method.ConstructedFrom != method);
+            //Debug.Assert(method.ConstructedFrom != method); // TODO2
             return true;
         }
 
