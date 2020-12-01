@@ -1162,6 +1162,44 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
+        protected override void ReportLambdaAttributeRudeEdits(SemanticModel oldModel, SyntaxNode oldLambdaBody, SemanticModel newModel, SyntaxNode newLambdaBody, List<RudeEditDiagnostic> diagnostics, bool hadSignatureEdits, CancellationToken cancellationToken)
+        {
+            if (IsLocalFunctionBody(oldLambdaBody) && IsLocalFunctionBody(newLambdaBody))
+            {
+                var newLambda = (LocalFunctionStatementSyntax)GetLambda(newLambdaBody);
+                var oldLambda = (LocalFunctionStatementSyntax)GetLambda(oldLambdaBody);
+
+                var reportDiagnostic = false;
+                if (!oldLambda.AttributeLists.SequenceEqual(newLambda.AttributeLists))
+                {
+                    reportDiagnostic = true;
+                }
+
+                // If the old and new signatures have changed then we don't need to report rude edits for attributes on parameters
+                // so we can skip this bit
+                if (!hadSignatureEdits)
+                {
+                    for (var i = 0; i < oldLambda.ParameterList.Parameters.Count; i++)
+                    {
+                        if (!oldLambda.ParameterList.Parameters[i].AttributeLists.SequenceEqual(newLambda.ParameterList.Parameters[i].AttributeLists))
+                        {
+                            reportDiagnostic = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (reportDiagnostic)
+                {
+                    diagnostics.Add(new RudeEditDiagnostic(
+                        RudeEditKind.Update,
+                        GetDiagnosticSpan(newLambda, EditKind.Update),
+                        newLambda,
+                        new[] { GetDisplayName(newLambda) }));
+                }
+            }
+        }
+
         private static bool IsLocalFunctionBody(SyntaxNode lambdaBody)
         {
             var lambda = LambdaUtilities.GetLambda(lambdaBody);
