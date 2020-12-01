@@ -6933,6 +6933,141 @@ interface I
                 Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "local", FeaturesResources.local_function));
         }
 
+        [Fact]
+        public void LocalFunction_AddAttribute()
+        {
+            var src1 = "class C { void M() { void L() { } } }";
+            var src2 = "class C { void M() { [A]void L() { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { void L() { } }]@10 -> [void M() { [A]void L() { } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
+        }
+
+        [Fact]
+        public void LocalFunction_RemoveAttribute()
+        {
+            var src1 = "class C { void M() { [A]void L() { } } }";
+            var src2 = "class C { void M() { void L() { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { [A]void L() { } }]@10 -> [void M() { void L() { } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
+        }
+
+        [Fact]
+        public void LocalFunction_ReorderAttribute()
+        {
+            var src1 = "class C { void M() { [A, B]void L() { } } }";
+            var src2 = "class C { void M() { [B, A]void L() { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { [A, B]void L() { } }]@10 -> [void M() { [B, A]void L() { } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
+        }
+
+        [Fact]
+        public void LocalFunction_ReturnType_AddAttribute()
+        {
+            var src1 = "class C { void M() { int L() { return 1; } } }";
+            var src2 = "class C { void M() { [return: A]int L() { return 1; } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { int L() { return 1; } }]@10 -> [void M() { [return: A]int L() { return 1; } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
+        }
+
+        [Fact]
+        public void LocalFunction_ReturnType_RemoveAttribute()
+        {
+            var src1 = "class C { void M() { [return: A]int L() { return 1; } } }";
+            var src2 = "class C { void M() { int L() { return 1; } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { [return: A]int L() { return 1; } }]@10 -> [void M() { int L() { return 1; } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
+        }
+
+        [Fact]
+        public void LocalFunction_ReturnType_ReorderAttribute()
+        {
+            var src1 = "class C { void M() { [return: A, B]int L() { return 1; } } }";
+            var src2 = "class C { void M() { [return: B, A]int L() { return 1; } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { [return: A, B]int L() { return 1; } }]@10 -> [void M() { [return: B, A]int L() { return 1; } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
+        }
+
+        [Fact]
+        public void LocalFunction_Parameter_AddAttribute()
+        {
+            var src1 = "class C { void M() { void L(int i) { } } }";
+            var src2 = "class C { void M() { void L([A]int i) { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { void L(int i) { } }]@10 -> [void M() { void L([A]int i) { } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
+        }
+
+        [Fact]
+        public void LocalFunction_Parameter_RemoveAttribute()
+        {
+            var src1 = "class C { void M() { void L([A]int i) { } } }";
+            var src2 = "class C { void M() { void L(int i) { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { void L([A]int i) { } }]@10 -> [void M() { void L(int i) { } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
+        }
+
+        [Fact]
+        public void LocalFunction_Parameter_ReorderAttribute()
+        {
+            var src1 = "class C { void M() { void L([A, B]int i) { } } }";
+            var src2 = "class C { void M() { void L([B, A]int i) { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { void L([A, B]int i) { } }]@10 -> [void M() { void L([B, A]int i) { } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
+        }
+
         #endregion
 
         #region Queries
