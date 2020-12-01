@@ -3710,7 +3710,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        protected virtual void ReportLambdaAttributeRudeEdits(SemanticModel oldModel,
+        private void ReportLambdaAttributeRudeEdits(SemanticModel oldModel,
             SyntaxNode oldLambdaBody,
             SemanticModel newModel,
             SyntaxNode newLambdaBody,
