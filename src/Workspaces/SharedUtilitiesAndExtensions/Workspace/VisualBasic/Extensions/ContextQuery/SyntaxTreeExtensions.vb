@@ -1093,12 +1093,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Dim leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
             Dim targetToken = syntaxTree.GetTargetToken(position, cancellationToken)
 
+            ' #if $$
+            '
+            ' #elseif $$
+            '
+            ' #if not $$
+            '
+            ' #if ( $$
+            '
+            ' #if x or $$
+            ' #if x orelse $$
+            '
+            ' #if and $$
+            ' #if andalso $$
+
             Select Case targetToken.Kind()
                 Case SyntaxKind.IfKeyword,
                      SyntaxKind.ElseIfKeyword,
                      SyntaxKind.NotKeyword,
                      SyntaxKind.OpenParenToken,
-                     SyntaxKind.NotKeyword,
                      SyntaxKind.OrKeyword,
                      SyntaxKind.OrElseKeyword,
                      SyntaxKind.AndKeyword,
