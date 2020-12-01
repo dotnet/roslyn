@@ -70,14 +70,14 @@ namespace Microsoft.CodeAnalysis
         /// Adds source code in the form of a <see cref="string"/> to the compilation.
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
-        /// <param name="source">The source code to be add to the compilation</param>
+        /// <param name="source">The source code to add to the compilation</param>
         public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8));
 
         /// <summary>
         /// Adds source code in the form of a <see cref="StringBuilder"/> to the compilation.
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
-        /// <param name="source">The source code to be add to the compilation. This must not be modified from now on.</param>
+        /// <param name="source">The source code to add to the compilation. This must not be modified from now on.</param>
         public void AddSource(string hintName, StringBuilder source) => AddSource(hintName, new StringBuilderText(source, Encoding.UTF8));
 
         /// <summary>
