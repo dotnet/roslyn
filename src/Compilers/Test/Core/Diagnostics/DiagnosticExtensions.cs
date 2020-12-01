@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis
                 analyzersArray,
                 options,
                 analyzerManager,
-                artifactContext: null,
+                createArtifactStream: null,
                 onAnalyzerException,
                 analyzerExceptionFilter: null,
                 reportAnalyzer: false,
