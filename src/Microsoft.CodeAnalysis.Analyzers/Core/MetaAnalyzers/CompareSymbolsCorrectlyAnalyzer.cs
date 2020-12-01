@@ -169,7 +169,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 default:
                     if (equalityComparerMethods.TryGetValue(method.Name, out var possibleMethodTypes))
                     {
-                        var xx = method.GetOverloads();
                         if (symbolEqualityComparerType != null &&
                             possibleMethodTypes.Contains(method.ContainingType.OriginalDefinition) &&
                             IsBehavingOnSymbolType(method, symbolType) &&
