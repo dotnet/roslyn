@@ -357,6 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((comparison & TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) == 0)
             {
                 if (otherAnnotation != thisAnnotation &&
+                    ((comparison & TypeCompareKind.ObliviousNullableModifierMatchesIgnored) == 0 || !(thisAnnotation.IsObliviousOrIgnored() && otherAnnotation.IsObliviousOrIgnored())) &&
                     ((comparison & TypeCompareKind.ObliviousNullableModifierMatchesAny) == 0 || (!thisAnnotation.IsObliviousOrIgnored() && !otherAnnotation.IsObliviousOrIgnored())))
                 {
                     if (!HasType)

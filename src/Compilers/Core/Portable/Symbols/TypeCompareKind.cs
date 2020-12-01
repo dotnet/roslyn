@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         IgnoreTupleNames = 4,
         IgnoreDynamicAndTupleNames = IgnoreDynamic | IgnoreTupleNames,
         IgnoreNullableModifiersForReferenceTypes = 8,
-        ObliviousNullableModifierMatchesAny = 16, // Ignored is treated like Oblivious
+        ObliviousNullableModifierMatchesAny = 16,
         IgnoreNativeIntegers = 32,
 
         // For the purposes of a few specific cases such as overload comparisons, we need to consider function pointers that only differ
@@ -33,7 +33,9 @@ namespace Microsoft.CodeAnalysis
         // top-level signatures today, so we disallow it in source.
         FunctionPointerRefMatchesOutInRefReadonly = 64,
 
-        AllNullableIgnoreOptions = IgnoreNullableModifiersForReferenceTypes | ObliviousNullableModifierMatchesAny,
+        ObliviousNullableModifierMatchesIgnored = 128,
+
+        AllNullableIgnoreOptions = IgnoreNullableModifiersForReferenceTypes | ObliviousNullableModifierMatchesAny | ObliviousNullableModifierMatchesIgnored,
         AllIgnoreOptions = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreDynamic | IgnoreTupleNames | AllNullableIgnoreOptions | IgnoreNativeIntegers,
         AllIgnoreOptionsForVB = IgnoreCustomModifiersAndArraySizesAndLowerBounds | IgnoreTupleNames,
 
