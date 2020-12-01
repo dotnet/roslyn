@@ -1008,7 +1008,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
-        Public Sub UsingFlow_01()
+        Public Sub UsingFlow_14()
             Dim source = <![CDATA[
 Imports System
 Public Class C
@@ -1152,7 +1152,7 @@ Block[B8] - Exit
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
-        Public Sub UsingFlow_02()
+        Public Sub UsingFlow_15()
             Dim source = <![CDATA[
 Imports System
 Public Class C
@@ -1238,7 +1238,7 @@ Block[B6] - Exit
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
-        Public Sub UsingFlow_03()
+        Public Sub UsingFlow_NotDisposable()
             Dim source = <![CDATA[
 Imports System
 Public Class C
@@ -1331,7 +1331,7 @@ Block[B6] - Exit
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
-        Public Sub UsingFlow_04()
+        Public Sub UsingFlow_Missing_IDisposable()
             Dim source = <![CDATA[
 Imports System
 Public Class C
@@ -1378,7 +1378,7 @@ Block[B0] - Entry
         Block[B2] - Block
             Predecessors: [B1]
             Statements (0)
-            Next (Regular) Block[B4]
+            Next (Regular) Block[B6]
                 Finalizing: {R4}
                 Leaving: {R3} {R2} {R1}
     }
@@ -1386,14 +1386,30 @@ Block[B0] - Entry
     {
         Block[B3] - Block
             Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B5]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'New D()')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: D, IsImplicit) (Syntax: 'New D()')
+            Next (Regular) Block[B4]
+        Block[B4] - Block
+            Predecessors: [B3]
             Statements (1)
                 IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'New D()')
                   Children(1):
-                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: D, IsImplicit) (Syntax: 'New D()')
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'New D()')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                          (WideningReference)
+                        Operand: 
+                          IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: D, IsImplicit) (Syntax: 'New D()')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B3] [B4]
+            Statements (0)
             Next (StructuredExceptionHandling) Block[null]
     }
 }
-Block[B4] - Exit
+Block[B6] - Exit
     Predecessors: [B2]
     Statements (0)
 ]]>.Value

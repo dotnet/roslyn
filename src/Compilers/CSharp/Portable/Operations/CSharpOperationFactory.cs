@@ -1770,8 +1770,8 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation body = Create(boundUsingStatement.Body);
             ImmutableArray<ILocalSymbol> locals = boundUsingStatement.Locals.GetPublicSymbols();
             bool isAsynchronous = boundUsingStatement.AwaitOpt != null;
-            SyntaxNode syntax = boundUsingStatement.Syntax;
             IMethodSymbol? disposeMethod = boundUsingStatement.DisposeMethodOpt.GetPublicSymbol();
+            SyntaxNode syntax = boundUsingStatement.Syntax;
             bool isImplicit = boundUsingStatement.WasCompilerGenerated;
             return new UsingOperation(resources, body, locals, isAsynchronous, disposeMethod, _semanticModel, syntax, isImplicit);
         }

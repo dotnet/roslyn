@@ -219,6 +219,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        private bool TryGetDisposeMethod(CommonForEachStatementSyntax forEachSyntax, ForEachEnumeratorInfo enumeratorInfo, out MethodSymbol disposeMethod)
+        {
+            if (enumeratorInfo.IsAsync)
+            {
+                disposeMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_IAsyncDisposable__DisposeAsync, _diagnostics, syntax: forEachSyntax);
+                return (object)disposeMethod != null;
+            }
+
+            return Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, forEachSyntax, _diagnostics, out disposeMethod);
+        }
+
         /// <summary>
         /// There are three possible cases where we need disposal:
         /// - pattern-based disposal (we have a Dispose/DisposeAsync method)
@@ -233,13 +244,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement rewrittenBody)
         {
             Debug.Assert(enumeratorInfo.NeedsDisposal);
-            Debug.Assert(enumeratorInfo.DisposeMethod is not null);
 
             NamedTypeSymbol? idisposableTypeSymbol = null;
             bool isImplicit = false;
-            MethodSymbol disposeMethod = enumeratorInfo.DisposeMethod;
-            if (!enumeratorInfo.IsPatternDispose)
+            MethodSymbol? disposeMethod = enumeratorInfo.DisposeMethod; // pattern-based
+            
+            if (disposeMethod is null)
             {
+                TryGetDisposeMethod(forEachSyntax, enumeratorInfo, out disposeMethod); // interface-based
+
                 idisposableTypeSymbol = disposeMethod.ContainingType;
                 Debug.Assert(_factory.CurrentFunction is { });
                 var conversions = new TypeConversions(_factory.CurrentFunction.ContainingAssembly.CorLibrary);
@@ -256,14 +269,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                location: enumeratorInfo.Location);
 
             BoundBlock finallyBlockOpt;
-            if (isImplicit || enumeratorInfo.IsPatternDispose)
+            if (isImplicit || !(enumeratorInfo.DisposeMethod is null))
             {
                 Conversion receiverConversion = enumeratorType.IsStructType() ?
                     Conversion.Boxing :
                     Conversion.ImplicitReference;
 
                 BoundExpression receiver;
-                if (!enumeratorInfo.IsPatternDispose)
+                if (enumeratorInfo.DisposeMethod is null)
                 {
                     Debug.Assert(idisposableTypeSymbol is { });
                     receiver = ConvertReceiverForInvocation(forEachSyntax, boundEnumeratorVar, disposeMethod, receiverConversion, idisposableTypeSymbol);

@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (declarationTypeOpt.IsDynamic())
                 {
                     iDisposableConversion = Conversion.ImplicitDynamic;
-                    disposeMethodOpt = originalBinder.Compilation.GetWellKnownDisposeMethod(isAsync: hasAwait);
+                    disposeMethodOpt = null;
                     awaitableTypeOpt = null;
                 }
                 else
@@ -185,7 +185,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (iDisposableConversion.IsImplicit)
                 {
-                    disposeMethodOpt = originalBinder.Compilation.GetWellKnownDisposeMethod(hasAwait);
                     if (hasAwait)
                     {
                         awaitableTypeOpt = originalBinder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);

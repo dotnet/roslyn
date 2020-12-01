@@ -1,4 +1,4 @@
-﻿' Licensed to the .NET Foundation under one or more agreements.
+' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -1181,7 +1181,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                      boundForEachStatement.EnumeratorInfo.NeedToDispose,
                                                      knownToImplementIDisposable:=boundForEachStatement.EnumeratorInfo.NeedToDispose AndAlso
                                                                                   boundForEachStatement.EnumeratorInfo.IsOrInheritsFromOrImplementsIDisposable,
-                                                     disposeMethod:=DirectCast(DirectCast(_semanticModel.Compilation, VisualBasicCompilation).GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), MethodSymbol),
+                                                     disposeMethod:=Nothing,
                                                      isPatternDispose:=False,
                                                      statementInfo.CurrentConversion,
                                                      statementInfo.ElementConversion,
@@ -1437,8 +1437,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim locals As ImmutableArray(Of ILocalSymbol) = ImmutableArray(Of ILocalSymbol).CastUp(boundUsingStatement.Locals)
             Dim syntax As SyntaxNode = boundUsingStatement.Syntax
             Dim isImplicit As Boolean = boundUsingStatement.WasCompilerGenerated
-            Dim disposeMethod As MethodSymbol = DirectCast(DirectCast(_semanticModel.Compilation, VisualBasicCompilation).GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), MethodSymbol)
-            Return New UsingOperation(resources, body, locals, isAsynchronous:=False, disposeMethod, _semanticModel, syntax, isImplicit)
+            Return New UsingOperation(resources, body, locals, isAsynchronous:=False, disposeMethod:=Nothing, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundExpressionStatementOperation(boundExpressionStatement As BoundExpressionStatement) As IExpressionStatementOperation

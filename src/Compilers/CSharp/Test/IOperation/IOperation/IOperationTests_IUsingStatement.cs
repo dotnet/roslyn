@@ -2884,7 +2884,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     CaptureIds: [0]
@@ -2894,10 +2893,8 @@ Block[B0] - Entry
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
               Value: 
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.IDisposable) (Syntax: 'input')
-
         Next (Regular) Block[B2]
             Entering: {R2} {R3}
-
     .try {R2, R3}
     {
         CaptureIds: [1]
@@ -2907,14 +2904,12 @@ Block[B0] - Entry
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'o')
                   Value: 
                     IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
-
-            Jump if True (Regular) to Block[B5]
+            Jump if True (Regular) to Block[B7]
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'o')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'o')
                 Finalizing: {R4}
                 Leaving: {R3} {R2} {R1}
-
             Next (Regular) Block[B3]
         Block[B3] - Block
             Predecessors: [B2]
@@ -2925,8 +2920,7 @@ Block[B0] - Entry
                       Instance Receiver: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'o')
                       Arguments(0)
-
-            Next (Regular) Block[B5]
+            Next (Regular) Block[B7]
                 Finalizing: {R4}
                 Leaving: {R3} {R2} {R1}
     }
@@ -2934,15 +2928,26 @@ Block[B0] - Entry
     {
         Block[B4] - Block
             Predecessors (0)
+            Statements (0)
+            Jump if True (Regular) to Block[B6]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'input')
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B4]
             Statements (1)
                 IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'input')
                   Children(1):
                       IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.IDisposable, IsImplicit) (Syntax: 'input')
+            Next (Regular) Block[B6]
+        Block[B6] - Block
+            Predecessors: [B4] [B5]
+            Statements (0)
             Next (StructuredExceptionHandling) Block[null]
     }
 }
-
-Block[B5] - Exit
+Block[B7] - Exit
     Predecessors: [B2] [B3]
     Statements (0)
 ";
