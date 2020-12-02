@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     if (document.SemanticModel.GetConstantValue(expression, cancellationToken) is { HasValue: true, Value: var value })
                     {
                         var syntaxKindsService = document.Document.GetRequiredLanguageService<ISyntaxKindsService>();
-                        if (syntaxKindsService.Interpolation == expression.RawKind && value is string)
+                        if (syntaxKindsService.InterpolatedStringExpression == expression.RawKind && value is string)
                         {
                             // Interpolated strings can have constant values, but if it's being converted to a FormattableString
                             // or IFormattable then we cannot treat it as one
