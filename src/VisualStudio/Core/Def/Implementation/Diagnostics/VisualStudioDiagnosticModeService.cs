@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 _workspace = workspace;
             }
 
-            public DiagnosticMode GetDiagnosticMode(Option2<DiagnosticMode> option, CancellationToken cancellationToken)
+            public DiagnosticMode GetDiagnosticMode(Option2<DiagnosticMode> option)
             {
                 var lazy = GetLazy(option);
                 return lazy.Value;

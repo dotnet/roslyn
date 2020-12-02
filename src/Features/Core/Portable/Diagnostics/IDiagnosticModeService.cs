@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal interface IDiagnosticModeService : IWorkspaceService
     {
-        DiagnosticMode GetDiagnosticMode(Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
+        DiagnosticMode GetDiagnosticMode(Option2<DiagnosticMode> diagnosticMode);
     }
 
     [ExportWorkspaceServiceFactory(typeof(IDiagnosticModeService)), Shared]
@@ -40,28 +40,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public DefaultDiagnosticModeService(Workspace workspace)
                 => _workspace = workspace;
 
-            public DiagnosticMode GetDiagnosticMode(Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+            public DiagnosticMode GetDiagnosticMode(Option2<DiagnosticMode> diagnosticMode)
                 => _workspace.Options.GetOption(diagnosticMode);
         }
     }
 
     internal static class DiagnosticModeExtensions
     {
-        public static DiagnosticMode GetDiagnosticMode(this Workspace workspace, Option2<DiagnosticMode> option, CancellationToken cancellationToken)
+        public static DiagnosticMode GetDiagnosticMode(this Workspace workspace, Option2<DiagnosticMode> option)
         {
             var service = workspace.Services.GetRequiredService<IDiagnosticModeService>();
-            return service.GetDiagnosticMode(option, cancellationToken);
+            return service.GetDiagnosticMode(option);
         }
 
-        public static bool IsPullDiagnostics(this Workspace workspace, Option2<DiagnosticMode> option, CancellationToken cancellationToken)
+        public static bool IsPullDiagnostics(this Workspace workspace, Option2<DiagnosticMode> option)
         {
-            var mode = GetDiagnosticMode(workspace, option, cancellationToken);
+            var mode = GetDiagnosticMode(workspace, option);
             return mode == DiagnosticMode.Pull;
         }
 
-        public static bool IsPushDiagnostics(this Workspace workspace, Option2<DiagnosticMode> option, CancellationToken cancellationToken)
+        public static bool IsPushDiagnostics(this Workspace workspace, Option2<DiagnosticMode> option)
         {
-            var mode = GetDiagnosticMode(workspace, option, cancellationToken);
+            var mode = GetDiagnosticMode(workspace, option);
             return mode == DiagnosticMode.Push;
         }
     }

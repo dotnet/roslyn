@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
         protected internal override Task<VSServerCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken)
         {
             var capabilities = _defaultCapabilitiesProvider.GetCapabilities();
-            capabilities.SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode, cancellationToken);
+            capabilities.SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode);
             // Razor doesn't use workspace symbols, so disable to prevent duplicate results (with LiveshareLanguageClient) in liveshare.
             capabilities.WorkspaceSymbolProvider = false;
             return Task.FromResult(capabilities);
