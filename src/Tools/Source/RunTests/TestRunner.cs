@@ -10,11 +10,13 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace RunTests
 {
@@ -62,27 +64,25 @@ namespace RunTests
             if (Environment.GetEnvironmentVariable("BUILD_REASON") is null)
                 Environment.SetEnvironmentVariable("BUILD_REASON", "pr");
 
-            var useAzurePipelinesReporting = Environment.GetEnvironmentVariable("SYSTEM_ACCESSTOKEN") is not null;
-
-            var buildId = Environment.GetEnvironmentVariable("Build.BuildNumber") ?? "0";
-
+            var isAzureDevOpsRun = Environment.GetEnvironmentVariable("SYSTEM_ACCESSTOKEN") is not null;
+            var correlationPayload = await makeCorrelationPayload();
+            var buildNumber = Environment.GetEnvironmentVariable("BUILD_BUILDNUMBER") ?? "0";
             var workItems = assemblyInfoList.Select(ai => makeHelixWorkItemProject(ai));
             var project = @"
 <Project Sdk=""Microsoft.DotNet.Helix.Sdk"" DefaultTargets=""Test"">
     <PropertyGroup>
         <HelixSource>pr/" + sourceBranch + @"</HelixSource>
         <HelixType>test</HelixType>
-        <HelixBuild>" + buildId + @"</HelixBuild>
+        <HelixBuild>" + buildNumber + @"</HelixBuild>
         <HelixTargetQueues>Windows.10.Amd64.Open</HelixTargetQueues>
         <Creator>rigibson</Creator>
         <IncludeDotNetCli>true</IncludeDotNetCli>
         <DotNetCliPackageType>sdk</DotNetCliPackageType>
-        <EnableAzurePipelinesReporter>" + (useAzurePipelinesReporting ? "true" : "false") + @"</EnableAzurePipelinesReporter>
+        <EnableAzurePipelinesReporter>" + (isAzureDevOpsRun ? "true" : "false") + @"</EnableAzurePipelinesReporter>
     </PropertyGroup>
 
     <ItemGroup>
-        <HelixCorrelationPayload Include=""$(RepoRoot)artifacts/testPayload"" />"
-        + string.Join("", workItems) + @"
+        " + correlationPayload + string.Join("", workItems) + @"
     </ItemGroup>
 </Project>
 ";
@@ -110,6 +110,34 @@ namespace RunTests
         </HelixWorkItem>
 ";
                 return workItem;
+            }
+
+            async Task<string> makeCorrelationPayload()
+            {
+                if (isAzureDevOpsRun)
+                {
+                    if (!int.TryParse(Environment.GetEnvironmentVariable("BUILD_BUILDID"), out int buildId))
+                    {
+                        throw new InvalidOperationException("BUILD_BUILDID environment variable must be set when running in Azure DevOps");
+                    }
+
+                    // note that we will probably always need to download the build artifact in order to do partitioning.
+                    // however, we would prefer to not re-upload the artifact.
+                    var artifactJson = await new HttpClient().GetStringAsync($"https://dev.azure.com/dnceng/public/_apis/build/builds/{buildId}/artifacts?artifactName=Transport_Artifacts_Windows_Debug&api-version=6.0");
+                    var artifact = JsonConvert.DeserializeAnonymousType(
+                        artifactJson,
+                        new { resource = new { downloadUrl = "" } }
+                    );
+                    return $@"<HelixCorrelationPayload Include=""testPayload"">
+            <Uri>{artifact.resource.downloadUrl}</Uri>
+        </HelixCorrelationPayload>
+";
+                }
+                else
+                {
+                    return @"<HelixCorrelationPayload Include=""$(RepoRoot)artifacts/testPayload"" />
+";
+                }
             }
         }
 
