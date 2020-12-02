@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -275,13 +276,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             => node is AccessorListSyntax accessorList &&
                 accessorList.Accessors.All(a => a.Body == null);
 
-        private static bool HasInitializer(BasePropertyDeclarationSyntax basePropertyDeclaration)
-            => basePropertyDeclaration is PropertyDeclarationSyntax property && property.Initializer != null;
-
-        private static bool IsAccessorListFollowedByInitializer(SyntaxNode? node)
+        private static bool IsAccessorListFollowedByInitializer([NotNullWhen(true)] SyntaxNode? node)
             => node is AccessorListSyntax accessorList &&
-                accessorList.Parent is BasePropertyDeclarationSyntax basePropertyDeclarationSyntax &&
-                HasInitializer(basePropertyDeclarationSyntax);
+                node.Parent is PropertyDeclarationSyntax property &&
+                property.Initializer != null;
 
         private static int LineBreaksBeforeOpenBrace(SyntaxToken openBraceToken)
         {

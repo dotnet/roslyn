@@ -378,7 +378,10 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var item in this)
             {
-                if (!predicate(item)) return false;
+                if (!predicate(item))
+                {
+                    return false;
+                }
             }
 
             return true;
