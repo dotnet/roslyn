@@ -97,25 +97,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                if (Document.SemanticModel.GetConstantValue(Expression, cancellationToken) is { HasValue: true, Value: var value })
-                {
-                    var syntaxKindsService = Document.Document.GetRequiredLanguageService<ISyntaxKindsService>();
-                    if (syntaxKindsService.Interpolation == Expression.RawKind && value is string)
-                    {
-                        // Interpolated strings can have constant values, but if it's being converted to a FormattableString
-                        // or IFormattable then we cannot treat it as one
-                        var typeInfo = Document.SemanticModel.GetTypeInfo(Expression, cancellationToken);
-                        IsConstant = typeInfo.ConvertedType?.IsFormattableStringOrIFormattable() != true;
-                    }
-                    else
-                    {
-                        IsConstant = true;
-                    }
-                }
-                else
-                {
-                    IsConstant = false;
-                }
+                IsConstant = IsExpressionConstant(Document, Expression, _service, cancellationToken);
 
                 // Note: the ordering of these clauses are important.  They go, generally, from 
                 // innermost to outermost order.  
@@ -203,6 +185,29 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
 
                 return false;
+
+                static bool IsExpressionConstant(SemanticDocument document, TExpressionSyntax expression, TService service, CancellationToken cancellationToken)
+                {
+                    if (document.SemanticModel.GetConstantValue(expression, cancellationToken) is { HasValue: true, Value: var value })
+                    {
+                        var syntaxKindsService = document.Document.GetRequiredLanguageService<ISyntaxKindsService>();
+                        if (syntaxKindsService.Interpolation == expression.RawKind && value is string)
+                        {
+                            // Interpolated strings can have constant values, but if it's being converted to a FormattableString
+                            // or IFormattable then we cannot treat it as one
+                            var typeInfo = document.SemanticModel.GetTypeInfo(expression, cancellationToken);
+                            return typeInfo.ConvertedType?.IsFormattableStringOrIFormattable() != true;
+                        }
+                        else
+                        {
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
             }
 
             public SemanticMap GetSemanticMap(CancellationToken cancellationToken)
