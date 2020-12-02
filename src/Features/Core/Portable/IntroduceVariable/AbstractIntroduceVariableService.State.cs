@@ -97,7 +97,24 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                IsConstant = Document.SemanticModel.GetConstantValue(Expression, cancellationToken).HasValue;
+                if (Document.SemanticModel.GetConstantValue(Expression, cancellationToken) is { HasValue: true, Value: var value })
+                {
+                    if (_service.IsInterpolatedStringExpression(Expression) && value is string)
+                    {
+                        // Interpolated strings can have constant values, but if it's being converted to a FormattableString
+                        // or IFormattable then we cannot treat it as one
+                        var typeInfo = Document.SemanticModel.GetTypeInfo(Expression, cancellationToken);
+                        IsConstant = typeInfo.ConvertedType?.IsFormattableStringOrIFormattable() != true;
+                    }
+                    else
+                    {
+                        IsConstant = true;
+                    }
+                }
+                else
+                {
+                    IsConstant = false;
+                }
 
                 // Note: the ordering of these clauses are important.  They go, generally, from 
                 // innermost to outermost order.  

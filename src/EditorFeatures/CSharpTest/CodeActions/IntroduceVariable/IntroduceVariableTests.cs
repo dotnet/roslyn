@@ -4842,11 +4842,48 @@ namespace N
 
     class C
     {
-        private const FormattableString {|Rename:Formattable|} = $"""";
-
         public async Task M()
         {
-            var f = FormattableString.Invariant(Formattable);
+            FormattableString {|Rename:formattable|} = $"""";
+            var f = FormattableString.Invariant(formattable);
+        }
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
+        [WorkItem(49720, "https://github.com/dotnet/roslyn/issues/49720")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task HandleIFormattableTargetTyping1()
+        {
+            const string code = @"
+namespace N
+{
+    using System;
+
+    class C
+    {
+        public async Task M()
+        {
+            M([|$""""|]);
+            void M(IFormattable f) {}
+        }
+    }
+}";
+
+            const string expected = @"
+namespace N
+{
+    using System;
+
+    class C
+    {
+        public async Task M()
+        {
+            IFormattable {|Rename:f|} = $"""";
+            M(f);
+            void M(IFormattable f) {}
         }
     }
 }";

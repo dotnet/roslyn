@@ -44,6 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return false;
         }
 
+        protected override bool IsInterpolatedStringExpression(ExpressionSyntax expression)
+            => expression.IsKind(SyntaxKind.InterpolatedStringExpression);
+
         protected override bool IsInFieldInitializer(ExpressionSyntax expression)
         {
             return expression.GetAncestorOrThis<VariableDeclaratorSyntax>()

@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected abstract bool IsInAttributeArgumentInitializer(TExpressionSyntax expression);
         protected abstract bool IsInAutoPropertyInitializer(TExpressionSyntax expression);
         protected abstract bool IsInExpressionBodiedMember(TExpressionSyntax expression);
+        protected abstract bool IsInterpolatedStringExpression(TExpressionSyntax expression);
 
         protected abstract IEnumerable<SyntaxNode> GetContainingExecutableBlocks(TExpressionSyntax expression);
         protected abstract IList<bool> GetInsertionIndices(TTypeDeclarationSyntax destination, CancellationToken cancellationToken);
@@ -409,7 +410,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
 
             if (typeInfo.Type?.SpecialType == SpecialType.System_String &&
-                typeInfo.ConvertedType?.IsFormattableString() == true)
+                typeInfo.ConvertedType?.IsFormattableStringOrIFormattable() == true)
             {
                 return typeInfo.ConvertedType;
             }

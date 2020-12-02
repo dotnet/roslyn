@@ -20,6 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
         Public Sub New()
         End Sub
 
+        Protected Overrides Function IsInterpolatedStringExpression(expression As ExpressionSyntax) As Boolean
+            Return expression.IsKind(SyntaxKind.InterpolatedStringExpression)
+        End Function
+
         Protected Overrides Function GetContainingExecutableBlocks(expression As ExpressionSyntax) As IEnumerable(Of SyntaxNode)
             Return expression.GetContainingExecutableBlocks()
         End Function
