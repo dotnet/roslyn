@@ -102,10 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             {
                 newLineEdit = new TextChange(new TextSpan(closingPoint - 1, 0), Environment.NewLine);
                 textToFormat = originalDocumentText.WithChanges(newLineEdit.Value);
-            }
 
-            // Modify the closing point location to adjust for the newly inserted line.
-            closingPoint += Environment.NewLine.Length;
+                // Modify the closing point location to adjust for the newly inserted line.
+                closingPoint += Environment.NewLine.Length;
+            }
 
             // Format the text that contains the newly inserted line.
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);

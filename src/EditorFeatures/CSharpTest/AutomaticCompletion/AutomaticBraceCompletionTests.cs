@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -1307,6 +1308,28 @@ $$
 
             CheckStart(session.Session);
             Assert.Equal(expectedAfterStart, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void CurlyBraceFormatting_DoesNotAddNewLineWhenAlreadyExists()
+        {
+            var code = @"class C $$";
+
+            var expected = @"class C
+{
+
+}";
+
+            using var session = CreateSession(code);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+
+            // Sneakily insert a new line between the braces.
+            var buffer = session.Session.SubjectBuffer;
+            buffer.Insert(10, Environment.NewLine);
+
+            CheckReturn(session.Session, 4, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
