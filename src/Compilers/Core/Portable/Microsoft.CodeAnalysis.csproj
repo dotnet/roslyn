@@ -115,4 +115,14 @@
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\Caravela\Caravela.Compiler.Shared\Caravela.Compiler.Shared.projitems" Label="Shared" />
   <Import Project="..\..\..\Caravela\Caravela.Compiler.CodeAnalysis\Caravela.Compiler.CodeAnalysis.projitems" Label="Shared" />
+
+  <!-- based on https://stackoverflow.com/a/56018426/41071 -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);SetPackageContent</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="SetPackageContent" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(ArtifactsBinDir)Caravela.Compiler.Interface.TypeForwards\$(Configuration)\netstandard2.0\Caravela.Compiler.Interface.dll" />
+    </ItemGroup>
+  </Target>
 </Project>

@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports Caravela.Compiler
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -49,6 +50,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function CreateGeneratorDriver(parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), optionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText)) As GeneratorDriver Implements ICompilationFactoryService.CreateGeneratorDriver
+            Return Nothing
+        End Function
+
+        Public Function GetRunTransformersDelegate(transformers As ImmutableArray(Of ISourceTransformer), plugins As ImmutableArray(Of Object), analyzerConfigProvider As AnalyzerConfigOptionsProvider, assemblyLoader As IAnalyzerAssemblyLoader) As Func(Of Compilation, (Compilation, ImmutableArray(Of Diagnostic))) Implements ICompilationFactoryService.GetRunTransformersDelegate
             Return Nothing
         End Function
     End Class

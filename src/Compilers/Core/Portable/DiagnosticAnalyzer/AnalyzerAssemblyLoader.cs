@@ -32,6 +32,9 @@ namespace Microsoft.CodeAnalysis
             CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
             string simpleName = PathUtilities.GetFileName(fullPath, includeExtension: false);
 
+            if (simpleName == "Caravela.Compiler.Interface.dll")
+                return;
+
             lock (_guard)
             {
                 if (!_knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths))
@@ -47,6 +50,12 @@ namespace Microsoft.CodeAnalysis
         public Assembly LoadFromPath(string fullPath)
         {
             CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
+
+            // This analyzer assembly has to be ignored, just like in CSharpCommandLineParser.ParseAnalyzers.
+            // This is only reached if CSharpCommandLineParser is not used (like when using Workspaces).
+            if (PathUtilities.GetFileName(fullPath) == "Caravela.Compiler.Interface.dll")
+                return null;
+
             return LoadFromPathUnchecked(fullPath);
         }
 

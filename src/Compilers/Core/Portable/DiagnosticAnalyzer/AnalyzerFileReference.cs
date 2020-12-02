@@ -131,6 +131,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _generators.GetExtensionsForAllLanguages();
         }
 
+        public override ImmutableArray<ISourceTransformer> GetTransformers()
+        {
+            return _transformers.GetExtensionsForAllLanguages();
+        }
+
+        public override ImmutableArray<object> GetPlugins()
+        {
+            return _plugins.GetExtensionsForAllLanguages();
+        }
+
         public override string Display
         {
             get

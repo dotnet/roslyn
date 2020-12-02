@@ -5,6 +5,7 @@
 #nullable enable
 
 using System.Collections.Immutable;
+using Caravela.Compiler;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -66,5 +67,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Gets all the source generators defined in this assembly reference.
         /// </summary>
         public virtual ImmutableArray<ISourceGenerator> GetGenerators() { return ImmutableArray<ISourceGenerator>.Empty; }
+
+        public virtual ImmutableArray<ISourceTransformer> GetTransformers() { return ImmutableArray<ISourceTransformer>.Empty; }
+
+        public virtual ImmutableArray<object> GetPlugins() { return ImmutableArray<object>.Empty; }
     }
 }

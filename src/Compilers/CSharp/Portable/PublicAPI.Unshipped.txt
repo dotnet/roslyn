@@ -1,1 +1,2 @@
-
+Caravela.Compiler.CSharpTransformerDriver
+static Caravela.Compiler.CSharpTransformerDriver.RunTransformers(Microsoft.CodeAnalysis.Compilation input, System.Collections.Immutable.ImmutableArray<Caravela.Compiler.ISourceTransformer> transformers, System.Collections.Immutable.ImmutableArray<object> plugins, Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider analyzerConfigProvider, Microsoft.CodeAnalysis.DiagnosticBag diagnostics, System.Collections.Generic.IList<Microsoft.CodeAnalysis.ResourceDescription> manifestResources, Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader assemblyLoader) -> Microsoft.CodeAnalysis.Compilation

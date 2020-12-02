@@ -728,12 +728,12 @@ namespace Microsoft.CodeAnalysis
                         compilation = compilation.WithReferences(newReferences);
                     }
 
+                    var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
                     // Now we run generators; if we don't have a generator driver at all, we must try create one
                     if (generatorDriver.GeneratorDriver == null)
                     {
                         var generators = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetGenerators()).ToImmutableArray();
                         var additionalTexts = this.ProjectState.AdditionalDocumentStates.Values.SelectAsArray(a => (AdditionalText)new AdditionalTextWithState(a));
-                        var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
 
                         generatorDriver = new TrackedGeneratorDriver(
                             compilationFactory.CreateGeneratorDriver(
@@ -753,6 +753,14 @@ namespace Microsoft.CodeAnalysis
                         // https://github.com/dotnet/roslyn/issues/44163: make an API to expose these diagnostics
                         generatorDriver = new TrackedGeneratorDriver(generatorDriver.GeneratorDriver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics, cancellationToken));
                     }
+
+                    var transformers = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetTransformers()).ToImmutableArray();
+                    var plugins = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetPlugins()).ToImmutableArray();
+
+                    var loader = this.ProjectState.LanguageServices.WorkspaceServices.GetRequiredService<IAnalyzerService>().GetLoader();
+
+                    var runTransformers = compilationFactory.GetRunTransformersDelegate(transformers, plugins, this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider, loader);
+                    (compilation, _) = runTransformers(compilation);
 
                     RecordAssemblySymbols(compilation, metadataReferenceToProjectId);
 
