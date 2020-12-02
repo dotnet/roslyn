@@ -137,6 +137,42 @@ class G
 }");
         }
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/49692")]
+        public void GetLocalMethodHandle()
+        {
+            var originalCode = @"
+class C
+{
+    void M() { void Local() {} Local(); }
+}";
+
+            var comp1 = CreateCompilation(originalCode);
+            comp1.VerifyDiagnostics();
+
+            var syntax = comp1.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax>().Single();
+
+            var symbol = comp1.GetSemanticModel(comp1.SyntaxTrees.Single()).GetDeclaredSymbol(syntax)!;
+
+            var docId = DocumentationCommentId.CreateDeclarationId(symbol);
+
+            var generatedCode = $@"
+using System;
+
+class G
+{{
+    RuntimeMethodHandle M() => Caravela.Compiler.Intrinsics.GetRuntimeMethodHandle(""{docId}"");
+}}";
+
+            var comp2 = CreateCompilation(new[] { originalCode, generatedCode }, new[] { MetadataReference.CreateFromFile(typeof(Intrinsics).Assembly.Location) });
+            CompileAndVerify(comp2).VerifyDiagnostics().VerifyIL("G.M", @"
+{
+    // Code size        6 (0x6)
+    .maxstack  1
+    IL_0000:  ldtoken    ""void C.M.Local()""
+    IL_0005:  ret
+}");
+        }
+
         [Fact]
         public void GetFieldHandle()
         {
