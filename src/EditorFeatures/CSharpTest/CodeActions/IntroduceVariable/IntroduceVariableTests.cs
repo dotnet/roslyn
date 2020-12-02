@@ -4842,10 +4842,11 @@ namespace N
 
     class C
     {
+        private const FormattableString {|Rename:Formattable|} = $"""";
+
         public async Task M()
         {
-            FormattableString {|Rename:formattable|} = $"""";
-            var f = FormattableString.Invariant(formattable);
+            var f = FormattableString.Invariant(Formattable);
         }
     }
 }";
@@ -7830,10 +7831,11 @@ public class P
 @"
 public class P
 {
+    private const string {|Rename:V|} = $"""";
+
     public void M(string s)
     {
-        string {|Rename:v|} = $"""";
-        s.Bar(v);
+        s.Bar(V);
     }
 }");
         }
