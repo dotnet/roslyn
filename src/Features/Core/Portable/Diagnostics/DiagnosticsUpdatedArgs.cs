@@ -52,11 +52,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// diagnostics or push diagnostics.  Most clients should use this to ensure they see the proper set of
         /// diagnostics in their scenario (or an empty array if not in their scenario).
         /// </summary>
-        public async Task<ImmutableArray<DiagnosticData>> GetPullDiagnosticsAsync(
+        public ImmutableArray<DiagnosticData> GetPullDiagnostics(
             Workspace workspace, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
         {
             // If push diagnostics are on, they get nothing since they're asking for pull diagnostics.
-            if (await workspace.IsPushDiagnosticsAsync(diagnosticMode, cancellationToken).ConfigureAwait(false))
+            if (workspace.IsPushDiagnostics(diagnosticMode, cancellationToken))
                 return ImmutableArray<DiagnosticData>.Empty;
 
             return _diagnostics;
@@ -67,11 +67,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// diagnostics or push diagnostics.  Most clients should use this to ensure they see the proper set of
         /// diagnostics in their scenario (or an empty array if not in their scenario).
         /// </summary>
-        public async Task<ImmutableArray<DiagnosticData>> GetPushDiagnosticsAsync(
+        public ImmutableArray<DiagnosticData> GetPushDiagnostics(
             Workspace workspace, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
         {
             // If pull diagnostics are on, they get nothing since they're asking for push diagnostics.
-            if (await workspace.IsPullDiagnosticsAsync(diagnosticMode, cancellationToken).ConfigureAwait(false))
+            if (workspace.IsPullDiagnostics(diagnosticMode, cancellationToken))
                 return ImmutableArray<DiagnosticData>.Empty;
 
             return _diagnostics;
