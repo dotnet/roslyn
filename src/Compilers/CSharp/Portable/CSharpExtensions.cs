@@ -443,7 +443,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
         }
-
         #endregion
 
         #region SemanticModel

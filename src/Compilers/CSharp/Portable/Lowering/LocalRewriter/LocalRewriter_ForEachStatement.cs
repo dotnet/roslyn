@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol? idisposableTypeSymbol = null;
             bool isImplicit = false;
             MethodSymbol? disposeMethod = enumeratorInfo.DisposeMethod; // pattern-based
-            
+
             if (disposeMethod is null)
             {
                 TryGetDisposeMethod(forEachSyntax, enumeratorInfo, out disposeMethod); // interface-based
