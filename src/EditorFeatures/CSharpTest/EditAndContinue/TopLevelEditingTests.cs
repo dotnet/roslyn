@@ -390,6 +390,49 @@ namespace N
         }
 
         [Fact]
+        public void ModifiersUpdate_IgnoreUnsafe()
+        {
+            var src1 = @"
+using System;
+
+unsafe delegate void D();
+
+class C
+{
+    unsafe class N { }
+    public unsafe event Action<int> A { add { } remove { } }
+    unsafe int F() => 0;
+    unsafe int X;
+    unsafe int Y { get; }
+    unsafe C() {}
+    unsafe ~C() {}
+}
+";
+            var src2 = @"
+using System;
+
+delegate void D();
+
+class C
+{
+    class N { }
+    public event Action<int> A { add { } remove { } }
+    int F() => 0;
+    int X;
+    int Y { get; }
+    C() {}
+    ~C() {}
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits();
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
         public void Struct_Modifiers_Ref_Update1()
         {
             var src1 = "public struct C { }";
