@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -19,7 +18,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
@@ -102,22 +100,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                     Token(p.Token.LeadingTrivia, p.IsDisjunctive ? SyntaxKind.OrKeyword : SyntaxKind.AndKeyword,
                         TriviaList(p.Token.GetAllTrailingTrivia())),
                     AsPatternSyntax(p.Right).Parenthesize()),
-                Constant p => ConstantPattern(AsExpressionSyntax(p.ExpressionSyntax, p)),
+                Constant p => ConstantPattern(AsExpressionSyntax(p)),
                 Source p => p.PatternSyntax,
                 Type p => TypePattern(p.TypeSyntax),
-                Relational p => RelationalPattern(Token(MapToSyntaxKind(p.OperatorKind)), AsExpressionSyntax(p.Value, p)),
+                Relational p => RelationalPattern(Token(MapToSyntaxKind(p.OperatorKind)), p.Value.Parenthesize()),
                 Not p => UnaryPattern(AsPatternSyntax(p.Pattern).Parenthesize()),
                 var p => throw ExceptionUtilities.UnexpectedValue(p)
             };
         }
 
-        private static ExpressionSyntax AsExpressionSyntax(ExpressionSyntax expr, AnalyzedPattern p)
+        private static ExpressionSyntax AsExpressionSyntax(Constant constant)
         {
-            
+            var expr = constant.ExpressionSyntax;
             if (expr.IsKind(SyntaxKind.DefaultLiteralExpression))
             {
                 // default literals are not permitted in patterns
-                var convertedType = p.Target.SemanticModel.GetTypeInfo(expr).ConvertedType;
+                var convertedType = constant.Target.SemanticModel.GetTypeInfo(expr).ConvertedType;
                 if (convertedType != null)
                 {
                     return DefaultExpression(convertedType.GenerateTypeSyntax());
