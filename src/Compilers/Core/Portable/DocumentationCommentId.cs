@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis
             var results = s_symbolListPool.Allocate();
             try
             {
-                Parser.ParseDeclaredSymbolId(id, compilation, results);
+                Parser.ParseDeclaredSymbolIdIgnoringSpaces(id, compilation, results);
                 return results.ToImmutableArray();
             }
             finally
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(results));
             }
 
-            return Parser.ParseDeclaredSymbolId(id, compilation, results);
+            return Parser.ParseDeclaredSymbolIdIgnoringSpaces(id, compilation, results);
         }
 
         /// <summary>
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis
             var results = s_symbolListPool.Allocate();
             try
             {
-                Parser.ParseDeclaredSymbolId(id, compilation, results);
+                Parser.ParseDeclaredSymbolIdIgnoringSpaces(id, compilation, results);
                 return results.Count == 0 ? null : results[0];
             }
             finally
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis
                 return TryGetSymbolsForDeclarationId(id, compilation, results);
             }
 
-            return Parser.ParseReferencedSymbolId(id, compilation, results);
+            return Parser.ParseReferencedSymbolIdIgnoringSpaces(id, compilation, results);
         }
 
         /// <summary>
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis
             var results = s_symbolListPool.Allocate();
             try
             {
-                Parser.ParseReferencedSymbolId(id, compilation, results);
+                Parser.ParseReferencedSymbolIdIgnoringSpaces(id, compilation, results);
                 return results.Count == 0 ? null : results[0];
             }
             finally
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis
 
         private static class Parser
         {
-            public static bool ParseDeclaredSymbolId(string id, Compilation compilation, List<ISymbol> results)
+            public static bool ParseDeclaredSymbolIdIgnoringSpaces(string id, Compilation compilation, List<ISymbol> results)
             {
                 if (id == null)
                 {
@@ -669,13 +669,14 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 int index = 0;
+                id = id.Replace(" ", string.Empty);
                 results.Clear();
                 ParseDeclaredId(id, ref index, compilation, results);
                 return results.Count > 0;
             }
 
             // only supports type symbols
-            public static bool ParseReferencedSymbolId(string id, Compilation compilation, List<ISymbol> results)
+            public static bool ParseReferencedSymbolIdIgnoringSpaces(string id, Compilation compilation, List<ISymbol> results)
             {
                 if (id == null)
                 {
@@ -683,6 +684,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 int index = 0;
+                id = id.Replace(" ", string.Empty);
                 results.Clear();
                 ParseTypeSymbol(id, ref index, compilation, null, results);
                 return results.Count > 0;
