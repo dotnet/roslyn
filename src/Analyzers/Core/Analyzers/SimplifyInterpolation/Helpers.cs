@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         }
 
         public static void UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax, TConditionalExpressionSyntax, TParenthesizedExpressionSyntax>(
-            IVirtualCharService virtualCharService, ISyntaxFacts syntaxFacts, IInterpolationOperation interpolation,
-            out TExpressionSyntax? unwrapped, out TExpressionSyntax? alignment, out bool negate,
-            out string? formatString, out ImmutableArray<Location> unnecessaryLocations)
+            IVirtualCharService virtualCharService, ISyntaxFacts syntaxFacts, bool permitNonLiteralAlignmentComponents,
+            IInterpolationOperation interpolation, out TExpressionSyntax? unwrapped, out TExpressionSyntax? alignment,
+            out bool negate, out string? formatString, out ImmutableArray<Location> unnecessaryLocations)
             where TInterpolationSyntax : SyntaxNode
             where TExpressionSyntax : SyntaxNode
             where TConditionalExpressionSyntax : TExpressionSyntax
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             if (interpolation.Alignment == null)
             {
                 UnwrapAlignmentPadding<TExpressionSyntax, TConditionalExpressionSyntax, TParenthesizedExpressionSyntax>(
-                    expression, out expression, out alignment, out negate, unnecessarySpans);
+                    permitNonLiteralAlignmentComponents, expression, out expression, out alignment, out negate, unnecessarySpans);
             }
 
             if (interpolation.FormatString == null)
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         }
 
         private static void UnwrapAlignmentPadding<TExpressionSyntax, TConditionalExpressionSyntax, TParenthesizedExpressionSyntax>(
-            IOperation expression, out IOperation unwrapped,
+            bool permitNonLiteralAlignmentComponents, IOperation expression, out IOperation unwrapped,
             out TExpressionSyntax? alignment, out bool negate, List<TextSpan> unnecessarySpans)
             where TExpressionSyntax : SyntaxNode
             where TConditionalExpressionSyntax : TExpressionSyntax
@@ -160,7 +160,9 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                             IsSpaceChar(invocation.Arguments[1]))
                         {
                             var alignmentOp = invocation.Arguments[0].Value;
-                            if (alignmentOp != null && alignmentOp.ConstantValue.HasValue)
+                            if (alignmentOp != null && (permitNonLiteralAlignmentComponents
+                                ? alignmentOp.ConstantValue.HasValue
+                                : alignmentOp.Kind == OperationKind.Literal))
                             {
                                 var alignmentSyntax = alignmentOp.Syntax;
 

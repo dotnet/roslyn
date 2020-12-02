@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
         {
         }
 
+        protected override bool PermitNonLiteralAlignmentComponents => true;
+
         protected override InterpolationSyntax WithExpression(InterpolationSyntax interpolation, ExpressionSyntax expression)
             => interpolation.WithExpression(expression);
 

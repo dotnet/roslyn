@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         {
         }
 
+        protected abstract bool PermitNonLiteralAlignmentComponents { get; }
+
         protected abstract IVirtualCharService GetVirtualCharService();
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
@@ -63,8 +65,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             }
 
             Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax, TConditionalExpressionSyntax, TParenthesizedExpressionSyntax>(
-                GetVirtualCharService(), GetSyntaxFacts(), interpolation, out _, out var alignment, out _,
-                out var formatString, out var unnecessaryLocations);
+                GetVirtualCharService(), GetSyntaxFacts(), PermitNonLiteralAlignmentComponents, interpolation, out _,
+                out var alignment, out _, out var formatString, out var unnecessaryLocations);
 
             if (alignment == null && formatString == null)
             {

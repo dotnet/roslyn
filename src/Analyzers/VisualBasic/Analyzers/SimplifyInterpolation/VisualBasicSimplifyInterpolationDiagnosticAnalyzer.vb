@@ -19,6 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
             TernaryConditionalExpressionSyntax,
             ParenthesizedExpressionSyntax)
 
+        Protected Overrides ReadOnly Property PermitNonLiteralAlignmentComponents As Boolean = False
+
         Protected Overrides Function GetVirtualCharService() As IVirtualCharService
             Return VisualBasicVirtualCharService.Instance
         End Function

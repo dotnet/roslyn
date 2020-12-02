@@ -21,6 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
         Public Sub New()
         End Sub
 
+        Protected Overrides ReadOnly Property PermitNonLiteralAlignmentComponents As Boolean = False
+
         Protected Overrides Function WithExpression(interpolation As InterpolationSyntax, expression As ExpressionSyntax) As InterpolationSyntax
             Return interpolation.WithExpression(expression)
         End Function

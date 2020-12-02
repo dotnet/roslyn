@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
+        protected abstract bool PermitNonLiteralAlignmentComponents { get; }
+
         protected abstract TInterpolationSyntax WithExpression(TInterpolationSyntax interpolation, TExpressionSyntax expression);
         protected abstract TInterpolationSyntax WithAlignmentClause(TInterpolationSyntax interpolation, TInterpolationAlignmentClause alignmentClause);
         protected abstract TInterpolationSyntax WithFormatClause(TInterpolationSyntax interpolation, TInterpolationFormatClause? formatClause);
@@ -68,8 +70,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 {
                     Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax, TConditionalExpressionSyntax, TParenthesizedExpressionSyntax>(
                         document.GetRequiredLanguageService<IVirtualCharLanguageService>(),
-                        document.GetRequiredLanguageService<ISyntaxFactsService>(), interpolation, out var unwrapped,
-                        out var alignment, out var negate, out var formatString, out _);
+                        document.GetRequiredLanguageService<ISyntaxFactsService>(), PermitNonLiteralAlignmentComponents,
+                        interpolation, out var unwrapped, out var alignment, out var negate, out var formatString, out _);
 
                     if (unwrapped == null)
                         continue;
