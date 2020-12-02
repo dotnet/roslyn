@@ -2748,7 +2748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(PropertyDeclarationSyntax oldNode, PropertyDeclarationSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers))
+                if (!AreEquivalentModifiersIgnoringGivenModifier(oldNode.Modifiers, newNode.Modifiers, s_ignoredMemberModifiers))
                 {
                     ReportError(RudeEditKind.ModifiersUpdate);
                     return;
