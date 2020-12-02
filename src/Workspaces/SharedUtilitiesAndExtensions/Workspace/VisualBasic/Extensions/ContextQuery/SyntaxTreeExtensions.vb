@@ -1096,7 +1096,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 Return False
             End If
 
-            Dim leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
             Dim targetToken = syntaxTree.GetTargetToken(position, cancellationToken)
 
             ' #if $$

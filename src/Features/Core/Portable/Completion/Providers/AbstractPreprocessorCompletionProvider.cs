@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (!syntaxContext.IsPreProcessorExpressionContext)
                 return;
 
+            // Walk all the projects this document is linked in so that we get the full set of preprocessor symbols
+            // defined across all of them.
             var syntaxFacts = originatingDocument.GetRequiredLanguageService<ISyntaxFactsService>();
             var preprocessorNames = new HashSet<string>(syntaxFacts.StringComparer);
 
-            // Walk all the projects this document is linked in so that we get the full set of preprocessor symbols
-            // defined across all of them.
             foreach (var documentId in solution.GetRelatedDocumentIds(originatingDocument.Id))
             {
                 var document = solution.GetRequiredDocument(documentId);
