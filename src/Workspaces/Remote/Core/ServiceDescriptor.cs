@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly RemoteSerializationOptions _serializationOptions;
 
         private ServiceDescriptor(ServiceMoniker serviceMoniker, RemoteSerializationOptions serializationOptions, Func<string, string> displayNameProvider, Type? clientInterface)
-            : base(serviceMoniker, clientInterface, serializationOptions.Formatter, MessageDelimiters.BigEndianInt32LengthHeader, s_multiplexingStreamOptions)
+            : base(serviceMoniker, clientInterface, serializationOptions.Formatter, serializationOptions.MessageDelimiters, s_multiplexingStreamOptions)
         {
             _featureDisplayNameProvider = displayNameProvider;
             _serializationOptions = serializationOptions;

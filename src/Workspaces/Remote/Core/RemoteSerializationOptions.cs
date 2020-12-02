@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.Remote
         public ServiceJsonRpcDescriptor.Formatters Formatter
             => _options is MessagePackSerializerOptions ? ServiceJsonRpcDescriptor.Formatters.MessagePack : ServiceJsonRpcDescriptor.Formatters.UTF8;
 
+        public ServiceJsonRpcDescriptor.MessageDelimiters MessageDelimiters
+           => _options is MessagePackSerializerOptions ?
+               ServiceJsonRpcDescriptor.MessageDelimiters.BigEndianInt32LengthHeader :
+               ServiceJsonRpcDescriptor.MessageDelimiters.HttpLikeHeaders;
+
         internal IJsonRpcMessageFormatter ConfigureFormatter(IJsonRpcMessageFormatter formatter)
         {
             if (formatter is MessagePackFormatter messagePackFormatter)

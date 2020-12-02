@@ -22,22 +22,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         /// Creates a service descriptor set for services using MessagePack serialization.
         /// </summary>
         public RazorServiceDescriptorsWrapper(
-            string componentLevelPrefix,
+            string componentName,
             Func<string, string> featureDisplayNameProvider,
             ImmutableArray<IMessagePackFormatter> additionalFormatters,
             ImmutableArray<IFormatterResolver> additionalResolvers,
             IEnumerable<(Type serviceInterface, Type? callbackInterface)> interfaces)
-            => UnderlyingObject = new ServiceDescriptors(componentLevelPrefix, featureDisplayNameProvider, new RemoteSerializationOptions(additionalFormatters, additionalResolvers), interfaces);
+            => UnderlyingObject = new ServiceDescriptors(componentName, featureDisplayNameProvider, new RemoteSerializationOptions(additionalFormatters, additionalResolvers), interfaces);
 
         /// <summary>
         /// Creates a service descriptor set for services using JSON serialization.
         /// </summary>
         public RazorServiceDescriptorsWrapper(
-            string componentLevelPrefix,
+            string componentName,
             Func<string, string> featureDisplayNameProvider,
             ImmutableArray<JsonConverter> jsonConverters,
             IEnumerable<(Type serviceInterface, Type? callbackInterface)> interfaces)
-            => UnderlyingObject = new ServiceDescriptors(componentLevelPrefix, featureDisplayNameProvider, new RemoteSerializationOptions(jsonConverters), interfaces);
+            => UnderlyingObject = new ServiceDescriptors(componentName, featureDisplayNameProvider, new RemoteSerializationOptions(jsonConverters), interfaces);
 
         /// <summary>
         /// To be called from a service factory in OOP.
