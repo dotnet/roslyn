@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
@@ -73,8 +75,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 var pattern = CSharpUsePatternCombinatorsAnalyzer.Analyze(operation);
                 RoslynDebug.AssertNotNull(pattern);
                 var patternSyntax = AsPatternSyntax(pattern).WithAdditionalAnnotations(Formatter.Annotation);
-                editor.ReplaceNode(expression, IsPatternExpression((ExpressionSyntax)pattern.Target.Syntax, patternSyntax));
+                editor.ReplaceNode(expression, AsIsPatternExpression(pattern.Target, patternSyntax));
             }
+        }
+
+        private static ExpressionSyntax AsIsPatternExpression(IOperation target, PatternSyntax pattern)
+        {
+            var expr = (ExpressionSyntax)target.Syntax;
+            if (target is IConversionOperation { IsImplicit: true } conv)
+            {
+                // The original target expression might have been implicitly converted due to usage of operators,
+                // in which case we make it an explicit cast because the `is` expresion doesn't apply conversions.
+                expr = CastExpression(conv.Type.GenerateTypeSyntax(), expr.Parenthesize());
+            }
+
+            return IsPatternExpression(expr, pattern);
         }
 
         private static PatternSyntax AsPatternSyntax(AnalyzedPattern pattern)
@@ -87,22 +102,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                     Token(p.Token.LeadingTrivia, p.IsDisjunctive ? SyntaxKind.OrKeyword : SyntaxKind.AndKeyword,
                         TriviaList(p.Token.GetAllTrailingTrivia())),
                     AsPatternSyntax(p.Right).Parenthesize()),
-                Constant p => ConstantPattern(AsExpressionSyntax(p)),
+                Constant p => ConstantPattern(AsExpressionSyntax(p.ExpressionSyntax, p)),
                 Source p => p.PatternSyntax,
                 Type p => TypePattern(p.TypeSyntax),
-                Relational p => RelationalPattern(Token(MapToSyntaxKind(p.OperatorKind)), p.Value.Parenthesize()),
+                Relational p => RelationalPattern(Token(MapToSyntaxKind(p.OperatorKind)), AsExpressionSyntax(p.Value, p)),
                 Not p => UnaryPattern(AsPatternSyntax(p.Pattern).Parenthesize()),
                 var p => throw ExceptionUtilities.UnexpectedValue(p)
             };
         }
 
-        private static ExpressionSyntax AsExpressionSyntax(Constant constant)
+        private static ExpressionSyntax AsExpressionSyntax(ExpressionSyntax expr, AnalyzedPattern p)
         {
-            var expr = constant.ExpressionSyntax;
+            
             if (expr.IsKind(SyntaxKind.DefaultLiteralExpression))
             {
                 // default literals are not permitted in patterns
-                var convertedType = constant.Target.SemanticModel.GetTypeInfo(expr).ConvertedType;
+                var convertedType = p.Target.SemanticModel.GetTypeInfo(expr).ConvertedType;
                 if (convertedType != null)
                 {
                     return DefaultExpression(convertedType.GenerateTypeSyntax());
