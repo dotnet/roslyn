@@ -284,5 +284,11 @@ class C
 {
     delegate*$$");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInPreprecessorDirective()
+        {
+            await VerifyAbsenceAsync("#$$");
+        }
     }
 }
