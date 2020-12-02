@@ -354,6 +354,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 Return False
             End If
 
+            Dim directive As DirectiveTriviaSyntax = Nothing
+            If IsInPreprocessorDirectiveContext(syntaxTree, position, cancellationToken, directive) AndAlso
+               directive.IsKind(SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseIfDirectiveTrivia) Then
+                Return False
+            End If
+
             If semanticModelOpt IsNot Nothing Then
                 If syntaxTree.IsDelegateCreationContext(position, targetToken, semanticModelOpt, cancellationToken) Then
                     Return False

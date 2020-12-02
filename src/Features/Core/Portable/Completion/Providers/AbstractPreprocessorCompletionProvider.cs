@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -30,7 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (!syntaxContext.IsPreProcessorExpressionContext)
                 return;
 
-            using var _ = PooledHashSet<string>.GetInstance(out var preprocessorNames);
+            var syntaxFacts = originatingDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+            var preprocessorNames = new HashSet<string>(syntaxFacts.StringComparer);
 
             // Walk all the projects this document is linked in so that we get the full set of preprocessor symbols
             // defined across all of them.
@@ -44,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // Keep all the preprocessor symbol names together.  We don't want to intermingle them with any keywords we
             // include (like `true/false`)
-            var order = 0;
             foreach (var name in preprocessorNames.OrderBy(a => a))
             {
                 context.AddItem(CommonCompletionItem.Create(
@@ -52,8 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     displayTextSuffix: "",
                     CompletionItemRules.Default,
                     glyph: Glyph.Keyword,
-                    sortText: order.ToString("0000")));
-                order++;
+                    sortText: "_0_" + name));
             }
         }
     }

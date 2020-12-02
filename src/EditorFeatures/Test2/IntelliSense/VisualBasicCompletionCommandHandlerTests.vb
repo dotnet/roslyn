@@ -3261,7 +3261,6 @@ Class C
                     Await state.AssertSelectedCompletionItem("If")
                 End Using
             End Using
-
         End Function
 
         <WpfTheory, CombinatorialData>
@@ -3458,6 +3457,28 @@ Class C
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("#if true orelse Goo", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInPreprocessorCasingDifference(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="Goo=1,Bar=2,BAR=2,Baz=3">
+                            <Document>
+#if $$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"Goo", "Bar", "Baz", "True", "False"})
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#if Goo", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
