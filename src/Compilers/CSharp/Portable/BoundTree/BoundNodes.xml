@@ -2018,6 +2018,7 @@
          from the literal parts of the input. The odd numbered positions are the string inserts. When a
          width or format string are provided, the corresponding insert will be a BoundStringInsert -->
     <Field Name="Parts" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
   </Node>
 
   <Node Name="BoundStringInsert" Base="BoundExpression">

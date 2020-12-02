@@ -6298,6 +6298,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureExtendedPartialMethods" xml:space="preserve">
     <value>extended partial methods</value>
   </data>
+  <data name="IDS_FeatureConstantInterpolatedStrings" xml:space="preserve">
+    <value>constant interpolated strings</value>
+  </data>
   <data name="ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods" xml:space="preserve">
     <value>Partial method '{0}' must have accessibility modifiers because it has a non-void return type.</value>
   </data>
