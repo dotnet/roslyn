@@ -88,7 +88,7 @@ namespace RunTests
 ";
 
             File.WriteAllText("helix-tmp.csproj", project);
-            var process = ProcessRunner.CreateProcess(_options.DotnetFilePath, "build helix-tmp.csproj", cancellationToken: cancellationToken);
+            var process = ProcessRunner.CreateProcess(_options.DotnetFilePath, "build helix-tmp.csproj", captureOutput: true, cancellationToken: cancellationToken);
             var result = await process.Result;
 
             // TODO: it seems prohibitively difficult to extract and pass through meaningful results when running using a generated csproj.
