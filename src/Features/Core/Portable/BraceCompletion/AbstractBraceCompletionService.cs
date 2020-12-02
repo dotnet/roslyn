@@ -70,11 +70,16 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
 
         public virtual async Task<bool> CanProvideBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
         {
+            if (OpeningBrace != brace)
+            {
+                return false;
+            }
+
             // check that the user is not typing in a string literal or comment
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            return OpeningBrace == brace && !syntaxFactsService.IsInNonUserCode(tree, openingPosition, cancellationToken);
+            return !syntaxFactsService.IsInNonUserCode(tree, openingPosition, cancellationToken);
         }
 
         public async Task<BraceCompletionContext?> GetCompletedBraceContextAsync(Document document, int caretLocation, CancellationToken cancellationToken)
@@ -97,15 +102,13 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         /// </summary>
         protected virtual Task<bool> IsValidOpenBraceTokenAtPositionAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
         {
-            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-            // The open token is typed in skipped token trivia, we should not attempt to complete it.
-            if (ParentIsSkippedTokensTrivia(syntaxFactsService, token))
+            if (token.SpanStart != position)
             {
                 return SpecializedTasks.False;
             }
 
-            return Task.FromResult(token.SpanStart == position && IsValidOpeningBraceToken(token));
+            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            return Task.FromResult(IsValidOpeningBraceToken(token) && !ParentIsSkippedTokensTrivia(syntaxFactsService, token));
         }
 
         /// <summary>
@@ -181,6 +184,11 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             public const char CloseCharacter = '\'';
         }
 
+        /// <summary>
+        /// Determines if inserting the opening brace at the location could be an attempt to
+        /// escape a previously inserted opening brace.
+        /// E.g. they are trying to type $"{{"
+        /// </summary>
         protected static async Task<bool> CouldEscapePreviousOpenBraceAsync(char openingBrace, int position, Document document, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

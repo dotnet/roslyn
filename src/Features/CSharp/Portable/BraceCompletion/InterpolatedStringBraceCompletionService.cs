@@ -48,10 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             => rightToken.IsKind(SyntaxKind.InterpolatedStringEndToken);
 
         protected override Task<bool> IsValidOpenBraceTokenAtPositionAsync(SyntaxToken token, int position, Document document, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(IsValidOpeningBraceToken(token)
-                && token.Span.End - 1 == position);
-        }
+            => Task.FromResult(IsValidOpeningBraceToken(token) && token.Span.End - 1 == position);
 
         /// <summary>
         /// Returns true when the input position could be starting an interpolated string if opening quotes were typed.
