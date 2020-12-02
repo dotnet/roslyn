@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             var closingPoint = context.ClosingPoint;
             var openingPoint = context.OpeningPoint;
             var originalDocumentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // check whether shape of the braces are what we support
             // shape must be either "{|}" or "{ }". | is where caret is. otherwise, we don't do any special behavior
@@ -100,15 +101,15 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             var textToFormat = originalDocumentText;
             if (!HasExistingEmptyLineBetweenBraces(openingPoint, closingPoint, originalDocumentText))
             {
-                newLineEdit = new TextChange(new TextSpan(closingPoint - 1, 0), Environment.NewLine);
+                var newLineString = documentOptions.GetOption(FormattingOptions2.NewLine);
+                newLineEdit = new TextChange(new TextSpan(closingPoint - 1, 0), newLineString);
                 textToFormat = originalDocumentText.WithChanges(newLineEdit.Value);
 
                 // Modify the closing point location to adjust for the newly inserted line.
-                closingPoint += Environment.NewLine.Length;
+                closingPoint += newLineString.Length;
             }
 
             // Format the text that contains the newly inserted line.
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var (formattingChanges, newClosingPoint) = await FormatTrackingSpanAsync(
                 document.WithText(textToFormat),
                 documentOptions,

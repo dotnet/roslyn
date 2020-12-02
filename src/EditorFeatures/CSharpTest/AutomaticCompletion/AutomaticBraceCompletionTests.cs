@@ -1332,6 +1332,22 @@ $$
             CheckReturn(session.Session, 4, expected);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void CurlyBraceFormatting_InsertsCorrectNewLine()
+        {
+            var code = @"class C $$";
+
+            var optionSet = new Dictionary<OptionKey2, object>
+            {
+                { new OptionKey2(FormattingOptions2.NewLine, LanguageNames.CSharp), "\r" }
+            };
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 4, result: "class C\r{\r\r}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void CurlyBraceFormattingEditMerge_FormattingChangeEntirelyBefore()
         {
