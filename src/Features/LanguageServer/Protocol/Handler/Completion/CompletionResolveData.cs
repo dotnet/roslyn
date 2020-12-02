@@ -18,5 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public string DisplayText { get; set; }
 
         public CompletionTrigger CompletionTrigger { get; set; }
+
+        public long? ResultId { get; set; }
     }
 }

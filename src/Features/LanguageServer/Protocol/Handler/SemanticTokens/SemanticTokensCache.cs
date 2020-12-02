@@ -48,14 +48,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// We need this sempahore to ensure that we aren't making concurrent
         /// modifications to the _tokens dictionary.
         /// </summary>
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _semaphore = new(1);
 
         #region protected by _semaphore
         /// <summary>
         /// Maps a document URI to its n most recently cached token sets.
         /// </summary>
-        private readonly Dictionary<Uri, List<LSP.SemanticTokens>> _tokens =
-            new Dictionary<Uri, List<LSP.SemanticTokens>>();
+        private readonly Dictionary<Uri, List<LSP.SemanticTokens>> _tokens = new();
         #endregion
 
         static SemanticTokensCache()
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// Updates the given document's token set cache. Removes old cache results if the document's
         /// cache is full.
         /// </summary>
-        public async Task UpdateCacheAsync(
+        internal async Task UpdateCacheAsync(
             Uri uri,
             LSP.SemanticTokens tokens,
             CancellationToken cancellationToken)
@@ -120,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// Returns the cached tokens data for a given document URI and resultId.
         /// Returns null if no match is found.
         /// </summary>
-        public async Task<int[]?> GetCachedTokensDataAsync(
+        internal async Task<int[]?> GetCachedTokensDataAsync(
             Uri uri,
             string resultId,
             CancellationToken cancellationToken)
@@ -141,6 +140,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// <summary>
         /// Returns the next available resultId.
         /// </summary>
-        public string GetNextResultId() => Interlocked.Increment(ref _nextResultId).ToString();
+        internal string GetNextResultId() => Interlocked.Increment(ref _nextResultId).ToString();
     }
 }
