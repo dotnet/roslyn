@@ -96,58 +96,65 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 _vsSolution.AdviseSolutionEvents(this, out _);
             }
 
+            IVsHierarchy? hierarchy = null;
+            uint docCookie = 0;
+
             try
             {
-                _rdt.FindDocument(filePath, out var hierarchy, out _, out var docCookie);
-                if (hierarchy == null)
-                {
-                    return;
-                }
-
-                if (!_xamlProjects.TryGetValue(hierarchy, out var project))
-                {
-                    if (!hierarchy.TryGetName(out var name))
-                    {
-                        return;
-                    }
-
-                    if (!hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_ProjectIDGuid, out var projectGuid))
-                    {
-                        return;
-                    }
-
-                    var projectInfo = new VisualStudioProjectCreationInfo
-                    {
-                        Hierarchy = hierarchy,
-                        FilePath = hierarchy.TryGetProjectFilePath(),
-                        ProjectGuid = projectGuid
-                    };
-
-                    project = _visualStudioProjectFactory.CreateAndAddToWorkspace(name, StringConstants.XamlLanguageName, projectInfo);
-                    _xamlProjects.Add(hierarchy, project);
-                }
-
-                if (!project.ContainsSourceFile(filePath))
-                {
-                    project.AddSourceFile(filePath);
-
-                    var documentId = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).Single(d => d.ProjectId == project.Id);
-                    var document = _workspace.CurrentSolution.GetDocument(documentId)!;
-                    var hasText = document.TryGetText(out var text);
-                    if (!hasText || text?.Container.TryGetTextBuffer() == null)
-                    {
-                        var docInfo = _rdt.GetDocumentInfo(docCookie);
-                        var textBuffer = _editorAdaptersFactory.GetDocumentBuffer(docInfo.DocData as IVsTextBuffer);
-                        var textContainer = textBuffer.AsTextContainer();
-                        _workspace.OnDocumentTextChanged(documentId, textContainer.CurrentText, PreservationMode.PreserveIdentity);
-                    }
-
-                    _rdtDocumentIds[docCookie] = documentId;
-                }
+                _rdt.FindDocument(filePath, out hierarchy, out _, out docCookie);
             }
             catch (ArgumentException)
             {
                 // We only support open documents that are in the RDT already
+            }
+
+            if (hierarchy == null || docCookie == 0)
+            {
+                return;
+            }
+
+            if (!_xamlProjects.TryGetValue(hierarchy, out var project))
+            {
+                if (!hierarchy.TryGetName(out var name))
+                {
+                    return;
+                }
+
+                if (!hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_ProjectIDGuid, out var projectGuid))
+                {
+                    return;
+                }
+
+                var projectInfo = new VisualStudioProjectCreationInfo
+                {
+                    Hierarchy = hierarchy,
+                    FilePath = hierarchy.TryGetProjectFilePath(),
+                    ProjectGuid = projectGuid
+                };
+
+                project = _visualStudioProjectFactory.CreateAndAddToWorkspace(name, StringConstants.XamlLanguageName, projectInfo);
+                _xamlProjects.Add(hierarchy, project);
+            }
+
+            if (!project.ContainsSourceFile(filePath))
+            {
+                project.AddSourceFile(filePath);
+
+                var documentId = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).Single(d => d.ProjectId == project.Id);
+                var document = _workspace.CurrentSolution.GetDocument(documentId)!;
+                var hasText = document.TryGetText(out var text);
+                if (!hasText || text?.Container.TryGetTextBuffer() == null)
+                {
+                    var docInfo = _rdt.GetDocumentInfo(docCookie);
+                    var textBuffer = TryGetTextBufferFromDocData(docInfo.DocData);
+                    var textContainer = textBuffer?.AsTextContainer();
+                    if (textContainer != null)
+                    {
+                        _workspace.OnDocumentTextChanged(documentId, textContainer.CurrentText, PreservationMode.PreserveIdentity);
+                    }
+                }
+
+                _rdtDocumentIds[docCookie] = documentId;
             }
         }
 
