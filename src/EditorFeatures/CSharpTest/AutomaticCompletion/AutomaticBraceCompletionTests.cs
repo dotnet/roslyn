@@ -5,18 +5,20 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService;
+using static Microsoft.CodeAnalysis.CSharp.BraceCompletion.CurlyBraceCompletionService;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
@@ -1305,6 +1307,150 @@ $$
 
             CheckStart(session.Session);
             Assert.Equal(expectedAfterStart, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void CurlyBraceFormattingEditMerge_FormattingChangeEntirelyBefore()
+        {
+            var originalText = SourceText.From("aaaa");
+
+            // Text should be aabaa
+            var insertionTextChange = new TextChange(new TextSpan(2, 0), "b");
+            var incrementalText = originalText.WithChanges(insertionTextChange);
+
+            // Formatting change before insertion location
+            // Replace first 'a' with 'cc' to become ccabaa
+            var formattingTextChange = new TextChange(new TextSpan(0, 1), "cc");
+            incrementalText = incrementalText.WithChanges(formattingTextChange);
+
+            var mergedChanges = MergeFormatChangesIntoNewLineChange(insertionTextChange, ImmutableArray.Create(formattingTextChange));
+            var mergedText = originalText.WithChanges(mergedChanges);
+
+            Assert.Equal(insertionTextChange, mergedChanges[0]);
+            Assert.Equal(formattingTextChange, mergedChanges[1]);
+            Assert.Equal(incrementalText.ToString(), mergedText.ToString());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void CurlyBraceFormattingEditMerge_FormattingChangeEntirelyAfter()
+        {
+            var originalText = SourceText.From("aaaa");
+
+            // Text should be aabaa
+            var insertionTextChange = new TextChange(new TextSpan(2, 0), "b");
+            var incrementalText = originalText.WithChanges(insertionTextChange);
+
+            // Formatting change entirely after insertion location
+            // Replace last 'a' with 'cc' to become aabacc
+            var formattingTextChange = new TextChange(new TextSpan(4, 1), "cc");
+            incrementalText = incrementalText.WithChanges(formattingTextChange);
+
+            var mergedChanges = MergeFormatChangesIntoNewLineChange(insertionTextChange, ImmutableArray.Create(formattingTextChange));
+            var mergedText = originalText.WithChanges(mergedChanges);
+
+            Assert.Equal(insertionTextChange, mergedChanges[0]);
+            // Formatting edit should be shifted to be relative to original text
+            Assert.Equal(new TextChange(new TextSpan(3, 1), "cc"), mergedChanges[1]);
+            Assert.Equal(incrementalText.ToString(), mergedText.ToString());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void CurlyBraceFormattingEditMerge_OverlapsWithEndOfFormattingChange()
+        {
+            var originalText = SourceText.From("aaaa");
+
+            // Text should be aa#$aa
+            var insertionTextChange = new TextChange(new TextSpan(2, 0), "#$");
+            var incrementalText = originalText.WithChanges(insertionTextChange);
+
+            // Formatting starting before insertion (with overlap), ends inside insertion
+            // Replace 'a#' with 'cc' to become acc$aa
+            var formattingTextChange = new TextChange(new TextSpan(1, 2), "cc");
+            incrementalText = incrementalText.WithChanges(formattingTextChange);
+
+            var mergedChanges = MergeFormatChangesIntoNewLineChange(insertionTextChange, ImmutableArray.Create(formattingTextChange));
+            var mergedText = originalText.WithChanges(mergedChanges);
+
+            // The overlapping text is removed from the initial edit as it is covered by the formatting change.
+            Assert.Equal(new TextChange(new TextSpan(2, 0), "$"), mergedChanges[0]);
+            // The formatting change span is modified to end before the insertion edit.
+            Assert.Equal(new TextChange(new TextSpan(1, 1), "cc"), mergedChanges[1]);
+            Assert.Equal(incrementalText.ToString(), mergedText.ToString());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void CurlyBraceFormattingEditMerge_OverlapsWithBeginningOfFormattingChange()
+        {
+            var originalText = SourceText.From("aaaa");
+
+            // Text should be aa#$aa
+            var insertionTextChange = new TextChange(new TextSpan(2, 0), "#$");
+            var incrementalText = originalText.WithChanges(insertionTextChange);
+
+            // Formatting starting inside insertion (with overlap), ends outside insertion
+            // Replace '$a' with 'cc' to become aa#cca
+            var formattingTextChange = new TextChange(new TextSpan(3, 2), "cc");
+            incrementalText = incrementalText.WithChanges(formattingTextChange);
+
+            var mergedChanges = MergeFormatChangesIntoNewLineChange(insertionTextChange, ImmutableArray.Create(formattingTextChange));
+            var mergedText = originalText.WithChanges(mergedChanges);
+
+            // The overlapping text is removed from the initial edit as it is covered by the formatting change.
+            Assert.Equal(new TextChange(new TextSpan(2, 0), "#"), mergedChanges[0]);
+            // The formatting change span is modified to end before the insertion edit.
+            Assert.Equal(new TextChange(new TextSpan(2, 1), "cc"), mergedChanges[1]);
+            Assert.Equal(incrementalText.ToString(), mergedText.ToString());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void CurlyBraceFormattingEditMerge_NewLineInsideFormattingChange()
+        {
+            var originalText = SourceText.From("aaaa");
+
+            // Text should be aa#$aa
+            var insertionTextChange = new TextChange(new TextSpan(2, 0), "#$");
+            var incrementalText = originalText.WithChanges(insertionTextChange);
+
+            // Insertion change is entirely inside the formatting change.
+            // Replace '#$' with 'ccc' to become aacccaa
+            var formattingTextChange = new TextChange(new TextSpan(2, 2), "ccc");
+            incrementalText = incrementalText.WithChanges(formattingTextChange);
+
+            var mergedChanges = MergeFormatChangesIntoNewLineChange(insertionTextChange, ImmutableArray.Create(formattingTextChange));
+            var mergedText = originalText.WithChanges(mergedChanges);
+
+            // Only one edit is returned with the new text.
+            Assert.Equal(new TextChange(new TextSpan(2, 0), "ccc"), mergedChanges.Single());
+            Assert.Equal(incrementalText.ToString(), mergedText.ToString());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void CurlyBraceFormattingEditMerge_FormattingBeforeAndAfter()
+        {
+            var originalText = SourceText.From("aaaa");
+
+            // Text should be aa#$%aa
+            var insertionTextChange = new TextChange(new TextSpan(2, 0), "#$%");
+            var incrementalText = originalText.WithChanges(insertionTextChange);
+
+            // Multiple changes formatting changes before and after the insertion.
+            // Result should be ccdd$eeff
+            var entirelyBeforeChange = new TextChange(new TextSpan(0, 1), "cc");
+            var partiallyBeforeChange = new TextChange(new TextSpan(1, 2), "dd");
+            var partiallyAfterChange = new TextChange(new TextSpan(4, 2), "ee");
+            var entirelyAfterChange = new TextChange(new TextSpan(6, 1), "ff");
+            var changes = ImmutableArray.Create(entirelyBeforeChange, partiallyBeforeChange, partiallyAfterChange, entirelyAfterChange);
+            incrementalText = incrementalText.WithChanges(changes);
+
+            var mergedChanges = MergeFormatChangesIntoNewLineChange(insertionTextChange, changes);
+            var mergedText = originalText.WithChanges(mergedChanges);
+
+            Assert.Equal(new TextChange(new TextSpan(2, 0), "$"), mergedChanges[0]);
+            Assert.Equal(new TextChange(new TextSpan(0, 1), "cc"), mergedChanges[1]);
+            Assert.Equal(new TextChange(new TextSpan(1, 1), "dd"), mergedChanges[2]);
+            Assert.Equal(new TextChange(new TextSpan(2, 1), "ee"), mergedChanges[3]);
+            Assert.Equal(new TextChange(new TextSpan(3, 1), "ff"), mergedChanges[4]);
+            Assert.Equal(incrementalText.ToString(), mergedText.ToString());
         }
 
         internal static Holder CreateSession(string code, Dictionary<OptionKey2, object> optionSet = null)
