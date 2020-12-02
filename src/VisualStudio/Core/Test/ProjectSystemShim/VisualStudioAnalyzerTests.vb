@@ -4,7 +4,6 @@
 
 Imports System.IO
 Imports System.Reflection
-Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests

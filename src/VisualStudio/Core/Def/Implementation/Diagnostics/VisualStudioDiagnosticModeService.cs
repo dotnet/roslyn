@@ -5,18 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
