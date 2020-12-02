@@ -1029,7 +1029,7 @@ namespace Microsoft.CodeAnalysis
                 return compilationInfo.GeneratedDocuments;
             }
 
-            public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentForAlreadyGeneratedId(DocumentId documentId)
+            public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId)
             {
                 var state = ReadState();
 
