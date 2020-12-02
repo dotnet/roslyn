@@ -8,8 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -19,11 +17,10 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Utilities;
-using Shell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
@@ -35,10 +32,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         private readonly VisualStudioProjectFactory _visualStudioProjectFactory;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly IThreadingContext _threadingContext;
-        private readonly Shell.RunningDocumentTable _rdt;
-        private readonly IVsSolution _vsSolution;
-        private uint? _rdtEventsCookie;
         private readonly Dictionary<IVsHierarchy, VisualStudioProject> _xamlProjects = new();
+        private readonly Dictionary<uint, DocumentId> _rdtDocumentIds = new();
+
+        private RunningDocumentTable? _rdt;
+        private IVsSolution? _vsSolution;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -55,9 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             _visualStudioProjectFactory = visualStudioProjectFactory;
             _workspace = workspace;
             _threadingContext = threadingContext;
-            _rdt = new Shell.RunningDocumentTable(_serviceProvider);
-            _vsSolution = (IVsSolution)_serviceProvider.GetService(typeof(SVsSolution));
-            _vsSolution.AdviseSolutionEvents(this, out _);
 
             AnalyzerService = analyzerService;
         }
@@ -66,6 +61,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         public void TrackOpenDocument(string filePath)
         {
+            if (string.IsNullOrEmpty(filePath))
+            {
+                // Can't track anything without a path (can happen while diffing)
+                return;
+            }
+
             if (_threadingContext.JoinableTaskContext.IsOnMainThread)
             {
                 EnsureDocument(filePath);
@@ -83,54 +84,70 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         private void EnsureDocument(string filePath)
         {
-            _rdt.FindDocument(filePath, out var hierarchy, out _, out var docCookie);
-            if (hierarchy == null)
+            if (_rdt == null)
             {
-                return;
+                _rdt = new RunningDocumentTable(_serviceProvider);
+                _rdt.Advise(this);
             }
 
-            if (!_xamlProjects.TryGetValue(hierarchy, out var project))
+            if (_vsSolution == null)
             {
-                if (!hierarchy.TryGetName(out var name))
+                _vsSolution = (IVsSolution)_serviceProvider.GetService(typeof(SVsSolution));
+                _vsSolution.AdviseSolutionEvents(this, out _);
+            }
+
+            try
+            {
+                _rdt.FindDocument(filePath, out var hierarchy, out _, out var docCookie);
+                if (hierarchy == null)
                 {
                     return;
                 }
 
-                if (!hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_ProjectIDGuid, out var projectGuid))
+                if (!_xamlProjects.TryGetValue(hierarchy, out var project))
                 {
-                    return;
+                    if (!hierarchy.TryGetName(out var name))
+                    {
+                        return;
+                    }
+
+                    if (!hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_ProjectIDGuid, out var projectGuid))
+                    {
+                        return;
+                    }
+
+                    var projectInfo = new VisualStudioProjectCreationInfo
+                    {
+                        Hierarchy = hierarchy,
+                        FilePath = hierarchy.TryGetProjectFilePath(),
+                        ProjectGuid = projectGuid
+                    };
+
+                    project = _visualStudioProjectFactory.CreateAndAddToWorkspace(name, StringConstants.XamlLanguageName, projectInfo);
+                    _xamlProjects.Add(hierarchy, project);
                 }
 
-                var projectInfo = new VisualStudioProjectCreationInfo
+                if (!project.ContainsSourceFile(filePath))
                 {
-                    Hierarchy = hierarchy,
-                    FilePath = hierarchy.TryGetProjectFilePath(),
-                    ProjectGuid = projectGuid
-                };
+                    project.AddSourceFile(filePath);
 
-                project = _visualStudioProjectFactory.CreateAndAddToWorkspace(name, StringConstants.XamlLanguageName, projectInfo);
-                _xamlProjects.Add(hierarchy, project);
-            }
+                    var documentId = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).Single(d => d.ProjectId == project.Id);
+                    var document = _workspace.CurrentSolution.GetDocument(documentId)!;
+                    var hasText = document.TryGetText(out var text);
+                    if (!hasText || text?.Container.TryGetTextBuffer() == null)
+                    {
+                        var docInfo = _rdt.GetDocumentInfo(docCookie);
+                        var textBuffer = _editorAdaptersFactory.GetDocumentBuffer(docInfo.DocData as IVsTextBuffer);
+                        var textContainer = textBuffer.AsTextContainer();
+                        _workspace.OnDocumentTextChanged(documentId, textContainer.CurrentText, PreservationMode.PreserveIdentity);
+                    }
 
-            if (!project.ContainsSourceFile(filePath))
-            {
-                project.AddSourceFile(filePath);
-
-                var documentId = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).First(d => d.ProjectId == project.Id);
-                var document = _workspace.CurrentSolution.GetDocument(documentId)!;
-                var hasText = document.TryGetText(out var text);
-                if (!hasText || text?.Container.TryGetTextBuffer() == null)
-                {
-                    var docInfo = _rdt.GetDocumentInfo(docCookie);
-                    var textBuffer = _editorAdaptersFactory.GetDocumentBuffer(docInfo.DocData as IVsTextBuffer);
-                    var textContainer = textBuffer.AsTextContainer();
-                    _workspace.OnDocumentTextChanged(documentId, textContainer.CurrentText, PreservationMode.PreserveIdentity);
+                    _rdtDocumentIds[docCookie] = documentId;
                 }
             }
-
-            if (!_rdtEventsCookie.HasValue)
+            catch (ArgumentException)
             {
-                _rdtEventsCookie = _rdt.Advise(this);
+                // We only support open documents that are in the RDT already
             }
         }
 
@@ -160,8 +177,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 return;
             }
 
-            var info = _rdt.GetDocumentInfo(docCookie);
-            var buffer = TryGetTextBufferFromDocData(info.DocData);
+            var info = _rdt?.GetDocumentInfo(docCookie);
+            var buffer = TryGetTextBufferFromDocData(info?.DocData);
             var isXaml = buffer?.ContentType.IsOfType(ContentTypeNames.XamlContentType) == true;
 
             // Managed languages rely on the msbuild host object to add and remove documents during rename.
@@ -171,21 +188,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 project.RemoveSourceFile(oldMoniker);
             }
 
+            _rdtDocumentIds.Remove(docCookie);
+
             if (isXaml)
             {
                 project.AddSourceFile(newMoniker);
+
+                var documentId = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(newMoniker).Single(d => d.ProjectId == project.Id);
+                _rdtDocumentIds[docCookie] = documentId;
             }
         }
 
         private void OnDocumentClosed(uint docCookie)
         {
-            var info = _rdt.GetDocumentInfo(docCookie);
-            if (info.Hierarchy != null && _xamlProjects.TryGetValue(info.Hierarchy, out var project))
+            if (_rdtDocumentIds.TryGetValue(docCookie, out var documentId))
             {
-                if (project.ContainsSourceFile(info.Moniker))
+                var document = _workspace.CurrentSolution.GetDocument(documentId);
+                if (document?.FilePath != null)
                 {
-                    project.RemoveSourceFile(info.Moniker);
+                    var project = _xamlProjects.Values.SingleOrDefault(p => p.Id == document.Project.Id);
+                    project?.RemoveSourceFile(document.FilePath);
                 }
+                _rdtDocumentIds.Remove(docCookie);
             }
         }
 
@@ -194,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         /// </summary>
         /// <param name="docData">The DocData from the running document table.</param>
         /// <returns>The ITextBuffer. If one could not be found, this returns null.</returns>
-        private ITextBuffer? TryGetTextBufferFromDocData(object docData)
+        private ITextBuffer? TryGetTextBufferFromDocData(object? docData)
         {
             if (docData is IVsTextBuffer vsTestBuffer)
             {
