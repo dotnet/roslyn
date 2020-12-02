@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Analyzers.SimplifyInterpolation;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,14 +17,14 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpSimplifyInterpolationDiagnosticAnalyzer : AbstractSimplifyInterpolationDiagnosticAnalyzer<
-        InterpolationSyntax, ExpressionSyntax, ConditionalExpressionSyntax, ParenthesizedExpressionSyntax>
+        InterpolationSyntax, ExpressionSyntax>
     {
-        protected override bool PermitNonLiteralAlignmentComponents => true;
-
         protected override IVirtualCharService GetVirtualCharService()
             => CSharpVirtualCharService.Instance;
 
         protected override ISyntaxFacts GetSyntaxFacts()
             => CSharpSyntaxFacts.Instance;
+
+        protected override AbstractHelpers GetHelpers() => new CSharpHelpers();
     }
 }

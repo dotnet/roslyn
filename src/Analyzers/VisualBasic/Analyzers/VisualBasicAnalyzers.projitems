@@ -34,6 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\VisualBasicRemoveUnusedMembersDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\VisualBasicRemoveUnusedParametersAndValuesDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyBooleanExpression\VisualBasicSimplifyConditionalDiagnosticAnalyzer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\VisualBasicHelpers.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\VisualBasicSimplifyInterpolationDiagnosticAnalyzer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\Utilities.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\VisualBasicUseAutoPropertyAnalyzer.vb" />

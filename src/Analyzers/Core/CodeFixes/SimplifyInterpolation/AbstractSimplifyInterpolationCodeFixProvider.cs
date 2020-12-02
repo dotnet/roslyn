@@ -23,23 +23,19 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         TExpressionSyntax,
         TInterpolationAlignmentClause,
         TInterpolationFormatClause,
-        TInterpolatedStringExpressionSyntax,
-        TConditionalExpressionSyntax,
-        TParenthesizedExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
+        TInterpolatedStringExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
         where TInterpolationSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
         where TInterpolationAlignmentClause : SyntaxNode
         where TInterpolationFormatClause : SyntaxNode
         where TInterpolatedStringExpressionSyntax : TExpressionSyntax
-        where TConditionalExpressionSyntax : TExpressionSyntax
-        where TParenthesizedExpressionSyntax : TExpressionSyntax
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.SimplifyInterpolationId);
 
         internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
-        protected abstract bool PermitNonLiteralAlignmentComponents { get; }
+        protected abstract AbstractHelpers GetHelpers();
 
         protected abstract TInterpolationSyntax WithExpression(TInterpolationSyntax interpolation, TExpressionSyntax expression);
         protected abstract TInterpolationSyntax WithAlignmentClause(TInterpolationSyntax interpolation, TInterpolationAlignmentClause alignmentClause);
@@ -61,6 +57,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+            var helpers = GetHelpers();
+
             foreach (var diagnostic in diagnostics)
             {
                 var loc = diagnostic.AdditionalLocations[0];
@@ -68,9 +66,9 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 if (interpolation?.Syntax is TInterpolationSyntax interpolationSyntax &&
                     interpolationSyntax.Parent is TInterpolatedStringExpressionSyntax interpolatedString)
                 {
-                    Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax, TConditionalExpressionSyntax, TParenthesizedExpressionSyntax>(
+                    helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
                         document.GetRequiredLanguageService<IVirtualCharLanguageService>(),
-                        document.GetRequiredLanguageService<ISyntaxFactsService>(), PermitNonLiteralAlignmentComponents,
+                        document.GetRequiredLanguageService<ISyntaxFactsService>(),
                         interpolation, out var unwrapped, out var alignment, out var negate, out var formatString, out _);
 
                     if (unwrapped == null)
