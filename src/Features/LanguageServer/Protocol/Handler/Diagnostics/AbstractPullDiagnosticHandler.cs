@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 : InternalDiagnosticsOptions.NormalDiagnosticMode;
 
             var workspace = document.Project.Solution.Workspace;
-            var isPull = await workspace.IsPullDiagnosticsAsync(diagnosticMode, cancellationToken).ConfigureAwait(false);
+            var isPull = workspace.IsPullDiagnostics(diagnosticMode, cancellationToken);
 
             using var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var result);
 
