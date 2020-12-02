@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         DiagnosticMode GetDiagnosticMode(Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
     }
 
-    [ExportWorkspaceService(typeof(IDiagnosticModeService)), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IDiagnosticModeService)), Shared]
     internal class DefaultDiagnosticModeServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]

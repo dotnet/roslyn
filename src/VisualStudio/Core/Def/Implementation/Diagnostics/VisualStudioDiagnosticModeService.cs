@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
-    [ExportWorkspaceService(typeof(IDiagnosticModeService), ServiceLayer.Host), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IDiagnosticModeService), ServiceLayer.Host), Shared]
     internal class VisualStudioDiagnosticModeServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
