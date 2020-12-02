@@ -87,6 +87,11 @@
         <target state="translated">Executar limpeza de código adicional durante a formatação</target>
         <note />
       </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_with_initializer">
+        <source>Place open brace on new line for with initializer</source>
+        <target state="new">Place open brace on new line for with initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
         <target state="translated">Preferir a criação de objeto implícito quando o tipo for aparente</target>

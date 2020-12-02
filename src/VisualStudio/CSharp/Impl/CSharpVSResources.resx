@@ -195,6 +195,9 @@
   <data name="Place_open_brace_on_new_line_for_object_collection_and_array_initializers" xml:space="preserve">
     <value>Place open brace on new line for object, collection and array initializers</value>
   </data>
+  <data name="Place_open_brace_on_new_line_for_with_initializer" xml:space="preserve">
+    <value>Place open brace on new line for with initializer</value>
+  </data>
   <data name="Place_open_brace_on_new_line_for_types" xml:space="preserve">
     <value>Place open brace on new line for types</value>
   </data>
