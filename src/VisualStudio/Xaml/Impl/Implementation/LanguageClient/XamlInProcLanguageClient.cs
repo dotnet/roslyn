@@ -41,8 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         /// </summary>
         public override string Name => Resources.Xaml_Language_Server_Client;
 
-        protected internal override Task<VSServerCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken)
-            => Task.FromResult(new VSServerCapabilities
+        protected internal override VSServerCapabilities GetCapabilities()
+            => new VSServerCapabilities
             {
                 CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new string[] { "<", " ", ":", ".", "=", "\"", "'", "{", ",", "(" } },
                 HoverProvider = true,
@@ -57,6 +57,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                     OpenClose = false
                 },
                 SupportsDiagnosticRequests = true,
-            });
+            };
     }
 }
