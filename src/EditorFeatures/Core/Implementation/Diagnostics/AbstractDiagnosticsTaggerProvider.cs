@@ -121,10 +121,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected override Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
-            return ProduceTagsAsync(context, spanToTag);
+            ProduceTags(context, spanToTag);
+            return Task.CompletedTask;
         }
 
-        private async Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag)
+        private void ProduceTags(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag)
         {
             if (!this.IsEnabled)
             {
@@ -149,18 +150,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             var suppressedDiagnosticsSpans = (NormalizedSnapshotSpanCollection?)null;
             buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
-            var buckets = await _diagnosticService.GetPushDiagnosticBucketsAsync(
-                workspace, document.Project.Id, document.Id, InternalDiagnosticsOptions.NormalDiagnosticMode, context.CancellationToken).ConfigureAwait(false);
+            var buckets = _diagnosticService.GetPushDiagnosticBuckets(
+                workspace, document.Project.Id, document.Id, InternalDiagnosticsOptions.NormalDiagnosticMode, context.CancellationToken);
 
             foreach (var bucket in buckets)
             {
-                await ProduceTagsAsync(
+                ProduceTags(
                     context, spanToTag, workspace, document,
-                    suppressedDiagnosticsSpans, bucket, cancellationToken).ConfigureAwait(false);
+                    suppressedDiagnosticsSpans, bucket, cancellationToken);
             }
         }
 
-        private async Task ProduceTagsAsync(
+        private void ProduceTags(
             TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag,
             Workspace workspace, Document document,
             NormalizedSnapshotSpanCollection? suppressedDiagnosticsSpans,
@@ -169,11 +170,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             try
             {
                 var id = bucket.Id;
-                var diagnostics = await _diagnosticService.GetPushDiagnosticsAsync(
+                var diagnostics = _diagnosticService.GetPushDiagnostics(
                     workspace, document.Project.Id, document.Id, id,
                     includeSuppressedDiagnostics: false,
                     diagnosticMode: InternalDiagnosticsOptions.NormalDiagnosticMode,
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken);
 
                 var isLiveUpdate = id is ISupportLiveUpdate;
 
