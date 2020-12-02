@@ -9,13 +9,11 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -39,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             private readonly string _identifier;
             private readonly IDiagnosticService _diagnosticService;
-            private readonly IThreadingContext _threadingContext;
+            private readonly Workspace _workspace;
             private readonly OpenDocumentTracker<DiagnosticTableItem> _tracker;
 
             /// <summary>
@@ -49,33 +47,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             /// </summary>
             private bool _isBuildRunning;
 
-            /// <summary>
-            /// Queue for processing diagnostic event notifications.  Putting in <see langword="null"/> in the queue
-            /// means 'get initial diagnostics'.
-            /// </summary>
-            private readonly AsyncBatchingWorkQueue<DiagnosticsUpdatedArgs?> _workQueue;
-
-            public LiveTableDataSource(
-                IThreadingContext threadingContext,
-                Workspace workspace,
-                IDiagnosticService diagnosticService,
-                string identifier,
-                ExternalErrorDiagnosticUpdateSource? buildUpdateSource = null)
+            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier, ExternalErrorDiagnosticUpdateSource? buildUpdateSource = null)
                 : base(workspace)
             {
-                _threadingContext = threadingContext;
+                _workspace = workspace;
                 _identifier = identifier;
 
-                _tracker = new OpenDocumentTracker<DiagnosticTableItem>(workspace);
+                _tracker = new OpenDocumentTracker<DiagnosticTableItem>(_workspace);
 
                 _diagnosticService = diagnosticService;
+                ConnectToDiagnosticService(workspace, diagnosticService);
 
-                _workQueue = new AsyncBatchingWorkQueue<DiagnosticsUpdatedArgs?>(
-                    TimeSpan.FromMilliseconds(100),
-                    ProcessDiagnosticEventsAsync,
-                    threadingContext.DisposalToken);
-
-                ConnectToDiagnosticService();
                 ConnectToBuildUpdateSource(buildUpdateSource);
             }
 
@@ -175,39 +157,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return new AggregatedKey(documents, liveArgsId.Analyzer, liveArgsId.Kind);
             }
 
-            private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
+            private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
             {
-                // Queue the event to be processed in batch a short time in the future.
-                _workQueue.AddWork(item: e);
-            }
+                var diagnostics = diagnosticService.GetPushDiagnosticBuckets(
+                    workspace, projectId: null, documentId: null, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken: CancellationToken.None);
 
-            private async Task ProcessDiagnosticEventsAsync(ImmutableArray<DiagnosticsUpdatedArgs?> argsArray, CancellationToken cancellationToken)
-            {
-                foreach (var arg in argsArray)
+                foreach (var bucket in diagnostics)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    if (arg == null)
-                    {
-                        await ReportInitialDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await ProcessDiagnosticEventAsync(arg, cancellationToken).ConfigureAwait(false);
-                    }
+                    // We only need to issue an event to VS that these docs have diagnostics associated with them.  So
+                    // we create a dummy notification for this.  It doesn't matter that it is 'DiagnosticsRemoved' as
+                    // this doesn't actually change any data.  All that will happen now is that VS will call back into
+                    // us for these IDs and we'll fetch the diagnostics at that point.
+                    OnDataAddedOrChanged(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+                        bucket.Id, bucket.Workspace, solution: null, bucket.ProjectId, bucket.DocumentId));
                 }
             }
 
-            private async Task ProcessDiagnosticEventAsync(DiagnosticsUpdatedArgs e, CancellationToken cancellationToken)
+            private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                var diagnostics = await e.GetPushDiagnosticsAsync(this.Workspace, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken).ConfigureAwait(false);
-                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, a => GetDiagnosticUpdatedMessage(e, diagnostics), cancellationToken))
+                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, a => GetDiagnosticUpdatedMessage(_workspace, a), e, CancellationToken.None))
                 {
-                    if (this.Workspace != e.Workspace)
+                    if (_workspace != e.Workspace)
                     {
                         return;
                     }
 
+                    var diagnostics = e.GetPushDiagnostics(_workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                     if (diagnostics.Length == 0)
                     {
                         OnDataRemoved(e);
@@ -225,42 +200,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            private async Task ReportInitialDiagnosticsAsync(CancellationToken cancellationToken)
-            {
-                var diagnostics = await _diagnosticService.GetPushDiagnosticBucketsAsync(
-                    this.Workspace, projectId: null, documentId: null, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken).ConfigureAwait(false);
-
-                foreach (var bucket in diagnostics)
-                {
-                    // We only need to issue an event to VS that these docs have diagnostics associated with them.  So
-                    // we create a dummy notification for this.  It doesn't matter that it is 'DiagnosticsRemoved' as
-                    // this doesn't actually change any data.  All that will happen now is that VS will call back into
-                    // us for these IDs and we'll fetch the diagnostics at that point.
-                    OnDataAddedOrChanged(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                        bucket.Id, bucket.Workspace, solution: null, bucket.ProjectId, bucket.DocumentId));
-                }
-            }
-
             public override AbstractTableEntriesSource<DiagnosticTableItem> CreateTableEntriesSource(object data)
             {
                 var item = (UpdatedEventArgs)data;
                 return new TableEntriesSource(this, item.Workspace, item.ProjectId, item.DocumentId, item.Id);
             }
 
-            private void ConnectToDiagnosticService()
+            private void ConnectToDiagnosticService(Workspace workspace, IDiagnosticService diagnosticService)
             {
-                if (_diagnosticService == null)
+                if (diagnosticService == null)
                 {
                     // it can be null in unit test
                     return;
                 }
 
-                // Listen for diagnostic events.  When we hear about them, add them to the work queue to process at some
-                // point in the future.
-                _diagnosticService.DiagnosticsUpdated += (_, e) => _workQueue.AddWork(e);
+                _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
 
-                // A 'null' items tells the processing function to do the initial load of diagnostics from the service.
-                _workQueue.AddWork(item: null);
+                PopulateInitialData(workspace, diagnosticService);
             }
 
             private static bool ShouldInclude(DiagnosticData diagnostic)
@@ -611,18 +567,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 #endregion
             }
 
-            private string GetDiagnosticUpdatedMessage(DiagnosticsUpdatedArgs e, ImmutableArray<DiagnosticData> diagnostics)
+            private static string GetDiagnosticUpdatedMessage(Workspace workspace, DiagnosticsUpdatedArgs e)
             {
                 var id = e.Id.ToString();
                 if (e.Id is LiveDiagnosticUpdateArgsId live)
                 {
-                    id = $"{live.Analyzer}/{live.Kind}";
+                    id = $"{live.Analyzer.ToString()}/{live.Kind}";
                 }
                 else if (e.Id is AnalyzerUpdateArgsId analyzer)
                 {
                     id = analyzer.Analyzer.ToString();
                 }
 
+                var diagnostics = e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                 return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object?)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, diagnostics)})";
             }
         }

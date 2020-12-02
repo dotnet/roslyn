@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
 
         /// <summary>
-        /// This call is equivalent to <see cref="GetPushDiagnosticsAsync"/> passing in <see cref="InternalDiagnosticsOptions.NormalDiagnosticMode"/>.
+        /// This call is equivalent to <see cref="GetPushDiagnostics"/> passing in <see cref="InternalDiagnosticsOptions.NormalDiagnosticMode"/>.
         /// </summary>
         [Obsolete("Legacy overload for TypeScript.  Use GetPullDiagnostics or GetPushDiagnostics instead.", error: false)]
         ImmutableArray<DiagnosticData> GetDiagnostics(
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <see cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).
         /// If the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
         /// will return the requested diagnostics.</param>
-        Task<ImmutableArray<DiagnosticData>> GetPullDiagnosticsAsync(
+        ImmutableArray<DiagnosticData> GetPullDiagnostics(
             Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics,
             Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
 
@@ -48,31 +47,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <see cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).
         /// If the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
         /// will return the requested diagnostics.</param>
-        Task<ImmutableArray<DiagnosticData>> GetPushDiagnosticsAsync(
+        ImmutableArray<DiagnosticData> GetPushDiagnostics(
             Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics,
             Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get current buckets storing our grouped diagnostics.  Specific buckets can be retrieved by calling <see
-        /// cref="IDiagnosticServiceExtensions.GetDiagnosticsAsync"/>.
+        /// cref="IDiagnosticServiceExtensions.GetDiagnostics"/>.
         /// </summary>
         /// <param name="diagnosticMode">Option controlling if pull diagnostics are allowed for the client.  The
         /// <see cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).
         /// If the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
         /// will return the requested buckets.</param>
-        Task<ImmutableArray<DiagnosticBucket>> GetPullDiagnosticBucketsAsync(
+        ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(
             Workspace workspace, ProjectId? projectId, DocumentId? documentId,
             Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get current buckets storing our grouped diagnostics.  Specific buckets can be retrieved by calling <see
-        /// cref="IDiagnosticServiceExtensions.GetDiagnosticsAsync"/>.
+        /// cref="IDiagnosticServiceExtensions.GetDiagnostics"/>.
         /// </summary>
         /// <param name="diagnosticMode">Option controlling if pull diagnostics are allowed for the client.  The <see
         /// cref="IDiagnosticService"/> only provides diagnostics for either push or pull purposes (but not both).  If
         /// the caller's desired purpose doesn't match the option value, then this will return nothing, otherwise it
         /// will return the requested buckets.</param>
-        Task<ImmutableArray<DiagnosticBucket>> GetPushDiagnosticBucketsAsync(
+        ImmutableArray<DiagnosticBucket> GetPushDiagnosticBuckets(
             Workspace workspace, ProjectId? projectId, DocumentId? documentId,
             Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
     }

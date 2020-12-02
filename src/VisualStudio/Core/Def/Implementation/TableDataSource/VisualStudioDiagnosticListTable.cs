@@ -62,7 +62,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             var table = new VisualStudioDiagnosticListTable(
-                _threadingContext,
                 (VisualStudioWorkspaceImpl)workspace,
                 diagnosticService,
                 _tableManagerProvider,
@@ -77,16 +76,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly IErrorList _errorList;
 
             public VisualStudioDiagnosticListTable(
-                IThreadingContext threadingContext,
                 VisualStudioWorkspaceImpl workspace,
                 IDiagnosticService diagnosticService,
                 ITableManagerProvider provider,
-                IErrorList errorList)
-                : base(workspace, provider)
+                IErrorList errorList) :
+                base(workspace, provider)
             {
                 _errorList = errorList;
 
-                _liveTableSource = new LiveTableDataSource(threadingContext, workspace, diagnosticService, IdentifierString, workspace.ExternalErrorDiagnosticUpdateSource);
+                _liveTableSource = new LiveTableDataSource(workspace, diagnosticService, IdentifierString, workspace.ExternalErrorDiagnosticUpdateSource);
                 _buildTableSource = new BuildTableDataSource(workspace, workspace.ExternalErrorDiagnosticUpdateSource);
 
                 AddInitialTableSource(Workspace.CurrentSolution, GetCurrentDataSource());
@@ -106,16 +104,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             /// this is for test only
-            internal VisualStudioDiagnosticListTable(
-                IThreadingContext threadingContext,
-                Workspace workspace,
-                IDiagnosticService diagnosticService,
-                ITableManagerProvider provider)
-                : base(workspace, provider)
+            internal VisualStudioDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
+                base(workspace, provider)
             {
-                AddInitialTableSource(
-                    workspace.CurrentSolution,
-                    new LiveTableDataSource(threadingContext, workspace, diagnosticService, IdentifierString));
+                AddInitialTableSource(workspace.CurrentSolution, new LiveTableDataSource(workspace, diagnosticService, IdentifierString));
             }
 
             /// this is for test only

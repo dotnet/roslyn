@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             public TestDiagnosticUpdateSource(Workspace workspace)
                 => _workspace = workspace;
 
-            public async Task RaiseDiagnosticsUpdatedAsync(DiagnosticsUpdatedArgs args)
+            public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
             {
-                _diagnostics = await args.GetPushDiagnosticsAsync(_workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                _diagnostics = args.GetPushDiagnostics(_workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
                 DiagnosticsUpdated?.Invoke(this, args);
             }
 

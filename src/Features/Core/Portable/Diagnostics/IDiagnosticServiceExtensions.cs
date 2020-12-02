@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -13,33 +12,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class IDiagnosticServiceExtensions
     {
-        public static Task<ImmutableArray<DiagnosticData>> GetPullDiagnosticsAsync(this IDiagnosticService service, DiagnosticBucket bucket, bool includeSuppressedDiagnostics, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
-            => service.GetPullDiagnosticsAsync(bucket.Workspace, bucket.ProjectId, bucket.DocumentId, bucket.Id, includeSuppressedDiagnostics, diagnosticMode, cancellationToken);
+        public static ImmutableArray<DiagnosticData> GetPullDiagnostics(this IDiagnosticService service, DiagnosticBucket bucket, bool includeSuppressedDiagnostics, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+            => service.GetPullDiagnostics(bucket.Workspace, bucket.ProjectId, bucket.DocumentId, bucket.Id, includeSuppressedDiagnostics, diagnosticMode, cancellationToken);
 
-        public static Task<ImmutableArray<DiagnosticData>> GetPushDiagnosticsAsync(this IDiagnosticService service, DiagnosticBucket bucket, bool includeSuppressedDiagnostics, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
-            => service.GetPushDiagnosticsAsync(bucket.Workspace, bucket.ProjectId, bucket.DocumentId, bucket.Id, includeSuppressedDiagnostics, diagnosticMode, cancellationToken);
+        public static ImmutableArray<DiagnosticData> GetPushDiagnostics(this IDiagnosticService service, DiagnosticBucket bucket, bool includeSuppressedDiagnostics, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+            => service.GetPushDiagnostics(bucket.Workspace, bucket.ProjectId, bucket.DocumentId, bucket.Id, includeSuppressedDiagnostics, diagnosticMode, cancellationToken);
 
-        public static Task<ImmutableArray<DiagnosticData>> GetPushDiagnosticsAsync(
+        public static ImmutableArray<DiagnosticData> GetPushDiagnostics(
             this IDiagnosticService service,
             Document document,
             bool includeSuppressedDiagnostics,
             Option2<DiagnosticMode> diagnosticMode,
             CancellationToken cancellationToken)
         {
-            return GetDiagnosticsAsync(service, document, includeSuppressedDiagnostics, forPullDiagnostics: false, diagnosticMode, cancellationToken);
+            return GetDiagnostics(service, document, includeSuppressedDiagnostics, forPullDiagnostics: false, diagnosticMode, cancellationToken);
         }
 
-        public static Task<ImmutableArray<DiagnosticData>> GetPullDiagnosticsAsync(
+        public static ImmutableArray<DiagnosticData> GetPullDiagnostics(
             this IDiagnosticService service,
             Document document,
             bool includeSuppressedDiagnostics,
             Option2<DiagnosticMode> diagnosticMode,
             CancellationToken cancellationToken)
         {
-            return GetDiagnosticsAsync(service, document, includeSuppressedDiagnostics, forPullDiagnostics: true, diagnosticMode, cancellationToken);
+            return GetDiagnostics(service, document, includeSuppressedDiagnostics, forPullDiagnostics: true, diagnosticMode, cancellationToken);
         }
 
-        public static async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+        public static ImmutableArray<DiagnosticData> GetDiagnostics(
             this IDiagnosticService service,
             Document document,
             bool includeSuppressedDiagnostics,
@@ -53,8 +52,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var result);
 
             var buckets = forPullDiagnostics
-                ? await service.GetPullDiagnosticBucketsAsync(workspace, project.Id, document.Id, diagnosticMode, cancellationToken).ConfigureAwait(false)
-                : await service.GetPushDiagnosticBucketsAsync(workspace, project.Id, document.Id, diagnosticMode, cancellationToken).ConfigureAwait(false);
+                ? service.GetPullDiagnosticBuckets(workspace, project.Id, document.Id, diagnosticMode, cancellationToken)
+                : service.GetPushDiagnosticBuckets(workspace, project.Id, document.Id, diagnosticMode, cancellationToken);
 
             foreach (var bucket in buckets)
             {
@@ -62,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Contract.ThrowIfFalse(document.Id.Equals(bucket.DocumentId));
 
                 var diagnostics = forPullDiagnostics
-                    ? await service.GetPullDiagnosticsAsync(bucket, includeSuppressedDiagnostics, diagnosticMode, cancellationToken).ConfigureAwait(false)
-                    : await service.GetPushDiagnosticsAsync(bucket, includeSuppressedDiagnostics, diagnosticMode, cancellationToken).ConfigureAwait(false);
+                    ? service.GetPullDiagnostics(bucket, includeSuppressedDiagnostics, diagnosticMode, cancellationToken)
+                    : service.GetPushDiagnostics(bucket, includeSuppressedDiagnostics, diagnosticMode, cancellationToken);
                 result.AddRange(diagnostics);
             }
 
