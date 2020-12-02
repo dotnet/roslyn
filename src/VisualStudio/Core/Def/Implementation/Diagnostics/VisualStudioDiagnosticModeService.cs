@@ -79,8 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             private bool IsInCodeSpacesServer()
             {
                 // hack until there is an officially supported free-threaded synchronous platform API to ask this question.
-                System.Diagnostics.Debugger.Launch();
-                return false;
+                return Environment.GetEnvironmentVariable("VisualStudioServerMode") == "1";
             }
         }
     }
