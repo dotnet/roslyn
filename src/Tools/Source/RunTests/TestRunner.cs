@@ -46,13 +46,23 @@ namespace RunTests
 
         internal async Task<RunAllResult> RunAllOnHelixAsync(IEnumerable<AssemblyInfo> assemblyInfoList, CancellationToken cancellationToken)
         {
+            var correlationPayload = @"<HelixCorrelationPayload Include=""$(RepoRoot)"" />
+";
             // TODO: does having an accurate branch name matter?
             var sourceBranch = Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCH");
             if (sourceBranch is null)
             {
                 sourceBranch = "local";
                 Environment.SetEnvironmentVariable("BUILD_SOURCEBRANCH", sourceBranch);
+
+                // TODO: this is funky. We download the test payload to the repo root and upload it again..
+                // We should use Helix APIs to upload the test payload during the build phase and look into how
+                // we might be able to avoid downloading the test payload to the machine that sits and waits for results.
+                correlationPayload = @"<HelixCorrelationPayload Include=""$(RepoRoot)artifacts/testPayload"" />
+";
             }
+
+            var isAzureDevOpsRun = Environment.GetEnvironmentVariable("SYSTEM_ACCESSTOKEN") is not null;
 
             if (Environment.GetEnvironmentVariable("BUILD_REPOSITORY_NAME") is null)
                 Environment.SetEnvironmentVariable("BUILD_REPOSITORY_NAME", "dotnet/roslyn");
@@ -62,17 +72,6 @@ namespace RunTests
 
             if (Environment.GetEnvironmentVariable("BUILD_REASON") is null)
                 Environment.SetEnvironmentVariable("BUILD_REASON", "pr");
-
-            var isAzureDevOpsRun = Environment.GetEnvironmentVariable("SYSTEM_ACCESSTOKEN") is not null;
-            var correlationPayload =
-                // TODO: this is funky. We download the test payload to the repo root and upload it again..
-                // We should use Helix APIs to upload the test payload during the build phase and look into how
-                // we might be able to avoid downloading the test payload to the machine that sits and waits for results.
-                isAzureDevOpsRun
-                    ? @"<HelixCorrelationPayload Include=""$(RepoRoot)"" />
-"
-                    : @"<HelixCorrelationPayload Include=""$(RepoRoot)artifacts/testPayload"" />
-";
             var buildNumber = Environment.GetEnvironmentVariable("BUILD_BUILDNUMBER") ?? "0";
             var workItems = assemblyInfoList.Select(ai => makeHelixWorkItemProject(ai));
             var project = @"
