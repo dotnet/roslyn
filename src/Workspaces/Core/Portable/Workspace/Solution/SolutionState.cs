@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis
                         }
                         else
                         {
-                            var generatedDocument = TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
+                            var generatedDocument = TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
 
                             if (generatedDocument != null)
                             {
@@ -1785,9 +1785,9 @@ namespace Microsoft.CodeAnalysis
         /// generated. This method exists to implement <see cref="Solution.GetDocument(SyntaxTree?)"/> and is best avoided unless you're doing something
         /// similarly tricky like that.
         /// </remarks>
-        public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentForAlreadyGeneratedId(DocumentId documentId)
+        public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId)
         {
-            return GetCompilationTracker(documentId.ProjectId).TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
+            return GetCompilationTracker(documentId.ProjectId).TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
         }
 
         /// <summary>
