@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsFormattableStringOrIFormattable([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
-            return symbol?.MetadataName is "FormattableString" or "IFormattable"
+            return symbol?.MetadataName is nameof(FormattableString) or nameof(IFormattable)
                 && symbol.ContainingType == null
                 && symbol.ContainingNamespace?.Name == "System"
                 && symbol.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
