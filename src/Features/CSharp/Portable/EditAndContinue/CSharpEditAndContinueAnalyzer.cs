@@ -1175,7 +1175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             var oldLocalFunction = (LocalFunctionStatementSyntax)GetLambda(oldLambdaBody);
 
             var reportDiagnostic = false;
-            if (!oldLocalFunction.AttributeLists.SequenceEqual(newLocalFunction.AttributeLists))
+            if (!AreEquivalentAttributeLists(oldLocalFunction.AttributeLists, newLocalFunction.AttributeLists, out var diagnosticNode))
             {
                 reportDiagnostic = true;
             }
@@ -1186,8 +1186,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 for (var i = 0; i < oldLocalFunction.ParameterList.Parameters.Count; i++)
                 {
-                    if (!oldLocalFunction.ParameterList.Parameters[i].AttributeLists.SequenceEqual(newLocalFunction.ParameterList.Parameters[i].AttributeLists))
+                    if (!AreEquivalentAttributeLists(oldLocalFunction.ParameterList.Parameters[i].AttributeLists, newLocalFunction.ParameterList.Parameters[i].AttributeLists, out var squiggleNode))
                     {
+                        // if the comparison didn't give us a node to highlight, then highlight the parameter
+                        diagnosticNode = squiggleNode ?? newLocalFunction.ParameterList.Parameters[i];
                         reportDiagnostic = true;
                         break;
                     }
@@ -1198,10 +1200,77 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 diagnostics.Add(new RudeEditDiagnostic(
                     RudeEditKind.Update,
-                    GetDiagnosticSpan(newLocalFunction, EditKind.Update),
+                    GetDiagnosticSpan(diagnosticNode ?? newLocalFunction, EditKind.Update),
                     newLocalFunction,
                     new[] { GetDisplayName(newLocalFunction) }));
             }
+
+        }
+
+        private static bool AreEquivalentAttributeLists(SyntaxList<AttributeListSyntax> oldAttributeLists, SyntaxList<AttributeListSyntax> newAttributeLists, out SyntaxNode? squiggleNode)
+        {
+            if (oldAttributeLists.Count != newAttributeLists.Count)
+            {
+                if (newAttributeLists.Count > 0)
+                {
+                    squiggleNode = newAttributeLists[0];
+                }
+                else
+                {
+                    // If they removed the attributes just let the lambda itself be highlighted
+                    squiggleNode = null;
+                }
+
+                return false;
+            }
+
+            for (var i = 0; i < oldAttributeLists.Count; i++)
+            {
+                if (!AreEquivalentAttributeList(oldAttributeLists[i], newAttributeLists[i], out squiggleNode))
+                {
+                    return false;
+                }
+            }
+
+            squiggleNode = null;
+            return true;
+        }
+
+        private static bool AreEquivalentAttributeList(AttributeListSyntax oldAttributeList, AttributeListSyntax newAttributeList, out SyntaxNode? squiggleNode)
+        {
+            if (!SyntaxFactory.AreEquivalent(oldAttributeList.Target, newAttributeList.Target))
+            {
+                // if they just added a target, then highlight only that
+                squiggleNode = ((SyntaxNode)newAttributeList.Target) ?? newAttributeList;
+
+                return false;
+            }
+
+            if (oldAttributeList.Attributes.Count != newAttributeList.Attributes.Count)
+            {
+                if (newAttributeList.Attributes.Count > 0)
+                {
+                    squiggleNode = newAttributeList.Attributes[0];
+                }
+                else
+                {
+                    // If they removed the attributes highlight the whole list
+                    squiggleNode = newAttributeList;
+                }
+                return false;
+            }
+
+            for (var i = 0; i < oldAttributeList.Attributes.Count; i++)
+            {
+                if (!SyntaxFactory.AreEquivalent(oldAttributeList.Attributes[i], newAttributeList.Attributes[i]))
+                {
+                    squiggleNode = newAttributeList.Attributes[i];
+                    return false;
+                }
+            }
+
+            squiggleNode = null;
+            return true;
         }
 
         private static bool IsLocalFunctionBody(SyntaxNode lambdaBody)
@@ -1385,14 +1454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.AttributeList:
                     var attributeList = (AttributeListSyntax)node;
-                    if (editKind == EditKind.Update)
-                    {
-                        return (attributeList.Target != null) ? attributeList.Target.Span : attributeList.Span;
-                    }
-                    else
-                    {
-                        return attributeList.Span;
-                    }
+                    return attributeList.Span;
 
                 case SyntaxKind.Attribute:
                     return node.Span;
@@ -2911,7 +2973,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 if (!SyntaxFactory.AreEquivalent(oldNode.Target, newNode.Target))
                 {
-                    ReportError(RudeEditKind.Update);
+                    ReportError(RudeEditKind.Update, spanNode: ((SyntaxNode)newNode.Target) ?? newNode);
                     return;
                 }
 
