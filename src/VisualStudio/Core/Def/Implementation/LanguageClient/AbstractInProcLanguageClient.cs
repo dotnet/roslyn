@@ -88,11 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// </summary>
         protected internal abstract Task<VSServerCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken);
 
-<<<<<<< HEAD
-        public Task<Connection> ActivateAsync(CancellationToken cancellationToken)
-=======
-        public async Task<Connection> ActivateAsync(CancellationToken token)
->>>>>>> upstream/master
+        public async Task<Connection> ActivateAsync(CancellationToken cancellationToken)
         {
             if (_languageServer is not null)
             {
