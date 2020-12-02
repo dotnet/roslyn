@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 typeof(CrefCompletionProvider),
                 typeof(SnippetCompletionProvider),
                 typeof(ExternAliasCompletionProvider),
+                typeof(PreprocessorCompletionProvider),
                 typeof(OverrideCompletionProvider),
                 typeof(PartialMethodCompletionProvider),
                 typeof(PartialTypeCompletionProvider),
