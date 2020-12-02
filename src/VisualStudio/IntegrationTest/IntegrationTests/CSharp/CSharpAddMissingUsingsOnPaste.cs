@@ -98,7 +98,7 @@ class Program
 
     Task DoThingAsync() => Task.CompletedTask;
 }");
-            telemetry.VerifyFired("vs/ide/vbcs/editorfeatures/importsonpaste");
+            telemetry.VerifyFired("vs/ide/vbcs/commandhandler/paste/importsonpaste");
         }
     }
 }

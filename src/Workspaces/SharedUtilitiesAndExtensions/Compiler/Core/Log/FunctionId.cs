@@ -501,6 +501,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         Workspace_Project_CompilationThrownAway = 460,
 
-        EditorFeatures_ImportsOnPaste = 470,
+        CommandHandler_Paste_ImportsOnPaste = 470,
     }
 }

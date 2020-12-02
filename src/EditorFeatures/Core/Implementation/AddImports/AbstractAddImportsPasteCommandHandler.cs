@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
 
             // We're going to log the same thing on success or failure since this blocks the UI thread. This measurement is 
             // intended to tell us how long we're blocking the user from typing with this action. 
-            using var blockLogger = Logger.LogBlock(FunctionId.EditorFeatures_ImportsOnPaste, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
+            using var blockLogger = Logger.LogBlock(FunctionId.CommandHandler_Paste_ImportsOnPaste, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
 
             var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
 #pragma warning disable VSTHRD102 // Implement internal logic asynchronously
