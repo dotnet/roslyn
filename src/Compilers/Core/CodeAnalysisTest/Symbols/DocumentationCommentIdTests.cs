@@ -20,8 +20,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Symbols
             CreateCSharpCompilation(
                 code, referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.NetStandard20));
 
-        [Fact]
-        public void TupleReturnMethod()
+        [Theory]
+        [InlineData("M:C.DoStuff~System.ValueTuple{System.Int32,System.Int32}")]
+        [InlineData("M:C.DoStuff~System.ValueTuple{System.Int32, System.Int32}")]
+        [InlineData("M:C.DoStuff~System.ValueTuple{System.Int32  , System.Int32}")]
+        public void TupleReturnMethod(string docId)
         {
             string code = @"
 class C
@@ -40,7 +43,7 @@ class C
 
             Assert.Equal(expectedDocId, actualDocId);
 
-            var foundSymbols = DocumentationCommentId.GetSymbolsForDeclarationId(expectedDocId, comp);
+            var foundSymbols = DocumentationCommentId.GetSymbolsForDeclarationId(docId, comp);
 
             Assert.Equal(new[] { symbol }, foundSymbols);
         }
