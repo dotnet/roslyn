@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 KeyValuePairUtil.Create("object_collection_array_initializers", NewLineOption.ObjectCollectionsArrayInitializers),
                 KeyValuePairUtil.Create("lambdas", NewLineOption.Lambdas),
                 KeyValuePairUtil.Create("local_functions", NewLineOption.LocalFunction),
+                KeyValuePairUtil.Create("with_initializer", NewLineOption.WithInitializer),
             });
         #endregion
 
@@ -361,6 +362,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static Option2<bool> NewLinesForBracesInObjectCollectionArrayInitializers { get; } = CreateNewLineForBracesOption(
             NewLineOption.ObjectCollectionsArrayInitializers, nameof(NewLinesForBracesInObjectCollectionArrayInitializers));
+
+        public static Option2<bool> NewLinesForBracesInWithInitializer { get; } = CreateNewLineForBracesOption(
+            NewLineOption.WithInitializer, nameof(NewLinesForBracesInWithInitializer));
 
         public static Option2<bool> NewLinesForBracesInLambdaExpressionBody { get; } = CreateNewLineForBracesOption(
             NewLineOption.Lambdas, nameof(NewLinesForBracesInLambdaExpressionBody));

@@ -151,7 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             ObjectCollectionsArrayInitializers,
             Lambdas,
             LocalFunction,
-            Accessors
+            Accessors,
+            WithInitializer
         }
     }
 }

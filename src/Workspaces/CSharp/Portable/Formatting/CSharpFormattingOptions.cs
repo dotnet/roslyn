@@ -129,6 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers"/>
         public static Option<bool> NewLinesForBracesInObjectCollectionArrayInitializers { get; } = (Option<bool>)CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers!;
 
+        /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInWithInitializer"/>
+        public static Option<bool> NewLinesForBracesInWithInitializer { get; } = (Option<bool>)CSharpFormattingOptions2.NewLinesForBracesInWithInitializer!;
+
         /// <inheritdoc cref="CSharpFormattingOptions2.NewLinesForBracesInLambdaExpressionBody"/>
         public static Option<bool> NewLinesForBracesInLambdaExpressionBody { get; } = (Option<bool>)CSharpFormattingOptions2.NewLinesForBracesInLambdaExpressionBody!;
 

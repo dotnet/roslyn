@@ -275,6 +275,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, value); }
         }
 
+        public int NewLines_Braces_WithInitializer
+        {
+            get { return GetBooleanOption(CSharpFormattingOptions2.NewLinesForBracesInWithInitializer); }
+            set { SetBooleanOption(CSharpFormattingOptions2.NewLinesForBracesInWithInitializer, value); }
+        }
+
         public int NewLines_Braces_Type
         {
             get { return GetBooleanOption(CSharpFormattingOptions2.NewLinesForBracesInTypes); }

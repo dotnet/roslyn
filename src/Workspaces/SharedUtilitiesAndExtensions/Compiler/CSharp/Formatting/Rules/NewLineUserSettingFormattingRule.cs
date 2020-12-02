@@ -135,6 +135,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
+            // with { - Record with initializer
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.WithInitializerExpression))
+            {
+                if (!_options.NewLinesForBracesInWithInitializer)
+                {
+                    operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+                }
+            }
+
             var currentTokenParentParent = currentToken.Parent.Parent;
 
             // * { - in the member declaration context
@@ -199,6 +208,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (currentToken.Kind() == SyntaxKind.OpenBraceToken && IsControlBlock(currentToken.Parent))
             {
                 if (!_options.NewLinesForBracesInControlBlocks)
+                {
+                    operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+                }
+            }
+
+            // with { - in record with initializer
+            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentToken.Parent.IsKind(SyntaxKind.WithInitializerExpression))
+            {
+                if (!_options.NewLinesForBracesInWithInitializer)
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
@@ -325,6 +343,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
+            // with { - record with initializer
+            if (currentToken.Kind() == SyntaxKind.OpenBraceToken &&
+                currentToken.Parent.Kind() == SyntaxKind.WithInitializerExpression)
+            {
+                if (_options.NewLinesForBracesInWithInitializer)
+                {
+                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
             // Array Initialization Expression
             // int[] arr = new int[] {
             //             new[] {
@@ -421,6 +453,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
+            // with { - in record with initializer
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.WithInitializerExpression))
+            {
+                if (_options.NewLinesForBracesInWithInitializer)
+                {
+                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
             // * { - in the control statement context
             if (currentToken.Kind() == SyntaxKind.OpenBraceToken && IsControlBlock(currentToken.Parent))
             {
@@ -457,6 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             public readonly bool NewLinesForBracesInTypes;
             public readonly bool NewLinesForBracesInAnonymousTypes;
             public readonly bool NewLinesForBracesInObjectCollectionArrayInitializers;
+            public readonly bool NewLinesForBracesInWithInitializer;
             public readonly bool NewLinesForBracesInProperties;
             public readonly bool NewLinesForBracesInMethods;
             public readonly bool NewLinesForBracesInAccessors;
@@ -475,6 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 NewLinesForBracesInTypes = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInTypes);
                 NewLinesForBracesInAnonymousTypes = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes);
                 NewLinesForBracesInObjectCollectionArrayInitializers = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers);
+                NewLinesForBracesInWithInitializer = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInWithInitializer);
                 NewLinesForBracesInProperties = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInProperties);
                 NewLinesForBracesInMethods = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInMethods);
                 NewLinesForBracesInAccessors = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInAccessors);
@@ -511,6 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     && NewLinesForBracesInTypes == other.NewLinesForBracesInTypes
                     && NewLinesForBracesInAnonymousTypes == other.NewLinesForBracesInAnonymousTypes
                     && NewLinesForBracesInObjectCollectionArrayInitializers == other.NewLinesForBracesInObjectCollectionArrayInitializers
+                    && NewLinesForBracesInWithInitializer == other.NewLinesForBracesInWithInitializer
                     && NewLinesForBracesInProperties == other.NewLinesForBracesInProperties
                     && NewLinesForBracesInMethods == other.NewLinesForBracesInMethods
                     && NewLinesForBracesInAccessors == other.NewLinesForBracesInAccessors
@@ -531,6 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 hashCode = (hashCode << 1) + (NewLinesForBracesInTypes ? 1 : 0);
                 hashCode = (hashCode << 1) + (NewLinesForBracesInAnonymousTypes ? 1 : 0);
                 hashCode = (hashCode << 1) + (NewLinesForBracesInObjectCollectionArrayInitializers ? 1 : 0);
+                hashCode = (hashCode << 1) + (NewLinesForBracesInWithInitializer ? 1 : 0);
                 hashCode = (hashCode << 1) + (NewLinesForBracesInProperties ? 1 : 0);
                 hashCode = (hashCode << 1) + (NewLinesForBracesInMethods ? 1 : 0);
                 hashCode = (hashCode << 1) + (NewLinesForBracesInAccessors ? 1 : 0);

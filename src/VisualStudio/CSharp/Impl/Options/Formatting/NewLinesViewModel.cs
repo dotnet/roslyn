@@ -169,6 +169,31 @@ class B {
     public int A { get; set; }
     public int B { get; set; }
 }";
+
+        private const string s_withInitializerPreviewTrue = @"record R(int X);
+
+class C {
+    void Goo(R r) {
+//[
+        var r2 = r with
+        {
+            X = 0
+        };
+//]
+    }
+}";
+        private const string s_withInitializerPreviewFalse = @"record R(int X);
+
+class C {
+    void Goo(R r) {
+//[
+        var r2 = r with {
+            X = 0
+        };
+//]
+    }
+}";
+
         private const string s_objectInitializerPreview = @"using System;
 class C {
     void Goo() {
@@ -211,6 +236,7 @@ class B {
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes, CSharpVSResources.Place_open_brace_on_new_line_for_anonymous_types, s_anonymousTypePreview, this, optionStore));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers, CSharpVSResources.Place_open_brace_on_new_line_for_object_collection_and_array_initializers, s_InitializerPreviewTrue, s_InitializerPreviewFalse, this, optionStore));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, CSharpVSResources.Place_open_brace_on_new_line_for_lambda_expression, s_lambdaPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInWithInitializer, CSharpVSResources.Place_open_brace_on_new_line_for_with_initializer, s_withInitializerPreviewTrue, s_withInitializerPreviewFalse, this, optionStore));
 
             Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.New_line_options_for_keywords });
 
