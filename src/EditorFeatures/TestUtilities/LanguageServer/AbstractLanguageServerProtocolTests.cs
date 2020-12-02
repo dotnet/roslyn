@@ -383,7 +383,7 @@ namespace Roslyn.Test.Utilities
         {
             var workspace = (TestWorkspace)solution.Workspace;
             var solutionProvider = workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
-            return new RequestExecutionQueue(solutionProvider);
+            return new RequestExecutionQueue(solutionProvider, "Tests");
         }
 
         private static string GetDocumentFilePathFromName(string documentName)

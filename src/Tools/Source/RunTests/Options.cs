@@ -185,7 +185,7 @@ namespace RunTests
                 Console.WriteLine($"Did not find artifacts directory at {artifactsPath}");
                 return null;
             }
-            resultFileDirectory ??= Path.Combine(artifactsPath, "TestResults");
+            resultFileDirectory ??= Path.Combine(artifactsPath, "TestResults", configuration);
 
             if (dotnetFilePath is null || !File.Exists(dotnetFilePath))
             {
