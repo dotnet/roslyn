@@ -576,7 +576,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             public override string Name => nameof(LspDiagnosticsTests);
 
-            protected internal override LSP.VSServerCapabilities GetCapabilities() => new();
+            protected internal override Task<LSP.VSServerCapabilities> GetCapabilitiesAsync() => Task.FromResult(new LSP.VSServerCapabilities());
 
         }
     }

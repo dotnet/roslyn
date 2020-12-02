@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -39,8 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         /// </summary>
         public override string Name => Resources.Xaml_Language_Server_Client;
 
-        protected internal override VSServerCapabilities GetCapabilities()
-            => new VSServerCapabilities
+        protected internal override Task<VSServerCapabilities> GetCapabilitiesAsync()
+            => Task.FromResult(new VSServerCapabilities
             {
                 CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new string[] { "<", " ", ":", ".", "=", "\"", "'", "{", ",", "(" } },
                 HoverProvider = true,
@@ -55,6 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                     OpenClose = false
                 },
                 SupportsDiagnosticRequests = true,
-            };
+            });
     }
 }

@@ -182,7 +182,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         return;
                     }
 
-                    var diagnostics = e.GetPushDiagnostics(_workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                    var diagnostics = e.GetPushDiagnostics(_workspace, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
                     if (diagnostics.Length == 0)
                     {
                         OnDataRemoved(e);
@@ -579,7 +579,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     id = analyzer.Analyzer.ToString();
                 }
 
-                var diagnostics = e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnostics = e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
                 return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object?)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, diagnostics)})";
             }
         }

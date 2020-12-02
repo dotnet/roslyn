@@ -58,13 +58,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
-        protected internal override async Task<VSServerCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken)
+        protected internal override Task<VSServerCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken)
         {
             var capabilities = _defaultCapabilitiesProvider.GetCapabilities();
-            capabilities.SupportsDiagnosticRequests = await this.Workspace.IsPullDiagnosticsAsync(InternalDiagnosticsOptions.RazorDiagnosticMode, cancellationToken).ConfigureAwait(false);
+            capabilities.SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode, cancellationToken);
             // Razor doesn't use workspace symbols, so disable to prevent duplicate results (with LiveshareLanguageClient) in liveshare.
             capabilities.WorkspaceSymbolProvider = false;
-            return capabilities;
+            return Task.FromResult(capabilities);
         }
     }
 }
