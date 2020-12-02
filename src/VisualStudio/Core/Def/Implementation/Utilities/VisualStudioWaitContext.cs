@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
         private void UpdateDialog()
         {
-            _dialog.UpdateProgress(
+            ((IVsThreadedWaitDialog2)_dialog).UpdateProgress(
                 this.ProgressTracker.Description ?? _message,
                 szProgressText: null,
                 szStatusBarText: null,

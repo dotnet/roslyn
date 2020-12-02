@@ -88,9 +88,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// </summary>
         protected internal abstract Task<VSServerCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken);
 
+<<<<<<< HEAD
         public Task<Connection> ActivateAsync(CancellationToken cancellationToken)
+=======
+        public async Task<Connection> ActivateAsync(CancellationToken token)
+>>>>>>> upstream/master
         {
-            Contract.ThrowIfTrue(_languageServer?.Running == true, "The language server has not yet shutdown.");
+            if (_languageServer is not null)
+            {
+                Contract.ThrowIfFalse(_languageServer.HasShutdownStarted, "The language server has not yet been asked to shutdown.");
+
+                await _languageServer.DisposeAsync().ConfigureAwait(false);
+            }
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
             _languageServer = new InProcLanguageServer(
@@ -104,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 _solutionProvider,
                 clientName: _diagnosticsClientName);
 
-            return Task.FromResult(new Connection(clientStream, clientStream));
+            return new Connection(clientStream, clientStream);
         }
 
         /// <summary>
