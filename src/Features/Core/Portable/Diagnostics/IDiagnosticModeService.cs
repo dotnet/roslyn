@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal interface IDiagnosticModeService : IWorkspaceService
     {
-        Task<DiagnosticMode> GetDiagnosticModeAsync(Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
+        DiagnosticMode GetDiagnosticMode(Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
     }
 
     [ExportWorkspaceService(typeof(IDiagnosticModeService)), Shared]
@@ -40,28 +40,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public DefaultDiagnosticModeService(Workspace workspace)
                 => _workspace = workspace;
 
-            public Task<DiagnosticMode> GetDiagnosticModeAsync(Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
-                => Task.FromResult(_workspace.Options.GetOption(diagnosticMode));
+            public DiagnosticMode GetDiagnosticMode(Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+                => _workspace.Options.GetOption(diagnosticMode);
         }
     }
 
     internal static class DiagnosticModeExtensions
     {
-        public static Task<DiagnosticMode> GetDiagnosticModeAsync(this Workspace workspace, Option2<DiagnosticMode> option, CancellationToken cancellationToken)
+        public static DiagnosticMode GetDiagnosticMode(this Workspace workspace, Option2<DiagnosticMode> option, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetRequiredService<IDiagnosticModeService>();
-            return service.GetDiagnosticModeAsync(option, cancellationToken);
+            return service.GetDiagnosticMode(option, cancellationToken);
         }
 
-        public static async Task<bool> IsPullDiagnosticsAsync(this Workspace workspace, Option2<DiagnosticMode> option, CancellationToken cancellationToken)
+        public static bool IsPullDiagnostics(this Workspace workspace, Option2<DiagnosticMode> option, CancellationToken cancellationToken)
         {
-            var mode = await GetDiagnosticModeAsync(workspace, option, cancellationToken).ConfigureAwait(false);
+            var mode = GetDiagnosticMode(workspace, option, cancellationToken);
             return mode == DiagnosticMode.Pull;
         }
 
-        public static async Task<bool> IsPushDiagnosticsAsync(this Workspace workspace, Option2<DiagnosticMode> option, CancellationToken cancellationToken)
+        public static bool IsPushDiagnostics(this Workspace workspace, Option2<DiagnosticMode> option, CancellationToken cancellationToken)
         {
-            var mode = await GetDiagnosticModeAsync(workspace, option, cancellationToken).ConfigureAwait(false);
+            var mode = GetDiagnosticMode(workspace, option, cancellationToken);
             return mode == DiagnosticMode.Push;
         }
     }
