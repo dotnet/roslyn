@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis.Storage;
 namespace Microsoft.CodeAnalysis.SQLite
 {
     /// <summary>
-    /// Base type of the v1 <see cref="v1.SQLitePersistentStorageService"/> and v2 <see cref="v2.SQLitePersistentStorageService"/>.
-    /// Used as a common location for the common static helpers to load the sqlite pcl library.
+    /// Base type <see cref="v2.SQLitePersistentStorageService"/>.  Used as a common location for the common static
+    /// helpers to load the sqlite pcl library.
     /// </summary>
     internal abstract class AbstractSQLitePersistentStorageService : AbstractPersistentStorageService
     {

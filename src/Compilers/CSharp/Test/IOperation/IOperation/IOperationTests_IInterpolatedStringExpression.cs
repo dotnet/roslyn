@@ -53,7 +53,7 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""Only text part""')
+IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: ""Only text part"") (Syntax: '$""Only text part""')
   Parts(1):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'Only text part')
         Text: 
@@ -518,7 +518,7 @@ Block[B1] - Block
               Left: 
                 IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.String) (Syntax: 'p')
               Right: 
-                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""Only text part""')
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: ""Only text part"") (Syntax: '$""Only text part""')
                   Parts(1):
                       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'Only text part')
                         Text: 

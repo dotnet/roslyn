@@ -24,23 +24,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [UseExportProvider]
     public partial class AdhocWorkspaceTests : TestBase
     {
-        private static AdhocWorkspace CreateWorkspace(Type[] additionalParts = null)
-            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
-
-        public static AdhocWorkspace CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations()
-        {
-            var workspace = CreateWorkspace(new[]
-            {
-                typeof(TestProjectCacheService),
-                typeof(TestTemporaryStorageService)
-            });
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0)));
-
-            return workspace;
-        }
-
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAddProject_ProjectInfo()
         {
@@ -408,47 +391,6 @@ language: LanguageNames.CSharp);
 
             // prove constructing text did not introduce a new version
             Assert.Equal(currentVersion, actualVersion);
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public async Task TestUpdatedDocumentTextIsObservablyConstantAsync(bool recoverable)
-        {
-            var workspace = recoverable ? CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations() : CreateWorkspace();
-            await CheckUpdatedDocumentTextIsObservablyConstantAsync(workspace);
-        }
-
-        private static async Task CheckUpdatedDocumentTextIsObservablyConstantAsync(AdhocWorkspace ws)
-        {
-            var pid = ProjectId.CreateNewId();
-            var text = SourceText.From("public class C { }");
-            var version = VersionStamp.Create();
-            var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(pid), "c.cs", loader: TextLoader.From(TextAndVersion.Create(text, version)));
-            var projInfo = ProjectInfo.Create(
-                pid,
-                version: VersionStamp.Default,
-                name: "TestProject",
-                assemblyName: "TestProject.dll",
-                language: LanguageNames.CSharp,
-                documents: new[] { docInfo });
-
-            ws.AddProject(projInfo);
-            var doc = ws.CurrentSolution.GetDocument(docInfo.Id);
-
-            // change document
-            var root = await doc.GetSyntaxRootAsync();
-            var newRoot = root.WithAdditionalAnnotations(new SyntaxAnnotation());
-            Assert.NotSame(root, newRoot);
-            var newDoc = doc.Project.Solution.WithDocumentSyntaxRoot(doc.Id, newRoot).GetDocument(doc.Id);
-            Assert.NotSame(doc, newDoc);
-
-            var newDocText = await newDoc.GetTextAsync();
-            var sameText = await newDoc.GetTextAsync();
-            Assert.Same(newDocText, sameText);
-
-            var newDocTree = await newDoc.GetSyntaxTreeAsync();
-            var treeText = newDocTree.GetText();
-            Assert.Same(newDocText, treeText);
         }
 
         [WorkItem(1174396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174396")]

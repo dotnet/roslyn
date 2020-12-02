@@ -6,7 +6,7 @@
 set -u
 
 # Stop script if subcommand fails
-set -e 
+set -e
 
 usage()
 {
@@ -23,7 +23,7 @@ usage()
   echo "  --publish                  Publish build artifacts"
   echo "  --help                     Print help and exit"
   echo ""
-  echo "Test actions:"     
+  echo "Test actions:"
   echo "  --testCoreClr              Run unit tests on .NET Core (short: --test, -t)"
   echo "  --testMono                 Run unit tests on Mono"
   echo "  --testIOperation           Run unit tests with the IOperation test hook"
@@ -219,12 +219,12 @@ function BuildSolution {
 
   InitializeToolset
   local toolset_build_proj=$_InitializeToolset
-  
+
   local bl=""
   if [[ "$binary_log" = true ]]; then
     bl="/bl:\"$log_dir/Build.binlog\""
   fi
-  
+
   local projects="$repo_root/$solution"
 
   UNAME="$(uname)"
@@ -258,10 +258,6 @@ function BuildSolution {
     test_runtime="/p:TestRuntime=Mono"
     mono_tool="/p:MonoTool=\"$mono_path\""
     test_runtime_args="--debug"
-  elif [[ "$test_core_clr" == true ]]; then
-    test=true
-    test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=net5.0%3Bnetcoreapp3.1 /p:TestRunnerAdditionalArguments=-verbose"
-    mono_tool=""
   fi
 
   # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
@@ -290,7 +286,11 @@ function BuildSolution {
     $properties
 }
 
-InitializeDotNetCli $restore
+install=false
+if [[ "$restore" == true || "$test_core_clr" == true ]]; then
+  install=true
+fi
+InitializeDotNetCli $install
 if [[ "$restore" == true ]]; then
   dotnet tool restore
 fi
@@ -301,5 +301,16 @@ if [[ "$bootstrap" == true ]]; then
   bootstrap_dir=$_MakeBootstrapBuild
 fi
 
-BuildSolution
+if [[ "$restore" == true || "$build" == true || "$rebuild" == true || "$test_mono" == true ]]; then
+  BuildSolution
+fi
+
+if [[ "$test_core_clr" == true ]]; then
+  if [[ "$ci" == true ]]; then
+    runtests_args=""
+  else
+    runtests_args="--html"
+  fi
+  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/netcoreapp3.1/RunTests.dll" --tfm netcoreapp3.1 --tfm net5.0 --configuration ${configuration} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
+fi
 ExitWithExitCode 0

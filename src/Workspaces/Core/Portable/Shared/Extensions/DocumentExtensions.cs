@@ -5,10 +5,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -16,32 +14,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static bool IsFromPrimaryBranch(this Document document)
             => document.Project.Solution.BranchId == document.Project.Solution.Workspace.PrimaryBranchId;
-
-        public static async Task<bool> IsForkedDocumentWithSyntaxChangesAsync(this Document document, CancellationToken cancellationToken)
-        {
-            try
-            {
-                if (document.IsFromPrimaryBranch())
-                {
-                    return false;
-                }
-
-                var currentSolution = document.Project.Solution.Workspace.CurrentSolution;
-                var currentDocument = currentSolution.GetDocument(document.Id);
-                if (currentDocument == null)
-                {
-                    return true;
-                }
-
-                var documentVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
-                var currentDocumentVersion = await currentDocument.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
-                return !documentVersion.Equals(currentDocumentVersion);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
 
         public static ValueTask<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, CancellationToken cancellationToken)
             => SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, cancellationToken);
