@@ -422,6 +422,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(ErrorCode.ERR_DictionaryInitializerInExpressionTree, node);
             }
 
+            if (node.MemberSymbol is PropertySymbol property)
+            {
+                CheckRefReturningPropertyAccess(node, property);
+            }
+
             return base.VisitObjectInitializerMember(node);
         }
 
@@ -481,14 +486,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitIndexerAccess(node);
         }
 
-        public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
+        private void CheckRefReturningPropertyAccess(BoundNode node, PropertySymbol property)
         {
-            var property = node.PropertySymbol;
-            var method = property.GetMethod; // This is only checking for ref returns, so we don't fall back to the set method.
-            if ((object)method != null && _inExpressionLambda && method.RefKind != RefKind.None)
+            if (_inExpressionLambda && property.RefKind != RefKind.None)
             {
                 Error(ErrorCode.ERR_RefReturningCallInExpressionTree, node);
             }
+        }
+
+        public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
+        {
+            var property = node.PropertySymbol;
+            CheckRefReturningPropertyAccess(node, property);
             CheckReceiverIfField(node.ReceiverOpt);
             return base.VisitPropertyAccess(node);
         }
