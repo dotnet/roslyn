@@ -1650,18 +1650,18 @@ namespace Microsoft.CodeAnalysis.Operations
                                     ? compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable)
                                     : compilation.GetSpecialType(SpecialType.System_IDisposable);
 
-                var enumeratorImplementsDisposable = enumeratorInfoOpt.NeedsDisposal
-                                                     && compilation.Conversions.ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorMethod.ReturnType,
-                                                                                                                   iDisposable,
-                                                                                                                   ref useSiteDiagnostics).IsImplicit;
-
                 info = new ForEachLoopOperationInfo(enumeratorInfoOpt.ElementType.GetPublicSymbol(),
                                                     enumeratorInfoOpt.GetEnumeratorMethod.GetPublicSymbol(),
                                                     ((PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol).GetPublicSymbol(),
                                                     enumeratorInfoOpt.MoveNextMethod.GetPublicSymbol(),
                                                     isAsynchronous: enumeratorInfoOpt.IsAsync,
                                                     needsDispose: enumeratorInfoOpt.NeedsDisposal,
-                                                    knownToImplementIDisposable: enumeratorImplementsDisposable,
+                                                    knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposal && (object)enumeratorInfoOpt.GetEnumeratorMethod != null ?
+                                                                                     compilation.Conversions.
+                                                                                         ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorMethod.ReturnType,
+                                                                                                                            iDisposable,
+                                                                                                                            ref useSiteDiagnostics).IsImplicit :
+                                                                                     false,
                                                     enumeratorInfoOpt.DisposeMethod.GetPublicSymbol(),
                                                     enumeratorInfoOpt.IsPatternDispose,
                                                     enumeratorInfoOpt.CurrentConversion,
