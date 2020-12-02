@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
@@ -40,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         /// </summary>
         public override string Name => Resources.Xaml_Language_Server_Client;
 
-        protected internal override Task<VSServerCapabilities> GetCapabilitiesAsync()
+        protected internal override Task<VSServerCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken)
             => Task.FromResult(new VSServerCapabilities
             {
                 CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new string[] { "<", " ", ":", ".", "=", "\"", "'", "{", ",", "(" } },

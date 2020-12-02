@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             source.DiagnosticsUpdated += (object sender, DiagnosticsUpdatedArgs e) =>
             {
-                var diagnostics = e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnostics = e.GetPushDiagnostics(workspace, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None);
                 updates.Add($"{e.Kind} p={e.ProjectId} d={e.DocumentId}: {string.Join(",", diagnostics.Select(d => d.Id.ToString()))}");
             };
 
