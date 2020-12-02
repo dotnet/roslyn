@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly MethodSymbol MoveNextMethod;
 
         // True if the enumerator needs disposal once used. 
+        // Will be either IDisposable/IAsyncDisposable, or use DisposeMethod below if set	
         // Computed during initial binding so that we can expose it in the semantic model.
         public readonly bool NeedsDisposal;
 
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // When async and needs disposal, this stores the information to await the DisposeAsync() invocation
         public readonly BoundAwaitableInfo DisposeAwaitableInfo;
 
-        // This stores the method that will be used to invoke to Dispose the enumerator, if required
+        // When using pattern-based Dispose, this stores the method to invoke to Dispose
         public readonly MethodSymbol DisposeMethod;
 
         // When enumerator needs disposing, this records if the dispose is pattern based or not
