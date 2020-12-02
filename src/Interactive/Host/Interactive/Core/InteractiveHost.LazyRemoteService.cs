@@ -144,8 +144,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
-                        StandardErrorEncoding = Encoding.UTF8,
-                        StandardOutputEncoding = Encoding.UTF8
+                        StandardErrorEncoding = OutputEncoding,
+                        StandardOutputEncoding = OutputEncoding
                     },
 
                     // enables Process.Exited event to be raised:

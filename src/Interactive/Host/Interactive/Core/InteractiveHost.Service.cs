@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 try
                 {
-                    Console.OutputEncoding = Encoding.UTF8;
+                    Console.OutputEncoding = InteractiveHost.OutputEncoding;
                 }
                 catch (IOException ex) when (FatalError.ReportAndCatch(ex))
                 {

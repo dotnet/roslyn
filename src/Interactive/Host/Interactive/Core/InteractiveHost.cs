@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Interactive
     internal sealed partial class InteractiveHost : IDisposable
     {
         internal const InteractiveHostPlatform DefaultPlatform = InteractiveHostPlatform.Desktop32;
+        internal static readonly Encoding OutputEncoding = Encoding.Unicode;
 
         private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new JsonRpcTargetOptions()
         {
