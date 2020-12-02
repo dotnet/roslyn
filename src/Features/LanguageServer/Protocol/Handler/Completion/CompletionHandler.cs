@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
@@ -105,14 +106,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             long? resultId = null;
             if (_completionListCache != null)
             {
-                // Cache the completion list so we can avoid re-computation in the resolve handler
+                // Cache the completion list so we can avoid recomputation in the resolve handler
                 resultId = await _completionListCache.UpdateCacheAsync(list, cancellationToken).ConfigureAwait(false);
             }
+
+            var completionOptionValues = GetCompletionOptionValues(document, completionOptions);
 
             return new LSP.VSCompletionList
             {
                 Items = list.Items.Select(item => CreateLSPCompletionItem(
-                    request, item, resultId, lspVSClientCapability, completionTrigger, commitCharactersRuleCache)).ToArray(),
+                    request, item, resultId, lspVSClientCapability, completionTrigger, commitCharactersRuleCache, completionOptionValues)).ToArray(),
                 SuggestionMode = list.SuggestionModeItem != null,
             };
 
@@ -139,17 +142,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 long? resultId,
                 bool useVSCompletionItem,
                 CompletionTrigger completionTrigger,
-                Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> commitCharacterRulesCache)
+                Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> commitCharacterRulesCache,
+                object?[] optionValues)
             {
                 if (useVSCompletionItem)
                 {
-                    var vsCompletionItem = CreateCompletionItem<LSP.VSCompletionItem>(request, item, resultId, completionTrigger, commitCharacterRulesCache);
+                    var vsCompletionItem = CreateCompletionItem<LSP.VSCompletionItem>(request, item, resultId, completionTrigger, commitCharacterRulesCache, optionValues);
                     vsCompletionItem.Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId());
                     return vsCompletionItem;
                 }
                 else
                 {
-                    var roslynCompletionItem = CreateCompletionItem<LSP.CompletionItem>(request, item, resultId, completionTrigger, commitCharacterRulesCache);
+                    var roslynCompletionItem = CreateCompletionItem<LSP.CompletionItem>(request, item, resultId, completionTrigger, commitCharacterRulesCache, optionValues);
                     return roslynCompletionItem;
                 }
             }
@@ -159,7 +163,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 CompletionItem item,
                 long? resultId,
                 CompletionTrigger completionTrigger,
-                Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> commitCharacterRulesCache) where TCompletionItem : LSP.CompletionItem, new()
+                Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> commitCharacterRulesCache,
+                object?[] optionValues) where TCompletionItem : LSP.CompletionItem, new()
             {
                 var completeDisplayText = item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix;
                 var completionItem = new TCompletionItem
@@ -176,6 +181,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         DisplayText = item.DisplayText,
                         CompletionTrigger = completionTrigger,
                         ResultId = resultId,
+                        CompletionOptionValues = optionValues,
                     },
                     Preselect = item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection,
                 };
@@ -225,6 +231,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var commitCharacterSet = commitCharacters.Select(c => c.ToString()).ToImmutableArray();
                 currentRuleCache.Add(item.Rules.CommitCharacterRules, commitCharacterSet);
                 return commitCharacterSet.ToArray();
+            }
+
+            static object?[] GetCompletionOptionValues(Document document, OptionSet completionOptions)
+            {
+                if (document.Project.Language != LanguageNames.CSharp && document.Project.Language != LanguageNames.VisualBasic)
+                {
+                    return Array.Empty<object?>();
+                }
+
+                // Note: The ordering of these two for-loops should not change (i.e. CompletionOptions.AllOptions should be looped
+                // through before CompletionServiceOptions.AllOptions), as this is the order CompletionResolveHandler loops through
+                // them.
+                using var _ = ArrayBuilder<object?>.GetInstance(out var optionValues);
+                foreach (var option in CompletionOptions.AllOptions)
+                {
+                    AddOptionValue(document, completionOptions, optionValues, option);
+                }
+
+                foreach (var option in CompletionServiceOptions.AllOptions)
+                {
+                    AddOptionValue(document, completionOptions, optionValues, option);
+                }
+
+                return optionValues.ToArray();
+
+                static void AddOptionValue(Document document, OptionSet completionOptions, ArrayBuilder<object?> optionValues, IOption option)
+                {
+                    var optionKey = new OptionKey(option, option.IsPerLanguage ? document.Project.Language : null);
+                    var optionValue = completionOptions.GetOption(optionKey);
+                    optionValues.Add(optionValue);
+                }
             }
         }
 

@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
+    // NOTE: All options added to this class should have serializable values, as they are used in LSP.
     internal static class CompletionServiceOptions
     {
         /// <summary>
@@ -26,5 +28,13 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public static readonly Option2<int> TimeoutInMillisecondsForExtensionMethodImportCompletion
             = new(nameof(CompletionServiceOptions), nameof(TimeoutInMillisecondsForExtensionMethodImportCompletion), defaultValue: 500);
+
+        /// <summary>
+        /// Returns all completion service options.
+        /// </summary>
+        public static ImmutableArray<IOption> AllOptions { get; } = ImmutableArray.Create<IOption>(
+            IsExpandedCompletion,
+            DisallowAddingImports,
+            TimeoutInMillisecondsForExtensionMethodImportCompletion);
     }
 }

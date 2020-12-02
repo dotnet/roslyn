@@ -53,11 +53,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 
         /// <summary>
         /// Adds a completion list to the cache. If the cache reaches its maximum size, the oldest completion
-        /// list is removed.
+        /// list in the cache is removed.
         /// </summary>
         /// <returns>
-        /// The generated resultId associated with the passed in completion list so
-        /// that it can later be retrieved.
+        /// The generated resultId associated with the passed in completion list.
         /// </returns>
         internal async Task<long> UpdateCacheAsync(CompletionList completionList, CancellationToken cancellationToken)
         {
@@ -76,7 +75,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 // Add passed in completion list to cache
                 _resultIdToCompletionList[resultId] = completionList;
 
-                // Return generated resultId so that completion list can later be retrieved from cache
+                // Return generated resultId so completion list can later be retrieved from cache
                 return resultId;
             }
         }

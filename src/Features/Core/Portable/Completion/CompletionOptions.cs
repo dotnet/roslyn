@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
+    // NOTE: All options added to this class should have serializable values, as they are used in LSP.
     internal static class CompletionOptions
     {
         // This is serialized by the Visual Studio-specific LanguageSettingsPersister
@@ -69,6 +71,20 @@ namespace Microsoft.CodeAnalysis.Completion
             yield return ShowCompletionItemFilters;
             yield return HighlightMatchingPortionsOfCompletionListItems;
         }
+
+        /// <summary>
+        /// Returns all completion options.
+        /// </summary>
+        public static ImmutableArray<IOption> AllOptions { get; } = ImmutableArray.Create<IOption>(
+            HideAdvancedMembers,
+            TriggerOnTyping,
+            TriggerOnTypingLetters2,
+            ShowCompletionItemFilters,
+            HighlightMatchingPortionsOfCompletionListItems,
+            EnterKeyBehavior,
+            SnippetsBehavior,
+            ShowItemsFromUnimportedNamespaces,
+            TriggerInArgumentLists);
     }
 
     internal static class CompletionControllerOptions
