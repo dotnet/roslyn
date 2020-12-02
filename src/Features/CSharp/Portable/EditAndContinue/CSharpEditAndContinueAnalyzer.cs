@@ -1204,7 +1204,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     newLocalFunction,
                     new[] { GetDisplayName(newLocalFunction) }));
             }
-
         }
 
         private static bool AreEquivalentAttributeLists(SyntaxList<AttributeListSyntax> oldAttributeLists, SyntaxList<AttributeListSyntax> newAttributeLists, out SyntaxNode? squiggleNode)
@@ -1241,7 +1240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             if (!SyntaxFactory.AreEquivalent(oldAttributeList.Target, newAttributeList.Target))
             {
                 // if they just added a target, then highlight only that
-                squiggleNode = ((SyntaxNode)newAttributeList.Target) ?? newAttributeList;
+                squiggleNode = ((SyntaxNode?)newAttributeList.Target) ?? newAttributeList;
 
                 return false;
             }
@@ -2973,7 +2972,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 if (!SyntaxFactory.AreEquivalent(oldNode.Target, newNode.Target))
                 {
-                    ReportError(RudeEditKind.Update, spanNode: ((SyntaxNode)newNode.Target) ?? newNode);
+                    ReportError(RudeEditKind.Update, spanNode: ((SyntaxNode?)newNode.Target) ?? newNode);
                     return;
                 }
 
