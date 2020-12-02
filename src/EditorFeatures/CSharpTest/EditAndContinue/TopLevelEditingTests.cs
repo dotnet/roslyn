@@ -427,7 +427,15 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits();
+            edits.VerifyEdits(
+                "Update [unsafe delegate void D();]@19 -> [delegate void D();]@19",
+                "Update [unsafe class N { }]@64 -> [class N { }]@57",
+                "Update [public unsafe event Action<int> A { add { } remove { } }]@88 -> [public event Action<int> A { add { } remove { } }]@74",
+                "Update [unsafe int F() => 0;]@150 -> [int F() => 0;]@129",
+                "Update [unsafe int X;]@176 -> [int X;]@148",
+                "Update [unsafe int Y { get; }]@195 -> [int Y { get; }]@160",
+                "Update [unsafe C() {}]@222 -> [C() {}]@180",
+                "Update [unsafe ~C() {}]@241 -> [~C() {}]@192");
 
             edits.VerifyRudeDiagnostics();
         }
