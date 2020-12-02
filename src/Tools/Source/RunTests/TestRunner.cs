@@ -16,7 +16,6 @@ using System.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace RunTests
 {
@@ -65,7 +64,15 @@ namespace RunTests
                 Environment.SetEnvironmentVariable("BUILD_REASON", "pr");
 
             var isAzureDevOpsRun = Environment.GetEnvironmentVariable("SYSTEM_ACCESSTOKEN") is not null;
-            var correlationPayload = await makeCorrelationPayload();
+            var correlationPayload =
+                // TODO: this is funky. We download the test payload to the repo root and upload it again..
+                // We should use Helix APIs to upload the test payload during the build phase and look into how
+                // we might be able to avoid downloading the test payload to the machine that sits and waits for results.
+                isAzureDevOpsRun
+                    ? @"<HelixCorrelationPayload Include=""$(RepoRoot)"" />
+"
+                    : @"<HelixCorrelationPayload Include=""$(RepoRoot)artifacts/testPayload"" />
+";
             var buildNumber = Environment.GetEnvironmentVariable("BUILD_BUILDNUMBER") ?? "0";
             var workItems = assemblyInfoList.Select(ai => makeHelixWorkItemProject(ai));
             var project = @"
@@ -110,34 +117,6 @@ namespace RunTests
         </HelixWorkItem>
 ";
                 return workItem;
-            }
-
-            async Task<string> makeCorrelationPayload()
-            {
-                if (isAzureDevOpsRun)
-                {
-                    if (!int.TryParse(Environment.GetEnvironmentVariable("BUILD_BUILDID"), out int buildId))
-                    {
-                        throw new InvalidOperationException("BUILD_BUILDID environment variable must be set when running in Azure DevOps");
-                    }
-
-                    // note that we will probably always need to download the build artifact in order to do partitioning.
-                    // however, we would prefer to not re-upload the artifact.
-                    var artifactJson = await new HttpClient().GetStringAsync($"https://dev.azure.com/dnceng/public/_apis/build/builds/{buildId}/artifacts?artifactName=Transport_Artifacts_Windows_Debug&api-version=6.0");
-                    var artifact = JsonConvert.DeserializeAnonymousType(
-                        artifactJson,
-                        new { resource = new { downloadUrl = "" } }
-                    );
-                    return $@"<HelixCorrelationPayload Include=""testPayload"">
-            <Uri>{artifact.resource.downloadUrl}</Uri>
-        </HelixCorrelationPayload>
-";
-                }
-                else
-                {
-                    return @"<HelixCorrelationPayload Include=""$(RepoRoot)artifacts/testPayload"" />
-";
-                }
             }
         }
 
