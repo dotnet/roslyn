@@ -104,14 +104,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// capabilities.  The specification assures that the initialize request is sent only once.
         /// </summary>
         [JsonRpcMethod(Methods.InitializeName, UseSingleObjectParameterDeserialization = true)]
-        public async Task<InitializeResult> InitializeAsync(InitializeParams initializeParams, CancellationToken cancellationToken)
+        public Task<InitializeResult> InitializeAsync(InitializeParams initializeParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(_clientCapabilities != null, $"{nameof(InitializeAsync)} called multiple times");
             _clientCapabilities = (VSClientCapabilities)initializeParams.Capabilities;
-            return new InitializeResult
+            return Task.FromResult(new InitializeResult
             {
-                Capabilities = await _languageClient.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false),
-            };
+                Capabilities = _languageClient.GetCapabilities(),
+            });
         }
 
         [JsonRpcMethod(Methods.InitializedName)]

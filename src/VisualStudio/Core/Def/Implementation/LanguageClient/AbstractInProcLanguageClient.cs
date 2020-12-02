@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// <summary>
         /// Can be overridden by subclasses to control what capabilities this language client has.
         /// </summary>
-        protected internal abstract Task<VSServerCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken);
+        protected internal abstract VSServerCapabilities GetCapabilities();
 
         public async Task<Connection> ActivateAsync(CancellationToken cancellationToken)
         {

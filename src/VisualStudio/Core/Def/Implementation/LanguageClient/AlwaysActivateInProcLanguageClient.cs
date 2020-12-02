@@ -47,8 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         public override string Name
             => ServicesVSResources.CSharp_Visual_Basic_Language_Server_Client;
 
-        protected internal override Task<VSServerCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken)
-            => Task.FromResult(new VSServerCapabilities
+        protected internal override VSServerCapabilities GetCapabilities()
+            => new VSServerCapabilities
             {
                 TextDocumentSync = new TextDocumentSyncOptions
                 {
@@ -59,6 +59,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 // This flag ensures that ctrl+, search locally uses the old editor APIs so that only ctrl+Q search is powered via LSP.
                 DisableGoToWorkspaceSymbols = true,
                 WorkspaceSymbolProvider = true,
-            });
+            };
     }
 }

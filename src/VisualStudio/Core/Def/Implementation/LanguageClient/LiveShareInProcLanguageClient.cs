@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
         public override string Name => ServicesVSResources.Live_Share_CSharp_Visual_Basic_Language_Server_Client;
 
-        protected internal override Task<VSServerCapabilities> GetCapabilitiesAsync(CancellationToken cancellationToken)
-            => Task.FromResult(_defaultCapabilitiesProvider.GetCapabilities());
+        protected internal override VSServerCapabilities GetCapabilities()
+            => _defaultCapabilitiesProvider.GetCapabilities();
     }
 }
