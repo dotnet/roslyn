@@ -1954,15 +1954,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsStatementContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {
-#if false
             // we're in a statement if the thing that comes before allows for
             // statements to follow.  Or if we're on a just started identifier
             // in the first position where a statement can go.
-            if (syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken))
+            if (syntaxTree.IsPreProcessorDirectiveContext(position, cancellationToken))
             {
                 return false;
             }
-#endif
 
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
@@ -1972,12 +1970,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsGlobalStatementContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-#if false
-            if (syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken))
+            if (syntaxTree.IsPreProcessorDirectiveContext(position, cancellationToken))
             {
                 return false;
             }
-#endif
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
                                   .GetPreviousTokenIfTouchingWord(position);
