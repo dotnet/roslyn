@@ -1110,8 +1110,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             ' #if x or $$
             ' #if x orelse $$
             '
-            ' #if and $$
-            ' #if andalso $$
+            ' #if x and $$
+            ' #if x andalso $$
 
             Select Case targetToken.Kind()
                 Case SyntaxKind.IfKeyword,
