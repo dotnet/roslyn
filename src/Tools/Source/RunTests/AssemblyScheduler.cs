@@ -279,8 +279,8 @@ namespace RunTests
             // The case we still have to consider at this point is a class with 0 defined methods, 
             // inheritting from a class with > 0 defined test methods.  That is a completely valid
             // xunit scenario.  For now we're just going to exclude types that inherit from object
-            // because they clearly don't fit that category.
-            return !(InheritsFromObject(reader, type) ?? false);
+            // or other built-in base types because they clearly don't fit that category.
+            return !InheritsFromFrameworkBaseType(reader, type);
         }
 
         private static int GetMethodCount(MetadataReader reader, TypeDefinition type)
@@ -323,17 +323,17 @@ namespace RunTests
             return true;
         }
 
-        private static bool? InheritsFromObject(MetadataReader reader, TypeDefinition type)
+        private static bool InheritsFromFrameworkBaseType(MetadataReader reader, TypeDefinition type)
         {
             if (type.BaseType.Kind != HandleKind.TypeReference)
             {
-                return null;
+                return false;
             }
 
             var typeRef = reader.GetTypeReference((TypeReferenceHandle)type.BaseType);
             return
                 reader.GetString(typeRef.Namespace) == "System" &&
-                reader.GetString(typeRef.Name) == "Object";
+                reader.GetString(typeRef.Name) is "Object" or "ValueType" or "Enum";
         }
 
         private static string GetFullName(MetadataReader reader, TypeDefinition type)

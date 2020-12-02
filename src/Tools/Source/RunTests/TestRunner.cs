@@ -93,7 +93,7 @@ namespace RunTests
 
             // TODO: it seems prohibitively difficult to extract and pass through meaningful results when running using a generated csproj.
             // TODO: how do we handle publishing stuff like proc dumps when test runs have crashes?
-            return new RunAllResult(result.ExitCode == 0, ImmutableArray<TestResult>.Empty, ImmutableArray<ProcessResult>.Empty);
+            return new RunAllResult(result.ExitCode == 0, ImmutableArray<TestResult>.Empty, ImmutableArray.Create(result));
 
             string makeHelixWorkItemProject(AssemblyInfo assemblyInfo)
             {
