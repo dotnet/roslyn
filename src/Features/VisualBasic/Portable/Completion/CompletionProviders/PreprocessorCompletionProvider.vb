@@ -15,7 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportCompletionProvider(NameOf(PreprocessorCompletionProvider), LanguageNames.VisualBasic)>
-    <ExtensionOrder(After:=NameOf(KeywordCompletionProvider))>
+    <ExtensionOrder(After:=NameOf(SymbolCompletionProvider))>
     <[Shared]>
     Friend Class PreprocessorCompletionProvider
         Inherits AbstractPreprocessorCompletionProvider
