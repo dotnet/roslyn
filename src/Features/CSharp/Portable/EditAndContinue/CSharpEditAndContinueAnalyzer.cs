@@ -2520,8 +2520,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                Debug.Assert(!SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier));
-                ReportError(RudeEditKind.Renamed);
+                if (!SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier))
+                {
+                    ReportError(RudeEditKind.Renamed);
+                    return;
+                }
             }
 
             private void ClassifyUpdate(BaseFieldDeclarationSyntax oldNode, BaseFieldDeclarationSyntax newNode)
