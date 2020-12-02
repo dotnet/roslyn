@@ -12350,6 +12350,70 @@ generated_code = auto");
             }
         }
 
+        [WorkItem(49446, "https://github.com/dotnet/roslyn/issues/49446")]
+        [Theory]
+        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when config file bumps severity to 'Warning'
+        [InlineData(false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
+        [InlineData(true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
+        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and no config file setting is specified.
+        [InlineData(false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
+        [InlineData(true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
+        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and config file bumps severity to 'Error'
+        [InlineData(false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)]
+        // Verify '/warnaserror-:ID' has no effect when default severity is 'Info' and config file bumps severity to 'Error'
+        [InlineData(false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        public void TestWarnAsErrorMinusDoesNotNullifyEditorConfig(
+            bool warnAsErrorMinus,
+            DiagnosticSeverity defaultSeverity,
+            DiagnosticSeverity? severityInConfigFile,
+            DiagnosticSeverity expectedEffectiveSeverity)
+        {
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, throwOnAllNamedTypes: false);
+            var diagnosticId = analyzer.Descriptor.Id;
+
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"class C { }");
+            var additionalFlags = new[] { "/warnaserror+" };
+
+            if (severityInConfigFile.HasValue)
+            {
+                var severityString = DiagnosticDescriptor.MapSeverityToReport(severityInConfigFile.Value).ToAnalyzerConfigString();
+                var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
+[*.cs]
+dotnet_diagnostic.{diagnosticId}.severity = {severityString}");
+
+                additionalFlags = additionalFlags.Append($"/analyzerconfig:{analyzerConfig.Path}").ToArray();
+            }
+
+            if (warnAsErrorMinus)
+            {
+                additionalFlags = additionalFlags.Append($"/warnaserror-:{diagnosticId}").ToArray();
+            }
+
+            int expectedWarningCount = 0, expectedErrorCount = 0;
+            switch (expectedEffectiveSeverity)
+            {
+                case DiagnosticSeverity.Warning:
+                    expectedWarningCount = 1;
+                    break;
+
+                case DiagnosticSeverity.Error:
+                    expectedErrorCount = 1;
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(expectedEffectiveSeverity);
+            }
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false,
+                expectedWarningCount: expectedWarningCount,
+                expectedErrorCount: expectedErrorCount,
+                additionalFlags: additionalFlags,
+                analyzers: new[] { analyzer });
+        }
+
         [Fact]
         public void SourceGenerators_EmbeddedSources()
         {
@@ -13276,8 +13340,7 @@ dotnet_diagnostic.{diagnosticId}.severity = {analyzerConfigSeverity}");
             }
         }
 
-        // can't load a coreclr targeting generator on net framework / mono
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly), Reason = "Can't load a coreclr targeting generator on net framework / mono")]
         public void TestGeneratorsCantTargetNetFramework()
         {
             var directory = Temp.CreateDirectory();
@@ -13290,7 +13353,7 @@ class C
             var coreGenerator = emitGenerator(".NETCoreApp,Version=v5.0");
             VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + coreGenerator });
 
-            //// netstandard
+            // netstandard
             var nsGenerator = emitGenerator(".NETStandard,Version=v2.0");
             VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + nsGenerator });
 
@@ -13307,7 +13370,6 @@ class C
             // framework, suppressed
             output = VerifyOutput(directory, src, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS8850", "/analyzer:" + frameworkGenerator });
             Assert.Contains("CS8033", output);
-
             VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS8850,CS8033", "/analyzer:" + frameworkGenerator });
 
             string emitGenerator(string targetFramework)

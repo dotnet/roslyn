@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
@@ -717,7 +716,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             public ImmutableArray<DiagnosticData> GetLiveErrorsForProject(ProjectId projectId)
             {
-                var project = Solution.GetRequiredProject(projectId);
+                var project = Solution.GetProject(projectId);
+                if (project == null)
+                {
+                    return ImmutableArray<DiagnosticData>.Empty;
+                }
 
                 var diagnostics = _projectMap.Where(kv => kv.Key == projectId).SelectMany(kv => kv.Value).Concat(
                         _documentMap.Where(kv => kv.Key.ProjectId == projectId).SelectMany(kv => kv.Value));

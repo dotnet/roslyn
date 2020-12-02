@@ -135,14 +135,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public TestHostDocument(
+        internal TestHostDocument(
             string text = "",
             string displayName = "",
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
             DocumentId? id = null,
             string? filePath = null,
             IReadOnlyList<string>? folders = null,
-            ExportProvider? exportProvider = null)
+            ExportProvider? exportProvider = null,
+            IDocumentServiceProvider? documentServiceProvider = null)
         {
             _exportProvider = exportProvider;
             _id = id;
@@ -153,6 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             FilePath = filePath;
             _folders = folders;
             _roles = s_defaultRoles;
+            _documentServiceProvider = documentServiceProvider;
         }
 
         internal void SetProject(TestHostProject project)

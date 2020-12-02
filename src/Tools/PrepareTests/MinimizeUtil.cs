@@ -33,8 +33,12 @@ internal static class MinimizeUtil
         //  2. Hard link all other files into destination directory
         void initialWalk()
         {
-            var directories = Directory.EnumerateDirectories(sourceDirectory, "*.UnitTests");
-            directories = directories.Concat(Directory.EnumerateDirectories(sourceDirectory, "RunTests"));
+            IEnumerable<string> directories = new[] {
+                Path.Combine(sourceDirectory, "eng")
+            };
+            var artifactsDir = Path.Combine(sourceDirectory, "artifacts/bin");
+            directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "*.UnitTests"));
+            directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "RunTests"));
 
             foreach (var unitDirPath in directories)
             {
@@ -64,9 +68,33 @@ internal static class MinimizeUtil
                     else
                     {
                         var destFilePath = Path.Combine(currentOutputDirectory, fileName);
-                        CreateHardLink(destFilePath, sourceFilePath, IntPtr.Zero);
+                        CreateHardLink(destFilePath, sourceFilePath);
                     }
                 }
+            }
+
+            // https://github.com/dotnet/roslyn/issues/49486
+            // we should avoid copying the files under Resources.
+            var individualFiles = new[]
+            {
+                "./global.json",
+                "src/Workspaces/MSBuildTest/Resources/.editorconfig",
+                "src/Workspaces/MSBuildTest/Resources/global.json",
+                "src/Workspaces/MSBuildTest/Resources/Directory.Build.props",
+                "src/Workspaces/MSBuildTest/Resources/Directory.Build.targets",
+                "src/Workspaces/MSBuildTest/Resources/Directory.Build.rsp",
+                "src/Workspaces/MSBuildTest/Resources/NuGet.Config",
+            };
+
+            foreach (var individualFile in individualFiles)
+            {
+                var currentDirName = Path.GetDirectoryName(individualFile)!;
+                var currentRelativeDirectory = Path.GetRelativePath(sourceDirectory, currentDirName);
+                var currentOutputDirectory = Path.Combine(destinationDirectory, currentRelativeDirectory);
+                Directory.CreateDirectory(currentOutputDirectory);
+
+                var destGlobalJsonPath = Path.Combine(destinationDirectory, individualFile);
+                CreateHardLink(destGlobalJsonPath, Path.Combine(sourceDirectory, individualFile));
             }
         }
 
@@ -77,13 +105,13 @@ internal static class MinimizeUtil
             {
                 if (pair.Value.Count > 1)
                 {
-                    CreateHardLink(getPeFilePath(pair.Key), pair.Value[0].FullPath, IntPtr.Zero);
+                    CreateHardLink(getPeFilePath(pair.Key), pair.Value[0].FullPath);
                 }
                 else
                 {
                     var item = pair.Value[0];
                     var destFilePath = Path.Combine(destinationDirectory, item.RelativePath);
-                    CreateHardLink(destFilePath, item.FullPath, IntPtr.Zero);
+                    CreateHardLink(destFilePath, item.FullPath);
                 }
             }
         }
@@ -100,7 +128,6 @@ internal static class MinimizeUtil
                 .SelectMany(pair => pair.Value.Select(fp => (Id: pair.Key, FilePath: fp)))
                 .GroupBy(fp => fp.FilePath.RelativeDirectory);
             var builder = new StringBuilder();
-            builder.AppendLine("@echo off");
             var count = 0;
             foreach (var group in grouping)
             {
@@ -108,28 +135,48 @@ internal static class MinimizeUtil
                 {
                     var source = Path.Combine(duplicateDirectoryName, getPeFileName(tuple.Id));
                     var destFileName = Path.Combine(group.Key, Path.GetFileName(tuple.FilePath.FullPath));
-                    builder.AppendLine($@"
-mklink /h {destFileName} {source} > nul
-if %errorlevel% neq 0 (
-    echo %errorlevel%
-    echo Cmd failed: mklink /h {destFileName} {source} > nul
-    exit 1
-)");
+                    builder.AppendLine($@"New-Item -ItemType HardLink -Name {destFileName} -Value {source} -ErrorAction Stop | Out-Null");
 
                     count++;
                     if (count % 1_000 == 0)
                     {
-                        builder.AppendLine($"echo {count:n0} hydrated");
+                        builder.AppendLine($"Write-Host '{count:n0} hydrated'");
                     }
                 }
             }
 
-            File.WriteAllText(Path.Combine(destinationDirectory, "rehydrate.cmd"), builder.ToString());
+            File.WriteAllText(Path.Combine(destinationDirectory, "rehydrate.ps1"), builder.ToString());
         }
     }
 
-    [DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
-    private static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
+    private static void CreateHardLink(string fileName, string existingFileName)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            var success = CreateHardLink(fileName, existingFileName, IntPtr.Zero);
+            if (!success)
+            {
+                // for debugging: https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes
+                throw new IOException($"Failed to create hard link from {fileName} to {existingFileName} with exception 0x{Marshal.GetLastWin32Error():X}");
+            }
+        }
+        else
+        {
+            var result = link(existingFileName, fileName);
+            if (result != 0)
+            {
+                throw new IOException($"Failed to create hard link from {existingFileName} to {fileName} with error code {Marshal.GetLastWin32Error()}");
+            }
+        }
+
+        // https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createhardlinkw
+        [DllImport("Kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
+
+        // https://man7.org/linux/man-pages/man2/link.2.html
+        [DllImport("libc", SetLastError = true)]
+        static extern int link(string oldpath, string newpath);
+    }
 
     private static bool TryGetMvid(string filePath, out Guid mvid)
     {

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // Use "<display name> <namespace>" as sort text. The space before namespace makes items with identical display name
             // but from different namespace all show up in the list, it also makes sure item with shorter name shows first, 
-            // e.g. 'SomeType` before 'SomeTypeWithLongerName'.  
+            // e.g. 'SomeType` before 'SomeTypeWithLongerName'. 
             var sortTextBuilder = PooledStringBuilder.GetInstance();
             sortTextBuilder.Builder.AppendFormat(SortTextFormat, name, containingNamespace);
 
@@ -158,13 +158,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return default;
             }
 
-            // Otherwise, this is a type item, so we don't have SymbolKey data. But we should still have all
+            // Otherwise, this is a type item, so we don't have SymbolKey data. But we should still have all 
             // the data to construct its full metadata name
             var containingNamespace = GetContainingNamespace(item);
             var typeName = item.Properties.TryGetValue(AttributeFullName, out var attributeFullName) ? attributeFullName : item.DisplayText;
             var fullyQualifiedName = GetFullyQualifiedName(containingNamespace, typeName);
 
-            // We choose not to display the number of "type overloads" for simplicity. 
+            // We choose not to display the number of "type overloads" for simplicity.
             // Otherwise, we need additional logic to track internal and public visible
             // types separately, and cache both completion items.
             if (item.Properties.TryGetValue(TypeAritySuffixName, out var aritySuffix))

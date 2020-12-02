@@ -10759,6 +10759,186 @@ class C
                 matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter });
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonForMethod()
+        {
+            var markup = @"
+class Program
+{
+    private void Bar()
+    {
+        F$$
+    }
+    
+    private void Foo(int i)
+    {
+    }
+
+    private void Foo(int i, int c)
+    {
+    }
+}";
+            var expected = @"
+class Program
+{
+    private void Bar()
+    {
+        Foo();
+    }
+    
+    private void Foo(int i)
+    {
+    }
+
+    private void Foo(int i, int c)
+    {
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonInNestedMethod()
+        {
+            var markup = @"
+class Program
+{
+    private void Bar()
+    {
+        Foo(F$$);
+    }
+    
+    private int Foo(int i)
+    {
+        return 1;
+    }
+}";
+            var expected = @"
+class Program
+{
+    private void Bar()
+    {
+        Foo(Foo(););
+    }
+    
+    private int Foo(int i)
+    {
+        return 1;
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonForDelegateInferredType()
+        {
+            var markup = @"
+using System;
+class Program
+{
+    private void Bar()
+    {
+        Bar2(F$$);
+    }
+    
+    private void Foo()
+    {
+    }
+
+    void Bar2(Action t) { }
+}";
+            var expected = @"
+using System;
+class Program
+{
+    private void Bar()
+    {
+        Bar2(Foo;);
+    }
+    
+    private void Foo()
+    {
+    }
+
+    void Bar2(Action t) { }
+}";
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonForConstructor()
+        {
+            var markup = @"
+class Program
+{
+    private static void Bar()
+    {
+        var o = new P$$
+    }
+}";
+            var expected = @"
+class Program
+{
+    private static void Bar()
+    {
+        var o = new Program();
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: ';');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonForTypeUnderNonObjectCreationContext()
+        {
+            var markup = @"
+class Program
+{
+    private static void Bar()
+    {
+        var o = P$$
+    }
+}";
+            var expected = @"
+class Program
+{
+    private static void Bar()
+    {
+        var o = Program;
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: ';');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonForAliasConstructor()
+        {
+            var markup = @"
+using String2 = System.String;
+namespace Bar1
+{
+    class Program
+    {
+        private static void Bar()
+        {
+            var o = new S$$
+        }
+    }
+}";
+            var expected = @"
+using String2 = System.String;
+namespace Bar1
+{
+    class Program
+    {
+        private static void Bar()
+        {
+            var o = new String2();
+        }
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "String2", expected, commitChar: ';');
+        }
+
         [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EnumMemberAfterPatternMatch()

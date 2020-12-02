@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             var response = new TestResponse();
 
             response.Solution = context.Solution;
-            response.RequestOrder = request.RequestOrder;
             response.StartTime = DateTime.UtcNow;
 
             await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);

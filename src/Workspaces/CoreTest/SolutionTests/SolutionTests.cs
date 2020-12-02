@@ -33,6 +33,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
+using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -43,22 +44,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 #nullable enable
         private static readonly MetadataReference s_mscorlib = TestMetadata.Net451.mscorlib;
         private static readonly DocumentId s_unrelatedDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
-
-        private static Workspace CreateWorkspace(Type[]? additionalParts = null)
-            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
-
-        private static Workspace CreateWorkspaceWithRecoverableSyntaxTrees()
-        {
-            var workspace = CreateWorkspace(new[]
-            {
-                typeof(TestProjectCacheService),
-                typeof(TestTemporaryStorageService)
-            });
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0)));
-            return workspace;
-        }
 
         private static Workspace CreateWorkspaceWithProjectAndDocuments()
         {
@@ -1521,7 +1506,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task TestProjectDependencyLoadingAsync()
         {
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var solution = workspace.CurrentSolution;
 
             var projectIds = Enumerable.Range(0, 5).Select(i => ProjectId.CreateNewId()).ToArray();
@@ -1847,7 +1832,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
 
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                 .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                 .AddDocument(did, "goo.cs", "public class Goo { }");
@@ -1870,7 +1855,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var file = Temp.CreateFile().WriteAllText(text1, Encoding.UTF8);
 
             // create a solution that evicts from the cache immediately.
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution;
 
             var pid = ProjectId.CreateNewId();
@@ -1944,7 +1929,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var did = DocumentId.CreateNewId(pid);
 
             var text = "public class C {}";
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                                     .AddDocument(did, "goo.cs", text);
@@ -2052,7 +2037,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var text = "public class C {}";
 
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                                     .AddDocument(did, "goo.cs", text);
@@ -2115,7 +2100,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var did = DocumentId.CreateNewId(pid);
 
             var text = "public class C {}";
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                                     .AddDocument(did, "goo.cs", text);
@@ -2146,7 +2131,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var did = DocumentId.CreateNewId(pid);
 
             var text = "public class C {}";
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                                     .AddDocument(did, "goo.cs", text);
@@ -2178,7 +2163,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var text = "public class C {}";
 
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                                     .AddDocument(did, "goo.cs", text);
@@ -2204,7 +2189,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var text = "public class C {}";
 
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                                     .AddDocument(did, "goo.cs", text);
@@ -2238,7 +2223,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public void Method6() {}
 }";
 
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                                     .AddDocument(did, "goo.cs", text);
@@ -2268,7 +2253,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     End Sub
 End Class";
 
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.VisualBasic)
                                     .AddDocument(did, "goo.vb", text);
@@ -2319,7 +2304,7 @@ End Class";
             var did = DocumentId.CreateNewId(pid);
 
             var text = "public class C {}";
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                                     .AddDocument(did, "goo.cs", text);
@@ -2344,7 +2329,7 @@ End Class";
             var did = DocumentId.CreateNewId(pid);
 
             var text = "public class C {}";
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                                     .AddDocument(did, "goo.cs", text);
@@ -2682,7 +2667,7 @@ public class C : A {
         public void TestWithSyntaxTree()
         {
             // get one to get to syntax tree factory
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTrees();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var solution = workspace.CurrentSolution;
             var dummyProject = solution.AddProject("dummy", "dummy", LanguageNames.CSharp);
 
@@ -2898,7 +2883,7 @@ public class C : A {
         [CombinatorialData]
         public async Task TestChangingAnEditorConfigFile([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName, bool useRecoverableTrees)
         {
-            using var workspace = useRecoverableTrees ? CreateWorkspaceWithRecoverableSyntaxTrees() : CreateWorkspace();
+            using var workspace = useRecoverableTrees ? CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations() : CreateWorkspace();
             var solution = workspace.CurrentSolution;
             var extension = languageName == LanguageNames.CSharp ? ".cs" : ".vb";
             var projectId = ProjectId.CreateNewId();
@@ -3197,6 +3182,42 @@ class C
                 using var reader = ObjectReader.TryGetReader(stream);
                 return SerializableOptionSet.Deserialize(reader, optionService, CancellationToken.None);
             }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestUpdatedDocumentTextIsObservablyConstantAsync(bool recoverable)
+        {
+            using var workspace = recoverable ? CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations() : CreateWorkspace();
+            var pid = ProjectId.CreateNewId();
+            var text = SourceText.From("public class C { }");
+            var version = VersionStamp.Create();
+            var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(pid), "c.cs", loader: TextLoader.From(TextAndVersion.Create(text, version)));
+            var projInfo = ProjectInfo.Create(
+                pid,
+                version: VersionStamp.Default,
+                name: "TestProject",
+                assemblyName: "TestProject.dll",
+                language: LanguageNames.CSharp,
+                documents: new[] { docInfo });
+
+            var solution = workspace.CurrentSolution.AddProject(projInfo);
+            var doc = solution.GetDocument(docInfo.Id);
+
+            // change document
+            var root = await doc.GetSyntaxRootAsync();
+            var newRoot = root.WithAdditionalAnnotations(new SyntaxAnnotation());
+            Assert.NotSame(root, newRoot);
+            var newDoc = doc.Project.Solution.WithDocumentSyntaxRoot(doc.Id, newRoot).GetDocument(doc.Id);
+            Assert.NotSame(doc, newDoc);
+
+            var newDocText = await newDoc.GetTextAsync();
+            var sameText = await newDoc.GetTextAsync();
+            Assert.Same(newDocText, sameText);
+
+            var newDocTree = await newDoc.GetSyntaxTreeAsync();
+            var treeText = newDocTree.GetText();
+            Assert.Same(newDocText, treeText);
         }
     }
 }

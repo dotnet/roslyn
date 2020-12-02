@@ -476,8 +476,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (IsIntPtrToNativeIntegerNestedCast(castNode, castType, castedExpressionType, semanticModel, cancellationToken))
                 return true;
 
+            // If we have `~(ulong)uintVal` then we have to preserve the `(ulong)` cast.  Otherwise, the `~` will
+            // operate on the shorter-bit value, before being extended out to the full length, rather than operating on
+            // the full length. 
+            if (IsBitwiseNotOfExtendedUnsignedValue(castNode, conversion, castType, castedExpressionType))
+                return true;
+
             return false;
         }
+
+        private static bool IsBitwiseNotOfExtendedUnsignedValue(ExpressionSyntax castNode, Conversion conversion, ITypeSymbol castType, ITypeSymbol castedExressionType)
+        {
+            if (castNode.WalkUpParentheses().IsParentKind(SyntaxKind.BitwiseNotExpression) &&
+                conversion.IsImplicit &&
+                conversion.IsNumeric)
+            {
+                return IsUnsigned(castType) || IsUnsigned(castedExressionType);
+            }
+
+            return false;
+        }
+
+        private static bool IsUnsigned(ITypeSymbol type)
+            => type.SpecialType.IsUnsignedIntegralType() || IsNuint(type);
+
+        private static bool IsNuint(ITypeSymbol type)
+            => type.SpecialType == SpecialType.System_UIntPtr && type.IsNativeIntegerType;
 
         private static bool IsIntPtrToNativeIntegerNestedCast(ExpressionSyntax castNode, ITypeSymbol castType, ITypeSymbol castedExpressionType, SemanticModel semanticModel, CancellationToken cancellationToken)
         {

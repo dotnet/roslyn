@@ -746,7 +746,9 @@ namespace N
 
             var expectedDiagnostic = outOfMemory ?
                 $"ENC0089: {string.Format(FeaturesResources.Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big, "src.cs")}" :
-                $"ENC0080: {string.Format(FeaturesResources.Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error, "src.cs", "System.NullReferenceException: NullRef!")}";
+                // Because the error message that is formatted into this template string includes a stacktrace with newlines, we need to replicate that behavior
+                // here so that any trailing punctuation is removed from the translated template string.
+                $"ENC0080: {string.Format(FeaturesResources.Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error, "src.cs", "System.NullReferenceException: NullRef!\n")}".Split('\n').First();
 
             AssertEx.Equal(new[] { expectedDiagnostic }, result.RudeEditErrors.Select(d => d.ToDiagnostic(newSyntaxTree))
                 .Select(d => $"{d.Id}: {d.GetMessage().Split(new[] { Environment.NewLine }, StringSplitOptions.None).First()}"));

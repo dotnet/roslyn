@@ -34,10 +34,13 @@ jobs:
     - script: ./eng/build.sh --ci --build --publish --pack --prepareMachine --binaryLog --configuration ${{ parameters.configuration }}
       displayName: Build
 
+    - script: ./eng/prepare-tests.sh
+      displayName: Prepare Test Payload
+
     - task: PublishPipelineArtifact@1
-      displayName: 'Publish Build'
+      displayName: Publish Test Payload
       inputs:
-        targetPath: '$(Build.SourcesDirectory)/artifacts/bin'
+        targetPath: '$(Build.SourcesDirectory)/artifacts/testPayload'
         artifactName: ${{ parameters.testArtifactName }}
 
     - template: publish-logs.yml

@@ -1,8 +1,6 @@
 [CmdletBinding(PositionalBinding=$false)]
 param([string]$configuration = "Debug",
       [string]$msbuildEngine = "vs",
-      [string]$bootstrapDir = "",
-      [string]$bootstrapConfiguration = "Debug",
       [string]$altRootDrive = "q:",
       [switch]$help)
 
@@ -28,13 +26,13 @@ $script:skipList = @(
   # Added to work around https://github.com/dotnet/roslyn/issues/48417
   "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll"
 )
-
 function Run-Build([string]$rootDir, [string]$logFileName) {
+
   # Clean out the previous run
   Write-Host "Cleaning binaries"
   $stopWatch = [System.Diagnostics.StopWatch]::StartNew()
-  Remove-Item -Recurse (Get-BinDir $rootDir) 
-  Remove-Item -Recurse (Get-ObjDir $rootDir) 
+  Remove-Item -Recurse (Get-BinDir $rootDir) -ErrorAction SilentlyContinue
+  Remove-Item -Recurse (Get-ObjDir $rootDir) -ErrorAction SilentlyContinue
   $stopWatch.Stop()
   Write-Host "Cleaning took $($stopWatch.Elapsed)"
 
@@ -48,7 +46,9 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
   $logFileName = [IO.Path]::ChangeExtension($logFileName, ".binlog")
   $logFilePath = Join-Path $LogDir $logFileName
 
-  Write-Host "Building $solution"
+  Stop-Processes
+
+  Write-Host "Building $solution using $bootstrapDir"
   MSBuild $toolsetBuildProj `
      /p:Projects=$solution `
      /p:Restore=true `
@@ -58,7 +58,13 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
      /p:DeployExtension=false `
      /p:RepoRoot=$rootDir `
      /p:TreatWarningsAsErrors=true `
+     /p:BootstrapBuildPath=$bootstrapDir `
+     /p:RunAnalyzers=false `
+     /p:RunAnalyzersDuringBuild=false `
+     /p:RestoreUseStaticGraphEvaluation=true `
      /bl:$logFilePath
+
+  Stop-Processes
 }
 
 function Get-ObjDir([string]$rootDir) { 
@@ -76,12 +82,15 @@ function Get-FilesToProcess([string]$rootDir) {
   foreach ($item in Get-ChildItem -re -in *.dll,*.exe,*.pdb,*.sourcelink.json $objDir) {
     $filePath = $item.FullName 
     $fileName = Split-Path -leaf $filePath
+    $relativeDirectory = Split-Path -parent $filePath
+    $relativeDirectory = $relativeDirectory.Substring($objDir.Length)
+    $relativeDirectory = $relativeDirectory.TrimStart("\")
 
     if ($skipList.Contains($fileName)) {
       continue;
     }
 
-    $fileId = $filePath.Substring($objDir.Length).Replace("\", ".")
+    $fileId = $filePath.Substring($objDir.Length).Replace("\", ".").TrimStart(".")
     $fileHash = (Get-FileHash $filePath -algorithm MD5).Hash
 
     $data = @{}
@@ -90,6 +99,7 @@ function Get-FilesToProcess([string]$rootDir) {
     $data.FileId = $fileId
     $data.FileName = $fileName
     $data.FilePath = $filePath
+    $data.RelativeDirectory = $relativeDirectory
 
     $keyFilePath = $filePath + ".key"
     $keyFileName = Split-Path -leaf $keyFilePath
@@ -115,7 +125,7 @@ function Record-Binaries([string]$rootDir) {
 
   $map = @{ }
   foreach ($fileData in Get-FilesToProcess $rootDir) { 
-    Write-Host "`t$($fileData.FileName) = $($fileData.Hash)"
+    Write-Host "`t$($fileData.FileId) = $($fileData.Hash)"
     $map[$fileData.FileId] = $fileData
   }
   $stopWatch.Stop()
@@ -168,6 +178,7 @@ function Test-Build([string]$rootDir, $dataMap, [string]$logFileName) {
     $fileId = $fileData.FileId
     $fileName = $fileData.FileName
     $filePath = $fileData.FilePath
+    $relativeDir = $fileData.RelativeDirectory
 
     if (-not $dataMap.Contains($fileId)) {
       Write-Host "ERROR! Missing entry in map $fileId->$filePath"
@@ -177,25 +188,30 @@ function Test-Build([string]$rootDir, $dataMap, [string]$logFileName) {
 
     $oldfileData = $datamap[$fileId]
     if ($fileData.Hash -ne $oldFileData.Hash) { 
-      Write-Host "`tERROR! $fileName contents don't match"
+      Write-Host "`tERROR! $relativeDir\$fileName contents don't match"
       $allGood = $false
       $errorList += $fileName
 
+      $errorCurrentDirLeft = Join-Path $errorDirLeft $relativeDir
+      Create-Directory $errorCurrentDirLeft
+      $errorCurrentDirRight = Join-Path $errorDirRight $relativeDir
+      Create-Directory $errorCurrentDirRight
+
       # Save out the original and baseline for investigation
-      [IO.File]::WriteAllBytes((Join-Path $errorDirLeft $fileName), $oldFileData.Content)
-      Copy-Item $filePath (Join-Path $errorDirRight $fileName)
+      [IO.File]::WriteAllBytes((Join-Path $errorCurrentDirLeft $fileName), $oldFileData.Content)
+      Copy-Item $filePath (Join-Path $errorCurrentDirRight $fileName)
 
       # Copy the key files if available too
       $keyFileName = $oldFileData.KeyFileName
       if ($keyFileName -ne "") {
-        [IO.File]::WriteAllBytes((Join-Path $errorDirLeft $keyFileName), $oldFileData.KeyFileContent)
-        Copy-Item $fileData.KeyFilePath (Join-Path $errorDirRight $keyFileName)
+        [IO.File]::WriteAllBytes((Join-Path $errorCurrentDirLeft $keyFileName), $oldFileData.KeyFileContent)
+        Copy-Item $fileData.KeyFilePath (Join-Path $errorCurrentDirRight $keyFileName)
       }
 
       continue
     }
 
-    Write-Host "`tVerified $fileName"
+    Write-Host "`tVerified $relativeDir\$fileName"
   }
 
   if (-not $allGood) {
@@ -219,7 +235,7 @@ function Test-Build([string]$rootDir, $dataMap, [string]$logFileName) {
 
 function Run-Test() {
   # Run the initial build so that we can populate the maps
-  Run-Build $RepoRoot -logFileName "Initial"
+  Run-Build $RepoRoot -logFileName "Initial" -useBootstrap
   $dataMap = Record-Binaries $RepoRoot
   Test-MapContents $dataMap
 
@@ -252,19 +268,15 @@ try {
   Create-Directory $errorDirLeft
   Create-Directory $errorDirRight
 
+  $ci = $true
   $runAnalyzers = $false
   $binaryLog = $true
   $officialBuildId = ""
-  $ci = $true
   $nodeReuse = $false
   $properties = @()
 
-  if ($bootstrapDir -eq "") {
-    $bootstrapDir = Make-BootstrapBuild
-  } elseif (![IO.Path]::IsPathRooted($script:bootstrapDir)) {
-    Write-Host "The bootstrap build path must be absolute"
-    exit 1
-  }
+  $script:bootstrapConfiguration = "Release"
+  $bootstrapDir = Make-BootstrapBuild
 
   Run-Test
   exit 0

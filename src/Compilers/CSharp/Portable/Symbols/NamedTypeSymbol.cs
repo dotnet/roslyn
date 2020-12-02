@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var typeArgument in result)
             {
-                AddDefinitionUseSiteDiagnostics(typeArgument, ref useSiteDiagnostics);
+                typeArgument.Type.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
             }
 
             return result;
@@ -74,13 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeWithAnnotations TypeArgumentWithDefinitionUseSiteDiagnostics(int index, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var result = TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[index];
-            AddDefinitionUseSiteDiagnostics(result, ref useSiteDiagnostics);
+            result.Type.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
             return result;
-        }
-
-        private static void AddDefinitionUseSiteDiagnostics(TypeWithAnnotations type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            type.DefaultType.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
         }
 
         /// <summary>
@@ -648,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Compares this type to another type.
         /// </summary>
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
             if ((object)t2 == this) return true;
             if ((object)t2 == null) return false;
@@ -691,23 +686,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // symbols.  Therefore this code may not behave correctly if 'this' is List<int>
             // where List`1 is a missing metadata type symbol, and other is similarly List<int>
             // but for a reference-distinct List`1.
-            if (!Equals(thisOriginalDefinition, otherOriginalDefinition, comparison, isValueTypeOverrideOpt))
+            if (!Equals(thisOriginalDefinition, otherOriginalDefinition, comparison))
             {
                 return false;
             }
 
             // The checks above are supposed to handle the vast majority of cases.
             // More complicated cases are handled in a special helper to make the common case scenario simple/fast (fewer locals and smaller stack frame)
-            return EqualsComplicatedCases(other, comparison, isValueTypeOverrideOpt);
+            return EqualsComplicatedCases(other, comparison);
         }
 
         /// <summary>
         /// Helper for more complicated cases of Equals like when we have generic instantiations or types nested within them.
         /// </summary>
-        private bool EqualsComplicatedCases(NamedTypeSymbol other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt)
+        private bool EqualsComplicatedCases(NamedTypeSymbol other, TypeCompareKind comparison)
         {
             if ((object)this.ContainingType != null &&
-                !this.ContainingType.Equals(other.ContainingType, comparison, isValueTypeOverrideOpt))
+                !this.ContainingType.Equals(other.ContainingType, comparison))
             {
                 return false;
             }
@@ -747,7 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var typeArgument = typeArguments[i];
                 var otherTypeArgument = otherTypeArguments[i];
-                if (!typeArgument.Equals(otherTypeArgument, comparison, isValueTypeOverrideOpt))
+                if (!typeArgument.Equals(otherTypeArgument, comparison))
                 {
                     return false;
                 }

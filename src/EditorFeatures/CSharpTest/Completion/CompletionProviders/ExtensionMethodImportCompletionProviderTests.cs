@@ -1889,6 +1889,120 @@ namespace Foo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCommitWithSemicolonForMethod()
+        {
+            var markup = @"
+public class C
+{
+}
+namespace AA
+{
+    public static class Ext
+    {
+        public static int ToInt(this C c)
+            => 1;
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            var c = new C();
+            c.$$
+        }
+    }
+}";
+
+            var expected = @"
+using AA;
+
+public class C
+{
+}
+namespace AA
+{
+    public static class Ext
+    {
+        public static int ToInt(this C c)
+            => 1;
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            var c = new C();
+            c.ToInt();
+        }
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "ToInt", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCommitWithSemicolonForMethodForDelegateContext()
+        {
+            var markup = @"
+public class C
+{
+}
+namespace AA
+{
+    public static class Ext
+    {
+        public static int ToInt(this C c)
+            => 1;
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            var c = new C();
+            c.$$
+        }
+    }
+}";
+
+            var expected = @"
+using AA;
+
+public class C
+{
+}
+namespace AA
+{
+    public static class Ext
+    {
+        public static int ToInt(this C c)
+            => 1;
+    }
+}
+
+namespace BB
+{
+    public class B
+    {
+        public void M()
+        {
+            var c = new C();
+            c.ToInt();
+        }
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "ToInt", expected, commitChar: ';', sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestTimeBox()
         {
             var file1 = @"

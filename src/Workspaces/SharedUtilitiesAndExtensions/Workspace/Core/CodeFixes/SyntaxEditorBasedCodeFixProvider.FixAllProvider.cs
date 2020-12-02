@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -33,17 +35,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllContext fixAllContext)
             {
-                var result = await GetDocumentDiagnosticsToFixWorkerAsync(fixAllContext).ConfigureAwait(false);
+                var result = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
 
                 // Filter out any documents that we don't have any diagnostics for.
                 return result.Where(kvp => !kvp.Value.IsDefaultOrEmpty).ToImmutableDictionary();
-
-                static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixWorkerAsync(FixAllContext fixAllContext)
-                {
-                    return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(
-                        fixAllContext,
-                        progressTrackerOpt: null).ConfigureAwait(false);
-                }
             }
 
             private async Task<CodeAction> GetFixAsync(
@@ -51,8 +46,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 FixAllContext fixAllContext)
             {
                 // Process all documents in parallel.
+                var progressTracker = fixAllContext.GetProgressTracker();
+
+                progressTracker.Description = WorkspaceExtensionsResources.Applying_fix_all;
+                progressTracker.AddItems(documentsAndDiagnosticsToFixMap.Count);
+
                 var updatedDocumentTasks = documentsAndDiagnosticsToFixMap.Select(
-                    kvp => FixDocumentAsync(kvp.Key, kvp.Value, fixAllContext));
+                    kvp => FixDocumentAsync(kvp.Key, kvp.Value, fixAllContext, progressTracker));
 
                 await Task.WhenAll(updatedDocumentTasks).ConfigureAwait(false);
 
@@ -70,6 +70,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 var title = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
                 return new CustomCodeActions.SolutionChangeAction(title, _ => Task.FromResult(currentSolution));
+            }
+
+            private async Task<Document> FixDocumentAsync(Document key, ImmutableArray<Diagnostic> value, FixAllContext fixAllContext, IProgressTracker progressTracker)
+            {
+                try
+                {
+                    return await FixDocumentAsync(key, value, fixAllContext).ConfigureAwait(false);
+                }
+                finally
+                {
+                    progressTracker.ItemCompleted();
+                }
             }
 
             private async Task<Document> FixDocumentAsync(

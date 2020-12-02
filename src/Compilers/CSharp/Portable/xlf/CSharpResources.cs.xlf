@@ -942,6 +942,11 @@
         <target state="new">'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
+        <source>covariant returns</source>
+        <target state="new">covariant returns</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDiscards">
         <source>discards</source>
         <target state="new">discards</target>
@@ -1442,9 +1447,9 @@
         <target state="translated">slučovací přiřazení</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
-        <source>covariant returns</source>
-        <target state="new">covariant returns</target>
+      <trans-unit id="IDS_FeatureConstantInterpolatedStrings">
+        <source>constant interpolated strings</source>
+        <target state="new">constant interpolated strings</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">
@@ -9509,7 +9514,7 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       </trans-unit>
       <trans-unit id="InvalidGetDeclarationNameMultipleDeclarators">
         <source>Called GetDeclarationName for a declaration node that can possibly contain multiple variable declarators.</source>
-        <target state="translated">Proběhlo volání funkce GetDeclarationName kvůli uzlu deklarací, který by mohl obsahovat několik variabilních deklarátorů.</target>
+        <target state="translated">Proběhlo volání funkce GetDeclarationName kvůli uzlu deklarací, který by mohl obsahovat několik variabiln��ch deklarátorů.</target>
         <note />
       </trans-unit>
       <trans-unit id="TreeNotPartOfCompilation">
@@ -10599,7 +10604,7 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       </trans-unit>
       <trans-unit id="ERR_TupleInferredNamesNotAvailable">
         <source>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</source>
-        <target state="translated">Název elementu řazené kolekce členů {0} je odvozený. Pokud k elementu chcete získat přístup pomocí jeho odvozeného názvu, použijte prosím jazyk verze {1} nebo vyšší.</target>
+        <target state="translated">Název elementu řazené kolekce členů {0} je odvozený. Pokud k elementu chcete získat přístup pomocí jeho odvozen��ho názvu, použijte prosím jazyk verze {1} nebo vyšší.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VoidInTuple">

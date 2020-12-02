@@ -297,6 +297,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 embeddedFiles.Add(resolvedPath)
             Next
         End Sub
+
+        Private Protected Overrides Function RunGenerators(input As Compilation, parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText), diagnostics As DiagnosticBag) As Compilation
+            Dim driver = VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), analyzerConfigOptionsProvider)
+            Dim compilationOut As Compilation = Nothing, generatorDiagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver.RunGeneratorsAndUpdateCompilation(input, compilationOut, generatorDiagnostics)
+            diagnostics.AddRange(generatorDiagnostics)
+            Return compilationOut
+        End Function
+
     End Class
 End Namespace
-

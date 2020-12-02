@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
 
         private readonly AdditionalSourcesCollection _additionalSources;
 
-        internal GeneratorExecutionContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxReceiver? syntaxReceiver, CancellationToken cancellationToken = default)
+        internal GeneratorExecutionContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxReceiver? syntaxReceiver, AdditionalSourcesCollection additionalSources, CancellationToken cancellationToken = default)
         {
             Compilation = compilation;
             ParseOptions = parseOptions;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
             AnalyzerConfigOptions = optionsProvider;
             SyntaxReceiver = syntaxReceiver;
             CancellationToken = cancellationToken;
-            _additionalSources = new AdditionalSourcesCollection();
+            _additionalSources = additionalSources;
             _diagnostics = new DiagnosticBag();
         }
 
@@ -150,9 +150,9 @@ namespace Microsoft.CodeAnalysis
 
     internal readonly struct GeneratorEditContext
     {
-        internal GeneratorEditContext(ImmutableArray<GeneratedSourceText> sources, CancellationToken cancellationToken = default)
+        internal GeneratorEditContext(AdditionalSourcesCollection sources, CancellationToken cancellationToken = default)
         {
-            AdditionalSources = new AdditionalSourcesCollection(sources);
+            AdditionalSources = sources;
             CancellationToken = cancellationToken;
         }
 
