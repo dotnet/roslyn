@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     newProcess.Exited -= ProcessExitedBeforeEstablishingConnection;
                 }
 
-                return new RemoteService(Host, newProcess, newProcessId, jsonRpc, platformInfo);
+                return new RemoteService(Host, newProcess, newProcessId, jsonRpc, platformInfo, Options);
             }
 
             private bool CheckAlive(Process process, string hostPath)
