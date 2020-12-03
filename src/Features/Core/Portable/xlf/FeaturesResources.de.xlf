@@ -612,7 +612,7 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="translated">Durch das Ändern des Texts von "{0}" wird die Fortsetzung der Debugsitzung aufgrund des folgenden internen Fehlers verhindert: {1}.</target>
+        <target state="translated">Durch das Ändern des Texts von "{0}" wird die Fortsetzung der Debugsitzung aufgrund des folgenden internen Fehlers verhindert: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
@@ -642,7 +642,7 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="translated">Durch das Ändern der Quelldatei "{0}" wird die Fortsetzung der Debugsitzung aufgrund des folgenden internen Fehlers verhindert: {1}.</target>
+        <target state="translated">Durch das Ändern der Quelldatei "{0}" wird die Fortsetzung der Debugsitzung aufgrund des folgenden internen Fehlers verhindert: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
