@@ -6,10 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -82,7 +79,7 @@ namespace Microsoft.CodeAnalysis
                     _childIndex = count;
                 }
 
-                // MemberNotNullWhen(true, nameof(_node)) https://github.com/dotnet/roslyn/issues/41964
+                [MemberNotNullWhen(true, nameof(_node))]
                 public bool MoveNext()
                 {
                     return --_childIndex >= 0;

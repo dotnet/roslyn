@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -29,17 +28,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
     internal static class SemanticClassificationUtilities
     {
-        /// <summary>
-        /// Mapping from workspaces to a task representing when they are fully loaded.  While this task is not complete,
-        /// the workspace is still loading.  Once complete the workspace is loaded.  We store the task around, instead
-        /// of just awaiting <see cref="IWorkspaceStatusService.IsFullyLoadedAsync"/> as actually awaiting that call
-        /// takes non-neglible time (upwards of several hundred ms, to a second), whereas we can actually just use the
-        /// status of the <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync"/> task to know when we have
-        /// actually transitioned to a loaded state.
-        /// </summary>
-        private static readonly ConditionalWeakTable<Workspace, Task> s_workspaceToFullyLoadedStateTask =
-            new();
-
         public static async Task ProduceTagsAsync(
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
@@ -175,27 +163,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             List<ClassifiedSpan> classifiedSpans,
             CancellationToken cancellationToken)
         {
-            // Note: we do this work in a Task.Run to ensure that nothing we do (sync or async) ends up causing blocking
-            // on the UI thread inside of IWorkspaceStatusService.  This is necessary as synchronous tagging will cause
-            // us to make an explicit .Wait call on the tagging tasks.  If this thread in any way ended up blocking on 
-            // the UI thread, we would deadlock.
-            var fullyLoadedStateTask = s_workspaceToFullyLoadedStateTask.GetValue(
-                document.Project.Solution.Workspace,
-                w => Task.Run(async () =>
-                {
-                    var workspaceLoadedService = w.Services.GetRequiredService<IWorkspaceStatusService>();
-                    await workspaceLoadedService.WaitUntilFullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
-                }));
+            var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
 
-            // If we're not fully loaded try to read from the cache instead so that classifications appear up to date.
-            // New code will not be semantically classified, but will eventually when the project fully loads.
-            //
             // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
             // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
             // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
             // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
             // fully loaded.
-            var isFullyLoaded = fullyLoadedStateTask.IsCompleted;
+            var isFullyLoadedTask = workspaceStatusService.IsFullyLoadedAsync(cancellationToken);
+            var isFullyLoaded = isFullyLoadedTask.IsCompleted && isFullyLoadedTask.GetAwaiter().GetResult();
+
+            // If we're not fully loaded try to read from the cache instead so that classifications appear up to date.
+            // New code will not be semantically classified, but will eventually when the project fully loads.
             if (await TryAddSemanticClassificationsFromCacheAsync(document, textSpan, classifiedSpans, isFullyLoaded, cancellationToken).ConfigureAwait(false))
                 return;
 

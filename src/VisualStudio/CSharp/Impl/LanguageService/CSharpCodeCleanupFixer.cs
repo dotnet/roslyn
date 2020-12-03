@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -178,6 +179,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         private Task<bool> FixTextBufferAsync(TextBufferCodeCleanUpScope textBufferScope, ICodeCleanUpExecutionContext context)
         {
             var buffer = textBufferScope.SubjectBuffer;
+
+            // Let LSP handle code cleanup in the cloud scenario
+            if (buffer.IsInCloudEnvironmentClientContext())
+            {
+                return SpecializedTasks.False;
+            }
+
             var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {

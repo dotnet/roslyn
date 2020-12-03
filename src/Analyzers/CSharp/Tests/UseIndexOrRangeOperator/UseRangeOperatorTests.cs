@@ -947,5 +947,103 @@ public class Test
                 FixedCode = fixedSource,
             }.RunAsync();
         }
+
+        [WorkItem(38055, "https://github.com/dotnet/roslyn/issues/38055")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestStringMethod()
+        {
+            var source =
+@"
+namespace System
+{
+    public class Object {}
+    public class ValueType : Object {}
+    public struct Void {}
+    public struct Int32 {}
+    public struct Index
+    {
+        public int GetOffset(int length) => 0;
+        public static implicit operator Index(int value) => default;
+    }
+    public struct Range
+    {
+        public Range(Index start, Index end) {}
+        public Index Start => default;
+        public Index End => default;
+    }
+    public class String : Object
+    {
+        public int Length => 0;
+        public string Substring(int start, int length) => this;
+
+        string Foo(int x) => Substring([|1, x - 1|]);
+    }
+}";
+            var fixedSource =
+@"
+namespace System
+{
+    public class Object {}
+    public class ValueType : Object {}
+    public struct Void {}
+    public struct Int32 {}
+    public struct Index
+    {
+        public int GetOffset(int length) => 0;
+        public static implicit operator Index(int value) => default;
+    }
+    public struct Range
+    {
+        public Range(Index start, Index end) {}
+        public Index Start => default;
+        public Index End => default;
+    }
+    public class String : Object
+    {
+        public int Length => 0;
+        public string Substring(int start, int length) => this;
+
+        string Foo(int x) => this[1..x];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = new ReferenceAssemblies("nostdlib"),
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(38055, "https://github.com/dotnet/roslyn/issues/38055")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestSliceOnThis()
+        {
+            var source =
+@"
+class C
+{
+    public int Length => 0;
+    public C Slice(int start, int length) => this;
+
+    public C Foo(int x) => Slice([|1, x - 1|]);
+}";
+            var fixedSource =
+@"
+class C
+{
+    public int Length => 0;
+    public C Slice(int start, int length) => this;
+
+    public C Foo(int x) => this[1..x];
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
     }
 }

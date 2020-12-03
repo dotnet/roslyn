@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
@@ -13,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     internal class CaretPreservingEditTransaction : IDisposable
     {
         private readonly IEditorOperations _editorOperations;
-        private readonly ITextUndoHistory _undoHistory;
-        private ITextUndoTransaction _transaction;
+        private readonly ITextUndoHistory? _undoHistory;
+        private ITextUndoTransaction? _transaction;
         private bool _active;
 
         public CaretPreservingEditTransaction(
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
-        public static CaretPreservingEditTransaction TryCreate(string description,
+        public static CaretPreservingEditTransaction? TryCreate(string description,
             ITextView textView,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
@@ -87,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
-        public IMergeTextUndoTransactionPolicy MergePolicy
+        public IMergeTextUndoTransactionPolicy? MergePolicy
         {
             get
             {

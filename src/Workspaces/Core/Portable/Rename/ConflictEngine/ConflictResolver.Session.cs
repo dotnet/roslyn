@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                         }
                                         else
                                         {
-                                            var overriddenSymbol = overridingSymbol.OverriddenMember();
+                                            var overriddenSymbol = overridingSymbol.GetOverriddenMember();
                                             if (overriddenSymbol == null || !overriddenSymbol.Locations.All(loc => loc.IsInMetadata))
                                             {
                                                 hasConflict = true;

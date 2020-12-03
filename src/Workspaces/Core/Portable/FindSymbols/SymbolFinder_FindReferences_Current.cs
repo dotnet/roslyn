@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                         await client.TryInvokeAsync<IRemoteSymbolFinderService>(
                             solution,
-                            (service, solutionInfo, cancellationToken) => service.FindReferencesAsync(solutionInfo, serializedSymbol, documentIds, options, cancellationToken),
+                            (service, solutionInfo, callbackId, cancellationToken) => service.FindReferencesAsync(solutionInfo, callbackId, serializedSymbol, documentIds, options, cancellationToken),
                             serverCallback,
                             cancellationToken).ConfigureAwait(false);
 

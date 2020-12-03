@@ -31,8 +31,6 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     public abstract partial class CompletionServiceWithProviders : CompletionService, IEqualityComparer<ImmutableHashSet<string>>
     {
-        private static readonly Func<string, List<CompletionItem>> s_createList = _ => new List<CompletionItem>();
-
         private readonly object _gate = new();
 
         private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CompletionProvider>>> _projectCompletionProvidersMap
@@ -436,8 +434,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // changed it 'wins' and picks the span that will be used for all items in the completion
             // list.  If no contexts changed it, then just use the default span provided by the service.
             var finalCompletionListSpan = completionContexts.FirstOrDefault(c => c.CompletionListSpan != defaultSpan)?.CompletionListSpan ?? defaultSpan;
-
-            var displayNameToItemsMap = new Dictionary<string, List<CompletionItem>>();
+            using var displayNameToItemsMap = new DisplayNameToItemsMap(this);
             CompletionItem suggestionModeItem = null;
 
             foreach (var context in completionContexts)
@@ -447,53 +444,29 @@ namespace Microsoft.CodeAnalysis.Completion
                 foreach (var item in context.Items)
                 {
                     Debug.Assert(item != null);
-                    AddToDisplayMap(item, displayNameToItemsMap);
+                    displayNameToItemsMap.Add(item);
                 }
 
                 // first one wins
                 suggestionModeItem ??= context.SuggestionModeItem;
             }
 
-            if (displayNameToItemsMap.Count == 0)
+            if (displayNameToItemsMap.IsEmpty)
             {
                 return CompletionList.Empty;
             }
 
             // TODO(DustinCa): Revisit performance of this.
-            var totalItems = displayNameToItemsMap.Values.Flatten().ToList();
-            totalItems.Sort();
+            using var _ = ArrayBuilder<CompletionItem>.GetInstance(displayNameToItemsMap.Count, out var builder);
+            builder.AddRange(displayNameToItemsMap);
+            builder.Sort();
 
             return CompletionList.Create(
                 finalCompletionListSpan,
-                totalItems.ToImmutableArray(),
+                builder.ToImmutable(),
                 GetRules(),
                 suggestionModeItem,
                 isExclusive);
-        }
-
-        private void AddToDisplayMap(
-            CompletionItem item,
-            Dictionary<string, List<CompletionItem>> displayNameToItemsMap)
-        {
-            var sameNamedItems = displayNameToItemsMap.GetOrAdd(item.GetEntireDisplayText(), s_createList);
-
-            // If two items have the same display text choose which one to keep.
-            // If they don't actually match keep both.
-
-            for (var i = 0; i < sameNamedItems.Count; i++)
-            {
-                var existingItem = sameNamedItems[i];
-
-                Debug.Assert(item.GetEntireDisplayText() == existingItem.GetEntireDisplayText());
-
-                if (ItemsMatch(item, existingItem))
-                {
-                    sameNamedItems[i] = GetBetterItem(item, existingItem);
-                    return;
-                }
-            }
-
-            sameNamedItems.Add(item);
         }
 
         /// <summary>
@@ -648,6 +621,100 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return hash;
+        }
+
+        private class DisplayNameToItemsMap : IEnumerable<CompletionItem>, IDisposable
+        {
+            // We might need to handle large amount of items with import completion enabled,
+            // so use a dedicated pool to minimize array allocations.
+            // Set the size of pool to a small number 5 because we don't expect more than a
+            // couple of callers at the same time.
+            private static readonly ObjectPool<Dictionary<string, object>> s_uniqueSourcesPool
+                = new(factory: () => new(), size: 5);
+
+            private readonly Dictionary<string, object> _displayNameToItemsMap;
+            private readonly CompletionServiceWithProviders _service;
+
+            public int Count { get; private set; }
+
+            public DisplayNameToItemsMap(CompletionServiceWithProviders service)
+            {
+                _service = service;
+                _displayNameToItemsMap = s_uniqueSourcesPool.Allocate();
+            }
+
+            public void Dispose()
+            {
+                _displayNameToItemsMap.Clear();
+                s_uniqueSourcesPool.Free(_displayNameToItemsMap);
+            }
+
+            public bool IsEmpty => _displayNameToItemsMap.Count == 0;
+
+            public void Add(CompletionItem item)
+            {
+                var entireDisplayText = item.GetEntireDisplayText();
+
+                if (!_displayNameToItemsMap.TryGetValue(entireDisplayText, out var value))
+                {
+                    Count++;
+                    _displayNameToItemsMap.Add(entireDisplayText, item);
+                    return;
+                }
+
+                // If two items have the same display text choose which one to keep.
+                // If they don't actually match keep both.
+                if (value is CompletionItem sameNamedItem)
+                {
+                    if (_service.ItemsMatch(item, sameNamedItem))
+                    {
+                        _displayNameToItemsMap[entireDisplayText] = _service.GetBetterItem(item, sameNamedItem);
+                        return;
+                    }
+
+                    Count++;
+                    // Matching items should be rare, no need to use object pool for this.
+                    _displayNameToItemsMap[entireDisplayText] = new List<CompletionItem>() { sameNamedItem, item };
+                }
+                else if (value is List<CompletionItem> sameNamedItems)
+                {
+                    for (var i = 0; i < sameNamedItems.Count; i++)
+                    {
+                        var existingItem = sameNamedItems[i];
+                        if (_service.ItemsMatch(item, existingItem))
+                        {
+                            sameNamedItems[i] = _service.GetBetterItem(item, existingItem);
+                            return;
+                        }
+                    }
+
+                    Count++;
+                    sameNamedItems.Add(item);
+                }
+            }
+
+            public IEnumerator<CompletionItem> GetEnumerator()
+            {
+                foreach (var value in _displayNameToItemsMap.Values)
+                {
+                    if (value is CompletionItem sameNamedItem)
+                    {
+                        yield return sameNamedItem;
+                    }
+                    else if (value is List<CompletionItem> sameNamedItems)
+                    {
+                        foreach (var item in sameNamedItems)
+                        {
+                            yield return item;
+                        }
+                    }
+                }
+            }
+
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
         }
 
         internal TestAccessor GetTestAccessor()

@@ -28,7 +28,7 @@ jobs:
       displayName: Build
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -pack -sign -publish -binaryLog 
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -publish -binaryLog 
 
     - task: PowerShell@2 
       displayName: Prepare Unit Tests

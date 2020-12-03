@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasMethodBodyDependency = false)
         {
             var result = new SynthesizedStateMachineDebuggerHiddenMethod(methodName, methodToImplement, (StateMachineTypeSymbol)F.CurrentType, null, hasMethodBodyDependency);
-            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, result);
+            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, result.GetCciAdapter());
             F.CurrentFunction = result;
             return result;
         }
@@ -335,10 +335,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected MethodSymbol OpenPropertyImplementation(MethodSymbol getterToImplement)
         {
             var prop = new SynthesizedStateMachineProperty(getterToImplement, (StateMachineTypeSymbol)F.CurrentType);
-            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, prop);
+            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, prop.GetCciAdapter());
 
             var getter = prop.GetMethod;
-            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, getter);
+            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, getter.GetCciAdapter());
 
             F.CurrentFunction = getter;
             return getter;
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected SynthesizedImplementationMethod OpenMoveNextMethodImplementation(MethodSymbol methodToImplement)
         {
             var result = new SynthesizedStateMachineMoveNextMethod(methodToImplement, (StateMachineTypeSymbol)F.CurrentType);
-            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, result);
+            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, result.GetCciAdapter());
             F.CurrentFunction = result;
             return result;
         }

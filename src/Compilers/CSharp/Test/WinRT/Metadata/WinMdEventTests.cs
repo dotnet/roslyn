@@ -238,10 +238,7 @@ public partial class B : I
             _eventLibRef = CreateEmptyCompilation(
                 eventLibSrc,
                 references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef_v4_0_30319_17929 },
-                options:
-                    new CSharpCompilationOptions(
-                        OutputKind.WindowsRuntimeMetadata,
-                        allowUnsafe: true),
+                options: TestOptions.DebugWinMD.WithAllowUnsafe(true),
                 assemblyName: "EventLibrary").EmitToImageReference();
         }
 
@@ -313,7 +310,7 @@ class C
                     MscorlibRef_v4_0_30316_17626,
                     _eventLibRef,
                 },
-                options: new CSharpCompilationOptions(OutputKind.NetModule, allowUnsafe: true));
+                options: TestOptions.DebugModule.WithAllowUnsafe(true));
 
             var dynamicCommonRef = dynamicCommon.EmitToImageReference(expectedWarnings: new[]
             {
@@ -2914,7 +2911,7 @@ interface I
 
             foreach (OutputKind kind in Enum.GetValues(typeof(OutputKind)))
             {
-                var comp = CreateEmptyCompilation(source, WinRtRefs, new CSharpCompilationOptions(kind));
+                var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.CreateTestOptions(kind, OptimizationLevel.Debug));
                 comp.VerifyDiagnostics();
 
                 var @class = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -2958,7 +2955,7 @@ class C : Interface
 
             foreach (OutputKind kind in new[] { OutputKind.DynamicallyLinkedLibrary, OutputKind.WindowsRuntimeMetadata })
             {
-                var comp = CreateEmptyCompilation(source, WinRtRefs.Concat(new[] { ilRef }), new CSharpCompilationOptions(kind));
+                var comp = CreateEmptyCompilation(source, WinRtRefs.Concat(new[] { ilRef }), TestOptions.CreateTestOptions(kind, OptimizationLevel.Debug));
                 comp.VerifyDiagnostics();
 
                 var @class = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -3027,7 +3024,7 @@ class OverrideAndImplIncorrectly : ReversedBase, Interface
 
             foreach (OutputKind kind in new[] { OutputKind.DynamicallyLinkedLibrary, OutputKind.WindowsRuntimeMetadata })
             {
-                var comp = CreateEmptyCompilation(source, WinRtRefs.Concat(new[] { interfaceILRef, baseILRef }), new CSharpCompilationOptions(kind));
+                var comp = CreateEmptyCompilation(source, WinRtRefs.Concat(new[] { interfaceILRef, baseILRef }), TestOptions.CreateTestOptions(kind, OptimizationLevel.Debug));
                 comp.VerifyDiagnostics(
                     // (40,41): error CS1991: 'OverrideAndImplIncorrectly.WinRT' cannot implement 'Interface.WinRT' because 'Interface.WinRT' is a Windows Runtime event and 'OverrideAndImplIncorrectly.WinRT' is a regular .NET event.
                     //     public override event System.Action WinRT
@@ -3093,7 +3090,7 @@ class C : Interface
 
             foreach (OutputKind kind in new[] { OutputKind.DynamicallyLinkedLibrary, OutputKind.WindowsRuntimeMetadata })
             {
-                var comp = CreateEmptyCompilation(source, WinRtRefs.Concat(new[] { ilRef }), new CSharpCompilationOptions(kind));
+                var comp = CreateEmptyCompilation(source, WinRtRefs.Concat(new[] { ilRef }), TestOptions.CreateTestOptions(kind, OptimizationLevel.Debug));
                 comp.VerifyDiagnostics();
 
                 var @class = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -3288,7 +3285,7 @@ class C
 
             foreach (OutputKind kind in new[] { OutputKind.DynamicallyLinkedLibrary, OutputKind.WindowsRuntimeMetadata })
             {
-                var comp = CreateEmptyCompilation(source, WinRtRefs, new CSharpCompilationOptions(kind));
+                var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.CreateTestOptions(kind, OptimizationLevel.Debug));
                 comp.VerifyDiagnostics(
                     // (10,25): warning CS0067: The event 'C.F' is never used
                     //     event System.Action F;

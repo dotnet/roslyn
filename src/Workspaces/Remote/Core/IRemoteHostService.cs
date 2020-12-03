@@ -21,12 +21,5 @@ namespace Microsoft.CodeAnalysis.Remote
         /// this lets remote side to set same logging options as VS side
         /// </summary>
         void SetLoggingFunctionIds(List<string> loggerTypes, List<string> functionIds, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Synchronize data to OOP proactively without anyone asking for it to make most of operation
-        /// faster
-        /// </summary>
-        Task SynchronizePrimaryWorkspaceAsync(PinnedSolutionInfo solutionInfo, Checksum checksum, int workspaceVersion, CancellationToken cancellationToken);
-        Task SynchronizeTextAsync(DocumentId documentId, Checksum baseTextChecksum, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken);
     }
 }

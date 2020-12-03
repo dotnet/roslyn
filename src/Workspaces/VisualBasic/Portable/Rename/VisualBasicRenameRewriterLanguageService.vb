@@ -738,7 +738,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         conflicts.AddRange(renamedSymbol.ContainingSymbol.Locations _
                                        .Select(Function(loc) reverseMappedLocations(loc)))
 
-                        propertySymbol = propertySymbol.OverriddenMember
+                        propertySymbol = propertySymbol.GetOverriddenMember()
                     End While
                 End If
 

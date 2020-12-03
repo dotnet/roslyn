@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public override async Task<AddImportFixData> TryGetFixDataAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken)
             {
                 var textChanges = await GetTextChangesAsync(
-                    document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                    document, node, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
 
                 var title = $"{provider.GetDescription(SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, _referenceAssemblyWithType.AssemblyName)})";
                 var fullyQualifiedTypeName = string.Join(

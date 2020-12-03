@@ -58,7 +58,7 @@ class D : B
 
         [WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task AddOptionalParameter_ToConstructor_TargetTypedNew()
+        public async Task AddOptionalParameter_ToConstructor_ImplicitObjectCreation()
         {
             var markup = @"
 class B

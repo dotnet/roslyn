@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Determines whether this trivia has the specific annotation.
         /// </summary>
-        public bool HasAnnotation(SyntaxAnnotation annotation)
+        public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
         {
             return UnderlyingNode?.HasAnnotation(annotation) ?? false;
         }

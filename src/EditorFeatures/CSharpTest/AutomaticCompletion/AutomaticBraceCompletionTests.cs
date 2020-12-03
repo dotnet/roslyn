@@ -49,7 +49,7 @@ class C
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         [WorkItem(47381, "https://github.com/dotnet/roslyn/issues/47381")]
-        public void TypelessNewExpressionBracesSameLine()
+        public void ImplicitObjectCreationExpressionBracesSameLine()
         {
             var code = @"
 class C

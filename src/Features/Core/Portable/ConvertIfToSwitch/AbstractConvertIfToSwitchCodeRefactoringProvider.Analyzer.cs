@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                         return false;
                     }
 
-                    if (!ParseIfStatementSequence(operations.Slice(1), sections, out defaultBodyOpt))
+                    if (!ParseIfStatementSequence(operations[1..], sections, out defaultBodyOpt))
                     {
                         var nextStatement = operations[1];
                         if (nextStatement is IReturnOperation { ReturnedValue: { } } ||

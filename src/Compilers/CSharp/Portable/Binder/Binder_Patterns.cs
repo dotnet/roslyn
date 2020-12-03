@@ -276,6 +276,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression convertedExpression = ConvertPatternExpression(
                 inputType, patternExpression, expression, out constantValueOpt, hasErrors, diagnostics);
 
+            ConstantValueUtils.CheckLangVersionForConstantValue(expression, diagnostics);
+
             if (!convertedExpression.HasErrors && !hasErrors)
             {
                 if (constantValueOpt == null)

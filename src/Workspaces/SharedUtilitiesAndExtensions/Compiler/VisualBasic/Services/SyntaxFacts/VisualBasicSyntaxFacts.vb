@@ -685,14 +685,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node.FindTokenOnRightOfPosition(position, includeSkipped, includeDirectives, includeDocumentationComments)
         End Function
 
-        Public Function IsObjectInitializerNamedAssignmentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsObjectInitializerNamedAssignmentIdentifier
+        Public Function IsMemberInitializerNamedAssignmentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMemberInitializerNamedAssignmentIdentifier
             Dim unused As SyntaxNode = Nothing
-            Return IsObjectInitializerNamedAssignmentIdentifier(node, unused)
+            Return IsMemberInitializerNamedAssignmentIdentifier(node, unused)
         End Function
 
-        Public Function IsObjectInitializerNamedAssignmentIdentifier(
+        Public Function IsMemberInitializerNamedAssignmentIdentifier(
                 node As SyntaxNode,
-                ByRef initializedInstance As SyntaxNode) As Boolean Implements ISyntaxFacts.IsObjectInitializerNamedAssignmentIdentifier
+                ByRef initializedInstance As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMemberInitializerNamedAssignmentIdentifier
 
             Dim identifier = TryCast(node, IdentifierNameSyntax)
             If identifier?.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name) Then
@@ -2226,9 +2226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 Case SyntaxKind.Parameter
                     Return DeclarationKind.Parameter
                 Case SyntaxKind.FieldDeclaration
-                    If GetDeclarationCount(declaration) = 1 Then
-                        Return DeclarationKind.Field
-                    End If
+                    Return DeclarationKind.Field
                 Case SyntaxKind.LocalDeclarationStatement
                     If GetDeclarationCount(declaration) = 1 Then
                         Return DeclarationKind.Variable
@@ -2407,6 +2405,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function IsLocalFunction(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLocalFunction
+            Return False
+        End Function
+
+        Public Sub GetPartsOfInterpolationExpression(node As SyntaxNode, ByRef stringStartToken As SyntaxToken, ByRef contents As SyntaxList(Of SyntaxNode), ByRef stringEndToken As SyntaxToken) Implements ISyntaxFacts.GetPartsOfInterpolationExpression
+            Dim interpolatedStringExpressionSyntax As InterpolatedStringExpressionSyntax = DirectCast(node, InterpolatedStringExpressionSyntax)
+            stringStartToken = interpolatedStringExpressionSyntax.DollarSignDoubleQuoteToken
+            contents = interpolatedStringExpressionSyntax.Contents
+            stringEndToken = interpolatedStringExpressionSyntax.DoubleQuoteToken
+        End Sub
+
+        Public Function IsVerbatimInterpolatedStringExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsVerbatimInterpolatedStringExpression
             Return False
         End Function
     End Class

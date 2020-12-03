@@ -1368,7 +1368,7 @@ BC30060: Conversion from 'E' to 'Integer' cannot occur in a constant expression.
             Assert.Equal(expectedEnumValues.Length, fields.Count - 1)
             For count = 0 To fields.Count - 1
                 Dim field = DirectCast(fields(count), FieldSymbol)
-                Dim fieldDefinition = DirectCast(field, Cci.IFieldDefinition)
+                Dim fieldDefinition = DirectCast(field.GetCciAdapter(), Cci.IFieldDefinition)
                 If count = 0 Then
                     Assert.Equal(field.Name, "value__")
                     Assert.False(field.IsShared)

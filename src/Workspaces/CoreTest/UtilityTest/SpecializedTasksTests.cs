@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void WhenAll_AllCompletedSuccessfully()
         {
-            var whenAll = SpecializedTasks.WhenAll(new[] { new ValueTask<int>(0), new ValueTask<int>(1) });
+            var whenAll = SpecializedTasks.WhenAll(new[] { ValueTaskFactory.FromResult(0), ValueTaskFactory.FromResult(1) });
             Debug.Assert(whenAll.IsCompleted);
             Assert.True(whenAll.IsCompletedSuccessfully);
             Assert.Equal(new[] { 0, 1 }, whenAll.Result);

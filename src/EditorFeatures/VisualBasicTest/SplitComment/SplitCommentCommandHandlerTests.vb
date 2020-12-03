@@ -310,5 +310,52 @@ end class",
     end sub
 end class")
         End Sub
+
+        <WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        Public Sub TestSplitWithCommentAfterwards1()
+            TestNotHandled(
+"public class Program
+    public sub Goo()
+        ' goo[||]  'Test Comment
+    end sub
+end class")
+        End Sub
+
+        <WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        Public Sub TestSplitWithCommentAfterwards2()
+            TestNotHandled(
+"public class Program
+{
+    public sub Goo()
+    { 
+        ' goo [||] 'Test Comment
+    end sub
+end class")
+        End Sub
+
+        <WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        Public Sub TestSplitWithCommentAfterwards3()
+            TestNotHandled(
+"public class Program
+{
+    public sub Goo()
+        ' goo  [||]'Test Comment
+    end sub
+end class")
+        End Sub
+
+        <WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        Public Sub TestSplitWithCommentAfterwards4()
+            TestNotHandled(
+"public class Program
+    public sub Goo()
+        // [|goo|] 'Test Comment
+    end sub
+end class")
+        End Sub
     End Class
 End Namespace

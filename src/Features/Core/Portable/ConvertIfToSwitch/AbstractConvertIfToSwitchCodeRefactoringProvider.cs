@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             }
 
             var analyzer = CreateAnalyzer(syntaxFactsService, ifStatement.SyntaxTree.Options);
-            var (sections, target) = analyzer.AnalyzeIfStatementSequence(operations.AsSpan().Slice(index));
+            var (sections, target) = analyzer.AnalyzeIfStatementSequence(operations.AsSpan()[index..]);
             if (sections.IsDefaultOrEmpty)
             {
                 return;

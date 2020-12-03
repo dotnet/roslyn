@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
                         solution,
                         (service, solutionInfo, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, serializableLocationSet, replacementText, nonConflictSymbolIds, cancellationToken),
-                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
                     if (result.HasValue && result.Value != null)
@@ -336,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                 if (symbol.IsOverride)
                 {
-                    var overriddenSymbol = symbol.OverriddenMember();
+                    var overriddenSymbol = symbol.GetOverriddenMember();
 
                     if (overriddenSymbol != null)
                     {

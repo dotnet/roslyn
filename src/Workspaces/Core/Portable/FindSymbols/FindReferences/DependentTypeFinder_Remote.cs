@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var result = await client.TryInvokeAsync<IRemoteDependentTypeFinderService, ImmutableArray<SerializableSymbolAndProjectId>>(
                         solution,
                         (service, solutionInfo, cancellationToken) => service.FindTypesAsync(solutionInfo, serializedType, projectIds, transitive, kind, cancellationToken),
-                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
                     if (!result.HasValue)

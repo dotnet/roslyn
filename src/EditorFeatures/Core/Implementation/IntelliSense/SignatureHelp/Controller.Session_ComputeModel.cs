@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -63,6 +64,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         if (document == null)
                         {
                             return currentModel;
+                        }
+
+                        // Let LSP handle signature help in the cloud scenario
+                        var workspaceContextService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
+                        if (workspaceContextService.IsCloudEnvironmentClient())
+                        {
+                            return null;
                         }
 
                         if (triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand)

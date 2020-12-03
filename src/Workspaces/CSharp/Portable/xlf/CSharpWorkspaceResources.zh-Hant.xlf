@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../CSharpWorkspaceResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../CSharpWorkspaceResources.resx">
     <body>
       <trans-unit id="Indentation_preferences">
         <source>Indentation preferences</source>
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit">
         <source>Only attributes, constructor initializers, expressions or statements can be made explicit</source>
-        <target state="translated">只有屬性、建構函式初始設定式、運算式或陳述式才可明確設定。</target>
+        <target state="translated">只有屬性、建構函式初始設定式、運算式或陳述式才可明確設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_Interface">

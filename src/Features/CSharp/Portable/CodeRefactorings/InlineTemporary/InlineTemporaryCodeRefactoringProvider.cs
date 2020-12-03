@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.InlineTemporary;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -26,7 +28,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InlineTemporary), Shared]
-    internal partial class InlineTemporaryCodeRefactoringProvider : CodeRefactoringProvider
+    internal partial class InlineTemporaryCodeRefactoringProvider : AbstractInlineTemporaryCodeRefactoringProvider<VariableDeclaratorSyntax>
     {
         internal static readonly SyntaxAnnotation DefinitionAnnotation = new SyntaxAnnotation();
         internal static readonly SyntaxAnnotation ReferenceAnnotation = new SyntaxAnnotation();
@@ -82,44 +84,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 return;
             }
 
-            var references = await GetReferencesAsync(document, variableDeclarator, cancellationToken).ConfigureAwait(false);
+            var references = await GetReferenceLocationsAsync(document, variableDeclarator, cancellationToken).ConfigureAwait(false);
             if (!references.Any())
-            {
                 return;
-            }
 
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.Inline_temporary_variable,
                     c => InlineTemporaryAsync(document, variableDeclarator, c)),
                 variableDeclarator.Span);
-        }
-
-        private static async Task<IEnumerable<ReferenceLocation>> GetReferencesAsync(
-            Document document,
-            VariableDeclaratorSyntax variableDeclarator,
-            CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var local = semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
-
-            if (local != null)
-            {
-                var findReferencesResult = await SymbolFinder.FindReferencesAsync(local, document.Project.Solution, cancellationToken).ConfigureAwait(false);
-                var referencedSymbol = findReferencesResult.SingleOrDefault(r => Equals(r.Definition, local));
-                if (referencedSymbol == null)
-                {
-                    return SpecializedCollections.EmptyEnumerable<ReferenceLocation>();
-                }
-
-                var locations = referencedSymbol.Locations;
-                if (!locations.Any(loc => semanticModel.SyntaxTree.OverlapsHiddenPosition(loc.Location.SourceSpan, cancellationToken)))
-                {
-                    return locations;
-                }
-            }
-
-            return SpecializedCollections.EmptyEnumerable<ReferenceLocation>();
         }
 
         private static bool HasConflict(IdentifierNameSyntax identifier, VariableDeclaratorSyntax variableDeclarator)
@@ -184,10 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var expressionToInline = await CreateExpressionToInlineAsync(variableDeclarator, updatedDocument, cancellationToken).ConfigureAwait(false);
 
             // Collect the identifier names for each reference.
-            var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
-            var symbolRefs = await SymbolFinder.FindReferencesAsync(local, updatedDocument.Project.Solution, cancellationToken).ConfigureAwait(false);
-            var referencedSymbol = symbolRefs.SingleOrDefault(r => Equals(r.Definition, local));
-            var references = referencedSymbol == null ? SpecializedCollections.EmptyEnumerable<ReferenceLocation>() : referencedSymbol.Locations;
+            var references = await GetReferenceLocationsAsync(updatedDocument, variableDeclarator, cancellationToken).ConfigureAwait(false);
 
             var syntaxRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 

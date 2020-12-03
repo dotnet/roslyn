@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -216,9 +217,8 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                // MemberNotNull remove ! https://github.com/dotnet/roslyn/issues/41964
                 AssertBound();
-                return _lazyReferencedAssembliesMap!;
+                return _lazyReferencedAssembliesMap;
             }
         }
 
@@ -226,9 +226,8 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                // MemberNotNull remove ! https://github.com/dotnet/roslyn/issues/41964
                 AssertBound();
-                return _lazyReferencedModuleIndexMap!;
+                return _lazyReferencedModuleIndexMap;
             }
         }
 
@@ -236,9 +235,8 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                // MemberNotNull remove ! https://github.com/dotnet/roslyn/issues/41964
                 AssertBound();
-                return _lazyReferenceDirectiveMap!;
+                return _lazyReferenceDirectiveMap;
             }
         }
 
@@ -255,9 +253,8 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                // MemberNotNull remove ! https://github.com/dotnet/roslyn/issues/41964
                 AssertBound();
-                return _lazyImplicitReferenceResolutions!;
+                return _lazyImplicitReferenceResolutions;
             }
         }
 
@@ -350,8 +347,8 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(_lazyCorLibraryOpt == null);
         }
 
-        // MemberNotNull all the lazy maps below https://github.com/dotnet/roslyn/issues/41964
         [Conditional("DEBUG")]
+        [MemberNotNull(nameof(_lazyReferencedAssembliesMap), nameof(_lazyReferencedModuleIndexMap), nameof(_lazyReferenceDirectiveMap), nameof(_lazyImplicitReferenceResolutions))]
         internal void AssertBound()
         {
             Debug.Assert(_isBound != 0);

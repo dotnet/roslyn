@@ -72,12 +72,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return visibility;
         }
 
-        public static ISymbol? OverriddenMember(this ISymbol symbol)
-            => symbol.Kind switch
+        public static ISymbol? GetOverriddenMember(this ISymbol? symbol)
+            => symbol switch
             {
-                SymbolKind.Event => ((IEventSymbol)symbol).OverriddenEvent,
-                SymbolKind.Method => ((IMethodSymbol)symbol).OverriddenMethod,
-                SymbolKind.Property => ((IPropertySymbol)symbol).OverriddenProperty,
+                IMethodSymbol method => method.OverriddenMethod,
+                IPropertySymbol property => property.OverriddenProperty,
+                IEventSymbol @event => @event.OverriddenEvent,
                 _ => null,
             };
 
@@ -740,5 +740,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             result = (TSymbol)symbol;
             return true;
         }
+
+        /// <summary>
+        /// Returns true for symbols whose name starts with an underscore and
+        /// are optionally followed by an integer, such as '_', '_1', '_2', etc.
+        /// These are treated as special discard symbol names.
+        /// </summary>
+        public static bool IsSymbolWithSpecialDiscardName(this ISymbol symbol)
+            => symbol.Name.StartsWith("_") &&
+               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
     }
 }

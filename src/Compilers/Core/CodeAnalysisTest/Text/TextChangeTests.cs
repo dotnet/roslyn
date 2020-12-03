@@ -110,12 +110,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var text = SourceText.From("Hello World");
             var changes = new[]
             {
-                new TextChange(new TextSpan(6, 7), "Universe"),
+                new TextChange(new TextSpan(6, 5), "Universe"),
                 new TextChange(new TextSpan(0, 5), "Halo")
             };
 
             var newText = text.WithChanges(changes);
             Assert.Equal("Halo Universe", newText.ToString());
+        }
+
+        [Fact]
+        public void TestChangedTextWithMultipleUnorderedChangesAndOneIsOutOfBounds()
+        {
+            var text = SourceText.From("Hello World");
+            var changes = new[]
+            {
+                new TextChange(new TextSpan(6, 7), "Universe"),
+                new TextChange(new TextSpan(0, 5), "Halo")
+            };
+            Assert.ThrowsAny<ArgumentException>(() =>
+            {
+                var newText = text.WithChanges(changes);
+            });
         }
 
         [Fact]

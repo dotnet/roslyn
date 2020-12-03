@@ -108,12 +108,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
-            _lazyConnection = await client.CreateConnectionAsync<IRemoteProjectTelemetryService>(callbackTarget: this, cancellationToken).ConfigureAwait(false);
+            _lazyConnection = client.CreateConnection<IRemoteProjectTelemetryService>(callbackTarget: this);
 
             // Now kick off scanning in the OOP process.
             // If the call fails an error has already been reported and there is nothing more to do.
             _ = await _lazyConnection.TryInvokeAsync(
-                (service, cancellationToken) => service.ComputeProjectTelemetryAsync(cancellationToken),
+                (service, callbackId, cancellationToken) => service.ComputeProjectTelemetryAsync(callbackId, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         {
             Contract.ThrowIfNull(_workQueue);
             _workQueue.AddWork(info);
-            return new ValueTask();
+            return ValueTaskFactory.CompletedTask;
         }
     }
 }

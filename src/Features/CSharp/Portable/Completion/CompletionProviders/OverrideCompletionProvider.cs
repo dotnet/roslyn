@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(OverrideCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(ExternAliasCompletionProvider))]
+    [ExtensionOrder(After = nameof(PreprocessorCompletionProvider))]
     [Shared]
     internal partial class OverrideCompletionProvider : AbstractOverrideCompletionProvider
     {

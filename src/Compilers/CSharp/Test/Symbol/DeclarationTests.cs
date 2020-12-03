@@ -63,8 +63,8 @@ namespace NA
             var tree2 = SyntaxFactory.ParseSyntaxTree(text2);
             Assert.NotNull(tree1);
             Assert.NotNull(tree2);
-            var decl1 = DeclarationTreeBuilder.ForTree(tree1, new CSharpCompilationOptions(OutputKind.ConsoleApplication).ScriptClassName, isSubmission: false);
-            var decl2 = DeclarationTreeBuilder.ForTree(tree2, new CSharpCompilationOptions(OutputKind.ConsoleApplication).ScriptClassName, isSubmission: false);
+            var decl1 = DeclarationTreeBuilder.ForTree(tree1, TestOptions.DebugExe.ScriptClassName, isSubmission: false);
+            var decl2 = DeclarationTreeBuilder.ForTree(tree2, TestOptions.DebugExe.ScriptClassName, isSubmission: false);
             Assert.NotNull(decl1);
             Assert.NotNull(decl2);
             Assert.Equal(string.Empty, decl1.Name);
@@ -232,8 +232,8 @@ namespace NA
             var tree2 = SyntaxFactory.ParseSyntaxTree(text2);
             Assert.NotNull(tree1);
             Assert.NotNull(tree2);
-            var decl1 = Lazy(DeclarationTreeBuilder.ForTree(tree1, new CSharpCompilationOptions(OutputKind.ConsoleApplication).ScriptClassName, isSubmission: false));
-            var decl2 = Lazy(DeclarationTreeBuilder.ForTree(tree2, new CSharpCompilationOptions(OutputKind.ConsoleApplication).ScriptClassName, isSubmission: false));
+            var decl1 = Lazy(DeclarationTreeBuilder.ForTree(tree1, TestOptions.DebugExe.ScriptClassName, isSubmission: false));
+            var decl2 = Lazy(DeclarationTreeBuilder.ForTree(tree2, TestOptions.DebugExe.ScriptClassName, isSubmission: false));
 
             var table = DeclarationTable.Empty;
             table = table.AddRootDeclaration(decl1);

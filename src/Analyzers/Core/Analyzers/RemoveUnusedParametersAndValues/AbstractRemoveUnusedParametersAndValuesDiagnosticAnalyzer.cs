@@ -323,14 +323,5 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             Debug.Assert(TryGetUnusedValuePreference(diagnostic, out _));
             return diagnostic.Properties.ContainsKey(IsRemovableAssignmentKey);
         }
-
-        /// <summary>
-        /// Returns true for symbols whose name starts with an underscore and
-        /// are optionally followed by an integer, such as '_', '_1', '_2', etc.
-        /// These are treated as special discard symbol names.
-        /// </summary>
-        private static bool IsSymbolWithSpecialDiscardName(ISymbol symbol)
-            => symbol.Name.StartsWith("_") &&
-               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
     }
 }

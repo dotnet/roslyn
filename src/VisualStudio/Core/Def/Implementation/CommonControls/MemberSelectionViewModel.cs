@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -31,7 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
             TypeKind destinationTypeKind = TypeKind.Class)
         {
             _waitIndicator = waitIndicator;
-            _members = members;
+            // Use public property to hook property change events up
+            Members = members;
             _symbolToDependentsMap = dependentsMap;
             _symbolToMemberViewMap = members.ToImmutableDictionary(memberViewModel => memberViewModel.Symbol);
 
@@ -44,41 +46,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
         public ImmutableArray<PullMemberUpSymbolViewModel> Members
         {
             get => _members;
-            set => SetProperty(ref _members, value);
-        }
-
-        private bool? _selectAllCheckBoxState;
-        public bool? SelectAllCheckBoxState
-        {
-            get => _selectAllCheckBoxState;
-            set => SetProperty(ref _selectAllCheckBoxState, value);
-        }
-
-        private bool _selectAllCheckBoxThreeStateEnable;
-        public bool SelectAllCheckBoxThreeStateEnable
-        {
-            get => _selectAllCheckBoxThreeStateEnable;
-            set => SetProperty(ref _selectAllCheckBoxThreeStateEnable, value);
-        }
-
-        public void UpdateSelectAllCheckBoxState()
-        {
-            var checkableMembers = Members.WhereAsArray(member => member.IsCheckable);
-            var checkedCount = checkableMembers.Where(member => member.IsChecked).Count();
-            if (checkedCount == checkableMembers.Length)
+            set
             {
-                SelectAllCheckBoxState = true;
-                SelectAllCheckBoxThreeStateEnable = false;
+                var oldMembers = _members;
+                if (SetProperty(ref _members, value))
+                {
+                    // If we have registered for events before, remove the handlers
+                    // to be a good citizen in the world 
+                    if (!oldMembers.IsDefaultOrEmpty)
+                    {
+                        foreach (var oldMember in oldMembers)
+                        {
+                            oldMember.PropertyChanged -= MemberPropertyChangedHandler;
+                        }
+                    }
+
+                    foreach (var member in _members)
+                    {
+                        member.PropertyChanged += MemberPropertyChangedHandler;
+                    }
+                }
             }
-            else if (checkedCount > 0)
+        }
+
+        private void MemberPropertyChangedHandler(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(PullMemberUpSymbolViewModel.IsChecked))
             {
-                SelectAllCheckBoxThreeStateEnable = true;
-                SelectAllCheckBoxState = null;
-            }
-            else
-            {
-                SelectAllCheckBoxState = false;
-                SelectAllCheckBoxThreeStateEnable = false;
+                // Hook the CheckedMembers property change to each individual member checked status change
+                NotifyPropertyChanged(nameof(CheckedMembers));
             }
         }
 
@@ -144,8 +140,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
             {
                 member.IsMakeAbstractCheckable = !isInterface;
             }
-
-            UpdateSelectAllCheckBoxState();
         }
 
         private void SelectMembers(ImmutableArray<PullMemberUpSymbolViewModel> members, bool isChecked = true)
@@ -154,9 +148,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
             {
                 member.IsChecked = isChecked;
             }
-
-            UpdateSelectAllCheckBoxState();
-            NotifyPropertyChanged(nameof(CheckedMembers));
         }
 
         private ImmutableHashSet<ISymbol> FindDependentsRecursively(ISymbol member)

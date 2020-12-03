@@ -2795,7 +2795,7 @@ void outer()
 
         [WorkItem(42559, "https://github.com/dotnet/roslyn/issues/42559")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
-        public async Task TestAddParameter_TargetTypedNew()
+        public async Task TestAddParameter_ImplicitObjectCreation()
         {
             await TestInRegularAndScriptAsync(@"
 class C
@@ -2815,6 +2815,37 @@ class C
     void M()
     {
        C c = new(1, 2);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [WorkItem(48042, "https://github.com/dotnet/roslyn/issues/48042")]
+        public async Task TestNamedArgOnExtensionMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+namespace r
+{
+    static class AbcExtensions
+    {
+        public static Abc Act(this Abc state, bool p = true) => state;
+    }
+    class Abc {
+        void Test()
+            => new Abc().Act([|param3|]: 123);
+    }
+}",
+@"
+namespace r
+{
+    static class AbcExtensions
+    {
+        public static Abc Act(this Abc state, bool p = true, int param3 = 0) => state;
+    }
+    class Abc {
+        void Test()
+            => new Abc().Act(param3: 123);
     }
 }");
         }

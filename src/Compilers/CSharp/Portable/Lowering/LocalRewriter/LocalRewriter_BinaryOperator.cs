@@ -2,16 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.RuntimeMembers;
-using System.Collections.Generic;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -533,7 +529,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result;
         }
-
 
         //array length produces native uint, so the node typically implies a conversion to int32/int64.  
         //Sometimes the conversion is not necessary - i.e. when we just check for 0

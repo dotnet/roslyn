@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.OpenDocument;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -63,16 +62,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     if (!typeOnly || symbol is ITypeSymbol)
                     {
-                        // In order for VisualStudioLspSolutionProvider.GetDocuments to successfully return documents from the metadata workspace, we
-                        // need to open the metadata file on the host and add it to the metadata workspace.
-                        // The file is silently opened on the host, meaning that the host user may not be even aware that the file has been opened.
-                        // This matches the current behavior when opening files on the client, in which opening a file does not also visibly open it
-                        // on the server.
                         var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, false, cancellationToken).ConfigureAwait(false);
-
-                        var openDocumentService = document.Project.Solution.Workspace.Services.GetRequiredService<IOpenDocumentService>();
-                        var success = openDocumentService.OpenMetadataDocument(declarationFile);
-                        Contract.ThrowIfFalse(success);
 
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location

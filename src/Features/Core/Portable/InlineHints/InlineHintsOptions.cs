@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal static class InlineHintsOptions
     {
-        public static readonly Option2<bool> DisplayAllHintsWhilePressingCtrlAlt =
+        public static readonly Option2<bool> DisplayAllHintsWhilePressingAltF1 =
             new(nameof(InlineHintsOptions),
-                nameof(DisplayAllHintsWhilePressingCtrlAlt),
+                nameof(DisplayAllHintsWhilePressingAltF1),
                 defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.Specific.DisplayAllHintsWhilePressingCtrlAlt"));
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.Specific.DisplayAllHintsWhilePressingAltF1"));
 
         public static readonly PerLanguageOption2<bool> ColorHints =
             new(nameof(InlineHintsOptions),
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            InlineHintsOptions.DisplayAllHintsWhilePressingCtrlAlt,
+            InlineHintsOptions.DisplayAllHintsWhilePressingAltF1,
             InlineHintsOptions.ColorHints,
             InlineHintsOptions.EnabledForParameters,
             InlineHintsOptions.ForLiteralParameters,

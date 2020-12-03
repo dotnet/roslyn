@@ -15,13 +15,6 @@ namespace Microsoft.CodeAnalysis.Extensions
         string HostDisplayName { get; }
 
         /// <summary>
-        /// Show error info in an active view.
-        ///
-        /// Different host can have different definition on what active view means.
-        /// </summary>
-        void ShowErrorInfoInActiveView(string message, params InfoBarUI[] items);
-
-        /// <summary>
         /// Show global error info.
         ///
         /// this kind error info should be something that affects whole roslyn such as

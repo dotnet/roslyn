@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     project.Solution,
                     (service, solutionInfo, cancellationToken) => service.GetUnimportedExtensionMethodsAsync(
                         solutionInfo, document.Id, position, receiverTypeSymbolKeyData, namespaceInScope.ToImmutableArray(), forceIndexCreation, cancellationToken),
-                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)

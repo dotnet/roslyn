@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class SyntaxNodeExtensions
     {
+        public static SyntaxNode GetRequiredParent(this SyntaxNode node)
+            => node.Parent ?? throw new InvalidOperationException("Node's parent was null");
+
         public static IEnumerable<SyntaxNodeOrToken> DepthFirstTraversal(this SyntaxNode node)
             => SyntaxNodeOrTokenExtensions.DepthFirstTraversal(node);
 
@@ -134,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <typeparam name="TParent">The type of the parent node.</typeparam>
         /// <param name="node">The node that we are testing.</param>
         /// <param name="childGetter">A function that, when given the parent node, returns the child token we are interested in.</param>
-        public static bool IsChildNode<TParent>(this SyntaxNode node, Func<TParent, SyntaxNode> childGetter)
+        public static bool IsChildNode<TParent>(this SyntaxNode node, Func<TParent, SyntaxNode?> childGetter)
             where TParent : SyntaxNode
         {
             var ancestor = node.GetAncestor<TParent>();

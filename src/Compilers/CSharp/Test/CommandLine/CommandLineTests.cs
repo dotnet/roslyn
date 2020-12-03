@@ -6148,8 +6148,8 @@ public class CS1698_a {}
                     return;
                 }
 
-                // The icacls command fails on our Helix machines and it appears to be related to the use of the $ in 
-                // the username. 
+                // The icacls command fails on our Helix machines and it appears to be related to the use of the $ in
+                // the username.
                 // https://github.com/dotnet/roslyn/issues/28836
                 if (StringComparer.OrdinalIgnoreCase.Equals(Environment.UserDomainName, "WORKGROUP"))
                 {
@@ -8528,8 +8528,8 @@ class Program3
         /// When the output file is open with <see cref="FileShare.Read"/> | <see cref="FileShare.Delete"/>
         /// the compiler should delete the file to unblock build while allowing the reader to continue
         /// reading the previous snapshot of the file content.
-        /// 
-        /// On Windows we can read the original data directly from the stream without creating a memory map. 
+        ///
+        /// On Windows we can read the original data directly from the stream without creating a memory map.
         /// </summary>
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void FileShareDeleteCompatibility_Windows()
@@ -12350,6 +12350,70 @@ generated_code = auto");
             }
         }
 
+        [WorkItem(49446, "https://github.com/dotnet/roslyn/issues/49446")]
+        [Theory]
+        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when config file bumps severity to 'Warning'
+        [InlineData(false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
+        [InlineData(true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
+        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and no config file setting is specified.
+        [InlineData(false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
+        [InlineData(true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
+        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and config file bumps severity to 'Error'
+        [InlineData(false, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)]
+        // Verify '/warnaserror-:ID' has no effect when default severity is 'Info' and config file bumps severity to 'Error'
+        [InlineData(false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        [InlineData(true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
+        public void TestWarnAsErrorMinusDoesNotNullifyEditorConfig(
+            bool warnAsErrorMinus,
+            DiagnosticSeverity defaultSeverity,
+            DiagnosticSeverity? severityInConfigFile,
+            DiagnosticSeverity expectedEffectiveSeverity)
+        {
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, defaultSeverity, throwOnAllNamedTypes: false);
+            var diagnosticId = analyzer.Descriptor.Id;
+
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"class C { }");
+            var additionalFlags = new[] { "/warnaserror+" };
+
+            if (severityInConfigFile.HasValue)
+            {
+                var severityString = DiagnosticDescriptor.MapSeverityToReport(severityInConfigFile.Value).ToAnalyzerConfigString();
+                var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
+[*.cs]
+dotnet_diagnostic.{diagnosticId}.severity = {severityString}");
+
+                additionalFlags = additionalFlags.Append($"/analyzerconfig:{analyzerConfig.Path}").ToArray();
+            }
+
+            if (warnAsErrorMinus)
+            {
+                additionalFlags = additionalFlags.Append($"/warnaserror-:{diagnosticId}").ToArray();
+            }
+
+            int expectedWarningCount = 0, expectedErrorCount = 0;
+            switch (expectedEffectiveSeverity)
+            {
+                case DiagnosticSeverity.Warning:
+                    expectedWarningCount = 1;
+                    break;
+
+                case DiagnosticSeverity.Error:
+                    expectedErrorCount = 1;
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(expectedEffectiveSeverity);
+            }
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false,
+                expectedWarningCount: expectedWarningCount,
+                expectedErrorCount: expectedErrorCount,
+                additionalFlags: additionalFlags,
+                analyzers: new[] { analyzer });
+        }
+
         [Fact]
         public void SourceGenerators_EmbeddedSources()
         {
@@ -12470,6 +12534,36 @@ class C
 
             var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
             ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource } } } });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void SourceGenerators_OverwriteGeneratedSources()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource1 = "class D { } class E { }";
+            var generator1 = new SingleFileTestGenerator(generatedSource1, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator1 }, analyzers: null);
+
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator1);
+            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource1 } } } });
+
+            var generatedSource2 = "public class D { }";
+            var generator2 = new SingleFileTestGenerator(generatedSource2, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator2 }, analyzers: null);
+
+            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource2 } } } });
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
@@ -12761,7 +12855,7 @@ key7 = value7");
             Assert.False(classOptions.TryGetValue("key6", out _));
             Assert.False(classOptions.TryGetValue("key7", out _));
 
-            // get the options for generated class D 
+            // get the options for generated class D
             var generatedOptions = provider.GetOptions(cmd.Compilation.SyntaxTrees.Last());
             Assert.True(generatedOptions.TryGetValue("key1", out keyValue));
             Assert.Equal("value1", keyValue);
@@ -13243,6 +13337,73 @@ dotnet_diagnostic.{diagnosticId}.severity = {analyzerConfigSeverity}");
             else
             {
                 Assert.DoesNotContain(diagnosticId, output);
+            }
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly), Reason = "Can't load a coreclr targeting generator on net framework / mono")]
+        public void TestGeneratorsCantTargetNetFramework()
+        {
+            var directory = Temp.CreateDirectory();
+            var src = directory.CreateFile("test.cs").WriteAllText(@"
+class C
+{
+}");
+
+            // core
+            var coreGenerator = emitGenerator(".NETCoreApp,Version=v5.0");
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + coreGenerator });
+
+            // netstandard
+            var nsGenerator = emitGenerator(".NETStandard,Version=v2.0");
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + nsGenerator });
+
+            // no target
+            var ntGenerator = emitGenerator(targetFramework: null);
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + ntGenerator });
+
+            // framework
+            var frameworkGenerator = emitGenerator(".NETFramework,Version=v4.7.2");
+            var output = VerifyOutput(directory, src, expectedWarningCount: 2, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzer:" + frameworkGenerator });
+            Assert.Contains("CS8850", output); // ref's net fx
+            Assert.Contains("CS8033", output); // no analyzers in assembly
+
+            // framework, suppressed
+            output = VerifyOutput(directory, src, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS8850", "/analyzer:" + frameworkGenerator });
+            Assert.Contains("CS8033", output);
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS8850,CS8033", "/analyzer:" + frameworkGenerator });
+
+            string emitGenerator(string targetFramework)
+            {
+                string targetFrameworkAttributeText = targetFramework is object
+                                                        ? $"[assembly: System.Runtime.Versioning.TargetFramework(\"{targetFramework}\")]"
+                                                        : string.Empty;
+
+                string generatorSource = $@"
+using Microsoft.CodeAnalysis;
+
+{targetFrameworkAttributeText}
+
+[Generator]
+public class Generator : ISourceGenerator
+{{
+            public void Execute(GeneratorExecutionContext context) {{ }}
+            public void Initialize(GeneratorInitializationContext context) {{ }}
+ }}";
+
+                var directory = Temp.CreateDirectory();
+
+                var generatorPath = Path.Combine(directory.Path, "generator.dll");
+
+                var compilation = CSharpCompilation.Create($"generator_{targetFramework}",
+                                                           new[] { CSharpSyntaxTree.ParseText(generatorSource) },
+                                                           TargetFrameworkUtil.GetReferences(TargetFramework.Standard, new[] { MetadataReference.CreateFromAssemblyInternal(typeof(ISourceGenerator).Assembly) }),
+                                                           new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+                compilation.VerifyDiagnostics();
+                var result = compilation.Emit(generatorPath);
+                Assert.True(result.Success);
+
+                return generatorPath;
             }
         }
     }

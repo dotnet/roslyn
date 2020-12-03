@@ -7,36 +7,26 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal partial class DiagnosticAnalyzerService
     {
         /// <summary>
-        /// Initialize solution state for synchronizing build errors with live errors.
-        /// 
-        /// no cancellationToken since this can't be cancelled
-        /// </summary>
-        public Task InitializeSynchronizationStateWithBuildAsync(Solution solution, CancellationToken cancellationToken)
-        {
-            if (_map.TryGetValue(solution.Workspace, out var analyzer))
-            {
-                return analyzer.InitializeSynchronizationStateWithBuildAsync(solution, cancellationToken);
-            }
-
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
         /// Synchronize build errors with live error.
-        /// 
-        /// no cancellationToken since this can't be cancelled
         /// </summary>
-        public Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> diagnostics, bool onBuildCompleted, CancellationToken cancellationToken)
+        public Task SynchronizeWithBuildAsync(
+            Workspace workspace,
+            ImmutableDictionary<ProjectId,
+            ImmutableArray<DiagnosticData>> diagnostics,
+            TaskQueue postBuildAndErrorListRefreshTaskQueue,
+            bool onBuildCompleted,
+            CancellationToken cancellationToken)
         {
             if (_map.TryGetValue(workspace, out var analyzer))
             {
-                return analyzer.SynchronizeWithBuildAsync(diagnostics, onBuildCompleted, cancellationToken);
+                return analyzer.SynchronizeWithBuildAsync(diagnostics, postBuildAndErrorListRefreshTaskQueue, onBuildCompleted, cancellationToken);
             }
 
             return Task.CompletedTask;

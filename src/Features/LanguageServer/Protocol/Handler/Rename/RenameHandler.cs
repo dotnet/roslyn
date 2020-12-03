@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -30,7 +32,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            WorkspaceEdit? workspaceEdit = null;
             var document = context.Document;
             if (document != null)
             {
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var renameInfo = await renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
                 if (!renameInfo.CanRename)
                 {
-                    return workspaceEdit;
+                    return null;
                 }
 
                 var renameLocationSet = await renameInfo.FindRenameLocationsAsync(oldSolution.Workspace.Options, cancellationToken).ConfigureAwait(false);
@@ -59,26 +60,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
                     .GroupBy(docId => renamedSolution.GetRequiredDocument(docId).FilePath, StringComparer.OrdinalIgnoreCase).Select(group => group.First());
 
-                using var _ = ArrayBuilder<TextDocumentEdit>.GetInstance(out var documentEdits);
-                foreach (var docId in changedDocuments)
-                {
-                    var oldDoc = oldSolution.GetRequiredDocument(docId);
-                    var newDoc = renamedSolution.GetRequiredDocument(docId);
+                var textDiffService = renamedSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
 
-                    var textChanges = await newDoc.GetTextChangesAsync(oldDoc, cancellationToken).ConfigureAwait(false);
-                    var oldText = await oldDoc.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var textDocumentEdit = new TextDocumentEdit
-                    {
-                        TextDocument = new VersionedTextDocumentIdentifier { Uri = newDoc.GetURI() },
-                        Edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray()
-                    };
-                    documentEdits.Add(textDocumentEdit);
-                }
+                var documentEdits = await ProtocolConversions.ChangedDocumentsToTextDocumentEditsAsync(changedDocuments, renamedSolution.GetRequiredDocument, oldSolution.GetRequiredDocument,
+                    textDiffService, cancellationToken).ConfigureAwait(false);
 
-                workspaceEdit = new WorkspaceEdit { DocumentChanges = documentEdits.ToArray() };
+                return new WorkspaceEdit { DocumentChanges = documentEdits };
             }
 
-            return workspaceEdit;
+            return null;
         }
     }
 }

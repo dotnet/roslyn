@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
         /// Parses an editor config file text located at the given path. No parsing
         /// errors are reported. If any line contains a parse error, it is dropped.
         /// </summary>
-        public static AnalyzerConfig Parse(string text, string pathToFile)
+        public static AnalyzerConfig Parse(string text, string? pathToFile)
         {
             return Parse(SourceText.From(text), pathToFile);
         }
@@ -115,9 +115,9 @@ namespace Microsoft.CodeAnalysis
         /// Parses an editor config file text located at the given path. No parsing
         /// errors are reported. If any line contains a parse error, it is dropped.
         /// </summary>
-        public static AnalyzerConfig Parse(SourceText text, string pathToFile)
+        public static AnalyzerConfig Parse(SourceText text, string? pathToFile)
         {
-            if (!Path.IsPathRooted(pathToFile) || string.IsNullOrEmpty(Path.GetFileName(pathToFile)))
+            if (pathToFile is null || !Path.IsPathRooted(pathToFile) || string.IsNullOrEmpty(Path.GetFileName(pathToFile)))
             {
                 throw new ArgumentException("Must be an absolute path to an editorconfig file", nameof(pathToFile));
             }

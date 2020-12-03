@@ -127,6 +127,11 @@ namespace Microsoft.CodeAnalysis
         bool IsReadOnly { get; }
 
         /// <summary>
+        /// True if the type is a record.
+        /// </summary>
+        bool IsRecord { get; }
+
+        /// <summary>
         /// Converts an <c>ITypeSymbol</c> and a nullable flow state to a string representation.
         /// </summary>
         /// <param name="topLevelNullability">The top-level nullability to use for formatting.</param>

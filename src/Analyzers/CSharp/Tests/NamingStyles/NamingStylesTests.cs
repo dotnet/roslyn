@@ -1334,5 +1334,36 @@ namespace Microsoft.CodeAnalysis.Host
 @"public record Foo(int [|MyInt|]);",
                 options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
         }
+
+        [Theory]
+        [InlineData("_")]
+        [InlineData("_1")]
+        [InlineData("_123")]
+        public async Task TestDiscardParameterAsync(string identifier)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"class C
+{{
+    void M(int [|{identifier}|])
+    {{
+    }}
+}}", new TestParameters(options: s_options.ParameterNamesAreCamelCase));
+        }
+
+        [Theory]
+        [InlineData("_")]
+        [InlineData("_1")]
+        [InlineData("_123")]
+        public async Task TestDiscardLocalAsync(string identifier)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"class C
+{{
+    void M()
+    {{
+        int [|{identifier}|] = 0;
+    }}
+}}", new TestParameters(options: s_options.LocalNamesAreCamelCase));
+        }
     }
 }

@@ -382,7 +382,7 @@ class C{i}
 
         [WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task RemoveParameters_TargetTypedNew()
+        public async Task RemoveParameters_ImplicitObjectCreation()
         {
             var markup = @"
 public class C

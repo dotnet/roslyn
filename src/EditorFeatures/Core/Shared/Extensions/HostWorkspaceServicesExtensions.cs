@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,13 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class HostWorkspaceServicesExtensions
     {
-        public static HostLanguageServices GetLanguageServices(
+        public static HostLanguageServices? GetLanguageServices(
             this HostWorkspaceServices workspaceServices, ITextBuffer textBuffer)
         {
             return workspaceServices.GetLanguageServices(textBuffer.ContentType);
         }
 
-        public static HostLanguageServices GetLanguageServices(
+        public static HostLanguageServices? GetLanguageServices(
             this HostWorkspaceServices workspaceServices, IContentType contentType)
         {
             foreach (var language in workspaceServices.SupportedLanguages)
@@ -45,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         private static readonly ConditionalWeakTable<HostWorkspaceServices, Dictionary<string, string>> s_hostServicesToContentTypeMap
             = new();
 
-        private static string GetDefaultContentTypeName(HostWorkspaceServices workspaceServices, string language)
+        private static string? GetDefaultContentTypeName(HostWorkspaceServices workspaceServices, string language)
         {
             if (!s_hostServicesToContentTypeMap.TryGetValue(workspaceServices, out var contentTypeMap))
             {

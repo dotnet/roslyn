@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (value)
                 {
                     Debug.Assert(s_spacingWithinParenthesisOptionsEditorConfigMap.ContainsValue(kvp.Value));
-                    editorConfigStringBuilder.Add(s_spacingWithinParenthesisOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value));
+                    editorConfigStringBuilder.Add(s_spacingWithinParenthesisOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value)!);
                 }
             }
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (value)
                 {
                     Debug.Assert(s_newLineOptionsEditorConfigMap.ContainsValue(kvp.Value));
-                    editorConfigStringBuilder.Add(s_newLineOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value));
+                    editorConfigStringBuilder.Add(s_newLineOptionsEditorConfigMap.GetKeyOrDefault(kvp.Value)!);
                 }
             }
 

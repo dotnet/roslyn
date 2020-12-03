@@ -556,6 +556,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal override bool IsRecord
+        {
+            get
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                return SynthesizedRecordClone.FindValidCloneMethod(this, ref useSiteDiagnostics) != null;
+            }
+        }
+
         public override Accessibility DeclaredAccessibility
         {
             get
@@ -1409,6 +1418,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return m;
         }
+
+        internal sealed override bool HasPossibleWellKnownCloneMethod()
+            => MemberNames.Contains(WellKnownMemberNames.CloneMethodName);
 
         internal override FieldSymbol FixedElementField
         {
@@ -2338,11 +2350,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             internal override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
-            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
             {
                 return t2 is NativeIntegerTypeSymbol nativeInteger ?
-                    nativeInteger.Equals(this, comparison, isValueTypeOverrideOpt) :
-                    base.Equals(t2, comparison, isValueTypeOverrideOpt);
+                    nativeInteger.Equals(this, comparison) :
+                    base.Equals(t2, comparison);
             }
         }
 

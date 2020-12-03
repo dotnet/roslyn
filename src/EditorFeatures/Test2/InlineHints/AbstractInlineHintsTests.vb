@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 Dim inlineHints = Await tagService.GetInlineHintsAsync(document, New Text.TextSpan(0, snapshot.Length), New CancellationToken())
 
                 Dim producedTags = From hint In inlineHints
-                                   Select hint.DisplayParts.GetFullText() + hint.Span.ToString
+                                   Select hint.DisplayParts.GetFullText().TrimEnd() + hint.Span.ToString
 
                 ValidateSpans(hostDocument, producedTags)
             End Using
@@ -45,14 +45,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             AssertEx.Equal(expectedTags, producedTags)
         End Sub
 
-        Protected Async Function VerifyTypeHints(test As XElement, Optional optionIsEnabled As Boolean = True) As Task
+        Protected Async Function VerifyTypeHints(test As XElement, Optional optionIsEnabled As Boolean = True, Optional ephemeral As Boolean = False) As Task
             Using workspace = TestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyTypeHints)} creates asynchronous taggers")
 
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
-                    InlineHintsOptions.EnabledForTypes,
-                    workspace.CurrentSolution.Projects().First().Language,
-                    optionIsEnabled)))
+                Dim language = workspace.CurrentSolution.Projects().First().Language
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                workspace.Options.WithChangedOption(InlineHintsOptions.EnabledForTypes, language, optionIsEnabled AndAlso Not ephemeral).
+                                  WithChangedOption(InlineHintsOptions.DisplayAllOverride, ephemeral)))
 
                 Dim hostDocument = workspace.Documents.Single()
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot

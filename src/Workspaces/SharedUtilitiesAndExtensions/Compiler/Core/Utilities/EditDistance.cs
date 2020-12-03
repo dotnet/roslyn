@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -70,8 +68,8 @@ namespace Roslyn.Utilities
         public void Dispose()
         {
             ArrayPool<char>.ReleaseArray(_sourceLowerCaseCharacters);
-            _source = null;
-            _sourceLowerCaseCharacters = null;
+            _source = null!;
+            _sourceLowerCaseCharacters = null!;
         }
 
         public static int GetEditDistance(string source, string target, int threshold = int.MaxValue)
@@ -123,7 +121,7 @@ namespace Roslyn.Utilities
                 return InitializeMatrix(new int[width, height]);
             }
 
-            return t_matrixPool.Value;
+            return t_matrixPool.Value!;
         }
 
         private static int[,] InitializeMatrix(int[,] matrix)
@@ -491,7 +489,7 @@ namespace Roslyn.Utilities
 
             var matrix = GetMatrix(sourceLength + 2, targetLength + 2);
 
-            var characterToLastSeenIndex_inSource = t_lastSeenIndexPool.Value;
+            var characterToLastSeenIndex_inSource = t_lastSeenIndexPool.Value!;
             Array.Clear(characterToLastSeenIndex_inSource, 0, LastSeenIndexLength);
 
             for (var i = 1; i <= sourceLength; i++)

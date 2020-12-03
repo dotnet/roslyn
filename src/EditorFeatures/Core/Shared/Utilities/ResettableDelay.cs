@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,8 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         public static readonly ResettableDelay CompletedDelay = new();
 
         private readonly int _delayInMilliseconds;
-        private readonly IExpeditableDelaySource _expeditableDelaySource;
-        private readonly TaskCompletionSource<object> _taskCompletionSource;
+        private readonly TaskCompletionSource<object?> _taskCompletionSource;
 
         private int _lastSetTime;
 
@@ -29,22 +26,21 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         /// </summary>
         /// <param name="delayInMilliseconds">The time to delay before completing the task</param>
         /// <param name="foregroundTaskScheduler">Optional.  If used, the delay won't start until the supplied TaskScheduler schedules the delay to begin.</param>
-        public ResettableDelay(int delayInMilliseconds, IExpeditableDelaySource expeditableDelaySource, TaskScheduler foregroundTaskScheduler = null)
+        public ResettableDelay(int delayInMilliseconds, IExpeditableDelaySource expeditableDelaySource, TaskScheduler? foregroundTaskScheduler = null)
         {
             Contract.ThrowIfFalse(delayInMilliseconds >= 50, "Perf, only use delays >= 50ms");
             _delayInMilliseconds = delayInMilliseconds;
-            _expeditableDelaySource = expeditableDelaySource;
 
-            _taskCompletionSource = new TaskCompletionSource<object>();
+            _taskCompletionSource = new TaskCompletionSource<object?>();
             Reset();
 
             if (foregroundTaskScheduler != null)
             {
-                Task.Factory.SafeStartNew(() => StartTimerAsync(continueOnCapturedContext: true), CancellationToken.None, foregroundTaskScheduler);
+                Task.Factory.SafeStartNew(() => StartTimerAsync(expeditableDelaySource, continueOnCapturedContext: true), CancellationToken.None, foregroundTaskScheduler);
             }
             else
             {
-                _ = StartTimerAsync(continueOnCapturedContext: false);
+                _ = StartTimerAsync(expeditableDelaySource, continueOnCapturedContext: false);
             }
         }
 
@@ -52,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         {
             // create resettableDelay with completed state
             _delayInMilliseconds = 0;
-            _taskCompletionSource = new TaskCompletionSource<object>();
+            _taskCompletionSource = new TaskCompletionSource<object?>();
             _taskCompletionSource.SetResult(null);
 
             Reset();
@@ -67,12 +63,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             _lastSetTime = Environment.TickCount;
         }
 
-        private async Task StartTimerAsync(bool continueOnCapturedContext)
+        private async Task StartTimerAsync(IExpeditableDelaySource expeditableDelaySource, bool continueOnCapturedContext)
         {
             do
             {
                 // Keep delaying until at least delayInMilliseconds has elapsed since lastSetTime
-                if (!await _expeditableDelaySource.Delay(TimeSpan.FromMilliseconds(_delayInMilliseconds), CancellationToken.None).ConfigureAwait(continueOnCapturedContext))
+                if (!await expeditableDelaySource.Delay(TimeSpan.FromMilliseconds(_delayInMilliseconds), CancellationToken.None).ConfigureAwait(continueOnCapturedContext))
                 {
                     // The operation is being expedited.
                     break;

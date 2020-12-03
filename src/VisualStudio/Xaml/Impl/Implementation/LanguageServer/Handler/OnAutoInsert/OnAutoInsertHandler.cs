@@ -11,16 +11,15 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.AutoInsert;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(LSP.MSLSPMethods.OnAutoInsertName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
-    internal class OnAutoInsertHandler : IRequestHandler<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem[]>
+    [ExportLspMethod(MSLSPMethods.OnAutoInsertName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
+    internal class OnAutoInsertHandler : IRequestHandler<DocumentOnAutoInsertParams, DocumentOnAutoInsertResponseItem[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,11 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentOnAutoInsertParams request) => request.TextDocument;
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnAutoInsertParams request) => request.TextDocument;
 
-        public async Task<LSP.DocumentOnAutoInsertResponseItem[]> HandleRequestAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, RequestContext context, CancellationToken cancellationToken)
+        public async Task<DocumentOnAutoInsertResponseItem[]> HandleRequestAsync(DocumentOnAutoInsertParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<LSP.DocumentOnAutoInsertResponseItem>.GetInstance(out var response);
+            using var _ = ArrayBuilder<DocumentOnAutoInsertResponseItem>.GetInstance(out var response);
 
             var document = context.Document;
             if (document == null)
@@ -47,8 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var offset = text.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(autoInsertParams.Position));
-            var result = await insertService.GetAutoInsertAsync(document, autoInsertParams.Character[0], offset, cancellationToken).ConfigureAwait(false);
+            var offset = text.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(request.Position));
+            var result = await insertService.GetAutoInsertAsync(document, request.Character[0], offset, cancellationToken).ConfigureAwait(false);
             if (result == null)
             {
                 return response.ToArray();
@@ -56,17 +55,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
             Contract.ThrowIfNull(result.TextChange.NewText);
             var insertText = result.TextChange.NewText;
-            var insertFormat = LSP.InsertTextFormat.Plaintext;
+            var insertFormat = InsertTextFormat.Plaintext;
             if (result.CaretOffset.HasValue)
             {
-                insertFormat = LSP.InsertTextFormat.Snippet;
+                insertFormat = InsertTextFormat.Snippet;
                 insertText = insertText.Insert(result.CaretOffset.Value, "$0");
             }
 
-            response.Add(new LSP.DocumentOnAutoInsertResponseItem
+            response.Add(new DocumentOnAutoInsertResponseItem
             {
                 TextEditFormat = insertFormat,
-                TextEdit = new LSP.TextEdit
+                TextEdit = new TextEdit
                 {
                     NewText = insertText,
                     Range = ProtocolConversions.TextSpanToRange(result.TextChange.Span, text)

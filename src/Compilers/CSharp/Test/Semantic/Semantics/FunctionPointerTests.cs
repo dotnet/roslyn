@@ -2348,19 +2348,20 @@ True
 True");
             verifier.VerifyIL("C.Main", expectedIL: @"
 {
-  // Code size       19 (0x13)
+  // Code size       20 (0x14)
   .maxstack  2
   .locals init (delegate*<void> V_0) //ptr
   IL_0000:  ldc.i4.0
   IL_0001:  conv.u
   IL_0002:  stloc.0
   IL_0003:  ldloc.0
-  IL_0004:  ldnull
-  IL_0005:  ceq
-  IL_0007:  call       ""void System.Console.WriteLine(bool)""
-  IL_000c:  ldc.i4.1
-  IL_000d:  call       ""void System.Console.WriteLine(bool)""
-  IL_0012:  ret
+  IL_0004:  ldc.i4.0
+  IL_0005:  conv.u
+  IL_0006:  ceq
+  IL_0008:  call       ""void System.Console.WriteLine(bool)""
+  IL_000d:  ldc.i4.1
+  IL_000e:  call       ""void System.Console.WriteLine(bool)""
+  IL_0013:  ret
 }
 ");
 
@@ -2855,13 +2856,14 @@ unsafe class C
 
             verifier.VerifyIL("C.M", expectedIL: @"
 {
-  // Code size       10 (0xa)
+  // Code size       11 (0xb)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldnull
-  IL_0002:  ceq
-  IL_0004:  call       ""void System.Console.Write(bool)""
-  IL_0009:  ret
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  ceq
+  IL_0005:  call       ""void System.Console.Write(bool)""
+  IL_000a:  ret
 }
 ");
         }

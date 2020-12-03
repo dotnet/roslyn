@@ -698,22 +698,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return Equals(method, compareKind, isValueTypeOverride: null);
+            return Equals(method, compareKind);
         }
 
-        internal bool Equals(FunctionPointerMethodSymbol other, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverride)
+        internal bool Equals(FunctionPointerMethodSymbol other, TypeCompareKind compareKind)
         {
             return ReferenceEquals(this, other) ||
-                (EqualsNoParameters(other, compareKind, isValueTypeOverride)
-                 && _parameters.SequenceEqual(other._parameters, (compareKind, isValueTypeOverride),
-                     (param1, param2, args) => param1.MethodEqualityChecks(param2, args.compareKind, args.isValueTypeOverride)));
+                (EqualsNoParameters(other, compareKind)
+                 && _parameters.SequenceEqual(other._parameters, compareKind,
+                     (param1, param2, compareKind) => param1.MethodEqualityChecks(param2, compareKind)));
         }
 
-        private bool EqualsNoParameters(FunctionPointerMethodSymbol other, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverride)
+        private bool EqualsNoParameters(FunctionPointerMethodSymbol other, TypeCompareKind compareKind)
         {
             if (CallingConvention != other.CallingConvention
                 || !FunctionPointerTypeSymbol.RefKindEquals(compareKind, RefKind, other.RefKind)
-                || !ReturnTypeWithAnnotations.Equals(other.ReturnTypeWithAnnotations, compareKind, isValueTypeOverride))
+                || !ReturnTypeWithAnnotations.Equals(other.ReturnTypeWithAnnotations, compareKind))
             {
                 return false;
             }

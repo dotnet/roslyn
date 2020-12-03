@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         ? string.Format(EditorFeaturesResources.Error_creating_instance_of_CodeFixProvider_0, lazyFixer.Metadata.Name)
                         : EditorFeaturesResources.Error_creating_instance_of_CodeFixProvider;
 
-                    errorReportingService.ShowErrorInfoInActiveView(
+                    errorReportingService.ShowGlobalErrorInfo(
                         message,
                         new InfoBarUI(
                             WorkspacesResources.Show_Stack_Trace,

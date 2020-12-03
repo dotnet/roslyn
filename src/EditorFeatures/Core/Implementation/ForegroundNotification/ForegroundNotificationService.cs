@@ -49,13 +49,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             }
         }
 
-        public void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
+        public void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken)
             => RegisterNotification(action, DefaultTimeSliceInMS, asyncToken, cancellationToken);
 
-        public void RegisterNotification(Func<bool> action, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
+        public void RegisterNotification(Func<bool> action, IAsyncToken asyncToken, CancellationToken cancellationToken)
             => RegisterNotification(action, DefaultTimeSliceInMS, asyncToken, cancellationToken);
 
-        public void RegisterNotification(Action action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
+        public void RegisterNotification(Action action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken)
         {
             Debug.Assert(delay >= 0);
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             _workQueue.Enqueue(new PendingWork(current + delay, action, asyncToken, cancellationToken));
         }
 
-        public void RegisterNotification(Func<bool> action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
+        public void RegisterNotification(Func<bool> action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken)
         {
             Debug.Assert(delay >= 0);
 
