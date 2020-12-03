@@ -612,8 +612,8 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="translated">'{0}' gövdesinin değiştirilmesi, {1} iç hatası nedeniyle hata ayıklama oturumunun devam etmesini engeller.</target>
-        <note />
+        <target state="needs-review-translation">'{0}' gövdesinin değiştirilmesi, {1} iç hatası nedeniyle hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
         <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
@@ -642,8 +642,8 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="translated">'{0}' kaynak dosyasının değiştirilmesi, {1} iç hatası nedeniyle hata ayıklama oturumunun devam etmesini engeller.</target>
-        <note />
+        <target state="needs-review-translation">'{0}' kaynak dosyasının değiştirilmesi, {1} iç hatası nedeniyle hata ayıklama oturumunun devam etmesini engeller.</target>
+        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
