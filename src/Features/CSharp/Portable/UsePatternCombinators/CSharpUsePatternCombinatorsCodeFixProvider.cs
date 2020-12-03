@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             {
                 // The original target expression might have been implicitly converted due to usage of operators,
                 // in which case we make it an explicit cast because the `is` expresion doesn't apply conversions.
-                expr = CastExpression(conv.Type.GenerateTypeSyntax(), expr.Parenthesize());
+                expr = CastExpression(conv.Type.GenerateTypeSyntax(), expr.Parenthesize()).WithAdditionalAnnotations(Simplifier.Annotation);
             }
 
             return IsPatternExpression(expr, pattern);
