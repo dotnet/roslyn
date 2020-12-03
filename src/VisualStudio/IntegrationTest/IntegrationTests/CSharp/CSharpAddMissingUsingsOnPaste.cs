@@ -79,7 +79,6 @@ class Program
     $$
 }");
 
-
             using var telemetry = VisualStudio.EnableTestTelemetryChannel();
 
             VisualStudio.Workspace.SetFeatureOption(FeatureOnOffOptions.AddImportsOnPaste.Feature, FeatureOnOffOptions.AddImportsOnPaste.Name, LanguageNames.CSharp, "True");
