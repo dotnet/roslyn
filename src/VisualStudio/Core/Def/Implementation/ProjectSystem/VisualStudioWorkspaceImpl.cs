@@ -147,8 +147,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>(),
                     exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
                     _threadingContext), isThreadSafe: true);
-
-            RegisterForLsp();
         }
 
         internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;

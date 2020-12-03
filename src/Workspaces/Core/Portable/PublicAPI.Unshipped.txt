@@ -6,4 +6,3 @@ Microsoft.CodeAnalysis.Solution.GetSourceGeneratedDocumentAsync(Microsoft.CodeAn
 Microsoft.CodeAnalysis.SourceGeneratedDocument
 Microsoft.CodeAnalysis.SourceGeneratedDocument.HintName.get -> string
 Microsoft.CodeAnalysis.SourceGeneratedDocument.SourceGenerator.get -> Microsoft.CodeAnalysis.ISourceGenerator
-Microsoft.CodeAnalysis.Workspace.RegisterForLsp() -> void
