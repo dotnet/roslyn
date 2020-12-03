@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -3828,8 +3828,8 @@ oneMoreTime:
                 //   try { statement; }
                 //   finally { resource.Dispose(); }
                 // }
-                // Otherwise, when Resource type is a nullable value type or
-                // a reference type other than dynamic that implements IDisposable, the expansion is:
+                // Otherwise, when Resource type is a reference type other than dynamic
+                // that implements IDisposable, the expansion is:
                 //
                 // {
                 //   ResourceType resource = expr;
@@ -3837,14 +3837,22 @@ oneMoreTime:
                 //   finally { if (resource != null) ((IDisposable)resource).Dispose(); }
                 // }
                 //
-                // Otherwise, when Resource type is a nullable value type or
-                // a reference type other than dynamic that implements disposal
-                // via pattern, the expansion is:
+                // Otherwise, when Resource type is a reference type other than dynamic
+                // that implements disposal via pattern, the expansion is:
                 //
                 // {
                 //   ResourceType resource = expr;
                 //   try { statement; }
                 //   finally { if (resource != null) resource.Dispose(); }
+                // }
+                //
+                // Otherwise, when Resource type is a nullable value type
+                // that implements IDisposable, the expansion is:
+                //
+                // {
+                //   ResourceType resource = expr;
+                //   try { statement; }
+                //   finally { if (resource.HasValue()) ((IDisposable)resource.GetValueOrDefault()).Dispose(); }
                 // }
                 //
                 // Otherwise, when ResourceType is dynamic, the expansion is:

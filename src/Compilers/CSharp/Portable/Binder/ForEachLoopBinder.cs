@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return EnumeratorResult.FailedAndReported;
                 }
-                builder = GetDefaultEnumeratorInfo(builder, diagnostics, collectionExprType, isAsync);
+                builder = GetDefaultEnumeratorInfo(builder, diagnostics, collectionExprType);
                 return EnumeratorResult.Succeeded;
             }
 
@@ -860,7 +860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return EnumeratorResult.FailedAndReported;
                 }
 
-                builder = GetDefaultEnumeratorInfo(builder, diagnostics, collectionExprType, isAsync);
+                builder = GetDefaultEnumeratorInfo(builder, diagnostics, collectionExprType);
                 return EnumeratorResult.Succeeded;
             }
 
@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return getEnumeratorMethod;
         }
 
-        private ForEachEnumeratorInfo.Builder GetDefaultEnumeratorInfo(ForEachEnumeratorInfo.Builder builder, DiagnosticBag diagnostics, TypeSymbol collectionExprType, bool isAsync)
+        private ForEachEnumeratorInfo.Builder GetDefaultEnumeratorInfo(ForEachEnumeratorInfo.Builder builder, DiagnosticBag diagnostics, TypeSymbol collectionExprType)
         {
             // NOTE: for arrays, we won't actually use any of these members - they're just for the API.
             builder.CollectionType = GetSpecialType(SpecialType.System_Collections_IEnumerable, diagnostics, _syntax);
