@@ -32,22 +32,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
         {
-            return GetDocuments<Document>(solution, documentUri, (s, i) => s.GetRequiredDocument(i));
-        }
-
-        public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
-        {
-            return GetDocuments<DocumentId>(solution, documentUri, (s, i) => i);
+            return GetDocuments(solution, documentUri, clientName: null);
         }
 
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri, string? clientName)
         {
-            var documents = GetDocuments<Document>(solution, documentUri, (s, i) => s.GetRequiredDocument(i));
+            var documentIds = GetDocumentIds(solution, documentUri);
+
+            var documents = documentIds.SelectAsArray(id => solution.GetRequiredDocument(id));
 
             return FilterDocumentsByClientName(documents, clientName);
         }
 
-        private static ImmutableArray<T> GetDocuments<T>(this Solution solution, Uri documentUri, Func<Solution, DocumentId, T> getDocument)
+        public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
         {
             // TODO: we need to normalize this. but for now, we check both absolute and local path
             //       right now, based on who calls this, solution might has "/" or "\\" as directory
@@ -59,10 +56,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 documentIds = solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
             }
 
-            return documentIds.SelectAsArray(id => getDocument(solution, id));
+            return documentIds;
         }
 
-        private static ImmutableArray<T> FilterDocumentsByClientName<T>(ImmutableArray<T> documents, string? clientName) where T : TextDocument
+        private static ImmutableArray<Document> FilterDocumentsByClientName(ImmutableArray<Document> documents, string? clientName)
         {
             // If we don't have a client name, then we're done filtering
             if (clientName == null)
