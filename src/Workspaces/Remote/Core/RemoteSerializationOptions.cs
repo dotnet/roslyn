@@ -8,6 +8,7 @@ using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
 using Microsoft.ServiceHub.Framework;
+using Nerdbank.Streams;
 using Newtonsoft.Json;
 using StreamJsonRpc;
 
@@ -19,6 +20,12 @@ namespace Microsoft.CodeAnalysis.Remote
     internal readonly struct RemoteSerializationOptions
     {
         internal static readonly RemoteSerializationOptions Default = new(ImmutableArray<IMessagePackFormatter>.Empty, ImmutableArray<IFormatterResolver>.Empty);
+
+        // Enables remote APIs to pass Stream as parameter.
+        private static readonly MultiplexingStream.Options s_multiplexingStreamOptions = new MultiplexingStream.Options
+        {
+            ProtocolMajorVersion = 3
+        }.GetFrozenCopy();
 
         private readonly object _options;
 
@@ -40,6 +47,9 @@ namespace Microsoft.CodeAnalysis.Remote
            => _options is MessagePackSerializerOptions ?
                ServiceJsonRpcDescriptor.MessageDelimiters.BigEndianInt32LengthHeader :
                ServiceJsonRpcDescriptor.MessageDelimiters.HttpLikeHeaders;
+
+        public MultiplexingStream.Options? MultiplexingStreamOptions
+            => _options is MessagePackSerializerOptions ? s_multiplexingStreamOptions : null;
 
         internal IJsonRpcMessageFormatter ConfigureFormatter(IJsonRpcMessageFormatter formatter)
         {

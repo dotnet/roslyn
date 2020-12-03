@@ -26,17 +26,11 @@ namespace Microsoft.CodeAnalysis.Remote
             AllowNonPublicInvocation = false
         };
 
-        // Enables remote APIs to pass Stream as parameter.
-        private static readonly MultiplexingStream.Options s_multiplexingStreamOptions = new MultiplexingStream.Options
-        {
-            ProtocolMajorVersion = 3
-        }.GetFrozenCopy();
-
         private readonly Func<string, string> _featureDisplayNameProvider;
         private readonly RemoteSerializationOptions _serializationOptions;
 
         private ServiceDescriptor(ServiceMoniker serviceMoniker, RemoteSerializationOptions serializationOptions, Func<string, string> displayNameProvider, Type? clientInterface)
-            : base(serviceMoniker, clientInterface, serializationOptions.Formatter, serializationOptions.MessageDelimiters, s_multiplexingStreamOptions)
+            : base(serviceMoniker, clientInterface, serializationOptions.Formatter, serializationOptions.MessageDelimiters, serializationOptions.MultiplexingStreamOptions)
         {
             _featureDisplayNameProvider = displayNameProvider;
             _serializationOptions = serializationOptions;
