@@ -343,7 +343,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Equals(TryCast(other, TypeSymbol), compareKind)
         End Function
 
-
         Public MustOverride Overrides Function GetHashCode() As Integer
 
         Public MustOverride Overloads Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
