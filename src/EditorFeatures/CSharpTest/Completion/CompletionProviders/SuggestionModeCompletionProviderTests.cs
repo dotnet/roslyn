@@ -1398,6 +1398,27 @@ class P
             }
         }
 
+        [WorkItem(49656, "https://github.com/dotnet/roslyn/issues/49656")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task FirstArgumentOfInvocation_WithParamsOnlyOverload()
+        {
+            var markup = @"
+using System;
+interface Foo
+{
+    bool Bar(params string[] x) => true;
+    bool Bar(Func<int, bool> predicate) => true;
+}
+class P
+{
+    void M(Foo f)
+    {
+        f.Bar(p$$)
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
         private async Task VerifyNotBuilderAsync(string markup)
             => await VerifyWorkerAsync(markup, isBuilder: false);
 
