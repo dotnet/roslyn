@@ -284,8 +284,8 @@ namespace Microsoft.CodeAnalysis
                     return semanticModel;
                 }
 
-                var syntaxTree = await this.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var compilation = (await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
+                var syntaxTree = compilation.SyntaxTrees.Single(tree => tree.FilePath == this.FilePath);
 
                 var result = compilation.GetSemanticModel(syntaxTree);
                 Contract.ThrowIfNull(result);

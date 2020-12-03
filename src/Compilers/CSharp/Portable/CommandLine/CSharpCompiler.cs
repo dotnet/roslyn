@@ -408,6 +408,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref Compilation input, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
             DiagnosticBag diagnostics, IList<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader)
         {
+            // if there are no transformers, don't do anything, not even annotating
+            if (transformers.IsEmpty)
+            {
+                return input;
+            }
+
             if (!ShouldDebugTransformedCode(analyzerConfigProvider))
             {
                 // mark old trees as debuggable

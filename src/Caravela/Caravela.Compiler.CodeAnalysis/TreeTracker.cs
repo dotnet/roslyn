@@ -136,7 +136,13 @@ namespace Caravela.Compiler
         [return: NotNull]
         internal static T FindNode<T>(this SyntaxNode ancestor, TextSpan span) where T : SyntaxNode?
         {
-            var foundNode = ancestor.FindNode(span, getInnermostNodeForTie: true);
+            SyntaxNode foundNode;
+
+            // span is the very end of the ancestor, which is technically not inside it, so FindNode would throw
+            if (span.IsEmpty && span.Start == ancestor.EndPosition)
+                foundNode = ancestor.DescendantNodes().Last();
+            else
+                foundNode = ancestor.FindNode(span, getInnermostNodeForTie: true);
 
             // we were looking for node with zero width (like OmittedArraySizeExpression), but found something larger
             // FindNode uses FindToken, which does not return zero-width tokens, so we use it ourselves, but then look just before it
@@ -180,7 +186,13 @@ namespace Caravela.Compiler
             Debug.Assert(preTransformationAncestor != null);
 
             var originalPosition = token.Position - parent.Position + preTransformationAncestor.Position;
-            var foundToken = preTransformationAncestor.FindToken(originalPosition);
+
+            SyntaxToken foundToken;
+            // position is the very end of the ancestor, which is technically not inside it, so FindToken would throw
+            if (originalPosition == preTransformationAncestor.EndPosition)
+                foundToken = preTransformationAncestor.GetLastToken(includeZeroWidth: true);
+            else
+                foundToken = preTransformationAncestor.FindToken(originalPosition);
 
             if (foundToken.FullSpan != new TextSpan(originalPosition, token.FullWidth))
             {
