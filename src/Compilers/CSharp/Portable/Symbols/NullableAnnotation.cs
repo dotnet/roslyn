@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Annotated,
 
         /// <summary>
-        /// Used locally in override/implementation checks.
+        /// Used for indexed type parameters and used locally in override/implementation checks.
         /// </summary>
         Ignored,
     }
