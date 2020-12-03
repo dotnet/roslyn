@@ -108,7 +108,9 @@ namespace RunTests
                 var workItem = @"
         <HelixWorkItem Include=""" + assemblyInfo.DisplayName + @""">
             <Command>
+                dir
                 cd %HELIX_CORRELATION_PAYLOAD%
+                dir
                 dotnet tool restore
                 dotnet pwsh ./rehydrate.ps1
                 dotnet " + commandLineArguments + @"
