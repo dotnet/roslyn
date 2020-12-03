@@ -5663,7 +5663,7 @@ Block[B0] - Entry
             Statements (1)
                 IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'new C()')
                   Expression: 
-                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask C.AsyncEnumerator.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new C()')
+                    IInvocationOperation ( System.Threading.Tasks.ValueTask C.AsyncEnumerator.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new C()')
                       Instance Receiver: 
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C.AsyncEnumerator, IsImplicit) (Syntax: 'new C()')
                       Arguments(0)
@@ -5970,7 +5970,7 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
     NextVariables(0)", DiagnosticDescription.None);
 
             VerifyFlowGraphForTest<BlockSyntax>(compilation, @"
- Block[B0] - Entry
+Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
@@ -6031,7 +6031,7 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
         Block[B4] - Block
             Predecessors (0)
             Statements (1)
-                IInvocationOperation (virtual void C.Enumerator.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new C()')
+                IInvocationOperation ( void C.Enumerator.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new C()')
                   Instance Receiver: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C.Enumerator, IsImplicit) (Syntax: 'new C()')
                   Arguments(0)

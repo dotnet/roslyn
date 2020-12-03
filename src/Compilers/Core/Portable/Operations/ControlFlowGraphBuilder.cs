@@ -3735,11 +3735,11 @@ oneMoreTime:
         public override IOperation? VisitUsing(IUsingOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
-            HandleUsingOperationParts(operation.Resources, operation.Body, ((UsingOperation)operation).DisposeMethod, operation.Locals, operation.IsAsynchronous);
+            HandleUsingOperationParts(operation.Resources, operation.Body, ((UsingOperation)operation).DisposeMethod, ((UsingOperation)operation).DisposeArguments, operation.Locals, operation.IsAsynchronous);
             return FinishVisitingStatement(operation);
         }
 
-        private void HandleUsingOperationParts(IOperation resources, IOperation body, IMethodSymbol? disposeMethod, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous)
+        private void HandleUsingOperationParts(IOperation resources, IOperation body, IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous)
         {
             var usingRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals);
             EnterRegion(usingRegion);
@@ -3878,7 +3878,7 @@ oneMoreTime:
 
                 LeaveRegion();
 
-                AddDisposingFinally(resource, requiresRuntimeConversion: false, iDisposable, disposeMethod, isAsynchronous);
+                AddDisposingFinally(resource, requiresRuntimeConversion: false, iDisposable, disposeMethod, disposeArguments, isAsynchronous);
 
                 Debug.Assert(CurrentRegionRequired.Kind == ControlFlowRegionKind.TryAndFinally);
                 LeaveRegion();
@@ -3893,7 +3893,7 @@ oneMoreTime:
             }
         }
 
-        private void AddDisposingFinally(IOperation resource, bool requiresRuntimeConversion, ITypeSymbol iDisposable, IMethodSymbol? disposeMethod, bool isAsynchronous)
+        private void AddDisposingFinally(IOperation resource, bool requiresRuntimeConversion, ITypeSymbol iDisposable, IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments, bool isAsynchronous)
         {
             Debug.Assert(CurrentRegionRequired.Kind == ControlFlowRegionKind.TryAndFinally);
 
@@ -3936,15 +3936,17 @@ oneMoreTime:
 
             IOperation? tryDispose(IOperation value)
             {
-                Debug.Assert(disposeMethod is object || value.Type!.Equals(iDisposable));
+                Debug.Assert((disposeMethod is object && !disposeArguments.IsDefault) || value.Type!.Equals(iDisposable));
 
                 var method = disposeMethod ?? (isAsynchronous
                     ? (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)?.GetISymbol()
                     : (IMethodSymbol?)_compilation.CommonGetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose)?.GetISymbol());
+
                 if (method != null)
                 {
-                    var invocation = new InvocationOperation(method, value, isVirtual: true,
-                                                             ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, value.Syntax,
+                    var args = disposeMethod is object ? VisitArguments(disposeArguments) : ImmutableArray<IArgumentOperation>.Empty;
+                    var invocation = new InvocationOperation(method, value, isVirtual: disposeMethod?.IsVirtual ?? true,
+                                                             args, semanticModel: null, value.Syntax,
                                                              method.ReturnType, isImplicit: true);
 
                     if (isAsynchronous)
@@ -4248,6 +4250,7 @@ oneMoreTime:
                                     requiresRuntimeConversion: !info.KnownToImplementIDisposable && !info.IsPatternDispose,
                                     iDisposable,
                                     info.DisposeMethod,
+                                    info.DisposeArguments,
                                     isAsynchronous);
 
                 Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
@@ -7005,6 +7008,7 @@ oneMoreTime:
                 resources: operation.DeclarationGroup,
                 body: logicalBlock,
                 ((UsingDeclarationOperation)operation).DisposeMethod,
+                ((UsingDeclarationOperation)operation).DisposeArguments,
                 locals: ImmutableArray<ILocalSymbol>.Empty,
                 isAsynchronous: operation.IsAsynchronous);
 

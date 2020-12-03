@@ -3875,7 +3875,7 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class UsingOperation : Operation, IUsingOperation
     {
-        internal UsingOperation(IOperation resources, IOperation body, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous, IMethodSymbol? disposeMethod, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+        internal UsingOperation(IOperation resources, IOperation body, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous, IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             Resources = SetParentOperation(resources, this);
@@ -3883,12 +3883,14 @@ namespace Microsoft.CodeAnalysis.Operations
             Locals = locals;
             IsAsynchronous = isAsynchronous;
             DisposeMethod = disposeMethod;
+            DisposeArguments = SetParentOperation(disposeArguments, this);
         }
         public IOperation Resources { get; }
         public IOperation Body { get; }
         public ImmutableArray<ILocalSymbol> Locals { get; }
         public bool IsAsynchronous { get; }
         public IMethodSymbol? DisposeMethod { get; }
+        public ImmutableArray<IArgumentOperation> DisposeArguments { get; }
         protected override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
@@ -7382,16 +7384,18 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class UsingDeclarationOperation : Operation, IUsingDeclarationOperation
     {
-        internal UsingDeclarationOperation(IVariableDeclarationGroupOperation declarationGroup, bool isAsynchronous, IMethodSymbol? disposeMethod, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+        internal UsingDeclarationOperation(IVariableDeclarationGroupOperation declarationGroup, bool isAsynchronous, IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             DeclarationGroup = SetParentOperation(declarationGroup, this);
             IsAsynchronous = isAsynchronous;
             DisposeMethod = disposeMethod;
+            DisposeArguments = SetParentOperation(disposeArguments, this);
         }
         public IVariableDeclarationGroupOperation DeclarationGroup { get; }
         public bool IsAsynchronous { get; }
         public IMethodSymbol? DisposeMethod { get; }
+        public ImmutableArray<IArgumentOperation> DisposeArguments { get; }
         protected override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
@@ -7677,7 +7681,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitUsing(IUsingOperation operation, object? argument)
         {
             var internalOperation = (UsingOperation)operation;
-            return new UsingOperation(Visit(internalOperation.Resources), Visit(internalOperation.Body), internalOperation.Locals, internalOperation.IsAsynchronous, internalOperation.DisposeMethod, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+            return new UsingOperation(Visit(internalOperation.Resources), Visit(internalOperation.Body), internalOperation.Locals, internalOperation.IsAsynchronous, internalOperation.DisposeMethod, VisitArray(internalOperation.DisposeArguments), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitExpressionStatement(IExpressionStatementOperation operation, object? argument)
         {
@@ -8127,7 +8131,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitUsingDeclaration(IUsingDeclarationOperation operation, object? argument)
         {
             var internalOperation = (UsingDeclarationOperation)operation;
-            return new UsingDeclarationOperation(Visit(internalOperation.DeclarationGroup), internalOperation.IsAsynchronous, internalOperation.DisposeMethod, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+            return new UsingDeclarationOperation(Visit(internalOperation.DeclarationGroup), internalOperation.IsAsynchronous, internalOperation.DisposeMethod, VisitArray(internalOperation.DisposeArguments), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
         public override IOperation VisitNegatedPattern(INegatedPatternOperation operation, object? argument)
         {
