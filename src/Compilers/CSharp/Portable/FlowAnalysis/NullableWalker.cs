@@ -2506,8 +2506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localFunc,
                 state,
                 delegateInvokeMethod: null,
-                useDelegateInvokeParameterTypes: false,
-                ignoreAddedSlotsIfPossible: false);
+                useDelegateInvokeParameterTypes: false);
 
             SetInvalidResult();
 
@@ -2519,8 +2518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol lambdaOrFunctionSymbol,
             LocalState state,
             MethodSymbol? delegateInvokeMethod,
-            bool useDelegateInvokeParameterTypes,
-            bool ignoreAddedSlotsIfPossible)
+            bool useDelegateInvokeParameterTypes)
         {
             var oldSymbol = this.CurrentSymbol;
             this.CurrentSymbol = lambdaOrFunctionSymbol;
@@ -2542,7 +2540,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldVariableBySlot = variableBySlot;
             var oldNextVariableSlot = nextVariableSlot;
 
-            if (ignoreAddedSlotsIfPossible)
+            // As an optimization, if there are no local function uses in the nested function,
+            // we'll reset the set of variable slots and types after analyzing the nested function,
+            // to avoid accumulating entries in the outer function for variables that are
+            // local to the nested function. (Of course, this will drop slots associated
+            // with variables in the outer function that were first used in the nested function,
+            // such as a field access on a captured local, but the state associated with
+            // any such entries are dropped, so the slots can be dropped as well.)
+            // We don't drop slots and types if there are local function usages but the
+            // _localFuncVarUsages dictionary tracks state as well and we don't want
+            // to invalidate that state.
+            if (!HasAnyLocalFuncUsages)
             {
                 _variableSlot = PooledDictionary<VariableIdentifier, int>.GetInstance();
                 foreach (var pair in oldVariableSlot)
@@ -2599,7 +2607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _snapshotBuilderOpt?.ExitWalker(this.SaveSharedState(), previousSlot);
 
-            if (ignoreAddedSlotsIfPossible && !HasAnyLocalFuncUsages)
+            if (!HasAnyLocalFuncUsages)
             {
                 nextVariableSlot = oldNextVariableSlot;
                 variableBySlot = oldVariableBySlot;
@@ -7401,8 +7409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Symbol,
                 initialState.HasValue ? initialState.Value : State.Clone(),
                 delegateInvokeMethod,
-                useDelegateInvokeParameterTypes,
-                ignoreAddedSlotsIfPossible: true);
+                useDelegateInvokeParameterTypes);
 
             _disableDiagnostics = oldDisableDiagnostics;
         }
