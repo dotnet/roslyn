@@ -373,5 +373,56 @@ class Program
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
         }
+
+        [ConditionalFactAttribute(typeof(IsRelease))]
+        [WorkItem(49745, "https://github.com/dotnet/roslyn/issues/49745")]
+        public void NullableStateLambdas()
+        {
+            const int nFunctions = 5000;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#nullable enable");
+            builder.AppendLine("class Program");
+            builder.AppendLine("{");
+            builder.AppendLine("    static void F(object arg)");
+            builder.AppendLine("    {");
+            builder.AppendLine("        System.Func<object, object> f;");
+            for (int i = 0; i < nFunctions; i++)
+            {
+                builder.AppendLine($"        f = arg{i} => arg{i};");
+                builder.AppendLine($"        f(arg);");
+            }
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [ConditionalFactAttribute(typeof(IsRelease))]
+        [WorkItem(49745, "https://github.com/dotnet/roslyn/issues/49745")]
+        public void NullableStateLocalFunctions()
+        {
+            const int nFunctions = 1000;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#nullable enable");
+            builder.AppendLine("class Program");
+            builder.AppendLine("{");
+            builder.AppendLine("    static void F(object x, object y)");
+            builder.AppendLine("    {");
+            for (int i = 0; i < nFunctions; i++)
+            {
+                builder.AppendLine($"        static void Local{i}(object x{i}, object y{i}) {{ }}");
+                builder.AppendLine($"        Local{i}(x, y);");
+            }
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
     }
 }

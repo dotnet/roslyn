@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The inferred type at the point of declaration of var locals and parameters.
         /// </summary>
-        private readonly PooledDictionary<Symbol, TypeWithAnnotations> _variableTypes = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<Symbol, TypeWithAnnotations>();
+        private PooledDictionary<Symbol, TypeWithAnnotations> _variableTypes = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<Symbol, TypeWithAnnotations>();
 
         /// <summary>
         /// Binder for symbol being analyzed.
@@ -2534,6 +2534,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var oldState = this.State;
             this.State = state;
+            var oldVariableSlot = _variableSlot;
+            _variableSlot = PooledDictionary<VariableIdentifier, int>.GetInstance();
+            foreach (var pair in oldVariableSlot)
+            {
+                _variableSlot.Add(pair.Key, pair.Value);
+            }
+            var oldVariableTypes = _variableTypes;
+            _variableTypes = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<Symbol, TypeWithAnnotations>();
+            foreach (var pair in oldVariableTypes)
+            {
+                _variableTypes.Add(pair.Key, pair.Value);
+            }
 
             var previousSlot = _snapshotBuilderOpt?.EnterNewWalker(lambdaOrFunctionSymbol) ?? -1;
 
@@ -2576,6 +2588,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _snapshotBuilderOpt?.ExitWalker(this.SaveSharedState(), previousSlot);
 
+            _variableTypes.Free();
+            _variableTypes = oldVariableTypes;
+            _variableSlot.Free();
+            _variableSlot = oldVariableSlot;
             this.State = oldState;
             _returnTypesOpt = oldReturnTypes;
             _useDelegateInvokeParameterTypes = oldUseDelegateInvokeParameterTypes;
