@@ -69,8 +69,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             ImmutableArray<INamedTypeSymbol> additionalSupportedValueTypes = default,
             Func<IOperation, ValueContentAbstractValue>? getValueContentValueForAdditionalSupportedValueTypeOperation = null)
         {
+            if (cfg == null)
+            {
+                throw new ArgumentNullException(nameof(cfg));
+            }
+
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
-                analyzerOptions, rule, owningSymbol, wellKnownTypeProvider.Compilation, interproceduralAnalysisKind, cancellationToken);
+                analyzerOptions, rule, cfg, wellKnownTypeProvider.Compilation, interproceduralAnalysisKind, cancellationToken);
             var pointsToAnalysisKind = analyzerOptions.GetPointsToAnalysisKindOption(rule, owningSymbol, wellKnownTypeProvider.Compilation,
                 defaultValue: PointsToAnalysisKind.PartialWithoutTrackingFieldsAndProperties, cancellationToken);
             return TryGetOrComputeResult(cfg, owningSymbol, createOperationVisitor, wellKnownTypeProvider, analyzerOptions,
@@ -94,7 +99,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             ImmutableArray<INamedTypeSymbol> additionalSupportedValueTypes = default,
             Func<IOperation, ValueContentAbstractValue>? getValueContentValueForAdditionalSupportedValueTypeOperation = null)
         {
-            RoslynDebug.Assert(cfg != null);
             RoslynDebug.Assert(owningSymbol != null);
 
             PointsToAnalysisResult? pointsToAnalysisResult = null;
