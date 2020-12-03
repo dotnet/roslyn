@@ -52,6 +52,9 @@ namespace RunTests
             var sourceBranch = Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCH");
             if (sourceBranch is null)
             {
+                if (string.Empty.Length == 0)
+                    throw new Exception("we don't want this to happen in CI");
+
                 sourceBranch = "local";
                 Environment.SetEnvironmentVariable("BUILD_SOURCEBRANCH", sourceBranch);
 
