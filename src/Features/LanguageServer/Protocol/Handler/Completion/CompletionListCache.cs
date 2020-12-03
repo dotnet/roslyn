@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         /// <summary>
         /// Multiple cache requests or updates may be received concurrently.
         /// We need this sempahore to ensure that we aren't making concurrent
-        /// modifications to _nextResultId or the _resultIdToCompletionList
-        /// dictionary.
+        /// modifications to _nextResultId or _resultIdToCompletionList.
         /// </summary>
         private readonly SemaphoreSlim _semaphore = new(1);
 
@@ -40,9 +39,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         private long _nextResultId;
 
         /// <summary>
-        /// Maps a resultId to its completion list.
+        /// Keeps track of the resultIds in the cache and their associated
+        /// completion list.
         /// </summary>
-        private readonly Dictionary<long, CompletionList> _resultIdToCompletionList = new();
+        private readonly List<(long, CompletionList)> _resultIdToCompletionList = new();
         #endregion
 
         [ImportingConstructor]
@@ -58,22 +58,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         /// <returns>
         /// The generated resultId associated with the passed in completion list.
         /// </returns>
-        internal async Task<long> UpdateCacheAsync(CompletionList completionList, CancellationToken cancellationToken)
+        public async Task<long> UpdateCacheAsync(CompletionList completionList, CancellationToken cancellationToken)
         {
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                // Getting the generated unique resultId
-                var resultId = _nextResultId++;
-
                 // If cache exceeds maximum size, remove the oldest list in the cache
                 if (_resultIdToCompletionList.Count >= MaxCacheSize)
                 {
-                    var oldestCachedResultId = resultId - MaxCacheSize;
-                    _resultIdToCompletionList.Remove(oldestCachedResultId);
+                    _resultIdToCompletionList.RemoveAt(0);
                 }
 
+                // Getting the generated unique resultId
+                var resultId = _nextResultId++;
+
                 // Add passed in completion list to cache
-                _resultIdToCompletionList[resultId] = completionList;
+                _resultIdToCompletionList.Add((resultId, completionList));
 
                 // Return generated resultId so completion list can later be retrieved from cache
                 return resultId;
@@ -84,18 +83,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         /// Attempts to return the completion list in the cache associated with the given resultId.
         /// Returns null if no match is found.
         /// </summary>
-        internal async Task<CompletionList?> GetCachedCompletionListAsync(long resultId, CancellationToken cancellationToken)
+        public async Task<CompletionList?> GetCachedCompletionListAsync(long resultId, CancellationToken cancellationToken)
         {
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                // A completion list associated with the given resultId was not found
-                if (!_resultIdToCompletionList.ContainsKey(resultId))
+                foreach (var (cachedResultId, cachedCompletionList) in _resultIdToCompletionList)
                 {
-                    return null;
+                    if (cachedResultId == resultId)
+                    {
+                        // We found a match - return completion list
+                        return cachedCompletionList;
+                    }
                 }
 
-                // We found a match - return completion list
-                return _resultIdToCompletionList[resultId];
+                // A completion list associated with the given resultId was not found
+                return null;
             }
         }
 
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             public TestAccessor(CompletionListCache completionListCache)
                 => _completionListCache = completionListCache;
 
-            public Dictionary<long, CompletionList> GetCacheContents()
+            public List<(long, CompletionList)> GetCacheContents()
                 => _completionListCache._resultIdToCompletionList;
         }
     }

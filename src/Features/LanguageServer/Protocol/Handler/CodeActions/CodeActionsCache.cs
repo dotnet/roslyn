@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         {
         }
 
-        internal async Task UpdateActionSetsAsync(
+        public async Task UpdateActionSetsAsync(
             Document document,
             LSP.Range range,
             ImmutableArray<UnifiedSuggestedActionSet> cachedSuggestedActionSets,
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// Attempts to retrieve the cached action sets that match the given document and range.
         /// Returns null if no match is found.
         /// </summary>
-        internal async Task<ImmutableArray<UnifiedSuggestedActionSet>?> GetActionSetsAsync(
+        public async Task<ImmutableArray<UnifiedSuggestedActionSet>?> GetActionSetsAsync(
             Document document,
             LSP.Range range,
             CancellationToken cancellationToken)

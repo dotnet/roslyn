@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// Updates the given document's token set cache. Removes old cache results if the document's
         /// cache is full.
         /// </summary>
-        internal async Task UpdateCacheAsync(
+        public async Task UpdateCacheAsync(
             Uri uri,
             LSP.SemanticTokens tokens,
             CancellationToken cancellationToken)
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// Returns the cached tokens data for a given document URI and resultId.
         /// Returns null if no match is found.
         /// </summary>
-        internal async Task<int[]?> GetCachedTokensDataAsync(
+        public async Task<int[]?> GetCachedTokensDataAsync(
             Uri uri,
             string resultId,
             CancellationToken cancellationToken)
@@ -140,6 +140,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// <summary>
         /// Returns the next available resultId.
         /// </summary>
-        internal string GetNextResultId() => Interlocked.Increment(ref _nextResultId).ToString();
+        public string GetNextResultId() => Interlocked.Increment(ref _nextResultId).ToString();
     }
 }
