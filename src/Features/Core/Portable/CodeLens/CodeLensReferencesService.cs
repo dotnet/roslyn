@@ -68,9 +68,14 @@ namespace Microsoft.CodeAnalysis.CodeLens
             }
         }
 
+        public async ValueTask<VersionStamp> GetProjectCodeLensVersionAsync(Solution solution, ProjectId projectId, CancellationToken cancellationToken)
+        {
+            return await solution.GetRequiredProject(projectId).GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
+        }
+
         public async Task<ReferenceCount?> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken)
         {
-            var projectVersion = await solution.GetRequiredProject(documentId.ProjectId).GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
+            var projectVersion = await GetProjectCodeLensVersionAsync(solution, documentId.ProjectId, cancellationToken).ConfigureAwait(false);
             return await FindAsync(solution, documentId, syntaxNode,
                 progress => Task.FromResult(new ReferenceCount(
                     progress.SearchCap > 0
