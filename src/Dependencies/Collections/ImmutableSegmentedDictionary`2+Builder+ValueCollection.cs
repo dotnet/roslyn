@@ -5,7 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
@@ -13,46 +13,46 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     {
         public partial class Builder
         {
-            public readonly struct KeyCollection : ICollection<TKey>, IReadOnlyCollection<TKey>, ICollection
+            public readonly struct ValueCollection : ICollection<TValue>, IReadOnlyCollection<TValue>, ICollection
             {
                 private readonly ImmutableSegmentedDictionary<TKey, TValue>.Builder _dictionary;
 
-                internal KeyCollection(ImmutableSegmentedDictionary<TKey, TValue>.Builder dictionary)
+                internal ValueCollection(ImmutableSegmentedDictionary<TKey, TValue>.Builder dictionary)
                 {
-                    RoslynDebug.AssertNotNull(dictionary);
+                    Debug.Assert(dictionary is not null);
                     _dictionary = dictionary;
                 }
 
                 public int Count => _dictionary.Count;
 
-                bool ICollection<TKey>.IsReadOnly => false;
+                bool ICollection<TValue>.IsReadOnly => false;
 
                 bool ICollection.IsSynchronized => false;
 
                 object ICollection.SyncRoot => ((ICollection)_dictionary).SyncRoot;
 
-                void ICollection<TKey>.Add(TKey item)
+                void ICollection<TValue>.Add(TValue item)
                     => throw new NotSupportedException();
 
                 public void Clear()
                     => _dictionary.Clear();
 
-                public bool Contains(TKey item)
-                    => _dictionary.ContainsKey(item);
+                public bool Contains(TValue item)
+                    => _dictionary.ContainsValue(item);
 
-                public void CopyTo(TKey[] array, int arrayIndex)
-                    => ((ICollection<TKey>)_dictionary.ReadOnlyDictionary.Keys).CopyTo(array, arrayIndex);
+                public void CopyTo(TValue[] array, int arrayIndex)
+                    => ((ICollection<TValue>)_dictionary.ReadOnlyDictionary.Values).CopyTo(array, arrayIndex);
 
-                public ImmutableSegmentedDictionary<TKey, TValue>.KeyCollection.Enumerator GetEnumerator()
+                public ImmutableSegmentedDictionary<TKey, TValue>.ValueCollection.Enumerator GetEnumerator()
                     => new(_dictionary.GetEnumerator());
 
-                public bool Remove(TKey item)
-                    => _dictionary.Remove(item);
+                bool ICollection<TValue>.Remove(TValue item)
+                    => throw new NotSupportedException();
 
                 void ICollection.CopyTo(Array array, int index)
-                    => ((ICollection)_dictionary.ReadOnlyDictionary.Keys).CopyTo(array, index);
+                    => ((ICollection)_dictionary.ReadOnlyDictionary.Values).CopyTo(array, index);
 
-                IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
+                IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
                     => GetEnumerator();
 
                 IEnumerator IEnumerable.GetEnumerator()

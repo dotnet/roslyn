@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="de" original="../Strings.resx">
+  <file datatype="xml" source-language="en" target-language="ko" original="../Strings.resx">
     <body>
       <trans-unit id="Arg_ArrayPlusOffTooSmall">
         <source>Destination array is not long enough to copy all the items in the collection. Check array index and length.</source>
@@ -40,6 +40,11 @@
       <trans-unit id="Arg_WrongType">
         <source>The value "{0}" is not of type "{1}" and cannot be used in this generic collection.</source>
         <target state="new">The value "{0}" is not of type "{1}" and cannot be used in this generic collection.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentException_OtherNotArrayOfCorrectLength">
+        <source>Object is not a array with the same number of elements as the array to compare it to.</source>
+        <target state="new">Object is not a array with the same number of elements as the array to compare it to.</target>
         <note />
       </trans-unit>
       <trans-unit id="ArgumentOutOfRange_ArrayLB">
@@ -110,6 +115,11 @@
       <trans-unit id="InvalidOperation_IComparerFailed">
         <source>Failed to compare two elements in the array.</source>
         <target state="new">Failed to compare two elements in the array.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotSupported_FixedSizeCollection">
+        <source>Collection was of a fixed size.</source>
+        <target state="new">Collection was of a fixed size.</target>
         <note />
       </trans-unit>
       <trans-unit id="NotSupported_KeyCollectionSet">

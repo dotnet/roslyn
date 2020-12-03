@@ -7,7 +7,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
@@ -83,9 +82,9 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         public ImmutableSegmentedDictionary<TKey, TValue> AddRange(IEnumerable<KeyValuePair<TKey, TValue>> pairs)
         {
             var dictionary = new SegmentedDictionary<TKey, TValue>(_dictionary, _dictionary.Comparer);
-            foreach (var (key, value) in pairs)
+            foreach (var pair in pairs)
             {
-                dictionary.Add(key, value);
+                dictionary.Add(pair.Key, pair.Value);
             }
 
             return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary, _valueComparer);

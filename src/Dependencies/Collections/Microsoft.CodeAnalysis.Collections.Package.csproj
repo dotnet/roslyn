@@ -6,6 +6,7 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <DebugType>none</DebugType>
     <GenerateDependencyFile>false</GenerateDependencyFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -19,6 +20,12 @@
     <NoWarn>$(NoWarn);NU5128</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="NullableAttributes.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Strings.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.Shared.Collections.SR" />
   </ItemGroup>
 </Project>

@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
@@ -198,8 +197,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             var count = _count;
             if (count > 0)
             {
-                RoslynDebug.Assert(_buckets.Length > 0, "_buckets should be non-empty");
-                RoslynDebug.Assert(_entries.Length > 0, "_entries should be non-empty");
+                Debug.Assert(_buckets.Length > 0, "_buckets should be non-empty");
+                Debug.Assert(_entries.Length > 0, "_entries should be non-empty");
 
                 SegmentedArray.Clear(_buckets, 0, _buckets.Length);
 
@@ -299,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             ref var entry = ref RoslynUnsafe.NullRef<Entry>();
             if (_buckets.Length > 0)
             {
-                RoslynDebug.Assert(_entries.Length > 0, "expected entries to be non-empty");
+                Debug.Assert(_entries.Length > 0, "expected entries to be non-empty");
                 var comparer = _comparer;
                 if (comparer == null)
                 {
@@ -444,7 +443,7 @@ ReturnNotFound:
             Debug.Assert(_buckets.Length > 0);
 
             var entries = _entries;
-            RoslynDebug.Assert(entries.Length > 0, "expected entries to be non-empty");
+            Debug.Assert(entries.Length > 0, "expected entries to be non-empty");
 
             var comparer = _comparer;
             var hashCode = (uint)((comparer == null) ? key.GetHashCode() : comparer.GetHashCode(key));
@@ -612,7 +611,7 @@ ReturnNotFound:
 
         private void Resize(int newSize)
         {
-            RoslynDebug.Assert(_entries.Length > 0, "_entries should be non-empty");
+            Debug.Assert(_entries.Length > 0, "_entries should be non-empty");
             Debug.Assert(newSize >= _entries.Length);
 
             var entries = new SegmentedArray<Entry>(newSize);
@@ -649,7 +648,7 @@ ReturnNotFound:
 
             if (_buckets.Length > 0)
             {
-                RoslynDebug.Assert(_entries.Length > 0, "entries should be non-empty");
+                Debug.Assert(_entries.Length > 0, "entries should be non-empty");
                 uint collisionCount = 0;
                 var hashCode = (uint)(_comparer?.GetHashCode(key) ?? key.GetHashCode());
                 ref var bucket = ref GetBucket(hashCode);
@@ -721,7 +720,7 @@ ReturnNotFound:
 
             if (_buckets.Length > 0)
             {
-                RoslynDebug.Assert(_entries.Length > 0, "entries should be non-empty");
+                Debug.Assert(_entries.Length > 0, "entries should be non-empty");
                 uint collisionCount = 0;
                 var hashCode = (uint)(_comparer?.GetHashCode(key) ?? key.GetHashCode());
                 ref var bucket = ref GetBucket(hashCode);

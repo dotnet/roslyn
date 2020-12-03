@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             if (length > destinationArray.Length)
                 throw new ArgumentException(SR.Arg_LongerThanDestArray, nameof(destinationArray));
 
-            throw ExceptionUtilities.Unreachable;
+            throw new InvalidOperationException("This program location is thought to be unreachable.");
         }
 
         public static void Copy<T>(SegmentedArray<T> sourceArray, Array destinationArray, int length)
@@ -82,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             if (length > destinationArray.Length)
                 throw new ArgumentException(SR.Arg_LongerThanDestArray, nameof(destinationArray));
 
-            throw ExceptionUtilities.Unreachable;
+            throw new InvalidOperationException("This program location is thought to be unreachable.");
         }
 
         public static void Copy<T>(SegmentedArray<T> sourceArray, int sourceIndex, SegmentedArray<T> destinationArray, int destinationIndex, int length)
@@ -356,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             comparer ??= Comparer<T>.Default;
 
             var current = index;
-            foreach (var value in array.Skip(index).Take(length).OrderBy(comparer).ToArray())
+            foreach (var value in array.Skip(index).Take(length).OrderBy(static x => x, comparer).ToArray())
             {
                 array[current++] = value;
             }

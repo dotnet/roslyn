@@ -179,31 +179,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\NotificationOption2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\OperatorPlacementWhenWrappingPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\DictionaryKeyCollectionDebugView`2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\DictionaryValueCollectionDebugView`2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\HashHelpers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\ICollectionDebugView`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\IDictionaryDebugView`2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+Builder+KeyCollection.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+Builder+ValueCollection.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+Builder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+Enumerator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+KeyCollection+Enumerator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+KeyCollection.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+ValueCollection+Enumerator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2+ValueCollection.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\ImmutableSegmentedDictionary`2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\InsertionBehavior.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\RoslynUnsafe.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedArray.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedArrayHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedArray`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedDictionary`2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedList`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\StackTraceHiddenAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\TemporaryArray`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\ThrowHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IPragmaSuppressionsAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedDiagnostic.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedSyntaxHelpers.cs" />
@@ -518,7 +494,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IBuiltInAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Collections\Strings.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.Shared.Collections.SR" />
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CompilerExtensionsResources.resx" GenerateSource="true" Link="CompilerExtensionsResources.resx" />
     <None Include="$(MSBuildThisFileDirectory)CompilerExtensionsResources.resx" />
   </ItemGroup>

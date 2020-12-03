@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
@@ -91,10 +90,10 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         public static ImmutableSegmentedDictionary<TKey, TSource> ToImmutableSegmentedDictionary<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
             where TKey : notnull
-            => ToImmutableSegmentedDictionary(source, keySelector, elementSelector: Functions<TSource>.Identity, keyComparer: null, valueComparer: null);
+            => ToImmutableSegmentedDictionary(source, keySelector, elementSelector: static x => x, keyComparer: null, valueComparer: null);
 
         public static ImmutableSegmentedDictionary<TKey, TSource> ToImmutableSegmentedDictionary<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, IEqualityComparer<TKey>? keyComparer)
             where TKey : notnull
-            => ToImmutableSegmentedDictionary(source, keySelector, elementSelector: Functions<TSource>.Identity, keyComparer, valueComparer: null);
+            => ToImmutableSegmentedDictionary(source, keySelector, elementSelector: static x => x, keyComparer, valueComparer: null);
     }
 }
