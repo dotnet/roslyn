@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="CSharp_Visual_Basic_Diagnostics_Language_Client">
         <source>C#/Visual Basic Diagnostics Language Client</source>
-        <target state="new">C#/Visual Basic Diagnostics Language Client</target>
+        <target state="translated">C#/Visual Basic 진단 언어 클라이언트</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="Color_hints">
         <source>Color hints</source>
-        <target state="new">Color hints</target>
+        <target state="translated">색 힌트</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -164,7 +164,7 @@
       </trans-unit>
       <trans-unit id="Comments">
         <source>Comments</source>
-        <target state="new">Comments</target>
+        <target state="translated">설명</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -189,17 +189,17 @@
       </trans-unit>
       <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
         <source>Display all hints while pressing Alt+F1</source>
-        <target state="new">Display all hints while pressing Alt+F1</target>
+        <target state="translated">Alt+F1을 누른 채 모든 힌트 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Disp_lay inline parameter name hints</source>
-        <target state="needs-review-translation">인라인 매개 변수 이름 힌트 표시(_L)</target>
+        <target state="translated">인라인 매개 변수 이름 힌트 표시(_L)</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_type_hints">
         <source>Display inline type hints</source>
-        <target state="new">Display inline type hints</target>
+        <target state="translated">인라인 유형 힌트 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -229,12 +229,12 @@
       </trans-unit>
       <trans-unit id="Enable_Razor_pull_diagnostics_experimental_requires_restart">
         <source>Enable Razor 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="new">Enable Razor 'pull' diagnostics (experimental, requires restart)</target>
+        <target state="translated">Razor '풀' 진단 사용(실험적, 다시 시작 필요)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
         <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="new">Enable 'pull' diagnostics (experimental, requires restart)</target>
+        <target state="translated">'풀' 진단 사용(실험적, 다시 시작 필요)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
@@ -304,7 +304,7 @@
       </trans-unit>
       <trans-unit id="Inline_Hints_experimental">
         <source>Inline Hints (experimental)</source>
-        <target state="new">Inline Hints (experimental)</target>
+        <target state="translated">인라인 힌트(실험적)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -569,7 +569,7 @@
       </trans-unit>
       <trans-unit id="New_Type_Name_colon">
         <source>New Type Name:</source>
-        <target state="new">New Type Name:</target>
+        <target state="translated">새 형식 이름:</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_public_methods">
@@ -814,22 +814,22 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">
         <source>Show hints for everything else</source>
-        <target state="new">Show hints for everything else</target>
+        <target state="translated">다른 모든 항목에 대한 힌트 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
-        <target state="new">Show hints for lambda parameter types</target>
+        <target state="translated">람다 매개 변수 형식에 대한 힌트 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_literals">
         <source>Show hints for literals</source>
-        <target state="new">Show hints for literals</target>
+        <target state="translated">리터럴에 대한 힌트 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_variables_with_inferred_types">
         <source>Show hints for variables with inferred types</source>
-        <target state="new">Show hints for variables with inferred types</target>
+        <target state="translated">유추된 형식의 변수에 대한 힌트 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
@@ -839,12 +839,12 @@
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
         <source>Suppress hints when parameter name matches the method's intent</source>
-        <target state="new">Suppress hints when parameter name matches the method's intent</target>
+        <target state="translated">매개 변수 이름이 메서드의 의도와 일치하는 경우 힌트 표시 안 함</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
         <source>Suppress hints when parameter names differ only by suffix</source>
-        <target state="new">Suppress hints when parameter names differ only by suffix</target>
+        <target state="translated">매개 변수 이름이 접미사만 다른 경우 힌트 표시 안 함</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -2359,11 +2359,11 @@ Your use of the Decompiler is optional.  Microsoft is not responsible and discla
 
 I agree to all of the foregoing:</source>
         <target state="translated">중요: Visual Studio에는 이진 코드에서 소스 코드를 재생할 수 있는 디컴파일 기능("디컴파일러")이 포함됩니다. 디컴파일러에 액세스하고 사용함으로써 아래의 Visual Studio 라이선스 조건 및 디컴파일러 조건에 동의하게 됩니다. 이러한 결합된 조건에 동의하지 않는 경우 디컴파일러에 액세스하거나 사용하지 마세요.
-
-이진 코드 및 소스 코드는 저작권 및 상표법으로 보호될 수 있습니다. 이진 코드에 디컴파일러를 사용하기 전에 먼저
+ 
+이진 코드 및 소스 코드는 저작권 및 상표법으로 보호될 수 있습니다. 이진 코드에 디컴파일러를 사용하기 전에 먼저  
 (i) 이진 코드 사용과 관련된 라이선스 조건에 소프트웨어 디컴파일을 금지하는 조항이 포함되어 있지 않은지 확인하거나
 (ii) 소프트웨어 소유자에게 이진 코드 디컴파일 권한을 얻으세요.
-
+ 
 디컴파일 사용은 선택 사항입니다. Microsoft는 소프트웨어 디컴파일을 금지하는 법 또는 소프트웨어 라이선스 조건을 위반하는 디컴파일러 사용을 책임지지 않으며 이와 관련된 모든 책임을 부인합니다.
 
 본인은 상기 내용에 모두 동의합니다.</target>

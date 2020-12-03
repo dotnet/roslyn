@@ -112,8 +112,8 @@ jobs:
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
-    testRunName: 'Test OSX Debug'
-    jobName: Test_OSX_Debug
+    testRunName: 'Test macOS Debug'
+    jobName: Test_macOS_Debug
     buildJobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug

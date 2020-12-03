@@ -326,7 +326,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         : (SyntaxTokenList?)null, // Return null to bail out.
                      possibleDeclarationComputer,
                      cancellationToken);
-                return result.Type != null;
+                if (result.Type != null)
+                {
+                    return true;
+                }
+
+                // If the type has a trailing question mark, we may parse it as a conditional access expression.
+                // We will use the condition as the type to bind; we won't make the type we bind nullable
+                // because we ignore nullability when generating names anyways
+                if (token.IsKind(SyntaxKind.QuestionToken) &&
+                    token.Parent is ConditionalExpressionSyntax conditionalExpressionSyntax)
+                {
+                    var symbolInfo = semanticModel.GetSymbolInfo(conditionalExpressionSyntax.Condition);
+
+                    if (symbolInfo.GetAnySymbol() is ITypeSymbol type)
+                    {
+                        var alias = semanticModel.GetAliasInfo(conditionalExpressionSyntax.Condition, cancellationToken);
+
+                        result = new NameDeclarationInfo(
+                            possibleDeclarationComputer(default),
+                            accessibility: null,
+                            declarationModifiers: default,
+                            type,
+                            alias);
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             private static bool IsEmbeddedVariableDeclaration(SyntaxToken token, SemanticModel semanticModel,
@@ -428,7 +455,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 token.IsKind(
                     SyntaxKind.IdentifierToken,
                     SyntaxKind.GreaterThanToken,
-                    SyntaxKind.CloseBracketToken)
+                    SyntaxKind.CloseBracketToken,
+                    SyntaxKind.QuestionToken)
                 || token.Parent.IsKind(SyntaxKind.PredefinedType);
 
             private static ImmutableArray<SymbolKindOrTypeKind> GetPossibleMemberDeclarations(DeclarationModifiers modifiers)

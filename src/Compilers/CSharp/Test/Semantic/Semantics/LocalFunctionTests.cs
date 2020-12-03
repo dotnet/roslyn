@@ -2632,18 +2632,21 @@ class Program
 {
     static void Main(string[] args)
     {
-        void CallerMemberName([CallerMemberName] int s = 2)
+        void CallerMemberName([CallerMemberName] int s = 2) // 1
         {
             Console.WriteLine(s);
         }
-        CallerMemberName();
+        CallerMemberName(); // 2
     }
 }
 ";
             CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (9,32): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
-                //         void CallerMemberName([CallerMemberName] int s = 2)
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(9, 32));
+                //         void CallerMemberName([CallerMemberName] int s = 2) // 1
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(9, 32),
+                // (13,9): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         CallerMemberName(); // 2
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "CallerMemberName()").WithArguments("string", "int").WithLocation(13, 9));
         }
 
         [WorkItem(10708, "https://github.com/dotnet/roslyn/issues/10708")]

@@ -1161,8 +1161,8 @@ namespace Microsoft.CodeAnalysis
         /// Returns <see langword="true"/> if a reference to referencedProject can be added to
         /// referencingProject.  <see langword="false"/> otherwise.
         /// </summary>
-        internal virtual Task<bool> CanAddProjectReferenceAsync(ProjectId referencingProject, ProjectId referencedProject, CancellationToken cancellationToken)
-            => SpecializedTasks.False;
+        internal virtual bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
+            => false;
 
         /// <summary>
         /// Apply changes made to a solution back to the workspace.

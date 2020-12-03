@@ -138,8 +138,13 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             var memberAccess = generator.ElementAccessExpression(
                     collectionVariable, generator.IdentifierName(indexVariable));
 
+            if (castType != null)
+            {
+                memberAccess = generator.CastExpression(castType, memberAccess);
+            }
+
             var localDecl = generator.LocalDeclarationStatement(
-                type, foreachVariable, generator.CastExpression(castType, memberAccess));
+                type, foreachVariable, memberAccess);
 
             return (TStatementSyntax)localDecl.WithAdditionalAnnotations(Formatter.Annotation);
         }

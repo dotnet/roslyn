@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Security.Principal;
 using Microsoft.Win32;
@@ -35,7 +36,7 @@ namespace RunTests
 
         internal static ProcDumpInfo? ReadFromEnvironment()
         {
-            bool validate(string s) => !string.IsNullOrEmpty(s) && Path.IsPathRooted(s);
+            bool validate([NotNullWhen(true)] string? s) => !string.IsNullOrEmpty(s) && Path.IsPathRooted(s);
 
             var procDumpFilePath = Environment.GetEnvironmentVariable(KeyProcDumpFilePath);
             var dumpDirectory = Environment.GetEnvironmentVariable(KeyProcDumpDirectory);
