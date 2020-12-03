@@ -66,7 +66,7 @@ namespace Analyzer.Utilities
                     }
 
                     if (_allowExcludedSymbolNames &&
-                        method.IsConfiguredToSkipAnalysis(operationBlockAnalysisContext.Options, SupportedDiagnostics[0], operationBlockAnalysisContext.Compilation, operationBlockAnalysisContext.CancellationToken))
+                        operationBlockAnalysisContext.Options.IsConfiguredToSkipAnalysis(SupportedDiagnostics[0], method, operationBlockAnalysisContext.Compilation, operationBlockAnalysisContext.CancellationToken))
                     {
                         return;
                     }

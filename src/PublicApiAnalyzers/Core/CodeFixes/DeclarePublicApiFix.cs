@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             {
                 for (int i = 0; i < list.Count; i++)
                 {
-                    if (string.Compare(name, list[i], StringComparison.Ordinal) < 0)
+                    if (IgnoreCaseWhenPossibleComparer.Instance.Compare(name, list[i]) < 0)
                     {
                         list.Insert(i, name);
                         return;
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                             .Where(d => d.Location.IsInSource)
                             .GroupBy(d => d.Location.SourceTree);
 
-                    var newSymbolNames = new SortedSet<string>();
+                    var newSymbolNames = new SortedSet<string>(IgnoreCaseWhenPossibleComparer.Instance);
                     var symbolNamesToRemoveBuilder = PooledHashSet<string>.GetInstance();
 
                     foreach (IGrouping<SyntaxTree, Diagnostic> grouping in groupedDiagnostics)
@@ -356,6 +356,24 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
 
                 return new FixAllAdditionalDocumentChangeAction(title, fixAllContext.Solution, diagnosticsToFix);
+            }
+        }
+
+        private sealed class IgnoreCaseWhenPossibleComparer : IComparer<string>
+        {
+            public static readonly IgnoreCaseWhenPossibleComparer Instance = new();
+
+            private IgnoreCaseWhenPossibleComparer()
+            {
+            }
+
+            public int Compare(string x, string y)
+            {
+                var result = StringComparer.OrdinalIgnoreCase.Compare(x, y);
+                if (result == 0)
+                    result = StringComparer.Ordinal.Compare(x, y);
+
+                return result;
             }
         }
     }

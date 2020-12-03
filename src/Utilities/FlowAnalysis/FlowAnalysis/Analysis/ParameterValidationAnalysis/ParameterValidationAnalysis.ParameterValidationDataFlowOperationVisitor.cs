@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             AbstractLocationDataFlowOperationVisitor<ParameterValidationAnalysisData, ParameterValidationAnalysisContext, ParameterValidationAnalysisResult, ParameterValidationAbstractValue>
         {
             private readonly ImmutableDictionary<IParameterSymbol, SyntaxNode>.Builder? _hazardousParameterUsageBuilder;
+            private readonly INamedTypeSymbol? _notNullAttributeType;
 
             public ParameterValidationDataFlowOperationVisitor(ParameterValidationAnalysisContext analysisContext)
                 : base(analysisContext)
@@ -34,6 +35,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 {
                     _hazardousParameterUsageBuilder = ImmutableDictionary.CreateBuilder<IParameterSymbol, SyntaxNode>();
                 }
+
+                _notNullAttributeType = analysisContext.WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemDiagnosticsCodeAnalysisNotNullAttribute);
             }
 
             public ImmutableDictionary<IParameterSymbol, SyntaxNode> HazardousParameterUsages
@@ -111,13 +114,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             {
                 if (pointsToAbstractValue.Kind == PointsToAbstractValueKind.KnownLocations)
                 {
-                    var value = HasValidatedNotNullAttribute(parameter) ? ParameterValidationAbstractValue.Validated : ParameterValidationAbstractValue.NotValidated;
+                    var value = HasAnyNullValidationAttribute(parameter) ? ParameterValidationAbstractValue.Validated : ParameterValidationAbstractValue.NotValidated;
                     SetAbstractValue(pointsToAbstractValue.Locations, value);
                 }
             }
 
-            private static bool HasValidatedNotNullAttribute(IParameterSymbol parameter)
-                => parameter.GetAttributes().Any(attr => attr.AttributeClass.Name.Equals("ValidatedNotNullAttribute", StringComparison.OrdinalIgnoreCase));
+            private bool HasAnyNullValidationAttribute(IParameterSymbol parameter)
+                => parameter.GetAttributes().Any(attr => attr.AttributeClass.Name.Equals("ValidatedNotNullAttribute", StringComparison.OrdinalIgnoreCase) ||
+                                                         attr.AttributeClass.Equals(_notNullAttributeType));
 
             protected override void EscapeValueForParameterPointsToLocationOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity, ImmutableHashSet<AbstractLocation> escapedLocations)
             {
@@ -352,7 +356,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                     var notValidatedLocations = GetNotValidatedLocations(argument);
                     if (notValidatedLocations.Any())
                     {
-                        if (isNullCheckValidationMethod || HasValidatedNotNullAttribute(argument.Parameter))
+                        if (isNullCheckValidationMethod || HasAnyNullValidationAttribute(argument.Parameter))
                         {
                             MarkValidatedLocations(argument);
                         }

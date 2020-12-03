@@ -4,7 +4,7 @@
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
     <HasSharedItems>true</HasSharedItems>
     <SharedGUID>ec946164-1e17-410b-b7d9-7de7e6268d63</SharedGUID>
-    <!-- CA1724: Type name conflicts in whole or in part with namepsace name -->
+    <!-- CA1724: Type name conflicts in whole or in part with namespace name -->
     <NoWarn>$(NoWarn);CA1724</NoWarn>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">

@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
 {
     public class RestrictedInternalsVisibleToAnalyzerTests
     {
-        private static DiagnosticResult GetCSharpResultAt(int line, int column, string bannedSymbolName, string restrictedNamespaces) =>
+        private static DiagnosticResult GetCSharpResultAt(int markupId, string bannedSymbolName, string restrictedNamespaces) =>
             VerifyCS.Diagnostic()
-                .WithLocation(line, column)
+                .WithLocation(markupId)
                 .WithArguments(bannedSymbolName, ApiProviderProjectName, restrictedNamespaces);
 
-        private static DiagnosticResult GetBasicResultAt(int line, int column, string bannedSymbolName, string restrictedNamespaces) =>
+        private static DiagnosticResult GetBasicResultAt(int markupId, string bannedSymbolName, string restrictedNamespaces) =>
             VerifyVB.Diagnostic()
-                .WithLocation(line, column)
+                .WithLocation(markupId)
                 .WithArguments(bannedSymbolName, ApiProviderProjectName, restrictedNamespaces);
 
         private static DiagnosticResult GetBasicResultAt(int startLine, int startColumn, int endLine, int endColumn, string bannedSymbolName, string restrictedNamespaces) =>
@@ -310,13 +310,13 @@ namespace N1
             var apiConsumerSource = @"
 class C2
 {
-    void M(N1.C1 c)
+    void M({|#0:N1.C1|} c)
     {
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(4, 12, "N1.C1", "N2"));
+                GetCSharpResultAt(0, "N1.C1", "N2"));
         }
 
         [Fact]
@@ -333,12 +333,12 @@ End Namespace";
 
             var apiConsumerSource = @"
 Class C2
-    Private Sub M(c As N1.C1)
+    Private Sub M(c As {|#0:N1.C1|})
     End Sub
 End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                GetBasicResultAt(3, 24, "N1.C1", "N2"));
+                GetBasicResultAt(0, "N1.C1", "N2"));
         }
 
         [Fact]
@@ -423,13 +423,13 @@ namespace N3
             var apiConsumerSource = @"
 class C2
 {
-    void M(N1.C1 c1, N2.C2 c2, N3.C3 c3)
+    void M(N1.C1 c1, N2.C2 c2, {|#0:N3.C3|} c3)
     {
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(4, 32, "N3.C3", "N1, N2"));
+                GetCSharpResultAt(0, "N3.C3", "N1, N2"));
         }
 
         [Fact]
@@ -457,12 +457,12 @@ End Namespace";
 
             var apiConsumerSource = @"
 Class C2
-    Private Sub M(c1 As N1.C1, c2 As N2.C2, c3 As N3.C3)
+    Private Sub M(c1 As N1.C1, c2 As N2.C2, c3 As {|#0:N3.C3|})
     End Sub
 End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(3, 51, "N3.C3", "N1, N2"));
+                GetCSharpResultAt(0, "N3.C3", "N1, N2"));
         }
 
         [Fact]
@@ -525,13 +525,13 @@ namespace N1
             var apiConsumerSource = @"
 class C2
 {
-    void M(N1.C1 c)
+    void M({|#0:N1.C1|} c)
     {
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(4, 12, "N1.C1", "N2"));
+                GetCSharpResultAt(0, "N1.C1", "N2"));
         }
 
         [Fact]
@@ -549,12 +549,12 @@ End Namespace";
 
             var apiConsumerSource = @"
 Class C2
-    Private Sub M(c As N1.C1)
+    Private Sub M(c As {|#0:N1.C1|})
     End Sub
 End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                GetBasicResultAt(3, 24, "N1.C1", "N2"));
+                GetBasicResultAt(0, "N1.C1", "N2"));
         }
 
         [Fact]
@@ -670,13 +670,13 @@ namespace N1
             var apiConsumerSource = @"
 class C2
 {
-    void M(N1.N2.C1 c1, N1.C3 c3)
+    void M(N1.N2.C1 c1, {|#0:N1.C3|} c3)
     {
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(4, 25, "N1.C3", "N1.N2"));
+                GetCSharpResultAt(0, "N1.C3", "N1.N2"));
         }
 
         [Fact]
@@ -698,12 +698,12 @@ End Namespace";
 
             var apiConsumerSource = @"
 Class C2
-    Private Sub M(c1 As N1.N2.C1, c3 As N1.C3)
+    Private Sub M(c1 As N1.N2.C1, c3 As {|#0:N1.C3|})
     End Sub
 End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                GetBasicResultAt(3, 41, "N1.C3", "N1.N2"));
+                GetBasicResultAt(0, "N1.C3", "N1.N2"));
         }
 
         [Fact]
@@ -775,13 +775,13 @@ namespace N1
             var apiConsumerSource = @"
 class C2
 {
-    void M(N1.N2.C1 c1, N1.C2 c2)
+    void M(N1.N2.C1 c1, {|#0:N1.C2|} c2)
     {
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(4, 25, "N1.C2", "N1.N2"));
+                GetCSharpResultAt(0, "N1.C2", "N1.N2"));
         }
 
         [Fact]
@@ -803,12 +803,12 @@ End Namespace";
 
             var apiConsumerSource = @"
 Class C2
-    Private Sub M(c1 As N1.N2.C1, c2 As N1.C2)
+    Private Sub M(c1 As N1.N2.C1, c2 As {|#0:N1.C2|})
     End Sub
 End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                GetBasicResultAt(3, 41, "N1.C2", "N1.N2"));
+                GetBasicResultAt(0, "N1.C2", "N1.N2"));
         }
 
         [Fact]
@@ -921,13 +921,13 @@ namespace N1
             var apiConsumerSource = @"
 class C2
 {
-    void M(N1.C1 c, N1.C1.Nested nested)
+    void M(N1.C1 c, {|#0:N1.C1.Nested|} nested)
     {
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(4, 21, "N1.C1.Nested", "N2"));
+                GetCSharpResultAt(0, "N1.C1.Nested", "N2"));
         }
 
         [Fact]
@@ -946,12 +946,12 @@ End Namespace";
 
             var apiConsumerSource = @"
 Class C2
-    Private Sub M(c As N1.C1, nested As N1.C1.Nested)
+    Private Sub M(c As N1.C1, nested As {|#0:N1.C1.Nested|})
     End Sub
 End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                GetBasicResultAt(3, 41, "N1.C1.Nested", "N2"));
+                GetBasicResultAt(0, "N1.C1.Nested", "N2"));
         }
 
         [Fact]
@@ -1045,43 +1045,43 @@ namespace N1
 }";
 
             var apiConsumerSource = @"
-[N1.C1(typeof(N1.C1))]      // 1, 2
+[{|#0:N1.C1|}(typeof({|#1:N1.C1|}))]
 class C2
 {
-    [N1.C1(typeof(N1.C1))]      // 3, 4
+    [{|#2:N1.C1|}(typeof({|#3:N1.C1|}))]
     private readonly int field;
 
-    [N1.C1(typeof(N1.C1))]      // 5, 6
-    private int Property { [N1.C1(typeof(N1.C1))] get; }    // 7, 8
+    [{|#4:N1.C1|}(typeof({|#5:N1.C1|}))]
+    private int Property { [{|#6:N1.C1|}(typeof({|#7:N1.C1|}))] get; }
 
-    [N1.C1(typeof(N1.C1))]      // 9, 10
+    [{|#8:N1.C1|}(typeof({|#9:N1.C1|}))]
     private event System.EventHandler X;
 
-    [N1.C1(typeof(N1.C1))]      // 11, 12
-    [return: N1.C1(typeof(N1.C1))]      // 13, 14
-    int M([N1.C1(typeof(N1.C1))]object c)   // 15, 16
+    [{|#10:N1.C1|}(typeof({|#11:N1.C1|}))]
+    [return: {|#12:N1.C1|}(typeof({|#13:N1.C1|}))]
+    int M([{|#14:N1.C1|}(typeof({|#15:N1.C1|}))]object c)
     {
         return 0;
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(2, 2, "N1.C1", "N2"),     // 1,
-                GetCSharpResultAt(2, 15, "N1.C1", "N2"),    // 2,
-                GetCSharpResultAt(5, 6, "N1.C1", "N2"),     // 3,
-                GetCSharpResultAt(5, 19, "N1.C1", "N2"),    // 4,
-                GetCSharpResultAt(8, 6, "N1.C1", "N2"),     // 5,
-                GetCSharpResultAt(8, 19, "N1.C1", "N2"),    // 6,
-                GetCSharpResultAt(9, 29, "N1.C1", "N2"),    // 7,
-                GetCSharpResultAt(9, 42, "N1.C1", "N2"),    // 8,
-                GetCSharpResultAt(11, 6, "N1.C1", "N2"),    // 9,
-                GetCSharpResultAt(11, 19, "N1.C1", "N2"),   // 10,
-                GetCSharpResultAt(14, 6, "N1.C1", "N2"),    // 11,
-                GetCSharpResultAt(14, 19, "N1.C1", "N2"),   // 12,
-                GetCSharpResultAt(15, 14, "N1.C1", "N2"),   // 13,
-                GetCSharpResultAt(15, 27, "N1.C1", "N2"),   // 14,
-                GetCSharpResultAt(16, 12, "N1.C1", "N2"),   // 15,
-                GetCSharpResultAt(16, 25, "N1.C1", "N2")    // 16
+                GetCSharpResultAt(0, "N1.C1", "N2"),
+                GetCSharpResultAt(1, "N1.C1", "N2"),
+                GetCSharpResultAt(2, "N1.C1", "N2"),
+                GetCSharpResultAt(3, "N1.C1", "N2"),
+                GetCSharpResultAt(4, "N1.C1", "N2"),
+                GetCSharpResultAt(5, "N1.C1", "N2"),
+                GetCSharpResultAt(6, "N1.C1", "N2"),
+                GetCSharpResultAt(7, "N1.C1", "N2"),
+                GetCSharpResultAt(8, "N1.C1", "N2"),
+                GetCSharpResultAt(9, "N1.C1", "N2"),
+                GetCSharpResultAt(10, "N1.C1", "N2"),
+                GetCSharpResultAt(11, "N1.C1", "N2"),
+                GetCSharpResultAt(12, "N1.C1", "N2"),
+                GetCSharpResultAt(13, "N1.C1", "N2"),
+                GetCSharpResultAt(14, "N1.C1", "N2"),
+                GetCSharpResultAt(15, "N1.C1", "N2")
                 );
         }
 
@@ -1101,38 +1101,38 @@ Namespace N1
 End Namespace";
 
             var apiConsumerSource = @"
-<N1.C1(GetType(N1.C1))>
+<{|#0:N1.C1|}(GetType({|#1:N1.C1|}))>
 Class C2
-    <N1.C1(GetType(N1.C1))>
+    <{|#2:N1.C1|}(GetType({|#3:N1.C1|}))>
     Private ReadOnly field As Integer
 
-    <N1.C1(GetType(N1.C1))>
+    <{|#4:N1.C1|}(GetType({|#5:N1.C1|}))>
     Private ReadOnly Property [Property] As Integer
 
-    <N1.C1(GetType(N1.C1))>
+    <{|#6:N1.C1|}(GetType({|#7:N1.C1|}))>
     Private Event X As System.EventHandler
 
-    <N1.C1(GetType(N1.C1))>
-    Private Function M(<N1.C1(GetType(N1.C1))> ByVal c As Object) As <N1.C1(GetType(N1.C1))> Integer
+    <{|#8:N1.C1|}(GetType({|#9:N1.C1|}))>
+    Private Function M(<{|#10:N1.C1|}(GetType({|#11:N1.C1|}))> ByVal c As Object) As <{|#12:N1.C1|}(GetType({|#13:N1.C1|}))> Integer
         Return 0
     End Function
 End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                GetBasicResultAt(2, 2, "N1.C1", "N2"),     // 1,
-                GetBasicResultAt(2, 16, "N1.C1", "N2"),    // 2,
-                GetBasicResultAt(4, 6, "N1.C1", "N2"),     // 3,
-                GetBasicResultAt(4, 20, "N1.C1", "N2"),    // 4,
-                GetBasicResultAt(7, 6, "N1.C1", "N2"),     // 5,
-                GetBasicResultAt(7, 20, "N1.C1", "N2"),    // 6,
-                GetBasicResultAt(10, 6, "N1.C1", "N2"),    // 7,
-                GetBasicResultAt(10, 20, "N1.C1", "N2"),   // 8,
-                GetBasicResultAt(13, 6, "N1.C1", "N2"),    // 9,
-                GetBasicResultAt(13, 20, "N1.C1", "N2"),   // 10,
-                GetBasicResultAt(14, 25, "N1.C1", "N2"),   // 11,
-                GetBasicResultAt(14, 39, "N1.C1", "N2"),   // 12,
-                GetBasicResultAt(14, 71, "N1.C1", "N2"),   // 13,
-                GetBasicResultAt(14, 85, "N1.C1", "N2")    // 14
+                GetBasicResultAt(0, "N1.C1", "N2"),
+                GetBasicResultAt(1, "N1.C1", "N2"),
+                GetBasicResultAt(2, "N1.C1", "N2"),
+                GetBasicResultAt(3, "N1.C1", "N2"),
+                GetBasicResultAt(4, "N1.C1", "N2"),
+                GetBasicResultAt(5, "N1.C1", "N2"),
+                GetBasicResultAt(6, "N1.C1", "N2"),
+                GetBasicResultAt(7, "N1.C1", "N2"),
+                GetBasicResultAt(8, "N1.C1", "N2"),
+                GetBasicResultAt(9, "N1.C1", "N2"),
+                GetBasicResultAt(10, "N1.C1", "N2"),
+                GetBasicResultAt(11, "N1.C1", "N2"),
+                GetBasicResultAt(12, "N1.C1", "N2"),
+                GetBasicResultAt(13, "N1.C1", "N2")
                 );
         }
 
@@ -1215,25 +1215,25 @@ namespace N1
 }";
 
             var apiConsumerSource = @"
-class B : N1.C1
+class B : {|#0:N1.C1|}
 {
-    private readonly N1.C2 field;
-    private N1.C3 Property { get; }
-    private N1.C4 this[N1.C5 index] { get => null; }
-    N1.C6 M(N1.C7 c)
+    private readonly {|#1:N1.C2|} field;
+    private {|#2:N1.C3|} Property { get; }
+    private {|#3:N1.C4|} this[{|#4:N1.C5|} index] { get => null; }
+    {|#5:N1.C6|} M({|#6:N1.C7|} c)
     {
         return null;
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(2, 11, "N1.C1", "N2"),
-                GetCSharpResultAt(4, 22, "N1.C2", "N2"),
-                GetCSharpResultAt(5, 13, "N1.C3", "N2"),
-                GetCSharpResultAt(6, 13, "N1.C4", "N2"),
-                GetCSharpResultAt(6, 24, "N1.C5", "N2"),
-                GetCSharpResultAt(7, 5, "N1.C6", "N2"),
-                GetCSharpResultAt(7, 13, "N1.C7", "N2"));
+                GetCSharpResultAt(0, "N1.C1", "N2"),
+                GetCSharpResultAt(1, "N1.C2", "N2"),
+                GetCSharpResultAt(2, "N1.C3", "N2"),
+                GetCSharpResultAt(3, "N1.C4", "N2"),
+                GetCSharpResultAt(4, "N1.C5", "N2"),
+                GetCSharpResultAt(5, "N1.C6", "N2"),
+                GetCSharpResultAt(6, "N1.C7", "N2"));
         }
 
         [Fact]
@@ -1262,30 +1262,30 @@ End Namespace";
 
             var apiConsumerSource = @"
 Class B
-    Inherits N1.C1
+    Inherits {|#0:N1.C1|}
 
-    Private ReadOnly field As N1.C2
-    Private ReadOnly Property [Property] As N1.C3
+    Private ReadOnly field As {|#1:N1.C2|}
+    Private ReadOnly Property [Property] As {|#2:N1.C3|}
 
-    Private ReadOnly Property Item(index As N1.C4) As N1.C5
+    Private ReadOnly Property Item(index As {|#3:N1.C4|}) As {|#4:N1.C5|}
         Get
             Return Nothing
         End Get
     End Property
 
-    Private Function M(c As N1.C6) As N1.C7
+    Private Function M(c As {|#5:N1.C6|}) As {|#6:N1.C7|}
         Return Nothing
     End Function
 End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                GetBasicResultAt(3, 14, "N1.C1", "N2"),
-                GetBasicResultAt(5, 31, "N1.C2", "N2"),
-                GetBasicResultAt(6, 45, "N1.C3", "N2"),
-                GetBasicResultAt(8, 45, "N1.C4", "N2"),
-                GetBasicResultAt(8, 55, "N1.C5", "N2"),
-                GetBasicResultAt(14, 29, "N1.C6", "N2"),
-                GetBasicResultAt(14, 39, "N1.C7", "N2"));
+                GetBasicResultAt(0, "N1.C1", "N2"),
+                GetBasicResultAt(1, "N1.C2", "N2"),
+                GetBasicResultAt(2, "N1.C3", "N2"),
+                GetBasicResultAt(3, "N1.C4", "N2"),
+                GetBasicResultAt(4, "N1.C5", "N2"),
+                GetBasicResultAt(5, "N1.C6", "N2"),
+                GetBasicResultAt(6, "N1.C7", "N2"));
         }
 
         [Fact]
@@ -1450,12 +1450,12 @@ class C2
 {
     int M(N1.C1 c)
     {
-        return c.Field;
+        return {|#0:c.Field|};
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(6, 16, "N1.C1.Field", "N2"));
+                GetCSharpResultAt(0, "N1.C1.Field", "N2"));
         }
 
         [Fact]
@@ -1474,12 +1474,12 @@ End Namespace";
             var apiConsumerSource = @"
 Class C2
     Private Function M(c As N1.C1) As Integer
-        Return c.Field
+        Return {|#0:c.Field|}
     End Function
 End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                GetBasicResultAt(4, 16, "N1.C1.Field", "N2"));
+                GetBasicResultAt(0, "N1.C1.Field", "N2"));
         }
 
         [Fact]
@@ -1502,12 +1502,12 @@ class C2
 {
     int M(N1.C1 c)
     {
-        return c.Method();
+        return {|#0:c.Method()|};
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(6, 16, "N1.C1.Method", "N2"));
+                GetCSharpResultAt(0, "N1.C1.Method", "N2"));
         }
 
         [Fact]
@@ -1528,12 +1528,12 @@ End Namespace";
             var apiConsumerSource = @"
 Class C2
     Private Function M(c As N1.C1) As Integer
-        Return c.Method()
+        Return {|#0:c.Method()|}
     End Function
 End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                GetBasicResultAt(4, 16, "N1.C1.Method", "N2"));
+                GetBasicResultAt(0, "N1.C1.Method", "N2"));
         }
 
         [Fact]
@@ -1620,12 +1620,12 @@ class C2
 {
     int M(N1.C1 c)
     {
-        return c.Method();
+        return {|#0:c.Method()|};
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(6, 16, "N1.C1.Method", "N2"));
+                GetCSharpResultAt(0, "N1.C1.Method", "N2"));
         }
 
         [Fact]
@@ -1650,12 +1650,12 @@ End Namespace";
             var apiConsumerSource = @"Imports N1.C1Extensions
 Class C2
     Private Function M(c As N1.C1) As Integer
-        Return c.Method()
+        Return {|#0:c.Method()|}
     End Function
 End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                GetBasicResultAt(4, 16, "N1.C1.Method", "N2"));
+                GetBasicResultAt(0, "N1.C1.Method", "N2"));
         }
 
         [Fact]
@@ -1678,12 +1678,12 @@ class C2
 {
     int M(N1.C1 c)
     {
-        return c.Property;
+        return {|#0:c.Property|};
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(6, 16, "N1.C1.Property", "N2"));
+                GetCSharpResultAt(0, "N1.C1.Property", "N2"));
         }
 
         [Fact]
@@ -1702,12 +1702,12 @@ End Namespace";
             var apiConsumerSource = @"
 Class C2
     Private Function M(c As N1.C1) As Integer
-        Return c.[Property]
+        Return {|#0:c.[Property]|}
     End Function
 End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                GetBasicResultAt(4, 16, "N1.C1.Property", "N2"));
+                GetBasicResultAt(0, "N1.C1.Property", "N2"));
         }
 
         [Fact]
@@ -1731,12 +1731,12 @@ class C2
 {
     void M(N1.C1 c)
     {
-        _ = c.{|CS0070:Event|};
+        _ = {|#0:c.{|CS0070:Event|}|};
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(6, 13, "N1.C1.Event", "N2"));
+                GetCSharpResultAt(0, "N1.C1.Event", "N2"));
         }
 
         [Fact]
@@ -1784,12 +1784,12 @@ class C2
 {
     void M()
     {
-        var c = new N1.C1();
+        var c = {|#0:new N1.C1()|};
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(6, 17, "N1.C1.C1", "N2"));
+                GetCSharpResultAt(0, "N1.C1.C1", "N2"));
         }
 
         [Fact]
@@ -1809,12 +1809,12 @@ End Namespace";
             var apiConsumerSource = @"
 Class C2
     Private Sub M()
-        Dim c = New N1.C1()
+        Dim c = {|#0:New N1.C1()|}
     End Sub
 End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                GetBasicResultAt(4, 17, "N1.C1.New", "N2"));
+                GetBasicResultAt(0, "N1.C1.New", "N2"));
         }
 
         [Fact]
@@ -1835,14 +1835,14 @@ class C2
 {
     void M(N1.C1 c)
     {
-        _ = (N1.I1)c;       // Explicit
-        N1.I1 y = c;        // Implicit
+        _ = ({|#0:N1.I1|})c;       // Explicit
+        {|#1:N1.I1|} y = c;        // Implicit
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(6, 14, "N1.I1", "N2"),
-                GetCSharpResultAt(7, 9, "N1.I1", "N2"));
+                GetCSharpResultAt(0, "N1.I1", "N2"),
+                GetCSharpResultAt(1, "N1.I1", "N2"));
         }
 
         [Fact]
@@ -1864,14 +1864,14 @@ End Namespace";
             var apiConsumerSource = @"
 Class C2
     Private Function M(c As N1.C1) As Integer
-        Dim x = CType(c, N1.I1)
-        Dim y As N1.I1 = c
+        Dim x = CType(c, {|#0:N1.I1|})
+        Dim y As {|#1:N1.I1|} = c
     End Function
 End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(4, 26, "N1.I1", "N2"),
-                GetCSharpResultAt(5, 18, "N1.I1", "N2"));
+                GetCSharpResultAt(0, "N1.I1", "N2"),
+                GetCSharpResultAt(1, "N1.I1", "N2"));
         }
 
         [Fact]
@@ -1967,20 +1967,20 @@ namespace N2
 using N1;
 using N2;
 
-class C2 : C1<C3>
+class C2 : C1<{|#0:C3|}>
 {
-    void M(C1<C4> c1, C1<object> c2)
+    void M(C1<{|#1:C4|}> c1, C1<object> c2)
     {
-        _ = c2.GetC1<C5>();
-        _ = c2.GetC1<C1<C6>>();
+        _ = c2.GetC1<{|#2:C5|}>();
+        _ = c2.GetC1<C1<{|#3:C6|}>>();
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(5, 15, "N1.C3", "N2"),
-                GetCSharpResultAt(7, 15, "N1.C4", "N2"),
-                GetCSharpResultAt(9, 22, "N1.C5", "N2"),
-                GetCSharpResultAt(10, 25, "N1.C6", "N2"));
+                GetCSharpResultAt(0, "N1.C3", "N2"),
+                GetCSharpResultAt(1, "N1.C4", "N2"),
+                GetCSharpResultAt(2, "N1.C5", "N2"),
+                GetCSharpResultAt(3, "N1.C6", "N2"));
         }
 
         [Fact]
@@ -2014,19 +2014,19 @@ Imports N1
 Imports N2
 
 Class C2
-    Inherits C1(Of C3)
+    Inherits C1(Of {|#0:C3|})
 
-    Private Sub M(ByVal c1 As C1(Of C4), ByVal c2 As C1(Of Object))
-        Dim unused1 = c2.GetC1(Of C5)()
-        Dim unused2 = c2.GetC1(Of C1(Of C6))()
+    Private Sub M(ByVal c1 As C1(Of {|#1:C4|}), ByVal c2 As C1(Of Object))
+        Dim unused1 = c2.GetC1(Of {|#2:C5|})()
+        Dim unused2 = c2.GetC1(Of C1(Of {|#3:C6|}))()
     End Sub
 End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(6, 20, "N1.C3", "N2"),
-                GetCSharpResultAt(8, 37, "N1.C4", "N2"),
-                GetCSharpResultAt(9, 35, "N1.C5", "N2"),
-                GetCSharpResultAt(10, 41, "N1.C6", "N2"));
+                GetCSharpResultAt(0, "N1.C3", "N2"),
+                GetCSharpResultAt(1, "N1.C4", "N2"),
+                GetCSharpResultAt(2, "N1.C5", "N2"),
+                GetCSharpResultAt(3, "N1.C6", "N2"));
         }
 
         [Fact]
@@ -2088,13 +2088,13 @@ namespace N1
             var apiConsumerSource = @"using ImportedC1 = N1.C1;
 class C2
 {
-    void M(ImportedC1 c)
+    void M({|#0:ImportedC1|} c)
     {
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(4, 12, "N1.C1", "N2"));
+                GetCSharpResultAt(0, "N1.C1", "N2"));
         }
 
         [Fact]
@@ -2111,12 +2111,12 @@ End Namespace";
 
             var apiConsumerSource = @"Imports ImportedC1 = N1.C1
 Class C2
-    Private Sub M(c As ImportedC1)
+    Private Sub M(c As {|#0:ImportedC1|})
     End Sub
 End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                GetBasicResultAt(3, 24, "N1.C1", "N2"));
+                GetBasicResultAt(0, "N1.C1", "N2"));
         }
 
         [Fact]
@@ -2145,22 +2145,22 @@ class C2
 {
     void M()
     {
-        C c = 0;        // implicit conversion.
-        c = (C)1.0f;    // Explicit conversion.
-        c = c + 1;      // Binary operator.
-        c++;            // Increment or decrement.
-        c = -c;         // Unary operator.
+        {|#0:C|} c = {|#1:0|};        // implicit conversion.
+        c = {|#2:({|#3:C|})1.0f|};    // Explicit conversion.
+        c = {|#4:c + 1|};      // Binary operator.
+        {|#5:c++|};            // Increment or decrement.
+        c = {|#6:-c|};         // Unary operator.
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(7, 9, "N1.C", "N2"),
-                GetCSharpResultAt(7, 15, "N1.C.implicit operator N1.C", "N2"),
-                GetCSharpResultAt(8, 13, "N1.C.explicit operator N1.C", "N2"),
-                GetCSharpResultAt(8, 14, "N1.C", "N2"),
-                GetCSharpResultAt(9, 13, "N1.C.operator +", "N2"),
-                GetCSharpResultAt(10, 9, "N1.C.operator ++", "N2"),
-                GetCSharpResultAt(11, 13, "N1.C.operator -", "N2"));
+                GetCSharpResultAt(0, "N1.C", "N2"),
+                GetCSharpResultAt(1, "N1.C.implicit operator N1.C", "N2"),
+                GetCSharpResultAt(2, "N1.C.explicit operator N1.C", "N2"),
+                GetCSharpResultAt(3, "N1.C", "N2"),
+                GetCSharpResultAt(4, "N1.C.operator +", "N2"),
+                GetCSharpResultAt(5, "N1.C.operator ++", "N2"),
+                GetCSharpResultAt(6, "N1.C.operator -", "N2"));
         }
 
         [Fact]
@@ -2187,35 +2187,35 @@ namespace N2
 
         unsafe void M()
         {
-            var b = new G<C>();
-            var c = new G<C>.N<int>();
-            var d = new G<int>.N<C>();
-            var e = new G<G<int>.N<C>>.N<int>();
-            var f = new G<G<C>.N<int>>.N<int>();
-            var g = new C[42];
-            var h = new G<C[]>();
-            fixed (C* i = &g[0]) { }
+            var b = new G<{|#0:C|}>();
+            var c = new G<{|#1:C|}>.N<int>();
+            var d = new G<int>.N<{|#2:C|}>();
+            var e = new G<G<int>.N<{|#3:C|}>>.N<int>();
+            var f = new G<G<{|#4:C|}>.N<int>>.N<int>();
+            var g = new {|#5:C|}[42];
+            var h = new G<{|#6:C|}[]>();
+            fixed ({|#7:C|}* i = &g[0]) { }
         }
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
                 // Test0.cs(12,27): error RS0035: External access to internal symbol 'N1.C' is prohibited. Assembly 'ApiProviderProjectName' only allows access to internal symbols defined in the following namespace(s): 'N2'
-                GetCSharpResultAt(12, 27, "N1.C", "N2"),
+                GetCSharpResultAt(0, "N1.C", "N2"),
                 // Test0.cs(13,27): error RS0035: External access to internal symbol 'N1.C' is prohibited. Assembly 'ApiProviderProjectName' only allows access to internal symbols defined in the following namespace(s): 'N2'
-                GetCSharpResultAt(13, 27, "N1.C", "N2"),
+                GetCSharpResultAt(1, "N1.C", "N2"),
                 // Test0.cs(14,34): error RS0035: External access to internal symbol 'N1.C' is prohibited. Assembly 'ApiProviderProjectName' only allows access to internal symbols defined in the following namespace(s): 'N2'
-                GetCSharpResultAt(14, 34, "N1.C", "N2"),
+                GetCSharpResultAt(2, "N1.C", "N2"),
                 // Test0.cs(15,36): error RS0035: External access to internal symbol 'N1.C' is prohibited. Assembly 'ApiProviderProjectName' only allows access to internal symbols defined in the following namespace(s): 'N2'
-                GetCSharpResultAt(15, 36, "N1.C", "N2"),
+                GetCSharpResultAt(3, "N1.C", "N2"),
                 // Test0.cs(16,29): error RS0035: External access to internal symbol 'N1.C' is prohibited. Assembly 'ApiProviderProjectName' only allows access to internal symbols defined in the following namespace(s): 'N2'
-                GetCSharpResultAt(16, 29, "N1.C", "N2"),
+                GetCSharpResultAt(4, "N1.C", "N2"),
                 // Test0.cs(17,25): error RS0035: External access to internal symbol 'N1.C' is prohibited. Assembly 'ApiProviderProjectName' only allows access to internal symbols defined in the following namespace(s): 'N2'
-                GetCSharpResultAt(17, 25, "N1.C", "N2"),
+                GetCSharpResultAt(5, "N1.C", "N2"),
                 // Test0.cs(18,27): error RS0035: External access to internal symbol 'N1.C' is prohibited. Assembly 'ApiProviderProjectName' only allows access to internal symbols defined in the following namespace(s): 'N2'
-                GetCSharpResultAt(18, 27, "N1.C", "N2"),
+                GetCSharpResultAt(6, "N1.C", "N2"),
                 // Test0.cs(19,20): error RS0035: External access to internal symbol 'N1.C' is prohibited. Assembly 'ApiProviderProjectName' only allows access to internal symbols defined in the following namespace(s): 'N2'
-                GetCSharpResultAt(19, 20, "N1.C", "N2"));
+                GetCSharpResultAt(7, "N1.C", "N2"));
         }
     }
 }

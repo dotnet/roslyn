@@ -8,6 +8,7 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <PublishWindowsPdb>false</PublishWindowsPdb>
+    <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
   </PropertyGroup>
   
   <ItemGroup>

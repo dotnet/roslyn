@@ -23,8 +23,8 @@
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToMessage">
-        <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'</source>
-        <target state="translated">外部無法存取內部符號 '{0}'。組件 '{1}' 只允許存取下列命名空間中定義的內部符號: '{2}'</target>
+        <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'.</source>
+        <target state="needs-review-translation">外部無法存取內部符號 '{0}'。組件 '{1}' 只允許存取下列命名空間中定義的內部符號: '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToTitle">

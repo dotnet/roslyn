@@ -180,6 +180,18 @@ Avoid the 'Opt' suffix in a nullable-enabled code.
 |CodeFix|True|
 ---
 
+## RS0049: Instance of TemporaryArray\<T>.AsRef() must be a 'using' variable
+
+Instance of TemporaryArray\<T>.AsRef() must be a 'using' variable.
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsReliability|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|False|
+---
+
 ## RS0100: Statements must be placed on their own line
 
 Statements must be placed on their own line

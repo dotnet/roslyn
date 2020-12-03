@@ -15,7 +15,7 @@ dotnet_public_api_analyzer.require_api_files = true
 
 See [Analyzer Configuration.md](../../docs/Analyzer%20Configuration.md) for more details on how to setup editorconfig based configuration.
 
-## Package version earlier then 3.3.x
+## Package version earlier than 3.3.x
 
 If you are using a `Microsoft.CodeAnalysis.PublicApiAnalyzers` package with version prior to 3.3.x, then you will need to manually create the following public API files in each project directory that needs to be analyzed. Additionally, you will need to mark the above files as analyzer additional files to enable analysis.
 
