@@ -52,7 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptCompletionHandlerShim(ILspSolutionProvider solutionProvider) : base(Array.Empty<Lazy<CompletionProvider, CompletionProviderMetadata>>())
+        public TypeScriptCompletionHandlerShim(ILspSolutionProvider solutionProvider)
+            : base(completionProviders: Array.Empty<Lazy<CompletionProvider, CompletionProviderMetadata>>(), completionListCache: null)
         {
             _solutionProvider = solutionProvider;
         }
@@ -75,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptCompletionResolverHandlerShim(ILspSolutionProvider solutionProvider)
+        public TypeScriptCompletionResolverHandlerShim(ILspSolutionProvider solutionProvider) : base(completionListCache: null)
         {
             _solutionProvider = solutionProvider;
         }

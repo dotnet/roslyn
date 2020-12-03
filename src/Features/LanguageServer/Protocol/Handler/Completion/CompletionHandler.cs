@@ -38,14 +38,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompletionHandler(
             [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,
-            CompletionListCache? completionCache = null)
+            CompletionListCache? completionListCache)
         {
             _csharpTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.CSharp).SelectMany(
                 lz => GetTriggerCharacters(lz.Value)).ToImmutableHashSet();
             _vbTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.VisualBasic).SelectMany(
                 lz => GetTriggerCharacters(lz.Value)).ToImmutableHashSet();
 
-            _completionListCache = completionCache;
+            _completionListCache = completionListCache;
         }
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionParams request) => request.TextDocument;

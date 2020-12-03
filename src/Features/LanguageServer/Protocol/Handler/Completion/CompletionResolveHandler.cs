@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionResolveHandler(CompletionListCache? completionListCache = null)
+        public CompletionResolveHandler(CompletionListCache? completionListCache)
         {
             _completionListCache = completionListCache;
         }
