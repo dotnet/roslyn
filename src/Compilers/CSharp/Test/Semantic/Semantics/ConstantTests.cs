@@ -3756,6 +3756,25 @@ class C
                     //                     goto case $"Number 3";
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""Number 3""").WithArguments("constant interpolated strings").WithLocation(49, 31));
         }
+
+        [Fact]
+        public void EmptyConstInterpolatedString()
+        {
+            CompileAndVerify(@"
+public class C
+{
+    public const string s = $"""";
+
+    static void Main()
+    {
+        System.Console.WriteLine(s);
+    }
+}
+", parseOptions: TestOptions.RegularPreview, expectedOutput: "", symbolValidator: module =>
+{
+    Assert.Equal(string.Empty, module.GlobalNamespace.GetTypeMember("C").GetField("s").ConstantValue);
+});
+        }
     }
 
     internal sealed class BoundTreeSequencer : BoundTreeWalkerWithStackGuard

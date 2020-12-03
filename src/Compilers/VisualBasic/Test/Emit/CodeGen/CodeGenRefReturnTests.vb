@@ -853,7 +853,7 @@ BC30437: 'Public Overrides ReadOnly Property P As Object' cannot override 'Publi
         End Sub
 
         <Fact()>
-        Public Sub ExpressionLambdas()
+        Public Sub ExpressionLambdas_01()
             Dim comp1 = CreateCSharpCompilation(
 "public class A<T>
 {
@@ -884,7 +884,7 @@ Module M
 End Module",
                 referencedCompilations:={comp1},
                 compilationOptions:=TestOptions.DebugExe)
-            comp2.AssertTheseDiagnostics(
+            comp2.AssertTheseEmitDiagnostics(
 <error><![CDATA[
 BC37263: An expression tree may not contain a call to a method or property that returns by reference.
         Dim e As Expression(Of Action) = Sub() M(A(Of Integer).F())
@@ -892,6 +892,120 @@ BC37263: An expression tree may not contain a call to a method or property that 
 BC37263: An expression tree may not contain a call to a method or property that returns by reference.
         Dim f As Expression(Of Action) = Sub() M(New A(Of Integer)().P)
                                                  ~~~~~~~~~~~~~~~~~~~~~
+]]></error>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(49617, "https://github.com/dotnet/roslyn/issues/49617")>
+        Public Sub ExpressionLambdas_02()
+            Dim comp1 = CreateCSharpCompilation(
+"
+public class Model
+{
+    int value;
+    public ref int Value => ref value;
+}
+")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"
+Imports System
+Imports System.Linq.Expressions
+Module M
+    Sub Main()
+        TestExpression(Function(m) m.Value = 1)
+    End Sub
+
+    Sub TestExpression(expression As Expression(Of Action(Of Model)))
+    End Sub
+End Module
+",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            comp2.AssertTheseEmitDiagnostics(
+<error><![CDATA[
+BC37263: An expression tree may not contain a call to a method or property that returns by reference.
+        TestExpression(Function(m) m.Value = 1)
+                                   ~~~~~~~
+]]></error>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(49617, "https://github.com/dotnet/roslyn/issues/49617")>
+        Public Sub ExpressionLambdas_03()
+            Dim comp1 = CreateCSharpCompilation(
+"
+public class Model
+{
+    int value;
+    public ref int Value => ref value;
+}
+")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"
+Imports System
+Imports System.Linq.Expressions
+Module M
+    Sub Main()
+        TestExpression(Function() new Model With { .Value = 1 })
+    End Sub
+
+    Sub TestExpression(expression As Expression(Of Func(Of Model)))
+    End Sub
+End Module
+",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            comp2.AssertTheseEmitDiagnostics(
+<error><![CDATA[
+BC37263: An expression tree may not contain a call to a method or property that returns by reference.
+        TestExpression(Function() new Model With { .Value = 1 })
+                                                    ~~~~~
+]]></error>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(49617, "https://github.com/dotnet/roslyn/issues/49617")>
+        Public Sub ExpressionLambdas_04()
+            Dim comp1 = CreateCSharpCompilation(
+"
+public class Model : System.Collections.IEnumerable
+{
+    public System.Collections.IEnumerator GetEnumerator() => throw null;
+    public ref bool Add(int x) => throw null;
+}
+")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"
+Imports System
+Imports System.Linq.Expressions
+Module M
+    Sub Main()
+        TestExpression(Function() new Model From { 1, 2, 3 })
+    End Sub
+
+    Sub TestExpression(expression As Expression(Of Func(Of Model)))
+    End Sub
+End Module
+",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            comp2.AssertTheseEmitDiagnostics(
+<error><![CDATA[
+BC37263: An expression tree may not contain a call to a method or property that returns by reference.
+        TestExpression(Function() new Model From { 1, 2, 3 })
+                                                   ~
+BC37263: An expression tree may not contain a call to a method or property that returns by reference.
+        TestExpression(Function() new Model From { 1, 2, 3 })
+                                                      ~
+BC37263: An expression tree may not contain a call to a method or property that returns by reference.
+        TestExpression(Function() new Model From { 1, 2, 3 })
+                                                         ~
 ]]></error>)
         End Sub
 

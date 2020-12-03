@@ -7900,6 +7900,181 @@ public class AA
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInPreprocessorIf(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Goo,Bar,Baz">
+                            <Document>
+#if $$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"Goo", "Bar", "Baz", "true", "false"})
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#if Goo", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInPreprocessorElif(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Goo,Bar,Baz">
+                            <Document>
+#if false
+#elif $$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"Goo", "Bar", "Baz", "true", "false"})
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#elif Goo", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionNotInPreprocessorElse(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Goo,Bar,Baz">
+                            <Document>
+#if false
+#elif false
+#else $$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInPreprocessorParenthesized(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Goo,Bar,Baz">
+                            <Document>
+#if ($$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"Goo", "Bar", "Baz", "true", "false"})
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#if (Goo", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInPreprocessorNot(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Goo,Bar,Baz">
+                            <Document>
+#if !$$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"Goo", "Bar", "Baz", "true", "false"})
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#if !Goo", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInPreprocessorAnd(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Goo,Bar,Baz">
+                            <Document>
+#if true &amp;&amp; $$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"Goo", "Bar", "Baz", "true", "false"})
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#if true && Goo", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInPreprocessorOr(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Goo,Bar,Baz">
+                            <Document>
+#if true || $$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"Goo", "Bar", "Baz", "true", "false"})
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#if true || Goo", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInPreprocessorCasingDifference(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Goo,Bar,BAR,Baz">
+                            <Document>
+#if $$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"Goo", "Bar", "BAR", "Baz", "true", "false"})
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#if Goo", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         ' Simulates a situation where IntelliCode provides items not included into the Rolsyn original list.
         ' We want to ignore these items in CommitIfUnique.
         ' This situation should not happen. Tests with this provider were added to cover protective scenarios.
