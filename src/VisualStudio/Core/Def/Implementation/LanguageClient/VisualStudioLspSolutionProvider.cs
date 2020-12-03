@@ -6,7 +6,6 @@ using System;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host.LanguageServerProtocol;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
