@@ -161,11 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool IsIndexedTypeParameter(TypeSymbol typeSymbol)
-        {
-            return typeSymbol is IndexedTypeParameterSymbol;
-        }
-
         private static TypeWithAnnotations CreateNonLazyType(TypeSymbol typeSymbol, NullableAnnotation nullableAnnotation, ImmutableArray<CustomModifier> customModifiers)
         {
             return new TypeWithAnnotations(typeSymbol, nullableAnnotation, Extensions.Create(customModifiers));
@@ -473,15 +468,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NullableAnnotation newAnnotation;
 
-            Debug.Assert(!IsIndexedTypeParameter(newTypeWithModifiers.Type) || newTypeWithModifiers.NullableAnnotation.IsOblivious());
-
             if (NullableAnnotation.IsAnnotated() || newTypeWithModifiers.NullableAnnotation.IsAnnotated())
             {
                 newAnnotation = NullableAnnotation.Annotated;
-            }
-            else if (IsIndexedTypeParameter(newTypeWithModifiers.Type))
-            {
-                newAnnotation = NullableAnnotation;
             }
             else if (newTypeWithModifiers.NullableAnnotation == NullableAnnotation.Ignored)
             {
