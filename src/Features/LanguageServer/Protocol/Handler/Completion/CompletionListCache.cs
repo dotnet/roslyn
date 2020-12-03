@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         /// <summary>
         /// Maximum number of completion lists allowed in cache. Must be >= 1.
         /// </summary>
-        private readonly int _maxCacheSize = 3;
+        private const int MaxCacheSize = 3;
 
         /// <summary>
         /// Multiple cache requests or updates may be received concurrently.
@@ -66,9 +66,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 var resultId = _nextResultId++;
 
                 // If cache exceeds maximum size, remove the oldest list in the cache
-                if (_resultIdToCompletionList.Count >= _maxCacheSize)
+                if (_resultIdToCompletionList.Count >= MaxCacheSize)
                 {
-                    var oldestCachedResultId = resultId - _maxCacheSize;
+                    var oldestCachedResultId = resultId - MaxCacheSize;
                     _resultIdToCompletionList.Remove(oldestCachedResultId);
                 }
 
@@ -97,6 +97,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 // We found a match - return completion list
                 return _resultIdToCompletionList[resultId];
             }
+        }
+
+        internal TestAccessor GetTestAccessor() => new(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly CompletionListCache _completionListCache;
+
+            public static int MaximumCacheSize => MaxCacheSize;
+
+            public TestAccessor(CompletionListCache completionListCache)
+                => _completionListCache = completionListCache;
+
+            public Dictionary<long, CompletionList> GetCacheContents()
+                => _completionListCache._resultIdToCompletionList;
         }
     }
 }

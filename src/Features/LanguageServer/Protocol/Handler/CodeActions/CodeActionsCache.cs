@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// <summary>
         /// Ensures we aren't making concurrent modifications to the list of cached items.
         /// </summary>
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _semaphore = new(1);
 
         /// <summary>
         /// Maximum number of cached items.
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// <summary>
         /// Current list of cached items.
         /// </summary>
-        private readonly List<CodeActionsCacheItem> _cachedItems = new List<CodeActionsCacheItem>();
+        private readonly List<CodeActionsCacheItem> _cachedItems = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         {
         }
 
-        public async Task UpdateActionSetsAsync(
+        internal async Task UpdateActionSetsAsync(
             Document document,
             LSP.Range range,
             ImmutableArray<UnifiedSuggestedActionSet> cachedSuggestedActionSets,
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// Attempts to retrieve the cached action sets that match the given document and range.
         /// Returns null if no match is found.
         /// </summary>
-        public async Task<ImmutableArray<UnifiedSuggestedActionSet>?> GetActionSetsAsync(
+        internal async Task<ImmutableArray<UnifiedSuggestedActionSet>?> GetActionSetsAsync(
             Document document,
             LSP.Range range,
             CancellationToken cancellationToken)
@@ -118,8 +118,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             }
         }
 
-        internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+        internal TestAccessor GetTestAccessor() => new(this);
 
         internal readonly struct TestAccessor
         {
