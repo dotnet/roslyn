@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
             var capabilities = _defaultCapabilitiesProvider.GetCapabilities();
 
             capabilities.SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode);
-            
+
             // Razor doesn't use workspace symbols, so disable to prevent duplicate results (with LiveshareLanguageClient) in liveshare.
             capabilities.WorkspaceSymbolProvider = false;
 
