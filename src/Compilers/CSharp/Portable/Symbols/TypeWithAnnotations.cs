@@ -467,6 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             NullableAnnotation newAnnotation;
+            Debug.Assert(newTypeWithModifiers.Type is not IndexedTypeParameterSymbol || newTypeWithModifiers.NullableAnnotation == NullableAnnotation.Ignored);
 
             if (NullableAnnotation.IsAnnotated() || newTypeWithModifiers.NullableAnnotation.IsAnnotated())
             {
