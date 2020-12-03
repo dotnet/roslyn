@@ -27118,14 +27118,7 @@ namespace System.Runtime.CompilerServices
 ";
 
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
-            comp.VerifyDiagnostics(
-                // (14,23): warning CS1591: Missing XML comment for publicly visible type or member 'E.E(int)'
-                // public partial record E(int I1);
-                Diagnostic(ErrorCode.WRN_MissingXMLComment, "E").WithArguments("E.E(int)").WithLocation(14, 23),
-                // (17,18): warning CS1572: XML comment has a param tag for 'I1', but there is no parameter by that name
-                // /// <param name="I1">Description for I1</param>
-                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "I1").WithArguments("I1").WithLocation(17, 18)
-                );
+            comp.VerifyDiagnostics();
 
             var c = comp.GetMember<NamedTypeSymbol>("C");
             Assert.Equal(

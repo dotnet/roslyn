@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Report the error at a location in the tree that was parsing doc comments.
                     Location location = GetLocationInTreeReportingDocumentationCommentDiagnostics(symbol);
-                    if (location != null && symbol is not SynthesizedRecordPropertySymbol)
+                    if (location != null)
                     {
                         _diagnostics.Add(ErrorCode.WRN_MissingXMLComment, location, symbol);
                     }
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool ShouldSkip(Symbol symbol)
         {
-            return symbol.IsImplicitlyDeclared || symbol.IsAccessor() || symbol is SynthesizedSimpleProgramEntryPointSymbol || symbol is SimpleProgramNamedTypeSymbol;
+            return symbol.IsImplicitlyDeclared || symbol.IsAccessor() || symbol is SynthesizedSimpleProgramEntryPointSymbol || symbol is SimpleProgramNamedTypeSymbol || symbol is SynthesizedRecordPropertySymbol;
         }
 
         /// <summary>
