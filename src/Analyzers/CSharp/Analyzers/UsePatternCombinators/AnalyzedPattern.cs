@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 {
                     // If the original targets are implicitly converted due to usage of operators,
                     // both targets must have been converted to the same type, otherwise we bail.
-                    ({ IsImplicit: true }, { IsImplicit: true }) when !leftTarget.Type.Equals(rightTarget.Type) => null,
+                    ({ IsImplicit: true }, { IsImplicit: true }) when !Equals(leftTarget.Type, rightTarget.Type) => null,
 
                     // If either of targets are implicitly converted but not both,
                     // we take the conversion node so that we can generate a cast off of it.
