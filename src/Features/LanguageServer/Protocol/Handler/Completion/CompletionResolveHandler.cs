@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // We don't have a cache, so we need to recompute the list
                 var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
-                var completionOptions = await GetCompletionOptions(document, data, cancellationToken).ConfigureAwait(false);
+                var completionOptions = await CompletionHandler.GetCompletionOptionsAsync(document, cancellationToken).ConfigureAwait(false);
 
                 list = await completionService.GetCompletionsAsync(document, position, data.CompletionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (list == null)
@@ -102,48 +102,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             resolvedCompletionItem.Detail = description.TaggedParts.GetFullText();
             return resolvedCompletionItem;
-
-            static async Task<OptionSet> GetCompletionOptions(Document document, CompletionResolveData data, CancellationToken cancellationToken)
-            {
-                OptionSet documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                if (document.Project.Language != LanguageNames.CSharp && document.Project.Language != LanguageNames.VisualBasic)
-                {
-                    return documentOptions;
-                }
-
-                Contract.ThrowIfFalse(data.CompletionOptionValues.Length == CompletionOptions.AllOptions.Length + CompletionServiceOptions.AllOptions.Length);
-
-                var index = 0;
-
-                // Note: The ordering of these two for-loops should not change (i.e. CompletionOptions.AllOptions should be looped
-                // through before CompletionServiceOptions.AllOptions), as this is the order CompletionHandler loops through them.
-                foreach (var option in CompletionOptions.AllOptions)
-                {
-                    documentOptions = UpdateDocumentOptions(document, data, documentOptions, option, index);
-                    index++;
-                }
-
-                foreach (var option in CompletionServiceOptions.AllOptions)
-                {
-                    documentOptions = UpdateDocumentOptions(document, data, documentOptions, option, index);
-                    index++;
-                }
-
-                return documentOptions;
-
-                static OptionSet UpdateDocumentOptions(
-                    Document document,
-                    CompletionResolveData data,
-                    OptionSet documentOptions,
-                    IOption option,
-                    int index)
-                {
-                    var optionKey = new OptionKey(option, option.IsPerLanguage ? document.Project.Language : null);
-                    var optionValue = data.CompletionOptionValues[index];
-
-                    return documentOptions.WithChangedOption(optionKey, optionValue);
-                }
-            }
         }
 
         private static LSP.VSCompletionItem CloneVSCompletionItem(LSP.CompletionItem completionItem)

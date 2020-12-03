@@ -241,8 +241,7 @@ namespace Roslyn.Test.Utilities
             bool preselect = false,
             ImmutableArray<char>? commitCharacters = null,
             string? sortText = null,
-            int resultId = 0,
-            object?[]? completionOptionValues = null)
+            int resultId = 0)
         {
             var item = new LSP.VSCompletionItem()
             {
@@ -259,7 +258,6 @@ namespace Roslyn.Test.Utilities
                     Position = requestParameters.Position,
                     CompletionTrigger = ProtocolConversions.LSPToRoslynCompletionTrigger(requestParameters.Context),
                     ResultId = resultId,
-                    CompletionOptionValues = completionOptionValues ?? new object?[] { false, true, true, true, true, 0, 1, false, null, false, true, 500 },
                 }),
                 Preselect = preselect
             };
