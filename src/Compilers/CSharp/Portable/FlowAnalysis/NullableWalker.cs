@@ -2507,7 +2507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 state,
                 delegateInvokeMethod: null,
                 useDelegateInvokeParameterTypes: false,
-                ignoreAddedSlots: false);
+                ignoreAddedSlotsIfPossible: false);
 
             SetInvalidResult();
 
@@ -2520,7 +2520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalState state,
             MethodSymbol? delegateInvokeMethod,
             bool useDelegateInvokeParameterTypes,
-            bool ignoreAddedSlots)
+            bool ignoreAddedSlotsIfPossible)
         {
             var oldSymbol = this.CurrentSymbol;
             this.CurrentSymbol = lambdaOrFunctionSymbol;
@@ -2542,7 +2542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldVariableBySlot = variableBySlot;
             var oldNextVariableSlot = nextVariableSlot;
 
-            if (ignoreAddedSlots)
+            if (ignoreAddedSlotsIfPossible)
             {
                 _variableSlot = PooledDictionary<VariableIdentifier, int>.GetInstance();
                 foreach (var pair in oldVariableSlot)
@@ -2599,7 +2599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _snapshotBuilderOpt?.ExitWalker(this.SaveSharedState(), previousSlot);
 
-            if (ignoreAddedSlots)
+            if (ignoreAddedSlotsIfPossible && !HasAnyLocalFuncUsages)
             {
                 nextVariableSlot = oldNextVariableSlot;
                 variableBySlot = oldVariableBySlot;
@@ -7402,8 +7402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initialState.HasValue ? initialState.Value : State.Clone(),
                 delegateInvokeMethod,
                 useDelegateInvokeParameterTypes,
-                ignoreAddedSlots: true);
-                useDelegateInvokeParameterTypes);
+                ignoreAddedSlotsIfPossible: true);
         }
 
         private static bool UseDelegateInvokeParameterTypes(BoundLambda lambda, MethodSymbol? delegateInvokeMethod)

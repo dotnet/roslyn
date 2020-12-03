@@ -59,6 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return usages;
         }
 
+        protected bool HasAnyLocalFuncUsages => _localFuncVarUsages is object;
+
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement localFunc)
         {
             var oldSymbol = this.CurrentSymbol;
