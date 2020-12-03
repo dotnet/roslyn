@@ -2506,7 +2506,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localFunc,
                 state,
                 delegateInvokeMethod: null,
-                useDelegateInvokeParameterTypes: false);
+                useDelegateInvokeParameterTypes: false,
+                ignoreAddedSlots: false);
 
             SetInvalidResult();
 
@@ -2518,7 +2519,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol lambdaOrFunctionSymbol,
             LocalState state,
             MethodSymbol? delegateInvokeMethod,
-            bool useDelegateInvokeParameterTypes)
+            bool useDelegateInvokeParameterTypes,
+            bool ignoreAddedSlots)
         {
             var oldSymbol = this.CurrentSymbol;
             this.CurrentSymbol = lambdaOrFunctionSymbol;
@@ -2534,17 +2536,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var oldState = this.State;
             this.State = state;
+
             var oldVariableSlot = _variableSlot;
-            _variableSlot = PooledDictionary<VariableIdentifier, int>.GetInstance();
-            foreach (var pair in oldVariableSlot)
-            {
-                _variableSlot.Add(pair.Key, pair.Value);
-            }
             var oldVariableTypes = _variableTypes;
-            _variableTypes = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<Symbol, TypeWithAnnotations>();
-            foreach (var pair in oldVariableTypes)
+            var oldVariableBySlot = variableBySlot;
+            var oldNextVariableSlot = nextVariableSlot;
+
+            if (ignoreAddedSlots)
             {
-                _variableTypes.Add(pair.Key, pair.Value);
+                _variableSlot = PooledDictionary<VariableIdentifier, int>.GetInstance();
+                foreach (var pair in oldVariableSlot)
+                {
+                    _variableSlot.Add(pair.Key, pair.Value);
+                }
+                _variableTypes = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<Symbol, TypeWithAnnotations>();
+                foreach (var pair in oldVariableTypes)
+                {
+                    _variableTypes.Add(pair.Key, pair.Value);
+                }
+                variableBySlot = new VariableIdentifier[oldVariableBySlot.Length];
+                Array.Copy(oldVariableBySlot, variableBySlot, oldVariableBySlot.Length);
             }
 
             var previousSlot = _snapshotBuilderOpt?.EnterNewWalker(lambdaOrFunctionSymbol) ?? -1;
@@ -2588,10 +2599,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _snapshotBuilderOpt?.ExitWalker(this.SaveSharedState(), previousSlot);
 
-            _variableTypes.Free();
-            _variableTypes = oldVariableTypes;
-            _variableSlot.Free();
-            _variableSlot = oldVariableSlot;
+            if (ignoreAddedSlots)
+            {
+                nextVariableSlot = oldNextVariableSlot;
+                variableBySlot = oldVariableBySlot;
+                _variableTypes.Free();
+                _variableTypes = oldVariableTypes;
+                _variableSlot.Free();
+                _variableSlot = oldVariableSlot;
+            }
+
             this.State = oldState;
             _returnTypesOpt = oldReturnTypes;
             _useDelegateInvokeParameterTypes = oldUseDelegateInvokeParameterTypes;
@@ -7384,9 +7401,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Symbol,
                 initialState.HasValue ? initialState.Value : State.Clone(),
                 delegateInvokeMethod,
+                useDelegateInvokeParameterTypes,
+                ignoreAddedSlots: true);
                 useDelegateInvokeParameterTypes);
-
-            _disableDiagnostics = oldDisableDiagnostics;
         }
 
         private static bool UseDelegateInvokeParameterTypes(BoundLambda lambda, MethodSymbol? delegateInvokeMethod)
