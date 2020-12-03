@@ -7403,6 +7403,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 delegateInvokeMethod,
                 useDelegateInvokeParameterTypes,
                 ignoreAddedSlotsIfPossible: true);
+
+            _disableDiagnostics = oldDisableDiagnostics;
         }
 
         private static bool UseDelegateInvokeParameterTypes(BoundLambda lambda, MethodSymbol? delegateInvokeMethod)
