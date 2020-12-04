@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
@@ -12,10 +13,10 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpAddMissingImportsOnPaste : AbstractEditorTest
+    public class CSharpAddMissingUsingsOnPaste : AbstractEditorTest
     {
-        public CSharpAddMissingImportsOnPaste(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpAddMissingImportsOnPaste))
+        public CSharpAddMissingUsingsOnPaste(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpAddMissingUsingsOnPaste))
         {
         }
 
@@ -78,6 +79,8 @@ class Program
     $$
 }");
 
+            using var telemetry = VisualStudio.EnableTestTelemetryChannel();
+
             VisualStudio.Workspace.SetFeatureOption(FeatureOnOffOptions.AddImportsOnPaste.Feature, FeatureOnOffOptions.AddImportsOnPaste.Name, LanguageNames.CSharp, "True");
 
             VisualStudio.Editor.Paste(@"Task DoThingAsync() => Task.CompletedTask;");
@@ -94,6 +97,7 @@ class Program
 
     Task DoThingAsync() => Task.CompletedTask;
 }");
+            telemetry.VerifyFired("vs/ide/vbcs/commandhandler/paste/importsonpaste");
         }
     }
 }
