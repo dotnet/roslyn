@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
         private readonly Workspace _workspace;
-        private readonly ILspSolutionProvider _solutionProvider;
+        private readonly ILspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
         /// <summary>
         /// Created when <see cref="ActivateAsync"/> is called.
@@ -71,14 +71,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             VisualStudioWorkspace workspace,
             IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspSolutionProvider solutionProvider,
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             string? diagnosticsClientName)
         {
             _requestHandlerProvider = requestHandlerProvider;
             _workspace = workspace;
             _diagnosticService = diagnosticService;
             _listenerProvider = listenerProvider;
-            _solutionProvider = solutionProvider;
+            _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
             _diagnosticsClientName = diagnosticsClientName;
         }
 
@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 _workspace,
                 _diagnosticService,
                 _listenerProvider,
-                _solutionProvider,
+                _lspWorkspaceRegistrationService,
                 clientName: _diagnosticsClientName);
 
             return Task.FromResult(new Connection(clientStream, clientStream));
