@@ -430,13 +430,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal static bool IsSimpleMethod(BoundNode? node)
             {
+                if (node is BoundConstructorMethodBody constructorBody && constructorBody.Initializer is { })
+                {
+                    return false;
+                }
                 if (node is BoundMethodBodyBase methodBody)
                 {
-                    node = methodBody.BlockBody ?? methodBody.ExpressionBody;
+                    var blockBody = methodBody.BlockBody;
+                    var expressionBody = methodBody.ExpressionBody;
+                    node = blockBody;
+                    if (node is { })
+                    {
+                        if (expressionBody is { }) return false;
+                    }
+                    else
+                    {
+                        node = expressionBody;
+                    }
                 }
                 var visitor = new IsSimpleMethodVisitor();
-                visitor.Visit(node);
-                return !visitor._hasComplexity;
+                try
+                {
+                    visitor.Visit(node);
+                    return !visitor._hasComplexity;
+                }
+                catch (CancelledByStackGuardException)
+                {
+                    return false;
+                }
             }
 
             public override BoundNode? Visit(BoundNode? node)
@@ -444,6 +465,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (node is null)
                 {
                     return null;
+                }
+                if (_hasComplexity)
+                {
+                    return node;
                 }
                 if (node is BoundExpression)
                 {
