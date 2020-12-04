@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
@@ -43,8 +44,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return False
         End Function
 
-        Protected Overrides Function ShouldProvideParenthesisCompletionAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of Boolean)
-            Return Task.FromResult(False)
+        Protected Overrides Async Function ShouldProvideParenthesisCompletionAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of Boolean)
+            If commitKey = "."c Then
+                Dim syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+                Return syntaxTree.IsObjectCreationTypeContext(item.Span.Start, cancellationToken)
+            End If
+
+            Return False
         End Function
     End Class
 End Namespace

@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Completion.Log
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
@@ -146,6 +147,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     ' document.
                     Return insertionText.Substring(0, insertionText.Length - 1)
                 End If
+            End If
+
+            If ch = "." AndAlso SymbolCompletionItem.GetShouldProvideParenthesisCompletion(Item)
+                CompletionProvidersLogger.LogCommitUsingDotToAddParenthesis()
+                Return insertionText + "()"
             End If
 
             Return insertionText
