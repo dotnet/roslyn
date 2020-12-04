@@ -51,8 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         public override async Task<BraceCompletionResult?> GetTextChangesAfterCompletionAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken)
         {
-            var documentOptions = await braceCompletionContext.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
             // After the closing brace is completed we need to format the span from the opening point to the closing point.
             // E.g. when the user triggers completion for an if statement ($$ is the caret location) we insert braces to get
             // if (true){$$}
@@ -60,7 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // if (true) { $$}
             var (formattingChanges, finalCurlyBraceEnd) = await FormatTrackingSpanAsync(
                 braceCompletionContext.Document,
-                documentOptions,
                 braceCompletionContext.OpeningPoint,
                 braceCompletionContext.ClosingPoint,
                 shouldHonorAutoFormattingOnCloseBraceOption: true,
@@ -112,7 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // Format the text that contains the newly inserted line.
             var (formattingChanges, newClosingPoint) = await FormatTrackingSpanAsync(
                 document.WithText(textToFormat),
-                documentOptions,
                 openingPoint,
                 closingPoint,
                 shouldHonorAutoFormattingOnCloseBraceOption: false,
@@ -143,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 var openingPointLine = sourceText.Lines.GetLineFromPosition(openingPoint).LineNumber;
                 var closingPointLine = sourceText.Lines.GetLineFromPosition(closingPoint).LineNumber;
 
-                return closingPointLine - 1 > openingPointLine && sourceText.Lines[closingPointLine - 1].IsEmptyOrWhitespace();
+                return closingPointLine - 2 == openingPointLine && sourceText.Lines[closingPointLine - 1].IsEmptyOrWhitespace();
             }
 
             static TextLine GetLineBetweenCurlys(int closingPosition, SourceText text)
@@ -168,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             {
                 var newRanges = TextChangeRangeExtensions.Merge(
                     ImmutableArray.Create(newLineEdit.ToTextChangeRange()),
-                    formattingChanges.Select(f => f.ToTextChangeRange()).ToImmutableArray());
+                    formattingChanges.SelectAsArray(f => f.ToTextChangeRange()));
 
                 using var _ = ArrayBuilder<TextChange>.GetInstance(out var mergedChanges);
                 var amountToShift = 0;
@@ -178,6 +174,10 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                     // Get the text to put in the text change by looking at the span in the formatted text.
                     // As the new range start is relative to the original text, we need to adjust it assuming the previous changes were applied
                     // to get the correct start location in the formatted text.
+                    // E.g. with changes
+                    //     1. Insert "hello" at 2
+                    //     2. Insert "goodbye" at 3
+                    // "goodbye" is after "hello" at location 3 + 5 (length of "hello") in the new text.
                     var newTextChangeText = formattedText.GetSubText(new TextSpan(newRange.Span.Start + amountToShift, newRange.NewLength)).ToString();
                     amountToShift += (newRange.NewLength - newRange.Span.Length);
                     mergedChanges.Add(new TextChange(newTextChangeSpan, newTextChangeText));
@@ -229,7 +229,6 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
         /// </summary>
         private static async Task<(ImmutableArray<TextChange> textChanges, int finalCurlyBraceEnd)> FormatTrackingSpanAsync(
             Document document,
-            DocumentOptionSet documentOptions,
             int openingPoint,
             int closingPoint,
             bool shouldHonorAutoFormattingOnCloseBraceOption,
@@ -269,6 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 }
             }
 
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var style = documentOptions.GetOption(FormattingOptions.SmartIndent);
             if (style == FormattingOptions.IndentStyle.Smart)
             {
@@ -306,6 +306,8 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             {
                 var originalRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var closeBraceToken = originalRoot.FindToken(closingBraceEndPoint - 1);
+                Debug.Assert(closeBraceToken.IsKind(SyntaxKind.CloseBraceToken));
+
                 var newCloseBraceToken = closeBraceToken.WithAdditionalAnnotations(s_closingBraceSyntaxAnnotation);
                 var root = originalRoot.ReplaceToken(closeBraceToken, newCloseBraceToken);
                 return document.WithSyntaxRoot(root);
