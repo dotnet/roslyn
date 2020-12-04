@@ -74,8 +74,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
+            => solution.GetDocument(documentIdentifier, clientName: null);
+
+        public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier, string? clientName)
         {
-            var documents = solution.GetDocuments(documentIdentifier.Uri);
+            var documents = solution.GetDocuments(documentIdentifier.Uri, clientName);
             if (documents.Length == 0)
             {
                 return null;
