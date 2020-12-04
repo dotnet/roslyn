@@ -136,7 +136,6 @@ $@"<Workspace>
     }
 }";
             using var workspace = CreateTestWorkspace(string.Empty, out _);
-            SetSolutionProviderWorkspace(workspace);
 
             AddMappedDocument(workspace, markup);
 
