@@ -46,24 +46,20 @@ namespace RunTests
 
         internal async Task<RunAllResult> RunAllOnHelixAsync(IEnumerable<AssemblyInfo> assemblyInfoList, CancellationToken cancellationToken)
         {
-            var correlationPayload = @"<HelixCorrelationPayload Include=""$(RepoRoot)"" />
-";
+            var msbuildTestPayloadRoot = "$(RepoRoot)";
             // TODO: does having an accurate branch name matter?
             var sourceBranch = Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCH");
             if (sourceBranch is null)
             {
-                if (string.Empty.Length == 0)
-                    throw new Exception("we don't want this to happen in CI");
-
                 sourceBranch = "local";
                 Environment.SetEnvironmentVariable("BUILD_SOURCEBRANCH", sourceBranch);
 
-                // TODO: this is funky. We download the test payload to the repo root and upload it again..
-                // We should use Helix APIs to upload the test payload during the build phase and look into how
-                // we might be able to avoid downloading the test payload to the machine that sits and waits for results.
-                correlationPayload = @"<HelixCorrelationPayload Include=""$(RepoRoot)artifacts/testPayload"" />
-";
+                // TODO: can we minimize the number of repeated uploads/downloads?
+                // for example, by uploading .duplicate dir as its own artifact for Helix to consume as a correlation payload.
+                msbuildTestPayloadRoot = "$(RepoRoot)artifacts/testPayload";
             }
+
+            var correlationPayload = $@"<HelixCorrelationPayload Include=""{msbuildTestPayloadRoot}/.duplicate"" />";
 
             var isAzureDevOpsRun = Environment.GetEnvironmentVariable("SYSTEM_ACCESSTOKEN") is not null;
 
@@ -108,11 +104,16 @@ namespace RunTests
             {
                 var commandLineArguments = _testExecutor.GetCommandLineArguments(assemblyInfo);
                 commandLineArguments = SecurityElement.Escape(commandLineArguments);
+                var payloadDirectory = Path.GetDirectoryName(assemblyInfo.AssemblyPath);
+                if (payloadDirectory is null || !File.Exists(Path.Combine("artifacts/testPayload", payloadDirectory, "rehydrate.ps1")))
+                {
+                    // TODO: this feels like something we should be able to verify before sending a work item.
+                    //throw new InvalidOperationException("path did not contain rehydrate.ps1: " + payloadDirectory);
+                }
                 var workItem = @"
         <HelixWorkItem Include=""" + assemblyInfo.DisplayName + @""">
+            <PayloadDirectory>" + Path.GetDirectoryName(assemblyInfo.AssemblyPath) + @"</PayloadDirectory>
             <Command>
-                dir
-                cd %HELIX_CORRELATION_PAYLOAD%
                 dir
                 dotnet tool restore
                 dotnet pwsh ./rehydrate.ps1

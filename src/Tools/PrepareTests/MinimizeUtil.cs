@@ -91,8 +91,7 @@ internal static class MinimizeUtil
             foreach (var individualFile in individualFiles)
             {
                 var currentDirName = Path.GetDirectoryName(individualFile)!;
-                var currentRelativeDirectory = Path.GetRelativePath(sourceDirectory, currentDirName);
-                var currentOutputDirectory = Path.Combine(destinationDirectory, currentRelativeDirectory);
+                var currentOutputDirectory = Path.Combine(destinationDirectory, currentDirName);
                 Directory.CreateDirectory(currentOutputDirectory);
 
                 var destGlobalJsonPath = Path.Combine(destinationDirectory, individualFile);
@@ -128,16 +127,17 @@ internal static class MinimizeUtil
             var grouping = idToFilePathMap
                 .Where(x => x.Value.Count > 1)
                 .SelectMany(pair => pair.Value.Select(fp => (Id: pair.Key, FilePath: fp)))
-                .GroupBy(fp => fp.FilePath.RelativeDirectory);
+                .GroupBy(fp => getGroupDirectory(fp.FilePath.RelativeDirectory));
             var builder = new StringBuilder();
-            var count = 0;
             foreach (var group in grouping)
             {
+                builder.Clear();
+                var count = 0;
                 foreach (var tuple in group)
                 {
-                    var source = Path.Combine(duplicateDirectoryName, getPeFileName(tuple.Id));
-                    var destFileName = Path.Combine(group.Key, Path.GetFileName(tuple.FilePath.FullPath));
-                    builder.AppendLine($@"New-Item -ItemType HardLink -Name {destFileName} -Value {source} -ErrorAction Stop | Out-Null");
+                    var source = getPeFileName(tuple.Id);
+                    var destFileName = Path.GetRelativePath(group.Key, tuple.FilePath.RelativePath);
+                    builder.AppendLine($@"New-Item -ItemType HardLink -Name ""{destFileName}"" -Value ""$env:HELIX_CORRELATION_PAYLOAD/{source}"" -ErrorAction Stop | Out-Null");
 
                     count++;
                     if (count % 1_000 == 0)
@@ -145,9 +145,29 @@ internal static class MinimizeUtil
                         builder.AppendLine($"Write-Host '{count:n0} hydrated'");
                     }
                 }
+                Console.WriteLine("Writing to " + Path.Combine(destinationDirectory, group.Key, "rehydrate.ps1"));
+                File.WriteAllText(Path.Combine(destinationDirectory, group.Key, "rehydrate.ps1"), builder.ToString());
             }
 
-            File.WriteAllText(Path.Combine(destinationDirectory, "rehydrate.ps1"), builder.ToString());
+            static string getGroupDirectory(string relativePath)
+            {
+                // artifacts/TestProject/Debug/net472/whatever/etc should become:
+                // artifacts/TestProject/Debug/net472
+
+                var groupDirectory = relativePath;
+                while (Path.GetFileName(Path.GetDirectoryName(groupDirectory)) is not (null or "Debug" or "Release"))
+                    groupDirectory = Path.GetDirectoryName(groupDirectory);
+
+                if (groupDirectory is null)
+                {
+                    // So far, this scenario doesn't seem to happen.
+                    // If it *did* happen, we'd want to know, but it isn't necessarily a problem.
+                    Console.WriteLine("Directory not grouped under configuration/TFM: " + relativePath);
+                    return relativePath;
+                }
+
+                return groupDirectory;
+            }
         }
     }
 
