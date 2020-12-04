@@ -345,6 +345,7 @@ function TestUsingRunTests() {
 
   if ($testCoreClr) {
     $args += " --tfm net5.0"
+    $args += " --tfm net5.0-windows"
     $args += " --tfm netcoreapp3.1"
     $args += " --include '\.UnitTests'"
     $args += " --timeout 90"
