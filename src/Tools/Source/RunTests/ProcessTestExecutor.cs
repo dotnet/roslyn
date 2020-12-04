@@ -28,11 +28,9 @@ namespace RunTests
 
         public string GetCommandLineArguments(AssemblyInfo assemblyInfo)
         {
-            var assemblyName = Path.GetFileName(assemblyInfo.AssemblyPath);
-
             var builder = new StringBuilder();
             builder.Append($@"test");
-            builder.Append($@" ""{assemblyInfo.AssemblyPath}""");
+            builder.Append($@" ""{assemblyInfo.AssemblyName}""");
             var typeInfoList = assemblyInfo.PartitionInfo.TypeInfoList;
             if (typeInfoList.Length > 0 || !string.IsNullOrWhiteSpace(Options.Trait) || !string.IsNullOrWhiteSpace(Options.NoTrait))
             {

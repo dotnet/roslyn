@@ -112,11 +112,12 @@ namespace RunTests
                 }
                 var workItem = @"
         <HelixWorkItem Include=""" + assemblyInfo.DisplayName + @""">
-            <PayloadDirectory>" + Path.GetDirectoryName(assemblyInfo.AssemblyPath) + @"</PayloadDirectory>
+            <PayloadDirectory>$(RepoRoot)" + Path.GetDirectoryName(assemblyInfo.AssemblyPath) + @"</PayloadDirectory>
             <Command>
                 dir
-                dotnet tool restore
+                dotnet tool install -g powershell
                 dotnet pwsh ./rehydrate.ps1
+                dir
                 dotnet " + commandLineArguments + @"
             </Command>
         </HelixWorkItem>
