@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // decisionDag, whenTrueLabel, and whenFalseLabel represent the decision DAG for the inner pattern,
             // after removing any outer 'not's, so consumers will need to compensate for negated patterns.
             return new BoundIsPatternExpression(
-                node, expression, pattern, decisionDag, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, boolType, hasErrors);
+                node, expression, pattern, negated, decisionDag, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, boolType, hasErrors);
 
             static bool? getConstantResult(BoundDecisionDag decisionDag, bool negated, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel)
             {

@@ -963,6 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.Expression);
 
             bool negated = node.Pattern.IsNegated(out var pattern);
+            Debug.Assert(negated == node.IsNegated);
 
             VisitPattern(pattern);
             var reachableLabels = node.DecisionDag.ReachableLabels;

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
-            bool negated = node.Pattern.IsNegated(out _);
+            bool negated = node.IsNegated;
             BoundExpression result;
 
             if (canProduceLinearSequence(node.DecisionDag.RootNode, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel))
