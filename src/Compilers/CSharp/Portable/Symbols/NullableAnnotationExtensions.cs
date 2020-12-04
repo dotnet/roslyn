@@ -124,8 +124,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static ImmutableArray<CodeAnalysis.NullableAnnotation> ToPublicAnnotations(this ImmutableArray<TypeWithAnnotations> types) =>
             types.SelectAsArray(t => t.ToPublicAnnotation());
 
-        internal static CodeAnalysis.NullableAnnotation ToPublicAnnotation(TypeSymbol type, NullableAnnotation annotation) =>
-            annotation switch
+        internal static CodeAnalysis.NullableAnnotation ToPublicAnnotation(TypeSymbol type, NullableAnnotation annotation)
+        {
+            Debug.Assert(annotation != NullableAnnotation.Ignored);
+            return annotation switch
             {
                 NullableAnnotation.Annotated => CodeAnalysis.NullableAnnotation.Annotated,
                 NullableAnnotation.NotAnnotated => CodeAnalysis.NullableAnnotation.NotAnnotated,
@@ -136,11 +138,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NullableAnnotation.Oblivious when type.IsValueType => CodeAnalysis.NullableAnnotation.NotAnnotated,
                 NullableAnnotation.Oblivious => CodeAnalysis.NullableAnnotation.None,
 
-                // May occur as type argument in symbols in diagnostic
-                NullableAnnotation.Ignored when type.IsTypeParameter() => CodeAnalysis.NullableAnnotation.None,
+                NullableAnnotation.Ignored => CodeAnalysis.NullableAnnotation.None,
 
                 _ => throw ExceptionUtilities.UnexpectedValue(annotation)
             };
+        }
 
         internal static CSharp.NullableAnnotation ToInternalAnnotation(this CodeAnalysis.NullableAnnotation annotation) =>
             annotation switch

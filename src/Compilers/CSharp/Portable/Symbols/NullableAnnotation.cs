@@ -35,6 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Used for indexed type parameters and used locally in override/implementation checks.
+        /// When substituting a type parameter with Ignored annotation into some original type parameter
+        /// with some other annotation, the result is the annotation from the original symbol.
+        ///
+        /// T annotated + (T -> U ignored) = U annotated
+        /// T oblivious + (T -> U ignored) = U oblivious
+        /// T not-annotated + (T -> U ignored) = U not-annotated
         /// </summary>
         Ignored,
     }

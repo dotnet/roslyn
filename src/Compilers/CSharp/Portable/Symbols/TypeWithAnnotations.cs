@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return default;
             }
 
+            Debug.Assert(nullableAnnotation != NullableAnnotation.Ignored || typeSymbol.IsTypeParameter());
             switch (nullableAnnotation)
             {
                 case NullableAnnotation.Oblivious:
