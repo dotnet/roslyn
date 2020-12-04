@@ -369,7 +369,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                         {
                                             symbol = semanticModel.GetSymbolInfo(argument, context.CancellationToken).Symbol;
                                             if (symbol != null &&
+#pragma warning disable CA1508 // Avoid dead conditional code - TODO: File an issue.
                                                 symbol.Kind == SymbolKind.Field &&
+#pragma warning restore CA1508 // Avoid dead conditional code
                                                 _symbolKind.Equals(symbol.ContainingType) &&
                                                 !s_supportedSymbolKinds.Contains(symbol.Name))
                                             {

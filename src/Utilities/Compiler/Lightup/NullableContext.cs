@@ -17,7 +17,9 @@ namespace Analyzer.Utilities.Lightup
         /// <summary>
         /// Nullable warnings and annotations are explicitly turned off at this location.
         /// </summary>
+#pragma warning disable CA1008 // Enums should have zero value - Rename zero valued field to 'None'
         Disabled = 0,
+#pragma warning restore CA1008 // Enums should have zero value
 
         /// <summary>
         /// Nullable warnings are enabled and will be reported at this file location.

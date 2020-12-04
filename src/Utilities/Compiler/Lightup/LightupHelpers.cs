@@ -7,6 +7,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
+#pragma warning disable CA2201 // Do not raise reserved exception types - 'throw new NullReferenceException()' is used in this file
+
 namespace Analyzer.Utilities.Lightup
 {
     internal static class LightupHelpers
