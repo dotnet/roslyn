@@ -93,6 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int BaseExpression { get; }
         int ConditionalAccessExpression { get; }
         int ConditionalExpression { get; }
+        int InterpolatedStringExpression { get; }
         int InvocationExpression { get; }
         int LogicalAndExpression { get; }
         int LogicalOrExpression { get; }
@@ -135,6 +136,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         #region other
 
         int Interpolation { get; }
+        int InterpolatedStringText { get; }
 
         #endregion
     }

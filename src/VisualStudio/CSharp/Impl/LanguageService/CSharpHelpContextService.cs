@@ -325,8 +325,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     text = "protectedinternal_CSharpKeyword";
                     return true;
 
-                case SyntaxKind.UsingKeyword when token.GetNextToken().IsKind(SyntaxKind.StaticKeyword):
-                case SyntaxKind.StaticKeyword when token.GetPreviousToken().IsKind(SyntaxKind.UsingKeyword):
+                case SyntaxKind.UsingKeyword when token.Parent is UsingDirectiveSyntax:
+                    text = token.GetNextToken().IsKind(SyntaxKind.StaticKeyword)
+                        ? "using-static_CSharpKeyword"
+                        : "using_CSharpKeyword";
+                    return true;
+                case SyntaxKind.StaticKeyword when token.Parent is UsingDirectiveSyntax:
                     text = "using-static_CSharpKeyword";
                     return true;
             }
@@ -372,6 +376,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             if (token.IsKind(SyntaxKind.StructKeyword) && token.Parent is ClassOrStructConstraintSyntax)
             {
                 text = Keyword("structconstraint");
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.UsingKeyword) && token.Parent is UsingStatementSyntax or LocalDeclarationStatementSyntax)
+            {
+                text = Keyword("using-statement");
                 return true;
             }
 
