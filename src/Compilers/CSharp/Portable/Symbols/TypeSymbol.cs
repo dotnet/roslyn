@@ -1703,7 +1703,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                     ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnImplicitImplementation :
                                                     ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation,
                                                 GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
-                                                new FormattedSymbol(implementingMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                                                new FormattedSymbol(implementingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),
                                                 new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                         };
@@ -1727,7 +1727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                     ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation,
                                                 GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
                                                 new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat),
-                                                new FormattedSymbol(implementingMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat),
+                                                new FormattedSymbol(implementingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),
                                                 new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                         };
