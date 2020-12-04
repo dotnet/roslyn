@@ -1683,7 +1683,7 @@ REPARSE:
                 return true;
             }
 
-            var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
+            var indexedTypeParameters = IndexedTypeParameterSymbol.TakeWithIgnoredAnnotations(arity);
             var candidateTypeMap = new TypeMap(candidateTypeParameters, indexedTypeParameters, allowAlpha: true);
             var desiredTypeMap = new TypeMap(desiredTypeParameters, indexedTypeParameters, allowAlpha: true);
 

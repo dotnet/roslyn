@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // so we'll cheat and use it here for comparison purposes.
             TypeMap candidateMethodTypeMap = new TypeMap(
                 candidateMethod.TypeParameters,
-                TypeMap.TypeParametersAsTypeSymbolsWithIgnoredAnnotations(IndexedTypeParameterSymbol.Take(candidateMethod.Arity)), true);
+                IndexedTypeParameterSymbol.TakeWithIgnoredAnnotations(candidateMethod.Arity), true);
 
             if (!ReturnTypesMatch(candidateMethod, candidateMethodTypeMap, ref targetParamInfo[0]))
             {

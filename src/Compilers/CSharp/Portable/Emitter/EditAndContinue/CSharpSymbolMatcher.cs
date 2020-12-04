@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     return method;
                 }
 
-                return method.Construct(TypeMap.TypeParametersAsTypeSymbolsWithIgnoredAnnotations(IndexedTypeParameterSymbol.Take(n)));
+                return method.Construct(IndexedTypeParameterSymbol.TakeWithIgnoredAnnotations(n));
             }
 
             private bool AreNamedTypesEqual(NamedTypeSymbol type, NamedTypeSymbol other)

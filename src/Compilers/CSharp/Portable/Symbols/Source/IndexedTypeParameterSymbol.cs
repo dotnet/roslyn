@@ -99,6 +99,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return builder.ToImmutableAndFree();
         }
 
+        internal static ImmutableArray<TypeWithAnnotations> TakeWithIgnoredAnnotations(int count)
+        {
+            if (count > s_parameterPool.Length)
+            {
+                GrowPool(count);
+            }
+
+            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+
+            for (int i = 0; i < count; i++)
+            {
+                builder.Add(TypeWithAnnotations.Create(GetTypeParameter(i), NullableAnnotation.Ignored));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
         public override int Ordinal
         {
             get { return _index; }

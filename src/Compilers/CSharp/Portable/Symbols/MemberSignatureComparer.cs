@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 null :
                 new TypeMap(
                     typeParameters,
-                    TypeMap.TypeParametersAsTypeSymbolsWithIgnoredAnnotations(IndexedTypeParameterSymbol.Take(member.GetMemberArity())),
+                    IndexedTypeParameterSymbol.TakeWithIgnoredAnnotations(member.GetMemberArity()),
                     true);
         }
 
