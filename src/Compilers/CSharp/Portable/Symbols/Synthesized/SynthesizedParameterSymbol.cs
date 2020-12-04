@@ -135,6 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override Symbol AssociatedSymbol => null;
+
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             // Emit [Dynamic] on synthesized parameter symbols when the original parameter was dynamic 

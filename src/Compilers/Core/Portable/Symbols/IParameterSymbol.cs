@@ -91,5 +91,14 @@ namespace Microsoft.CodeAnalysis
         /// source or metadata.
         /// </summary>
         new IParameterSymbol OriginalDefinition { get; }
+
+        /// <summary>
+        /// If this parameter serves as a record's primary constructor parameter that creates an automatically generated
+        /// property, then that property is returned.  Otherwise returns null.
+        /// 
+        /// Note, the set of possible associated symbols might be expanded in the future to reflect changes in the
+        /// languages.
+        /// </summary>
+        ISymbol? AssociatedSymbol { get; }
     }
 }

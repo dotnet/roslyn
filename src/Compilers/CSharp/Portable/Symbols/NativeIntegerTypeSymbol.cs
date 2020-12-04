@@ -372,6 +372,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override int GetHashCode() => _underlyingParameter.GetHashCode();
 
+        public override Symbol? AssociatedSymbol => null;
+
 #if !DEBUG
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {

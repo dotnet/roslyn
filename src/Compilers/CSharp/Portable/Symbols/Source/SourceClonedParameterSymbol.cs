@@ -164,6 +164,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableHashSet<string>.Empty; }
         }
 
+        public override Symbol AssociatedSymbol => _originalParam.AssociatedSymbol;
+
         #endregion
     }
 }

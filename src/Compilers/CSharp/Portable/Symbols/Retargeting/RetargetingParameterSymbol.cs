@@ -70,6 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingModule.RetargetingTranslator.RetargetAttributes(_underlyingParameter.GetCustomAttributesToEmit(moduleBuilder));
         }
 
+        public override Symbol? AssociatedSymbol
+            => this.RetargetingModule.RetargetingTranslator.Retarget(_underlyingParameter.AssociatedSymbol);
+
         public sealed override AssemblySymbol ContainingAssembly
         {
             get

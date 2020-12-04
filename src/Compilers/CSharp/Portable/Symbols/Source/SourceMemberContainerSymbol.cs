@@ -3326,6 +3326,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     void addProperty(SynthesizedRecordPropertySymbol property)
                     {
+                        // Associate this record constructor parameter with the property we are creating for it.
+                        ((SourceComplexParameterSymbol)param).AssociatedSymbol = property;
+
                         existingOrAddedMembers.Add(property);
                         members.Add(property);
                         Debug.Assert(property.GetMethod is object);

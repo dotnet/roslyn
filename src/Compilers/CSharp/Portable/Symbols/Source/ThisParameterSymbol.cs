@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override TypeWithAnnotations TypeWithAnnotations
             => TypeWithAnnotations.Create(_containingType, NullableAnnotation.NotAnnotated);
 
+        public override Symbol AssociatedSymbol => null;
+
         public override RefKind RefKind
         {
             get

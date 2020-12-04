@@ -107,14 +107,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return ImmutableArray<ISymbol>.Empty;
             }
 
-            var result = ArrayBuilder<ISymbol>.GetInstance();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
+
+            if (parameter.AssociatedSymbol != null)
+                result.Add(parameter.AssociatedSymbol);
 
             await CascadeBetweenAnonymousFunctionParametersAsync(solution, parameter, result, cancellationToken).ConfigureAwait(false);
             CascadeBetweenPropertyAndAccessorParameters(parameter, result);
             CascadeBetweenDelegateMethodParameters(parameter, result);
             CascadeBetweenPartialMethodParameters(parameter, result);
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private static async Task CascadeBetweenAnonymousFunctionParametersAsync(

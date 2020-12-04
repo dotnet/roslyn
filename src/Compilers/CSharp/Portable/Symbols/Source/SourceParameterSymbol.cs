@@ -74,7 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !isExtensionMethodThis &&
                 (syntax.Default == null) &&
                 (syntax.AttributeLists.Count == 0) &&
-                !owner.IsPartialMethod())
+                !owner.IsPartialMethod() &&
+                !IsRecordPrimaryConstructorParameter(syntax))
             {
                 return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, isDiscard: false, locations);
             }
@@ -89,6 +90,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.GetReference(),
                 isParams,
                 isExtensionMethodThis);
+        }
+
+        private static bool IsRecordPrimaryConstructorParameter(ParameterSyntax syntax)
+        {
+            return syntax.Parent is ParameterListSyntax parameterList &&
+                parameterList.Parent is RecordDeclarationSyntax;
         }
 
         protected SourceParameterSymbol(

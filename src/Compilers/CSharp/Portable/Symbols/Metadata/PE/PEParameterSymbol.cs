@@ -938,5 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 nps.Equals(this, compareKind) :
                 base.Equals(other, compareKind);
         }
+
+        public override Symbol? AssociatedSymbol => null;
     }
 }
