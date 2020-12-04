@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -120,6 +121,7 @@ namespace RunTests
                 // Define environment variables for processes started via ProcessRunner.
                 var environmentVariables = new Dictionary<string, string>();
                 Options.ProcDumpInfo?.WriteEnvironmentVariables(environmentVariables);
+                MaybeAddStressEnvironmentVariables();
 
                 if (retry && File.Exists(resultsFilePath))
                 {
@@ -216,6 +218,23 @@ namespace RunTests
                     testResultInfo,
                     commandLineArguments,
                     processResults: ImmutableArray.CreateRange(processResultList));
+
+                void MaybeAddStressEnvironmentVariables()
+                {
+#if NETCOREAPP
+                    // These environment variables will generate better dump information for the runtime team
+                    // that will help them track down a GC issue that is impacting ConcurrentDictionary
+                    // https://github.com/dotnet/runtime/issues/45557
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        environmentVariables.Add("COMPlus_StressLog", "1");
+                        environmentVariables.Add("COMPlus_LogLevel", "6");
+                        environmentVariables.Add("COMPlus_LogFacility", "0x00080001");
+                        environmentVariables.Add("COMPlus_StressLogSize", "2000000");
+                        environmentVariables.Add("COMPlus_TotalStressLogSize", "40000000");
+                    }
+                }
+#endif
             }
             catch (Exception ex)
             {
