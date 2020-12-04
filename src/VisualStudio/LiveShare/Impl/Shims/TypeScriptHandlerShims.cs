@@ -194,18 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         {
             var textDocument = requestHandler.GetTextDocumentIdentifier(request);
 
-            return LSP.RequestContext.Create(textDocument, clientName, clientCapabilities, workspaceRegistrationService, null, new NoOpDocumentChangeTracker());
-        }
-
-        private class NoOpDocumentChangeTracker : RequestExecutionQueue.IDocumentChangeTracker
-        {
-            public IEnumerable<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments()
-                => Enumerable.Empty<(Uri DocumentUri, SourceText Text)>();
-
-            public bool IsTracking(Uri documentUri) => false;
-            public void StartTracking(Uri documentUri, SourceText initialText) { }
-            public void StopTracking(Uri documentUri) { }
-            public void UpdateTrackedDocument(Uri documentUri, SourceText text) { }
+            return LSP.RequestContext.Create(textDocument, clientName, clientCapabilities, workspaceRegistrationService, null, null);
         }
     }
 }

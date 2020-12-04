@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ClientCapabilities clientCapabilities,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache,
-            IDocumentChangeTracker documentChangeTracker)
+            IDocumentChangeTracker? documentChangeTracker)
         {
             // This method asks the solution provider for a solution, and then updates it based on the state of the world
             // as we know it. You may look at this and think "why doesn't the solution provider keep track of the state
@@ -55,6 +55,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     workspaceSolution = document.Project.Solution;
                 }
             }
+
+            documentChangeTracker ??= new NoOpDocumentChangeTracker();
 
             var lspSolution = BuildLSPSolution(solutionCache, workspaceSolution, documentChangeTracker);
 
@@ -184,5 +186,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public bool IsTracking(Uri documentUri)
             => _documentChangeTracker.IsTracking(documentUri);
+
+        private class NoOpDocumentChangeTracker : IDocumentChangeTracker
+        {
+            public IEnumerable<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments()
+                => Enumerable.Empty<(Uri DocumentUri, SourceText Text)>();
+
+            public bool IsTracking(Uri documentUri) => false;
+            public void StartTracking(Uri documentUri, SourceText initialText) { }
+            public void StopTracking(Uri documentUri) { }
+            public void UpdateTrackedDocument(Uri documentUri, SourceText text) { }
+        }
     }
 }
