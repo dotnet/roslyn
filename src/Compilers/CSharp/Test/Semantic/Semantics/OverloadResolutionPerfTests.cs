@@ -415,14 +415,11 @@ class Program
         [InlineData("class Program { static void F() { try { } finally { } } }", "F", false)]
         [InlineData("class Program { static void F() { label: F(); } }", "F", false)]
         [WorkItem(49745, "https://github.com/dotnet/roslyn/issues/49745")]
-        public void NullableState_IsSimpleMethod(string source, string methodName, bool expectedResult, bool ignoreDiagnostics = false)
+        public void NullableState_IsSimpleMethod(string source, string methodName, bool expectedResult)
         {
             var comp = CreateCompilation(source);
-            if (!ignoreDiagnostics)
-            {
-                var diagnostics = comp.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error);
-                diagnostics.Verify();
-            }
+            var diagnostics = comp.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error);
+            diagnostics.Verify();
             CheckIsSimpleMethod(comp, methodName, expectedResult);
         }
 
