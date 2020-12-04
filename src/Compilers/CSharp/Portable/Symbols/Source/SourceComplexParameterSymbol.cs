@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ThreeState _lazyHasOptionalAttribute;
         protected ConstantValue _lazyDefaultSyntaxValue;
 
+        private Symbol _associatedSymbol;
+
         internal SourceComplexParameterSymbol(
             Symbol owner,
             int ordinal,
@@ -80,6 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal ParameterSyntax CSharpSyntaxNode => (ParameterSyntax)_syntaxRef?.GetSyntax();
 
         public sealed override bool IsDiscard => false;
+
+        public override Symbol AssociatedSymbol => _associatedSymbol;
+
+        public void SetAssociatedSymbol(Symbol associatedSymbol)
+            => _associatedSymbol = associatedSymbol;
 
         internal override ConstantValue ExplicitDefaultConstantValue
         {

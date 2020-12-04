@@ -939,6 +939,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 base.Equals(other, compareKind);
         }
 
-        public override Symbol? AssociatedSymbol => null;
+        public override Symbol AssociatedSymbol => null;
     }
 }

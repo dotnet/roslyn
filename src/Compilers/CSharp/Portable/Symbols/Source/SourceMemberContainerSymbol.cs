@@ -3326,8 +3326,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     void addProperty(SynthesizedRecordPropertySymbol property)
                     {
-                        // Associate this record constructor parameter with the property we are creating for it.
-                        ((SourceComplexParameterSymbol)param).AssociatedSymbol = property;
+                        // Associate this record constructor parameter with the property we are creating for it.  The
+                        // cast to SourceComplexParameterSymbol is safe as we ensure we only create those types of
+                        // parameters for record primary constructor parameters.
+                        ((SourceComplexParameterSymbol)param).SetAssociatedSymbol(property);
 
                         existingOrAddedMembers.Add(property);
                         members.Add(property);

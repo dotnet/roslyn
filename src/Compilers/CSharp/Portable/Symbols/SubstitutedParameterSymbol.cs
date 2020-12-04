@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _containingSymbol; }
         }
 
+        public override Symbol AssociatedSymbol => _underlyingParameter.AssociatedSymbol;
+
         public override TypeWithAnnotations TypeWithAnnotations
         {
             get

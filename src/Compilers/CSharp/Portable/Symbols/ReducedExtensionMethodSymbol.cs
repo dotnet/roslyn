@@ -625,6 +625,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            public override Symbol AssociatedSymbol => null;
+
             public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {
                 if ((object)this == obj)

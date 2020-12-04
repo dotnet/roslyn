@@ -122,5 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return ConstantValue.NotAvailable; }
         }
+
+        public override Symbol AssociatedSymbol => null;
     }
 }
