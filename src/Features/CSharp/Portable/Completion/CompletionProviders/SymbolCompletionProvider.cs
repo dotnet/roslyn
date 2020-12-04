@@ -318,6 +318,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return insertionText + "()";
             }
 
+            if (ch == '\t' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
+            {
+                return SymbolCompletionItem.GetInsertionText(item) + "()";
+            }
+
             return base.GetInsertionText(item, ch);
         }
     }

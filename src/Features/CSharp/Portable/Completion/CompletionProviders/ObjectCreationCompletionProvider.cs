@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override string GetInsertionText(CompletionItem item, char ch)
         {
-            if (ch == ';')
+            if (ch == ';' || ch == '\t')
             {
                 CompletionProvidersLogger.LogCommitUsingSemicolonToAddParenthesis();
                 var insertionText = SymbolCompletionItem.GetInsertionText(item);

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             char? commitKey,
             CancellationToken cancellationToken)
         {
-            if (commitKey == ';')
+            if (commitKey == ';' || commitKey == '\t')
             {
                 // Only consider add '()' if the type is used under object creation context
                 var position = item.Span.Start;

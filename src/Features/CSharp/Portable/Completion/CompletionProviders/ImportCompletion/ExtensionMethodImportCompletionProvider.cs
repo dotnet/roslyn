@@ -71,6 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         // it can only be used as like: bar.ToInt();
         // Func<int> x = bar.ToInt or Func<Bar, int> x = bar.ToInt is illegal. It can't be assign to delegate.
         // Therefore at here we always assume the user always wants to add parenthesis.
-            => Task.FromResult(commitKey == ';');
+            => Task.FromResult(commitKey == ';' || commitKey == '\t');
     }
 }
