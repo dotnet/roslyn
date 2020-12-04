@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var documentText = document.GetTextAsync().Result.ToString();
             if (TextView.TextBuffer.CurrentSnapshot.GetText() != documentText)
             {
-                UpdateBuffer(document, spanSource, out _, out _);
+                UpdateBuffer(document, spanSource);
             }
 
             // Picking a different span: no text change; update span anyway.
@@ -53,35 +54,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             Tagger.OnTextBufferChanged();
         }
 
-        private void UpdateBuffer(TextDocument document, SpanChange spanSource, out SourceTextContainer container, out TextDocument documentBackedByTextBuffer)
+        private void UpdateBuffer(TextDocument document, SpanChange spanSource)
         {
-            if (_previewWorkspace != null)
+            if (_currentDocument != null)
             {
                 var currentDocument = _previewWorkspace.CurrentSolution.GetTextDocument(_currentDocument);
-                var currentDocumentText = currentDocument.GetTextAsync().Result;
+                var currentDocumentText = currentDocument.GetTextSynchronously(CancellationToken.None);
                 _previewWorkspace.CloseDocument(currentDocument, currentDocumentText);
-
-                // Put the new document into the current preview solution.
-                var updatedSolution = _previewWorkspace.CurrentSolution.WithTextDocumentText(document.Id, document.GetTextAsync().Result);
-                var updatedDocument = updatedSolution.GetTextDocument(document.Id);
-
-                ApplyDocumentToBuffer(updatedDocument, spanSource, out container, out documentBackedByTextBuffer);
-
-                _previewWorkspace.TryApplyChanges(documentBackedByTextBuffer.Project.Solution);
-                _previewWorkspace.OpenDocument(document.Id);
-                _currentDocument = document.Id;
             }
-            else
+
+            if (_previewWorkspace == null)
             {
-                _currentDocument = document.Id;
-
-                ApplyDocumentToBuffer(document, spanSource, out container, out documentBackedByTextBuffer);
-                _previewWorkspace = new PreviewDialogWorkspace(documentBackedByTextBuffer.Project.Solution);
-                _previewWorkspace.OpenDocument(document.Id);
+                _previewWorkspace = new PreviewDialogWorkspace(document.Project.Solution);
             }
+
+            _currentDocument = document.Id;
+            ApplyDocumentToBuffer(document, spanSource, out var container);
+            _previewWorkspace.OpenDocument(document.Id, container);
         }
 
-        private void ApplyDocumentToBuffer(TextDocument document, SpanChange spanSource, out SourceTextContainer container, out TextDocument documentBackedByTextBuffer)
+        private void ApplyDocumentToBuffer(TextDocument document, SpanChange spanSource, out SourceTextContainer container)
         {
             var contentTypeService = document.Project.LanguageServices.GetRequiredService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
@@ -98,7 +90,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             }
 
             container = TextView.TextBuffer.AsTextContainer();
-            documentBackedByTextBuffer = document.WithText(container.CurrentText);
         }
     }
 }
