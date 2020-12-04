@@ -202,6 +202,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         private class NoOpDocumentChangeTracker : RequestExecutionQueue.IDocumentChangeTracker
         {
+            public IEnumerable<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments()
+                => Enumerable.Empty<(Uri DocumentUri, SourceText Text)>();
+
             public bool IsTracking(Uri documentUri) => false;
             public void StartTracking(Uri documentUri, SourceText initialText) { }
             public void StopTracking(Uri documentUri) { }
