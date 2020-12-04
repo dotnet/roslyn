@@ -119,7 +119,23 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             {
                 if (this.DataFlowAnalysisContext.SourceInfos.IsSourceParameter(parameter, WellKnownTypeProvider))
                 {
-                    return TaintedDataAbstractValue.CreateTainted(parameter, parameter.DeclaringSyntaxReferences[0].GetSyntax(), this.OwningSymbol);
+                    // Location of the parameter, so we can track where the tainted data appears in code.
+                    SyntaxNode parameterSyntaxNode;
+                    if (!parameter.DeclaringSyntaxReferences.IsEmpty)
+                    {
+                        parameterSyntaxNode = parameter.DeclaringSyntaxReferences[0].GetSyntax();
+                    }
+                    else if (!parameter.ContainingSymbol.DeclaringSyntaxReferences.IsEmpty)
+                    {
+                        parameterSyntaxNode = parameter.ContainingSymbol.DeclaringSyntaxReferences[0].GetSyntax();
+                    }
+                    else
+                    {
+                        Debug.Fail("Can we have a tainted data parameter with no syntax references?");
+                        return ValueDomain.UnknownOrMayBeValue;
+                    }
+
+                    return TaintedDataAbstractValue.CreateTainted(parameter, parameterSyntaxNode, this.OwningSymbol);
                 }
 
                 return ValueDomain.UnknownOrMayBeValue;
