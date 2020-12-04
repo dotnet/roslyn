@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var typeParameters2 = implementation.TypeParameters;
-            var indexedTypeParameters = IndexedTypeParameterSymbol.TakeWithIgnoredAnnotations(arity);
+            var indexedTypeParameters = IndexedTypeParameterSymbol.Take(arity);
             var typeMap1 = new TypeMap(typeParameters1, indexedTypeParameters, allowAlpha: true);
             var typeMap2 = new TypeMap(typeParameters2, indexedTypeParameters, allowAlpha: true);
 

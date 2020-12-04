@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="count"></param>
         /// <returns></returns>
-        internal static ImmutableArray<TypeParameterSymbol> Take(int count)
+        internal static ImmutableArray<TypeParameterSymbol> TakeSymbols(int count)
         {
             if (count > s_parameterPool.Length)
             {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return builder.ToImmutableAndFree();
         }
 
-        internal static ImmutableArray<TypeWithAnnotations> TakeWithIgnoredAnnotations(int count)
+        internal static ImmutableArray<TypeWithAnnotations> Take(int count)
         {
             if (count > s_parameterPool.Length)
             {
