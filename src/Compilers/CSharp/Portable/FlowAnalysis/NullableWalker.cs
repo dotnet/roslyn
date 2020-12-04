@@ -193,6 +193,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly bool _isSpeculative;
 
         /// <summary>
+        /// Is a method that contains only blocks, expression statements, and lambdas.
+        /// </summary>
+        private readonly bool _isSimpleMethod;
+
+        /// <summary>
         /// True if this walker was created using an initial state.
         /// </summary>
         private readonly bool _hasInitialState;
@@ -394,6 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _returnTypesOpt = returnTypesOpt;
             _snapshotBuilderOpt = snapshotBuilderOpt;
             _isSpeculative = isSpeculative;
+            _isSimpleMethod = IsSimpleMethodVisitor.IsSimpleMethod(node);
 
             if (initialState != null)
             {
@@ -415,6 +421,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 _hasInitialState = false;
+            }
+        }
+
+        internal sealed class IsSimpleMethodVisitor : BoundTreeWalkerWithStackGuard
+        {
+            private bool _hasComplexity;
+
+            internal static bool IsSimpleMethod(BoundNode? node)
+            {
+                if (node is BoundMethodBodyBase methodBody)
+                {
+                    node = methodBody.BlockBody ?? methodBody.ExpressionBody;
+                }
+                var visitor = new IsSimpleMethodVisitor();
+                visitor.Visit(node);
+                return !visitor._hasComplexity;
+            }
+
+            public override BoundNode? Visit(BoundNode? node)
+            {
+                if (node is null)
+                {
+                    return null;
+                }
+                if (node is BoundExpression)
+                {
+                    return base.Visit(node);
+                }
+                switch (node.Kind)
+                {
+                    case BoundKind.Block:
+                    case BoundKind.ExpressionStatement:
+                    case BoundKind.ReturnStatement:
+                        return base.Visit(node);
+                }
+                _hasComplexity = true;
+                return node;
             }
         }
 
@@ -2540,18 +2583,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldVariableBySlot = variableBySlot;
             var oldNextVariableSlot = nextVariableSlot;
 
-            // As an optimization, if there are no local function uses in the nested function,
+            // As an optimization, if the entire method is simple enough,
             // we'll reset the set of variable slots and types after analyzing the nested function,
             // to avoid accumulating entries in the outer function for variables that are
             // local to the nested function. (Of course, this will drop slots associated
             // with variables in the outer function that were first used in the nested function,
             // such as a field access on a captured local, but the state associated with
             // any such entries are dropped, so the slots can be dropped as well.)
-            // We don't drop slots and types if there are try/finally blocks or local function usages
-            // because the NonMonotonicState and _localFuncVarUsages fields track state as
-            // well and we don't want to invalidate that state.
-            bool savedSlotsAndTypes = canDropAddedSlotsAndTypes();
-            if (savedSlotsAndTypes)
+            // We don't optimize more complicated methods (methods that contain labels,
+            // branches, try blocks, local functions) because we track additional state for
+            // those nodes that might be invalidated if we drop the associated slots or types.
+            if (_isSimpleMethod)
             {
                 _variableSlot = PooledDictionary<VariableIdentifier, int>.GetInstance();
                 foreach (var pair in oldVariableSlot)
@@ -2608,7 +2650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _snapshotBuilderOpt?.ExitWalker(this.SaveSharedState(), previousSlot);
 
-            if (savedSlotsAndTypes && canDropAddedSlotsAndTypes())
+            if (_isSimpleMethod)
             {
                 nextVariableSlot = oldNextVariableSlot;
                 variableBySlot = oldVariableBySlot;
@@ -2623,8 +2665,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _useDelegateInvokeParameterTypes = oldUseDelegateInvokeParameterTypes;
             _delegateInvokeMethod = oldDelegateInvokeMethod;
             this.CurrentSymbol = oldSymbol;
-
-            bool canDropAddedSlotsAndTypes() => !HasAnyLocalFuncUsages && !NonMonotonicState.HasValue;
         }
 
         protected override void VisitLocalFunctionUse(
