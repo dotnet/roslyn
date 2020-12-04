@@ -211,7 +211,7 @@
     <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
     <SystemIOPipesAccessControlVersion>4.5.1</SystemIOPipesAccessControlVersion>
-    <SystemIOPipelinesVersion>4.7.0</SystemIOPipelinesVersion>
+    <SystemIOPipelinesVersion>5.0.0</SystemIOPipelinesVersion>
     <SystemManagementVersion>5.0.0-preview.8.20407.11</SystemManagementVersion>
     <SystemMemoryVersion>4.5.4</SystemMemoryVersion>
     <SystemResourcesExtensionsVersion>4.7.1</SystemResourcesExtensionsVersion>
