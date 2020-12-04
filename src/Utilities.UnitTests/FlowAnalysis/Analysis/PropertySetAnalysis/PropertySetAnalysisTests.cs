@@ -90,7 +90,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         InterproceduralAnalysisConfiguration.Create(
                             new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
                             dummy,
-                            symbol,
+                            cfg,
                             compilation,
                             InterproceduralAnalysisKind.ContextSensitive,
                             cancellationSource.Token));
