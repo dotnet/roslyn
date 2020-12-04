@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             _projectService = projectService;
         }
 
-        protected override Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(RequestExecutionQueue queue, RequestType request, ClientCapabilities clientCapabilities, string? clientName, bool mutatesSolutionState, IRequestHandler<RequestType, ResponseType> handler, CancellationToken cancellationToken)
+        protected override Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(RequestExecutionQueue queue, RequestType request, ClientCapabilities clientCapabilities, string? clientName, string methodName, bool mutatesSolutionState, IRequestHandler<RequestType, ResponseType> handler, CancellationToken cancellationToken)
         {
             var textDocument = handler.GetTextDocumentIdentifier(request);
 
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                 _projectService.TrackOpenDocument(documentUri.LocalPath);
             }
 
-            return base.ExecuteRequestAsync(queue, request, clientCapabilities, clientName, mutatesSolutionState, handler, cancellationToken);
+            return base.ExecuteRequestAsync(queue, request, clientCapabilities, clientName, methodName, mutatesSolutionState, handler, cancellationToken);
         }
     }
 }
