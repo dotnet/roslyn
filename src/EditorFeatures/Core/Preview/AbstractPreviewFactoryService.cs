@@ -429,10 +429,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 cancellationToken);
         }
 
-        public Task<DifferenceViewerPreview> CreateChangedDocumentPreviewViewAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        public Task<DifferenceViewerPreview?> CreateChangedDocumentPreviewViewAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
             => CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, DefaultZoomLevel, cancellationToken);
 
-        public async Task<DifferenceViewerPreview> CreateChangedDocumentPreviewViewAsync(Document oldDocument, Document newDocument, double zoomLevel, CancellationToken cancellationToken)
+        public async Task<DifferenceViewerPreview?> CreateChangedDocumentPreviewViewAsync(Document oldDocument, Document newDocument, double zoomLevel, CancellationToken cancellationToken)
         {
             // OpenDocument must be called from the main thread
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         // NOTE: We are only sharing this code between additional documents and analyzer config documents,
         // which are essentially plain text documents. Regular source documents need special handling
         // and hence have a different implementation.
-        private async Task<DifferenceViewerPreview> CreateChangedAdditionalOrAnalyzerConfigDocumentPreviewViewAsync(
+        private async Task<DifferenceViewerPreview?> CreateChangedAdditionalOrAnalyzerConfigDocumentPreviewViewAsync(
             TextDocument oldDocument,
             TextDocument newDocument,
             double zoomLevel,
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
         }
 
-        public Task<DifferenceViewerPreview> CreateChangedAdditionalDocumentPreviewViewAsync(TextDocument oldDocument, TextDocument newDocument, double zoomLevel, CancellationToken cancellationToken)
+        public Task<DifferenceViewerPreview?> CreateChangedAdditionalDocumentPreviewViewAsync(TextDocument oldDocument, TextDocument newDocument, double zoomLevel, CancellationToken cancellationToken)
         {
             return CreateChangedAdditionalOrAnalyzerConfigDocumentPreviewViewAsync(
                 oldDocument, newDocument, zoomLevel,
@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 cancellationToken);
         }
 
-        public Task<DifferenceViewerPreview> CreateChangedAnalyzerConfigDocumentPreviewViewAsync(TextDocument oldDocument, TextDocument newDocument, double zoomLevel, CancellationToken cancellationToken)
+        public Task<DifferenceViewerPreview?> CreateChangedAnalyzerConfigDocumentPreviewViewAsync(TextDocument oldDocument, TextDocument newDocument, double zoomLevel, CancellationToken cancellationToken)
         {
             return CreateChangedAdditionalOrAnalyzerConfigDocumentPreviewViewAsync(
                 oldDocument, newDocument, zoomLevel,
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 cancellationToken);
         }
 
-        private async ValueTask<DifferenceViewerPreview> CreateChangedDocumentViewAsync(ITextBuffer oldBuffer, ITextBuffer newBuffer, string? description,
+        private async ValueTask<DifferenceViewerPreview?> CreateChangedDocumentViewAsync(ITextBuffer oldBuffer, ITextBuffer newBuffer, string? description,
             List<LineSpan> originalSpans, List<LineSpan> changedSpans, PreviewWorkspace leftWorkspace, PreviewWorkspace rightWorkspace,
             double zoomLevel, CancellationToken cancellationToken)
         {
@@ -626,9 +626,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 // This can happen in cases where the user has already applied the fix and light bulb has already been dismissed,
                 // but platform hasn't cancelled the preview operation yet. Since the light bulb has already been dismissed at
                 // this point, the preview that we return will never be displayed to the user. So returning null here is harmless.
-                // TODO: fix this up in a follow-up commit; this results in an odd change that I don't think is correct but don't
-                // want to tackle in the main annotation commit
-                return null!;
+
+                // TODO: understand how this can even happen. The diff input is stable -- we shouldn't be depending on some sort of
+                // state that could change underneath us. If we know the file changed, how would we discover here it didn't?
+                return null;
             }
 
             // IProjectionBufferFactoryService is a Visual Studio API which is not documented as free-threaded
