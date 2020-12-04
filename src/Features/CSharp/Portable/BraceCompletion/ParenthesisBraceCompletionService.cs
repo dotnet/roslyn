@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // brace completion session higher up on the stack.  If that's the case then we can
             // complete the opening brace here, so return this as valid for completion.
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return text.Lines.GetLineFromPosition(openBrace.SpanStart) == text.Lines.GetLineFromPosition(closeBrace.Span.End);
+            return text.Lines.GetLineFromPosition(openBrace.SpanStart).LineNumber == text.Lines.GetLineFromPosition(closeBrace.Span.End).LineNumber;
         }
     }
 }
