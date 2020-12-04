@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!hasErrors && getConstantResult(decisionDag, negated, whenTrueLabel, whenFalseLabel) is { } constantResult)
             {
-                if (constantResult)
+                if (!constantResult)
                 {
                     diagnostics.Add(ErrorCode.ERR_IsPatternImpossible, node.Location, expression.Type);
                     hasErrors = true;
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(expression);
                 if (!hasErrors && getConstantResult(decisionDag, negated, whenTrueLabel, whenFalseLabel) is { } simplifiedResult)
                 {
-                    if (simplifiedResult)
+                    if (!simplifiedResult)
                     {
                         diagnostics.Add(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, node.Location);
                     }
@@ -126,11 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!decisionDag.ReachableLabels.Contains(whenTrueLabel))
                 {
-                    return !negated;
+                    return negated;
                 }
                 else if (!decisionDag.ReachableLabels.Contains(whenFalseLabel))
                 {
-                    return negated;
+                    return !negated;
                 }
                 return null;
             }
