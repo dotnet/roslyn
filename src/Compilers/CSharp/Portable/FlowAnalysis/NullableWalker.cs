@@ -2547,10 +2547,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // with variables in the outer function that were first used in the nested function,
             // such as a field access on a captured local, but the state associated with
             // any such entries are dropped, so the slots can be dropped as well.)
-            // We don't drop slots and types if there are local function usages but the
-            // _localFuncVarUsages dictionary tracks state as well and we don't want
-            // to invalidate that state.
-            if (!HasAnyLocalFuncUsages)
+            // We don't drop slots and types if there are try/finally blocks or local function usages
+            // because the NonMonotonicState and _localFuncVarUsages fields track state as
+            // well and we don't want to invalidate that state.
+            bool savedSlotsAndTypes = canDropAddedSlotsAndTypes();
+            if (savedSlotsAndTypes)
             {
                 _variableSlot = PooledDictionary<VariableIdentifier, int>.GetInstance();
                 foreach (var pair in oldVariableSlot)
@@ -2607,7 +2608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _snapshotBuilderOpt?.ExitWalker(this.SaveSharedState(), previousSlot);
 
-            if (!HasAnyLocalFuncUsages)
+            if (savedSlotsAndTypes && canDropAddedSlotsAndTypes())
             {
                 nextVariableSlot = oldNextVariableSlot;
                 variableBySlot = oldVariableBySlot;
@@ -2622,6 +2623,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _useDelegateInvokeParameterTypes = oldUseDelegateInvokeParameterTypes;
             _delegateInvokeMethod = oldDelegateInvokeMethod;
             this.CurrentSymbol = oldSymbol;
+
+            bool canDropAddedSlotsAndTypes() => !HasAnyLocalFuncUsages && !NonMonotonicState.HasValue;
         }
 
         protected override void VisitLocalFunctionUse(
