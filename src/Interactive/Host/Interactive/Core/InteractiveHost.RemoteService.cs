@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 const int BaseLength = 4096;
 
                 // Workaround for https://github.com/dotnet/runtime/issues/45503.
-                // Whne the process terminates due to stack overflow the CLR prints out a message that is not correctly encoded to Unicode.
+                // When the process terminates due to stack overflow the CLR prints out a message that is not correctly encoded to Unicode.
                 // Hence it will come out as ASCII bytes interpreted as UTF-16 characters.
                 // We detect known message text in the output stream and transcode it and the output that follows to Unicode.
 
