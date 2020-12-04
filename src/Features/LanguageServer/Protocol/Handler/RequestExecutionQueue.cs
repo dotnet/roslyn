@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -50,7 +51,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </remarks>
     internal partial class RequestExecutionQueue
     {
-        private readonly ILspSolutionProvider _solutionProvider;
         private readonly AsyncQueue<QueueItem> _queue;
         private readonly CancellationTokenSource _cancelSource;
         private readonly DocumentChangeTracker _documentChangeTracker;
@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         // used when preparing to handle a request, which happens in a single thread in the ProcessQueueAsync
         // method.
         private readonly Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)> _lspSolutionCache = new();
+        private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
 
         public CancellationToken CancellationToken => _cancelSource.Token;
 
@@ -73,9 +74,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </remarks>
         public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 
-        public RequestExecutionQueue(ILspSolutionProvider solutionProvider)
+        public RequestExecutionQueue(ILspWorkspaceRegistrationService workspaceRegistrationService)
         {
-            _solutionProvider = solutionProvider;
+            _workspaceRegistrationService = workspaceRegistrationService;
+
             _queue = new AsyncQueue<QueueItem>();
             _cancelSource = new CancellationTokenSource();
             _documentChangeTracker = new DocumentChangeTracker();
@@ -260,22 +262,53 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             //    handed out "the right" solution, then a request could ask it for something at the start of processing
             //    and at the end of processing, and get different results each time.
 
-            // There are multiple possible solutions that we could be interested in, so we need to find the document
-            // first and then get the solution from there. If we're not given a document, this will return the default
-            // solution
-            var (documentId, workspaceSolution) = _solutionProvider.FindDocumentAndSolution(queueItem.TextDocument, queueItem.ClientName);
+            // Assume the first workspace registered is the main one
+            var workspaceSolution = _workspaceRegistrationService.GetAllRegistrations().First().CurrentSolution;
+            Document? document = null;
+
+            // If we were given a document, find it in whichever workspace it exists in
+            if (queueItem.TextDocument is not null)
+            {
+                // There are multiple possible solutions that we could be interested in, so we need to find the document
+                // first and then get the solution from there. If we're not given a document, this will return the default
+                // solution
+                document = FindDocument(queueItem.TextDocument, queueItem.ClientName);
+
+                if (document is not null)
+                {
+                    // Where ever the document came from, thats the "main" solution for this request
+                    workspaceSolution = document.Project.Solution;
+                }
+            }
 
             var lspSolution = GetLSPSolution(workspaceSolution);
 
-            // If we got a document id back, we pull it out of our updated solution so the handler is operating on the latest
+            // If we got a document back, we need pull it out of our updated solution so the handler is operating on the latest
             // document text. If document id is null here, this will just return null
-            var document = lspSolution.GetDocument(documentId);
+            document = lspSolution.GetDocument(document?.Id);
 
             var trackerToUse = queueItem.MutatesSolutionState
                 ? (IDocumentChangeTracker)_documentChangeTracker
                 : new NonMutatingDocumentChangeTracker(_documentChangeTracker);
 
             return new RequestContext(lspSolution, queueItem.ClientCapabilities, queueItem.ClientName, document, trackerToUse);
+        }
+
+        private Document? FindDocument(TextDocumentIdentifier textDocument, string? clientName)
+        {
+            foreach (var workspace in _workspaceRegistrationService.GetAllRegistrations())
+            {
+                var documents = workspace.CurrentSolution.GetDocuments(textDocument.Uri, clientName);
+
+                if (!documents.IsEmpty)
+                {
+                    var document = documents.FindDocumentInProjectContext(textDocument);
+
+                    return document;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
