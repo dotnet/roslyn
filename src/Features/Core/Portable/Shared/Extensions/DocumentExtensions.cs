@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             throw ExceptionUtilities.Unreachable;
         }
 
-        public static ImmutableArray<AbstractFormattingRule> GetFormattingRules(this Document document, IEnumerable<AbstractFormattingRule>? additionalRules, TextSpan span)
+        public static ImmutableArray<AbstractFormattingRule> GetFormattingRules(this Document document, TextSpan span, IEnumerable<AbstractFormattingRule>? additionalRules)
         {
             var workspace = document.Project.Solution.Workspace;
             var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();

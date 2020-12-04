@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 return;
             }
 
-            rules = document.GetFormattingRules(rules, span);
+            rules = document.GetFormattingRules(span, rules);
 
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
             var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);

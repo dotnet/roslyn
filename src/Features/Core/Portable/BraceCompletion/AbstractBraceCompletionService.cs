@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             }
 
             var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            return Task.FromResult(IsValidOpeningBraceToken(token) && !ParentIsSkippedTokensTrivia(syntaxFactsService, token));
+            return Task.FromResult(IsValidOpeningBraceToken(token) && !ParentIsSkippedTokensTriviaOrNull(syntaxFactsService, token));
         }
 
         /// <summary>
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
             return CheckClosingTokenKindAsync(context.Document, context.ClosingPoint, cancellationToken);
         }
 
-        protected static bool ParentIsSkippedTokensTrivia(ISyntaxFactsService syntaxFactsService, SyntaxToken token)
+        protected static bool ParentIsSkippedTokensTriviaOrNull(ISyntaxFactsService syntaxFactsService, SyntaxToken token)
             => token.Parent == null || syntaxFactsService.IsSkippedTokensTrivia(token.Parent);
 
         /// <summary>

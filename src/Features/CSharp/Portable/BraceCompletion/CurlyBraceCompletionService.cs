@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             }
 
             var spanToFormat = TextSpan.FromBounds(Math.Max(startPoint, 0), endPoint);
-            var rules = document.GetFormattingRules(braceFormattingIndentationRules, spanToFormat);
+            var rules = document.GetFormattingRules(spanToFormat, braceFormattingIndentationRules);
             var result = Formatter.GetFormattingResult(root, SpecializedCollections.SingletonEnumerable(spanToFormat), document.Project.Solution.Workspace, documentOptions, rules, cancellationToken);
             if (result == null)
             {

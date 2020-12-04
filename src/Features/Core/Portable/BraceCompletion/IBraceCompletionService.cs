@@ -13,10 +13,12 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
     internal interface IBraceCompletionService : ILanguageService
     {
         /// <summary>
-        /// Checks if this brace completion service should be the one used to provide brace completions at
+        /// Checks if this brace completion service should be the service used to provide brace completions at
         /// the specified position with the specified opening brace.
-        /// Note that this does not mean that the service will provide brace completion, but that
-        /// only this service will be asked to provide them.
+        /// 
+        /// Only one implementation of <see cref="IBraceCompletionService"/> should return true
+        /// for a given brace, opening position, and document.  Only that service will be asked
+        /// for brace completion results.
         /// </summary>
         /// <param name="brace">
         /// The opening brace character to be inserted at the opening position.</param>
@@ -74,6 +76,9 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         /// The caret location in the new text created by applying all <see cref="TextChanges"/>
         /// to the input text.  Note the column in the line position can be virtual in that it points
         /// to a location in the line which does not actually contain whitespace.
+        /// Hosts can determine how best to handle that virtual location.
+        /// For example, placing the character in virtual space (when suppported)
+        /// or inserting an appropriate number of spaces into the document".
         /// </summary>
         public LinePosition CaretLocation { get; }
 
