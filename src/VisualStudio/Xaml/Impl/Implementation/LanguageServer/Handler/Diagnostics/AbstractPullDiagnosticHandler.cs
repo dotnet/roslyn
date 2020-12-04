@@ -28,7 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
     internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : IRequestHandler<TDiagnosticsParams, TReport[]?>
         where TReport : DiagnosticReport
     {
-        private readonly ILspSolutionProvider _solutionProvider;
         private readonly IXamlPullDiagnosticService _xamlDiagnosticService;
 
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams request);
@@ -54,9 +53,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         /// </summary>
         protected abstract TReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId);
 
-        protected AbstractPullDiagnosticHandler(ILspSolutionProvider solutionProvider, IXamlPullDiagnosticService xamlDiagnosticService)
+        protected AbstractPullDiagnosticHandler(IXamlPullDiagnosticService xamlDiagnosticService)
         {
-            _solutionProvider = solutionProvider;
             _xamlDiagnosticService = xamlDiagnosticService;
         }
 
