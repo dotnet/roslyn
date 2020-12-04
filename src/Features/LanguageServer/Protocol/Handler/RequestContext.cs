@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using static Microsoft.CodeAnalysis.LanguageServer.Handler.RequestExecutionQueue;
@@ -14,6 +16,120 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     internal readonly struct RequestContext
     {
+        public static RequestContext Create(
+            TextDocumentIdentifier? textDocument,
+            string? clientName,
+            ClientCapabilities clientCapabilities,
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache,
+            IDocumentChangeTracker documentChangeTracker)
+        {
+            // This method asks the solution provider for a solution, and then updates it based on the state of the world
+            // as we know it. You may look at this and think "why doesn't the solution provider keep track of the state
+            // then it can just provide the right solutions" and at first glance that is appealing, but there are two big
+            // benefits to this queue tracking documents separately:
+            //
+            // 1. Since this queue manages the execution of handlers, we can ensure that the document state tracker
+            //    is only used from mutating request handlers, or outside of any handlers, and therefore we know
+            //    that calls to it cannot overlap, and it doesn't have to worry about threading.
+            //
+            // 2. We specifically only want the updated solution at the start of a request. If the solution provider
+            //    handed out "the right" solution, then a request could ask it for something at the start of processing
+            //    and at the end of processing, and get different results each time.
+
+            // Assume the first workspace registered is the main one
+            var workspaceSolution = lspWorkspaceRegistrationService.GetAllRegistrations().First().CurrentSolution;
+            Document? document = null;
+
+            // If we were given a document, find it in whichever workspace it exists in
+            if (textDocument is not null)
+            {
+                // There are multiple possible solutions that we could be interested in, so we need to find the document
+                // first and then get the solution from there. If we're not given a document, this will return the default
+                // solution
+                document = FindDocument(lspWorkspaceRegistrationService, textDocument, clientName);
+
+                if (document is not null)
+                {
+                    // Where ever the document came from, thats the "main" solution for this request
+                    workspaceSolution = document.Project.Solution;
+                }
+            }
+
+            var lspSolution = BuildLSPSolution(solutionCache, workspaceSolution, documentChangeTracker);
+
+            // If we got a document back, we need pull it out of our updated solution so the handler is operating on the latest
+            // document text. If document id is null here, this will just return null
+            document = lspSolution.GetDocument(document?.Id);
+
+            return new RequestContext(lspSolution, clientCapabilities, clientName, document, documentChangeTracker);
+        }
+
+        private static Document? FindDocument(ILspWorkspaceRegistrationService lspWorkspaceRegistrationService, TextDocumentIdentifier textDocument, string? clientName)
+        {
+            foreach (var workspace in lspWorkspaceRegistrationService.GetAllRegistrations())
+            {
+                var documents = workspace.CurrentSolution.GetDocuments(textDocument.Uri, clientName);
+
+                if (!documents.IsEmpty)
+                {
+                    var document = documents.FindDocumentInProjectContext(textDocument);
+
+                    return document;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the "LSP view of the world", either by forking the workspace solution and updating the documents we track
+        /// or by simply returning our cached solution if it is still valid.
+        /// </summary>
+        private static Solution BuildLSPSolution(Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache, Solution workspaceSolution, IDocumentChangeTracker documentChangeTracker)
+        {
+            var workspace = workspaceSolution.Workspace;
+
+            // If we have a cached solution we can use it, unless the workspace solution it was based on
+            // is not the current one. 
+            if (solutionCache is null ||
+                !solutionCache.TryGetValue(workspace, out var cacheInfo) ||
+                workspaceSolution != cacheInfo.workspaceSolution)
+            {
+                var lspSolution = GetSolutionWithReplacedDocuments(workspaceSolution, documentChangeTracker);
+
+                if (solutionCache is not null)
+                {
+                    solutionCache[workspace] = (workspaceSolution, lspSolution);
+                }
+
+                return lspSolution;
+            }
+
+            return cacheInfo.lspSolution;
+        }
+
+        /// <summary>
+        /// Gets a solution that represents the workspace view of the world (as passed in via the solution parameter)
+        /// but with document text for any open documents updated to match the LSP view of the world. This makes
+        /// the LSP server the source of truth for all document text, but all other changes come from the workspace
+        /// </summary>
+        private static Solution GetSolutionWithReplacedDocuments(Solution solution, IDocumentChangeTracker documentChangeTracker)
+        {
+            foreach (var (uri, text) in documentChangeTracker.GetTrackedDocuments())
+            {
+                var documentIds = solution.GetDocumentIds(uri);
+
+                // We are tracking documents from multiple solutions, so this might not be one we care about
+                if (!documentIds.IsEmpty)
+                {
+                    solution = solution.WithDocumentText(documentIds, text);
+                }
+            }
+
+            return solution;
+        }
+
         /// <summary>
         /// This will be null for non-mutating requests because they're not allowed to change documents
         /// </summary>
