@@ -106,8 +106,10 @@ stages:
           MasterValidationBuild
       condition: and(succeeded(), eq(variables['SourceBranchName'], 'master'))
 
-    - powershell: git pull origin master-vs-deps
+    - task: PowerShell@2
       displayName: Merge master-vs-deps into source branch
+      inputs:
+        filePath: 'scripts\merge-vs-deps.ps1'
       condition: and(succeeded(), eq(variables['SourceBranchName'], 'master'))
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"

@@ -315,20 +315,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend MustOverride Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
 
-        Public Overrides Function Equals(obj As Object) As Boolean
-            Return IsSameType(obj, TypeCompareKind.ConsiderEverything)
+        Public NotOverridable Overrides Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
+            Return Equals(TryCast(other, ArrayTypeSymbol), comparison)
         End Function
 
-        Friend Function IsSameType(obj As Object, compareKind As TypeCompareKind) As Boolean
-            Debug.Assert((compareKind And Not (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)) = 0)
-
-            If (Me Is obj) Then
+        Public Overloads Function Equals(other As ArrayTypeSymbol, compareKind As TypeCompareKind) As Boolean
+            If (Me Is other) Then
                 Return True
             End If
 
-            Dim other = TryCast(obj, ArrayTypeSymbol)
-
-            If (other Is Nothing OrElse Not other.HasSameShapeAs(Me) OrElse Not other.ElementType.IsSameType(ElementType, compareKind)) Then
+            If other Is Nothing OrElse Not other.HasSameShapeAs(Me) OrElse Not other.ElementType.Equals(ElementType, compareKind) Then
                 Return False
             End If
 
@@ -348,7 +344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return True
         End Function
 
-        Public Overrides Function GetHashCode() As Integer
+        Public NotOverridable Overrides Function GetHashCode() As Integer
             ' Following the C# implementation to avoid recursion
             ' We don't want to blow the stack if we have a type like T[][][][][][][][]....[][],
             ' so we do not recurse until we have a non-array. Rather, hash all the ranks together

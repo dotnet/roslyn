@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -31,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
     /// Defines the language server to be hooked up to an <see cref="ILanguageClient"/> using StreamJsonRpc.  This runs
     /// in proc as not all features provided by this server are available out of proc (e.g. some diagnostics).
     /// </summary>
-    internal class InProcLanguageServer
+    internal class InProcLanguageServer : IAsyncDisposable
     {
         /// <summary>
         /// Legacy support for LSP push diagnostics.
@@ -54,6 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
         private VSClientCapabilities? _clientCapabilities;
         private bool _shuttingDown;
+        private Task? _errorShutdownTask;
 
         public InProcLanguageServer(
             AbstractInProcLanguageClient languageClient,
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _clientName = clientName;
 
-            _queue = new RequestExecutionQueue(solutionProvider);
+            _queue = new RequestExecutionQueue(solutionProvider, languageClient.Name);
             _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
             // Dedupe on DocumentId.  If we hear about the same document multiple times, we only need to process that id once.
@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
         }
 
-        public bool Running => !_shuttingDown && !_jsonRpc.IsDisposed;
+        public bool HasShutdownStarted => _shuttingDown;
 
         /// <summary>
         /// Handle the LSP initialize request by storing the client capabilities and responding with the server
@@ -441,7 +441,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             };
 
             var asyncToken = _listener.BeginAsyncOperation(nameof(RequestExecutionQueue_Errored));
-            Task.Run(async () =>
+            _errorShutdownTask = Task.Run(async () =>
             {
                 await _jsonRpc.NotifyWithParameterObjectAsync(Methods.WindowLogMessageName, message).ConfigureAwait(false);
 
@@ -578,8 +578,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var option = document.IsRazorDocument()
                 ? InternalDiagnosticsOptions.RazorDiagnosticMode
                 : InternalDiagnosticsOptions.NormalDiagnosticMode;
-            var diagnostics = diagnosticService.GetPushDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, id: null, includeSuppressedDiagnostics: false, option, cancellationToken)
-                                               .WhereAsArray(IncludeDiagnostic);
+            var pushDiagnostics = diagnosticService.GetPushDiagnostics(document.Project.Solution.Workspace, document.Project.Id, document.Id, id: null, includeSuppressedDiagnostics: false, option, cancellationToken);
+            var diagnostics = pushDiagnostics.WhereAsArray(IncludeDiagnostic);
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -653,6 +653,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         {
             var linePositionSpan = DiagnosticData.GetLinePositionSpan(diagnosticDataLocation, text, useMapped: true);
             return ProtocolConversions.LinePositionToRange(linePositionSpan);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            // if the server shut down due to error, we might not have finished cleaning up
+            if (_errorShutdownTask is not null)
+            {
+                await _errorShutdownTask.ConfigureAwait(false);
+            }
         }
 
         internal TestAccessor GetTestAccessor() => new(this);

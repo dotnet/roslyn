@@ -8338,6 +8338,30 @@ class C
 
         [WorkItem(49140, "https://github.com/dotnet/roslyn/issues/49140")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoNotRemoveBitwiseNotOfUnsignedExtendedValue3()
+        {
+            var source =
+@"
+class C
+{
+    public static ulong N()
+    {
+        return ~(ulong)uint.MaxValue;
+    }
+}";
+
+            var test = new VerifyCS.Test()
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9
+            };
+
+            await test.RunAsync();
+        }
+
+        [WorkItem(49140, "https://github.com/dotnet/roslyn/issues/49140")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoRemoveBitwiseNotOfSignExtendedValue1()
         {
 

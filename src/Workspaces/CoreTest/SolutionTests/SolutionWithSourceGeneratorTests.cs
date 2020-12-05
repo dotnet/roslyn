@@ -14,30 +14,20 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
     public class SolutionWithSourceGeneratorTests : TestBase
     {
-        private static Project AddEmptyProject(Solution solution)
-        {
-            return solution.AddProject(
-                ProjectInfo.Create(
-                    ProjectId.CreateNewId(),
-                    VersionStamp.Default,
-                    name: "TestProject",
-                    assemblyName: "TestProject",
-                    language: LanguageNames.CSharp)).Projects.Single();
-        }
-
         [Theory]
         [CombinatorialData]
         public async Task SourceGeneratorBasedOnAdditionalFileGeneratesSyntaxTreesOnce(
             bool fetchCompilationBeforeAddingGenerator,
             bool useRecoverableTrees)
         {
-            using var workspace = useRecoverableTrees ? AdhocWorkspaceTests.CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations() : new AdhocWorkspace();
+            using var workspace = useRecoverableTrees ? CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations() : CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented() { });
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference);
@@ -66,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task SourceGeneratorContentStillIncludedAfterSourceFileChange()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented() { });
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -98,7 +88,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task SourceGeneratorContentChangesAfterAdditionalFileChanges()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented() { });
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -126,7 +116,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task PartialCompilationsIncludeGeneratedFilesAfterFullGeneration()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -146,7 +136,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task DocumentIdOfGeneratedDocumentsIsStable()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var projectBeforeChange = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -168,7 +158,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task CompilationsInCompilationReferencesIncludeGeneratedSourceFiles()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var solution = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -192,7 +182,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task RequestingGeneratedDocumentsTwiceGivesSameInstance()
         {
-            using var workspace = AdhocWorkspaceTests.CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -216,7 +206,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task GetDocumentWithGeneratedTreeReturnsGeneratedDocument()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -230,7 +220,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task GetDocumentWithGeneratedTreeForInProgressReturnsGeneratedDocument()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)

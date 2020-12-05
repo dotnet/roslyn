@@ -93,6 +93,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         {
             var cancellationToken = context.CancellationToken;
             var document = documentSnapshotSpan.Document;
+            if (document == null)
+                return;
+
             var service = document.GetLanguageService<IInlineHintsService>();
             if (service == null)
                 return;
