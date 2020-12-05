@@ -142,9 +142,10 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                             IsSpaceChar(invocation.Arguments[1]))
                         {
                             var alignmentOp = invocation.Arguments[0].Value;
-                            if (alignmentOp != null && (PermitNonLiteralAlignmentComponents
-                                ? alignmentOp.ConstantValue.HasValue
-                                : alignmentOp.Kind == OperationKind.Literal))
+
+                            if (PermitNonLiteralAlignmentComponents
+                                ? alignmentOp is { ConstantValue: { HasValue: true } }
+                                : alignmentOp is { Kind: OperationKind.Literal })
                             {
                                 var alignmentSyntax = alignmentOp.Syntax;
 
