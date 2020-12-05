@@ -18,10 +18,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
     {
         protected abstract bool PermitNonLiteralAlignmentComponents { get; }
 
-        protected virtual SyntaxNode GetPreservedInterpolationExpressionSyntax(IOperation operation)
-        {
-            return operation.Syntax;
-        }
+        protected abstract SyntaxNode GetPreservedInterpolationExpressionSyntax(IOperation operation);
 
         public void UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
             IVirtualCharService virtualCharService, ISyntaxFacts syntaxFacts, IInterpolationOperation interpolation,

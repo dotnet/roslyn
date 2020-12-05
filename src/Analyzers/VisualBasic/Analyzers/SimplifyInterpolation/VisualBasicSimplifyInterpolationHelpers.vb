@@ -14,5 +14,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
         End Sub
 
         Protected Overrides ReadOnly Property PermitNonLiteralAlignmentComponents As Boolean = False
+
+        Protected Overrides Function GetPreservedInterpolationExpressionSyntax(operation As IOperation) As SyntaxNode
+            Return operation.Syntax
+        End Function
     End Class
 End Namespace

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.SimplifyInterpolation
 
         protected override SyntaxNode GetPreservedInterpolationExpressionSyntax(IOperation operation)
         {
-            return base.GetPreservedInterpolationExpressionSyntax(operation) switch
+            return operation.Syntax switch
             {
                 ConditionalExpressionSyntax { Parent: ParenthesizedExpressionSyntax parent } => parent,
                 var syntax => syntax,
