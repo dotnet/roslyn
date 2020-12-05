@@ -9,6 +9,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.SimplifyInterpolation
 {
     internal sealed class CSharpSimplifyInterpolationHelpers : AbstractSimplifyInterpolationHelpers
     {
+        public static CSharpSimplifyInterpolationHelpers Instance { get; } = new();
+
+        private CSharpSimplifyInterpolationHelpers() { }
+
         protected override bool PermitNonLiteralAlignmentComponents => true;
 
         protected override SyntaxNode GetPreservedInterpolationExpressionSyntax(IOperation operation)

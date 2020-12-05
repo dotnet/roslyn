@@ -8,6 +8,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
     Friend NotInheritable Class VisualBasicSimplifyInterpolationHelpers
         Inherits AbstractSimplifyInterpolationHelpers
 
+        Public Shared ReadOnly Property Instance As New VisualBasicSimplifyInterpolationHelpers
+
+        Private Sub New()
+        End Sub
+
         Protected Overrides ReadOnly Property PermitNonLiteralAlignmentComponents As Boolean = False
     End Class
 End Namespace

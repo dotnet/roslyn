@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
         End Sub
 
         Protected Overrides Function GetHelpers() As AbstractSimplifyInterpolationHelpers
-            Return New VisualBasicSimplifyInterpolationHelpers
+            Return VisualBasicSimplifyInterpolationHelpers.Instance
         End Function
 
         Protected Overrides Function WithExpression(interpolation As InterpolationSyntax, expression As ExpressionSyntax) As InterpolationSyntax

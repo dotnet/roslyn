@@ -25,6 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
         protected override ISyntaxFacts GetSyntaxFacts()
             => CSharpSyntaxFacts.Instance;
 
-        protected override AbstractSimplifyInterpolationHelpers GetHelpers() => new CSharpSimplifyInterpolationHelpers();
+        protected override AbstractSimplifyInterpolationHelpers GetHelpers() => CSharpSimplifyInterpolationHelpers.Instance;
     }
 }
