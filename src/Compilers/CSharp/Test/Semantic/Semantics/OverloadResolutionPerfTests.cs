@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Linq;
@@ -374,6 +375,76 @@ class Program
             var source = builder.ToString();
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(49745, "https://github.com/dotnet/roslyn/issues/49745")]
+        public void NullableStateLambdas()
+        {
+            const int nFunctions = 10000;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#nullable enable");
+            builder.AppendLine("class Program");
+            builder.AppendLine("{");
+            builder.AppendLine("    static void F1(System.Func<object, object> f) { }");
+            builder.AppendLine("    static void F2(object arg)");
+            builder.AppendLine("    {");
+            for (int i = 0; i < nFunctions; i++)
+            {
+                builder.AppendLine($"        F1(arg{i} => arg{i});");
+            }
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            CheckIsSimpleMethod(comp, "F2", true);
+        }
+
+        [Theory]
+        [InlineData("class Program { static object F() => null; }", "F", true)]
+        [InlineData("class Program { static void F() { } }", "F", true)]
+        [InlineData("class Program { static void F() { { } { } { } } }", "F", true)]
+        [InlineData("class Program { static void F() { ;;; } }", "F", false)]
+        [InlineData("class Program { static void F2(System.Action a) { } static void F() { F2(() => { }); } }", "F", true)]
+        [InlineData("class Program { static void F() { void Local() { } } }", "F", false)]
+        [InlineData("class Program { static void F() { System.Action a = () => { }; } }", "F", false)]
+        [InlineData("class Program { static void F() { if (true) { } } }", "F", false)]
+        [InlineData("class Program { static void F() { while (true) { } } }", "F", false)]
+        [InlineData("class Program { static void F() { try { } finally { } } }", "F", false)]
+        [InlineData("class Program { static void F() { label: F(); } }", "F", false)]
+        [WorkItem(49745, "https://github.com/dotnet/roslyn/issues/49745")]
+        public void NullableState_IsSimpleMethod(string source, string methodName, bool expectedResult)
+        {
+            var comp = CreateCompilation(source);
+            var diagnostics = comp.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error);
+            diagnostics.Verify();
+            CheckIsSimpleMethod(comp, methodName, expectedResult);
+        }
+
+        private static void CheckIsSimpleMethod(CSharpCompilation comp, string methodName, bool expectedResult)
+        {
+            var tree = comp.SyntaxTrees[0];
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var methodDeclaration = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.ToString() == methodName);
+            var methodBody = methodDeclaration.Body;
+            BoundBlock block;
+            if (methodBody is { })
+            {
+                var binder = model.GetEnclosingBinder(methodBody.SpanStart);
+                block = binder.BindEmbeddedBlock(methodBody, new DiagnosticBag());
+            }
+            else
+            {
+                var expressionBody = methodDeclaration.ExpressionBody;
+                var binder = model.GetEnclosingBinder(expressionBody.SpanStart);
+                block = binder.BindExpressionBodyAsBlock(expressionBody, new DiagnosticBag());
+            }
+            var actualResult = NullableWalker.IsSimpleMethodVisitor.IsSimpleMethod(block);
+            Assert.Equal(expectedResult, actualResult);
         }
     }
 }
