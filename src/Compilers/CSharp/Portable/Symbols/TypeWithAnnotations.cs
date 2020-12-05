@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return default;
             }
 
+            Debug.Assert(nullableAnnotation != NullableAnnotation.Ignored || typeSymbol.IsTypeParameter());
             switch (nullableAnnotation)
             {
                 case NullableAnnotation.Oblivious:
@@ -159,11 +160,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(NullableAnnotation);
                 }
             }
-        }
-
-        private static bool IsIndexedTypeParameter(TypeSymbol typeSymbol)
-        {
-            return typeSymbol is IndexedTypeParameterSymbol;
         }
 
         private static TypeWithAnnotations CreateNonLazyType(TypeSymbol typeSymbol, NullableAnnotation nullableAnnotation, ImmutableArray<CustomModifier> customModifiers)
@@ -429,6 +425,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal TypeWithAnnotations SubstituteTypeCore(AbstractTypeMap typeMap)
         {
+            // Ignored may only appear on a replacement type and will not survive the substitution (ie. the original annotation wins over Ignored)
+            Debug.Assert(NullableAnnotation != NullableAnnotation.Ignored);
+
             var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
             TypeSymbol typeSymbol = this.Type;
             var newTypeWithModifiers = typeMap.SubstituteType(typeSymbol);
@@ -437,6 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(newTypeWithModifiers.NullableAnnotation.IsOblivious() || (typeSymbol.IsNullableType() && newTypeWithModifiers.NullableAnnotation.IsAnnotated()));
                 Debug.Assert(newTypeWithModifiers.CustomModifiers.IsEmpty);
+                Debug.Assert(NullableAnnotation != NullableAnnotation.Ignored);
 
                 if (typeSymbol.Equals(newTypeWithModifiers.Type, TypeCompareKind.ConsiderEverything) &&
                     newCustomModifiers == CustomModifiers)
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return this; // substitution had no effect on the type or modifiers
             }
-            else if (Is((TypeParameterSymbol)typeSymbol))
+            else if (Is((TypeParameterSymbol)typeSymbol) && newTypeWithModifiers.NullableAnnotation != NullableAnnotation.Ignored)
             {
                 return newTypeWithModifiers;
             }
@@ -468,14 +468,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             NullableAnnotation newAnnotation;
-
-            Debug.Assert(!IsIndexedTypeParameter(newTypeWithModifiers.Type) || newTypeWithModifiers.NullableAnnotation.IsOblivious());
+            Debug.Assert(newTypeWithModifiers.Type is not IndexedTypeParameterSymbol || newTypeWithModifiers.NullableAnnotation == NullableAnnotation.Ignored);
 
             if (NullableAnnotation.IsAnnotated() || newTypeWithModifiers.NullableAnnotation.IsAnnotated())
             {
                 newAnnotation = NullableAnnotation.Annotated;
             }
-            else if (IsIndexedTypeParameter(newTypeWithModifiers.Type))
+            else if (newTypeWithModifiers.NullableAnnotation == NullableAnnotation.Ignored)
             {
                 newAnnotation = NullableAnnotation;
             }
