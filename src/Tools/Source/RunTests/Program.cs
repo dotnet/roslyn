@@ -198,6 +198,7 @@ namespace RunTests
 
         private static void WriteLogFile(Options options)
         {
+            Directory.CreateDirectory(options.LogFilesDirectory);
             var logFilePath = Path.Combine(options.LogFilesDirectory, "runtests.log");
             try
             {

@@ -41,7 +41,7 @@ jobs:
     - task: PowerShell@2
       displayName: Rehydrate Unit Tests Environment
       inputs:
-        filePath: rehydrate.ps1
+        filePath: ./artifacts/bin/RunTests/${{ parameters.configuration }}/netcoreapp3.1/rehydrate.ps1
         pwsh: true
 
     - task: PowerShell@2
