@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     if (Operation != null) return (true, 0, 0);
                     else goto case 0;
 
-                case 0: 
+                case 0:
                     if (!Arguments.IsEmpty) return (true, 1, 0);
                     else goto default;
 
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     if (Operation != null) return (true, 0, 0);
                     else goto case 0;
 
-                case 0: 
+                case 0:
                     if (!Arguments.IsEmpty) return (true, 1, 0);
                     else goto default;
 
