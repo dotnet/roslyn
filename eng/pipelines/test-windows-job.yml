@@ -43,6 +43,8 @@ jobs:
       inputs:
         filePath: ./artifacts/bin/RunTests/${{ parameters.configuration }}/netcoreapp3.1/rehydrate.ps1
         pwsh: true
+        env:
+          HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)'
 
     - task: PowerShell@2
       displayName: Run Unit Tests
