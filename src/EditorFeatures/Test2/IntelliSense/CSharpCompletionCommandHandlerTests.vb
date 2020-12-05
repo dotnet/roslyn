@@ -7766,8 +7766,9 @@ public class AA
     }
 }</Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
-                state.Workspace.SetOptions(
-                    state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True))
+                state.Workspace.SetOptions(state.Workspace.Options _
+                                           .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True) _
+                                           .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, -1))
 
                 Dim expectedText = "
 using CC;
