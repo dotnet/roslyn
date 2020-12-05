@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
-        protected abstract AbstractHelpers GetHelpers();
+        protected abstract AbstractSimplifyInterpolationHelpers GetHelpers();
 
         protected abstract TInterpolationSyntax WithExpression(TInterpolationSyntax interpolation, TExpressionSyntax expression);
         protected abstract TInterpolationSyntax WithAlignmentClause(TInterpolationSyntax interpolation, TInterpolationAlignmentClause alignmentClause);

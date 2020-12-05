@@ -5,8 +5,8 @@
 Imports Microsoft.CodeAnalysis.SimplifyInterpolation
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
-    Friend NotInheritable Class VisualBasicHelpers
-        Inherits AbstractHelpers
+    Friend NotInheritable Class VisualBasicSimplifyInterpolationHelpers
+        Inherits AbstractSimplifyInterpolationHelpers
 
         Protected Overrides ReadOnly Property PermitNonLiteralAlignmentComponents As Boolean = False
     End Class

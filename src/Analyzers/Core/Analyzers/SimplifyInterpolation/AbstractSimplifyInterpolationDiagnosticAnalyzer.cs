@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
 
-        protected abstract AbstractHelpers GetHelpers();
+        protected abstract AbstractSimplifyInterpolationHelpers GetHelpers();
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;

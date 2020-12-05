@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.SimplifyInterpolation;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.SimplifyInterpolation
 {
-    internal sealed class CSharpHelpers : AbstractHelpers
+    internal sealed class CSharpSimplifyInterpolationHelpers : AbstractSimplifyInterpolationHelpers
     {
         protected override bool PermitNonLiteralAlignmentComponents => true;
 

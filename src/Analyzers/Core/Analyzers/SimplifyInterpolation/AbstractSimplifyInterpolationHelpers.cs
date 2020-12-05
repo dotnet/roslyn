@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 {
-    internal abstract class AbstractHelpers
+    internal abstract class AbstractSimplifyInterpolationHelpers
     {
         protected abstract bool PermitNonLiteralAlignmentComponents { get; }
 

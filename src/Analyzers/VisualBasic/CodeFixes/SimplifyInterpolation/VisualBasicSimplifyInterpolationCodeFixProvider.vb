@@ -20,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetHelpers() As AbstractHelpers
-            Return New VisualBasicHelpers
+        Protected Overrides Function GetHelpers() As AbstractSimplifyInterpolationHelpers
+            Return New VisualBasicSimplifyInterpolationHelpers
         End Function
 
         Protected Overrides Function WithExpression(interpolation As InterpolationSyntax, expression As ExpressionSyntax) As InterpolationSyntax
