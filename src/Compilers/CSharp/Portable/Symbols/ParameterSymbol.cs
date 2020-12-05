@@ -376,6 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <inheritdoc cref="IParameterSymbol.AssociatedSymbol"/>
         public abstract Symbol AssociatedSymbol { get; }
 
         /// <summary>
