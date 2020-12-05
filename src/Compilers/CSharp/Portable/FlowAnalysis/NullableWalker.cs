@@ -137,28 +137,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly bool _useConstructorExitWarnings;
 
-        /// <summary>
-        /// If true, the parameter types and nullability from _delegateInvokeMethod is used for
-        /// initial parameter state. If false, the signature of CurrentSymbol is used instead.
-        /// </summary>
-        private bool _useDelegateInvokeParameterTypes;
+        /// Use the parameter types and nullability from _methodSignatureOpt for initial
+        /// parameter state. If false, the signature of _member is used instead.
+        private readonly bool _useDelegateInvokeParameterTypes;
 
         /// <summary>
-        /// Method signature used for return or parameter types. Distinct from CurrentSymbol signature
-        /// when CurrentSymbol is a lambda and type is inferred from MethodTypeInferrer.
+        /// Method signature used for return type or parameter types. Distinct from _member
+        /// signature when _member is a lambda and type is inferred from MethodTypeInferrer.
         /// </summary>
         private MethodSymbol? _delegateInvokeMethod;
 
         /// <summary>
         /// Return statements and the result types from analyzing the returned expressions. Used when inferring lambda return type in MethodTypeInferrer.
         /// </summary>
-        private ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>? _returnTypesOpt;
+        private readonly ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>? _returnTypesOpt;
 
         /// <summary>
         /// Invalid type, used only to catch Visit methods that do not set
         /// _result.Type. See VisitExpressionWithoutStackGuard.
         /// </summary>
         private static readonly TypeWithState _invalidType = TypeWithState.Create(ErrorTypeSymbol.UnknownResultType, NullableFlowState.NotNull);
+
+#nullable enable
 
         /// <summary>
         /// Contains the map of expressions to inferred nullabilities and types used by the optional rewriter phase of the
@@ -918,8 +918,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void EnforceDoesNotReturn(SyntaxNode? syntaxOpt)
         {
-            // DoesNotReturn is only supported in member methods
-            if (CurrentSymbol is MethodSymbol { ContainingSymbol: TypeSymbol _ } method &&
+            if (_symbol is MethodSymbol method &&
                 ((method.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn) &&
                 this.IsReachable())
             {
@@ -996,7 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversions,
                 diagnostics,
                 useConstructorExitWarnings,
-                useDelegateInvokeParameterTypes: false,
+                useMethodSignatureParameterTypes: false,
                 delegateInvokeMethodOpt: null,
                 initialState: initialNullableState,
                 analyzedNullabilityMapOpt: null,
@@ -1099,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder.Conversions,
                 diagnostics,
                 useConstructorExitWarnings: true,
-                useDelegateInvokeParameterTypes: false,
+                useMethodSignatureParameterTypes: false,
                 delegateInvokeMethodOpt: null,
                 initialState,
                 analyzedNullabilities,
@@ -1195,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder.Conversions,
                 diagnostics,
                 useConstructorExitWarnings: false,
-                useDelegateInvokeParameterTypes: false,
+                useMethodSignatureParameterTypes: false,
                 delegateInvokeMethodOpt: null,
                 initialState: null,
                 analyzedNullabilityMapOpt: null,
@@ -1224,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversions,
                 diagnostics,
                 useConstructorExitWarnings: false,
-                useDelegateInvokeParameterTypes: UseDelegateInvokeParameterTypes(lambda, delegateInvokeMethodOpt),
+                useMethodSignatureParameterTypes: delegateInvokeMethodOpt is object && !lambda.UnboundLambda.HasExplicitlyTypedParameterList,
                 delegateInvokeMethodOpt: delegateInvokeMethodOpt,
                 initialState,
                 analyzedNullabilityMapOpt,
@@ -1242,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversions conversions,
             DiagnosticBag diagnostics,
             bool useConstructorExitWarnings,
-            bool useDelegateInvokeParameterTypes,
+            bool useMethodSignatureParameterTypes,
             MethodSymbol? delegateInvokeMethodOpt,
             VariableState? initialState,
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)>.Builder? analyzedNullabilityMapOpt,
@@ -1255,7 +1254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var walker = new NullableWalker(compilation,
                                             symbol,
                                             useConstructorExitWarnings,
-                                            useDelegateInvokeParameterTypes,
+                                            useMethodSignatureParameterTypes,
                                             delegateInvokeMethodOpt,
                                             node,
                                             binder,
@@ -1310,7 +1309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _variableSlot.ToImmutableDictionary(),
                 ImmutableArray.Create(variableBySlot, start: 0, length: nextVariableSlot),
                 _variableTypes.ToImmutableDictionary(),
-                CurrentSymbol);
+                _symbol);
 
         private void TakeIncrementalSnapshot(BoundNode? node)
         {
@@ -2180,7 +2179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void EnterParameters()
         {
-            if (!(CurrentSymbol is MethodSymbol methodSymbol))
+            if (!(_symbol is MethodSymbol methodSymbol))
             {
                 return;
             }
@@ -2483,80 +2482,60 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement localFunc)
         {
-            var localFunc = node.Symbol;
-            var localFunctionState = GetOrCreateLocalFuncUsages(localFunc);
+            var oldSymbol = this.CurrentSymbol;
+            var localFuncSymbol = localFunc.Symbol;
+            var delegateInvokeMethod = _delegateInvokeMethod;
+            this.CurrentSymbol = localFuncSymbol;
+            _delegateInvokeMethod = null;
+
+            var oldPending = SavePending(); // we do not support branches into a lambda
+
+            var savedState = this.State;
+            var localFunctionState = GetOrCreateLocalFuncUsages(localFuncSymbol);
             // The starting state is the top state, but with captured
             // variables set according to Joining the state at all the
             // local function use sites
-            var state = TopState();
+            State = TopState();
             for (int slot = 1; slot < localFunctionState.StartingState.Capacity; slot++)
             {
                 var symbol = variableBySlot[RootSlot(slot)].Symbol;
-                if (Symbol.IsCaptured(symbol, localFunc))
+                if (Symbol.IsCaptured(symbol, localFunc.Symbol))
                 {
-                    state[slot] = localFunctionState.StartingState[slot];
+                    State[slot] = localFunctionState.StartingState[slot];
                 }
             }
             localFunctionState.Visited = true;
 
-            AnalyzeLocalFunctionOrLambda(
-                node,
-                localFunc,
-                state,
-                delegateInvokeMethod: null,
-                useDelegateInvokeParameterTypes: false);
+            if (!localFunc.WasCompilerGenerated) EnterParameters(localFuncSymbol.Parameters);
 
-            SetInvalidResult();
-
-            return null;
-        }
-
-        private void AnalyzeLocalFunctionOrLambda(
-            IBoundLambdaOrFunction lambdaOrFunction,
-            MethodSymbol lambdaOrFunctionSymbol,
-            LocalState state,
-            MethodSymbol? delegateInvokeMethod,
-            bool useDelegateInvokeParameterTypes)
-        {
-            var oldSymbol = this.CurrentSymbol;
-            this.CurrentSymbol = lambdaOrFunctionSymbol;
-
-            Debug.Assert(!useDelegateInvokeParameterTypes || delegateInvokeMethod is object);
-            var oldDelegateInvokeMethod = _delegateInvokeMethod;
-            _delegateInvokeMethod = delegateInvokeMethod;
-            var oldUseDelegateInvokeParameterTypes = _useDelegateInvokeParameterTypes;
-            _useDelegateInvokeParameterTypes = useDelegateInvokeParameterTypes;
-
-            var oldReturnTypes = _returnTypesOpt;
-            _returnTypesOpt = null;
-
-            var oldState = this.State;
-            this.State = state;
-
-            var previousSlot = _snapshotBuilderOpt?.EnterNewWalker(lambdaOrFunctionSymbol) ?? -1;
-
-            var oldPending = SavePending();
-
-            EnterParameters();
+            // State changes to captured variables are recorded, as calls to local functions
+            // transition the state of captured variables if the variables have state changes
+            // across all branches leaving the local function
 
             var oldPending2 = SavePending();
 
             // If this is an iterator, there's an implicit branch before the first statement
             // of the function where the enumerable is returned.
-            if (lambdaOrFunctionSymbol.IsIterator)
+            if (localFuncSymbol.IsIterator)
             {
                 PendingBranches.Add(new PendingBranch(null, this.State, null));
             }
 
-            VisitAlways(lambdaOrFunction.Body);
+            VisitAlways(localFunc.Body);
             RestorePending(oldPending2); // process any forward branches within the lambda body
             ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
             RestorePending(oldPending);
 
-            var location = lambdaOrFunctionSymbol.Locations.FirstOrNone();
-            LeaveParameters(lambdaOrFunctionSymbol.Parameters, lambdaOrFunction.Syntax, location);
+            Location? location = null;
+
+            if (!localFuncSymbol.Locations.IsDefaultOrEmpty)
+            {
+                location = localFuncSymbol.Locations[0];
+            }
+
+            LeaveParameters(localFuncSymbol.Parameters, localFunc.Syntax, location);
 
             // Intersect the state of all branches out of the local function
             var stateAtReturn = this.State;
@@ -2567,20 +2546,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Pass the local function identifier as a location if the branch
                 // is null or compiler generated.
-                LeaveParameters(lambdaOrFunctionSymbol.Parameters,
+                LeaveParameters(localFuncSymbol.Parameters,
                   branch?.Syntax,
                   branch?.WasCompilerGenerated == false ? null : location);
 
                 Join(ref stateAtReturn, ref this.State);
             }
 
-            _snapshotBuilderOpt?.ExitWalker(this.SaveSharedState(), previousSlot);
-
-            this.State = oldState;
-            _returnTypesOpt = oldReturnTypes;
-            _useDelegateInvokeParameterTypes = oldUseDelegateInvokeParameterTypes;
-            _delegateInvokeMethod = oldDelegateInvokeMethod;
+            this.State = savedState;
             this.CurrentSymbol = oldSymbol;
+            _delegateInvokeMethod = delegateInvokeMethod;
+
+            SetInvalidResult();
+
+            return null;
         }
 
         protected override void VisitLocalFunctionUse(
@@ -3138,7 +3117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _placeholderLocalsOpt ??= PooledDictionary<object, PlaceholderLocal>.GetInstance();
             if (!_placeholderLocalsOpt.TryGetValue(identifier, out var placeholder))
             {
-                placeholder = new PlaceholderLocal(CurrentSymbol, identifier, type);
+                placeholder = new PlaceholderLocal(_symbol, identifier, type);
                 _placeholderLocalsOpt.Add(identifier, placeholder);
             }
 
@@ -5609,7 +5588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new VariableState(
                 _variableSlot.ToImmutableDictionary(),
                 ImmutableArray.Create(variableBySlot, start: 0, length: nextVariableSlot),
-                _variableTypes.ToImmutableDictionary(_variableTypes.Comparer, TypeWithAnnotations.EqualsComparer.ConsiderEverythingComparer),
+                _variableTypes.ToImmutableDictionary(),
                 localState.HasValue ? localState.Value : this.State.Clone());
         }
 
@@ -6582,7 +6561,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (conversionOperand is BoundLambda lambda)
                     {
                         var delegateType = targetType.GetDelegateType();
-                        VisitLambda(lambda, delegateType, stateForLambda);
+                        var variableState = GetVariableState(stateForLambda);
+                        VisitLambda(lambda, delegateType, Diagnostics, variableState);
                         if (reportRemainingWarnings)
                         {
                             ReportNullabilityMismatchWithTargetDelegate(diagnosticLocationOpt, delegateType, lambda.UnboundLambda);
@@ -7217,7 +7197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case BoundLambda lambda:
                     {
-                        VisitLambda(lambda, delegateType);
+                        VisitLambda(lambda, delegateType, Diagnostics);
                         SetNotNullResult(lambda);
                         if (!lambda.IsSuppressed)
                         {
@@ -7343,39 +7323,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             // conversion case, need to investigate others
             if (!_disableNullabilityAnalysis)
             {
-                VisitLambda(node, delegateTypeOpt: null, disableDiagnostics: true);
+                var bag = new DiagnosticBag();
+                VisitLambda(node, delegateTypeOpt: null, bag);
+                bag.Free();
             }
             SetNotNullResult(node);
             return null;
         }
 
-        private void VisitLambda(BoundLambda node, NamedTypeSymbol? delegateTypeOpt, Optional<LocalState> initialState = default, bool disableDiagnostics = false)
+        private void VisitLambda(BoundLambda node, NamedTypeSymbol? delegateTypeOpt, DiagnosticBag diagnostics, VariableState? initialState = null)
         {
             Debug.Assert(delegateTypeOpt?.IsDelegateType() != false);
-
-            var delegateInvokeMethod = delegateTypeOpt?.DelegateInvokeMethod;
-            bool useDelegateInvokeParameterTypes = UseDelegateInvokeParameterTypes(node, delegateInvokeMethod);
-            if (useDelegateInvokeParameterTypes && _snapshotBuilderOpt is object)
+            var analyzedNullabilityMap = _analyzedNullabilityMapOpt;
+            var snapshotBuilder = _snapshotBuilderOpt;
+            if (_disableNullabilityAnalysis)
+            {
+                analyzedNullabilityMap = null;
+                snapshotBuilder = null;
+            }
+            else if (_snapshotBuilderOpt is object && delegateTypeOpt is object && !node.UnboundLambda.HasExplicitlyTypedParameterList)
             {
                 SetUpdatedSymbol(node, node.Symbol, delegateTypeOpt!);
             }
 
-            var oldDisableDiagnostics = _disableDiagnostics;
-            _disableDiagnostics |= disableDiagnostics;
-
-            AnalyzeLocalFunctionOrLambda(
+            Analyze(
+                compilation,
                 node,
-                node.Symbol,
-                initialState.HasValue ? initialState.Value : State.Clone(),
-                delegateInvokeMethod,
-                useDelegateInvokeParameterTypes);
-
-            _disableDiagnostics = oldDisableDiagnostics;
-        }
-
-        private static bool UseDelegateInvokeParameterTypes(BoundLambda lambda, MethodSymbol? delegateInvokeMethod)
-        {
-            return delegateInvokeMethod is object && !lambda.UnboundLambda.HasExplicitlyTypedParameterList;
+                _conversions,
+                diagnostics,
+                delegateTypeOpt?.DelegateInvokeMethod,
+                initialState: initialState ?? GetVariableState(State.Clone()),
+                analyzedNullabilityMap,
+                snapshotBuilder,
+                returnTypesOpt: null);
         }
 
         public override BoundNode? VisitUnboundLambda(UnboundLambda node)
@@ -7383,7 +7363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The presence of this node suggests an error was detected in an earlier phase.
             // Analyze the body to report any additional warnings.
             var lambda = node.BindForErrorRecovery();
-            VisitLambda(lambda, delegateTypeOpt: null);
+            VisitLambda(lambda, delegateTypeOpt: null, Diagnostics);
             SetNotNullResult(node);
             return null;
         }
