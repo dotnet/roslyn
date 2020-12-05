@@ -36,7 +36,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ThreeState _lazyHasOptionalAttribute;
         protected ConstantValue _lazyDefaultSyntaxValue;
 
-        private Symbol _associatedSymbol;
+        /// <summary>
+        /// The record property that was synthesized for us if we're a record primary constructor parameter.
+        /// </summary>
+        private SynthesizedRecordPropertySymbol _associatedSymbol;
 
         internal SourceComplexParameterSymbol(
             Symbol owner,
@@ -85,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Symbol AssociatedSymbol => _associatedSymbol;
 
-        public void SetAssociatedSymbol(Symbol associatedSymbol)
+        public void SetAssociatedSymbol(SynthesizedRecordPropertySymbol associatedSymbol)
             => _associatedSymbol = associatedSymbol;
 
         internal override ConstantValue ExplicitDefaultConstantValue
