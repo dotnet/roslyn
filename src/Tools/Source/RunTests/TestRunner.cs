@@ -116,7 +116,7 @@ namespace RunTests
             <Command>
                 dir
                 dotnet tool install -g powershell
-                dotnet pwsh ./rehydrate.ps1
+                pwsh ./rehydrate.ps1
                 dir
                 dotnet " + commandLineArguments + @"
             </Command>
