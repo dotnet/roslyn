@@ -58,6 +58,15 @@ struct Foo
         }
 
         [Fact]
+        public async Task NotOfferedOnStaticClass()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+[||]static class Foo
+{
+}");
+        }
+
+        [Fact]
         public async Task NotOfferedOnInterfaceWithToString()
         {
             await TestMissingInRegularAndScriptAsync(@"
