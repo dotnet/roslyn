@@ -39,6 +39,23 @@ class C
         }
 
         [Fact]
+        public async Task OfferedOnEmptyRecord()
+        {
+            await TestInRegularAndScriptAsync(@"
+[||]record C;", @"
+using System.Diagnostics;
+
+[DebuggerDisplay(""{"" + nameof(GetDebuggerDisplay) + ""(),nq}"")]
+record C
+{
+    private string GetDebuggerDisplay()
+    {
+        return ToString();
+    }
+}");
+        }
+
+        [Fact]
         public async Task OfferedOnEmptyStruct()
         {
             await TestInRegularAndScriptAsync(@"
