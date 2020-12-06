@@ -1184,6 +1184,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // so we can skip this bit
             if (!hadSignatureEdits)
             {
+                if (oldLocalFunction.TypeParameterList is not null &&
+                    // TODO: This check can be removed when https://github.com/dotnet/roslyn/issues/49822 is fixed, as the hadSignatureEdits check should fail
+                    oldLocalFunction.TypeParameterList.Parameters.Count == newLocalFunction.TypeParameterList?.Parameters.Count)
+                {
+                    for (var i = 0; i < oldLocalFunction.TypeParameterList.Parameters.Count; i++)
+                    {
+                        if (!AreEquivalentAttributeLists(oldLocalFunction.TypeParameterList.Parameters[i].AttributeLists, newLocalFunction.TypeParameterList.Parameters[i].AttributeLists, out var squiggleNode))
+                        {
+                            // if the comparison didn't give us a node to highlight, then highlight the parameter
+                            diagnosticNode = squiggleNode ?? newLocalFunction.TypeParameterList.Parameters[i];
+                            reportDiagnostic = true;
+                            break;
+                        }
+                    }
+                }
+
                 for (var i = 0; i < oldLocalFunction.ParameterList.Parameters.Count; i++)
                 {
                     if (!AreEquivalentAttributeLists(oldLocalFunction.ParameterList.Parameters[i].AttributeLists, newLocalFunction.ParameterList.Parameters[i].AttributeLists, out var squiggleNode))
