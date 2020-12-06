@@ -1174,11 +1174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             var newLocalFunction = (LocalFunctionStatementSyntax)GetLambda(newLambdaBody);
             var oldLocalFunction = (LocalFunctionStatementSyntax)GetLambda(oldLambdaBody);
 
-            var reportDiagnostic = false;
-            if (!AreEquivalentAttributeLists(oldLocalFunction.AttributeLists, newLocalFunction.AttributeLists, out var diagnosticNode))
-            {
-                reportDiagnostic = true;
-            }
+            var reportDiagnostic = !AreEquivalentAttributeLists(oldLocalFunction.AttributeLists, newLocalFunction.AttributeLists, out var diagnosticNode);
 
             // If the old and new signatures have changed then we don't need to report rude edits for attributes on parameters
             // so we can skip this bit
