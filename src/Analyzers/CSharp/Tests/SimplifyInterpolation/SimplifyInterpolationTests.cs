@@ -1002,5 +1002,65 @@ class B : C
     }
 }");
         }
+
+        [Fact, WorkItem(49647, "https://github.com/dotnet/roslyn/issues/49647")]
+        public async Task ConditionalExpressionMustRemainParenthesizedWhenUsingParameterlessToString()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? 1 : 2){|Unnecessary:[||].ToString()|}}"";
+    }
+}",
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? 1 : 2)}"";
+    }
+}");
+        }
+
+        [Fact, WorkItem(49647, "https://github.com/dotnet/roslyn/issues/49647")]
+        public async Task ConditionalExpressionMustRemainParenthesizedWhenUsingParameterizedToString()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? 1 : 2){|Unnecessary:[||].ToString(""|}g{|Unnecessary:"")|}}"";
+    }
+}",
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? 1 : 2):g}"";
+    }
+}");
+        }
+
+        [Fact, WorkItem(49647, "https://github.com/dotnet/roslyn/issues/49647")]
+        public async Task ConditionalExpressionMustRemainParenthesizedWhenUsingPadLeft()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? ""1"" : ""2""){|Unnecessary:[||].PadLeft(|}3{|Unnecessary:)|}}"";
+    }
+}",
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? ""1"" : ""2""),3}"";
+    }
+}");
+        }
     }
 }
