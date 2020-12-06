@@ -7128,6 +7128,51 @@ interface I
                 expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "B", CSharpFeaturesResources.local_function) });
         }
 
+        [Fact]
+        public void LocalFunction_TypeParameter_AddAttribute()
+        {
+            var src1 = "class C { void M() { void L<T>(T i) { } } }";
+            var src2 = "class C { void M() { void L<[A] T>(T i) { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { void L<T>(T i) { } }]@10 -> [void M() { void L<[A] T>(T i) { } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A]", CSharpFeaturesResources.local_function) });
+        }
+
+        [Fact]
+        public void LocalFunction_TypeParameter_RemoveAttribute()
+        {
+            var src1 = "class C { void M() { void L<[A] T>(T i) { } } }";
+            var src2 = "class C { void M() { void L<T>(T i) { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { void L<[A] T>(T i) { } }]@10 -> [void M() { void L<T>(T i) { } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "T", CSharpFeaturesResources.local_function) });
+        }
+
+        [Fact]
+        public void LocalFunction_TypeParameter_ReorderAttribute()
+        {
+            var src1 = "class C { void M() { void L<[A, B] T>(T i) { } } }";
+            var src2 = "class C { void M() { void L<[B, A] T>(T i) { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void M() { void L<[A, B] T>(T i) { } }]@10 -> [void M() { void L<[B, A] T>(T i) { } }]@10");
+
+            edits.VerifySemantics(
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "B", CSharpFeaturesResources.local_function) });
+        }
+
         #endregion
 
         #region Queries
