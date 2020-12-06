@@ -1210,11 +1210,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             if (reportDiagnostic)
             {
+                diagnosticNode ??= newLocalFunction;
+
                 diagnostics.Add(new RudeEditDiagnostic(
                     RudeEditKind.Update,
-                    GetDiagnosticSpan(diagnosticNode ?? newLocalFunction, EditKind.Update),
+                    GetDiagnosticSpan(diagnosticNode, EditKind.Update),
                     newLocalFunction,
-                    new[] { GetDisplayName(newLocalFunction) }));
+                    new[] { GetDisplayName(diagnosticNode) }));
             }
         }
 
@@ -1795,10 +1797,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return FeaturesResources.parameter;
 
                 case SyntaxKind.AttributeList:
-                    return (editKind == EditKind.Update) ? CSharpFeaturesResources.attribute_target : FeaturesResources.attribute;
+                    return FeaturesResources.attribute;
 
                 case SyntaxKind.Attribute:
                     return FeaturesResources.attribute;
+
+                case SyntaxKind.AttributeTargetSpecifier:
+                    return CSharpFeaturesResources.attribute_target;
 
                 // statement:
 
@@ -2984,7 +2989,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 if (!SyntaxFactory.AreEquivalent(oldNode.Target, newNode.Target))
                 {
-                    ReportError(RudeEditKind.Update, spanNode: ((SyntaxNode?)newNode.Target) ?? newNode);
+                    var spanNode = ((SyntaxNode?)newNode.Target) ?? newNode;
+                    ReportError(RudeEditKind.Update, spanNode: spanNode, displayNode: spanNode);
                     return;
                 }
 

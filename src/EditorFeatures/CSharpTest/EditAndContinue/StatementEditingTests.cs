@@ -6945,7 +6945,7 @@ interface I
                 "Update [void M() { void L() { } }]@10 -> [void M() { [A]void L() { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A]", CSharpFeaturesResources.local_function) });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A]", FeaturesResources.attribute) });
         }
 
         [Fact]
@@ -6975,7 +6975,7 @@ interface I
                 "Update [void M() { [A, B]void L() { } }]@10 -> [void M() { [B, A]void L() { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "B", CSharpFeaturesResources.local_function) });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "B", FeaturesResources.attribute) });
         }
 
         [Fact]
@@ -6990,7 +6990,7 @@ interface I
                 "Update [void M() { [A][B]void L() { } }]@10 -> [void M() { [A, B]void L() { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A, B]", CSharpFeaturesResources.local_function) });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A, B]", FeaturesResources.attribute) });
         }
 
         [Fact]
@@ -7005,7 +7005,7 @@ interface I
                 "Update [void M() { [A, B]void L() { } }]@10 -> [void M() { [A][B]void L() { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A]", CSharpFeaturesResources.local_function) });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A]", FeaturesResources.attribute) });
         }
 
         [Fact]
@@ -7020,7 +7020,7 @@ interface I
                 "Update [void M() { [return: A]void L() { } }]@10 -> [void M() { [A]void L() { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A]", CSharpFeaturesResources.local_function) });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A]", FeaturesResources.attribute) });
         }
 
         [Fact]
@@ -7035,7 +7035,7 @@ interface I
                 "Update [void M() { [A]void L() { } }]@10 -> [void M() { [return: A]void L() { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "return:", CSharpFeaturesResources.local_function) });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "return:", CSharpFeaturesResources.attribute_target) });
         }
 
         [Fact]
@@ -7050,7 +7050,7 @@ interface I
                 "Update [void M() { int L() { return 1; } }]@10 -> [void M() { [return: A]int L() { return 1; } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[return: A]", CSharpFeaturesResources.local_function) });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[return: A]", FeaturesResources.attribute) });
         }
 
         [Fact]
@@ -7080,7 +7080,7 @@ interface I
                 "Update [void M() { [return: A, B]int L() { return 1; } }]@10 -> [void M() { [return: B, A]int L() { return 1; } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "B", CSharpFeaturesResources.local_function) });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "B", FeaturesResources.attribute) });
         }
 
         [Fact]
@@ -7095,7 +7095,7 @@ interface I
                 "Update [void M() { void L(int i) { } }]@10 -> [void M() { void L([A]int i) { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A]", CSharpFeaturesResources.local_function) });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A]", FeaturesResources.attribute) });
         }
 
         [Fact]
@@ -7110,7 +7110,7 @@ interface I
                 "Update [void M() { void L([A]int i) { } }]@10 -> [void M() { void L(int i) { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "int i", CSharpFeaturesResources.local_function) });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "int i", FeaturesResources.parameter) });
         }
 
         [Fact]
@@ -7125,7 +7125,7 @@ interface I
                 "Update [void M() { void L([A, B]int i) { } }]@10 -> [void M() { void L([B, A]int i) { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "B", CSharpFeaturesResources.local_function) });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "B", FeaturesResources.attribute) });
         }
 
         [Fact]
@@ -7140,7 +7140,7 @@ interface I
                 "Update [void M() { void L<T>(T i) { } }]@10 -> [void M() { void L<[A] T>(T i) { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A]", CSharpFeaturesResources.local_function) });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A]", FeaturesResources.attribute) });
         }
 
         [Fact]
@@ -7155,7 +7155,7 @@ interface I
                 "Update [void M() { void L<[A] T>(T i) { } }]@10 -> [void M() { void L<T>(T i) { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "T", CSharpFeaturesResources.local_function) });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "T", FeaturesResources.type_parameter) });
         }
 
         [Fact]
@@ -7170,7 +7170,7 @@ interface I
                 "Update [void M() { void L<[A, B] T>(T i) { } }]@10 -> [void M() { void L<[B, A] T>(T i) { } }]@10");
 
             edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "B", CSharpFeaturesResources.local_function) });
+                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "B", FeaturesResources.attribute) });
         }
 
         #endregion
