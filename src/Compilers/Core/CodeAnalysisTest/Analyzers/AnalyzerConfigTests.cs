@@ -2192,11 +2192,9 @@ is_global = true
         }
 
         [Fact]
-        public void GlobalLevelCanBeReadFromConfig()
+        public void GlobalLevelCanBeReadFromAnyConfig()
         {
-            var config = Parse("global_level = 5", "/.globalconfig");
-
-            Assert.True(config.IsGlobal);
+            var config = Parse("global_level = 5", "/.editorconfig");
             Assert.Equal(5, config.GlobalLevel);
         }
 
@@ -2207,6 +2205,15 @@ is_global = true
 
             Assert.True(config.IsGlobal);
             Assert.Equal(100, config.GlobalLevel);
+        }
+
+        [Fact]
+        public void GlobalLevelCanBeOverriddenForUserGlobalConfigs()
+        {
+            var config = Parse("global_level = 5", "/" + AnalyzerConfig.UserGlobalConfigName);
+
+            Assert.True(config.IsGlobal);
+            Assert.Equal(5, config.GlobalLevel);
         }
 
         [Fact]
@@ -2402,6 +2409,22 @@ option1 = value6",
             configs.Free();
         }
 
+        [Fact]
+        public void InvalidGlobalLevelIsIgnored()
+        {
+            var userGlobalConfig = Parse($@"
+is_global = true
+global_level = abc
+", "/.globalconfig");
+
+            var nonUserGlobalConfig = Parse($@"
+is_global = true
+global_level = abc
+", "/.editorconfig");
+
+            Assert.Equal(100, userGlobalConfig.GlobalLevel);
+            Assert.Equal(0, nonUserGlobalConfig.GlobalLevel);
+        }
 
         #endregion
     }
