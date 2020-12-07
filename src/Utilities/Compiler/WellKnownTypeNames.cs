@@ -214,6 +214,7 @@ namespace Analyzer.Utilities
         public const string SystemIOUnmanagedMemoryStream = "System.IO.UnmanagedMemoryStream";
         public const string SystemIProgress1 = "System.IProgress`1";
         public const string SystemLinqEnumerable = "System.Linq.Enumerable";
+        public const string SystemLinqIQueryable1 = "System.Linq.IQueryable`1";
         public const string SystemLinqQueryable = "System.Linq.Queryable";
         public const string SystemMarshalByRefObject = "System.MarshalByRefObject";
         public const string SystemMemory1 = "System.Memory`1";
