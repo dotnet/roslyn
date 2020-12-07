@@ -132,18 +132,20 @@ internal static class MinimizeUtil
             foreach (var group in grouping)
             {
                 builder.Clear();
+                builder.AppendLine("@echo off");
                 // TODO: generate either cmd or bash depending on whether this is a windows or unix build
                 var count = 0;
                 foreach (var tuple in group)
                 {
                     var source = getPeFileName(tuple.Id);
                     var destFileName = Path.GetRelativePath(group.Key, tuple.FilePath.RelativePath);
+                    var mkdirCommand = Path.GetDirectoryName(destFileName) is { Length: not 0 } directory ? $@"mkdir {directory} 2> nul" : null;
                     builder.AppendLine($@"
+{mkdirCommand}
 mklink /h {destFileName} %HELIX_CORRELATION_PAYLOAD%\{source} > nul
 if %errorlevel% neq 0 (
-    echo %errorlevel%
-    echo Cmd failed: mklink /h {destFileName} %HELIX_CORRELATION_PAYLOAD%\{source} > nul
-    exit 1
+    echo Cmd failed: mklink /h {destFileName} %HELIX_CORRELATION_PAYLOAD%\{source}
+    exit /b 1
 )");
                     count++;
                     if (count % 1_000 == 0)

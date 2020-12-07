@@ -43,7 +43,7 @@ jobs:
       inputs:
         filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/netcoreapp3.1/rehydrate.cmd
       env:
-        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
+        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
     - task: PowerShell@2
       displayName: Run Unit Tests
