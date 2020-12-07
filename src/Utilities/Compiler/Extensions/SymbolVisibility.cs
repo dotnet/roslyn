@@ -4,7 +4,9 @@ using System;
 
 namespace Analyzer.Utilities.Extensions
 {
+#pragma warning disable CA1027 // Mark enums with FlagsAttribute
     internal enum SymbolVisibility
+#pragma warning restore CA1027 // Mark enums with FlagsAttribute
     {
         Public = 0,
         Internal = 1,
