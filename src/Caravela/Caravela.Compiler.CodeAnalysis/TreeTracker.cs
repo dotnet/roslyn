@@ -136,7 +136,7 @@ namespace Caravela.Compiler
         [return: NotNull]
         internal static T FindNode<T>(this SyntaxNode ancestor, TextSpan span) where T : SyntaxNode?
         {
-            SyntaxNode foundNode;
+            SyntaxNode? foundNode;
 
             // span is the very end of the ancestor, which is technically not inside it, so FindNode would throw
             if (span.IsEmpty && span.Start == ancestor.EndPosition)
