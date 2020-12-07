@@ -139,10 +139,10 @@ internal static class MinimizeUtil
                     var source = getPeFileName(tuple.Id);
                     var destFileName = Path.GetRelativePath(group.Key, tuple.FilePath.RelativePath);
                     builder.AppendLine($@"
-mklink /h {destFileName} {source} > nul
+mklink /h {destFileName} %HELIX_CORRELATION_PAYLOAD%\{source} > nul
 if %errorlevel% neq 0 (
     echo %errorlevel%
-    echo Cmd failed: mklink /h {destFileName} {source} > nul
+    echo Cmd failed: mklink /h {destFileName} %HELIX_CORRELATION_PAYLOAD%\{source} > nul
     exit 1
 )");
                     count++;
