@@ -4,7 +4,11 @@
 
 namespace Microsoft.CodeAnalysis
 {
+#pragma warning disable CA1008 // Enums should have zero value
+#pragma warning disable CA1027 // Mark enums with FlagsAttribute
     internal enum RuleLevel
+#pragma warning restore CA1027 // Mark enums with FlagsAttribute
+#pragma warning restore CA1008 // Enums should have zero value
     {
         /// <summary>
         /// Correctness rule which should have <b>no false positives</b>, and is extremely likely to be fixed by users.
