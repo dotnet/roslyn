@@ -2292,6 +2292,29 @@ moreArguments:
                         diagnostics,
                         isRefEscape: true);
 
+                case BoundKind.FunctionPointerInvocation:
+                    var functionPointerInvocation = (BoundFunctionPointerInvocation)expr;
+
+                    FunctionPointerMethodSymbol signature = functionPointerInvocation.FunctionPointer.Signature;
+                    if (signature.RefKind == RefKind.None)
+                    {
+                        break;
+                    }
+
+                    return CheckInvocationEscape(
+                        functionPointerInvocation.Syntax,
+                        signature,
+                        functionPointerInvocation.InvokedExpression,
+                        signature.Parameters,
+                        functionPointerInvocation.Arguments,
+                        functionPointerInvocation.ArgumentRefKindsOpt,
+                        argsToParamsOpt: default,
+                        checkingReceiver,
+                        escapeFrom,
+                        escapeTo,
+                        diagnostics,
+                        isRefEscape: true);
+
                 case BoundKind.PropertyAccess:
                     var propertyAccess = (BoundPropertyAccess)expr;
                     var propertySymbol = propertyAccess.PropertySymbol;
