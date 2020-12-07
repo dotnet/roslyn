@@ -6936,241 +6936,177 @@ interface I
         [Fact]
         public void LocalFunction_AddAttribute()
         {
-            var src1 = "class C { void M() { void L() { } } }";
-            var src2 = "class C { void M() { [A]void L() { } } }";
+            var src1 = "void L() { }";
+            var src2 = "[A]void L() { }";
 
-            var edits = GetTopEdits(src1, src2);
+            var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [void M() { void L() { } }]@10 -> [void M() { [A]void L() { } }]@10");
-
-            edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A]", FeaturesResources.attribute) });
+            edits.VerifyEdits("Insert [[A]]@2", "Insert [A]@3");
         }
 
         [Fact]
         public void LocalFunction_RemoveAttribute()
         {
-            var src1 = "class C { void M() { [A]void L() { } } }";
-            var src2 = "class C { void M() { void L() { } } }";
+            var src1 = "[A]void L() { }";
+            var src2 = "void L() { }";
 
-            var edits = GetTopEdits(src1, src2);
+            var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [void M() { [A]void L() { } }]@10 -> [void M() { void L() { } }]@10");
-
-            edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
+            edits.VerifyEdits("Delete [[A]]@2", "Delete [A]@3");
         }
 
         [Fact]
         public void LocalFunction_ReorderAttribute()
         {
-            var src1 = "class C { void M() { [A, B]void L() { } } }";
-            var src2 = "class C { void M() { [B, A]void L() { } } }";
+            var src1 = "[A, B]void L() { }";
+            var src2 = "[B, A]void L() { }";
 
-            var edits = GetTopEdits(src1, src2);
+            var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [void M() { [A, B]void L() { } }]@10 -> [void M() { [B, A]void L() { } }]@10");
-
-            edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "B", FeaturesResources.attribute) });
+            edits.VerifyEdits("Reorder [B]@6 -> @3");
         }
 
         [Fact]
         public void LocalFunction_CombineAttributeLists()
         {
-            var src1 = "class C { void M() { [A][B]void L() { } } }";
-            var src2 = "class C { void M() { [A, B]void L() { } } }";
+            var src1 = "[A][B]void L() { }";
+            var src2 = "[A, B]void L() { }";
 
-            var edits = GetTopEdits(src1, src2);
+            var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [void M() { [A][B]void L() { } }]@10 -> [void M() { [A, B]void L() { } }]@10");
-
-            edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A, B]", FeaturesResources.attribute) });
+            edits.VerifyEdits("Update [[A]]@2 -> [[A, B]]@2", "Insert [B]@6", "Delete [[B]]@5", "Delete [B]@6");
         }
 
         [Fact]
         public void LocalFunction_SplitAttributeLists()
         {
-            var src1 = "class C { void M() { [A, B]void L() { } } }";
-            var src2 = "class C { void M() { [A][B]void L() { } } }";
+            var src1 = "[A, B]void L() { }";
+            var src2 = "[A][B]void L() { }";
 
-            var edits = GetTopEdits(src1, src2);
+            var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [void M() { [A, B]void L() { } }]@10 -> [void M() { [A][B]void L() { } }]@10");
-
-            edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A]", FeaturesResources.attribute) });
+            edits.VerifyEdits("Update [[A, B]]@2 -> [[A]]@2", "Insert [[B]]@5", "Insert [B]@6", "Delete [B]@6");
         }
 
         [Fact]
         public void LocalFunction_ChangeAttributeListTarget1()
         {
-            var src1 = "class C { void M() { [return: A]void L() { } } }";
-            var src2 = "class C { void M() { [A]void L() { } } }";
+            var src1 = "[return: A]void L() { }";
+            var src2 = "[A]void L() { }";
 
-            var edits = GetTopEdits(src1, src2);
+            var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [void M() { [return: A]void L() { } }]@10 -> [void M() { [A]void L() { } }]@10");
-
-            edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A]", FeaturesResources.attribute) });
+            edits.VerifyEdits("Update [[return: A]]@2 -> [[A]]@2");
         }
 
         [Fact]
         public void LocalFunction_ChangeAttributeListTarget2()
         {
-            var src1 = "class C { void M() { [A]void L() { } } }";
-            var src2 = "class C { void M() { [return: A]void L() { } } }";
+            var src1 = "[A]void L() { }";
+            var src2 = "[return: A]void L() { }";
 
-            var edits = GetTopEdits(src1, src2);
+            var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [void M() { [A]void L() { } }]@10 -> [void M() { [return: A]void L() { } }]@10");
-
-            edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "return:", CSharpFeaturesResources.attribute_target) });
+            edits.VerifyEdits("Update [[A]]@2 -> [[return: A]]@2");
         }
 
         [Fact]
         public void LocalFunction_ReturnType_AddAttribute()
         {
-            var src1 = "class C { void M() { int L() { return 1; } } }";
-            var src2 = "class C { void M() { [return: A]int L() { return 1; } } }";
+            var src1 = "int L() { return 1; }";
+            var src2 = "[return: A]int L() { return 1; }";
 
-            var edits = GetTopEdits(src1, src2);
+            var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [void M() { int L() { return 1; } }]@10 -> [void M() { [return: A]int L() { return 1; } }]@10");
-
-            edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[return: A]", FeaturesResources.attribute) });
+            edits.VerifyEdits("Insert [[return: A]]@2", "Insert [A]@11");
         }
 
         [Fact]
         public void LocalFunction_ReturnType_RemoveAttribute()
         {
-            var src1 = "class C { void M() { [return: A]int L() { return 1; } } }";
-            var src2 = "class C { void M() { int L() { return 1; } } }";
+            var src1 = "[return: A]int L() { return 1; }";
+            var src2 = "int L() { return 1; }";
 
-            var edits = GetTopEdits(src1, src2);
+            var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [void M() { [return: A]int L() { return 1; } }]@10 -> [void M() { int L() { return 1; } }]@10");
-
-            edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "L", CSharpFeaturesResources.local_function) });
+            edits.VerifyEdits("Delete [[return: A]]@2", "Delete [A]@11");
         }
 
         [Fact]
         public void LocalFunction_ReturnType_ReorderAttribute()
         {
-            var src1 = "class C { void M() { [return: A, B]int L() { return 1; } } }";
-            var src2 = "class C { void M() { [return: B, A]int L() { return 1; } } }";
+            var src1 = "[return: A, B]int L() { return 1; }";
+            var src2 = "[return: B, A]int L() { return 1; }";
 
-            var edits = GetTopEdits(src1, src2);
+            var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [void M() { [return: A, B]int L() { return 1; } }]@10 -> [void M() { [return: B, A]int L() { return 1; } }]@10");
-
-            edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "B", FeaturesResources.attribute) });
+            edits.VerifyEdits("Reorder [B]@14 -> @11");
         }
 
         [Fact]
         public void LocalFunction_Parameter_AddAttribute()
         {
-            var src1 = "class C { void M() { void L(int i) { } } }";
-            var src2 = "class C { void M() { void L([A]int i) { } } }";
+            var src1 = "void L(int i) { }";
+            var src2 = "void L([A]int i) { }";
 
-            var edits = GetTopEdits(src1, src2);
+            var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [void M() { void L(int i) { } }]@10 -> [void M() { void L([A]int i) { } }]@10");
-
-            edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A]", FeaturesResources.attribute) });
+            edits.VerifyEdits("Insert [[A]]@9", "Insert [A]@10");
         }
 
         [Fact]
         public void LocalFunction_Parameter_RemoveAttribute()
         {
-            var src1 = "class C { void M() { void L([A]int i) { } } }";
-            var src2 = "class C { void M() { void L(int i) { } } }";
+            var src1 = "void L([A]int i) { }";
+            var src2 = "void L(int i) { }";
 
-            var edits = GetTopEdits(src1, src2);
+            var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [void M() { void L([A]int i) { } }]@10 -> [void M() { void L(int i) { } }]@10");
-
-            edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "int i", FeaturesResources.parameter) });
+            edits.VerifyEdits("Delete [[A]]@9", "Delete [A]@10");
         }
 
         [Fact]
         public void LocalFunction_Parameter_ReorderAttribute()
         {
-            var src1 = "class C { void M() { void L([A, B]int i) { } } }";
-            var src2 = "class C { void M() { void L([B, A]int i) { } } }";
+            var src1 = "void L([A, B]int i) { }";
+            var src2 = "void L([B, A]int i) { }";
 
-            var edits = GetTopEdits(src1, src2);
+            var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [void M() { void L([A, B]int i) { } }]@10 -> [void M() { void L([B, A]int i) { } }]@10");
-
-            edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "B", FeaturesResources.attribute) });
+            edits.VerifyEdits("Reorder [B]@13 -> @10");
         }
 
         [Fact]
         public void LocalFunction_TypeParameter_AddAttribute()
         {
-            var src1 = "class C { void M() { void L<T>(T i) { } } }";
-            var src2 = "class C { void M() { void L<[A] T>(T i) { } } }";
+            var src1 = "void L<T>(T i) { }";
+            var src2 = "void L<[A] T>(T i) { }";
 
-            var edits = GetTopEdits(src1, src2);
+            var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [void M() { void L<T>(T i) { } }]@10 -> [void M() { void L<[A] T>(T i) { } }]@10");
-
-            edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "[A]", FeaturesResources.attribute) });
+            edits.VerifyEdits("Insert [[A]]@9", "Insert [A]@10");
         }
 
         [Fact]
         public void LocalFunction_TypeParameter_RemoveAttribute()
         {
-            var src1 = "class C { void M() { void L<[A] T>(T i) { } } }";
-            var src2 = "class C { void M() { void L<T>(T i) { } } }";
+            var src1 = "void L<[A] T>(T i) { }";
+            var src2 = "void L<T>(T i) { }";
 
-            var edits = GetTopEdits(src1, src2);
+            var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [void M() { void L<[A] T>(T i) { } }]@10 -> [void M() { void L<T>(T i) { } }]@10");
-
-            edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "T", FeaturesResources.type_parameter) });
+            edits.VerifyEdits("Delete [[A]]@9", "Delete [A]@10");
         }
 
         [Fact]
         public void LocalFunction_TypeParameter_ReorderAttribute()
         {
-            var src1 = "class C { void M() { void L<[A, B] T>(T i) { } } }";
-            var src2 = "class C { void M() { void L<[B, A] T>(T i) { } } }";
+            var src1 = "void L<[A, B] T>(T i) { }";
+            var src2 = "void L<[B, A] T>(T i) { }";
 
-            var edits = GetTopEdits(src1, src2);
+            var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [void M() { void L<[A, B] T>(T i) { } }]@10 -> [void M() { void L<[B, A] T>(T i) { } }]@10");
-
-            edits.VerifySemantics(
-                expectedDiagnostics: new[] { Diagnostic(RudeEditKind.Update, "B", FeaturesResources.attribute) });
+            edits.VerifyEdits("Reorder [B]@13 -> @10");
         }
 
         #endregion
