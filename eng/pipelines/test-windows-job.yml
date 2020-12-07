@@ -50,6 +50,8 @@ jobs:
       inputs:
         filePath: eng/build.ps1
         arguments: -ci -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
     - task: PublishTestResults@2
       displayName: Publish xUnit Test Results
@@ -58,7 +60,7 @@ jobs:
         testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}\*.xml'
         mergeTestResults: true
         testRunTitle: '${{ parameters.testRunName }}'
-      condition: always()
+      condition: false
 
     - template: publish-logs.yml
       parameters:

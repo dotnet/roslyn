@@ -63,6 +63,10 @@ namespace RunTests
             var correlationPayload = $@"<HelixCorrelationPayload Include=""{msbuildTestPayloadRoot}/.duplicate"" />";
 
             var isAzureDevOpsRun = Environment.GetEnvironmentVariable("SYSTEM_ACCESSTOKEN") is not null;
+            if (!isAzureDevOpsRun)
+            {
+                Console.WriteLine("SYSTEM_ACCESSTOKEN environment variable was not set, so test results will not be published.");
+            }
 
             if (Environment.GetEnvironmentVariable("BUILD_REPOSITORY_NAME") is null)
                 Environment.SetEnvironmentVariable("BUILD_REPOSITORY_NAME", "dotnet/roslyn");
