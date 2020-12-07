@@ -19,15 +19,14 @@ var dependencyList = args[9].Split(new[] { ';' }, StringSplitOptions.RemoveEmpty
 var libraryList = args[10].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 var rulesetsDir = args[11];
 var editorconfigsDir = args[12];
-var legacyRulesets = args[13].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-var artifactsBinDir = args[14];
-var analyzerDocumentationFileDir = args[15];
-var analyzerDocumentationFileName = args[16];
-var analyzerSarifFileDir = args[17];
-var analyzerSarifFileName = args[18];
-var analyzerConfigurationFileDir = args[19];
-var analyzerConfigurationFileName = args[20];
-var globalAnalyzerConfigsDir = args[21];
+var artifactsBinDir = args[13];
+var analyzerDocumentationFileDir = args[14];
+var analyzerDocumentationFileName = args[15];
+var analyzerSarifFileDir = args[16];
+var analyzerSarifFileName = args[17];
+var analyzerConfigurationFileDir = args[18];
+var analyzerConfigurationFileName = args[19];
+var globalAnalyzerConfigsDir = args[20];
 
 var result = new StringBuilder();
 
@@ -262,17 +261,6 @@ if (analyzerConfigurationFileDir.Length > 0 && Directory.Exists(analyzerConfigur
     if (File.Exists(fileWithPath))
     {
         result.AppendLine(FileElement(fileWithPath, "documentation"));
-    }
-}
-
-if (legacyRulesets.Length > 0)
-{
-    foreach (string legacyRuleset in legacyRulesets)
-    {
-        if (Path.GetExtension(legacyRuleset) == ".ruleset")
-        {
-            result.AppendLine(FileElement(Path.Combine(projectDir, legacyRuleset), @"rulesets\legacy"));
-        }
     }
 }
 
