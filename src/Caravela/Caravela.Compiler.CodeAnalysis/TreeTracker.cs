@@ -144,20 +144,26 @@ namespace Caravela.Compiler
             else
                 foundNode = ancestor.FindNode(span, getInnermostNodeForTie: true);
 
-            // we were looking for node with zero width (like OmittedArraySizeExpression), but found something larger
+            // we were looking for node with zero width (like OmittedArraySizeExpression or a missing node), but found something larger
             // FindNode uses FindToken, which does not return zero-width tokens, so we use it ourselves, but then look just before it
             // see also https://github.com/dotnet/roslyn/issues/47706
             if (span.IsEmpty && !foundNode.FullSpan.IsEmpty)
             {
-                SyntaxNode? possibleZeroWidthNode;
+                SyntaxToken possibleZeroWidthToken;
 
                 // but that doesn't work if sought node is at the end, so we need a special case for that
                 if (span.Start == foundNode.FullSpan.End)
-                    possibleZeroWidthNode = foundNode.DescendantNodes().Last();
+                    possibleZeroWidthToken = foundNode.GetLastToken(includeZeroWidth: true);
                 else
-                    possibleZeroWidthNode = foundNode.FindToken(span.Start).GetPreviousToken(includeZeroWidth: true).Parent;
-                if (possibleZeroWidthNode?.FullSpan == span && possibleZeroWidthNode is T t)
-                    return t;
+                    possibleZeroWidthToken = foundNode.FindToken(span.Start).GetPreviousToken(includeZeroWidth: true);
+
+                while (possibleZeroWidthToken.FullSpan.IsEmpty)
+                {
+                    var possibleZeroWidthNode = possibleZeroWidthToken.Parent;
+                    if (possibleZeroWidthNode?.FullSpan == span && possibleZeroWidthNode is T t)
+                        return t;
+                    possibleZeroWidthToken = possibleZeroWidthToken.GetPreviousToken(includeZeroWidth: true);
+                }
             }
 
             // if the first found node is not the correct type, it should be one of its ancestors (with the same FullSpan as the found node)
