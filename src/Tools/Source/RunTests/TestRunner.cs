@@ -113,7 +113,7 @@ namespace RunTests
                     //throw new InvalidOperationException("path did not contain rehydrate.cmd: " + payloadDirectory);
                 }
                 // TODO: run rehydrate.sh on unix
-                var rehydrateCommand = ".\rehydrate.cmd";
+                var rehydrateCommand = @".\rehydrate.cmd";
                 var workItem = @"
         <HelixWorkItem Include=""" + assemblyInfo.DisplayName + @""">
             <PayloadDirectory>$(RepoRoot)" + Path.GetDirectoryName(assemblyInfo.AssemblyPath) + @"</PayloadDirectory>
