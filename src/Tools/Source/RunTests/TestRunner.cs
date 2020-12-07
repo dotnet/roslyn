@@ -116,7 +116,7 @@ namespace RunTests
                 var rehydrateCommand = @".\rehydrate.cmd";
                 var workItem = @"
         <HelixWorkItem Include=""" + assemblyInfo.DisplayName + @""">
-            <PayloadDirectory>$(RepoRoot)" + Path.GetDirectoryName(assemblyInfo.AssemblyPath) + @"</PayloadDirectory>
+            <PayloadDirectory>" + msbuildTestPayloadRoot + Path.GetDirectoryName(assemblyInfo.AssemblyPath) + @"</PayloadDirectory>
             <Command>
                 dir
                 " + rehydrateCommand + @"
