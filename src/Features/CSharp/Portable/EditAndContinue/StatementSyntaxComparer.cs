@@ -221,6 +221,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             GroupClauseLambda,                // tied to parent
             QueryContinuation,                // tied to parent
 
+            TypeParameterList,                // tied to parent
+            TypeParameterConstraintClause,    // tied to parent
+            TypeParameter,                    // tied to parent
+            ParameterList,                    // tied to parent
+            BracketedParameterList,           // tied to parent
+            Parameter,                        // tied to parent
+            AttributeList,                    // tied to parent
+            Attribute,                        // tied to parent
+
             // helpers:
             Count,
             Ignored = IgnoredNode
@@ -255,6 +264,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.CasePatternSwitchLabel:
                 case Label.WhenClause:
                 case Label.SwitchExpressionArm:
+                case Label.TypeParameterList:
+                case Label.TypeParameter:
+                case Label.TypeParameterConstraintClause:
+                case Label.ParameterList:
+                case Label.BracketedParameterList:
+                case Label.Parameter:
+                case Label.AttributeList:
+                case Label.Attribute:
                     return 1;
 
                 default:
@@ -503,6 +520,38 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.AwaitExpression:
                     return Label.AwaitExpression;
 
+                case SyntaxKind.TypeParameterList:
+                    isLeaf = false;
+                    return Label.TypeParameterList;
+
+                case SyntaxKind.TypeParameterConstraintClause:
+                    isLeaf = false;
+                    return Label.TypeParameterConstraintClause;
+
+                case SyntaxKind.TypeParameter:
+                    isLeaf = false; // children: attributes
+                    return Label.TypeParameter;
+
+                case SyntaxKind.ParameterList:
+                    isLeaf = false;
+                    return Label.ParameterList;
+
+                case SyntaxKind.BracketedParameterList:
+                    isLeaf = false;
+                    return Label.BracketedParameterList;
+
+                case SyntaxKind.Parameter:
+                    isLeaf = false; // children: attributes
+                    return Label.Parameter;
+
+                case SyntaxKind.AttributeList:
+                    isLeaf = false;
+                    return Label.AttributeList;
+
+                case SyntaxKind.Attribute:
+                    isLeaf = true;
+                    return Label.Attribute;
+
                 default:
                     // any other node may contain a lambda:
                     return Label.Ignored;
@@ -683,6 +732,26 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.SingleVariableDesignation:
                     distance = ComputeWeightedDistance((SingleVariableDesignationSyntax)leftNode, (SingleVariableDesignationSyntax)rightNode);
+                    return true;
+
+                case SyntaxKind.TypeParameterConstraintClause:
+                    distance = ComputeDistance((TypeParameterConstraintClauseSyntax)leftNode, (TypeParameterConstraintClauseSyntax)rightNode);
+                    return true;
+
+                case SyntaxKind.TypeParameter:
+                    distance = ComputeDistance((TypeParameterSyntax)leftNode, (TypeParameterSyntax)rightNode);
+                    return true;
+
+                case SyntaxKind.Parameter:
+                    distance = ComputeDistance((ParameterSyntax)leftNode, (ParameterSyntax)rightNode);
+                    return true;
+
+                case SyntaxKind.AttributeList:
+                    distance = ComputeDistance((AttributeListSyntax)leftNode, (AttributeListSyntax)rightNode);
+                    return true;
+
+                case SyntaxKind.Attribute:
+                    distance = ComputeDistance((AttributeSyntax)leftNode, (AttributeSyntax)rightNode);
                     return true;
 
                 default:
