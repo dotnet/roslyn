@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis
                     if ((!keyInSection && !keyDuplicated)   // this key is neither present nor a duplicate, we can add it
                         || (keyInSection && sectionDict[key].globalLevel < globalLevel) // this key should override the existing section one
                         || (keyDuplicated && duplicateDict![key].globalLevel < globalLevel)) // this key should override previous duplicates
-                    { 
+                    {
                         sectionDict[key] = (value, configPath, globalLevel);
 
                         if (keyDuplicated)
@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis
                             duplicateDict!.Remove(key);
                         }
                     }
-                    else if((keyDuplicated && duplicateDict![key].globalLevel == globalLevel)  // this key is another duplicate at the same level
+                    else if ((keyDuplicated && duplicateDict![key].globalLevel == globalLevel) // this key is another duplicate at the same level
                             || (keyInSection && sectionDict[key].globalLevel == globalLevel)) // this key is a duplicate of a current section key
                     {
                         if (duplicateDict is null)

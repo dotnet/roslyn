@@ -2201,7 +2201,7 @@ is_global = true
         [Fact]
         public void GlobalLevelDefaultsTo100ForUserGlobalConfigs()
         {
-            var config = Parse("", "/"+AnalyzerConfig.UserGlobalConfigName);
+            var config = Parse("", "/" + AnalyzerConfig.UserGlobalConfigName);
 
             Assert.True(config.IsGlobal);
             Assert.Equal(100, config.GlobalLevel);
