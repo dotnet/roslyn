@@ -51,6 +51,7 @@ namespace RunTests
             var sourceBranch = Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCH");
             if (sourceBranch is null)
             {
+                Console.WriteLine("BUILD_SOURCEBRANCH is not set");
                 sourceBranch = "local";
                 Environment.SetEnvironmentVariable("BUILD_SOURCEBRANCH", sourceBranch);
 
@@ -93,6 +94,7 @@ namespace RunTests
 ";
 
             File.WriteAllText("helix-tmp.csproj", project);
+            Console.WriteLine(project);
             var process = ProcessRunner.CreateProcess(_options.DotnetFilePath, "build helix-tmp.csproj", captureOutput: true, cancellationToken: cancellationToken);
             var result = await process.Result;
 
@@ -115,7 +117,7 @@ namespace RunTests
             <PayloadDirectory>$(RepoRoot)" + Path.GetDirectoryName(assemblyInfo.AssemblyPath) + @"</PayloadDirectory>
             <Command>
                 dir
-                dotnet tool install -g powershell
+                dotnet tool install -g powershell --version 7.10.0
                 pwsh ./rehydrate.ps1
                 dir
                 dotnet " + commandLineArguments + @"

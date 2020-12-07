@@ -88,6 +88,7 @@ namespace RunTests
                 {
                     if (e.Data != null)
                     {
+                        Console.WriteLine(e.Data); // TODO: remove
                         outputLines.Add(e.Data);
                     }
                 };
@@ -96,6 +97,7 @@ namespace RunTests
                 {
                     if (e.Data != null)
                     {
+                        Console.Error.WriteLine(e.Data); // TODO: remove
                         errorLines.Add(e.Data);
                     }
                 };
