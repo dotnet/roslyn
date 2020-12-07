@@ -29,6 +29,16 @@ namespace Microsoft.CodeAnalysis
         internal const string GlobalKey = "is_global";
 
         /// <summary>
+        /// Key that indicates the precedence of this config when <see cref="IsGlobal"/> is true
+        /// </summary>
+        internal const string GlobalLevelKey = "global_level";
+
+        /// <summary>
+        /// Filename that indicates this file is a user provided global config
+        /// </summary>
+        internal const string UserGlobalConfigName = ".globalconfig";
+
+        /// <summary>
         /// A set of keys that are reserved for special interpretation for the editorconfig specification.
         /// All values corresponding to reserved keys in a (key,value) property pair are always lowercased
         /// during parsing.
@@ -86,7 +96,43 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets whether this editorconfig is a global editorconfig.
         /// </summary>
-        internal bool IsGlobal => GlobalSection.Properties.ContainsKey(GlobalKey);
+        internal bool IsGlobal => IsGlobalFileName(this.PathToFile) || GlobalSection.Properties.ContainsKey(GlobalKey);
+
+        /// <summary>
+        /// Get the global level of this config, used to resolve conflicting keys
+        /// </summary>
+        /// <remarks>
+        /// A user can explicitly set the global level via the <see cref="GlobalLevelKey"/>.
+        /// When no global level is explicitly set, we use a heuristic:
+        ///  <list type="bullet">
+        ///     <item><description>
+        ///     Any file matching the <see cref="UserGlobalConfigName"/> is determined to be a user supplied global config and gets a level of 100
+        ///     </description></item>
+        ///     <item><description>
+        ///     Any other file gets a default level of 0
+        ///     </description></item>
+        ///  </list>
+        ///  
+        /// This value is unsued when <see cref="IsGlobal"/> is <c>false</c>;
+        /// </remarks>
+        internal int GlobalLevel
+        {
+            get
+            {
+                if (GlobalSection.Properties.TryGetValue(GlobalLevelKey, out string? val) && int.TryParse(val, out int level))
+                {
+                    return level;
+                }
+                else if (IsGlobalFileName(this.PathToFile))
+                {
+                    return 100;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
 
         private AnalyzerConfig(
             Section globalSection,
@@ -217,6 +263,8 @@ namespace Microsoft.CodeAnalysis
 
             return false;
         }
+
+        private static bool IsGlobalFileName(string fileName) => Path.GetFileName(fileName).Equals(UserGlobalConfigName, StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// Represents a named section of the editorconfig file, which consists of a name followed by a set
