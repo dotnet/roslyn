@@ -142,7 +142,9 @@ namespace Analyzer.Utilities
             public override Node Next { get; }
         }
 
+#pragma warning disable CA1708 // Identifiers should differ by more than case
         private sealed class AvlNodeHead : AvlNode
+#pragma warning restore CA1708 // Identifiers should differ by more than case
         {
             public Node next;
 

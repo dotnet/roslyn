@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             private ImmutableDictionary<INamedTypeSymbol, ImmutableArray<IFieldSymbol>> _supportedDescriptorFieldsMap;
 
-            public ReportDiagnosticCompilationAnalyzer(ImmutableHashSet<INamedTypeSymbol> contextTypes, INamedTypeSymbol diagnosticType, INamedTypeSymbol diagnosticDescriptorType, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+            protected ReportDiagnosticCompilationAnalyzer(ImmutableHashSet<INamedTypeSymbol> contextTypes, INamedTypeSymbol diagnosticType, INamedTypeSymbol diagnosticDescriptorType, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
                 : base(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
             {
                 _contextTypes = contextTypes;
