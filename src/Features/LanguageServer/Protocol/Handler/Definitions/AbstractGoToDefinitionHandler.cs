@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -60,7 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // No definition found - see if we can get metadata as source but that's only applicable for C#\VB.
                 var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
-                if (symbol != null && symbol.Locations != null && !symbol.Locations.IsEmpty && symbol.Locations.First().IsInMetadata)
+                if (symbol != null && !symbol.Locations.IsEmpty && symbol.Locations.First().IsInMetadata)
                 {
                     if (!typeOnly || symbol is ITypeSymbol)
                     {

@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -203,7 +202,8 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 return null;
             }
 
-            var expression = syntaxFacts.GetExpressionOfArgument(argsArgument);
+            Debug.Assert(syntaxFacts.IsArgument(argsArgument));
+            var expression = syntaxFacts.GetExpressionOfArgument(argsArgument)!;
             return semanticModel.GetTypeInfo(expression).ConvertedType;
         }
 

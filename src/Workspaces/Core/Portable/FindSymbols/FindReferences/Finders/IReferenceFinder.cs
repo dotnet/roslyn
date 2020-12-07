@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Implementations of this method must be thread-safe.
         /// </summary>
         Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects,
+            ISymbol symbol, Solution solution, IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         /// <summary>
@@ -44,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Implementations of this method must be thread-safe.
         /// </summary>
         Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken);
+            ISymbol symbol, Solution solution, IImmutableSet<Project>? projects, CancellationToken cancellationToken);
 
         /// <summary>
         /// Called by the find references search engine to determine which documents in the supplied
@@ -59,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Implementations of this method must be thread-safe.
         /// </summary>
         Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            ISymbol symbol, Project project, IImmutableSet<Document> documents,
+            ISymbol symbol, Project project, IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         /// <summary>
@@ -69,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// 
         /// Implementations of this method must be thread-safe.
         /// </summary>
-        Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ISymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
     }

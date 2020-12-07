@@ -1508,11 +1508,11 @@ String
         End Function
 
         Private Shared Function IsBeforeFieldInit(typeSymbol As NamedTypeSymbol) As Boolean
-            Return (DirectCast(typeSymbol, Microsoft.Cci.ITypeDefinition)).IsBeforeFieldInit
+            Return (DirectCast(typeSymbol.GetCciAdapter(), Microsoft.Cci.ITypeDefinition)).IsBeforeFieldInit
         End Function
 
         Private Shared Function IsStatic(symbol As Symbol) As Boolean
-            Return (DirectCast(symbol, Microsoft.Cci.IFieldDefinition)).IsStatic
+            Return (DirectCast(symbol.GetCciAdapter(), Microsoft.Cci.IFieldDefinition)).IsStatic
         End Function
 
         Private Shared Sub CompileAndCheckInitializers(sources As Xml.Linq.XElement, expectedInstanceInitializers As IEnumerable(Of ExpectedInitializer), expectedStaticInitializers As IEnumerable(Of ExpectedInitializer))

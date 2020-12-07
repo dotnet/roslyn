@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -66,12 +68,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         internal static async Task<bool> IsOverrideAsync(Solution solution, ISymbol member, ISymbol symbol, CancellationToken cancellationToken)
         {
-            for (var current = member; current != null; current = current.OverriddenMember())
+            for (var current = member; current != null; current = current.GetOverriddenMember())
             {
-                if (await OriginalSymbolsMatchAsync(solution, current.OverriddenMember(), symbol.OriginalDefinition, cancellationToken).ConfigureAwait(false))
-                {
+                if (await OriginalSymbolsMatchAsync(solution, current.GetOverriddenMember(), symbol.OriginalDefinition, cancellationToken).ConfigureAwait(false))
                     return true;
-                }
             }
 
             return false;

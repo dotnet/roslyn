@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,6 +16,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.EditorConfig;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -375,6 +374,14 @@ namespace Microsoft.CodeAnalysis
 
             (_optionService as IWorkspaceOptionService)?.OnWorkspaceDisposed(this);
             _optionService.UnregisterWorkspace(this);
+
+            // Directly dispose IRemoteHostClientProvider if necessary. This is a test hook to ensure RemoteWorkspace
+            // gets disposed in unit tests as soon as TestWorkspace gets disposed. This would be superseded by direct
+            // support for IDisposable in https://github.com/dotnet/roslyn/pull/47951.
+            if (Services.GetService<IRemoteHostClientProvider>() is IDisposable disposableService)
+            {
+                disposableService.Dispose();
+            }
         }
 
         #region Host API
@@ -482,7 +489,7 @@ namespace Microsoft.CodeAnalysis
                 var oldSolution = this.CurrentSolution;
                 var newSolution = oldSolution.RemoveProject(projectId).AddProject(reloadedProjectInfo);
 
-                newSolution = this.AdjustReloadedProject(oldSolution.GetProject(projectId), newSolution.GetProject(projectId)).Solution;
+                newSolution = this.AdjustReloadedProject(oldSolution.GetRequiredProject(projectId), newSolution.GetRequiredProject(projectId)).Solution;
                 newSolution = this.SetCurrentSolution(newSolution);
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectReloaded, oldSolution, newSolution, projectId);
@@ -1154,8 +1161,8 @@ namespace Microsoft.CodeAnalysis
         /// Returns <see langword="true"/> if a reference to referencedProject can be added to
         /// referencingProject.  <see langword="false"/> otherwise.
         /// </summary>
-        internal virtual Task<bool> CanAddProjectReferenceAsync(ProjectId referencingProject, ProjectId referencedProject, CancellationToken cancellationToken)
-            => SpecializedTasks.False;
+        internal virtual bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
+            => false;
 
         /// <summary>
         /// Apply changes made to a solution back to the workspace.
@@ -1663,7 +1670,11 @@ namespace Microsoft.CodeAnalysis
                 doc.Name,
                 doc.Folders,
                 sourceDoc != null ? sourceDoc.SourceCodeKind : SourceCodeKind.Regular,
-                filePath: doc.FilePath);
+                loader: null,
+                filePath: doc.FilePath,
+                isGenerated: false,
+                designTimeOnly: false,
+                doc.Services);
         }
 
         /// <summary>

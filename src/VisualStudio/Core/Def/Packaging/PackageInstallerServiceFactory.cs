@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -173,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 // These exceptions can happen when the nuget.config file is broken.
             }
-            catch (ArgumentException ae) when (FatalError.ReportWithoutCrash(ae))
+            catch (ArgumentException ae) when (FatalError.ReportAndCatch(ae))
             {
                 // This exception can happen when the nuget.config file is broken, e.g. invalid credentials.
                 // https://github.com/dotnet/roslyn/issues/40857
@@ -326,7 +324,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 // fall through.
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
                 dte.StatusBar.Text = string.Format(ServicesVSResources.Package_install_failed_colon_0, e.Message);
 
@@ -366,7 +364,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 // fall through.
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
                 dte.StatusBar.Text = string.Format(ServicesVSResources.Package_uninstall_failed_colon_0, e.Message);
 
@@ -392,7 +390,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var metadata = installedPackages.FirstOrDefault(m => m.Id == packageName);
                 return metadata?.VersionString;
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
             }
 
@@ -451,10 +449,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             ThisCanBeCalledOnAnyThread();
 
-            var serviceContainer = (IBrokeredServiceContainer)await _asyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
+            var serviceContainer = (IBrokeredServiceContainer?)await _asyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
             var serviceBroker = serviceContainer?.GetFullAccessServiceBroker();
             if (serviceBroker == null)
                 return;
+
+            // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
+            await TaskScheduler.Default;
 
             var nugetService = await serviceBroker.GetProxyAsync<INuGetProjectService>(NuGetServices.NuGetProjectServiceV1, cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -551,7 +552,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 return new ProjectState(installedPackages.ToImmutableDictionary());
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 return null;
             }

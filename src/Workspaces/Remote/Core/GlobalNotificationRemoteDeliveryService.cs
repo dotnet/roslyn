@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -96,7 +94,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             _ = await client.TryInvokeAsync<IRemoteGlobalNotificationDeliveryService>(
                 (service, cancellationToken) => service.OnGlobalOperationStartedAsync(cancellationToken),
-                callbackTarget: null,
                 _cancellationToken).ConfigureAwait(false);
 
             return GlobalNotificationState.Started;
@@ -128,7 +125,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             _ = await client.TryInvokeAsync<IRemoteGlobalNotificationDeliveryService>(
                 (service, cancellationToken) => service.OnGlobalOperationStoppedAsync(e.Operations, e.Cancelled, cancellationToken),
-                callbackTarget: null,
                 _cancellationToken).ConfigureAwait(false);
 
             // Mark that we're stopped now.

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -92,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private async Task UpdateSourceInBackgroundAsync(string sourceName, CancellationToken cancellationToken)
         {
             var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
-            await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory, cancellationToken).ConfigureAwait(false);
+            await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory, _logService, cancellationToken).ConfigureAwait(false);
         }
 
         public async ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(

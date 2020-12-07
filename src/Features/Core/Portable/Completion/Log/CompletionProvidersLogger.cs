@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Completion.Log
@@ -35,6 +37,8 @@ namespace Microsoft.CodeAnalysis.Completion.Log
             ExtensionMethodCompletionCreateItemsTicks,
             CommitsOfExtensionMethodImportCompletionItem,
             ExtensionMethodCompletionPartialResultCount,
+            ExtensionMethodCompletionTimeoutCount,
+            CommitUsingSemicolonToAddParenthesis,
         }
 
         internal static void LogTypeImportCompletionTicksDataPoint(int count)
@@ -78,6 +82,12 @@ namespace Microsoft.CodeAnalysis.Completion.Log
 
         internal static void LogExtensionMethodCompletionPartialResultCount() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionPartialResultCount);
+
+        internal static void LogExtensionMethodCompletionTimeoutCount() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.ExtensionMethodCompletionTimeoutCount);
+
+        internal static void LogCommitUsingSemicolonToAddParenthesis() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.CommitUsingSemicolonToAddParenthesis);
 
         internal static void ReportTelemetry()
         {

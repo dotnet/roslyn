@@ -149,5 +149,22 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                 Assert.Equal(ReportDiagnostic.Warn, compilerInvocation.Compilation.Options.SpecificDiagnosticOptions("CA1001"))
             End Using
         End Function
+
+        <Fact>
+        Public Async Function TestSourceGeneratorOutputIncludedInCompilation() As Task
+            Dim sourceGeneratorLocation = GetType(TestSourceGenerator.HelloWorldGenerator).Assembly.Location
+
+            Dim compilerInvocation = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
+                    {
+                        ""tool"": ""csc"",
+                        ""arguments"": ""/noconfig /analyzer:\""" + sourceGeneratorLocation.Replace("\", "\\") + "\""  /out:Output.dll"",
+                        ""projectFilePath"": ""F:\\Project.csproj"",
+                        ""sourceRootPath"": ""F:\\""
+                    }")
+
+            Dim generatedTree = Assert.Single(compilerInvocation.Compilation.SyntaxTrees)
+
+            Assert.EndsWith(TestSourceGenerator.HelloWorldGenerator.GeneratedClassName + ".cs", generatedTree.FilePath)
+        End Function
     End Class
 End Namespace

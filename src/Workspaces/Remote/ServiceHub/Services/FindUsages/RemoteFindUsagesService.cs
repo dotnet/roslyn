@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -31,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public ValueTask FindReferencesAsync(
             PinnedSolutionInfo solutionInfo,
+            RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
@@ -48,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     if (symbol == null)
                         return;
 
-                    var context = new RemoteFindUsageContext(_callback, cancellationToken);
+                    var context = new RemoteFindUsageContext(_callback, callbackId, cancellationToken);
                     await AbstractFindUsagesService.FindReferencesAsync(
                         context, symbol, project, options).ConfigureAwait(false);
                 }
@@ -57,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public ValueTask FindImplementationsAsync(
             PinnedSolutionInfo solutionInfo,
+            RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             CancellationToken cancellationToken)
         {
@@ -72,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     if (symbol == null)
                         return;
 
-                    var context = new RemoteFindUsageContext(_callback, cancellationToken);
+                    var context = new RemoteFindUsageContext(_callback, callbackId, cancellationToken);
                     await AbstractFindUsagesService.FindImplementationsAsync(
                         symbol, project, context).ConfigureAwait(false);
                 }
@@ -82,23 +86,25 @@ namespace Microsoft.CodeAnalysis.Remote
         private sealed class RemoteFindUsageContext : IFindUsagesContext, IStreamingProgressTracker
         {
             private readonly RemoteCallback<IRemoteFindUsagesService.ICallback> _callback;
-            private readonly Dictionary<DefinitionItem, int> _definitionItemToId = new Dictionary<DefinitionItem, int>();
+            private readonly RemoteServiceCallbackId _callbackId;
+            private readonly Dictionary<DefinitionItem, int> _definitionItemToId = new();
 
             public CancellationToken CancellationToken { get; }
 
-            public RemoteFindUsageContext(RemoteCallback<IRemoteFindUsagesService.ICallback> callback, CancellationToken cancellationToken)
+            public RemoteFindUsageContext(RemoteCallback<IRemoteFindUsagesService.ICallback> callback, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
             {
                 _callback = callback;
+                _callbackId = callbackId;
                 CancellationToken = cancellationToken;
             }
 
             #region IStreamingProgressTracker
 
             public ValueTask AddItemsAsync(int count)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.AddItemsAsync(count), CancellationToken);
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.AddItemsAsync(_callbackId, count), CancellationToken);
 
             public ValueTask ItemCompletedAsync()
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.ItemCompletedAsync(), CancellationToken);
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.ItemCompletedAsync(_callbackId), CancellationToken);
 
             #endregion
 
@@ -107,20 +113,20 @@ namespace Microsoft.CodeAnalysis.Remote
             public IStreamingProgressTracker ProgressTracker => this;
 
             public ValueTask ReportMessageAsync(string message)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportMessageAsync(message), CancellationToken);
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportMessageAsync(_callbackId, message), CancellationToken);
 
             [Obsolete]
             public ValueTask ReportProgressAsync(int current, int maximum)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportProgressAsync(current, maximum), CancellationToken);
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportProgressAsync(_callbackId, current, maximum), CancellationToken);
 
             public ValueTask SetSearchTitleAsync(string title)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.SetSearchTitleAsync(title), CancellationToken);
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.SetSearchTitleAsync(_callbackId, title), CancellationToken);
 
             public ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
             {
                 var id = GetOrAddDefinitionItemId(definition);
                 var dehydratedDefinition = SerializableDefinitionItem.Dehydrate(id, definition);
-                return _callback.InvokeAsync((callback, cancellationToken) => callback.OnDefinitionFoundAsync(dehydratedDefinition), CancellationToken);
+                return _callback.InvokeAsync((callback, cancellationToken) => callback.OnDefinitionFoundAsync(_callbackId, dehydratedDefinition), CancellationToken);
             }
 
             private int GetOrAddDefinitionItemId(DefinitionItem item)
@@ -141,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var definitionItem = GetOrAddDefinitionItemId(reference.Definition);
                 var dehydratedReference = SerializableSourceReferenceItem.Dehydrate(definitionItem, reference);
-                return _callback.InvokeAsync((callback, cancellationToken) => callback.OnReferenceFoundAsync(dehydratedReference), CancellationToken);
+                return _callback.InvokeAsync((callback, cancellationToken) => callback.OnReferenceFoundAsync(_callbackId, dehydratedReference), CancellationToken);
             }
 
             #endregion

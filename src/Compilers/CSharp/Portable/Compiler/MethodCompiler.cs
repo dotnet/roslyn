@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -241,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     entryPoint = synthesizedEntryPoint;
                     if ((object)moduleBeingBuilt != null)
                     {
-                        moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedEntryPoint);
+                        moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedEntryPoint.GetCciAdapter());
                     }
                 }
             }
@@ -365,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         CompileNamespace(symbol);
                     }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
@@ -411,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         CompileNamedType(symbol);
                     }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
@@ -604,7 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If this method has been successfully built, we emit it.
                     if (_moduleBeingBuiltOpt.GetMethodBody(method) != null)
                     {
-                        _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceTypeSymbol, method);
+                        _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceTypeSymbol, method.GetCciAdapter());
                     }
                 }
             }
@@ -652,8 +654,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_moduleBeingBuiltOpt != null);
 
             var compilationState = new TypeCompilationState(null, _compilation, _moduleBeingBuiltOpt);
-            foreach (MethodSymbol method in privateImplClass.GetMethods(new EmitContext(_moduleBeingBuiltOpt, null, diagnostics.DiagnosticBag, metadataOnly: false, includePrivateMembers: true)))
+            foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(new EmitContext(_moduleBeingBuiltOpt, null, diagnostics.DiagnosticBag, metadataOnly: false, includePrivateMembers: true)))
             {
+                var method = (MethodSymbol)definition.GetInternalSymbol();
                 Debug.Assert(method.SynthesizesLoweredBoundBody);
                 method.GenerateMethodBody(compilationState, diagnostics);
             }
@@ -811,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     synthesizedExplicitImpl.GenerateMethodBody(compilationState, discardedDiagnostics);
                     Debug.Assert(!discardedDiagnostics.HasAnyErrors());
                     discardedDiagnostics.DiagnosticBag.Clear();
-                    _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceTypeSymbol, synthesizedExplicitImpl);
+                    _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceTypeSymbol, synthesizedExplicitImpl.GetCciAdapter());
                 }
 
                 _diagnostics.AddRangeAndFree(discardedDiagnostics);
@@ -832,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _diagnostics.AddDependencies(discardedDiagnostics);
                 discardedDiagnostics.Free();
 
-                _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceProperty.ContainingType, synthesizedAccessor);
+                _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceProperty.ContainingType, synthesizedAccessor.GetCciAdapter());
             }
         }
 
@@ -1504,7 +1507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool isAsyncMainMoveNext = entryPointOpt?.UserMain.Equals(kickoffMethod) == true;
 
                     moveNextBodyDebugInfoOpt = new AsyncMoveNextBodyDebugInfo(
-                        kickoffMethod,
+                        kickoffMethod.GetCciAdapter(),
                         catchHandlerOffset: (kickoffMethod.ReturnsVoid || isAsyncMainMoveNext) ? asyncCatchHandlerOffset : -1,
                         asyncYieldPoints,
                         asyncResumePoints);
@@ -1515,7 +1518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if ((object)kickoffMethod != null)
                     {
-                        moveNextBodyDebugInfoOpt = new IteratorMoveNextBodyDebugInfo(kickoffMethod);
+                        moveNextBodyDebugInfoOpt = new IteratorMoveNextBodyDebugInfo(kickoffMethod.GetCciAdapter());
                     }
                 }
 
@@ -1567,7 +1570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new MethodBody(
                     builder.RealizedIL,
                     builder.MaxStack,
-                    method.PartialDefinitionPart ?? method,
+                    (method.PartialDefinitionPart ?? method).GetCciAdapter(),
                     variableSlotAllocatorOpt?.MethodId ?? new DebugId(methodOrdinal, moduleBuilder.CurrentGenerationOrdinal),
                     localVariables,
                     builder.RealizedSequencePoints,
@@ -1610,7 +1613,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var hoistedVariables = ArrayBuilder<EncHoistedLocalInfo>.GetInstance();
             var awaiters = ArrayBuilder<Cci.ITypeReference>.GetInstance();
 
-            foreach (StateMachineFieldSymbol field in fieldDefs)
+            foreach (StateMachineFieldSymbol field in
+                     fieldDefs
+#if DEBUG
+                     .Select(f => ((FieldSymbolAdapter)f).AdaptedFieldSymbol)
+#endif
+                     )
             {
                 int index = field.SlotIndex;
 
@@ -1774,7 +1782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var property = sourceMethod.AssociatedSymbol as SourcePropertySymbolBase;
-                    if ((object)property != null && property.IsAutoProperty)
+                    if ((object)property != null && property.IsAutoPropertyWithGetAccessor)
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
                     }
@@ -2035,6 +2043,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded: false,
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: ImmutableArray<int>.Empty,
+                defaultArguments: BitVector.Empty,
                 resultKind: resultKind,
                 binderOpt: null,
                 type: baseConstructor.ReturnType,
@@ -2079,6 +2088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded: false,
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: default,
+                defaultArguments: default,
                 resultKind: LookupResultKind.Viable,
                 binderOpt: null,
                 type: baseConstructor.ReturnType,

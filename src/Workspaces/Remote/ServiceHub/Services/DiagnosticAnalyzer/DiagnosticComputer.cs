@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -75,6 +73,12 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             if (analyzers.IsEmpty)
             {
                 return SerializableDiagnosticAnalysisResults.Empty;
+            }
+
+            if (_document == null && analyzers.Length < compilationWithAnalyzers.Analyzers.Length)
+            {
+                // PERF: Generate a new CompilationWithAnalyzers with trimmed analyzers for non-document analysis case.
+                compilationWithAnalyzers = compilationWithAnalyzers.Compilation.WithAnalyzers(analyzers, compilationWithAnalyzers.AnalysisOptions);
             }
 
             var cacheService = _project.Solution.Workspace.Services.GetRequiredService<IProjectCacheService>();

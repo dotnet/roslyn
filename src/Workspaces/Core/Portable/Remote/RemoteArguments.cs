@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     throw new InvalidOperationException(
                         $"We should always be able to resolve a symbol back on the host side:\r\n{project.Name}\r\n{SymbolKeyData}\r\n{failureReason}");
                 }
-                catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                 {
                     return null;
                 }

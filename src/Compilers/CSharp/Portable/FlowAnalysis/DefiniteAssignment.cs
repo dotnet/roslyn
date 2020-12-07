@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #if DEBUG
 // We use a struct rather than a class to represent the state for efficiency
 // for data flow analysis, with 32 bits of data inline. Merely copying the state
@@ -46,6 +48,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// unused variables.
         /// </summary>
         private readonly PooledHashSet<LocalSymbol> _usedVariables = PooledHashSet<LocalSymbol>.GetInstance();
+
+#nullable enable
+        /// <summary>
+        /// Parameters of record primary constructors that were read anywhere.
+        /// </summary>
+        private PooledHashSet<ParameterSymbol>? _readParameters;
+#nullable disable
 
         /// <summary>
         /// Variables that were used anywhere, in the sense required to suppress warnings about
@@ -184,6 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void Free()
         {
             _usedVariables.Free();
+            _readParameters?.Free();
             _usedLocalFunctions.Free();
             _writtenVariables.Free();
             _capturedVariables.Free();
@@ -504,6 +514,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 diagnostics.AddRange(this.Diagnostics);
+
+                if (CurrentSymbol is SynthesizedRecordConstructor)
+                {
+                    foreach (ParameterSymbol parameter in MethodParameters)
+                    {
+                        if (_readParameters?.Contains(parameter) != true)
+                        {
+                            diagnostics.Add(ErrorCode.WRN_UnreadRecordParameter, parameter.Locations.FirstOrNone(), parameter.Name);
+                        }
+                    }
+                }
             }
         }
 
@@ -548,6 +569,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Tracking reads/writes of variables for warnings
 
+        private void NoteRecordParameterReadIfNeeded(Symbol symbol)
+        {
+            if (symbol is ParameterSymbol { ContainingSymbol: SynthesizedRecordConstructor } parameter)
+            {
+                _readParameters ??= PooledHashSet<ParameterSymbol>.GetInstance();
+                _readParameters.Add(parameter);
+            }
+        }
         protected virtual void NoteRead(
             Symbol variable,
             ParameterSymbol rangeVariableUnderlyingParameter = null)
@@ -557,6 +586,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _usedVariables.Add(local);
             }
+
+            NoteRecordParameterReadIfNeeded(variable);
 
             var localFunction = variable as LocalFunctionSymbol;
             if ((object)localFunction != null)
@@ -699,7 +730,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (value.ConstantValue != null) return false;
+            // In C# 9 and before, interpolated string values were never constant, so field initializers
+            // that used them were always considered used. We now consider interpolated strings that are
+            // made up of only constant expressions to be constant values, but for backcompat we consider
+            // the writes to be uses anyway.
+            if (value is { ConstantValue: not null, Kind: not BoundKind.InterpolatedString }) return false;
             switch (value.Kind)
             {
                 case BoundKind.Conversion:
@@ -1876,6 +1911,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckAssigned(node.ParameterSymbol, node.Syntax);
             }
+            else
+            {
+                NoteRecordParameterReadIfNeeded(node.ParameterSymbol);
+            }
 
             return null;
         }
@@ -1979,7 +2018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MarkFieldsUsed(type);
             }
         }
-#nullable restore
+#nullable disable
 
         protected void CheckAssigned(BoundExpression expr, SyntaxNode node)
         {
@@ -2056,7 +2095,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
             }
         }
-#nullable restore
+#nullable disable
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
         {

@@ -9,6 +9,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryDiscardDesignation\RemoveUnnecessaryDiscardDesignationTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AddAccessibilityModifiersTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\AddBracesFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\AddBracesTests.cs" />
@@ -28,6 +29,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersCompilerErrorTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveConfusingSuppression\RemoveConfusingSuppressionTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\RemoveRedundantEqualityTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpdateLegacySuppressions\UpdateLegacySuppressionsTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\RemoveUnnecessaryAttributeSuppressionsTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\RemoveUnnecessaryPatternParenthesesTests.cs" />

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -2117,6 +2119,7 @@ public class C
             Assert.Equal(Accessibility.NotApplicable, Generator.GetAccessibility(Generator.WithAccessibility(Generator.LocalDeclarationStatement(Generator.IdentifierName("t"), "loc"), Accessibility.Private)));
             Assert.Equal(Accessibility.NotApplicable, Generator.GetAccessibility(Generator.WithAccessibility(Generator.Attribute("a"), Accessibility.Private)));
             Assert.Equal(Accessibility.NotApplicable, Generator.GetAccessibility(Generator.WithAccessibility(SyntaxFactory.TypeParameter("tp"), Accessibility.Private)));
+            Assert.Equal(Accessibility.Private, Generator.GetAccessibility(Generator.WithAccessibility(SyntaxFactory.AccessorDeclaration(SyntaxKind.InitAccessorDeclaration), Accessibility.Private)));
         }
 
         [Fact]
@@ -2985,6 +2988,60 @@ public class C
 @"public class C
 {
     public static int X = e, Y, Z;
+}");
+        }
+
+        [Fact, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]
+        public void TestInsertMembersOnRecord_SemiColon()
+        {
+            var comp = Compile(
+@"public record C;
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
+@"public record C
+{
+    T A;
+}");
+        }
+
+        [Fact, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]
+        public void TestInsertMembersOnRecord_Braces()
+        {
+            var comp = Compile(
+@"public record C { }
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
+@"public record C
+{
+    T A;
+}");
+        }
+
+        [Fact, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]
+        public void TestInsertMembersOnRecord_BracesAndSemiColon()
+        {
+            var comp = Compile(
+@"public record C { };
+");
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
+@"public record C
+{
+    T A;
 }");
         }
 

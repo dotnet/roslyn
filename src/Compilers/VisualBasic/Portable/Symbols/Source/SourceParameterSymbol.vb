@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If Me.ContainingSymbol.IsImplicitlyDeclared Then
 
-                    If (TryCast(Me.ContainingSymbol, MethodSymbol)?.MethodKind = MethodKind.DelegateInvoke).GetValueOrDefault() AndAlso
+                    If If(TryCast(Me.ContainingSymbol, MethodSymbol)?.MethodKind = MethodKind.DelegateInvoke, False) AndAlso
                        Not Me.ContainingType.AssociatedSymbol?.IsImplicitlyDeclared Then
                         Return False
                     End If

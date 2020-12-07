@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         where TEmbeddedTypesManager : EmbeddedTypesManager<TPEModuleBuilder, TModuleCompilationState, TEmbeddedTypesManager, TSyntaxNode, TAttributeData, TSymbol, TAssemblySymbol, TNamedTypeSymbol, TFieldSymbol, TMethodSymbol, TEventSymbol, TPropertySymbol, TParameterSymbol, TTypeParameterSymbol, TEmbeddedType, TEmbeddedField, TEmbeddedMethod, TEmbeddedEvent, TEmbeddedProperty, TEmbeddedParameter, TEmbeddedTypeParameter>
         where TSyntaxNode : SyntaxNode
         where TAttributeData : AttributeData, Cci.ICustomAttribute
-        where TAssemblySymbol : class, TSymbol
+        where TAssemblySymbol : class
         where TNamedTypeSymbol : class, TSymbol, Cci.INamespaceTypeReference
         where TFieldSymbol : class, TSymbol, Cci.IFieldReference
         where TMethodSymbol : class, TSymbol, Cci.IMethodReference

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             ITypeParameterSymbol symbol,
             Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -47,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             ITypeParameterSymbol symbol,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : fullName;
         }
 
-        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ITypeParameterSymbol symbol,
             Document document,
             SemanticModel semanticModel,

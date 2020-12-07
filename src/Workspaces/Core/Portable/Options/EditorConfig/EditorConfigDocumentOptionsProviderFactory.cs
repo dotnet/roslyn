@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -47,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
                     {
                         return editorConfigPersistence.TryGetOption(_options.AsNullable(), option.Option.Type, out value);
                     }
-                    catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                    catch (Exception e) when (FatalError.ReportAndCatch(e))
                     {
                         value = null;
                         return false;

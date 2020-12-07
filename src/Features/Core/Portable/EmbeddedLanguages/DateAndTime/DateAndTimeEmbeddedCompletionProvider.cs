@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 {
-    internal partial class DateAndTimeEmbeddedCompletionProvider : CompletionProvider
+    internal partial class DateAndTimeEmbeddedCompletionProvider : LSPCompletionProvider
     {
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
@@ -36,6 +34,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
         public DateAndTimeEmbeddedCompletionProvider(DateAndTimeEmbeddedLanguageFeatures language)
             => _language = language;
 
+        internal override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('"', ':');
+
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
             if (trigger.Kind == CompletionTriggerKind.Invoke ||
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 
             if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
-                if (trigger.Character == '"' || trigger.Character == ':')
+                if (TriggerCharacters.Contains(trigger.Character))
                 {
                     return true;
                 }

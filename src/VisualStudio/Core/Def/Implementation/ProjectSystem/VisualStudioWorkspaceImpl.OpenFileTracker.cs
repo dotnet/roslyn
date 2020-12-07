@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -112,8 +110,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public static async Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider)
             {
-                var runningDocumentTable = (IVsRunningDocumentTable)await asyncServiceProvider.GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
-                var componentModel = (IComponentModel)await asyncServiceProvider.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
+                var runningDocumentTable = (IVsRunningDocumentTable?)await asyncServiceProvider.GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
+                Assumes.Present(runningDocumentTable);
+
+                var componentModel = (IComponentModel?)await asyncServiceProvider.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
+                Assumes.Present(componentModel);
 
                 return new OpenFileTracker(workspace, runningDocumentTable, componentModel);
             }
@@ -188,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 void WatchHierarchy(IVsHierarchy hierarchyToWatch)
                 {
-                    _watchedHierarchiesForDocumentMoniker.Add(moniker, _hierarchyEventSinkCache.GetOrCreate(hierarchyToWatch, h => new HierarchyEventSink(h, this)));
+                    _watchedHierarchiesForDocumentMoniker.Add(moniker, _hierarchyEventSinkCache.GetOrCreate(hierarchyToWatch, static (h, self) => new HierarchyEventSink(h, self), this));
                 }
 
                 // Take a snapshot of the immutable data structure here to avoid mutation underneath us
@@ -272,7 +273,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
 
                     var activeProjectId = GetActiveContextProjectIdAndWatchHierarchies(moniker, documentIds.Select(d => d.ProjectId), hierarchy);
-                    w.OnDocumentContextUpdated(documentIds.FirstOrDefault(d => d.ProjectId == activeProjectId));
+                    w.OnDocumentContextUpdated(documentIds.First(d => d.ProjectId == activeProjectId));
                 });
             }
 

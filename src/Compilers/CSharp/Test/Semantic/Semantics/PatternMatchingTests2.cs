@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -2675,15 +2677,9 @@ public class C {
                 // (4,22): error CS8116: It is not legal to use nullable type 'string?' in a pattern; use the underlying type 'string' instead.
                 //         var t = o is string? { };
                 Diagnostic(ErrorCode.ERR_PatternNullableType, "string?").WithArguments("string").WithLocation(4, 22),
-                // (7,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                // (7,23): error CS8116: It is not legal to use nullable type 'string?' in a pattern; use the underlying type 'string' instead.
                 //         var t = o is (string? { });
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(string? { })").WithArguments("object", "2").WithLocation(7, 22),
-                // (7,29): error CS1003: Syntax error, ',' expected
-                //         var t = o is (string? { });
-                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(",", "?").WithLocation(7, 29),
-                // (7,31): error CS1003: Syntax error, ',' expected
-                //         var t = o is (string? { });
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(7, 31),
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "string?").WithArguments("string").WithLocation(7, 23),
                 // (10,22): error CS8650: It is not legal to use nullable reference type 'string?' in an is-type expression; use the underlying type 'string' instead.
                 //         var t = o is string?;
                 Diagnostic(ErrorCode.ERR_IsNullableType, "string?").WithArguments("string").WithLocation(10, 22),
@@ -2976,7 +2972,32 @@ class C
             CreateCompilation(source).VerifyDiagnostics(
                 // (6,13): error CS1525: Invalid expression term 'switch'
                 //         _ = switch { this.F(1) => 1 };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "switch").WithArguments("switch").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "switch").WithArguments("switch").WithLocation(6, 13),
+                // (6,13): warning CS8848: Operator 'switch' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         _ = switch { this.F(1) => 1 };
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "switch").WithArguments("switch").WithLocation(6, 13)
+                );
+        }
+
+        [Fact, WorkItem(48112, "https://github.com/dotnet/roslyn/issues/48112")]
+        public void NullableTypePattern()
+        {
+            var source = @"
+class C
+{
+    void F(object o)
+    {
+        _ = o switch { (int?) => 1, _ => 0 };
+        _ = o switch { int? => 1, _ => 0 };
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,25): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                //         _ = o switch { (int?) => 1, _ => 0 };
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(6, 25),
+                // (7,24): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                //         _ = o switch { int? => 1, _ => 0 };
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(7, 24)
                 );
         }
     }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -50,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Classification
                 var classifiedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationService, SerializableClassifiedSpans>(
                    document.Project.Solution,
                    (service, solutionInfo, cancellationToken) => service.GetSemanticClassificationsAsync(solutionInfo, document.Id, textSpan, cancellationToken),
-                   callbackTarget: null,
                    cancellationToken).ConfigureAwait(false);
 
                 // if the remote call fails do nothing (error has already been reported)

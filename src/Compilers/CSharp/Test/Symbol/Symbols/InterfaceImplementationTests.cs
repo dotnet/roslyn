@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -933,9 +935,9 @@ public class Derived : Base, Interface
             Assert.Same(baseClassPropertyGetter, derivedClass.FindImplementationForInterfaceMember(interfacePropertyGetter));
             Assert.Same(baseClassPropertySetter, derivedClass.FindImplementationForInterfaceMember(interfacePropertySetter));
 
-            Assert.True(((Cci.IMethodDefinition)baseClassMethod).IsVirtual);
-            Assert.True(((Cci.IMethodDefinition)baseClassPropertyGetter).IsVirtual);
-            Assert.True(((Cci.IMethodDefinition)baseClassPropertySetter).IsVirtual);
+            Assert.True(((Cci.IMethodDefinition)baseClassMethod.GetCciAdapter()).IsVirtual);
+            Assert.True(((Cci.IMethodDefinition)baseClassPropertyGetter.GetCciAdapter()).IsVirtual);
+            Assert.True(((Cci.IMethodDefinition)baseClassPropertySetter.GetCciAdapter()).IsVirtual);
 
             Assert.False(derivedClass.GetSynthesizedExplicitImplementations(CancellationToken.None).Any());
         }
@@ -1002,9 +1004,9 @@ public class Derived : Base, Interface
             Assert.Same(baseClassPropertyGetter, derivedClass.FindImplementationForInterfaceMember(interfacePropertyGetter));
             Assert.Same(baseClassPropertySetter, derivedClass.FindImplementationForInterfaceMember(interfacePropertySetter));
 
-            Assert.False(((Cci.IMethodDefinition)baseClassMethod).IsVirtual);
-            Assert.False(((Cci.IMethodDefinition)baseClassPropertyGetter).IsVirtual);
-            Assert.False(((Cci.IMethodDefinition)baseClassPropertySetter).IsVirtual);
+            Assert.False(((Cci.IMethodDefinition)baseClassMethod.GetCciAdapter()).IsVirtual);
+            Assert.False(((Cci.IMethodDefinition)baseClassPropertyGetter.GetCciAdapter()).IsVirtual);
+            Assert.False(((Cci.IMethodDefinition)baseClassPropertySetter.GetCciAdapter()).IsVirtual);
 
             // GetSynthesizedExplicitImplementations doesn't guarantee order, so sort to make the asserts easier to write.
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Linq;
@@ -40,13 +38,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
-            if (!(completionItem.Data is CompletionResolveData data))
+            CompletionResolveData data;
+            if (completionItem.Data is JToken token)
             {
-                data = ((JToken)completionItem.Data).ToObject<CompletionResolveData>();
+                data = token.ToObject<CompletionResolveData>();
+            }
+            else
+            {
+                return completionItem;
             }
 
             var documentId = DocumentId.CreateFromSerialized(ProjectId.CreateFromSerialized(data.ProjectGuid), data.DocumentGuid);
-            var document = context.Solution.GetAdditionalDocument(documentId);
+            var document = context.Solution.GetDocument(documentId) ?? context.Solution.GetAdditionalDocument(documentId);
             if (document == null)
             {
                 return completionItem;

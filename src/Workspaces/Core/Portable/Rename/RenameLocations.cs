@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -85,7 +83,6 @@ namespace Microsoft.CodeAnalysis.Rename
                         var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableRenameLocations?>(
                             solution,
                             (service, solutionInfo, cancellationToken) => service.FindRenameLocationsAsync(solutionInfo, serializedSymbol, options, cancellationToken),
-                            callbackTarget: null,
                             cancellationToken).ConfigureAwait(false);
 
                         if (result.HasValue && result.Value != null)

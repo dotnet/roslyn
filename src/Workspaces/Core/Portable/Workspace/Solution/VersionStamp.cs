@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -169,25 +167,6 @@ namespace Microsoft.CodeAnalysis
 
         public static bool operator !=(VersionStamp left, VersionStamp right)
             => !left.Equals(right);
-
-        /// <summary>
-        /// check whether given persisted version is re-usable
-        /// </summary>
-        internal static bool CanReusePersistedVersion(VersionStamp baseVersion, VersionStamp persistedVersion)
-        {
-            if (baseVersion == persistedVersion)
-            {
-                return true;
-            }
-
-            // there was a collision, we can't use these
-            if (baseVersion._localIncrement != 0 || persistedVersion._localIncrement != 0)
-            {
-                return false;
-            }
-
-            return baseVersion._utcLastModified == persistedVersion._utcLastModified;
-        }
 
         bool IObjectWritable.ShouldReuseInSerialization => true;
 

@@ -150,6 +150,7 @@
       <_Dependency Remove="System.ValueTuple"/>
       <_Dependency Remove="System.Security.AccessControl"/>
       <_Dependency Remove="System.Security.Principal.Windows"/>
+      <_Dependency Remove="System.Threading.AccessControl"/>
       <_Dependency Remove="System.Threading.Tasks.Dataflow"/>
       <_Dependency Remove="VSLangProj"/>
       <_Dependency Remove="VSLangProj2"/>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -279,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// langword="false"/>.
         /// </summary>
         /// <remarks>
-        /// In C# there is a distinction betwene passing in <see langword="null"/> for <paramref
+        /// In C# there is a distinction between passing in <see langword="null"/> for <paramref
         /// name="getAccessorStatements"/> or <paramref name="setAccessorStatements"/> versus
         /// passing in an empty list. <see langword="null"/> will produce an auto-property-accessor
         /// (i.e. <c>get;</c>) whereas an empty list will produce an accessor with an empty block

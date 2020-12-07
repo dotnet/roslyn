@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Linq;
@@ -345,6 +347,33 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(48886, "https://github.com/dotnet/roslyn/issues/48886")]
+        public void ArrayInitializationAnonymousTypes()
+        {
+            const int nTypes = 250;
+            const int nItemsPerType = 1000;
+
+            var builder = new StringBuilder();
+            for (int i = 0; i < nTypes; i++)
+            {
+                builder.AppendLine($"class C{i}");
+                builder.AppendLine("{");
+                builder.AppendLine("    static object[] F = new[]");
+                builder.AppendLine("    {");
+                for (int j = 0; j < nItemsPerType; j++)
+                {
+                    builder.AppendLine($"        new {{ Id = {j} }},");
+                }
+                builder.AppendLine("    };");
+                builder.AppendLine("}");
+            }
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

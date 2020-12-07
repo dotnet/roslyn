@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Use_IsNot_expression">
         <source>Use 'IsNot' expression</source>
-        <target state="new">Use 'IsNot' expression</target>
+        <target state="translated">Použít výraz IsNot</target>
         <note>{locked: IsNot}This is a Visual Basic keyword and should not be localized or have its casing changed</note>
       </trans-unit>
       <trans-unit id="Use_Is_Nothing_check">

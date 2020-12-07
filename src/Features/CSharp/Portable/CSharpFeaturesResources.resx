@@ -622,4 +622,10 @@
   <data name="Apply_file_header_preferences" xml:space="preserve">
     <value>Apply file header preferences</value>
   </data>
+  <data name="Change_to_as_expression" xml:space="preserve">
+    <value>Change to 'as' expression</value>
+  </data>
+  <data name="Change_to_cast" xml:space="preserve">
+    <value>Change to cast</value>
+  </data>
 </root>

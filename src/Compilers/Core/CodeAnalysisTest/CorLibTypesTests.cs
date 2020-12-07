@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Roslyn.Test.Utilities;
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var comp = CSharp.CSharpCompilation.Create(
                 "c",
-                options: new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                options: new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel),
                 references: new[] { TestMetadata.NetCoreApp31.SystemRuntime });
 
             var knownMissingTypes = new HashSet<SpecialType>()

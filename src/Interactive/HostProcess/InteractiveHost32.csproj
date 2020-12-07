@@ -16,6 +16,10 @@
     <ProjectReference Include="..\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PlatformAttributes.cs" Link="Utilities\PlatformAttributes.cs" />
+  </ItemGroup>
+
   <!--
     InteractiveHost32 is deployed to the same directory as InteractiveHost64 as it shares the same dependencies.
     

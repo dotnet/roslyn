@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -192,6 +194,24 @@ class C
 }",
                 testHost,
                 Class("dynamic"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        public async Task DynamicAsRecordName(TestHost testHost)
+        {
+            await TestAsync(
+@"record dynamic
+{
+}
+
+class C
+{
+    dynamic d;
+}",
+                testHost,
+                Record("dynamic"));
         }
 
         [Theory]
@@ -4390,6 +4410,38 @@ class X
             Keyword("nameof"),
             Static("Method"),
             Method("Method"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        public async Task BasicRecordClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record R
+{
+    R r;
+
+    R() { }
+}",
+                testHost,
+                Record("R"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        public async Task ParameterizedRecordClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record R(int X, int Y);
+
+class C
+{
+    R r;
+}",
+                testHost,
+                Record("R"));
         }
     }
 }

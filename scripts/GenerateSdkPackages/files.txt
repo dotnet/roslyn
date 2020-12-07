@@ -5,4 +5,3 @@ Progression\Microsoft.VisualStudio.Progression.Common.dll
 Progression\Microsoft.VisualStudio.Progression.Interfaces.dll
 StaticAnalysis\Microsoft.VisualStudio.CodeAnalysis.Sdk.UI.dll
 VMP\Microsoft.VisualStudio.GraphModel.dll
-VSTelemetryPackage\Microsoft.VisualStudio.Telemetry.dll

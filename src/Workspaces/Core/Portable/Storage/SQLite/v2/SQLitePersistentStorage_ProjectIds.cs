@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
@@ -31,7 +29,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // This will only be expensive the first time we do this.  But will save
             // us from tons of back-and-forth as any BG analyzer processes all the
             // documents in a solution.
-            BulkPopulateProjectIds(connection, bulkLoadSnapshot, fetchStringTable: true);
+            if (bulkLoadSnapshot != null)
+                BulkPopulateProjectIds(connection, bulkLoadSnapshot.Solution.State, bulkLoadSnapshot.State, fetchStringTable: true);
 
             var projectId = TryGetProjectId(connection, project);
             var nameId = TryGetStringId(connection, name);

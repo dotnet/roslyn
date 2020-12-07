@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -806,6 +808,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     // Conditional: ?:
 
                     return OperatorPrecedence.AssignmentAndLambdaExpression;
+
+                case SyntaxKind.SwitchExpression:
+                    return OperatorPrecedence.Switch;
 
                 default:
                     return OperatorPrecedence.None;

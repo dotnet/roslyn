@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private static readonly ConditionalWeakTable<Compilation, TreeMap> s_treeAliasMap = new();
         private static readonly ConditionalWeakTable<Compilation, TreeMap>.CreateValueCallback s_createTreeMap = c => new TreeMap();
 
-        public static bool TryGetAliasSymbol(SemanticModel semanticModel, int namespaceId, INamespaceOrTypeSymbol targetSymbol, out IAliasSymbol aliasSymbol)
+        public static bool TryGetAliasSymbol(SemanticModel semanticModel, int namespaceId, INamespaceOrTypeSymbol targetSymbol, out IAliasSymbol? aliasSymbol)
         {
             // TODO: given semantic model must be not speculative semantic model for now. 
             // currently it can't be checked since it is not exposed to common layer yet.

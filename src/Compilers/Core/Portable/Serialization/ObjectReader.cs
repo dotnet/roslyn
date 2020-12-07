@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -101,6 +103,42 @@ namespace Roslyn.Utilities
                 stream.ReadByte() != VersionByte2)
             {
                 return null;
+            }
+
+            return new ObjectReader(stream, leaveOpen, cancellationToken);
+        }
+
+        /// <summary>
+        /// Creates an <see cref="ObjectReader"/> from the provided <paramref name="stream"/>.
+        /// Unlike <see cref="TryGetReader(Stream, bool, CancellationToken)"/>, it requires the version
+        /// of the data in the stream to exactly match the current format version.
+        /// Should only be used to read data written by the same version of Roslyn.
+        /// </summary>
+        public static ObjectReader GetReader(
+            Stream stream,
+            bool leaveOpen,
+            CancellationToken cancellationToken)
+        {
+            var b = stream.ReadByte();
+            if (b == -1)
+            {
+                throw new EndOfStreamException();
+            }
+
+            if (b != VersionByte1)
+            {
+                throw ExceptionUtilities.UnexpectedValue(b);
+            }
+
+            b = stream.ReadByte();
+            if (b == -1)
+            {
+                throw new EndOfStreamException();
+            }
+
+            if (b != VersionByte2)
+            {
+                throw ExceptionUtilities.UnexpectedValue(b);
             }
 
             return new ObjectReader(stream, leaveOpen, cancellationToken);

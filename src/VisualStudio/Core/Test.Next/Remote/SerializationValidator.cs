@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -94,7 +92,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             using var reader = ObjectReader.TryGetReader(stream);
 
             // deserialize bits to object
-            return Serializer.Deserialize<T>(data.Kind, reader, CancellationToken.None);
+            var result = Serializer.Deserialize<T>(data.Kind, reader, CancellationToken.None);
+            Contract.ThrowIfNull(result);
+            return result;
         }
 
         public async Task<Solution> GetSolutionAsync(SolutionAssetStorage.Scope scope)
