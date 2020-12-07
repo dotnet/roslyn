@@ -153,6 +153,7 @@ if %errorlevel% neq 0 (
                         builder.AppendLine($"echo {count:n0} hydrated");
                     }
                 }
+                builder.AppendLine("@echo on"); // so the rest of the commands show up in helix logs
                 const string filename = "rehydrate.cmd";
                 Console.WriteLine("Writing to " + Path.Combine(destinationDirectory, group.Key, filename));
                 File.WriteAllText(Path.Combine(destinationDirectory, group.Key, filename), builder.ToString());

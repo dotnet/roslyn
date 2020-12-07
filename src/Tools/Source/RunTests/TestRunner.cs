@@ -46,7 +46,7 @@ namespace RunTests
 
         internal async Task<RunAllResult> RunAllOnHelixAsync(IEnumerable<AssemblyInfo> assemblyInfoList, CancellationToken cancellationToken)
         {
-            var msbuildTestPayloadRoot = "$(RepoRoot)";
+            var msbuildTestPayloadRoot = ".";
             // TODO: does having an accurate branch name matter?
             var sourceBranch = Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCH");
             if (sourceBranch is null)
