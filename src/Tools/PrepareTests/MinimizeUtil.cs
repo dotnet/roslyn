@@ -132,21 +132,28 @@ internal static class MinimizeUtil
             foreach (var group in grouping)
             {
                 builder.Clear();
+                // TODO: generate either cmd or bash depending on whether this is a windows or unix build
                 var count = 0;
                 foreach (var tuple in group)
                 {
                     var source = getPeFileName(tuple.Id);
                     var destFileName = Path.GetRelativePath(group.Key, tuple.FilePath.RelativePath);
-                    builder.AppendLine($@"New-Item -ItemType HardLink -Name ""{destFileName}"" -Value ""$env:HELIX_CORRELATION_PAYLOAD/{source}"" -ErrorAction Stop | Out-Null");
-
+                    builder.AppendLine($@"
+mklink /h {destFileName} {source} > nul
+if %errorlevel% neq 0 (
+    echo %errorlevel%
+    echo Cmd failed: mklink /h {destFileName} {source} > nul
+    exit 1
+)");
                     count++;
                     if (count % 1_000 == 0)
                     {
-                        builder.AppendLine($"Write-Host '{count:n0} hydrated'");
+                        builder.AppendLine($"echo {count:n0} hydrated");
                     }
                 }
-                Console.WriteLine("Writing to " + Path.Combine(destinationDirectory, group.Key, "rehydrate.ps1"));
-                File.WriteAllText(Path.Combine(destinationDirectory, group.Key, "rehydrate.ps1"), builder.ToString());
+                const string filename = "rehydrate.cmd";
+                Console.WriteLine("Writing to " + Path.Combine(destinationDirectory, group.Key, filename));
+                File.WriteAllText(Path.Combine(destinationDirectory, group.Key, filename), builder.ToString());
             }
 
             static string getGroupDirectory(string relativePath)

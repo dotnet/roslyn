@@ -107,18 +107,19 @@ namespace RunTests
                 var commandLineArguments = _testExecutor.GetCommandLineArguments(assemblyInfo);
                 commandLineArguments = SecurityElement.Escape(commandLineArguments);
                 var payloadDirectory = Path.GetDirectoryName(assemblyInfo.AssemblyPath);
-                if (payloadDirectory is null || !File.Exists(Path.Combine("artifacts/testPayload", payloadDirectory, "rehydrate.ps1")))
+                if (payloadDirectory is null || !File.Exists(Path.Combine("artifacts/testPayload", payloadDirectory, "rehydrate.cmd")))
                 {
                     // TODO: this feels like something we should be able to verify before sending a work item.
-                    //throw new InvalidOperationException("path did not contain rehydrate.ps1: " + payloadDirectory);
+                    //throw new InvalidOperationException("path did not contain rehydrate.cmd: " + payloadDirectory);
                 }
+                // TODO: run rehydrate.sh on unix
+                var rehydrateCommand = ".\rehydrate.cmd";
                 var workItem = @"
         <HelixWorkItem Include=""" + assemblyInfo.DisplayName + @""">
             <PayloadDirectory>$(RepoRoot)" + Path.GetDirectoryName(assemblyInfo.AssemblyPath) + @"</PayloadDirectory>
             <Command>
                 dir
-                dotnet tool install -g powershell --version 7.10.0
-                pwsh ./rehydrate.ps1
+                " + rehydrateCommand + @"
                 dir
                 dotnet " + commandLineArguments + @"
             </Command>
