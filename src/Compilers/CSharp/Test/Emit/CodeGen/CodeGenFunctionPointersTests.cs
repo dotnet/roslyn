@@ -10957,6 +10957,21 @@ unsafe
 ");
         }
 
+        [Fact, WorkItem(49760, "https://github.com/dotnet/roslyn/issues/49760")]
+        public void Test49760()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe ref struct BorrowedReference
+{
+    static readonly delegate* unmanaged[Cdecl]<BorrowedReference> test;
+    static BorrowedReference Test() => test();
+    readonly int pointer;
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
         public void PassedAsByRefParameter()
         {
