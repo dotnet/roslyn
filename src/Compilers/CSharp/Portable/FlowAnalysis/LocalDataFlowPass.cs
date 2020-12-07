@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A mapping from local variables to the index of their slot in a flow analysis local state.
         /// </summary>
-        protected readonly PooledDictionary<VariableIdentifier, int> _variableSlot = PooledDictionary<VariableIdentifier, int>.GetInstance();
+        protected PooledDictionary<VariableIdentifier, int> _variableSlot = PooledDictionary<VariableIdentifier, int>.GetInstance();
 
         /// <summary>
         /// A mapping from the local variable slot to the symbol for the local variable itself.  This
