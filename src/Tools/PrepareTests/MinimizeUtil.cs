@@ -139,12 +139,12 @@ internal static class MinimizeUtil
                 {
                     var source = getPeFileName(tuple.Id);
                     var destFileName = Path.GetRelativePath(group.Key, tuple.FilePath.RelativePath);
-                    var mkdirCommand = Path.GetDirectoryName(destFileName) is { Length: not 0 } directory ? $@"mkdir {directory} 2> nul" : null;
+                    var mkdirCommand = Path.GetDirectoryName(destFileName) is { Length: not 0 } directory ? $@"mkdir %~dp0\{directory} 2> nul" : null;
                     builder.AppendLine($@"
 {mkdirCommand}
-mklink /h {destFileName} %HELIX_CORRELATION_PAYLOAD%\{source} > nul
+mklink /h %~dp0\{destFileName} %HELIX_CORRELATION_PAYLOAD%\{source} > nul
 if %errorlevel% neq 0 (
-    echo Cmd failed: mklink /h {destFileName} %HELIX_CORRELATION_PAYLOAD%\{source}
+    echo Cmd failed: mklink /h %~dp0\{destFileName} %HELIX_CORRELATION_PAYLOAD%\{source}
     exit /b 1
 )");
                     count++;
