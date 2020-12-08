@@ -26,8 +26,7 @@ jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.buildJobName }}
   pool:
-    name: NetCorePublic-Pool
-    queue: windows-latest
+    vmImage: windows-latest
   timeoutInMinutes: 120
   steps:
     - checkout: none
