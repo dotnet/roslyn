@@ -75,9 +75,10 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Adds source code in the form of a <see cref="StringBuilder"/> to the compilation.
+        /// This builder must not be further modified: undefined behavior will result.
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
-        /// <param name="source">The source code to add to the compilation. This must not be modified from now on.</param>
+        /// <param name="source">The source code to add to the compilation. This builder must not be further modified: undefined behavior will result.</param>
         public void AddSource(string hintName, StringBuilder source) => AddSource(hintName, new StringBuilderText(source, Encoding.UTF8));
 
         /// <summary>
