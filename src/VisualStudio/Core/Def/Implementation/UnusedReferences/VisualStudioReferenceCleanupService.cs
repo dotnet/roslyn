@@ -50,18 +50,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
         public Task<string> GetProjectAssetsFilePathAsync(string projectPath, CancellationToken cancellationToken)
         {
-            return _projectSystemReferenceUpdateService.GetProjectAssetsFilePathAsync(projectPath, cancellationToken);
+            throw new NotImplementedException();
         }
 
         public async Task<ImmutableArray<ReferenceInfo>> GetProjectReferencesAsync(string projectPath, string targetFramework, CancellationToken cancellationToken)
         {
-            var projectSystemReferences = await _projectSystemReferenceUpdateService.GetProjectReferencesAsync(projectPath, targetFramework, cancellationToken).ConfigureAwait(false);
+            var projectSystemReferences = await _projectSystemReferenceUpdateService.GetProjectReferencesAsync(projectPath, cancellationToken).ConfigureAwait(false);
             return projectSystemReferences.Select(reference => reference.ToReferenceInfo()).ToImmutableArray();
         }
 
         public Task<bool> TryUpdateReferenceAsync(string projectPath, string targetFramework, ReferenceUpdate referenceUpdate, CancellationToken cancellationToken)
         {
-            return _projectSystemReferenceUpdateService.TryUpdateReferenceAsync(projectPath, targetFramework, referenceUpdate.ToProjectSystemReferenceUpdate(), cancellationToken);
+            return _projectSystemReferenceUpdateService.TryUpdateReferenceAsync(projectPath, referenceUpdate.ToProjectSystemReferenceUpdate(), cancellationToken);
         }
     }
 }
