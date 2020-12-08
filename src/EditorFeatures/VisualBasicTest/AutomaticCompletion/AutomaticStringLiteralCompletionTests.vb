@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
+Imports Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletion
     Public Class AutomaticStringLiteralCompletionTests
@@ -165,7 +166,7 @@ End Class</code>
         Friend Overloads Shared Function CreateSession(code As String) As Holder
             Return AbstractAutomaticBraceCompletionTests.CreateSession(
                 TestWorkspace.CreateVisualBasic(code),
-                BraceCompletionSessionProvider.DoubleQuote.OpenCharacter, BraceCompletionSessionProvider.DoubleQuote.CloseCharacter)
+                DoubleQuote.OpenCharacter, DoubleQuote.CloseCharacter)
         End Function
     End Class
 End Namespace
