@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 #if false // PROTOTYPE: Temporary disabling code causing a build break
             return _projectSystemReferenceUpdateService.GetProjectAssetsFilePathAsync(projectPath, cancellationToken);
 #else
-            return Task<string>.FromResult(""); ;
+            return Task<string>.FromResult("");
 #endif
         }
 
