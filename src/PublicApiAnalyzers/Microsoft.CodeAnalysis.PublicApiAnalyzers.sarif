@@ -5,7 +5,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.PublicApiAnalyzers",
-        "version": "3.3.1",
+        "version": "3.3.3",
         "language": "en-US"
       },
       "rules": {
@@ -43,6 +43,7 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
@@ -81,6 +82,7 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
@@ -100,6 +102,7 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
@@ -214,6 +217,7 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
@@ -223,7 +227,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes",
-        "version": "3.3.1",
+        "version": "3.3.3",
         "language": "en-US"
       },
       "rules": {

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpSecurityCodeFixVerifier<
@@ -982,6 +984,64 @@ Public Class C
     End Sub
 End Class",
                         SymbolEqualityComparerStubVisualBasic,
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(4469, "https://github.com/dotnet/roslyn-analyzers/issues/4469")]
+        public async Task RS1024_SymbolEqualityComparerDefault()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+
+public class C
+{
+    public void M(IEnumerable<ISymbol> e, ISymbol symbol, INamedTypeSymbol type)
+    {
+        e.Contains(symbol, SymbolEqualityComparer.Default);
+
+        var asyncMethods = type.GetMembers()
+            .OfType<IMethodSymbol>()
+            .Where(x => x.IsAsync)
+            .ToLookup(x => x.ContainingType, x => x, SymbolEqualityComparer.Default);
+    }
+}",
+                        SymbolEqualityComparerStubCSharp,
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(4470, "https://github.com/dotnet/roslyn-analyzers/issues/4470")]
+        public async Task RS1024_InvocationArgumentTypeIsNull()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+
+public class C
+{
+    private readonly HashSet<ITypeSymbol> _types = [|new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default)|];
+}",
+                        SymbolEqualityComparerStubCSharp,
                     },
                 },
             }.RunAsync();

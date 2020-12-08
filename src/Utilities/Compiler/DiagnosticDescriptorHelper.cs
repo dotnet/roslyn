@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if NET_ANALYZERS || FXCOP_ANALYZERS
+#if NET_ANALYZERS || TEXT_ANALYZERS
 
 using System.Diagnostics;
 using System.Linq;
@@ -20,8 +20,8 @@ namespace Analyzer.Utilities
             LocalizableString? description,
             bool isPortedFxCopRule,
             bool isDataflowRule,
-            bool isEnabledByDefaultInFxCopAnalyzers = true,
             bool isEnabledByDefaultInAggressiveMode = true,
+            bool isReportedAtCompilationEnd = false,
             params string[] additionalCustomTags)
         {
             // PERF: Ensure that all DFA rules are disabled by default in NetAnalyzers package.
@@ -30,13 +30,18 @@ namespace Analyzer.Utilities
             // Ensure 'isEnabledByDefaultInAggressiveMode' is not false for enabled rules in default mode
             Debug.Assert(isEnabledByDefaultInAggressiveMode || ruleLevel == RuleLevel.Disabled || ruleLevel == RuleLevel.CandidateForRemoval);
 
-            var (defaultSeverity, enabledByDefault) = GetDefaultSeverityAndEnabledByDefault(ruleLevel, isEnabledByDefaultInFxCopAnalyzers);
+            var (defaultSeverity, enabledByDefault) = GetDefaultSeverityAndEnabledByDefault(ruleLevel);
 
 #pragma warning disable CA1308 // Normalize strings to uppercase - use lower case ID in help link
             var helpLink = $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/{id.ToLowerInvariant()}";
 #pragma warning restore CA1308 // Normalize strings to uppercase
 
             var customTags = GetDefaultCustomTags(isPortedFxCopRule, isDataflowRule, isEnabledByDefaultInAggressiveMode);
+            if (isReportedAtCompilationEnd)
+            {
+                customTags = customTags.Concat(WellKnownDiagnosticTagsExtensions.CompilationEnd).ToArray();
+            }
+
             if (additionalCustomTags.Length > 0)
             {
                 customTags = customTags.Concat(additionalCustomTags).ToArray();
@@ -46,15 +51,8 @@ namespace Analyzer.Utilities
             return new DiagnosticDescriptor(id, title, messageFormat, category, defaultSeverity, enabledByDefault, description, helpLink, customTags);
 #pragma warning restore RS0030
 
-#pragma warning disable CA1801 // Remove unused parameter - parameters used conditionally
-            static (DiagnosticSeverity defaultSeverity, bool enabledByDefault) GetDefaultSeverityAndEnabledByDefault(
-                RuleLevel ruleLevel,
-                bool isEnabledByDefaultInFxCopAnalyzers)
-#pragma warning restore CA1801 // Remove unused parameter
+            static (DiagnosticSeverity defaultSeverity, bool enabledByDefault) GetDefaultSeverityAndEnabledByDefault(RuleLevel ruleLevel)
             {
-#if FXCOP_ANALYZERS
-                return (DiagnosticSeverity.Warning, isEnabledByDefaultInFxCopAnalyzers);
-#else
                 return ruleLevel switch
                 {
                     RuleLevel.BuildWarning => (DiagnosticSeverity.Warning, true),
@@ -64,7 +62,6 @@ namespace Analyzer.Utilities
                     RuleLevel.CandidateForRemoval => (DiagnosticSeverity.Warning, false),
                     _ => throw new System.NotImplementedException(),
                 };
-#endif
             }
 
             static string[] GetDefaultCustomTags(

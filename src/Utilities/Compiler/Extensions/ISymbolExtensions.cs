@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable disable warnings
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -281,7 +283,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static IEnumerable<IParameterSymbol> GetParametersOfType(this IEnumerable<IParameterSymbol> parameters, INamedTypeSymbol type)
         {
-            return parameters.Where(p => p.Type.Equals(type) == true);
+            return parameters.Where(p => p.Type.Equals(type));
         }
 
         /// <summary>
@@ -418,7 +420,7 @@ namespace Analyzer.Utilities.Extensions
                     continue;
                 }
 
-                if (overload.Parameters[parameterIndex].Type.Equals(type) == true)
+                if (overload.Parameters[parameterIndex].Type.Equals(type))
                 {
                     // we no longer interested in this overload. there can be only 1 match
                     return overload;

@@ -1758,6 +1758,35 @@ C2.C2() -> void";
         }
 
         [Fact]
+        public async Task TestMultipleMissingTypeAndMember_CaseSensitiveFix()
+        {
+            var source = @"
+public class {|RS0016:C|}
+{
+    private C() { }
+    public int {|RS0016:Field_A|};
+    public int {|RS0016:Field_b|};
+    public int {|RS0016:Field_C|};
+    public int {|RS0016:Field_d|};
+}
+
+public class {|RS0016:{|RS0016:C2|}|} { }
+";
+
+            var shippedText = @"";
+            var unshippedText = @"";
+            var fixedUnshippedText = @"C
+C.Field_A -> int
+C.Field_b -> int
+C.Field_C -> int
+C.Field_d -> int
+C2
+C2.C2() -> void";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
         public async Task TestChangingMethodSignatureForAnUnshippedMethod_Fix()
         {
             var source = @"

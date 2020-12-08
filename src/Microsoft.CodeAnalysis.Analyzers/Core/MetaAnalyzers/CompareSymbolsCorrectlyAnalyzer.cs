@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         if (symbolEqualityComparerType != null &&
                             possibleMethodTypes.Contains(method.ContainingType.OriginalDefinition) &&
                             HasFirstTypeArgumentSymbolType(method, symbolType) &&
-                            !invocationOperation.Arguments.Any(arg => arg.Type != null && arg.Type.Equals(symbolEqualityComparerType)))
+                            !invocationOperation.Arguments.Any(arg => IsSymbolType(arg.Value, symbolEqualityComparerType)))
                         {
                             context.ReportDiagnostic(invocationOperation.CreateDiagnostic(CollectionRule));
                         }
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 collectionTypes.Contains(createdType.OriginalDefinition) &&
                 !createdType.TypeArguments.IsEmpty &&
                 IsSymbolType(createdType.TypeArguments[0], symbolType) &&
-                !objectCreation.Arguments.Any(arg => arg.Type.Equals(symbolEqualityComparerType)))
+                !objectCreation.Arguments.Any(arg => IsSymbolType(arg.Type, symbolEqualityComparerType)))
             {
                 context.ReportDiagnostic(objectCreation.CreateDiagnostic(CollectionRule));
             }

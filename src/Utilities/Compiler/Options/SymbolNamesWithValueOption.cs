@@ -22,9 +22,8 @@ namespace Analyzer.Utilities
         public static readonly SymbolNamesWithValueOption<TValue> Empty = new SymbolNamesWithValueOption<TValue>();
         internal static KeyValuePair<string, TValue> NoWildcardMatch => default;
 
-#pragma warning disable CA1051 // Do not declare visible instance fields
-        internal /* for testing purposes */ readonly ImmutableDictionary<string, TValue> _names;
-        internal /* for testing purposes */ readonly ImmutableDictionary<ISymbol, TValue> _symbols;
+        private readonly ImmutableDictionary<string, TValue> _names;
+        private readonly ImmutableDictionary<ISymbol, TValue> _symbols;
 
         /// <summary>
         /// Dictionary holding per symbol kind the wildcard entry with its suffix.
@@ -46,15 +45,14 @@ namespace Analyzer.Utilities
         /// Property ->
         ///     Analyzer.Utilities.SymbolNamesWithValueOption.MyProperty -> ""
         /// </example>
-        internal /* for testing purposes */ readonly ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> _wildcardNamesBySymbolKind;
+        private readonly ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> _wildcardNamesBySymbolKind;
 
         /// <summary>
         /// Cache for the wildcard matching algorithm. The current implementation can be slow so we want to make sure that once a match is performed we save its result.
         /// </summary>
-        internal /* for testing purposes */ readonly ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>> _wildcardMatchResult = new ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>>();
+        private readonly ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>> _wildcardMatchResult = new ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>>();
 
-        internal /* for testing purposes */ readonly ConcurrentDictionary<ISymbol, string> _symbolToDeclarationId = new ConcurrentDictionary<ISymbol, string>();
-#pragma warning restore CA1051 // Do not declare visible instance fields
+        private readonly ConcurrentDictionary<ISymbol, string> _symbolToDeclarationId = new ConcurrentDictionary<ISymbol, string>();
 
         private SymbolNamesWithValueOption(ImmutableDictionary<string, TValue> names, ImmutableDictionary<ISymbol, TValue> symbols,
             ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> wildcardNamesBySymbolKind)
@@ -277,7 +275,6 @@ namespace Analyzer.Utilities
             if (_wildcardNamesBySymbolKind.IsEmpty)
             {
                 firstMatch = NoWildcardMatch;
-                _wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, match) => NoWildcardMatch);
                 return false;
             }
 
@@ -340,6 +337,32 @@ namespace Analyzer.Utilities
             }
         }
 
+        internal TestAccessor GetTestAccessor()
+        {
+            return new TestAccessor(this);
+        }
+
+        [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Does not apply to test accessors")]
+        internal readonly struct TestAccessor
+        {
+            private readonly SymbolNamesWithValueOption<TValue> _symbolNamesWithValueOption;
+
+            internal TestAccessor(SymbolNamesWithValueOption<TValue> symbolNamesWithValueOption)
+            {
+                _symbolNamesWithValueOption = symbolNamesWithValueOption;
+            }
+
+            internal ref readonly ImmutableDictionary<string, TValue> Names => ref _symbolNamesWithValueOption._names;
+
+            internal ref readonly ImmutableDictionary<ISymbol, TValue> Symbols => ref _symbolNamesWithValueOption._symbols;
+
+            internal ref readonly ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> WildcardNamesBySymbolKind => ref _symbolNamesWithValueOption._wildcardNamesBySymbolKind;
+
+            internal ref readonly ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>> WildcardMatchResult => ref _symbolNamesWithValueOption._wildcardMatchResult;
+
+            internal ref readonly ConcurrentDictionary<ISymbol, string> SymbolToDeclarationId => ref _symbolNamesWithValueOption._symbolToDeclarationId;
+        }
+
         /// <summary>
         /// Represents the two parts of a symbol name option when the symbol name is tighted to some specific value.
         /// This allows to link a value to a symbol while following the symbol's documentation ID format.
@@ -353,7 +376,9 @@ namespace Analyzer.Utilities
             public NameParts(string symbolName, TValue associatedValue = default)
             {
                 SymbolName = symbolName.Trim();
+#pragma warning disable CS8601 // Possible null reference assignment - https://github.com/dotnet/roslyn-analyzers/issues/4350
                 AssociatedValue = associatedValue;
+#pragma warning restore CS8601 // Possible null reference assignment
             }
 
             public string SymbolName { get; }

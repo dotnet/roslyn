@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 // Store the current global value in a separate global values builder.
                 // These values need to be saved into the base operation value builder in the final analysis result.
                 // This will be done as a post-step after the analysis is complete.
-                _globalValuesMapBuilder.Add(operation, GlobalState);
+                _globalValuesMapBuilder[operation] = GlobalState;
             }
 
             return value;

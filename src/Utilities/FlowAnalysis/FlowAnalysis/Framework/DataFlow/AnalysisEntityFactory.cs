@@ -214,6 +214,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         !_captureIdCopyValueMap.ContainsKey(flowCapture.Id) &&
                         analysisEntity.Type.IsValueType == capturedEntity.Type.IsValueType)
                     {
+                        // Skip flow capture for conversions unless we know the points to value
+                        // for conversion and operand is identical.
+                        if (flowCapture.Value is IConversionOperation conversion)
+                        {
+                            if (_getPointsToAbstractValue == null ||
+                                _getPointsToAbstractValue(conversion) != _getPointsToAbstractValue(conversion.Operand))
+                            {
+                                break;
+                            }
+                        }
+
                         var kind = capturedEntity.Type.IsValueType ? CopyAbstractValueKind.KnownValueCopy : CopyAbstractValueKind.KnownReferenceCopy;
                         var copyValue = new CopyAbstractValue(ImmutableHashSet.Create(analysisEntity, capturedEntity), kind);
                         _captureIdCopyValueMap.Add(flowCapture.Id, copyValue);
