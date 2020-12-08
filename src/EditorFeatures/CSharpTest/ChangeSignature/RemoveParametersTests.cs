@@ -248,7 +248,7 @@ class C{i}
 
             using var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml));
             testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
-            var result = await testState.ChangeSignature().ConfigureAwait(false);
+            var result = await testState.ChangeSignatureAsync().ConfigureAwait(false);
 
             Assert.True(result.Succeeded);
             Assert.Null(result.ChangeSignatureFailureKind);
@@ -330,7 +330,7 @@ class C{i}
 
             using var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml));
             testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
-            var result = await testState.ChangeSignature().ConfigureAwait(false);
+            var result = await testState.ChangeSignatureAsync().ConfigureAwait(false);
 
             Assert.True(result.Succeeded);
             Assert.Null(result.ChangeSignatureFailureKind);

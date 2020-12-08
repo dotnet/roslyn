@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             }
         }
 
-        public async Task<ChangeSignatureResult> ChangeSignature()
+        public async Task<ChangeSignatureResult> ChangeSignatureAsync()
         {
             return await ChangeSignatureService.ChangeSignatureAsync(
                 InvocationDocument,

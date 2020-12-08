@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             using (var testState = ChangeSignatureTestState.Create(markup, languageName, parseOptions, options))
             {
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
-                var result = await testState.ChangeSignature().ConfigureAwait(false);
+                var result = await testState.ChangeSignatureAsync().ConfigureAwait(false);
 
                 if (expectedSuccess)
                 {
