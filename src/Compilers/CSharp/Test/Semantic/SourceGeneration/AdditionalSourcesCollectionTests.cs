@@ -106,15 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             asc = new AdditionalSourcesCollection(".cs");
             for (int i = 0; i < 1000; i++)
             {
-                // ensure the name is unique (we've seen CI failures where we generate duplicate names)
-                var name = "";
-                do
-                {
-                    name = r.NextDouble().ToString() + ".cs";
-                }
-                while (names.Contains(name));
-
-                names[i] = name;
+                names[i] = Guid.NewGuid().ToString() + ".cs";
                 asc.Add(names[i], SourceText.From("", Encoding.UTF8));
             }
 
