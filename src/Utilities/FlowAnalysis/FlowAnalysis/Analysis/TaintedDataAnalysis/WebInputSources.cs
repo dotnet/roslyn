@@ -89,6 +89,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         if (methodSymbol.DeclaredAccessibility != Accessibility.Public
                             || methodSymbol.IsConstructor()
                             || methodSymbol.IsStatic
+                            || methodSymbol.MethodKind != MethodKind.Ordinary
                             || methodSymbol.HasDerivedMethodAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonActionAttribute)))
                         {
                             return false;
