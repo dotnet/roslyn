@@ -176,7 +176,7 @@ namespace RunTests
         private readonly Options _options;
         private readonly int _methodLimit;
 
-        internal AssemblyScheduler(Options options, int methodLimit)
+        internal AssemblyScheduler(Options options)
         {
             _options = options;
             _methodLimit = options.UseHelix ? AssemblyScheduler.HelixMethodLimit : AssemblyScheduler.DefaultMethodLimit;
