@@ -179,21 +179,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public DocumentId? GetDocumentId(SyntaxTree? syntaxTree, ProjectId? projectId)
         {
-            if (syntaxTree != null)
-            {
-                // is this tree known to be associated with a document?
-                var documentId = DocumentState.GetDocumentIdForTree(syntaxTree);
-                if (documentId != null && (projectId == null || documentId.ProjectId == projectId))
-                {
-                    // does this solution even have the document?
-                    if (this.ContainsDocument(documentId))
-                    {
-                        return documentId;
-                    }
-                }
-            }
-
-            return null;
+            return State.GetDocumentState(syntaxTree, projectId)?.Id;
         }
 
         /// <summary>
@@ -259,22 +245,20 @@ namespace Microsoft.CodeAnalysis
         {
             if (syntaxTree != null)
             {
-                // is this tree known to be associated with a document?
-                var docId = DocumentState.GetDocumentIdForTree(syntaxTree);
-                if (docId != null && (projectId == null || docId.ProjectId == projectId))
+                var documentState = State.GetDocumentState(syntaxTree, projectId);
+
+                if (documentState is SourceGeneratedDocumentState)
                 {
-                    // does this solution even have the document?
-                    // We call TryGetSourceGeneratedDocumentForAlreadyGeneratedId if it's not a regular document;
-                    // we know that if we already have the tree that means generation completed, so that's safe to call.
-                    var document = this.GetDocument(docId) ?? this.GetProject(docId.ProjectId)?.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(docId);
-                    if (document != null)
-                    {
-                        // does this document really have the syntax tree?
-                        if (document.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
-                        {
-                            return document;
-                        }
-                    }
+                    // We have the underlying state, but we need to get the wrapper SourceGeneratedDocument object. The wrapping is maintained by
+                    // the Project object, so we'll now fetch the project and ask it to get the SourceGeneratedDocument wrapper. Under the covers this
+                    // implicity may call to fetch the SourceGeneratedDocumentState a second time but that's not expensive.
+                    var generatedDocument = this.GetRequiredProject(documentState.Id.ProjectId).TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentState.Id);
+                    Contract.ThrowIfNull(generatedDocument, "The call to GetDocumentState found a SourceGeneratedDocumentState, so we should have found it now.");
+                    return generatedDocument;
+                }
+                else if (documentState is DocumentState)
+                {
+                    return GetDocument(documentState.Id)!;
                 }
             }
 

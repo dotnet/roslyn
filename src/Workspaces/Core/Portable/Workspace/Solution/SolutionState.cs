@@ -359,22 +359,39 @@ namespace Microsoft.CodeAnalysis
             return state;
         }
 
-        private DocumentState? GetDocumentState(SyntaxTree? syntaxTree, ProjectId? projectId)
+        internal DocumentState? GetDocumentState(SyntaxTree? syntaxTree, ProjectId? projectId)
         {
             if (syntaxTree != null)
             {
                 // is this tree known to be associated with a document?
-                var docId = DocumentState.GetDocumentIdForTree(syntaxTree);
-                if (docId != null && (projectId == null || docId.ProjectId == projectId))
+                var documentId = DocumentState.GetDocumentIdForTree(syntaxTree);
+                if (documentId != null && (projectId == null || documentId.ProjectId == projectId))
                 {
                     // does this solution even have the document?
-                    var document = GetProjectState(docId.ProjectId)?.GetDocumentState(docId);
-                    if (document != null)
+                    var projectState = GetProjectState(documentId.ProjectId);
+                    if (projectState != null)
                     {
-                        // does this document really have the syntax tree?
-                        if (document.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
+                        var document = projectState.GetDocumentState(documentId);
+                        if (document != null)
                         {
-                            return document;
+                            // does this document really have the syntax tree?
+                            if (document.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
+                            {
+                                return document;
+                            }
+                        }
+                        else
+                        {
+                            var generatedDocument = TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
+
+                            if (generatedDocument != null)
+                            {
+                                // does this document really have the syntax tree?
+                                if (generatedDocument.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
+                                {
+                                    return generatedDocument;
+                                }
+                            }
                         }
                     }
                 }
@@ -1768,9 +1785,9 @@ namespace Microsoft.CodeAnalysis
         /// generated. This method exists to implement <see cref="Solution.GetDocument(SyntaxTree?)"/> and is best avoided unless you're doing something
         /// similarly tricky like that.
         /// </remarks>
-        public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentForAlreadyGeneratedId(DocumentId documentId)
+        public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId)
         {
-            return GetCompilationTracker(documentId.ProjectId).TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
+            return GetCompilationTracker(documentId.ProjectId).TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
         }
 
         /// <summary>

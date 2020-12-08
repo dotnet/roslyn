@@ -45,10 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(AutoFormattingOnTyping), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing"));
 
-        public static readonly PerLanguageOption2<bool> AutoFormattingOnCloseBrace = new(
-            nameof(FeatureOnOffOptions), nameof(AutoFormattingOnCloseBrace), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace"));
-
         public static readonly PerLanguageOption2<bool> AutoFormattingOnSemicolon = new(
             nameof(FeatureOnOffOptions), nameof(AutoFormattingOnSemicolon), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Semicolon"));
@@ -108,7 +104,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.AutoInsertBlockCommentStartString,
             FeatureOnOffOptions.PrettyListing,
             FeatureOnOffOptions.AutoFormattingOnTyping,
-            FeatureOnOffOptions.AutoFormattingOnCloseBrace,
             FeatureOnOffOptions.AutoFormattingOnSemicolon,
             FeatureOnOffOptions.RenameTrackingPreview,
             FeatureOnOffOptions.RenameTracking,
