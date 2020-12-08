@@ -653,9 +653,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Public Overrides Function GetAdditionalTopLevelTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
 #If DEBUG Then
-            Return GetAdditionalTopLevelTypes(context.Diagnostics).Select(Function(t) t.GetCciAdapter())
+            Return GetAdditionalTopLevelTypes().Select(Function(t) t.GetCciAdapter())
 #Else
-            Return GetAdditionalTopLevelTypes(context.Diagnostics)
+            Return GetAdditionalTopLevelTypes()
 #End If
         End Function
 

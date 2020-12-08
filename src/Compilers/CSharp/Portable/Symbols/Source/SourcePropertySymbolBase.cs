@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
         private SourcePropertyAccessorSymbol? _lazyGetMethod;
         private SourcePropertyAccessorSymbol? _lazySetMethod;
-        private DiagnosticBag? _lazyDiagnosticBag;
+        private BindingDiagnosticBag? _lazyDiagnosticBag;
 #nullable disable
         private readonly TypeSymbol _explicitInterfaceType;
         private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void EnsureSignatureGuarded(DiagnosticBag diagnostics)
+        private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)
         {
             PropertySymbol? explicitlyImplementedProperty = null;
             _lazyRefCustomModifiers = ImmutableArray<CustomModifier>.Empty;
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // By setting StartPropertyEnsureSignature, we've committed to doing the work and setting
                         // FinishPropertyEnsureSignature.  So there is no cancellation supported between one and the other.
-                        var diagnostics = DiagnosticBag.GetInstance();
+                        var diagnostics = BindingDiagnosticBag.GetInstance();
                         try
                         {
                             EnsureSignatureGuarded(diagnostics);
@@ -359,14 +359,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void AddDiagnostics(DiagnosticBag diagnostics)
+        private void AddDiagnostics(BindingDiagnosticBag diagnostics)
         {
-            if (!diagnostics.IsEmptyWithoutResolution)
+            if (!diagnostics.DiagnosticBag!.IsEmptyWithoutResolution || !diagnostics.DependenciesBag!.IsEmpty())
             {
-                DiagnosticBag? destination = _lazyDiagnosticBag;
+                BindingDiagnosticBag? destination = _lazyDiagnosticBag;
                 if (destination is null)
                 {
-                    var newBag = new DiagnosticBag();
+                    var newBag = new BindingDiagnosticBag();
                     destination = Interlocked.CompareExchange(ref _lazyDiagnosticBag, newBag, null!) ?? newBag;
                 }
 
@@ -513,13 +513,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isAutoPropertyAccessor,
             bool isExplicitInterfaceImplementation,
             PropertySymbol? explicitlyImplementedPropertyOpt,
-            DiagnosticBag diagnostics);
+            BindingDiagnosticBag diagnostics);
 
         protected abstract SourcePropertyAccessorSymbol CreateSetAccessorSymbol(
             bool isAutoPropertyAccessor,
             bool isExplicitInterfaceImplementation,
             PropertySymbol? explicitlyImplementedPropertyOpt,
-            DiagnosticBag diagnostics);
+            BindingDiagnosticBag diagnostics);
 
         public sealed override MethodSymbol? GetMethod
         {
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyGetMethod is null && (_propertyFlags & Flags.HasGetAccessor) != 0)
                 {
-                    var diagnostics = DiagnosticBag.GetInstance();
+                    var diagnostics = BindingDiagnosticBag.GetInstance();
                     bool isExplicitInterfaceImplementation = IsExplicitInterfaceImplementation;
                     var result = CreateGetAccessorSymbol(isAutoPropertyAccessor: IsAutoProperty, isExplicitInterfaceImplementation,
                                                          explicitlyImplementedPropertyOpt: isExplicitInterfaceImplementation ? ExplicitInterfaceImplementations.FirstOrDefault() : null,
@@ -1485,10 +1485,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             if (_state.NotePartComplete(CompletionPart.StartPropertyFinalCompletion))
                             {
-                                DiagnosticBag diagnostic = _lazyDiagnosticBag;
+                                BindingDiagnosticBag diagnostic = _lazyDiagnosticBag;
                                 if (diagnostic is object)
                                 {
-                                    Debug.Assert(!diagnostic.IsEmptyWithoutResolution);
+                                    Debug.Assert(!diagnostic.DiagnosticBag!.IsEmptyWithoutResolution || !diagnostic.DependenciesBag!.IsEmpty());
                                     this.AddDeclarationDiagnostics(diagnostic);
                                     _lazyDiagnosticBag = null;
                                 }

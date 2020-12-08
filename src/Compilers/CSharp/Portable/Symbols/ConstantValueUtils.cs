@@ -161,9 +161,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class CheckConstantInterpolatedStringValidity : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
-            internal readonly DiagnosticBag diagnostics;
+            internal readonly BindingDiagnosticBag diagnostics;
 
-            public CheckConstantInterpolatedStringValidity(DiagnosticBag diagnostics)
+            public CheckConstantInterpolatedStringValidity(BindingDiagnosticBag diagnostics)
             {
                 this.diagnostics = diagnostics;
             }
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static void CheckLangVersionForConstantValue(BoundExpression expression, DiagnosticBag diagnostics)
+        internal static void CheckLangVersionForConstantValue(BoundExpression expression, BindingDiagnosticBag diagnostics)
         {
             if (!(expression.Type is null) && expression.Type.IsStringType())
             {

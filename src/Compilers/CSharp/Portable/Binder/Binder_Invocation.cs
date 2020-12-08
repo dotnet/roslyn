@@ -1160,7 +1160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SourceLocation(token);
         }
 
-        internal BoundExpression BindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol containingMember, bool enableCallerInfo, DiagnosticBag diagnostics)
+        internal BoundExpression BindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol containingMember, bool enableCallerInfo, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(parameter.IsOptional);
 
@@ -1221,9 +1221,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultValue = new BoundLiteral(syntax, defaultConstantValue, constantType) { WasCompilerGenerated = true };
             }
 
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-            Conversion conversion = Conversions.ClassifyConversionFromExpression(defaultValue, parameterType, ref useSiteDiagnostics);
-            diagnostics.Add(syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            Conversion conversion = Conversions.ClassifyConversionFromExpression(defaultValue, parameterType, ref useSiteInfo);
+            diagnostics.Add(syntax, useSiteInfo);
 
             if (!conversion.IsValid && defaultConstantValue is { SpecialType: SpecialType.System_Decimal or SpecialType.System_DateTime })
             {
@@ -1244,7 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return defaultValue;
         }
 
-        private BoundExpression GetDefaultParameterSpecialNoConversion(SyntaxNode syntax, ParameterSymbol parameter, DiagnosticBag diagnostics)
+        private BoundExpression GetDefaultParameterSpecialNoConversion(SyntaxNode syntax, ParameterSymbol parameter, BindingDiagnosticBag diagnostics)
         {
             var parameterType = parameter.Type;
             Debug.Assert(parameterType.IsDynamic() || parameterType.SpecialType == SpecialType.System_Object);
@@ -1347,7 +1347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BitVector defaultArguments,
             bool expanded,
             bool enableCallerInfo,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
 
             var visitedParameters = BitVector.Create(parameters.Length);

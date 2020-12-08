@@ -1665,7 +1665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypeDefinitions(EmitContext context)
         {
-            return GetAdditionalTopLevelTypes(context.Diagnostics)
+            return GetAdditionalTopLevelTypes()
 #if DEBUG
                    .Select(type => type.GetCciAdapter())
 #endif
@@ -1679,6 +1679,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                    .Select(type => type.GetCciAdapter())
 #endif
                    ;
+        }
+
+        public sealed override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
+        {
+            return GetEmbeddedTypes(new BindingDiagnosticBag(diagnostics));
+        }
+
+        internal virtual ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(BindingDiagnosticBag diagnostics)
+        {
+            return base.GetEmbeddedTypes(diagnostics.DiagnosticBag);
         }
     }
 }

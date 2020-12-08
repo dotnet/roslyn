@@ -12,7 +12,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -369,10 +368,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
                 binder = binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressTypeArgumentBinding);
 
-                var discarded = DiagnosticBag.GetInstance(); // We will recompute this diagnostics more accurately later, when binding without BinderFlags.SuppressTypeArgumentBinding  
+                // We will recompute this diagnostics more accurately later, when binding without BinderFlags.SuppressTypeArgumentBinding  
                 clauses = binder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, typeParameterList, constraintClauses,
-                                                                    discarded, performOnlyCycleSafeValidation: true);
-                discarded.Free();
+                                                                    BindingDiagnosticBag.Discarded, performOnlyCycleSafeValidation: true);
 
                 clauses = AdjustConstraintKindsBasedOnConstraintTypes(containingSymbol, typeParameters, clauses);
             }

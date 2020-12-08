@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return mods;
         }
 
-        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, bool isExplicitInterfaceImplementation, PropertySymbol? explicitlyImplementedPropertyOpt, DiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, bool isExplicitInterfaceImplementation, PropertySymbol? explicitlyImplementedPropertyOpt, BindingDiagnosticBag diagnostics)
         {
             var syntax = (BasePropertyDeclarationSyntax)CSharpSyntaxNode;
             ArrowExpressionClauseSyntax? arrowExpression = GetArrowExpression(syntax);
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, bool isExplicitInterfaceImplementation, PropertySymbol? explicitlyImplementedPropertyOpt, DiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, bool isExplicitInterfaceImplementation, PropertySymbol? explicitlyImplementedPropertyOpt, BindingDiagnosticBag diagnostics)
         {
             var syntax = (BasePropertyDeclarationSyntax)CSharpSyntaxNode;
             string? aliasQualifierOpt = GetExplicitInterfaceSpecifier(syntax)?.Name.GetAliasQualifierOpt();
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (ComputeType(binder, syntax, diagnostics), ComputeParameters(binder, syntax, diagnostics));
         }
 
-        private TypeWithAnnotations ComputeType(Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+        private TypeWithAnnotations ComputeType(Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             RefKind refKind;
             var typeSyntax = GetTypeSyntax(syntax).SkipRef(out refKind);
@@ -508,11 +508,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters;
         }
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
             foreach (ParameterSymbol param in Parameters)
             {

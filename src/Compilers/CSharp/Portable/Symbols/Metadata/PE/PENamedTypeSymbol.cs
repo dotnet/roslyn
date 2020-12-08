@@ -560,8 +560,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                return SynthesizedRecordClone.FindValidCloneMethod(this, ref useSiteDiagnostics) != null;
+                var discarededUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return SynthesizedRecordClone.FindValidCloneMethod(this, ref discarededUseSiteInfo) != null;
             }
         }
 
