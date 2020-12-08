@@ -159,7 +159,7 @@ namespace RunTests
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
                 { "helix", "Run tests on Helix", o => helix = o is object },
-                { "helixQueueName", "Name of the Helix queue to run tests on", (string s) => helixQueueName = s },
+                { "helixQueueName=", "Name of the Helix queue to run tests on", (string s) => helixQueueName = s },
                 { "traits=", "xUnit traits to include (semicolon delimited)", (string s) => traits = s },
                 { "notraits=", "xUnit traits to exclude (semicolon delimited)", (string s) => noTraits = s },
                 { "timeout=", "Minute timeout to limit the tests to", (int i) => timeout = i },
