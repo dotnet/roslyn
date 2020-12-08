@@ -311,7 +311,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (localFunction.IsGenericMethod)
                 {
-                    // Each generic local function gets its own dynamic factory
+                    // Each generic local function gets its own dynamic factory because it 
+                    // needs its own container to cache dynamic call-sites. That type (the container) "inherits"
+                    // local function's type parameters as well as type parameters of all containing methods.
                     _dynamicFactory = new LoweredDynamicOperationFactory(_factory, _dynamicFactory.MethodOrdinal, localFunctionOrdinal);
                 }
 

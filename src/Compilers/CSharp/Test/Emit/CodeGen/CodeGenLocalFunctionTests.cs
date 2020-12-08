@@ -6012,6 +6012,57 @@ public class Program
             CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
         }
 
+        [Fact]
+        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        public void MultipleLocalFunctionsUsingDynamic_04()
+        {
+            var source = @"
+public class Program
+{
+    static void Main()
+    {
+        Local1<object>();
+        Local1<object>();
+
+        static void Local1<T>()
+        {
+            System.Console.Write(Local1<object>(Local3<object>()));	
+            static string Local1<U>(dynamic n) => n.ToString();
+        }
+
+        static int Local3<S>() => (int)(dynamic)4;
+    }
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
+        }
+
+        [Fact]
+        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        public void MultipleLocalFunctionsUsingDynamic_05()
+        {
+            var source = @"
+public class Program
+{
+    static void Main()
+    {
+        Local1<object>();
+        Local1<object>();
+
+        static void Local1<T>()
+        {
+            System.Console.Write(Local2<object>(Local3<object>()));	
+            static string Local2<U>(dynamic n) => n.ToString();
+        }
+
+        static int Local2<S>() => (int)(dynamic)4;
+        static int Local3<S>() => (int)(dynamic)4;
+    }
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
+        }
+
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = Verification.Passes)
         {
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: options);
