@@ -644,8 +644,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var memberState = state[slot];
-                var badState = fieldType.Type.IsPossiblyNullableReferenceTypeTypeParameter() ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
-                if (memberState == badState)
+                var badState = fieldType.Type.IsPossiblyNullableReferenceTypeTypeParameter() && (annotations & FlowAnalysisAnnotations.NotNull) == 0
+                    ? NullableFlowState.MaybeDefault
+                    : NullableFlowState.MaybeNull;
+                if (memberState >= badState) // is 'memberState' as bad as or worse than 'badState'?
                 {
                     Diagnostics.Add(ErrorCode.WRN_UninitializedNonNullableField, exitLocation ?? symbol.Locations.FirstOrNone(), symbol.Kind.Localize(), symbol.Name);
                 }
