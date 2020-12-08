@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
                     return false;
                 }
 
-                var reorderParametersService = document.GetRequiredLanguageService<AbstractChangeSignatureService>();
-                var result = reorderParametersService.ChangeSignatureAsync(
+                var changeSignatureService = document.GetRequiredLanguageService<AbstractChangeSignatureService>();
+                var result = changeSignatureService.ChangeSignatureAsync(
                     document,
                     caretPoint.Value.Position,
                     context.OperationContext.UserCancellationToken).WaitAndGetResult(context.OperationContext.UserCancellationToken);
