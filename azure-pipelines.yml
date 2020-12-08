@@ -63,7 +63,7 @@ jobs:
     buildJobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
-    testArguments: -testCoreClr -helix
+    testArguments: -testCoreClr
 
 # - template: eng/pipelines/test-windows-job.yml
 #   parameters:

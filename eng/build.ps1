@@ -391,7 +391,7 @@ function TestUsingRunTests() {
     $args += " --sequential"
   }
 
-  if ($helix) {
+  if ($helix -or $ci) {
     $args += " --helix"
   }
 
