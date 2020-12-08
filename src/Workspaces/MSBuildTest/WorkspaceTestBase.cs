@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -284,38 +286,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var parentOfContainingDir = Directory.GetParent(containingDir).FullName;
 
             return Directory.GetParent(parentOfContainingDir).FullName;
-        }
-
-        protected static Document AssertSemanticVersionChanged(Document document, SourceText newText)
-        {
-            var docVersion = document.GetTopLevelChangeTextVersionAsync().Result;
-            var projVersion = document.Project.GetSemanticVersionAsync().Result;
-
-            var newDoc = document.WithText(newText);
-
-            var newDocVersion = newDoc.GetTopLevelChangeTextVersionAsync().Result;
-            var newProjVersion = newDoc.Project.GetSemanticVersionAsync().Result;
-
-            Assert.NotEqual(docVersion, newDocVersion);
-            Assert.NotEqual(projVersion, newProjVersion);
-
-            return newDoc;
-        }
-
-        protected static Document AssertSemanticVersionUnchanged(Document document, SourceText newText)
-        {
-            var docVersion = document.GetTopLevelChangeTextVersionAsync().Result;
-            var projVersion = document.Project.GetSemanticVersionAsync().Result;
-
-            var newDoc = document.WithText(newText);
-
-            var newDocVersion = newDoc.GetTopLevelChangeTextVersionAsync().Result;
-            var newProjVersion = newDoc.Project.GetSemanticVersionAsync().Result;
-
-            Assert.Equal(docVersion, newDocVersion);
-            Assert.Equal(projVersion, newProjVersion);
-
-            return newDoc;
         }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -20,7 +22,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(OverrideCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(ExternAliasCompletionProvider))]
+    [ExtensionOrder(After = nameof(PreprocessorCompletionProvider))]
     [Shared]
     internal partial class OverrideCompletionProvider : AbstractOverrideCompletionProvider
     {

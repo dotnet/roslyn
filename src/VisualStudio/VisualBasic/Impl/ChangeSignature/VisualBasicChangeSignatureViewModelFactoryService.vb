@@ -25,6 +25,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ChangeSignature
             parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, "As"))
             parts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Space, Nothing, " "))
 
+            ' TO-DO We need to add proper colorization for added parameters: 
+            ' https://github.com/dotnet/roslyn/issues/47986
             Dim isPredefinedType = SyntaxFactory.ParseExpression(addedParameterViewModel.Type).Kind() = SyntaxKind.PredefinedType
             Dim typePartKind = If(isPredefinedType, SymbolDisplayPartKind.Keyword, SymbolDisplayPartKind.ClassName)
 

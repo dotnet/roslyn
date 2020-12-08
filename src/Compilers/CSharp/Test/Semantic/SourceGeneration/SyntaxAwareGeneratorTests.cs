@@ -14,8 +14,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
-
-#nullable enable
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
     public class SyntaxAwareGeneratorTests

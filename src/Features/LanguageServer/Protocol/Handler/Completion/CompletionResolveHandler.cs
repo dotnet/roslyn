@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Linq;
@@ -12,8 +10,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -25,17 +26,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionResolveName, mutatesSolutionState: false)]
     internal class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
+        private readonly CompletionListCache? _completionListCache;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionResolveHandler()
+        public CompletionResolveHandler(CompletionListCache? completionListCache)
         {
+            _completionListCache = completionListCache;
+        }
+
+        private static CompletionResolveData GetCompletionResolveData(LSP.CompletionItem request)
+        {
+            Contract.ThrowIfNull(request.Data);
+
+            return ((JToken)request.Data).ToObject<CompletionResolveData>();
         }
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionItem request)
             => GetCompletionResolveData(request).TextDocument;
-
-        private static CompletionResolveData GetCompletionResolveData(LSP.CompletionItem completionItem)
-            => completionItem.Data as CompletionResolveData ?? ((JToken)completionItem.Data).ToObject<CompletionResolveData>();
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
@@ -45,14 +53,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return completionItem;
             }
 
-            var data = GetCompletionResolveData(completionItem);
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
-
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
-            var list = await completionService.GetCompletionsAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var data = GetCompletionResolveData(completionItem);
+
+            CompletionList? list = null;
+
+            // See if we have a cache of the completion list we need
+            if (_completionListCache != null && data.ResultId.HasValue)
+            {
+                list = await _completionListCache.GetCachedCompletionListAsync(data.ResultId.Value, cancellationToken).ConfigureAwait(false);
+            }
+
             if (list == null)
             {
-                return completionItem;
+                // We don't have a cache, so we need to recompute the list
+                var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
+                var completionOptions = await CompletionHandler.GetCompletionOptionsAsync(document, cancellationToken).ConfigureAwait(false);
+
+                list = await completionService.GetCompletionsAsync(document, position, data.CompletionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+                if (list == null)
+                {
+                    return completionItem;
+                }
             }
 
             var selectedItem = list.Items.FirstOrDefault(i => i.DisplayText == data.DisplayText);

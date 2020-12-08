@@ -167,9 +167,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Throw New NotImplementedException()
         End Function
 
-#Disable Warning IDE0060 ' Remove unused parameter - Implements 'IVsAsyncFileChangeEx.FilterDirectoryChangesAsync', but this method is not yet defined in current reference to shell package.
-        Public Function FilterDirectoryChangesAsync(cookie As UInteger, extensions As String(), Optional cancellationToken As CancellationToken = Nothing) As Task
-#Enable Warning IDE0060 ' Remove unused parameter
+        Public Function FilterDirectoryChangesAsync(cookie As UInteger, extensions As String(), cancellationToken As CancellationToken) As Task Implements IVsAsyncFileChangeEx.FilterDirectoryChangesAsync
             _watchedDirectories.FirstOrDefault(Function(t) t.Cookie = cookie).ExtensionFilters = extensions
             Return Task.CompletedTask
         End Function

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -591,7 +589,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     lineEdits.AsImmutable(),
                     hasSemanticErrors: false);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // The same behavior as if there was a syntax error - we are unable to analyze the document. 
                 // We expect OOM to be thrown during the analysis if the number of top-level entities is too large.
@@ -1164,7 +1162,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newActiveStatements[ordinal] = oldActiveStatements[ordinal].WithSpan(newText.Lines.GetLinePositionSpan(newSpan));
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // Set the new spans of active statements overlapping the method body to match the old spans.
                 // Even though these might be now outside of the method body it's ok since we report a rude edit and don't allow to continue.

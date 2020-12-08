@@ -6,8 +6,6 @@ using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -182,32 +180,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private bool TryFormatMultiLineCommentTrivia(LineColumn lineColumn, SyntaxTrivia trivia, out SyntaxTrivia result)
         {
+            if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+            {
+                var indentation = lineColumn.Column;
+                var indentationDelta = indentation - GetExistingIndentation(trivia);
+                if (indentationDelta != 0)
+                {
+                    var multiLineComment = trivia.ToFullString().ReindentStartOfXmlDocumentationComment(
+                        false /* forceIndentation */,
+                        indentation,
+                        indentationDelta,
+                        this.Options.GetOption(FormattingOptions2.UseTabs),
+                        this.Options.GetOption(FormattingOptions2.TabSize),
+                        this.Options.GetOption(FormattingOptions2.NewLine));
+
+                    var multilineCommentTrivia = SyntaxFactory.ParseLeadingTrivia(multiLineComment);
+                    Contract.ThrowIfFalse(multilineCommentTrivia.Count == 1);
+
+                    // Preserve annotations on this comment as the formatter is only supposed to touch whitespace, and
+                    // thus should make it appear as if the original comment trivia (with annotations) is still there in
+                    // the resultant formatted tree.
+                    var firstTrivia = multilineCommentTrivia.First();
+                    result = trivia.CopyAnnotationsTo(firstTrivia);
+                    return true;
+                }
+            }
+
             result = default;
-
-            if (trivia.Kind() != SyntaxKind.MultiLineCommentTrivia)
-            {
-                return false;
-            }
-
-            var indentation = lineColumn.Column;
-            var indentationDelta = indentation - GetExistingIndentation(trivia);
-            if (indentationDelta != 0)
-            {
-                var multiLineComment = trivia.ToFullString().ReindentStartOfXmlDocumentationComment(
-                    false /* forceIndentation */,
-                    indentation,
-                    indentationDelta,
-                    this.Options.GetOption(FormattingOptions2.UseTabs),
-                    this.Options.GetOption(FormattingOptions2.TabSize),
-                    this.Options.GetOption(FormattingOptions2.NewLine));
-
-                var multilineCommentTrivia = SyntaxFactory.ParseLeadingTrivia(multiLineComment);
-                Contract.ThrowIfFalse(multilineCommentTrivia.Count == 1);
-
-                result = multilineCommentTrivia.ElementAt(0);
-                return true;
-            }
-
             return false;
         }
 

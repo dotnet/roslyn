@@ -30,6 +30,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\CSharpPopulateSwitchStatementCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\CSharpQualifyMemberAccessCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\CSharpRemoveUnnecessaryCastCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryDiscardDesignation\CSharpRemoveUnnecessaryDiscardDesignationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveConfusingSuppression\CSharpRemoveConfusingSuppressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveConfusingSuppression\CSharpRemoveConfusingSuppressionFixAllProvider.cs" />

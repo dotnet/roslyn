@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -93,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
             {
                 // Cancellation is normal (during VS closing).  Just ignore.
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
                 // Otherwise report a watson for any other exception.  Don't bring down VS.  This is
                 // a BG service we don't want impacting the user experience.
@@ -110,12 +108,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
-            _lazyConnection = await client.CreateConnectionAsync<IRemoteProjectTelemetryService>(callbackTarget: this, cancellationToken).ConfigureAwait(false);
+            _lazyConnection = client.CreateConnection<IRemoteProjectTelemetryService>(callbackTarget: this);
 
             // Now kick off scanning in the OOP process.
             // If the call fails an error has already been reported and there is nothing more to do.
             _ = await _lazyConnection.TryInvokeAsync(
-                (service, cancellationToken) => service.ComputeProjectTelemetryAsync(cancellationToken),
+                (service, callbackId, cancellationToken) => service.ComputeProjectTelemetryAsync(callbackId, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -190,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         {
             Contract.ThrowIfNull(_workQueue);
             _workQueue.AddWork(info);
-            return new ValueTask();
+            return ValueTaskFactory.CompletedTask;
         }
     }
 }

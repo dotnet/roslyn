@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -336,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step three: Now fill in the optional arguments. (Dev11 uses the getter for optional arguments in
             // compound assignments, but for deconstructions we use the setter if the getter is missing.)
             var accessor = indexer.GetOwnOrInheritedGetMethod() ?? indexer.GetOwnOrInheritedSetMethod();
-            InsertMissingOptionalArguments(syntax, accessor.Parameters, actualArguments, refKinds);
+            Debug.Assert(accessor is not null);
 
             // For a call, step four would be to optimize away some of the temps.  However, we need them all to prevent
             // duplicate side-effects, so we'll skip that step.
@@ -346,6 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RewriteArgumentsForComCall(parameters, actualArguments, refKinds, temps);
             }
 
+            Debug.Assert(actualArguments.All(static arg => arg is not null));
             rewrittenArguments = actualArguments.AsImmutableOrNull();
 
             foreach (BoundAssignmentOperator tempAssignment in storesToTemps)
@@ -368,8 +368,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKinds,
                 false,
                 default(ImmutableArray<int>),
+                default(BitVector),
                 null,
-                indexerAccess.UseSetterForDefaultArgumentGeneration,
                 indexerAccess.Type);
         }
 

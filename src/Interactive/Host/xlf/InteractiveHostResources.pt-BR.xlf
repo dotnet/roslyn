@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Failed_to_create_a_remote_process_for_interactive_code_execution">
         <source>Failed to create a remote process for interactive code execution: '{0}'</source>
-        <target state="new">Failed to create a remote process for interactive code execution: '{0}'</target>
+        <target state="translated">Falha ao criar um processo remoto para a execução de código interativa: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_initialize_remote_interactive_process">
@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Specified_file_not_found_colon_0">
         <source>Specified file not found: {0}</source>
-        <target state="translated">Arquivo especificado não encontrado. {0}</target>
+        <target state="translated">Arquivo especificado não encontrado: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_Sharphelp_for_more_information">

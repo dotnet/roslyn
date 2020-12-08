@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
 
@@ -30,7 +32,10 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         }
 
         public static explicit operator ProjectKey(Project project)
-            => new((SolutionKey)project.Solution, project.Id, project.FilePath, project.Name);
+            => ToProjectKey(project.Solution.State, project.State);
+
+        public static ProjectKey ToProjectKey(SolutionState solutionState, ProjectState projectState)
+            => new((SolutionKey)solutionState, projectState.Id, projectState.FilePath, projectState.Name);
 
         public SerializableProjectKey Dehydrate()
             => new(Solution.Dehydrate(), Id, FilePath, Name);

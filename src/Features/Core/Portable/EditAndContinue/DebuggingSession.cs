@@ -12,9 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     /// <summary>

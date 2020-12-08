@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         public const string Kind = "Alias";
 
         public static string GetAliasName(SyntaxAnnotation annotation)
-            => annotation.Data;
+            => annotation.Data!;
 
         public static SyntaxAnnotation Create(string aliasName)
             => new(Kind, aliasName);

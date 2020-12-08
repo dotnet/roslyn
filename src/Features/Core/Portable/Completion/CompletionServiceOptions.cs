@@ -19,5 +19,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public static readonly Option2<bool> DisallowAddingImports
             = new(nameof(CompletionServiceOptions), nameof(DisallowAddingImports), defaultValue: false);
+
+        /// <summary>
+        /// Timeout value used for time-boxing completion of unimported extension methods.
+        /// Value less than 0 means no timebox; value == 0 means immediate timeout (for testing purpose)
+        /// </summary>
+        public static readonly Option2<int> TimeoutInMillisecondsForExtensionMethodImportCompletion
+            = new(nameof(CompletionServiceOptions), nameof(TimeoutInMillisecondsForExtensionMethodImportCompletion), defaultValue: 500);
     }
 }

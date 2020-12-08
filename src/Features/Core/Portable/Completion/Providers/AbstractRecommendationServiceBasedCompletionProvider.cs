@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -63,9 +64,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return symbol.GetSymbolType();
         }
 
-        protected override CompletionItem CreateItem(CompletionContext completionContext,
-            string displayText, string displayTextSuffix, string insertionText,
-            List<ISymbol> symbols, SyntaxContext context, bool preselect, SupportedPlatformData supportedPlatformData)
+        protected override CompletionItem CreateItem(
+            CompletionContext completionContext,
+            string displayText,
+            string displayTextSuffix,
+            string insertionText,
+            List<ISymbol> symbols,
+            SyntaxContext context,
+            bool preselect,
+            SupportedPlatformData supportedPlatformData)
         {
             var rules = GetCompletionItemRules(symbols, context, preselect);
             var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0]) : MatchPriority.Default;

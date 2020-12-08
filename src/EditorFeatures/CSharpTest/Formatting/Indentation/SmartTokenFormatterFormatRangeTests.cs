@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3109,6 +3111,66 @@ class Program{
     {
         using (null)
             fixed (void* ptr = &i)
+            {
+            }
+    }
+}";
+
+            AutoFormatToken(code, expected, useTabs);
+        }
+
+        [WpfTheory]
+        [CombinatorialData]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public void UsingStatementWithNestedCheckedStatement(bool useTabs)
+        {
+            var code = @"class C
+{
+    public void M()
+    {
+        using (null)
+        checked
+        {
+        }$$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void M()
+    {
+        using (null)
+            checked
+            {
+            }
+    }
+}";
+
+            AutoFormatToken(code, expected, useTabs);
+        }
+
+        [WpfTheory]
+        [CombinatorialData]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public void UsingStatementWithNestedUncheckedStatement(bool useTabs)
+        {
+            var code = @"class C
+{
+    public void M()
+    {
+        using (null)
+        unchecked
+        {
+        }$$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void M()
+    {
+        using (null)
+            unchecked
             {
             }
     }

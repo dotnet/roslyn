@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             TSymbol symbol,
             Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -49,13 +47,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var overrides = await SymbolFinder.FindOverridesArrayAsync(
                         symbol, solution, projects, cancellationToken).ConfigureAwait(false);
 
-                    var overriddenMember = symbol.OverriddenMember();
-                    if (overriddenMember == null)
-                    {
-                        return interfaceMembersImplemented.Concat(overrides);
-                    }
-
-                    return interfaceMembersImplemented.Concat(overrides).Concat(overriddenMember);
+                    var overriddenMember = symbol.GetOverriddenMember();
+                    return overriddenMember == null
+                        ? interfaceMembersImplemented.Concat(overrides)
+                        : interfaceMembersImplemented.Concat(overrides).Concat(overriddenMember);
                 }
             }
 

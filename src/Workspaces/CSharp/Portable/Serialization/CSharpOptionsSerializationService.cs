@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Linq;
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Serialization
             WriteParseOptionsTo(options, writer, cancellationToken);
 
             var csharpOptions = (CSharpParseOptions)options;
-            writer.WriteInt32((int)csharpOptions.LanguageVersion);
+            writer.WriteInt32((int)csharpOptions.SpecifiedLanguageVersion);
             writer.WriteValue(options.PreprocessorSymbolNames.ToArray());
         }
 

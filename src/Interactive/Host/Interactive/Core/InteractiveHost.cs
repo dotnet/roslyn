@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -26,6 +25,15 @@ namespace Microsoft.CodeAnalysis.Interactive
     internal sealed partial class InteractiveHost : IDisposable
     {
         internal const InteractiveHostPlatform DefaultPlatform = InteractiveHostPlatform.Desktop32;
+
+        /// <summary>
+        /// Use Unicode encoding for STDOUT and STDERR of the InteractiveHost process.
+        /// Ideally, we would use UTF8 but SetConsoleOutputCP Windows API fails with "Invalid Handle" when Console.OutputEncoding is set to UTF8.
+        /// (issue tracked by https://github.com/dotnet/roslyn/issues/47571, https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1253106)
+        /// Unicode is not ideal since the message printed directly to STDOUT/STDERR from native code that do not encode the output are going to be garbled
+        /// (e.g. messages reported by CLR stack overflow and OOM exception handlers: https://github.com/dotnet/runtime/issues/45503).
+        /// </summary>
+        internal static readonly Encoding OutputEncoding = Encoding.Unicode;
 
         private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new JsonRpcTargetOptions()
         {
@@ -251,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 // The user reset the process during initialization. 
                 // The reset operation will recreate the process.
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -340,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 return initializedService.InitializationResult;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }

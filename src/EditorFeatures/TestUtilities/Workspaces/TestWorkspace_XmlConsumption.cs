@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 extern alias WORKSPACES;
 
 using System;
@@ -28,6 +30,7 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -829,7 +832,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 supportDiagnostics ?? true);
         }
 
-#nullable restore
+#nullable disable
 
         private static string GetFilePath(
             TestWorkspace workspace,
@@ -962,6 +965,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                         ImmutableArray<DiagnosticAnalyzer>.Empty,
                         display: (string)analyzer.Attribute(AnalyzerDisplayAttributeName),
                         fullPath: (string)analyzer.Attribute(AnalyzerFullPathAttributeName)));
+            }
+
+            foreach (var fileToGenerate in projectElement.Elements(DocumentFromSourceGenerator))
+            {
+                analyzers.Add(new TestGeneratorReference(new SingleFileTestGenerator(fileToGenerate.Value)));
             }
 
             return analyzers;

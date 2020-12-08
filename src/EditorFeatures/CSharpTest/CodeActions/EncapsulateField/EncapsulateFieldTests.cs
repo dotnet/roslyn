@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -1395,7 +1397,7 @@ class C
 }", options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestTuple(TestHost host)
         {
             var text = @"
@@ -1437,7 +1439,7 @@ class C
             await TestAllOptionsOffAsync(host, text, expected, index: 1);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNames(TestHost host)
         {
             var text = @"
@@ -1479,7 +1481,7 @@ class C
             await TestAllOptionsOffAsync(host, text, expected, index: 1);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.FunctionPointers)]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), CompilerTrait(CompilerFeature.FunctionPointers)]
         public async Task FunctionPointer(TestHost host)
         {
             var text = @"
@@ -1521,7 +1523,7 @@ unsafe class C
             await TestAllOptionsOffAsync(host, text, expected, index: 1);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.FunctionPointers)]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), CompilerTrait(CompilerFeature.FunctionPointers)]
         public async Task FunctionPointerWithPrivateTypeParameter(TestHost host)
         {
             var text = @"
@@ -1565,7 +1567,7 @@ unsafe class C
             await TestAllOptionsOffAsync(host, text, expected, index: 1);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.FunctionPointers)]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), CompilerTrait(CompilerFeature.FunctionPointers)]
         public async Task FunctionPointerWithPrivateTypeReturnValue(TestHost host)
         {
             var text = @"

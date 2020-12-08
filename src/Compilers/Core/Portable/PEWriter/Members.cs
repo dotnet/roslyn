@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -502,12 +500,6 @@ namespace Microsoft.Cci
             get;
             // ^ requires this.IsGeneric;
         }
-
-        /// <summary>
-        /// Returns true if this symbol was automatically created by the compiler, and does not have
-        /// an explicit corresponding source code declaration. 
-        /// </summary> 
-        bool IsImplicitlyDeclared { get; }
 
         /// <summary>
         /// True if this method has a non empty collection of SecurityAttributes or the System.Security.SuppressUnmanagedCodeSecurityAttribute.

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -185,13 +187,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (!subjectBuffer.CheckEditAccess())
             {
                 // We are on the wrong thread.
-                FatalError.ReportWithoutCrash(new InvalidOperationException("Subject buffer did not provide Edit Access"));
+                FatalError.ReportAndCatch(new InvalidOperationException("Subject buffer did not provide Edit Access"));
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
             if (subjectBuffer.EditInProgress)
             {
-                FatalError.ReportWithoutCrash(new InvalidOperationException("Subject buffer is editing by someone else."));
+                FatalError.ReportAndCatch(new InvalidOperationException("Subject buffer is editing by someone else."));
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
@@ -206,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 change = completionService.GetChangeAsync(document, roslynItem, completionListSpan, commitCharacter, disallowAddingImports, cancellationToken).WaitAndGetResult(cancellationToken);
             }
-            catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken && FatalError.ReportWithoutCrash(e))
+            catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken && FatalError.ReportAndCatch(e))
             {
                 return CommitResultUnhandled;
             }

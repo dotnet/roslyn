@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
@@ -44,5 +42,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             return SpecializedCollections.EmptyEnumerable<ICustomAttribute>();
         }
+
+        Symbols.ISymbolInternal? IReference.GetInternalSymbol() => null;
     }
 }

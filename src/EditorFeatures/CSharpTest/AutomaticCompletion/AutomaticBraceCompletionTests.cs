@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
@@ -47,7 +49,7 @@ class C
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         [WorkItem(47381, "https://github.com/dotnet/roslyn/issues/47381")]
-        public void TypelessNewExpressionBracesSameLine()
+        public void ImplicitObjectCreationExpressionBracesSameLine()
         {
             var code = @"
 class C

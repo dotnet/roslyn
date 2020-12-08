@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -15,6 +13,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Inter
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -154,8 +153,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 GC.SuppressFinalize(this);
             }
-            catch (Exception ex) when (FatalError.Report(ex))
+            catch (Exception ex) when (FatalError.ReportAndPropagate(ex))
             {
+                throw ExceptionUtilities.Unreachable;
             }
         }
 

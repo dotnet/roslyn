@@ -50,18 +50,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
         public Task<string> GetProjectAssetsFilePathAsync(string projectPath, CancellationToken cancellationToken)
         {
+#if false // PROTOTYPE: Temporary disabling code causing a build break
             return _projectSystemReferenceUpdateService.GetProjectAssetsFilePathAsync(projectPath, cancellationToken);
+#else
+            return Task<string>.FromResult("");
+#endif
         }
 
         public async Task<ImmutableArray<ReferenceInfo>> GetProjectReferencesAsync(string projectPath, string targetFramework, CancellationToken cancellationToken)
         {
+#if false // PROTOTYPE: Temporary disabling code causing a build break
             var projectSystemReferences = await _projectSystemReferenceUpdateService.GetProjectReferencesAsync(projectPath, targetFramework, cancellationToken).ConfigureAwait(false);
             return projectSystemReferences.Select(reference => reference.ToReferenceInfo()).ToImmutableArray();
+#else
+            return await Task<ImmutableArray<ReferenceInfo>>.FromResult(ImmutableArray<ReferenceInfo>.Empty).ConfigureAwait(false);
+#endif
         }
 
         public Task<bool> TryUpdateReferenceAsync(string projectPath, string targetFramework, ReferenceUpdate referenceUpdate, CancellationToken cancellationToken)
         {
+#if false // PROTOTYPE: Temporary disabling code causing a build break
             return _projectSystemReferenceUpdateService.TryUpdateReferenceAsync(projectPath, targetFramework, referenceUpdate.ToProjectSystemReferenceUpdate(), cancellationToken);
+#else
+            return Task<bool>.FromResult(false);
+#endif
         }
     }
 }

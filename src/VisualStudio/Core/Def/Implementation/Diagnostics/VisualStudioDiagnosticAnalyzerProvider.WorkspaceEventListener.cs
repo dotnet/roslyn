@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Reflection;
@@ -16,6 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
@@ -66,8 +65,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     workspace.ApplyChangeToWorkspace(w =>
                         w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged));
                 }
-                catch (Exception e) when (FatalError.Report(e))
+                catch (Exception e) when (FatalError.ReportAndPropagate(e))
                 {
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 

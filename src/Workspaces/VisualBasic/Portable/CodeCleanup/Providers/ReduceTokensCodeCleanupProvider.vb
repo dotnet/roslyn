@@ -44,6 +44,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Public Overrides Function VisitLiteralExpression(node As LiteralExpressionSyntax) As SyntaxNode
                 Dim newNode = DirectCast(MyBase.VisitLiteralExpression(node), LiteralExpressionSyntax)
                 Dim literal As SyntaxToken = newNode.Token
+                Const digitSeparator = "_"c
 
                 ' Pretty list floating and decimal literals.
                 Select Case literal.Kind
@@ -55,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         Dim value As Double = 0
                         Dim valueText As String = GetFloatLiteralValueString(literal, value) + GetTypeCharString(literal.GetTypeCharacter())
 
-                        If value = 0 Then
+                        If value = 0 OrElse idText.Contains(digitSeparator) Then
                             ' Overflow/underflow case or zero literal, skip pretty listing.
                             Return newNode
                         End If
@@ -70,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         Dim idText = literal.GetIdentifierText()
                         Dim value = DirectCast(literal.Value, Decimal)
 
-                        If value = 0 Then
+                        If value = 0 OrElse idText.Contains(digitSeparator) Then
                             ' Overflow/underflow case or zero literal, skip pretty listing.
                             Return newNode
                         End If
@@ -96,7 +97,6 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                         Dim base = literal.GetBase()
 
-                        Const digitSeparator = "_"c
                         If Not base.HasValue OrElse idText.Contains(digitSeparator) Then
                             Return newNode
                         End If
