@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -66,12 +68,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         internal static async Task<bool> IsOverrideAsync(Solution solution, ISymbol member, ISymbol symbol, CancellationToken cancellationToken)
         {
-            for (var current = member; current != null; current = current.OverriddenMember())
+            for (var current = member; current != null; current = current.GetOverriddenMember())
             {
-                if (await OriginalSymbolsMatchAsync(solution, current.OverriddenMember(), symbol.OriginalDefinition, cancellationToken).ConfigureAwait(false))
-                {
+                if (await OriginalSymbolsMatchAsync(solution, current.GetOverriddenMember(), symbol.OriginalDefinition, cancellationToken).ConfigureAwait(false))
                     return true;
-                }
             }
 
             return false;
@@ -212,8 +212,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<INamedTypeSymbol>> FindDerivedClassesArrayAsync(
             INamedTypeSymbol type, Solution solution, bool transitive, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            var types = await DependentTypeFinder.FindDerivedClassesAsync(
-                type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
+            var types = await DependentTypeFinder.FindTypesAsync(
+                type, solution, projects, transitive, DependentTypesKind.DerivedClasses, cancellationToken).ConfigureAwait(false);
             return types.WhereAsArray(t => IsAccessible(t));
         }
 
@@ -248,8 +248,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<INamedTypeSymbol>> FindDerivedInterfacesArrayAsync(
             INamedTypeSymbol type, Solution solution, bool transitive, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            var types = await DependentTypeFinder.FindDerivedInterfacesAsync(
-                type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
+            var types = await DependentTypeFinder.FindTypesAsync(
+                type, solution, projects, transitive, DependentTypesKind.DerivedInterfaces, cancellationToken).ConfigureAwait(false);
             return types.WhereAsArray(t => IsAccessible(t));
         }
 
@@ -284,8 +284,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<INamedTypeSymbol>> FindImplementationsArrayAsync(
             INamedTypeSymbol type, Solution solution, bool transitive, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
-            var types = await DependentTypeFinder.FindImplementingTypesAsync(
-                type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
+            var types = await DependentTypeFinder.FindTypesAsync(
+                type, solution, projects, transitive, DependentTypesKind.ImplementingTypes, cancellationToken).ConfigureAwait(false);
             return types.WhereAsArray(t => IsAccessible(t));
         }
 

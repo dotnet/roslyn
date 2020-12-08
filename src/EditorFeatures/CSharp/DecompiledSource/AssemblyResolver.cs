@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
     internal class AssemblyResolver : IAssemblyResolver
     {
         private readonly Compilation _parentCompilation;
-        private readonly Dictionary<string, List<IAssemblySymbol>> _cache = new Dictionary<string, List<IAssemblySymbol>>();
+        private readonly Dictionary<string, List<IAssemblySymbol>> _cache = new();
         private readonly StringBuilder _logger;
 
         public AssemblyResolver(Compilation parentCompilation, StringBuilder logger)

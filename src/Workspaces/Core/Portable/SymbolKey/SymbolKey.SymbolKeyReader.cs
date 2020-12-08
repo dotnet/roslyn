@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -228,7 +226,7 @@ namespace Microsoft.CodeAnalysis
 
         private class RemoveAssemblySymbolKeysReader : Reader<object>
         {
-            private readonly StringBuilder _builder = new StringBuilder();
+            private readonly StringBuilder _builder = new();
 
             private bool _skipString = false;
 
@@ -300,7 +298,7 @@ namespace Microsoft.CodeAnalysis
         {
             private static readonly ObjectPool<SymbolKeyReader> s_readerPool = SharedPools.Default<SymbolKeyReader>();
 
-            private readonly Dictionary<int, SymbolKeyResolution> _idToResult = new Dictionary<int, SymbolKeyResolution>();
+            private readonly Dictionary<int, SymbolKeyResolution> _idToResult = new();
             private readonly ReadFunction<SymbolKeyResolution> _readSymbolKey;
             private readonly ReadFunction<Location?> _readLocation;
 
@@ -308,7 +306,7 @@ namespace Microsoft.CodeAnalysis
             public bool IgnoreAssemblyKey { get; private set; }
             public SymbolEquivalenceComparer Comparer { get; private set; }
 
-            private readonly List<IMethodSymbol?> _methodSymbolStack = new List<IMethodSymbol?>();
+            private readonly List<IMethodSymbol?> _methodSymbolStack = new();
 
             public SymbolKeyReader()
             {

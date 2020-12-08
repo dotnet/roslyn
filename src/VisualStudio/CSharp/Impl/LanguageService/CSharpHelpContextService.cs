@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -284,7 +286,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                             text = "partialmethod_CSharpKeyword";
                             return true;
                         }
-                        else if (token.Parent.GetAncestorOrThis<ClassDeclarationSyntax>() != null)
+                        else if (token.Parent.GetAncestorOrThis<TypeDeclarationSyntax>() != null)
                         {
                             text = "partialtype_CSharpKeyword";
                             return true;
@@ -322,6 +324,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 case SyntaxKind.InternalKeyword when ModifiersContains(token, syntaxFacts, SyntaxKind.ProtectedKeyword):
                     text = "protectedinternal_CSharpKeyword";
                     return true;
+
+                case SyntaxKind.UsingKeyword when token.GetNextToken().IsKind(SyntaxKind.StaticKeyword):
+                case SyntaxKind.StaticKeyword when token.GetPreviousToken().IsKind(SyntaxKind.UsingKeyword):
+                    text = "using-static_CSharpKeyword";
+                    return true;
             }
 
             text = null;
@@ -348,6 +355,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     text = "join_CSharpKeyword";
                     return true;
                 }
+            }
+
+            if (token.IsKind(SyntaxKind.DefaultKeyword) && token.Parent is DefaultSwitchLabelSyntax)
+            {
+                text = Keyword("defaultcase");
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.ClassKeyword) && token.Parent is ClassOrStructConstraintSyntax)
+            {
+                text = Keyword("classconstraint");
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.StructKeyword) && token.Parent is ClassOrStructConstraintSyntax)
+            {
+                text = Keyword("structconstraint");
+                return true;
             }
 
             if (token.IsKeyword())

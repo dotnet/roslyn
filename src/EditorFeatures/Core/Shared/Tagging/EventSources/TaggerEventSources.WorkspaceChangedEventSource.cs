@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 this.RaiseChanged();
             }
 
-            private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs eventArgs)
+            private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs eventArgs)
                 => _asyncDelay.RequeueWork();
         }
     }

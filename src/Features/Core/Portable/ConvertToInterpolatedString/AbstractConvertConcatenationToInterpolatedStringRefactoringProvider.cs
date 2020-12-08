@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -145,7 +147,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                         //      {InterpolatedStringText}{Interpolation}{InterpolatedStringText}{InterpolatedStringText}
                         var existingInterpolatedStringTextNode = content.Last();
                         var newText = ConcatinateTextToTextNode(generator, existingInterpolatedStringTextNode, textWithoutQuotes);
-                        content[content.Count - 1] = newText;
+                        content[^1] = newText;
                     }
                     else
                     {

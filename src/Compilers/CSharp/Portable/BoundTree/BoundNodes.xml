@@ -1585,6 +1585,7 @@
     <Field Name="Expanded" Type="bool"/>
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+    <Field Name="DefaultArguments" Type="BitVector" />
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <!--The set of method symbols from which this call's method was chosen.
         Only kept in the tree if the call was an error and overload resolution
@@ -1651,6 +1652,7 @@
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+    <Field Name="DefaultArguments" Type="BitVector" />
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
     <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?"/>
     <Field Name="WasTargetTyped" Type="bool"/>
@@ -1739,6 +1741,7 @@
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+    <Field Name="DefaultArguments" Type="BitVector" />
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
 
     <!-- Used by IOperation to reconstruct the receiver for this expression. -->
@@ -1771,6 +1774,7 @@
     <Field Name="ImplicitReceiverOpt" Type="BoundExpression?" />
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+    <Field Name="DefaultArguments" Type="BitVector" />
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <Field Name="BinderOpt" Type="Binder?" />
@@ -1928,11 +1932,11 @@
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+    <Field Name="DefaultArguments" Type="BitVector" />
 
     <!-- BinderOpt and UseSetterForDefaultArgumentGeneration are added as a temporary solution for IOperation implementation and should probably be removed in the future -->
     <!-- Tracked by https://github.com/dotnet/roslyn/issues/20787 -->
     <Field Name="BinderOpt" Type="Binder?"/>
-    <Field Name="UseSetterForDefaultArgumentGeneration" Type="bool"/>
     <!--The set of indexer symbols from which this call's indexer was chosen.
         Only kept in the tree if the call was an error and overload resolution
         was unable to choose a best indexer.-->

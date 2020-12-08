@@ -87,6 +87,16 @@
         <target state="translated">La selección automática se ha deshabilitado debido a una posible declaración de variable de patrón.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Change_to_as_expression">
+        <source>Change to 'as' expression</source>
+        <target state="translated">Cambiar a la expresión "as"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_cast">
+        <source>Change to cast</source>
+        <target state="translated">Cambiar a cast</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Compare_to_0">
         <source>Compare to '{0}'</source>
         <target state="translated">Comparar con "{0}"</target>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
@@ -5283,7 +5285,10 @@ class Program2
 
             comp.VerifyEmitDiagnostics(
                 // error CS8804: Cannot specify /main if there is a compilation unit with top-level statements.
-                Diagnostic(ErrorCode.ERR_SimpleProgramDisallowsMainType).WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_SimpleProgramDisallowsMainType).WithLocation(1, 1),
+                // (12,23): warning CS8892: Method 'Program.Main(string[])' will not be used as an entry point because a synchronous entry point 'Program.Main()' was found.
+                //     static async Task Main(string[] args)
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("Program.Main(string[])", "Program.Main()").WithLocation(12, 23)
                 );
         }
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -242,14 +244,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         public static void CollectCommentBlockSpans(
             SyntaxNode node,
             ArrayBuilder<BlockSpan> spans,
-            bool isMetadataAsSource)
+            BlockStructureOptionProvider optionProvider)
         {
             if (node == null)
             {
                 throw new ArgumentNullException(nameof(node));
             }
 
-            if (isMetadataAsSource && TryGetLeadingCollapsibleSpan(node, out var span))
+            if (optionProvider.IsMetadataAsSource && TryGetLeadingCollapsibleSpan(node, out var span))
             {
                 spans.Add(span);
             }

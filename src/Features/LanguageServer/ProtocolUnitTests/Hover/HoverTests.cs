@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -190,8 +192,11 @@ $@"<Workspace>
         }
 
         private static async Task<LSP.VSHover> RunGetHoverAsync(Solution solution, LSP.Location caret, ProjectId projectContext = null)
-            => (LSP.VSHover)await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName,
-                CreateTextDocumentPositionParams(caret, projectContext), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        {
+            var queue = CreateRequestQueue(solution);
+            return (LSP.VSHover)await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(queue, LSP.Methods.TextDocumentHoverName,
+                           CreateTextDocumentPositionParams(caret, projectContext), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        }
 
         private void VerifyContent(LSP.VSHover result, string expectedContent)
         {

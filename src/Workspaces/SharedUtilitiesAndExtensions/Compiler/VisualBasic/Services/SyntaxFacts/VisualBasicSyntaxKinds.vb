@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property Parameter As Integer = SyntaxKind.Parameter Implements ISyntaxKinds.Parameter
         Public ReadOnly Property TypeConstraint As Integer = SyntaxKind.TypeConstraint Implements ISyntaxKinds.TypeConstraint
         Public ReadOnly Property VariableDeclarator As Integer = SyntaxKind.VariableDeclarator Implements ISyntaxKinds.VariableDeclarator
-
+        Public ReadOnly Property ParameterList As Integer = SyntaxKind.ParameterList Implements ISyntaxKinds.ParameterList
         Public ReadOnly Property TypeArgumentList As Integer = SyntaxKind.TypeArgumentList Implements ISyntaxKinds.TypeArgumentList
         Public ReadOnly Property GlobalStatement As Integer? = Nothing Implements ISyntaxKinds.GlobalStatement
 

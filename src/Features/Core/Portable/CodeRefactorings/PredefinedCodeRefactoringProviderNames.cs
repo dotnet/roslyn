@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     internal static class PredefinedCodeRefactoringProviderNames
@@ -12,6 +14,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string AddMissingImports = "Add Missing Imports On Paste Code Action Provider";
         public const string ChangeSignature = "Change Signature Code Action Provider";
         public const string ConvertAnonymousTypeToClass = "Convert Anonymous Type to Class Code Action Provider";
+        public const string ConvertDirectCastToTryCast = "Convert Direct Cast to Try Cast";
+        public const string ConvertTryCastToDirectCast = "Convert Try Cast to Direct Cast";
         public const string ConvertToInterpolatedString = "Convert To Interpolated String Code Action Provider";
         public const string ConvertTupleToStruct = "Convert Tuple to Struct Code Action Provider";
         public const string EncapsulateField = "Encapsulate Field";

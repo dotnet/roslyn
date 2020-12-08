@@ -1,26 +1,26 @@
 Clashing Enum Members
 =====================
 
-As reported in #2909, it is possible to reference an enumeration type from VB that contains more than one enumeration member with the same name. For example, a library author might release version 1 of his API in C# with this type
+As reported in [#2909](https://github.com/dotnet/roslyn/issues/2909), it is possible to reference an enumeration type from VB that contains more than one enumeration member with the same name. For example, a library author might release version 1 of his API in C# with this type
 
 ```cs
 enum Something
 {
-	Something,
+    Something,
     Datetime,
-	SomethingElse,
+    SomethingElse,
 }
 ```
 
-and then realize later that the name Datetime is misspelled (it should be camel-case, with `Time` capitalized). So in version 2 the type is changed
+and then realize later that the name Datetime is misspelled (it should be PascalCase, with `Time` capitalized). So in version 2 the type is changed
 
 ```cs
 enum SomeEnum
 {
-	Something,
+    Something,
     DateTime,
     [Obsolete] Datetime = DateTime,
-	SomethingElse,
+    SomethingElse,
 }
 ```
 

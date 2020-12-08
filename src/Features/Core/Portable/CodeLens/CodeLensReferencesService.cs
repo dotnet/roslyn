@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -19,13 +22,13 @@ namespace Microsoft.CodeAnalysis.CodeLens
     internal sealed class CodeLensReferencesService : ICodeLensReferencesService
     {
         private static readonly SymbolDisplayFormat MethodDisplayFormat =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
-        private static async Task<T> FindAsync<T>(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
+        private static async Task<T?> FindAsync<T>(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             Func<CodeLensFindReferencesProgress, Task<T>> onResults, Func<CodeLensFindReferencesProgress, Task<T>> onCapped,
-            int searchCap, CancellationToken cancellationToken) where T : class
+            int searchCap, CancellationToken cancellationToken) where T : struct
         {
             var document = solution.GetDocument(documentId);
             if (document == null)
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             }
         }
 
-        public Task<ReferenceCount> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken)
+        public Task<ReferenceCount?> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken)
         {
             return FindAsync(solution, documentId, syntaxNode,
                 progress => Task.FromResult(new ReferenceCount(
@@ -180,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             return langServices.GetDisplayNode(node);
         }
 
-        public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken)
         {
             return await FindAsync(solution, documentId, syntaxNode,
                 async progress =>
@@ -191,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
                     var result = await Task.WhenAll(referenceTasks).ConfigureAwait(false);
 
-                    return (IEnumerable<ReferenceLocationDescriptor>)result;
+                    return result.ToImmutableArray();
                 }, onCapped: null, searchCap: 0, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
@@ -238,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             return !string.IsNullOrEmpty(fullName) ? new ReferenceMethodDescriptor(fullName, document.FilePath, document.Project.OutputFilePath) : null;
         }
 
-        public Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken)
+        public Task<ImmutableArray<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, CancellationToken cancellationToken)
         {
             return FindAsync(solution, documentId, syntaxNode,
                 async progress =>
@@ -250,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
                     var result = await Task.WhenAll(descriptorTasks).ConfigureAwait(false);
 
-                    return result.OfType<ReferenceMethodDescriptor>();
+                    return result.OfType<ReferenceMethodDescriptor>().ToImmutableArray();
                 }, onCapped: null, searchCap: 0, cancellationToken: cancellationToken);
         }
 
@@ -287,6 +290,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                             switch (parts[index + 1].Kind)
                             {
                                 case SymbolDisplayPartKind.ClassName:
+                                case SymbolDisplayPartKind.RecordName:
                                 case SymbolDisplayPartKind.DelegateName:
                                 case SymbolDisplayPartKind.EnumName:
                                 case SymbolDisplayPartKind.ErrorTypeName:
@@ -306,6 +310,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                         }
 
                         previousWasClass = part.Kind == SymbolDisplayPartKind.ClassName ||
+                                           part.Kind == SymbolDisplayPartKind.RecordName ||
                                            part.Kind == SymbolDisplayPartKind.InterfaceName ||
                                            part.Kind == SymbolDisplayPartKind.StructName;
                     }

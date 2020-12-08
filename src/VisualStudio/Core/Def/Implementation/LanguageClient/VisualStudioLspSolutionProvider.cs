@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -41,19 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             {
                 // If there's none in the VS workspace, then check the misc files workspace.
                 documents = _miscellaneousFilesWorkspace.CurrentSolution.GetDocuments(documentUri);
-            }
-
-            return documents;
-        }
-
-        public ImmutableArray<TextDocument> GetTextDocuments(Uri documentUri)
-        {
-            // First check the VS workspace for matching documents.
-            var documents = _visualStudioWorkspace.CurrentSolution.GetTextDocuments(documentUri);
-            if (documents.IsEmpty)
-            {
-                // If there's none in the VS workspace, then check the misc files workspace.
-                documents = _miscellaneousFilesWorkspace.CurrentSolution.GetTextDocuments(documentUri);
             }
 
             return documents;

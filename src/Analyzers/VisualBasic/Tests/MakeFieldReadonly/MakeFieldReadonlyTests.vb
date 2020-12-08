@@ -967,5 +967,17 @@ End Class",
     End Sub
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
+        <WorkItem(42760, "https://github.com/dotnet/roslyn/issues/42760")>
+        Public Async Function WithThreadStaticAttribute_NoDiagnostic() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Imports System
+
+Class C
+    <ThreadStatic>
+    Private Shared [|t_obj|] As Object
+End Class")
+        End Function
     End Class
 End Namespace

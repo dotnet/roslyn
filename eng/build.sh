@@ -70,7 +70,6 @@ run_analyzers=false
 prepare_machine=false
 warn_as_error=false
 properties=""
-disable_parallel_restore=false
 source_build=false
 
 docker=false
@@ -226,18 +225,13 @@ function BuildSolution {
     bl="/bl:\"$log_dir/Build.binlog\""
   fi
   
-  local projects="$repo_root/$solution" 
-  
-  # https://github.com/dotnet/roslyn/issues/23736
-  UNAME="$(uname)"
-  if [[ "$UNAME" == "Darwin" ]]; then
-    run_analyzers=false
-  fi
+  local projects="$repo_root/$solution"
 
+  UNAME="$(uname)"
   # NuGet often exceeds the limit of open files on Mac and Linux
   # https://github.com/NuGet/Home/issues/2163
   if [[ "$UNAME" == "Darwin" || "$UNAME" == "Linux" ]]; then
-    disable_parallel_restore=true
+    ulimit -n 6500
   fi
 
   if [[ "$test_ioperation" == true ]]; then
@@ -285,11 +279,10 @@ function BuildSolution {
     /p:Test=$test \
     /p:Pack=$pack \
     /p:Publish=$publish \
-    /p:UseRoslynAnalyzers=$run_analyzers \
+    /p:RunAnalyzersDuringBuild=$run_analyzers \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \
-    /p:RestoreDisableParallel=$disable_parallel_restore \
     /p:TestRuntimeAdditionalArguments=$test_runtime_args \
     /p:DotNetBuildFromSource=$source_build \
     $test_runtime \

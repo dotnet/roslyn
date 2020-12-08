@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -313,13 +315,13 @@ namespace Roslyn.Utilities
             private readonly List<T> _values;
 
             private static readonly ObjectPool<List<T>> s_objectListPool
-                = new ObjectPool<List<T>>(() => new List<T>(20));
+                = new(() => new List<T>(20));
 
             private ReaderReferenceMap(List<T> values)
                 => _values = values;
 
             public static ReaderReferenceMap<T> Create()
-                => new ReaderReferenceMap<T>(s_objectListPool.Allocate());
+                => new(s_objectListPool.Allocate());
 
             public void Dispose()
             {

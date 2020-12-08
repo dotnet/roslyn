@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../RemoteWorkspacesResources.resx">
     <body>
+      <trans-unit id="FeatureName_AssetSynchronization">
+        <source>Asset synchronization</source>
+        <target state="translated">Sincronización de recursos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_AsynchronousOperationListener">
+        <source>Asynchronous operation listener</source>
+        <target state="translated">Cliente de escucha de operaciones asincrónicas</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_CodeLensReferences">
         <source>CodeLens references</source>
         <target state="translated">Referencias de CodeLens</target>
@@ -80,6 +90,11 @@
       <trans-unit id="FeatureName_SemanticClassificationCache">
         <source>Semantic classification cache</source>
         <target state="translated">Caché de clasificación semántica</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SolutionAssetProvider">
+        <source>Asset provider</source>
+        <target state="translated">Proveedor de recursos</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">

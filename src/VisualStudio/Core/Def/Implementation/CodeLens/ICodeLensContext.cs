@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,13 +29,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         /// <summary>
         /// get reference location descriptor of the given descriptor
         /// </summary>
-        Task<IEnumerable<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(
+        Task<ImmutableArray<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken);
 
         /// <summary>
         /// Given a document and syntax node, returns a collection of locations of methods that refer to the located node.
         /// </summary>
-        Task<IEnumerable<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(
+        Task<ImmutableArray<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken);
     }
 }

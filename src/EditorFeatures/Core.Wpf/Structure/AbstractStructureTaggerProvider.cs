@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -92,6 +95,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         {
             try
             {
+                // Let LSP handle producing tags in the cloud scenario
+                if (documentSnapshotSpan.Document.IsInCloudEnvironmentClientContext())
+                {
+                    return;
+                }
+
                 var outliningService = TryGetService(context, documentSnapshotSpan);
                 if (outliningService != null)
                 {
@@ -103,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                         blockStructure.Spans);
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -117,6 +126,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         {
             try
             {
+                // Let LSP handle producing tags in the cloud scenario
+                if (documentSnapshotSpan.Document.IsInCloudEnvironmentClientContext())
+                {
+                    return;
+                }
+
                 var outliningService = TryGetService(context, documentSnapshotSpan);
                 if (outliningService != null)
                 {
@@ -133,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                         blockStructure.Spans);
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -241,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                             {
                                 throw new InvalidOutliningRegionException(service, snapshot, snapshotSpan, regionSpan);
                             }
-                            catch (InvalidOutliningRegionException e) when (FatalError.ReportWithoutCrash(e))
+                            catch (InvalidOutliningRegionException e) when (FatalError.ReportAndCatch(e))
                             {
                             }
                         }

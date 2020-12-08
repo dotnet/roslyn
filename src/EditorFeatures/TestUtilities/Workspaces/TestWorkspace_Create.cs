@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 
@@ -129,10 +132,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             string workspaceKind = null,
             string extension = null,
             bool commonReferences = true,
-            bool openDocuments = false)
+            bool openDocuments = false,
+            IDocumentServiceProvider documentServiceProvider = null)
         {
             var workspaceElement = CreateWorkspaceElement(language, compilationOptions, parseOptions, files, metadataReferences, extension, commonReferences);
-            return Create(workspaceElement, openDocuments, exportProvider, composition, workspaceKind);
+            return Create(workspaceElement, openDocuments, exportProvider, composition, workspaceKind, documentServiceProvider);
         }
 
         internal static TestWorkspace Create(

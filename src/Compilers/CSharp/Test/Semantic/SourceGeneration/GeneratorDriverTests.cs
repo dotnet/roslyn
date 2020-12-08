@@ -19,8 +19,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
-
-#nullable enable
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
     public class GeneratorDriverTests

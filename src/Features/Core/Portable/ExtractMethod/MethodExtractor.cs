@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -185,12 +187,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             if (camelCase && !prefix.IsEmpty())
             {
-                prefix = char.ToLowerInvariant(prefix[0]) + prefix.Substring(1);
+                prefix = char.ToLowerInvariant(prefix[0]) + prefix[1..];
             }
 
             return char.IsUpper(name[0]) ?
                 prefix + name :
-                prefix + char.ToUpper(name[0]).ToString() + name.Substring(1);
+                prefix + char.ToUpper(name[0]).ToString() + name[1..];
         }
     }
 }

@@ -87,6 +87,16 @@
         <target state="translated">Automatyczne wybieranie zostało wyłączone z powodu możliwej deklaracji zmiennej wzorca.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Change_to_as_expression">
+        <source>Change to 'as' expression</source>
+        <target state="translated">Zmień na wyrażenie „as”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_cast">
+        <source>Change to cast</source>
+        <target state="translated">Zmień na rzutowanie</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Compare_to_0">
         <source>Compare to '{0}'</source>
         <target state="translated">Porównaj z „{0}”</target>

@@ -33,7 +33,7 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Display inline parameter name hints;
+        <source>Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -81,7 +81,7 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="translated">Hinweise zu Inlineparameternamen anzeigen;
+        <target state="translated">Inlinehinweise anzeigen;
 Diagnoseinformationen für geschlossene Dateien anzeigen;
 Reguläre Ausdrücke farbig hervorheben;
 Zugehörige Komponenten unter dem Cursor markieren;

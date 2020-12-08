@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -15,32 +18,20 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     #region FindReferences
 
-    internal class SerializableFindReferencesSearchOptions
+    [DataContract]
+    internal sealed class SerializableSymbolAndProjectId
     {
-        public bool AssociatePropertyReferencesWithSpecificAccessor;
-        public bool Cascade;
+        [DataMember(Order = 0)]
+        public readonly string SymbolKeyData;
 
-        public static SerializableFindReferencesSearchOptions Dehydrate(FindReferencesSearchOptions options)
+        [DataMember(Order = 1)]
+        public readonly ProjectId ProjectId;
+
+        public SerializableSymbolAndProjectId(string symbolKeyData, ProjectId projectId)
         {
-            return new SerializableFindReferencesSearchOptions
-            {
-                AssociatePropertyReferencesWithSpecificAccessor = options.AssociatePropertyReferencesWithSpecificAccessor,
-                Cascade = options.Cascade,
-            };
+            SymbolKeyData = symbolKeyData;
+            ProjectId = projectId;
         }
-
-        public FindReferencesSearchOptions Rehydrate()
-        {
-            return new FindReferencesSearchOptions(
-                associatePropertyReferencesWithSpecificAccessor: AssociatePropertyReferencesWithSpecificAccessor,
-                cascade: Cascade);
-        }
-    }
-
-    internal class SerializableSymbolAndProjectId
-    {
-        public string SymbolKeyData;
-        public ProjectId ProjectId;
 
         public static SerializableSymbolAndProjectId Dehydrate(
             IAliasSymbol alias, Document document, CancellationToken cancellationToken)
@@ -60,11 +51,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public static SerializableSymbolAndProjectId Create(ISymbol symbol, Project project, CancellationToken cancellationToken)
-            => new SerializableSymbolAndProjectId
-            {
-                SymbolKeyData = symbol.GetSymbolKey(cancellationToken).ToString(),
-                ProjectId = project.Id,
-            };
+            => new(symbol.GetSymbolKey(cancellationToken).ToString(), project.Id);
 
         public static bool TryCreate(
             ISymbol symbol, Solution solution, CancellationToken cancellationToken,
@@ -90,11 +77,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return false;
             }
 
-            result = new SerializableSymbolAndProjectId
-            {
-                SymbolKeyData = SymbolKey.CreateString(symbol, cancellationToken),
-                ProjectId = project.Id,
-            };
+            result = new SerializableSymbolAndProjectId(SymbolKey.CreateString(symbol, cancellationToken), project.Id);
             return true;
         }
         public async Task<ISymbol> TryRehydrateAsync(
@@ -116,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     throw new InvalidOperationException(
                         $"We should always be able to resolve a symbol back on the host side:\r\n{project.Name}\r\n{SymbolKeyData}\r\n{failureReason}");
                 }
-                catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                 {
                     return null;
                 }
@@ -126,83 +109,59 @@ namespace Microsoft.CodeAnalysis.Remote
         }
     }
 
-    internal class SerializableSymbolUsageInfo : IEquatable<SerializableSymbolUsageInfo>
+    [DataContract]
+    internal readonly struct SerializableReferenceLocation
     {
-        public bool IsValueUsageInfo;
-        public int UsageInfoUnderlyingValue;
+        [DataMember(Order = 0)]
+        public readonly DocumentId Document;
 
-        public static SerializableSymbolUsageInfo Dehydrate(SymbolUsageInfo symbolUsageInfo)
+        [DataMember(Order = 1)]
+        public readonly SerializableSymbolAndProjectId Alias;
+
+        [DataMember(Order = 2)]
+        public readonly TextSpan Location;
+
+        [DataMember(Order = 3)]
+        public readonly bool IsImplicit;
+
+        [DataMember(Order = 4)]
+        public readonly SymbolUsageInfo SymbolUsageInfo;
+
+        [DataMember(Order = 5)]
+        public readonly ImmutableDictionary<string, string> AdditionalProperties;
+
+        [DataMember(Order = 6)]
+        public readonly CandidateReason CandidateReason;
+
+        public SerializableReferenceLocation(
+            DocumentId document,
+            SerializableSymbolAndProjectId alias,
+            TextSpan location,
+            bool isImplicit,
+            SymbolUsageInfo symbolUsageInfo,
+            ImmutableDictionary<string, string> additionalProperties,
+            CandidateReason candidateReason)
         {
-            bool isValueUsageInfo;
-            int usageInfoUnderlyingValue;
-            if (symbolUsageInfo.ValueUsageInfoOpt.HasValue)
-            {
-                isValueUsageInfo = true;
-                usageInfoUnderlyingValue = (int)symbolUsageInfo.ValueUsageInfoOpt.Value;
-            }
-            else
-            {
-                isValueUsageInfo = false;
-                usageInfoUnderlyingValue = (int)symbolUsageInfo.TypeOrNamespaceUsageInfoOpt.Value;
-            }
-
-            return new SerializableSymbolUsageInfo
-            {
-                IsValueUsageInfo = isValueUsageInfo,
-                UsageInfoUnderlyingValue = usageInfoUnderlyingValue
-            };
+            Document = document;
+            Alias = alias;
+            Location = location;
+            IsImplicit = isImplicit;
+            SymbolUsageInfo = symbolUsageInfo;
+            AdditionalProperties = additionalProperties;
+            CandidateReason = candidateReason;
         }
-
-        public SymbolUsageInfo Rehydrate()
-        {
-            return IsValueUsageInfo
-                ? SymbolUsageInfo.Create((ValueUsageInfo)UsageInfoUnderlyingValue)
-                : SymbolUsageInfo.Create((TypeOrNamespaceUsageInfo)UsageInfoUnderlyingValue);
-        }
-
-        public bool Equals(SerializableSymbolUsageInfo other)
-        {
-            return other != null &&
-                IsValueUsageInfo == other.IsValueUsageInfo &&
-                UsageInfoUnderlyingValue == other.UsageInfoUnderlyingValue;
-        }
-
-        public override bool Equals(object obj)
-            => Equals(obj as SerializableSymbolUsageInfo);
-
-        public override int GetHashCode()
-            => Hash.Combine(IsValueUsageInfo.GetHashCode(), UsageInfoUnderlyingValue.GetHashCode());
-    }
-
-    internal class SerializableReferenceLocation
-    {
-        public DocumentId Document { get; set; }
-
-        public SerializableSymbolAndProjectId Alias { get; set; }
-
-        public TextSpan Location { get; set; }
-
-        public bool IsImplicit { get; set; }
-
-        public SerializableSymbolUsageInfo SymbolUsageInfo { get; set; }
-
-        public ImmutableDictionary<string, string> AdditionalProperties { get; set; }
-
-        public CandidateReason CandidateReason { get; set; }
 
         public static SerializableReferenceLocation Dehydrate(
             ReferenceLocation referenceLocation, CancellationToken cancellationToken)
         {
-            return new SerializableReferenceLocation
-            {
-                Document = referenceLocation.Document.Id,
-                Alias = SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document, cancellationToken),
-                Location = referenceLocation.Location.SourceSpan,
-                IsImplicit = referenceLocation.IsImplicit,
-                SymbolUsageInfo = SerializableSymbolUsageInfo.Dehydrate(referenceLocation.SymbolUsageInfo),
-                AdditionalProperties = referenceLocation.AdditionalProperties,
-                CandidateReason = referenceLocation.CandidateReason
-            };
+            return new SerializableReferenceLocation(
+                referenceLocation.Document.Id,
+                SerializableSymbolAndProjectId.Dehydrate(referenceLocation.Alias, referenceLocation.Document, cancellationToken),
+                referenceLocation.Location.SourceSpan,
+                referenceLocation.IsImplicit,
+                referenceLocation.SymbolUsageInfo,
+                referenceLocation.AdditionalProperties,
+                referenceLocation.CandidateReason);
         }
 
         public async Task<ReferenceLocation> RehydrateAsync(
@@ -217,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 aliasSymbol,
                 CodeAnalysis.Location.Create(syntaxTree, Location),
                 isImplicit: IsImplicit,
-                symbolUsageInfo: SymbolUsageInfo.Rehydrate(),
+                symbolUsageInfo: SymbolUsageInfo,
                 additionalProperties: additionalProperties ?? ImmutableDictionary<string, string>.Empty,
                 candidateReason: CandidateReason);
         }

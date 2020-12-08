@@ -160,6 +160,9 @@ dotnet_diagnostic.IDE0043.severity = warning
 # IDE0044: Make field readonly
 dotnet_diagnostic.IDE0044.severity = warning
 
+# RS0016: Only enable if API files are present
+dotnet_public_api_analyzer.require_api_files = true
+
 # CSharp code style settings:
 [*.cs]
 # Newline settings
@@ -229,9 +232,6 @@ csharp_space_between_square_brackets = false
 csharp_prefer_braces = true:silent
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = true
-
-# warning RS0037: PublicAPI.txt is missing '#nullable enable'
-dotnet_diagnostic.RS0037.severity = none
 
 [src/CodeStyle/**.{cs,vb}]
 # warning RS0005: Do not use generic CodeAction.Create to create CodeAction

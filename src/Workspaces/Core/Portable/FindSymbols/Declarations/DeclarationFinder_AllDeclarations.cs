@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -41,15 +43,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var solution = project.Solution;
 
-                var result = await client.RunRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                    WellKnownServiceHubService.CodeAnalysis,
-                    nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
+                var result = await client.TryInvokeAsync<IRemoteSymbolFinderService, ImmutableArray<SerializableSymbolAndProjectId>>(
                     solution,
-                    new object[] { project.Id, query.Name, query.Kind, criteria },
-                    callbackTarget: null,
+                    (service, solutionInfo, cancellationToken) => service.FindAllDeclarationsWithNormalQueryAsync(solutionInfo, project.Id, query.Name, query.Kind, criteria, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                return await RehydrateAsync(solution, result, cancellationToken).ConfigureAwait(false);
+                if (!result.HasValue)
+                {
+                    return ImmutableArray<ISymbol>.Empty;
+                }
+
+                return await RehydrateAsync(solution, result.Value, cancellationToken).ConfigureAwait(false);
             }
 
             return await FindAllDeclarationsWithNormalQueryInCurrentProcessAsync(

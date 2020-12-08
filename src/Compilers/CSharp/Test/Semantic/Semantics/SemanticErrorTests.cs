@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -287,9 +289,15 @@ class C
                 // (12,16): error CS0019: Operator '+' cannot be applied to operands of type 'lambda expression' and 'method group'
                 //         goo += (x) => { System.Console.WriteLine("Lambda:{0}", x); } + far;// Invalid
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, @"(x) => { System.Console.WriteLine(""Lambda:{0}"", x); } + far").WithArguments("+", "lambda expression", "method group").WithLocation(12, 16),
+                // (12,70): warning CS8848: Operator '+' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         goo += (x) => { System.Console.WriteLine("Lambda:{0}", x); } + far;// Invalid
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "+").WithArguments("+").WithLocation(12, 70),
                 // (13,16): error CS0019: Operator '+' cannot be applied to operands of type 'anonymous method' and 'method group'
                 //         goo += delegate (int x) { System.Console.WriteLine("Anonymous:{0}", x); } + far;// Invalid
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); } + far").WithArguments("+", "anonymous method", "method group").WithLocation(13, 16)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); } + far").WithArguments("+", "anonymous method", "method group").WithLocation(13, 16),
+                // (13,83): warning CS8848: Operator '+' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         goo += delegate (int x) { System.Console.WriteLine("Anonymous:{0}", x); } + far;// Invalid
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "+").WithArguments("+").WithLocation(13, 83)
                 );
         }
 
@@ -12567,12 +12575,21 @@ namespace TestNamespace
                 // (11,23): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             bool b2 = delegate() { } is Del;// CS0837
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } is Del").WithLocation(11, 23),
+                // (11,38): warning CS8848: Operator 'is' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //             bool b2 = delegate() { } is Del;// CS0837
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "is").WithArguments("is").WithLocation(11, 38),
                 // (12,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             Del d1 = () => { } as Del;      // CS0837
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "() => { } as Del").WithLocation(12, 22),
+                // (12,32): warning CS8848: Operator 'as' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //             Del d1 = () => { } as Del;      // CS0837
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "as").WithArguments("as").WithLocation(12, 32),
                 // (13,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             Del d2 = delegate() { } as Del; // CS0837
-                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } as Del").WithLocation(13, 22)
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } as Del").WithLocation(13, 22),
+                // (13,37): warning CS8848: Operator 'as' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //             Del d2 = delegate() { } as Del; // CS0837
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "as").WithArguments("as").WithLocation(13, 37)
                 );
             CreateCompilation(text, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
                 // (10,23): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
@@ -12958,6 +12975,36 @@ class C
         }
 
         [Fact]
+        public void CS0854ERR_ExpressionTreeContainsOptionalArgument03()
+        {
+            var text =
+@"using System;
+using System.Collections;
+using System.Linq.Expressions;
+
+public class Collection : IEnumerable
+{
+    public void Add(int i, int j = 0) { }
+
+    public IEnumerator GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class C {
+    public void M() {
+        Expression<Func<Collection>> expr =
+            () => new Collection { 1 }; // 1
+    }
+}";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (18,36): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                //             () => new Collection { 1 }; // 1
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "1").WithLocation(18, 36));
+        }
+
+        [Fact]
         public void CS0855ERR_ExpressionTreeContainsIndexedProperty()
         {
             var source1 =
@@ -13053,9 +13100,10 @@ End Interface";
             compilation2.VerifyOperationTree(node, expectedOperationTree:
 @"
 IInvalidOperation (OperationKind.Invalid, Type: System.Object, IsInvalid) (Syntax: 'i.R[1]')
-  Children(2):
+  Children(3):
       IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: I, IsInvalid) (Syntax: 'i')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid, IsImplicit) (Syntax: 'i.R[1]')
 ");
         }
 
@@ -20637,8 +20685,8 @@ ftftftft";
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "(E?)null != 0").WithArguments("true", "MyClass.E", "MyClass.E?").WithLocation(96, 11)
             };
             var compatibleExpected = fullExpected.Where(d => !d.Code.Equals((int)ErrorCode.WRN_NubExprIsConstBool2)).ToArray();
-            this.CompileAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(compatibleExpected);
-            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe.WithWarningLevel(5)).VerifyDiagnostics(fullExpected);
+            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe.WithWarningLevel(4)).VerifyDiagnostics(compatibleExpected);
+            this.CompileAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(fullExpected);
         }
 
         [Fact]

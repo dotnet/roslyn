@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     /// </summary>
     internal abstract class AbstractDelayStartedService : ForegroundThreadAffinitizedObject
     {
-        private readonly List<string> _registeredLanguageNames = new List<string>();
+        private readonly List<string> _registeredLanguageNames = new();
 
         protected readonly Workspace Workspace;
 

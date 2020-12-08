@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal partial class SignatureHelpPresenter : ForegroundThreadAffinitizedObject, IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, ISignatureHelpSourceProvider
     {
-        private static readonly object s_augmentSessionKey = new object();
+        private static readonly object s_augmentSessionKey = new();
 
         private readonly ISignatureHelpBroker _sigHelpBroker;
 

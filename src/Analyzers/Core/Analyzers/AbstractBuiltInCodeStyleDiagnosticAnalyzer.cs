@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -17,7 +15,7 @@ using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    internal abstract class AbstractBuiltInCodeStyleDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         /// <summary>
         /// Constructor for a code style analyzer with a single diagnostic descriptor and
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             LocalizableString? messageFormat = null,
             bool isUnnecessary = false,
             bool configurable = true)
-            : base(diagnosticId, title, messageFormat, isUnnecessary, configurable)
+            : this(diagnosticId, title, messageFormat, isUnnecessary, configurable)
         {
             AddDiagnosticIdToOptionMapping(diagnosticId, option);
         }
@@ -72,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             LocalizableString? messageFormat = null,
             bool isUnnecessary = false,
             bool configurable = true)
-            : base(diagnosticId, title, messageFormat, isUnnecessary, configurable)
+            : this(diagnosticId, title, messageFormat, isUnnecessary, configurable)
         {
             AddDiagnosticIdToOptionMapping(diagnosticId, option, language);
         }
@@ -99,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             LocalizableString? messageFormat = null,
             bool isUnnecessary = false,
             bool configurable = true)
-            : base(diagnosticId, title, messageFormat, isUnnecessary, configurable)
+            : this(diagnosticId, title, messageFormat, isUnnecessary, configurable)
         {
             RoslynDebug.Assert(options != null);
             Debug.Assert(options.Count > 1);
@@ -130,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             LocalizableString? messageFormat = null,
             bool isUnnecessary = false,
             bool configurable = true)
-            : base(diagnosticId, title, messageFormat, isUnnecessary, configurable)
+            : this(diagnosticId, title, messageFormat, isUnnecessary, configurable)
         {
             RoslynDebug.Assert(options != null);
             Debug.Assert(options.Count > 1);
@@ -141,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// Constructor for a code style analyzer with a multiple diagnostic descriptors with per-language options that can be used to configure each descriptor.
         /// </summary>
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption> supportedDiagnosticsWithOptions)
-            : base(supportedDiagnosticsWithOptions.Keys.ToImmutableArray())
+            : this(supportedDiagnosticsWithOptions.Keys.ToImmutableArray())
         {
             foreach (var kvp in supportedDiagnosticsWithOptions)
             {
@@ -155,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(
             ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption> supportedDiagnosticsWithOptions,
             string language)
-            : base(supportedDiagnosticsWithOptions.Keys.ToImmutableArray())
+            : this(supportedDiagnosticsWithOptions.Keys.ToImmutableArray())
         {
             foreach (var kvp in supportedDiagnosticsWithOptions)
             {
@@ -170,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption> supportedDiagnosticsWithLangaugeSpecificOptions,
             ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption> supportedDiagnosticsWithPerLanguageOptions,
             string language)
-            : base(supportedDiagnosticsWithLangaugeSpecificOptions.Keys.Concat(supportedDiagnosticsWithPerLanguageOptions.Keys).ToImmutableArray())
+            : this(supportedDiagnosticsWithLangaugeSpecificOptions.Keys.Concat(supportedDiagnosticsWithPerLanguageOptions.Keys).ToImmutableArray())
         {
             foreach (var kvp in supportedDiagnosticsWithLangaugeSpecificOptions)
             {
@@ -181,14 +179,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             {
                 AddDiagnosticIdToOptionMapping(kvp.Key.Id, kvp.Value);
             }
-        }
-
-        /// <summary>
-        /// Constructor for a code style analyzer with a multiple diagnostic descriptors such that all the descriptors have no unique code style option to configure the descriptors.
-        /// </summary>
-        protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableArray<DiagnosticDescriptor> supportedDiagnosticsWithoutOptions)
-            : base(supportedDiagnosticsWithoutOptions)
-        {
         }
 
         private static void AddDiagnosticIdToOptionMapping(string diagnosticId, IPerLanguageOption? option)

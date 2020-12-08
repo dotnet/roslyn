@@ -539,7 +539,7 @@ end class
 
         <WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)>
+        <CompilerTrait(CompilerFeature.LocalFunctions)>
         Public Async Function TestParameterInLocalFunction1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -565,7 +565,7 @@ end class
 
         <WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)>
+        <CompilerTrait(CompilerFeature.LocalFunctions)>
         Public Async Function TestParameterInLocalFunction2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -590,7 +590,7 @@ end class
 
         <WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)>
+        <CompilerTrait(CompilerFeature.LocalFunctions)>
         Public Async Function TestParameterInLocalFunction3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -616,7 +616,7 @@ end class
 
         <WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)>
+        <CompilerTrait(CompilerFeature.LocalFunctions)>
         Public Async Function TestParameterInLocalFunction4(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>

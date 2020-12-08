@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private abstract class AbstractTableDataSourceFindUsagesContext :
             FindUsagesContext, ITableDataSource, ITableEntriesSnapshotFactory
         {
-            private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+            private readonly CancellationTokenSource _cancellationTokenSource = new();
 
             private ITableDataSink _tableDataSink;
 
@@ -39,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             private readonly AsyncBatchingWorkQueue<(int current, int maximum)> _progressQueue;
 
-            protected readonly object Gate = new object();
+            protected readonly object Gate = new();
 
             #region Fields that should be locked by _gate
 
@@ -56,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// us to not display it if it has no references, and we don't run into any 
             /// references for it (common with implicitly declared symbols).
             /// </summary>
-            protected readonly List<DefinitionItem> Definitions = new List<DefinitionItem>();
+            protected readonly List<DefinitionItem> Definitions = new();
 
             /// <summary>
             /// We will hear about the same definition over and over again.  i.e. for each reference 
@@ -67,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// and then always return that for all future references found.
             /// </summary>
             private readonly Dictionary<DefinitionItem, RoslynDefinitionBucket> _definitionToBucket =
-                new Dictionary<DefinitionItem, RoslynDefinitionBucket>();
+                new();
 
             /// <summary>
             /// We want to hide declarations of a symbol if the user is grouping by definition.

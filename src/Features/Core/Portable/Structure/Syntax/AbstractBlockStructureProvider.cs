@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -35,11 +37,11 @@ namespace Microsoft.CodeAnalysis.Structure
         {
             try
             {
-                var syntaxRoot = context.Document.GetSyntaxRootSynchronously(context.CancellationToken);
+                var syntaxRoot = context.SyntaxTree.GetRoot(context.CancellationToken);
 
                 ProvideBlockStructureWorker(context, syntaxRoot);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -52,11 +54,11 @@ namespace Microsoft.CodeAnalysis.Structure
         {
             try
             {
-                var syntaxRoot = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+                var syntaxRoot = await context.SyntaxTree.GetRootAsync(context.CancellationToken).ConfigureAwait(false);
 
                 ProvideBlockStructureWorker(context, syntaxRoot);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -67,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Structure
         {
             using var _ = ArrayBuilder<BlockSpan>.GetInstance(out var spans);
             BlockSpanCollector.CollectBlockSpans(
-                context.Document, syntaxRoot, _nodeProviderMap, _triviaProviderMap, spans, context.CancellationToken);
+                syntaxRoot, context.OptionProvider, _nodeProviderMap, _triviaProviderMap, spans, context.CancellationToken);
 
             foreach (var span in spans)
             {

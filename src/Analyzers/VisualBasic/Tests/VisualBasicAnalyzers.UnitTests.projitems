@@ -14,6 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertAnonymousTypeToTuple\ConvertAnonymousTypeToTupleTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertGetTypeToNameOf\ConvertGetTypeToNameOfTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\FileHeaderTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\RemoveRedundantEqualityTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryByVal\RemoveUnnecessaryByValTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)UpdateLegacySuppressions\UpdateLegacySuppressionsTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\RemoveUnnecessarySuppressionsTests.vb" />

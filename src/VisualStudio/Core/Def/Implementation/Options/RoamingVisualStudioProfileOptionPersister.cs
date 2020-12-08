@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -41,8 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         /// if a later change happens, we know to refresh that value. This is synchronized with monitor locks on
         /// <see cref="_optionsToMonitorForChangesGate" />.
         /// </summary>
-        private readonly Dictionary<string, List<OptionKey>> _optionsToMonitorForChanges = new Dictionary<string, List<OptionKey>>();
-        private readonly object _optionsToMonitorForChangesGate = new object();
+        private readonly Dictionary<string, List<OptionKey>> _optionsToMonitorForChanges = new();
+        private readonly object _optionsToMonitorForChangesGate = new();
 
         /// <remarks>
         /// We make sure this code is from the UI by asking for all <see cref="IOptionPersister"/> in <see cref="RoslynPackage.InitializeAsync"/>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 extern alias WORKSPACES;
 
 using System;
@@ -829,7 +831,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 supportDiagnostics ?? true);
         }
 
-#nullable restore
+#nullable disable
 
         private static string GetFilePath(
             TestWorkspace workspace,

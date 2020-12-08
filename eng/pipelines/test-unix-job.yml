@@ -1,0 +1,67 @@
+parameters:
+- name: testRunName
+  type: string
+  default: ''
+- name: jobName
+  type: string
+  default: ''
+- name: buildJobName
+  type: string
+  default: ''
+- name: testArtifactName
+  type: string
+  default: ''
+- name: configuration
+  type: string
+  default: 'Debug'
+- name: testArguments
+  type: string
+  default: ''
+- name: queueName
+  type: string
+  default: ''
+- name: vmImageName
+  type: string
+  default: ''
+
+jobs:
+- job: ${{ parameters.jobName }}
+  dependsOn: ${{ parameters.buildJobName }}
+  pool:
+    ${{ if ne(parameters.queueName, '') }}:
+      name: NetCorePublic-Pool
+      queue: ${{ parameters.queueName }}
+
+    ${{ if ne(parameters.vmImageName, '') }}:
+      vmImage: ${{ parameters.vmImageName }}
+  timeoutInMinutes: 40
+  steps:
+    - script: ./eng/build.sh --ci --restore --prepareMachine --binaryLog --configuration ${{ parameters.configuration }}
+      displayName: Restore
+
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifact: ${{ parameters.testArtifactName }}
+        path: '$(Build.SourcesDirectory)/artifacts/bin' 
+
+    # Work around for files not maintaining permissions after pipeline download
+    # https://github.com/microsoft/azure-pipelines-tasks/issues/6364
+    - bash: find . -name ilasm | xargs chmod 755
+      workingDirectory: '$(Build.SourcesDirectory)/artifacts/bin' 
+
+    - script: ./eng/build.sh --ci --binaryLog --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
+      displayName: Test
+
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/${{ parameters.configuration }}/*.xml'
+        mergeTestResults: true
+        testRunTitle: ${{ parameters.testRunName }}
+      condition: always()
+
+    - template: publish-logs.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
+        jobName: ${{ parameters.jobName }}

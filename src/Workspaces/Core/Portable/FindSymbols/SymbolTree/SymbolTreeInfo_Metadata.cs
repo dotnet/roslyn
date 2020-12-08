@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public static Task<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+        public static ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
             Solution solution, PortableExecutableReference reference,
             bool loadOnly, CancellationToken cancellationToken)
         {
@@ -77,7 +79,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Produces a <see cref="SymbolTreeInfo"/> for a given <see cref="PortableExecutableReference"/>.
         /// Note:  will never return null;
         /// </summary>
-        public static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
+        public static async ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
             Checksum checksum,
@@ -196,7 +199,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 loadOnly,
                 createAsync: () => CreateMetadataSymbolTreeInfoAsync(solution, checksum, reference),
                 keySuffix: "_Metadata_" + filePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerAsync(solution, checksum, filePath, names, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(solution, checksum, filePath, nodes)),
                 cancellationToken: cancellationToken);
             Contract.ThrowIfFalse(result != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
             return result;
@@ -683,14 +686,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private MetadataNode GetOrCreateChildNode(
                MetadataNode currentNode, string simpleName)
             {
-                foreach (var childNode in _parentToChildren[currentNode])
+                if (_parentToChildren.TryGetValue(currentNode, static (childNode, simpleName) => childNode.Name == simpleName, simpleName, out var childNode))
                 {
-                    if (childNode.Name == simpleName)
-                    {
-                        // Found an existing child node.  Just return that and all 
-                        // future parts off of it.
-                        return childNode;
-                    }
+                    // Found an existing child node.  Just return that and all 
+                    // future parts off of it.
+                    return childNode;
                 }
 
                 // Couldn't find a child node with this name.  Make a new node for

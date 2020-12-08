@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -99,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     }
                 }
 
-                FatalError.ReportWithoutCrash(
+                FatalError.ReportAndCatch(
                     new InvalidOperationException($"Can't find an intersection. Visible spans count: {spans.Count}"));
 
                 return NoOpFormattingRule.Instance;

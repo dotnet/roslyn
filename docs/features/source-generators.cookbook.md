@@ -652,6 +652,10 @@ public class InteractiveGenerator : ISourceGenerator
 }
 ```
 
+*Note*: Until these interfaces are made available, generator authors should not try and emulate 'incrementality' with caching to disk and custom up-to-date checks.
+The compiler currently provides no reliable way for a generator to detect if it is suitable to use a previous run, and any attempt to do so will
+likely lead to hard to diagnose bugs for consumers. Generator authors should always assume this is a 'full' generation, happening for the first time.
+
 ### Serialization
 
 **User Scenario**
@@ -859,6 +863,8 @@ TODO:
 
 ## Breaking Changes:
 
+**Implementation status:** Implemented in Visual Studio 16.8 preview3 / roslyn version 3.8.0-3.final onwards
+
 Between preview and release the following breaking changes were introduced:
 
 **Rename `SourceGeneratorContext` to `GeneratorExecutionContext`**  
@@ -872,6 +878,12 @@ public interface ISourceGenerator
     void Initialize(GeneratorInitializationContext context);
     void Execute(GeneratorExecutionContext context);
 }
+```
+
+Users attempting to use a generator targeting the preview APIs against a later version of Roslyn will see an exception similar to:
+
+```csharp
+CSC : warning CS8032: An instance of analyzer Generator.HelloWorldGenerator cannot be created from Generator.dll : Method 'Initialize' in type 'Generator.HelloWorldGenerator' from assembly 'Generator, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' does not have an implementation. [Consumer.csproj]
 ```
 
 The required action from the user is to rename the parameter types of the `Initialize` and `Execute` methods to match.

@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Security.Principal;
+using Microsoft.Win32;
 
 namespace RunTests
 {
@@ -13,27 +15,22 @@ namespace RunTests
     {
         private const string KeyProcDumpFilePath = "ProcDumpFilePath";
         private const string KeyProcDumpDirectory = "ProcDumpOutputPath";
-        private const string KeyProcDumpSecondaryDirectory = "ProcDumpSecondaryOutputPath";
 
         internal string ProcDumpFilePath { get; }
         internal string DumpDirectory { get; }
-        internal string SecondaryDumpDirectory { get; }
 
-        internal ProcDumpInfo(string procDumpFilePath, string dumpDirectory, string secondaryDumpDirectory)
+        internal ProcDumpInfo(string procDumpFilePath, string dumpDirectory)
         {
             Debug.Assert(Path.IsPathRooted(procDumpFilePath));
             Debug.Assert(Path.IsPathRooted(dumpDirectory));
-            Debug.Assert(Path.IsPathRooted(secondaryDumpDirectory));
             ProcDumpFilePath = procDumpFilePath;
             DumpDirectory = dumpDirectory;
-            SecondaryDumpDirectory = secondaryDumpDirectory;
         }
 
         internal void WriteEnvironmentVariables(Dictionary<string, string> environment)
         {
             environment[KeyProcDumpFilePath] = ProcDumpFilePath;
             environment[KeyProcDumpDirectory] = DumpDirectory;
-            environment[KeyProcDumpSecondaryDirectory] = SecondaryDumpDirectory;
         }
 
         internal static ProcDumpInfo? ReadFromEnvironment()
@@ -42,14 +39,43 @@ namespace RunTests
 
             var procDumpFilePath = Environment.GetEnvironmentVariable(KeyProcDumpFilePath);
             var dumpDirectory = Environment.GetEnvironmentVariable(KeyProcDumpDirectory);
-            var secondaryDumpDirectory = Environment.GetEnvironmentVariable(KeyProcDumpSecondaryDirectory);
 
-            if (!validate(procDumpFilePath) || !validate(dumpDirectory) || !validate(secondaryDumpDirectory))
+            if (!validate(procDumpFilePath) || !validate(dumpDirectory))
             {
                 return null;
             }
 
-            return new ProcDumpInfo(procDumpFilePath, dumpDirectory, secondaryDumpDirectory);
+            return new ProcDumpInfo(procDumpFilePath, dumpDirectory);
+        }
+    }
+
+    internal static class DumpUtil
+    {
+        internal static void EnableRegistryDumpCollection(string dumpDirectory)
+        {
+            Debug.Assert(IsAdministrator());
+
+            using var registryKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps", writable: true);
+            registryKey.SetValue("DumpType", 2, RegistryValueKind.DWord);
+            registryKey.SetValue("DumpCount", 2, RegistryValueKind.DWord);
+            registryKey.SetValue("DumpFolder", dumpDirectory, RegistryValueKind.String);
+        }
+
+        internal static void DisableRegistryDumpCollection()
+        {
+            Debug.Assert(IsAdministrator());
+
+            using var registryKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps", writable: true);
+            registryKey.DeleteValue("DumpType", throwOnMissingValue: false);
+            registryKey.DeleteValue("DumpCount", throwOnMissingValue: false);
+            registryKey.DeleteValue("DumpFolder", throwOnMissingValue: false);
+        }
+
+        internal static bool IsAdministrator()
+        {
+            using var identity = WindowsIdentity.GetCurrent();
+            WindowsPrincipal principal = new WindowsPrincipal(identity);
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
     }
 

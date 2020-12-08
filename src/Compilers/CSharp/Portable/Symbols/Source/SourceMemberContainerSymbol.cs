@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -802,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool IsRecord
+        internal override bool IsRecord
         {
             get
             {
@@ -1082,7 +1080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return IsTupleType ? GetMembers().Select(m => m.Name).Distinct() : this.declaration.MemberNames;
+                return (IsTupleType || IsRecord) ? GetMembers().Select(m => m.Name) : this.declaration.MemberNames;
             }
         }
 
@@ -1250,6 +1248,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return ImmutableArray<Symbol>.Empty;
         }
+
+        /// <remarks>
+        /// For source symbols, there can only be a valid clone method if this is a record, which is a
+        /// simple syntax check. This will need to change when we generalize cloning, but it's a good
+        /// heuristic for now.
+        /// </remarks>
+        internal override bool HasPossibleWellKnownCloneMethod()
+            => IsRecord;
 
         internal override ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
         {
@@ -3285,7 +3291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     if (existingMember is null)
                     {
-                        addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false, diagnostics));
+                        addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false));
                     }
                     else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
                         && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
@@ -3293,7 +3299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // There already exists a member corresponding to the candidate synthesized property.
                         if (isInherited && prop.IsAbstract)
                         {
-                            addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: true, diagnostics));
+                            addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: true));
                         }
                         else
                         {
@@ -3314,6 +3320,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         existingOrAddedMembers.Add(property);
                         members.Add(property);
+                        Debug.Assert(property.GetMethod is object);
+                        Debug.Assert(property.SetMethod is object);
                         members.Add(property.GetMethod);
                         members.Add(property.SetMethod);
                         members.Add(property.BackingField);
@@ -3387,7 +3395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!memberSignatures.TryGetValue(targetProperty, out Symbol? existingEqualityContractProperty))
                 {
-                    equalityContract = new SynthesizedRecordEqualityContractProperty(this, diagnostics);
+                    equalityContract = new SynthesizedRecordEqualityContractProperty(this);
                     members.Add(equalityContract);
                     members.Add(equalityContract.GetMethod);
                 }
@@ -3417,6 +3425,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else
                     {
                         SynthesizedRecordEqualityContractProperty.VerifyOverridesEqualityContractFromBase(equalityContract, diagnostics);
+                    }
+
+                    if (equalityContract.GetMethod is null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_EqualityContractRequiresGetter, equalityContract.Locations[0], equalityContract);
                     }
 
                     reportStaticOrNotOverridableAPIInRecord(equalityContract, diagnostics);

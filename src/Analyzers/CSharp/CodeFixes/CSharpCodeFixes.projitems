@@ -30,6 +30,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\CSharpPopulateSwitchStatementCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)QualifyMemberAccess\CSharpQualifyMemberAccessCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\CSharpRemoveUnnecessaryCastCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryDiscardDesignation\CSharpRemoveUnnecessaryDiscardDesignationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveConfusingSuppression\CSharpRemoveConfusingSuppressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveConfusingSuppression\CSharpRemoveConfusingSuppressionFixAllProvider.cs" />
@@ -48,6 +49,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseDeconstruction\CSharpUseDeconstructionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDefaultLiteral\CSharpUseDefaultLiteralCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseImplicitObjectCreation\CSharpUseImplicitObjectCreationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseExplicitTypeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseImplicitTypeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIndexOrRangeOperator\CSharpUseIndexOperatorCodeFixProvider.cs" />

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,16 +37,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var currentDocumentVersion = await currentDocument.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
                 return !documentVersion.Equals(currentDocumentVersion);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
         }
 
-        public static Task<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, CancellationToken cancellationToken)
+        public static ValueTask<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, CancellationToken cancellationToken)
             => SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, cancellationToken);
 
-        public static Task<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, bool loadOnly, CancellationToken cancellationToken)
+        public static ValueTask<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, bool loadOnly, CancellationToken cancellationToken)
             => SyntaxTreeIndex.GetIndexAsync(document, loadOnly, cancellationToken);
 
         /// <summary>

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -99,7 +97,7 @@ namespace Microsoft.CodeAnalysis
 
             // make sure we don't accidentally capture any state but the list of references:
             static Lazy<HostDiagnosticAnalyzers> CreateLazyHostDiagnosticAnalyzers(IReadOnlyList<AnalyzerReference> analyzerReferences)
-                => new Lazy<HostDiagnosticAnalyzers>(() => new HostDiagnosticAnalyzers(analyzerReferences));
+                => new(() => new HostDiagnosticAnalyzers(analyzerReferences));
         }
 
         public SolutionState(
@@ -983,7 +981,7 @@ namespace Microsoft.CodeAnalysis
 
             return ForkProject(
                 oldProject.WithAnalyzerReferences(newReferences),
-                new CompilationAndGeneratorDriverTranslationAction.AddAnalyzerReferencesAction(analyzerReferences));
+                new CompilationAndGeneratorDriverTranslationAction.AddAnalyzerReferencesAction(analyzerReferences, oldProject.Language));
         }
 
         /// <summary>
@@ -1002,7 +1000,7 @@ namespace Microsoft.CodeAnalysis
 
             return ForkProject(
                 oldProject.WithAnalyzerReferences(newReferences),
-                new CompilationAndGeneratorDriverTranslationAction.RemoveAnalyzerReferencesAction(ImmutableArray.Create(analyzerReference)));
+                new CompilationAndGeneratorDriverTranslationAction.RemoveAnalyzerReferencesAction(ImmutableArray.Create(analyzerReference), oldProject.Language));
         }
 
         /// <summary>
@@ -1671,7 +1669,7 @@ namespace Microsoft.CodeAnalysis
                     return currentPartialSolution;
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1740,9 +1738,6 @@ namespace Microsoft.CodeAnalysis
                 : SpecializedTasks.Null<Compilation>();
         }
 
-        internal Task<GeneratorDriverRunResult?> GetGeneratorDriverRunResultAsync(ProjectState projectState, CancellationToken cancellationToken)
-            => GetCompilationTracker(projectState.Id).GetGeneratorDriverRunResultAsync(this, cancellationToken);
-
         /// <summary>
         /// Return reference completeness for the given project and all projects this references.
         /// </summary>
@@ -1756,10 +1751,33 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Returns the generated document states for source generated documents.
+        /// </summary>
+        public Task<ImmutableArray<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(ProjectState project, CancellationToken cancellationToken)
+        {
+            return project.SupportsCompilation
+                ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, cancellationToken)
+                : SpecializedTasks.EmptyImmutableArray<SourceGeneratedDocumentState>();
+        }
+
+        /// <summary>
+        /// Returns the <see cref="SourceGeneratedDocumentState"/> for a source generated document that has already been generated and observed.
+        /// </summary>
+        /// <remarks>
+        /// This is only safe to call if you already have seen the SyntaxTree or equivalent that indicates the document state has already been
+        /// generated. This method exists to implement <see cref="Solution.GetDocument(SyntaxTree?)"/> and is best avoided unless you're doing something
+        /// similarly tricky like that.
+        /// </remarks>
+        public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentForAlreadyGeneratedId(DocumentId documentId)
+        {
+            return GetCompilationTracker(documentId.ProjectId).TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
+        }
+
+        /// <summary>
         /// Symbols need to be either <see cref="IAssemblySymbol"/> or <see cref="IModuleSymbol"/>.
         /// </summary>
         private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap =
-            new ConditionalWeakTable<ISymbol, ProjectId>();
+            new();
 
         private static void RecordSourceOfAssemblySymbol(ISymbol? assemblyOrModuleSymbol, ProjectId projectId)
         {
@@ -1797,7 +1815,7 @@ namespace Microsoft.CodeAnalysis
                 var tracker = this.GetCompilationTracker(projectReference.ProjectId);
                 return tracker.GetMetadataReferenceAsync(this, fromProject, projectReference, cancellationToken);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }

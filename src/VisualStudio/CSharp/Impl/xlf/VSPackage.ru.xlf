@@ -33,7 +33,7 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Display inline parameter name hints;
+        <source>Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -81,8 +81,8 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="translated">Отображать подсказки для имен встроенных параметров;
-Показывать диагностику для закрытых файлов;
+        <target state="translated">Отображать встроенные подсказки;
+Отображать диагностику для закрытых файлов;
 Выделять регулярные выражения цветом; 
 Выделять связанные компоненты под курсором; 
 Сообщать о недопустимых регулярных выражениях;
@@ -112,7 +112,7 @@ Editor Color Scheme;</source>
 Показывать направляющие для конструкций уровня кода;
 Справка по редактору;
 Создавать комментарии XML-документации для ///;
-Вставлять * в начале новой строки при написании комментариев /* */;
+Вставлять "*" в начале новой строки при написании комментариев "/* */";
 Отображать предварительный просмотр для отслеживания переименований;
 Разделять строковые литералы при нажатии клавиши ВВОД;
 Сообщать о недопустимых заполнителях в вызовах string.Format;

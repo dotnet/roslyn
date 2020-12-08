@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -64,7 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     name,
                     locations,
                     syntax.GetReference(),
-                    ConstantValue.Unset,
                     isParams,
                     isExtensionMethodThis);
             }
@@ -86,7 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 name,
                 locations,
                 syntax.GetReference(),
-                ConstantValue.Unset,
                 isParams,
                 isExtensionMethodThis);
         }
@@ -134,7 +134,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _name,
                     _locations,
                     this.SyntaxReference,
-                    this.ExplicitDefaultConstantValue,
                     newIsParams,
                     this.IsExtensionMethodThis);
             }
@@ -151,7 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _name,
                 _locations,
                 this.SyntaxReference,
-                this.ExplicitDefaultConstantValue,
                 newIsParams,
                 this.IsExtensionMethodThis);
         }

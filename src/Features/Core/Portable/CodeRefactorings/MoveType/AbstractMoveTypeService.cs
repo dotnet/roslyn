@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         /// <summary>
         /// Annotation to mark the namespace encapsulating the type that has been moved
         /// </summary>
-        public static SyntaxAnnotation NamespaceScopeMovedAnnotation = new SyntaxAnnotation(nameof(MoveTypeOperationKind.MoveTypeNamespaceScope));
+        public static SyntaxAnnotation NamespaceScopeMovedAnnotation = new(nameof(MoveTypeOperationKind.MoveTypeNamespaceScope));
 
         public abstract Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken);
         public abstract Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);

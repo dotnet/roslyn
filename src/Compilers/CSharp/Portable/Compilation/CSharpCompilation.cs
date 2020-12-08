@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -50,8 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // change to the VB version.
         //
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-        internal static readonly ParallelOptions DefaultParallelOptions = new ParallelOptions();
 
         private readonly CSharpCompilationOptions _options;
         private readonly Lazy<Imports> _globalImports;
@@ -2472,24 +2468,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var syntaxTrees = this.SyntaxTrees;
                 if (this.Options.ConcurrentBuild)
                 {
-                    var parallelOptions = cancellationToken.CanBeCanceled
-                                        ? new ParallelOptions() { CancellationToken = cancellationToken }
-                                        : DefaultParallelOptions;
-
-                    Parallel.For(0, syntaxTrees.Length, parallelOptions,
+                    RoslynParallel.For(
+                        0,
+                        syntaxTrees.Length,
                         UICultureUtilities.WithCurrentUICulture<int>(i =>
                         {
-                            try
-                            {
-                                var syntaxTree = syntaxTrees[i];
-                                AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
-                                builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
-                            }
-                            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-                            {
-                                throw ExceptionUtilities.Unreachable;
-                            }
-                        }));
+                            var syntaxTree = syntaxTrees[i];
+                            AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
+                            builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
+                        }),
+                        cancellationToken);
                 }
                 else
                 {

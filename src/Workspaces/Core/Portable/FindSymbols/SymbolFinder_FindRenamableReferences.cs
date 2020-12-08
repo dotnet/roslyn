@@ -21,10 +21,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var streamingProgress = new StreamingProgressCollector();
 
-                IImmutableSet<Document> documents = null;
                 var engine = new FindReferencesSearchEngine(
                     solution,
-                    documents,
+                    documents: null,
                     ReferenceFinders.DefaultRenameReferenceFinders,
                     streamingProgress,
                     FindReferencesSearchOptions.Default,

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -70,7 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         private static (AccessorDeclarationSyntax getAccessor, AccessorDeclarationSyntax setAccessor)
             GetExistingAccessors(AccessorListSyntax accessorListSyntax)
             => (accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)),
-                accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration)));
+                accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration) ||
+                                                                 a.IsKind(SyntaxKind.InitAccessorDeclaration)));
 
         private static SyntaxNode GetUpdatedAccessor(DocumentOptionSet options,
             SyntaxNode accessor, SyntaxNode statement)

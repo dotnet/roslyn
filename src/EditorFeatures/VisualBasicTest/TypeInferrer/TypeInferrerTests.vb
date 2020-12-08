@@ -15,10 +15,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TypeInferrer
     Partial Public Class TypeInferrerTests
         Inherits TypeInferrerTestBase(Of VisualBasicTestWorkspaceFixture)
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
         Protected Overrides Async Function TestWorkerAsync(document As Document, textSpan As TextSpan, expectedType As String, testMode As TestMode) As Task
             Dim root = Await document.GetSyntaxRootAsync()
             Dim node = FindExpressionSyntaxFromSpan(root, textSpan)

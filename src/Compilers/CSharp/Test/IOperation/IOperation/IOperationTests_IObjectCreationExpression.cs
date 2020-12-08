@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1228,7 +1230,7 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '1')
-              ILiteralOperation (OperationKind.Literal, Type: System.Object, Constant: null, IsImplicit) (Syntax: '1')
+              IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Object, Constant: null, IsImplicit) (Syntax: '1')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IInvocationOperation ( void C.Add(System.Int32 i, [System.Object o = null])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '2')
@@ -1240,7 +1242,7 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '2')
-              ILiteralOperation (OperationKind.Literal, Type: System.Object, Constant: null, IsImplicit) (Syntax: '2')
+              IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Object, Constant: null, IsImplicit) (Syntax: '2')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IInvocationOperation ( void C.Add(System.Int32 i, [System.Object o = null])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '3')
@@ -1252,7 +1254,7 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '3')
-              ILiteralOperation (OperationKind.Literal, Type: System.Object, Constant: null, IsImplicit) (Syntax: '3')
+              IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Object, Constant: null, IsImplicit) (Syntax: '3')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2608,7 +2610,7 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '1')
-              ILiteralOperation (OperationKind.Literal, Type: System.Object, Constant: null, IsImplicit) (Syntax: '1')
+              IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Object, Constant: null, IsImplicit) (Syntax: '1')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IInvocationOperation ( void C.Add(System.Int32 i, [System.Object o = null])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '2')
@@ -2620,7 +2622,7 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '2')
-              ILiteralOperation (OperationKind.Literal, Type: System.Object, Constant: null, IsImplicit) (Syntax: '2')
+              IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Object, Constant: null, IsImplicit) (Syntax: '2')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       IInvocationOperation ( void C.Add(System.Int32 i, [System.Object o = null])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '3')
@@ -2632,7 +2634,7 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '3')
-              ILiteralOperation (OperationKind.Literal, Type: System.Object, Constant: null, IsImplicit) (Syntax: '3')
+              IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Object, Constant: null, IsImplicit) (Syntax: '3')
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.Formatting
 {
     internal readonly struct LineColumnRule
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public LineColumnRule With(int? lines = null, int? spaces = null, int? indentation = null, LineOperations? lineOperation = null, SpaceOperations? spaceOperation = null, IndentationOperations? indentationOperation = null)
-            => new LineColumnRule(
+            => new(
                 spaceOperation == null ? SpaceOperation : spaceOperation.Value,
                 lineOperation == null ? LineOperation : lineOperation.Value,
                 indentationOperation == null ? IndentationOperation : indentationOperation.Value,
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 indentation == null ? Indentation : indentation.Value);
 
         public static readonly LineColumnRule Preserve =
-            new LineColumnRule(
+            new(
                 SpaceOperations.Preserve,
                 LineOperations.Preserve,
                 IndentationOperations.Preserve,
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 indentation: 0);
 
         public static LineColumnRule PreserveWithGivenSpaces(int spaces)
-            => new LineColumnRule(
+            => new(
                 SpaceOperations.Preserve,
                 LineOperations.Preserve,
                 IndentationOperations.Given,
@@ -60,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 indentation: 0);
 
         public static LineColumnRule PreserveLinesWithDefaultIndentation(int lines)
-            => new LineColumnRule(
+            => new(
                 SpaceOperations.Preserve,
                 LineOperations.Preserve,
                 IndentationOperations.Default,
@@ -69,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 indentation: -1);
 
         public static LineColumnRule PreserveLinesWithGivenIndentation(int lines)
-            => new LineColumnRule(
+            => new(
                 SpaceOperations.Preserve,
                 LineOperations.Preserve,
                 IndentationOperations.Given,
@@ -78,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 indentation: -1);
 
         public static LineColumnRule PreserveLinesWithAbsoluteIndentation(int lines, int indentation)
-            => new LineColumnRule(
+            => new(
                 SpaceOperations.Preserve,
                 LineOperations.Preserve,
                 IndentationOperations.Absolute,
@@ -87,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 indentation);
 
         public static readonly LineColumnRule PreserveLinesWithFollowingPrecedingIndentation =
-            new LineColumnRule(
+            new(
                 SpaceOperations.Preserve,
                 LineOperations.Preserve,
                 IndentationOperations.Follow,
@@ -96,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 indentation: -1);
 
         public static LineColumnRule ForceSpaces(int spaces)
-            => new LineColumnRule(
+            => new(
                 SpaceOperations.Force,
                 LineOperations.Preserve,
                 IndentationOperations.Preserve,
@@ -105,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 indentation: 0);
 
         public static LineColumnRule PreserveSpacesOrUseDefaultIndentation(int spaces)
-            => new LineColumnRule(
+            => new(
                 SpaceOperations.Preserve,
                 LineOperations.Preserve,
                 IndentationOperations.Default,
@@ -114,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 indentation: -1);
 
         public static LineColumnRule ForceSpacesOrUseDefaultIndentation(int spaces)
-            => new LineColumnRule(
+            => new(
                 SpaceOperations.Force,
                 LineOperations.Preserve,
                 IndentationOperations.Default,
@@ -123,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 indentation: -1);
 
         public static LineColumnRule ForceSpacesOrUseAbsoluteIndentation(int spacesOrIndentation)
-            => new LineColumnRule(
+            => new(
                 SpaceOperations.Force,
                 LineOperations.Preserve,
                 IndentationOperations.Absolute,

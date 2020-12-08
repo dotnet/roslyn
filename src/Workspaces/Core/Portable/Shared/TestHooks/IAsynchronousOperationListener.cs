@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal interface IAsynchronousOperationListener : IExpeditableDelaySource
     {
-        IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0);
+        IAsyncToken BeginAsyncOperation(string name, object? tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0);
     }
 }

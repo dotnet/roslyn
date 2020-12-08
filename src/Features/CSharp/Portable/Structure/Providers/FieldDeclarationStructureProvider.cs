@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 
@@ -15,11 +16,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         protected override void CollectBlockSpans(
             FieldDeclarationSyntax fieldDeclaration,
             ArrayBuilder<BlockSpan> spans,
-            bool isMetadataAsSource,
-            OptionSet options,
+            BlockStructureOptionProvider optionProvider,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(fieldDeclaration, spans, isMetadataAsSource);
+            CSharpStructureHelpers.CollectCommentBlockSpans(fieldDeclaration, spans, optionProvider);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         private class ExpressionSyntaxGeneratorVisitor : SymbolVisitor<ExpressionSyntax>
         {
-            public static readonly ExpressionSyntaxGeneratorVisitor Instance = new ExpressionSyntaxGeneratorVisitor();
+            public static readonly ExpressionSyntaxGeneratorVisitor Instance = new();
 
             private ExpressionSyntaxGeneratorVisitor()
             {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             public override ExpressionSyntax VisitNamedType(INamedTypeSymbol symbol)
             {
-                if (!TypeSyntaxGeneratorVisitor.TryCreateNativeIntegerType(symbol, out var typeSyntax))
+                if (TypeSyntaxGeneratorVisitor.TryCreateNativeIntegerType(symbol, out var typeSyntax))
                     return typeSyntax;
 
                 typeSyntax = TypeSyntaxGeneratorVisitor.Create().CreateSimpleTypeSyntax(symbol);

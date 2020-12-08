@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -212,6 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         {
             var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             await provider.WaitAllDispatcherOperationAndTasksAsync(
+                Workspace,
                 FeatureAttribute.RenameTracking,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.Workspace,

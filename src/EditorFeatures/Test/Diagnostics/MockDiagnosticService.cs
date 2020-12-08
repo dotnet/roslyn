@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,6 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
@@ -34,34 +33,45 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
         }
 
-        public IEnumerable<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-        {
-            Assert.Equal(projectId, GetProjectId(workspace));
-            Assert.Equal(documentId, GetDocumentId(workspace));
+        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            => GetPushDiagnostics(workspace, projectId, documentId, id, includeSuppressedDiagnostics, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken);
 
-            if (_diagnostic == null)
-            {
-                yield break;
-            }
-            else
-            {
-                yield return _diagnostic;
-            }
+        public ImmutableArray<DiagnosticData> GetPullDiagnostics(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+        {
+            return GetDiagnostics(workspace, projectId, documentId);
         }
 
-        public IEnumerable<UpdatedEventArgs> GetDiagnosticsUpdatedEventArgs(Workspace workspace, ProjectId projectId, DocumentId documentId, CancellationToken cancellationToken)
+        public ImmutableArray<DiagnosticData> GetPushDiagnostics(Workspace workspace, ProjectId? projectId, DocumentId? documentId, object? id, bool includeSuppressedDiagnostics, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+        {
+            return GetDiagnostics(workspace, projectId, documentId);
+        }
+
+        private ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId? projectId, DocumentId? documentId)
         {
             Assert.Equal(projectId, GetProjectId(workspace));
             Assert.Equal(documentId, GetDocumentId(workspace));
 
-            if (_diagnostic == null)
-            {
-                yield break;
-            }
-            else
-            {
-                yield return new UpdatedEventArgs(this, workspace, GetProjectId(workspace), GetDocumentId(workspace));
-            }
+            return _diagnostic == null ? ImmutableArray<DiagnosticData>.Empty : ImmutableArray.Create(_diagnostic);
+        }
+
+        public ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(Workspace workspace, ProjectId? projectId, DocumentId? documentId, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+        {
+            return GetDiagnosticBuckets(workspace, projectId, documentId);
+        }
+
+        public ImmutableArray<DiagnosticBucket> GetPushDiagnosticBuckets(Workspace workspace, ProjectId? projectId, DocumentId? documentId, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+        {
+            return GetDiagnosticBuckets(workspace, projectId, documentId);
+        }
+
+        private ImmutableArray<DiagnosticBucket> GetDiagnosticBuckets(Workspace workspace, ProjectId? projectId, DocumentId? documentId)
+        {
+            Assert.Equal(projectId, GetProjectId(workspace));
+            Assert.Equal(documentId, GetDocumentId(workspace));
+
+            return _diagnostic == null
+                ? ImmutableArray<DiagnosticBucket>.Empty
+                : ImmutableArray.Create(new DiagnosticBucket(this, workspace, GetProjectId(workspace), GetDocumentId(workspace)));
         }
 
         internal void CreateDiagnosticAndFireEvents(Workspace workspace, Location location)

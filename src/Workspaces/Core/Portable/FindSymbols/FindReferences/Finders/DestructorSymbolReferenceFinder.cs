@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IMethodSymbol symbol,
             Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -27,21 +27,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyImmutableArray<Document>();
         }
 
-        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyImmutableArray<FinderLocation>();
+            return new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
         }
     }
 }

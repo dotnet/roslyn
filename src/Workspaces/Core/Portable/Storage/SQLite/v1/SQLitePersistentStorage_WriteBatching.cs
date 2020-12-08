@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v1
         /// <summary>
         /// Lock protecting the write queues and <see cref="_flushAllTask"/>.
         /// </summary>
-        private readonly SemaphoreSlim _writeQueueGate = new SemaphoreSlim(initialCount: 1);
+        private readonly SemaphoreSlim _writeQueueGate = new(initialCount: 1);
 
         /// <summary>
         /// Task kicked off to actually do the work of flushing all data to the DB.
