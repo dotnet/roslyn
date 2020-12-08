@@ -1075,12 +1075,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker)
             {
 #if DEBUG
-                // Always run analysis in debug builds so that we can more reliably catch
-                // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
-                // Once we address https://github.com/dotnet/roslyn/issues/46579 we should also always pass `getFinalNullableState: true` in debug mode.
-                // We will likely always need to write a 'null' out for the out parameter in this code path, though, because
-                // we don't want to introduce behavior differences between debug and release builds
-                Analyze(compilation, method, node, new DiagnosticBag(), useConstructorExitWarnings: false, initialNullableState: null, getFinalNullableState: false, out _);
+                if (ShouldRunAnalysisInDebug(compilation))
+                {
+                    // Always run analysis in debug builds so that we can more reliably catch
+                    // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
+                    // Once we address https://github.com/dotnet/roslyn/issues/46579 we should also always pass `getFinalNullableState: true` in debug mode.
+                    // We will likely always need to write a 'null' out for the out parameter in this code path, though, because
+                    // we don't want to introduce behavior differences between debug and release builds
+                    Analyze(compilation, method, node, new DiagnosticBag(), useConstructorExitWarnings: false, initialNullableState: null, getFinalNullableState: false, out _);
+                }
 #endif
                 finalNullableState = null;
                 return;
@@ -1088,6 +1091,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Analyze(compilation, method, node, diagnostics, useConstructorExitWarnings, initialNullableState, getFinalNullableState, out finalNullableState);
         }
+
+#if DEBUG
+        private static bool ShouldRunAnalysisInDebug(CSharpCompilation compilation)
+        {
+            return compilation.Feature("nullableAnalysis") != "false";
+        }
+#endif
 
         internal static void Analyze(
             CSharpCompilation compilation,
@@ -1295,7 +1305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             // Always run analysis in debug builds so that we can more reliably catch
             // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
-            return true;
+            return ShouldRunAnalysisInDebug(compilation);
 #else
             var canSkipAnalysis = compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker;
             return !canSkipAnalysis;
@@ -1312,12 +1322,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker)
             {
 #if DEBUG
-                // Always run analysis in debug builds so that we can more reliably catch
-                // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
-                diagnostics = new DiagnosticBag();
-#else
-                return;
+                if (ShouldRunAnalysisInDebug(compilation))
+                {
+                    // Always run analysis in debug builds so that we can more reliably catch
+                    // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
+                    diagnostics = new DiagnosticBag();
+                }
+                else
 #endif
+                {
+                    return;
+                }
             }
 
             Analyze(
@@ -1436,26 +1451,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ex.AddAnError(diagnostics);
             }
-        }
 
-#if DEBUG
-#if REPORT_MAX
-        private static (Symbol symbol, int slots) s_maxSlots;
-#endif
-#endif
+            if (walker.compilation.NullableAnalysisData is { } state)
+            {
+                var key = (object?)symbol ?? walker.methodMainNode.Syntax;
+                state[key] = walker._variableSlot.Count;
+            }
+        }
 
         private SharedWalkerState SaveSharedState()
         {
-#if DEBUG
-#if REPORT_MAX
-            int slots = _variableSlot.Count;
-            if (slots > s_maxSlots.slots)
-            {
-                s_maxSlots = (_symbol, slots);
-                Debug.WriteLine("{0}: {1}", slots, _symbol);
-            }
-#endif
-#endif
             return new SharedWalkerState(
                 _variableSlot.ToImmutableDictionary(),
                 ImmutableArray.Create(variableBySlot, start: 0, length: nextVariableSlot),

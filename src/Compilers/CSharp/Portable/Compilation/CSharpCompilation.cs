@@ -216,25 +216,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!_lazyShouldRunNullableWalker.HasValue())
                 {
+                    _lazyShouldRunNullableWalker = calculateResult();
+                }
+                return _lazyShouldRunNullableWalker.Value();
+
+                ThreeState calculateResult()
+                {
+                    var feature = Feature("nullableAnalysis");
+                    if (feature == "false")
+                    {
+                        return ThreeState.False;
+                    }
+
                     if (Options.NullableContextOptions != NullableContextOptions.Disable)
                     {
-                        _lazyShouldRunNullableWalker = ThreeState.True;
-                        return true;
+                        return ThreeState.True;
                     }
 
                     foreach (var syntaxTree in SyntaxTrees)
                     {
                         if (((CSharpSyntaxTree)syntaxTree).HasNullableEnables())
                         {
-                            _lazyShouldRunNullableWalker = ThreeState.True;
-                            return true;
+                            return ThreeState.True;
                         }
                     }
 
-                    _lazyShouldRunNullableWalker = ThreeState.False;
+                    return ThreeState.False;
                 }
-
-                return _lazyShouldRunNullableWalker.Value();
             }
         }
 
@@ -399,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxAndDeclarationManager syntaxAndDeclarations,
             IReadOnlyDictionary<string, string> features,
             SemanticModelProvider? semanticModelProvider,
-            AsyncQueue<CompilationEvent>? eventQueue = null)
+            AsyncQueue<CompilationEvent>? eventQueue)
             : base(assemblyName, references, features, isSubmission, semanticModelProvider, eventQueue)
         {
             WellKnownMemberSignatureComparer = new WellKnownMembersSignatureComparer(this);
@@ -684,6 +692,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.SemanticModelProvider,
                 eventQueue);
         }
+
+        // Nullable analysis data for methods, parameter default values, and attributes. Collected during testing only.
+        internal ConcurrentDictionary<object, int>? NullableAnalysisData;
 
         #endregion
 
