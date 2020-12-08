@@ -989,7 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         retargetedType,
                         method.MethodKind,
                         method.CallingConvention,
-                        IndexedTypeParameterSymbol.Take(method.Arity),
+                        IndexedTypeParameterSymbol.TakeSymbols(method.Arity),
                         targetParamsBuilder.ToImmutableAndFree(),
                         method.RefKind,
                         method.IsInitOnly,

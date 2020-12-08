@@ -1620,6 +1620,121 @@ public class Class1
             await VerifyItemExistsAsync(markup, "nullables");
         }
 
+        [WorkItem(1220195, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeIsNullableStructInLocalWithNullableTypeName()
+        {
+            var markup = @"
+using System;
+
+public struct ImmutableArray<T> : System.Collections.Generic.IEnumerable<T> { }
+
+public class Class1
+{
+  public void Method()
+  {
+      Nullable<ImmutableArray<int>> $$
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "vs");
+        }
+
+        [WorkItem(1220195, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeIsNullableStructInLocalWithQuestionMark()
+        {
+            var markup = @"
+using System.Collections.Immutable;
+
+public struct ImmutableArray<T> : System.Collections.Generic.IEnumerable<T> { }
+
+public class Class1
+{
+  public void Method()
+  {
+      ImmutableArray<int>? $$
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "vs");
+        }
+
+        [WorkItem(1220195, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeIsNullableReferenceInLocal()
+        {
+            var markup = @"
+#nullable enable
+
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method()
+  {
+      IEnumerable<int>? $$
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "vs");
+        }
+
+        [WorkItem(1220195, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeIsNullableStructInParameterWithNullableTypeName()
+        {
+            var markup = @"
+using System;
+
+public struct ImmutableArray<T> : System.Collections.Generic.IEnumerable<T> { }
+
+public class Class1
+{
+  public void Method(Nullable<ImmutableArray<int>> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "vs");
+        }
+
+        [WorkItem(1220195, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeIsNullableStructInParameterWithQuestionMark()
+        {
+            var markup = @"
+public struct ImmutableArray<T> : System.Collections.Generic.IEnumerable<T> { }
+
+public class Class1
+{
+  public void Method(ImmutableArray<int>? $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "vs");
+        }
+
+        [WorkItem(1220195, "https://github.com/dotnet/roslyn/issues/23590")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeIsNullableReferenceInParameter()
+        {
+            var markup = @"
+#nullable enable
+
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method(IEnumerable<int>? $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "vs");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CustomNamingStyleInsideClass()
         {

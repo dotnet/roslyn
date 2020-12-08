@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </para>
     /// <para>
     /// Regardless of whether a request is mutating or not, or blocking or not, is an implementation detail of this class
-    /// and any consumers observing the results of the task returned from <see cref="ExecuteAsync{TRequestType, TResponseType}(bool, IRequestHandler{TRequestType, TResponseType}, TRequestType, ClientCapabilities, string?, CancellationToken)"/>
+    /// and any consumers observing the results of the task returned from <see cref="ExecuteAsync{TRequestType, TResponseType}(bool, IRequestHandler{TRequestType, TResponseType}, TRequestType, ClientCapabilities, string?, string, CancellationToken)"/>
     /// will see the results of the handling of the request, whenever it occurred.
     /// </para>
     /// <para>
@@ -51,6 +51,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal partial class RequestExecutionQueue
     {
         private readonly ILspSolutionProvider _solutionProvider;
+        private readonly string _serverName;
+
         private readonly AsyncQueue<QueueItem> _queue;
         private readonly CancellationTokenSource _cancelSource;
         private readonly DocumentChangeTracker _documentChangeTracker;
@@ -73,9 +75,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </remarks>
         public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 
-        public RequestExecutionQueue(ILspSolutionProvider solutionProvider)
+        public RequestExecutionQueue(ILspSolutionProvider solutionProvider, string serverName)
         {
             _solutionProvider = solutionProvider;
+            _serverName = serverName;
+
             _queue = new AsyncQueue<QueueItem>();
             _cancelSource = new CancellationTokenSource();
             _documentChangeTracker = new DocumentChangeTracker();
@@ -105,6 +109,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <param name="request">The request to handle.</param>
         /// <param name="clientCapabilities">The client capabilities.</param>
         /// <param name="clientName">The client name.</param>
+        /// <param name="methodName">The name of the LSP method.</param>
         /// <param name="requestCancellationToken">A cancellation token that will cancel the handing of this request.
         /// The request could also be cancelled by the queue shutting down.</param>
         /// <returns>A task that can be awaited to observe the results of the handing of this request.</returns>
@@ -114,6 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             TRequestType request,
             ClientCapabilities clientCapabilities,
             string? clientName,
+            string methodName,
             CancellationToken requestCancellationToken) where TRequestType : class
         {
             // Create a task completion source that will represent the processing of this request to the caller
@@ -130,17 +136,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     {
                         completion.SetCanceled();
 
-                        // Tell the queue to ignore any mutations from this request, not that we've given it a chance
-                        // to make any
-                        return false;
+                        return;
                     }
 
                     try
                     {
                         var result = await handler.HandleRequestAsync(request, context, cancellationToken).ConfigureAwait(false);
                         completion.SetResult(result);
-                        // Tell the queue that this was successful so that mutations (if any) can be applied
-                        return true;
                     }
                     catch (OperationCanceledException ex)
                     {
@@ -148,13 +150,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
                     catch (Exception exception)
                     {
-                        // Pass the exception to the task completion source, so the caller of the ExecuteAsync method can observe but
-                        // don't let it escape from this callback, so it doesn't affect the queue processing.
+                        // Pass the exception to the task completion source, so the caller of the ExecuteAsync method can react
                         completion.SetException(exception);
-                    }
 
-                    // Tell the queue to ignore any mutations from this request
-                    return false;
+                        // Also allow the exception to flow back to the request queue to handle as appropriate
+                        throw new InvalidOperationException($"Error handling '{methodName}' request: {exception.Message}", exception);
+                    }
                 }, requestCancellationToken);
 
             var didEnqueue = _queue.TryEnqueue(item);
@@ -163,7 +164,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // The queue itself is threadsafe (_queue.TryEnqueue and _queue.Complete use the same lock).
             if (!didEnqueue)
             {
-                completion.SetException(new InvalidOperationException("Server was requested to shut down."));
+                completion.SetException(new InvalidOperationException($"{_serverName} was requested to shut down."));
             }
 
             return completion.Task;
@@ -185,18 +186,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     if (work.MutatesSolutionState)
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                        var ranToCompletion = await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
+                        await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
 
                         // Now that we've mutated our solution, clear out our saved state to ensure it gets recalculated
                         _lspSolutionCache.Remove(context.Solution.Workspace);
-
-                        if (!ranToCompletion)
-                        {
-                            // If the handling of the request failed, the exception will bubble back up to the caller, and we
-                            // request shutdown because we're in an invalid state
-                            OnRequestServerShutdown($"An error occurred processing a mutating request and the solution is in an invalid state. Check LSP client logs for any error information.");
-                            break;
-                        }
                     }
                     else
                     {
@@ -214,7 +207,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
-                OnRequestServerShutdown($"Error occurred processing queue: {e.Message}.");
+                OnRequestServerShutdown($"Error occurred processing queue in {_serverName}: {e.Message}.");
             }
         }
 

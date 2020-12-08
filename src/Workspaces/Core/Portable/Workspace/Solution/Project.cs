@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis
 
             // Trickier case now: it's possible we generated this, but we don't actually have the SourceGeneratedDocument for it, so let's go
             // try to fetch the state.
-            var documentState = _solution.State.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
+            var documentState = _solution.State.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
 
             if (documentState == null)
             {
@@ -440,12 +440,8 @@ namespace Microsoft.CodeAnalysis
         /// The semantic version of this project not including the semantics of referenced projects.
         /// This version changes only when the consumable declarations of this project change.
         /// </summary>
-        public async Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default)
-        {
-            var projVersion = this.Version;
-            var docVersion = await _projectState.GetLatestDocumentTopLevelChangeVersionAsync(cancellationToken).ConfigureAwait(false);
-            return docVersion.GetNewerVersion(projVersion);
-        }
+        public Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default)
+            => _projectState.GetSemanticVersionAsync(cancellationToken);
 
         /// <summary>
         /// Creates a new instance of this project updated to have the new assembly name.

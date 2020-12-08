@@ -343,7 +343,6 @@ function TestUsingRunTests() {
 
   $dotnetExe = Join-Path $dotnet "dotnet.exe"
   $args += " --dotnet `"$dotnetExe`""
-  $args += " --out `"$testResultsDir`""
   $args += " --logs `"$LogDir`""
   $args += " --configuration $configuration"
 

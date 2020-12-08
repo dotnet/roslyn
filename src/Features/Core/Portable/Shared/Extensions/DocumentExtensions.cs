@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,8 +11,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static async Task<Document> ReplaceNodeAsync<TNode>(this Document document, TNode oldNode, TNode newNode, CancellationToken cancellationToken) where TNode : SyntaxNode
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(oldNode, newNode);
             return document.WithSyntaxRoot(newRoot);
         }
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Func<SyntaxNode, SyntaxNode, SyntaxNode> computeReplacementNode,
             CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNodes(nodes, computeReplacementNode);
             return document.WithSyntaxRoot(newRoot);
         }
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var totalItems = itemsForCurrentContext.ToSet(comparer);
             foreach (var linkedDocumentId in linkedDocumentIds)
             {
-                var linkedDocument = document.Project.Solution.GetDocument(linkedDocumentId);
+                var linkedDocument = document.Project.Solution.GetRequiredDocument(linkedDocumentId);
                 var items = await getItemsWorker(linkedDocument, cancellationToken).ConfigureAwait(false);
                 if (items != null)
                 {
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var solution = document.Project.Solution;
             foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
             {
-                var linkedDocument = solution.GetDocument(linkedDocumentId);
+                var linkedDocument = solution.GetRequiredDocument(linkedDocumentId);
                 if (await contextChecker(linkedDocument, cancellationToken).ConfigureAwait(false))
                 {
                     return true;
@@ -153,6 +154,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             throw ExceptionUtilities.Unreachable;
+        }
+
+        public static ImmutableArray<AbstractFormattingRule> GetFormattingRules(this Document document, TextSpan span, IEnumerable<AbstractFormattingRule>? additionalRules)
+        {
+            var workspace = document.Project.Solution.Workspace;
+            var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
+            // Not sure why this is being done... there aren't any docs on CreateRule either.
+            var position = (span.Start + span.End) / 2;
+
+            var rules = ImmutableArray.Create(formattingRuleFactory.CreateRule(document, position));
+            if (additionalRules != null)
+            {
+                rules = rules.AddRange(additionalRules);
+            }
+
+            return rules.AddRange(Formatter.GetDefaultFormattingRules(document));
         }
     }
 }
