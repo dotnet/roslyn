@@ -168,13 +168,18 @@ namespace RunTests
         /// </summary>
         internal const int DefaultMethodLimit = 2000;
 
+        /// <summary>
+        /// Number of methods to include per Helix work item.
+        /// </summary>
+        internal const int HelixMethodLimit = 50;
+
         private readonly Options _options;
         private readonly int _methodLimit;
 
-        internal AssemblyScheduler(Options options, int methodLimit = DefaultMethodLimit)
+        internal AssemblyScheduler(Options options, int methodLimit)
         {
             _options = options;
-            _methodLimit = methodLimit;
+            _methodLimit = options.UseHelix ? AssemblyScheduler.HelixMethodLimit : AssemblyScheduler.DefaultMethodLimit;
         }
 
         public ImmutableArray<PartitionInfo> Schedule(string assemblyPath, bool force = false)
