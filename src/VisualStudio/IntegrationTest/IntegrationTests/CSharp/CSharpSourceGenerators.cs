@@ -44,14 +44,14 @@ internal static class Program
 {
     public static void Main()
     {
-        Console.WriteLine(" + HelloWorldGenerator.GeneratedClassName + @".GetMessage());
+        Console.WriteLine(" + HelloWorldGenerator.GeneratedEnglishClassName + @".GetMessage());
     }
 }");
 
-            VisualStudio.Editor.PlaceCaret(HelloWorldGenerator.GeneratedClassName);
+            VisualStudio.Editor.PlaceCaret(HelloWorldGenerator.GeneratedEnglishClassName);
             VisualStudio.Editor.GoToDefinition();
-            Assert.Equal($"{HelloWorldGenerator.GeneratedClassName}.cs {ServicesVSResources.generated_suffix}", VisualStudio.Shell.GetActiveWindowCaption());
-            Assert.Equal(HelloWorldGenerator.GeneratedClassName, VisualStudio.Editor.GetSelectedText());
+            Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", VisualStudio.Shell.GetActiveWindowCaption());
+            Assert.Equal(HelloWorldGenerator.GeneratedEnglishClassName, VisualStudio.Editor.GetSelectedText());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
@@ -62,14 +62,14 @@ internal static class Program
 {
     public static void Main()
     {
-        Console.WriteLine(" + HelloWorldGenerator.GeneratedClassName + @".GetMessage());
+        Console.WriteLine(" + HelloWorldGenerator.GeneratedEnglishClassName + @".GetMessage());
     }
 }");
 
-            VisualStudio.Editor.PlaceCaret(HelloWorldGenerator.GeneratedClassName);
+            VisualStudio.Editor.PlaceCaret(HelloWorldGenerator.GeneratedEnglishClassName);
             VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
-            string programReferencesCaption = $"'{HelloWorldGenerator.GeneratedClassName}' references";
+            string programReferencesCaption = $"'{HelloWorldGenerator.GeneratedEnglishClassName}' references";
             var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
 
             Assert.Collection(
@@ -84,7 +84,7 @@ internal static class Program
                     },
                     reference =>
                     {
-                        Assert.Equal(expected: "Console.WriteLine(" + HelloWorldGenerator.GeneratedClassName + ".GetMessage());", actual: reference.Code);
+                        Assert.Equal(expected: "Console.WriteLine(" + HelloWorldGenerator.GeneratedEnglishClassName + ".GetMessage());", actual: reference.Code);
                         Assert.Equal(expected: 5, actual: reference.Line);
                         Assert.Equal(expected: 26, actual: reference.Column);
                     }
