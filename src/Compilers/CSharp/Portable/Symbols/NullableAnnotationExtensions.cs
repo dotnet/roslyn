@@ -124,7 +124,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static ImmutableArray<CodeAnalysis.NullableAnnotation> ToPublicAnnotations(this ImmutableArray<TypeWithAnnotations> types) =>
             types.SelectAsArray(t => t.ToPublicAnnotation());
 
-        internal static CodeAnalysis.NullableAnnotation ToPublicAnnotation(TypeSymbol type, NullableAnnotation annotation)
+#nullable enable
+
+        internal static CodeAnalysis.NullableAnnotation ToPublicAnnotation(TypeSymbol? type, NullableAnnotation annotation)
         {
             Debug.Assert(annotation != NullableAnnotation.Ignored);
             return annotation switch
@@ -135,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // A value type may be oblivious or not annotated depending on whether the type reference
                 // is from source or metadata. (Binding using the #nullable context only when setting the annotation
                 // to avoid checking IsValueType early.) The annotation is normalized here in the public API.
-                NullableAnnotation.Oblivious when type.IsValueType => CodeAnalysis.NullableAnnotation.NotAnnotated,
+                NullableAnnotation.Oblivious when type?.IsValueType == true => CodeAnalysis.NullableAnnotation.NotAnnotated,
                 NullableAnnotation.Oblivious => CodeAnalysis.NullableAnnotation.None,
 
                 NullableAnnotation.Ignored => CodeAnalysis.NullableAnnotation.None,
@@ -143,6 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => throw ExceptionUtilities.UnexpectedValue(annotation)
             };
         }
+
+#nullable disable
 
         internal static CSharp.NullableAnnotation ToInternalAnnotation(this CodeAnalysis.NullableAnnotation annotation) =>
             annotation switch
