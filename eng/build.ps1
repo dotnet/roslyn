@@ -62,6 +62,8 @@ param (
   [switch]$testIOperation,
   [switch]$sequential,
   [switch]$helix,
+  [string]$helixQueueName = "",
+  [string]$testResultsDir = "",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -332,7 +334,6 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_IOPERATION = "true"
   }
 
-  $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
   $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "netcoreapp3.1"
 
   if (!(Test-Path $runTests)) {
@@ -393,6 +394,10 @@ function TestUsingRunTests() {
 
   if ($helix -or $ci) {
     $args += " --helix"
+  }
+
+  if ($helixQueueName) {
+    $args += " --helixQueueName $helixQueueName"
   }
 
   try {

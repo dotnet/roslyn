@@ -37,15 +37,15 @@ jobs:
     configuration: Debug
     testArguments: -testDesktop -test32
 
-# - template: eng/pipelines/test-windows-job.yml
-#   parameters:
-#     testRunName: 'Test Windows Desktop Spanish Debug 32'
-#     jobName: Test_Windows_Desktop_Spanish_Debug_32
-#     buildJobName: Build_Windows_Debug
-#     testArtifactName: Transport_Artifacts_Windows_Debug
-#     configuration: Debug
-#     testArguments: -testDesktop -test32
-#     queueName: 'BuildPool.Windows.10.Amd64.ES.VS2017.Open'
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows Desktop Spanish Debug 32'
+    jobName: Test_Windows_Desktop_Spanish_Debug_32
+    buildJobName: Build_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
+    configuration: Debug
+    testArguments: -testDesktop -test32
+    helixQueueName: 'Windows.10.Amd64.Server19H1.ES.Open'
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:

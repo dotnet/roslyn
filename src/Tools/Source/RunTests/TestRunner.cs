@@ -84,7 +84,7 @@ namespace RunTests
         <HelixSource>pr/" + sourceBranch + @"</HelixSource>
         <HelixType>test</HelixType>
         <HelixBuild>" + buildNumber + @"</HelixBuild>
-        <HelixTargetQueues>Windows.10.Amd64.Open</HelixTargetQueues>
+        <HelixTargetQueues>" + _options.HelixQueueName + @"</HelixTargetQueues>
         <Creator>rigibson</Creator>
         <IncludeDotNetCli>true</IncludeDotNetCli>
         <DotNetCliPackageType>sdk</DotNetCliPackageType>

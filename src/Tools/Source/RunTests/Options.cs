@@ -84,7 +84,14 @@ namespace RunTests
         /// <summary>
         /// Whether to run test partitions as Helix work items.
         /// </summary>
+        // TODO:
+        // [MemberNotNullWhen(true, nameof(HelixQueueName))]
         public bool UseHelix { get; set; }
+
+        /// <summary>
+        /// Whether to run test partitions as Helix work items.
+        /// </summary>
+        public string? HelixQueueName { get; set; }
 
         /// <summary>
         /// Path to the dotnet executable we should use for running dotnet test
@@ -130,6 +137,7 @@ namespace RunTests
             var excludeFilter = new List<string>();
             var sequential = false;
             var helix = false;
+            var helixQueueName = "Windows.10.Amd64.Open";
             var retry = false;
             string? traits = null;
             string? noTraits = null;
@@ -151,6 +159,7 @@ namespace RunTests
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
                 { "helix", "Run tests on Helix", o => helix = o is object },
+                { "helixQueueName", "Name of the Helix queue to run tests on", (string s) => helixQueueName = s },
                 { "traits=", "xUnit traits to include (semicolon delimited)", (string s) => traits = s },
                 { "notraits=", "xUnit traits to exclude (semicolon delimited)", (string s) => noTraits = s },
                 { "timeout=", "Minute timeout to limit the tests to", (int i) => timeout = i },
@@ -194,6 +203,7 @@ namespace RunTests
                 return null;
             }
             resultFileDirectory ??= Path.Combine(artifactsPath, "TestResults");
+            logFileDirectory ??= resultFileDirectory;
 
             if (dotnetFilePath is null || !File.Exists(dotnetFilePath))
             {
@@ -212,11 +222,6 @@ namespace RunTests
                 Console.WriteLine($"procdumppath was specified without collectdumps hence it will not be used");
             }
 
-            if (logFileDirectory is null)
-            {
-                logFileDirectory = resultFileDirectory;
-            }
-
             return new Options(
                 dotnetFilePath: dotnetFilePath,
                 artifactsDirectory: artifactsPath,
@@ -233,6 +238,7 @@ namespace RunTests
                 CollectDumps = collectDumps,
                 Sequential = sequential,
                 UseHelix = helix,
+                HelixQueueName = helixQueueName,
                 IncludeHtml = includeHtml,
                 Trait = traits,
                 NoTrait = noTraits,

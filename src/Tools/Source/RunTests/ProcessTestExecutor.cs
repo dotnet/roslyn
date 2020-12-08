@@ -85,7 +85,7 @@ namespace RunTests
 
         private string GetResultsFilePath(AssemblyInfo assemblyInfo, string suffix = "xml")
         {
-            var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Platform}.{suffix}";
+            var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Platform}_test_results.{suffix}";
             return Path.Combine(Options.TestResultsDirectory, fileName);
         }
 

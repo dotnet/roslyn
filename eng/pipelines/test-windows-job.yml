@@ -18,16 +18,16 @@ parameters:
 - name: testArguments
   type: string
   default: ''
-- name: queueName
+- name: helixQueueName
   type: string
-  default: 'BuildPool.Windows.10.Amd64.Open'
+  default: ''
 
 jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.buildJobName }}
   pool:
     name: NetCorePublic-Pool
-    queue: ${{ parameters.queueName }}
+    queue: windows-latest
   timeoutInMinutes: 120
   steps:
     - checkout: none
@@ -49,7 +49,7 @@ jobs:
       displayName: Run Unit Tests
       inputs:
         filePath: eng/build.ps1
-        arguments: -ci -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps
+        arguments: -ci -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} -testResultsDir '.' ${{ parameters.testArguments }} -collectDumps
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
