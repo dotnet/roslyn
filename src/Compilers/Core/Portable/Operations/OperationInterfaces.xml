@@ -485,6 +485,11 @@
         </summary>
       </Comments>
     </Property>
+    <Property Name="DisposeMethod" Type="IMethodSymbol?" Internal="true">
+      <Comments>
+        <summary>The method that will be invoked to dispose the <see cref="Resources" /> when pattern based disposal is used.</summary>
+      </Comments>
+    </Property>
   </Node>
   <Node Name="IExpressionStatementOperation" Base="IOperation">
     <Comments>
@@ -2932,6 +2937,11 @@
     <Property Name="IsAsynchronous" Type="bool">
       <Comments>
         <summary>True if this is an asynchronous using declaration.</summary>
+      </Comments>
+    </Property>
+    <Property Name="DisposeMethod" Type="IMethodSymbol?" Internal="true">
+      <Comments>
+        <summary>The method that will be invoked to dispose the declared instances when pattern based disposal is used.</summary>
       </Comments>
     </Property>
   </Node>

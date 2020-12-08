@@ -1,4 +1,4 @@
-﻿' Licensed to the .NET Foundation under one or more agreements.
+' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -1181,6 +1181,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                      boundForEachStatement.EnumeratorInfo.NeedToDispose,
                                                      knownToImplementIDisposable:=boundForEachStatement.EnumeratorInfo.NeedToDispose AndAlso
                                                                                   boundForEachStatement.EnumeratorInfo.IsOrInheritsFromOrImplementsIDisposable,
+                                                     disposeMethod:=Nothing,
+                                                     isPatternDispose:=False,
                                                      statementInfo.CurrentConversion,
                                                      statementInfo.ElementConversion,
                                                      If(getEnumeratorArguments.IsDefaultOrEmpty, Nothing,
@@ -1435,7 +1437,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim locals As ImmutableArray(Of ILocalSymbol) = ImmutableArray(Of ILocalSymbol).CastUp(boundUsingStatement.Locals)
             Dim syntax As SyntaxNode = boundUsingStatement.Syntax
             Dim isImplicit As Boolean = boundUsingStatement.WasCompilerGenerated
-            Return New UsingOperation(resources, body, locals, isAsynchronous:=False, _semanticModel, syntax, isImplicit)
+            Return New UsingOperation(resources, body, locals, isAsynchronous:=False, disposeMethod:=Nothing, _semanticModel, syntax, isImplicit)
         End Function
 
         Private Function CreateBoundExpressionStatementOperation(boundExpressionStatement As BoundExpressionStatement) As IExpressionStatementOperation
