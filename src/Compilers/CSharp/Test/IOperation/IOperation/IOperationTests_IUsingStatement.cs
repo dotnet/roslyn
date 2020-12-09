@@ -1159,7 +1159,7 @@ ref struct S
 }
 ";
             string expectedOperationTree = @"
-IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using(var s ... }')
+IUsingOperation (DisposeMethod: void S.Dispose([System.Int32 a = 1], [System.Boolean b = true], params System.Object[] others)) (OperationKind.Using, Type: null) (Syntax: 'using(var s ... }')
   Locals: Local_1: S s
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'var s = new S()')
@@ -1223,7 +1223,7 @@ ref struct S
 }
 ";
             string expectedOperationTree = @"
-IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using(s) ... }')
+IUsingOperation (DisposeMethod: void S.Dispose([System.Int32 a = 1], [System.Boolean b = true], params System.Object[] others)) (OperationKind.Using, Type: null) (Syntax: 'using(s) ... }')
   Resources: 
     ILocalReferenceOperation: s (OperationKind.LocalReference, Type: S) (Syntax: 's')
   Body: 
@@ -6684,20 +6684,20 @@ class C
 }
 ";
             string expectedOperationTree = @"
-    IUsingDeclarationOperation(IsAsynchronous: True) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'await using ...  = new C();')
-      DeclarationGroup: 
-        IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'await using ...  = new C();')
-          IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var c = new C()')
-            Declarators:
-                IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
-                  Initializer: 
-                    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-                      IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-                        Arguments(0)
-                        Initializer: 
-                          null
-            Initializer: 
-              null
+IUsingDeclarationOperation(IsAsynchronous: True, DisposeMethod: System.Threading.Tasks.Task C.DisposeAsync()) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'await using ...  = new C();')
+  DeclarationGroup: 
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'await using ...  = new C();')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var c = new C()')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
+              Initializer: 
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                  IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                    Arguments(0)
+                    Initializer: 
+                      null
+        Initializer: 
+          null
 ";
 
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -6731,52 +6731,52 @@ class C
 }
 ";
             string expectedOperationTree = @"
-    IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-      Locals: Local_1: C c
-        Local_2: C d
-        Local_3: C e
-      IUsingDeclarationOperation(IsAsynchronous: True) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'await using ...  = new C();')
-        DeclarationGroup: 
-          IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'await using ...  = new C();')
-            IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var c = new C()')
-              Declarators:
-                  IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
-                    Initializer: 
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-                        IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-                          Arguments(0)
-                          Initializer: 
-                            null
-              Initializer: 
-                null
-      IUsingDeclarationOperation(IsAsynchronous: True) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'await using ...  = new C();')
-        DeclarationGroup: 
-          IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'await using ...  = new C();')
-            IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var d = new C()')
-              Declarators:
-                  IVariableDeclaratorOperation (Symbol: C d) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd = new C()')
-                    Initializer: 
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-                        IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-                          Arguments(0)
-                          Initializer: 
-                            null
-              Initializer: 
-                null
-      IUsingDeclarationOperation(IsAsynchronous: True) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'await using ...  = new C();')
-        DeclarationGroup: 
-          IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'await using ...  = new C();')
-            IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var e = new C()')
-              Declarators:
-                  IVariableDeclaratorOperation (Symbol: C e) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e = new C()')
-                    Initializer: 
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-                        IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-                          Arguments(0)
-                          Initializer: 
-                            null
-              Initializer: 
-                null
+IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  Locals: Local_1: C c
+    Local_2: C d
+    Local_3: C e
+  IUsingDeclarationOperation(IsAsynchronous: True, DisposeMethod: System.Threading.Tasks.Task C.DisposeAsync()) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'await using ...  = new C();')
+    DeclarationGroup: 
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'await using ...  = new C();')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var c = new C()')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+          Initializer: 
+            null
+  IUsingDeclarationOperation(IsAsynchronous: True, DisposeMethod: System.Threading.Tasks.Task C.DisposeAsync()) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'await using ...  = new C();')
+    DeclarationGroup: 
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'await using ...  = new C();')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var d = new C()')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: C d) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd = new C()')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+          Initializer: 
+            null
+  IUsingDeclarationOperation(IsAsynchronous: True, DisposeMethod: System.Threading.Tasks.Task C.DisposeAsync()) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'await using ...  = new C();')
+    DeclarationGroup: 
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'await using ...  = new C();')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var e = new C()')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: C e) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e = new C()')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+          Initializer: 
+            null
 ";
 
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -6808,34 +6808,35 @@ class C
 }
 ";
             string expectedOperationTree = @"
-    IUsingDeclarationOperation(IsAsynchronous: True) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'await using ...  = new C();')
-      DeclarationGroup: 
-        IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'await using ...  = new C();')
-          IVariableDeclarationOperation (3 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C c = new C ... e = new C()')
-            Declarators:
-                IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
-                  Initializer: 
-                    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-                      IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-                        Arguments(0)
-                        Initializer: 
-                          null
-                IVariableDeclaratorOperation (Symbol: C d) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd = new C()')
-                  Initializer: 
-                    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-                      IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-                        Arguments(0)
-                        Initializer: 
-                          null
-                IVariableDeclaratorOperation (Symbol: C e) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e = new C()')
-                  Initializer: 
-                    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-                      IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-                        Arguments(0)
-                        Initializer: 
-                          null
-            Initializer: 
-              null";
+IUsingDeclarationOperation(IsAsynchronous: True, DisposeMethod: System.Threading.Tasks.Task C.DisposeAsync()) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'await using ...  = new C();')
+  DeclarationGroup: 
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'await using ...  = new C();')
+      IVariableDeclarationOperation (3 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C c = new C ... e = new C()')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
+              Initializer: 
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                  IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                    Arguments(0)
+                    Initializer: 
+                      null
+            IVariableDeclaratorOperation (Symbol: C d) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd = new C()')
+              Initializer: 
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                  IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                    Arguments(0)
+                    Initializer: 
+                      null
+            IVariableDeclaratorOperation (Symbol: C e) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e = new C()')
+              Initializer: 
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                  IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                    Arguments(0)
+                    Initializer: 
+                      null
+        Initializer: 
+          null
+";
 
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -6873,83 +6874,83 @@ class C : IDisposable
 }
 ";
             string expectedOperationTree = @"
-    IBlockOperation (4 statements, 6 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
-      Locals: Local_1: C c
-        Local_2: C d
-        Local_3: C e
-        Local_4: C f
-        Local_5: C g
-        Local_6: C h
-      IUsingDeclarationOperation(IsAsynchronous: False) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'using C c = new C();')
-        DeclarationGroup: 
-          IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'using C c = new C();')
-            IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C c = new C()')
-              Declarators:
-                  IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
-                    Initializer: 
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-                        IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-                          Arguments(0)
-                          Initializer: 
-                            null
-              Initializer: 
-                null
-      IUsingDeclarationOperation(IsAsynchronous: True) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'await using ...  = new C();')
-        DeclarationGroup: 
-          IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'await using ...  = new C();')
-            IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C d = new C()')
-              Declarators:
-                  IVariableDeclaratorOperation (Symbol: C d) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd = new C()')
-                    Initializer: 
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-                        IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-                          Arguments(0)
-                          Initializer: 
-                            null
-              Initializer: 
-                null
-      IUsingDeclarationOperation(IsAsynchronous: False) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'using C e = ...  = new C();')
-        DeclarationGroup: 
-          IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'using C e = ...  = new C();')
-            IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C e = new C ... f = new C()')
-              Declarators:
-                  IVariableDeclaratorOperation (Symbol: C e) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e = new C()')
-                    Initializer: 
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-                        IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-                          Arguments(0)
-                          Initializer: 
-                            null
-                  IVariableDeclaratorOperation (Symbol: C f) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'f = new C()')
-                    Initializer: 
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-                        IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-                          Arguments(0)
-                          Initializer: 
-                            null
-              Initializer: 
-                null
-      IUsingDeclarationOperation(IsAsynchronous: True) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'await using ...  = new C();')
-        DeclarationGroup: 
-          IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'await using ...  = new C();')
-            IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C g = new C ... h = new C()')
-              Declarators:
-                  IVariableDeclaratorOperation (Symbol: C g) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'g = new C()')
-                    Initializer: 
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-                        IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-                          Arguments(0)
-                          Initializer: 
-                            null
-                  IVariableDeclaratorOperation (Symbol: C h) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'h = new C()')
-                    Initializer: 
-                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
-                        IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
-                          Arguments(0)
-                          Initializer: 
-                            null
-              Initializer: 
-                null
+IBlockOperation (4 statements, 6 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  Locals: Local_1: C c
+    Local_2: C d
+    Local_3: C e
+    Local_4: C f
+    Local_5: C g
+    Local_6: C h
+  IUsingDeclarationOperation(IsAsynchronous: False) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'using C c = new C();')
+    DeclarationGroup: 
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'using C c = new C();')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C c = new C()')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: C c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = new C()')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+          Initializer: 
+            null
+  IUsingDeclarationOperation(IsAsynchronous: True, DisposeMethod: System.Threading.Tasks.Task C.DisposeAsync()) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'await using ...  = new C();')
+    DeclarationGroup: 
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'await using ...  = new C();')
+        IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C d = new C()')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: C d) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd = new C()')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+          Initializer: 
+            null
+  IUsingDeclarationOperation(IsAsynchronous: False) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'using C e = ...  = new C();')
+    DeclarationGroup: 
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'using C e = ...  = new C();')
+        IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C e = new C ... f = new C()')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: C e) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'e = new C()')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+              IVariableDeclaratorOperation (Symbol: C f) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'f = new C()')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+          Initializer: 
+            null
+  IUsingDeclarationOperation(IsAsynchronous: True, DisposeMethod: System.Threading.Tasks.Task C.DisposeAsync()) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'await using ...  = new C();')
+    DeclarationGroup: 
+      IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'await using ...  = new C();')
+        IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'C g = new C ... h = new C()')
+          Declarators:
+              IVariableDeclaratorOperation (Symbol: C g) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'g = new C()')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+              IVariableDeclaratorOperation (Symbol: C h) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'h = new C()')
+                Initializer: 
+                  IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new C()')
+                    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                      Arguments(0)
+                      Initializer: 
+                        null
+          Initializer: 
+            null
 ";
 
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -6976,8 +6977,8 @@ ref struct S
 }
 ";
             string expectedOperationTree = @"
-IUsingDeclarationOperation(IsAsynchronous: False) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'using var s = new S();')
-  DeclarationGroup: 
+IUsingDeclarationOperation(IsAsynchronous: False, DisposeMethod: void S.Dispose([System.Int32 a = 1], [System.Boolean b = true], params System.Object[] others)) (OperationKind.UsingDeclaration, Type: null) (Syntax: 'using var s = new S();')
+  DeclarationGroup:
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'using var s = new S();')
       IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var s = new S()')
         Declarators:
