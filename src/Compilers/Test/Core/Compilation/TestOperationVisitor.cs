@@ -300,6 +300,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 visitArguments(info.GetEnumeratorArguments);
                 visitArguments(info.MoveNextArguments);
                 visitArguments(info.CurrentArguments);
+                visitArguments(info.DisposeArguments);
             }
 
             void visitArguments(ImmutableArray<IArgumentOperation> arguments)
@@ -424,6 +425,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.Equal(new[] { operation.Resources, operation.Body }, operation.Children);
             Assert.NotEqual(OperationKind.VariableDeclaration, operation.Resources.Kind);
             Assert.NotEqual(OperationKind.VariableDeclarator, operation.Resources.Kind);
+
+            _ = ((UsingOperation)operation).DisposeMethod;
+            var disposeArgs = ((UsingOperation)operation).DisposeArguments;
+            if (!disposeArgs.IsEmpty)
+            {
+                foreach (var arg in disposeArgs)
+                {
+                    VisitArgument(arg);
+                }
+            }
         }
 
         // https://github.com/dotnet/roslyn/issues/21281
@@ -1530,6 +1541,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.False(operation.ConstantValue.HasValue);
             _ = operation.IsAsynchronous;
             _ = operation.IsImplicit;
+
+            _ = ((UsingDeclarationOperation)operation).DisposeMethod;
+            var disposeArgs = ((UsingDeclarationOperation)operation).DisposeArguments;
+            if (!disposeArgs.IsEmpty)
+            {
+                foreach (var arg in disposeArgs)
+                {
+                    VisitArgument(arg);
+                }
+            }
         }
 
         public override void VisitWith(IWithOperation operation)

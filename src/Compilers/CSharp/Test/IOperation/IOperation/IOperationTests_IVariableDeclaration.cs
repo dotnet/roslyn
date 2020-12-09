@@ -2287,6 +2287,69 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void UsingStatement_DefaultDisposeArguments()
+        {
+            string source = @"
+class C
+{
+    public static void M1()
+    {
+        /*<bind>*/using(var s = new S())
+        { 
+        }/*</bind>*/
+    }
+}
+
+ref struct S
+{
+    public void Dispose(int a = 1, bool b = true, params object[] others) { }
+}
+";
+            string expectedOperationTree = @"
+IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'using(var s ... }')
+  Locals: Local_1: S s
+  Resources: 
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'var s = new S()')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var s = new S()')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: S s) (OperationKind.VariableDeclarator, Type: null) (Syntax: 's = new S()')
+              Initializer: 
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new S()')
+                  IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S) (Syntax: 'new S()')
+                    Arguments(0)
+                    Initializer: 
+                      null
+        Initializer: 
+          null
+  Body: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  DisposeArguments(3):
+      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'using(var s ... }')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'using(var s ... }')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: b) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'using(var s ... }')
+        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'using(var s ... }')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: others) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'using(var s ... }')
+        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Object[], IsImplicit) (Syntax: 'using(var s ... }')
+          Dimension Sizes(1):
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'using(var s ... }')
+          Initializer: 
+            IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: 'using(var s ... }')
+              Element Values(0)
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<UsingStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         [Fact]
         public void UsingBlock_InvalidIgnoredDimensions_SwitchExpression()
         {

@@ -3925,8 +3925,12 @@ oneMoreTime:
                 resource = ConvertToIDisposable(resource, iDisposable);
             }
 
+            EvalStackFrame disposeFrame = PushStackFrame();
+
             AddStatement(tryDispose(resource) ??
                          MakeInvalidOperation(type: null, resource));
+
+            PopStackFrameAndLeaveRegion(disposeFrame);
 
             AppendNewBlock(endOfFinally);
 
@@ -3936,7 +3940,7 @@ oneMoreTime:
 
             IOperation? tryDispose(IOperation value)
             {
-                Debug.Assert((disposeMethod is object && !disposeArguments.IsDefault) || value.Type!.Equals(iDisposable));
+                Debug.Assert((disposeMethod is object && !disposeArguments.IsDefault) || (value.Type!.Equals(iDisposable) && disposeArguments.IsDefaultOrEmpty));
 
                 var method = disposeMethod ?? (isAsynchronous
                     ? (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)?.GetISymbol()

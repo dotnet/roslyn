@@ -469,6 +469,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.DeclarationGroup, "DeclarationGroup");
+
+            var disposeMethod = ((UsingDeclarationOperation)operation).DisposeMethod;
+            var disposeArgs = ((UsingDeclarationOperation)operation).DisposeArguments;
+            if (!disposeArgs.IsEmpty)
+            {
+                VisitArray(disposeArgs, "DisposeArguments", logElementCount: true);
+            }
         }
 
         public override void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
@@ -739,6 +746,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Assert.NotEqual(OperationKind.VariableDeclaration, operation.Resources.Kind);
             Assert.NotEqual(OperationKind.VariableDeclarator, operation.Resources.Kind);
+
+            var disposeMethod = ((UsingOperation)operation).DisposeMethod;
+            var disposeArgs = ((UsingOperation)operation).DisposeArguments;
+            if (!disposeArgs.IsEmpty)
+            {
+                VisitArray(disposeArgs, "DisposeArguments", logElementCount: true);
+            }
         }
 
         // https://github.com/dotnet/roslyn/issues/21281
