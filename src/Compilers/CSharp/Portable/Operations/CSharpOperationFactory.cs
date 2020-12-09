@@ -1890,15 +1890,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
             if (boundMultipleLocalDeclarations is BoundUsingLocalDeclarations usingDecl)
             {
-                TypeSymbol? declaredType = usingDecl.LocalDeclarations[0].DeclaredTypeOpt?.Type;
-                Debug.Assert(usingDecl.DisposeMethodOpt is null || declaredType is object);
-
                 return new UsingDeclarationOperation(
                     variableDeclaration,
                     isAsynchronous: usingDecl.AwaitOpt is object,
                     usingDecl.DisposeMethodOpt.GetPublicSymbol(),
                     disposeArguments: usingDecl.DisposeMethodOpt is object
-                      ? CreateDisposeArguments(usingDecl.DisposeMethodOpt, declaredType!, usingDecl.Syntax, usingDecl.Binder)
+                      ? CreateDisposeArguments(usingDecl.DisposeMethodOpt, usingDecl.LocalDeclarations[0].LocalSymbol.Type, usingDecl.Syntax, usingDecl.Binder)
                       : ImmutableArray<IArgumentOperation>.Empty,
                      _semanticModel,
                     declarationGroupSyntax,
