@@ -1663,7 +1663,9 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                 invokedAsExtensionMethod: true),
                                                             null)
                                                         : default,
-                                                    disposeArguments: CreateDisposeArguments(enumeratorInfoOpt.DisposeMethod, enumeratorInfoOpt.GetEnumeratorMethod?.ReturnType, boundForEachStatement.Syntax, enumeratorInfoOpt.Binder));
+                                                    disposeArguments: enumeratorInfoOpt.DisposeMethod is object && enumeratorInfoOpt.GetEnumeratorMethod is object
+                                                        ? CreateDisposeArguments(enumeratorInfoOpt.DisposeMethod, enumeratorInfoOpt.GetEnumeratorMethod.ReturnType, boundForEachStatement.Syntax, enumeratorInfoOpt.Binder)
+                                                        : default);
             }
             else
             {
@@ -1748,13 +1750,15 @@ namespace Microsoft.CodeAnalysis.Operations
         private IUsingOperation CreateBoundUsingStatementOperation(BoundUsingStatement boundUsingStatement)
         {
             Debug.Assert((boundUsingStatement.DeclarationsOpt == null) != (boundUsingStatement.ExpressionOpt == null));
+            Debug.Assert(boundUsingStatement.ExpressionOpt is object || boundUsingStatement.Locals.Length > 0);
             IOperation resources = Create(boundUsingStatement.DeclarationsOpt ?? (BoundNode)boundUsingStatement.ExpressionOpt!);
             IOperation body = Create(boundUsingStatement.Body);
             ImmutableArray<ILocalSymbol> locals = boundUsingStatement.Locals.GetPublicSymbols();
             bool isAsynchronous = boundUsingStatement.AwaitOpt != null;
             IMethodSymbol? disposeMethod = boundUsingStatement.DisposeMethodOpt.GetPublicSymbol();
-            var receiver = boundUsingStatement.ExpressionOpt ?? boundUsingStatement.DeclarationsOpt?.LocalDeclarations[0].DeclaredTypeOpt;
-            var disposeArguments = CreateDisposeArguments(boundUsingStatement.DisposeMethodOpt, receiver?.Type, boundUsingStatement.Syntax, boundUsingStatement.Binder);
+            var disposeArguments = boundUsingStatement.DisposeMethodOpt is object
+                                     ? CreateDisposeArguments(boundUsingStatement.DisposeMethodOpt, boundUsingStatement.ExpressionOpt?.Type ?? boundUsingStatement.Locals[0].Type, boundUsingStatement.Syntax, boundUsingStatement.Binder)
+                                     : ImmutableArray<IArgumentOperation>.Empty;
             SyntaxNode syntax = boundUsingStatement.Syntax;
             bool isImplicit = boundUsingStatement.WasCompilerGenerated;
             return new UsingOperation(resources, body, locals, isAsynchronous, disposeMethod, disposeArguments, _semanticModel, syntax, isImplicit);
@@ -1886,11 +1890,16 @@ namespace Microsoft.CodeAnalysis.Operations
 
             if (boundMultipleLocalDeclarations is BoundUsingLocalDeclarations usingDecl)
             {
+                TypeSymbol? declaredType = usingDecl.LocalDeclarations[0].DeclaredTypeOpt?.Type;
+                Debug.Assert(usingDecl.DisposeMethodOpt is null || declaredType is object);
+
                 return new UsingDeclarationOperation(
                     variableDeclaration,
                     isAsynchronous: usingDecl.AwaitOpt is object,
                     usingDecl.DisposeMethodOpt.GetPublicSymbol(),
-                    CreateDisposeArguments(usingDecl.DisposeMethodOpt, usingDecl.LocalDeclarations[0].DeclaredTypeOpt?.Type, usingDecl.Syntax, usingDecl.Binder),
+                    disposeArguments: usingDecl.DisposeMethodOpt is object
+                      ? CreateDisposeArguments(usingDecl.DisposeMethodOpt, declaredType!, usingDecl.Syntax, usingDecl.Binder)
+                      : ImmutableArray<IArgumentOperation>.Empty,
                      _semanticModel,
                     declarationGroupSyntax,
                     isImplicit: boundMultipleLocalDeclarations.WasCompilerGenerated);
@@ -2323,15 +2332,15 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, isImplicit);
         }
 
-        private ImmutableArray<IArgumentOperation> CreateDisposeArguments(MethodSymbol? disposeMethod, TypeSymbol? receiverType, SyntaxNode receiverSyntax, Binder binder)
+        private ImmutableArray<IArgumentOperation> CreateDisposeArguments(MethodSymbol disposeMethod, TypeSymbol receiverType, SyntaxNode receiverSyntax, Binder binder)
         {
-            if (disposeMethod is null || receiverType is null || disposeMethod.ParameterCount == 0)
+            // can't be an extension method for dispose
+            Debug.Assert(!disposeMethod.IsStatic);
+
+            if (disposeMethod.ParameterCount == 0)
             {
                 return ImmutableArray<IArgumentOperation>.Empty;
             }
-
-            // can't be an extension method for dispose
-            Debug.Assert(!disposeMethod.IsStatic);
 
             var receiver = new BoundDisposableValuePlaceholder(receiverSyntax, receiverType);
 
