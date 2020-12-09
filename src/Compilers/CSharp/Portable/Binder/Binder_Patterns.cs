@@ -52,47 +52,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note that these labels are for the convenience of the compilation of patterns, and are not necessarily emitted into the lowered code.
             LabelSymbol whenTrueLabel = new GeneratedLabelSymbol("isPatternSuccess");
             LabelSymbol whenFalseLabel = new GeneratedLabelSymbol("isPatternFailure");
+
+            bool negated = pattern.IsNegated(out var innerPattern);
             BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
-                this.Compilation, pattern.Syntax, expression, pattern, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, diagnostics);
-            if (!hasErrors && !decisionDag.ReachableLabels.Contains(whenTrueLabel))
+                this.Compilation, pattern.Syntax, expression, innerPattern, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, diagnostics);
+
+            if (!hasErrors && getConstantResult(decisionDag, negated, whenTrueLabel, whenFalseLabel) is { } constantResult)
             {
-                diagnostics.Add(ErrorCode.ERR_IsPatternImpossible, node.Location, expression.Type);
-                hasErrors = true;
-            }
-            else if (!hasErrors && !decisionDag.ReachableLabels.Contains(whenFalseLabel))
-            {
-                switch (pattern)
+                if (!constantResult)
                 {
-                    case BoundConstantPattern _:
-                    case BoundITuplePattern _:
-                        // these patterns can fail in practice
-                        throw ExceptionUtilities.Unreachable;
-                    case BoundRelationalPattern _:
-                    case BoundTypePattern _:
-                    case BoundNegatedPattern _:
-                    case BoundBinaryPattern _:
-                        diagnostics.Add(ErrorCode.WRN_IsPatternAlways, node.Location, expression.Type);
-                        break;
-                    case BoundDiscardPattern _:
-                        // we do not give a warning on this because it is an existing scenario, and it should
-                        // have been obvious in source that it would always match.
-                        break;
-                    case BoundDeclarationPattern _:
-                    case BoundRecursivePattern _:
-                        // We do not give a warning on these because people do this to give a name to a value
-                        break;
+                    diagnostics.Add(ErrorCode.ERR_IsPatternImpossible, node.Location, expression.Type);
+                    hasErrors = true;
+                }
+                else
+                {
+                    switch (pattern)
+                    {
+                        case BoundConstantPattern _:
+                        case BoundITuplePattern _:
+                            // these patterns can fail in practice
+                            throw ExceptionUtilities.Unreachable;
+                        case BoundRelationalPattern _:
+                        case BoundTypePattern _:
+                        case BoundNegatedPattern _:
+                        case BoundBinaryPattern _:
+                            diagnostics.Add(ErrorCode.WRN_IsPatternAlways, node.Location, expression.Type);
+                            break;
+                        case BoundDiscardPattern _:
+                            // we do not give a warning on this because it is an existing scenario, and it should
+                            // have been obvious in source that it would always match.
+                            break;
+                        case BoundDeclarationPattern _:
+                        case BoundRecursivePattern _:
+                            // We do not give a warning on these because people do this to give a name to a value
+                            break;
+                    }
                 }
             }
             else if (expression.ConstantValue != null)
             {
                 decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(expression);
-                if (!hasErrors)
+                if (!hasErrors && getConstantResult(decisionDag, negated, whenTrueLabel, whenFalseLabel) is { } simplifiedResult)
                 {
-                    if (!decisionDag.ReachableLabels.Contains(whenTrueLabel))
+                    if (!simplifiedResult)
                     {
                         diagnostics.Add(ErrorCode.WRN_GivenExpressionNeverMatchesPattern, node.Location);
                     }
-                    else if (!decisionDag.ReachableLabels.Contains(whenFalseLabel))
+                    else
                     {
                         switch (pattern)
                         {
@@ -111,8 +117,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // decisionDag, whenTrueLabel, and whenFalseLabel represent the decision DAG for the inner pattern,
+            // after removing any outer 'not's, so consumers will need to compensate for negated patterns.
             return new BoundIsPatternExpression(
-                node, expression, pattern, decisionDag, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, boolType, hasErrors);
+                node, expression, pattern, negated, decisionDag, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, boolType, hasErrors);
+
+            static bool? getConstantResult(BoundDecisionDag decisionDag, bool negated, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel)
+            {
+                if (!decisionDag.ReachableLabels.Contains(whenTrueLabel))
+                {
+                    return negated;
+                }
+                else if (!decisionDag.ReachableLabels.Contains(whenFalseLabel))
+                {
+                    return !negated;
+                }
+                return null;
+            }
         }
 
         private BoundExpression BindSwitchExpression(SwitchExpressionSyntax node, DiagnosticBag diagnostics)
