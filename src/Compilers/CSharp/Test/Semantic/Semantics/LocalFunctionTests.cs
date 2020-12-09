@@ -4296,7 +4296,9 @@ class C
 {
     void M()
     {
-        local(out _);
+        int x;
+        local(out x);
+        x.ToString();
 
         [DllImport(""a"")]
         static extern void local(out int x);
