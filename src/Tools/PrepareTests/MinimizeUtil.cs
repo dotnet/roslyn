@@ -90,12 +90,10 @@ internal static class MinimizeUtil
 
             foreach (var individualFile in individualFiles)
             {
-                var currentDirName = Path.GetDirectoryName(individualFile)!;
-                var currentOutputDirectory = Path.Combine(destinationDirectory, currentDirName);
-                Directory.CreateDirectory(currentOutputDirectory);
-
-                var destGlobalJsonPath = Path.Combine(destinationDirectory, individualFile);
-                CreateHardLink(destGlobalJsonPath, Path.Combine(sourceDirectory, individualFile));
+                var outputPath = Path.Combine(destinationDirectory, individualFile);
+                var outputDirectory = Path.GetDirectoryName(outputPath)!;
+                Directory.CreateDirectory(outputDirectory);
+                CreateHardLink(outputPath, Path.Combine(sourceDirectory, individualFile));
             }
         }
 
