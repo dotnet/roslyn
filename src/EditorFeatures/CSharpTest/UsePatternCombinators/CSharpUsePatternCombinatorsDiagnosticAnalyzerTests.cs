@@ -118,8 +118,8 @@ class C
         [InlineData("!(i != 1 && 2 != i)", "i is 1 or 2")]
         [InlineData("i < 1 && 2 <= i", "i is < 1 and >= 2")]
         [InlineData("i < 1 && 2 <= i && i is not 0", "i is < 1 and >= 2 and not 0")]
-        [InlineData("(int.MaxValue - 1D) < i && i > 0", "(double)i is > (int.MaxValue - 1D) and > 0")]
-        [InlineData("ch < ' ' || ch >= 0x100 || 'a' == ch", "(int)ch is < ' ' or >= 0x100 or 'a'")]
+        [InlineData("(int.MaxValue - 1D) < i && i > 0", "i is > (int)(int.MaxValue - 1D) and > 0")]
+        [InlineData("ch < ' ' || ch >= 0x100 || 'a' == ch", "ch is < ' ' or >= (char)0x100 or 'a'")]
         [InlineData("ch == 'a' || 'b' == ch", "ch is 'a' or 'b'")]
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
         public async Task TestOnExpression(string expression, string expected)

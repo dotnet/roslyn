@@ -94,6 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
                 var target = (leftConv, rightConv) switch
                 {
+                    ({ IsUserDefined: true }, _) or
+                    (_, { IsUserDefined: true }) => null,
+
                     // If the original targets are implicitly converted due to usage of operators,
                     // both targets must have been converted to the same type, otherwise we bail.
                     ({ IsImplicit: true }, { IsImplicit: true }) when !Equals(leftTarget.Type, rightTarget.Type) => null,
