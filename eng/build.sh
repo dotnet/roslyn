@@ -66,6 +66,7 @@ verbosity='minimal'
 binary_log=false
 ci=false
 helix=false
+helix_queue_name=""
 bootstrap=false
 run_analyzers=false
 prepare_machine=false
@@ -131,6 +132,11 @@ while [[ $# > 0 ]]; do
       ;;
     --helix)
       helix=true
+      ;;
+    --helixqueuename)
+      helix_queue_name=$2
+      args="$args $1"
+      shift
       ;;
     --bootstrap)
       bootstrap=true
@@ -311,6 +317,10 @@ fi
 
 if [[ "$test_core_clr" == true ]]; then
   runtests_args=""
+  if [[ -n "$helix_queue_name" ]]; then
+    runtests_args="$runtests_args --helixQueueName $helix_queue_name"
+  fi
+
   if [[ "$helix" == true || "$ci" == true ]]; then
     runtests_args="$runtests_args --helix"
   fi
