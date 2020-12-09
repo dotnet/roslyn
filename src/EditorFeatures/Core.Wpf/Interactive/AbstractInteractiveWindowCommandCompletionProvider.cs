@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
-namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
+namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     /// <summary>
     /// Provides completion items for Interactive Window commands (such as #help, #cls, etc.) at the start of a language buffer.

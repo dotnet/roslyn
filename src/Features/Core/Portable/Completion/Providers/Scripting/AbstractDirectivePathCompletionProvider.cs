@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// <code>r</code> for metadata reference directive, <code>load</code> for source file directive.
+        /// </summary>
+        protected abstract string DirectiveName { get; }
+
         public sealed override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             try
@@ -60,8 +65,33 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
-            => true;
+        public sealed override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
+        {
+            var lineStart = text.FindContainingLineStart(caretPosition);
+
+            // check if the line starts with {whitespace}#{whitespace}{DirectiveName}{whitespace}"
+
+            var poundIndex = text.IndexOfNonWhiteSpace(lineStart, caretPosition - lineStart);
+            if (poundIndex == -1 || text[poundIndex] != '#')
+            {
+                return false;
+            }
+
+            var directiveNameStartIndex = text.IndexOfNonWhiteSpace(poundIndex + 1, caretPosition - poundIndex - 1);
+            if (directiveNameStartIndex == -1 || !text.ContentEquals(directiveNameStartIndex, DirectiveName))
+            {
+                return false;
+            }
+
+            var directiveNameEndIndex = directiveNameStartIndex + DirectiveName.Length + 1;
+            var quoteIndex = text.IndexOfNonWhiteSpace(directiveNameEndIndex, caretPosition - directiveNameEndIndex);
+            if (quoteIndex == -1 || text[quoteIndex] != '"')
+            {
+                return false;
+            }
+
+            return true;
+        }
 
         private static string GetPathThroughLastSlash(string quotedPath, int quotedPathStart, int position)
         {
@@ -70,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             const int QuoteLength = 1;
 
             var positionInQuotedPath = position - quotedPathStart;
-            var path = quotedPath.Substring(QuoteLength, positionInQuotedPath - QuoteLength).Trim();
+            var path = quotedPath[QuoteLength..positionInQuotedPath].Trim();
             var afterLastSlashIndex = AfterLastSlashIndex(path, path.Length);
 
             // We want the portion up to, and including the last slash if there is one.  That way if

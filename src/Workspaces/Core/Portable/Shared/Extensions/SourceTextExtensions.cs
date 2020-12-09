@@ -144,6 +144,50 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static bool Match(char normalizedLeft, char right, bool caseSensitive)
             => caseSensitive ? normalizedLeft == right : normalizedLeft == CaseInsensitiveComparison.ToLower(right);
 
+        public static bool ContentEquals(this SourceText text, int position, string value)
+        {
+            if (position + value.Length > text.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < value.Length; i++)
+            {
+                if (text[position + i] != value[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public static int FindContainingLineStart(this SourceText text, int position)
+        {
+            for (var i = position - 1; i >= 0; i--)
+            {
+                if (text[i] is '\n' or '\r')
+                {
+                    return i + 1;
+                }
+            }
+
+            return 0;
+        }
+
+        public static int IndexOfNonWhiteSpace(this SourceText text, int start, int length)
+        {
+            for (var i = 0; i < length; i++)
+            {
+                if (!char.IsWhiteSpace(text[start + i]))
+                {
+                    return start + i;
+                }
+            }
+
+            return -1;
+        }
+
         // 32KB. comes from SourceText char buffer size and less than large object size
         internal const int SourceTextLengthThreshold = 32 * 1024 / sizeof(char);
 
