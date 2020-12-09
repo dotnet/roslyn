@@ -174,6 +174,7 @@ if %errorlevel% neq 0 (
             static void writeUnixRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath)> group)
             {
                 builder.AppendLine(@"
+#!/bin/bash
 source=""${BASH_SOURCE[0]}""
 
 # resolve $source until the file is no longer a symlink
@@ -194,9 +195,9 @@ scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
                     var destFileName = Path.GetRelativePath(group.Key, tuple.FilePath.RelativePath);
                     if (Path.GetDirectoryName(destFileName) is { Length: not 0 } directory)
                     {
-                        builder.AppendLine($@"mkdir $scriptroot/{directory} 2> /dev/null");
+                        builder.AppendLine($@"mkdir ""$scriptroot/{directory}"" 2> /dev/null");
                     }
-                    builder.AppendLine($@"ln $HELIX_CORRELATION_PAYLOAD/{source} $scriptroot/{destFileName}");
+                    builder.AppendLine($@"ln ""$HELIX_CORRELATION_PAYLOAD/{source}"" ""$scriptroot/{destFileName}"" || exit $?");
                     count++;
                     if (count % 1_000 == 0)
                     {
