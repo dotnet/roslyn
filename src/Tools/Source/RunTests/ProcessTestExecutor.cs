@@ -30,18 +30,18 @@ namespace RunTests
         {
             var builder = new StringBuilder();
             builder.Append($@"test");
-            builder.Append($@" ""{assemblyInfo.AssemblyName}""");
+            builder.Append($@" '{assemblyInfo.AssemblyName}'");
             var typeInfoList = assemblyInfo.PartitionInfo.TypeInfoList;
             if (typeInfoList.Length > 0 || !string.IsNullOrWhiteSpace(Options.Trait) || !string.IsNullOrWhiteSpace(Options.NoTrait))
             {
-                builder.Append(@" --filter """);
+                builder.Append(@" --filter '");
                 var any = false;
                 foreach (var typeInfo in typeInfoList)
                 {
                     MaybeAddSeparator();
                     builder.Append(typeInfo.FullName);
                 }
-                builder.Append(@"""");
+                builder.Append(@"'");
 
                 if (Options.Trait is object)
                 {
@@ -73,11 +73,11 @@ namespace RunTests
             }
 
             builder.Append($@" --framework {assemblyInfo.TargetFramework}");
-            builder.Append($@" --logger ""xunit;LogFilePath={GetResultsFilePath(assemblyInfo, "xml")}""");
+            builder.Append($@" --logger 'xunit;LogFilePath={GetResultsFilePath(assemblyInfo, "xml")}'");
 
             if (Options.IncludeHtml)
             {
-                builder.AppendFormat($@" --logger ""html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}""");
+                builder.AppendFormat($@" --logger 'html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}'");
             }
 
             return builder.ToString();
