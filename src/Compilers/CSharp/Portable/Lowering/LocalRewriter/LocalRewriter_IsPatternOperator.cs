@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
 
             // Can the given decision dag node, and its successors, be generated as a sequence of
-            // linear tests with a single "golden" path to the try label and all other paths leading
+            // linear tests with a single "golden" path to the true label and all other paths leading
             // to the false label?  This occurs with an is-pattern expression that uses no "or" or "not"
             // pattern forms.
             static bool canProduceLinearSequence(
