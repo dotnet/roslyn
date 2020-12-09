@@ -1646,6 +1646,10 @@ namespace Microsoft.CodeAnalysis.Operations
                 HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
                 var compilation = (CSharpCompilation)_semanticModel.Compilation;
 
+                var iDisposable = enumeratorInfoOpt.IsAsync
+                                    ? compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable)
+                                    : compilation.GetSpecialType(SpecialType.System_IDisposable);
+
                 info = new ForEachLoopOperationInfo(enumeratorInfoOpt.ElementType.GetPublicSymbol(),
                                                     enumeratorInfoOpt.GetEnumeratorMethod.GetPublicSymbol(),
                                                     ((PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol).GetPublicSymbol(),
@@ -1655,9 +1659,11 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposal && (object)enumeratorInfoOpt.GetEnumeratorMethod != null ?
                                                                                      compilation.Conversions.
                                                                                          ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorMethod.ReturnType,
-                                                                                                                            compilation.GetSpecialType(SpecialType.System_IDisposable),
+                                                                                                                            iDisposable,
                                                                                                                             ref useSiteDiagnostics).IsImplicit :
                                                                                      false,
+                                                    enumeratorInfoOpt.DisposeMethod.GetPublicSymbol(),
+                                                    enumeratorInfoOpt.IsPatternDispose,
                                                     enumeratorInfoOpt.CurrentConversion,
                                                     boundForEachStatement.ElementConversion,
                                                     getEnumeratorArguments: enumeratorInfoOpt.GetEnumeratorMethod is { IsExtensionMethod: true } enumeratorMethod
@@ -1764,9 +1770,10 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation body = Create(boundUsingStatement.Body);
             ImmutableArray<ILocalSymbol> locals = boundUsingStatement.Locals.GetPublicSymbols();
             bool isAsynchronous = boundUsingStatement.AwaitOpt != null;
+            IMethodSymbol? disposeMethod = boundUsingStatement.DisposeMethodOpt.GetPublicSymbol();
             SyntaxNode syntax = boundUsingStatement.Syntax;
             bool isImplicit = boundUsingStatement.WasCompilerGenerated;
-            return new UsingOperation(resources, body, locals, isAsynchronous, _semanticModel, syntax, isImplicit);
+            return new UsingOperation(resources, body, locals, isAsynchronous, disposeMethod, _semanticModel, syntax, isImplicit);
         }
 
         private IThrowOperation CreateBoundThrowStatementOperation(BoundThrowStatement boundThrowStatement)
@@ -1898,6 +1905,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 return new UsingDeclarationOperation(
                     variableDeclaration,
                     isAsynchronous: usingDecl.AwaitOpt is object,
+                    usingDecl.DisposeMethodOpt.GetPublicSymbol(),
                     _semanticModel,
                     declarationGroupSyntax,
                     isImplicit: boundMultipleLocalDeclarations.WasCompilerGenerated);

@@ -937,6 +937,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (disposeMethod is object)
                 {
                     builder.NeedsDisposal = true;
+                    builder.IsPatternDispose = true;
                     builder.DisposeMethod = disposeMethod;
                 }
                 patternDisposeDiags.Free();
