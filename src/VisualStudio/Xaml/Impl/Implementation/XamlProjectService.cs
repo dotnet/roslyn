@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Xaml.Diagnostics.Analyzers;
 using Microsoft.VisualStudio.Editor;
@@ -141,7 +142,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 project.AddSourceFile(filePath);
 
                 var documentId = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).Single(d => d.ProjectId == project.Id);
-                var document = _workspace.CurrentSolution.GetDocument(documentId)!;
+                _rdtDocumentIds[docCookie] = documentId;
+
+                // Remove the following when https://github.com/dotnet/roslyn/issues/49879 is fixed
+                var document = _workspace.CurrentSolution.GetRequiredDocument(documentId);
                 var hasText = document.TryGetText(out var text);
                 if (!hasText || text?.Container.TryGetTextBuffer() == null)
                 {
@@ -153,8 +157,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                         _workspace.OnDocumentTextChanged(documentId, textContainer.CurrentText, PreservationMode.PreserveIdentity);
                     }
                 }
-
-                _rdtDocumentIds[docCookie] = documentId;
             }
         }
 
