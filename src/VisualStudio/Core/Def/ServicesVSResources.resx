@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -1598,5 +1598,41 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="New_Type_Name_colon" xml:space="preserve">
     <value>New Type Name:</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="Remove_All" xml:space="preserve">
+    <value>Remove All</value>
+  </data>
+  <data name="Action" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="Assemblies" xml:space="preserve">
+    <value>Assemblies</value>
+  </data>
+  <data name="Choose_which_action_you_would_like_to_perform_on_the_unused_references" xml:space="preserve">
+    <value>Choose which action you would like to perform on the unused references.</value>
+  </data>
+  <data name="Keep" xml:space="preserve">
+    <value>Keep</value>
+  </data>
+  <data name="Packages" xml:space="preserve">
+    <value>Packages</value>
+  </data>
+  <data name="Projects" xml:space="preserve">
+    <value>Projects</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Reference</value>
+  </data>
+  <data name="Remove_Unused_References" xml:space="preserve">
+    <value>Remove Unused References</value>
+  </data>
+  <data name="Analyzing_project_references" xml:space="preserve">
+    <value>Analyzing project references.</value>
+  </data>
+  <data name="Updating_project_references" xml:space="preserve">
+    <value>Updating project references.</value>
   </data>
 </root>
