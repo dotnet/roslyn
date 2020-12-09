@@ -108,15 +108,14 @@ jobs:
     configuration: Debug
     testArguments: --testCoreClr --helixQueueName Ubuntu.1604.Amd64.Open
 
-# - template: eng/pipelines/test-unix-job.yml
-#   parameters:
-#     testRunName: 'Test OSX Debug'
-#     jobName: Test_OSX_Debug
-#     buildJobName: Build_Unix_Debug
-#     testArtifactName: Transport_Artifacts_Unix_Debug
-#     configuration: Debug
-#     testArguments: --testCoreClr
-#     vmImageName: 'macOS-10.14'
+- template: eng/pipelines/test-unix-job.yml
+  parameters:
+    testRunName: 'Test macOS Debug'
+    jobName: Test_macOS_Debug
+    buildJobName: Build_Unix_Debug
+    testArtifactName: Transport_Artifacts_Unix_Debug
+    configuration: Debug
+    testArguments: --testCoreClr --helixQueueName OSX.1014.Amd64.Open
 
 # Build Correctness Jobs
 

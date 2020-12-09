@@ -121,14 +121,15 @@ namespace RunTests
                     // TODO: this feels like something we should be able to verify before sending a work item.
                     // throw new InvalidOperationException($"path did not contain {rehydrateFilename}: {payloadDirectory}");
                 }
+                var lsCommand = isUnix ? "ls" : "dir";
                 var rehydrateCommand = isUnix ? $"./{rehydrateFilename}" : $@"call .\{rehydrateFilename}";
                 var workItem = @"
         <HelixWorkItem Include=""" + assemblyInfo.DisplayName + @""">
             <PayloadDirectory>" + Path.Combine(msbuildTestPayloadRoot, Path.GetDirectoryName(assemblyInfo.AssemblyPath)!) + @"</PayloadDirectory>
             <Command>
-                ls
+                {lsCommand}
                 " + rehydrateCommand + @"
-                ls
+                {lsCommand}
                 dotnet " + commandLineArguments + @"
             </Command>
         </HelixWorkItem>
