@@ -10,11 +10,9 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Api;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences
 {
@@ -25,55 +23,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
     internal sealed class VisualStudioReferenceCleanupService : IReferenceCleanupService
     {
         private readonly IProjectSystemReferenceCleanupService _projectSystemReferenceUpdateService;
-        private readonly VisualStudioWorkspaceImpl _workspace;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioReferenceCleanupService(
-            IProjectSystemReferenceCleanupService projectSystemReferenceUpdateService,
-            VisualStudioWorkspaceImpl workspace)
+        public VisualStudioReferenceCleanupService(IProjectSystemReferenceCleanupService projectSystemReferenceUpdateService)
         {
             _projectSystemReferenceUpdateService = projectSystemReferenceUpdateService;
-            _workspace = workspace;
         }
 
-        public string GetTargetFrameworkMoniker(ProjectId projectId)
+        public async Task<ImmutableArray<ReferenceInfo>> GetProjectReferencesAsync(string projectPath, CancellationToken cancellationToken)
         {
-            if (_workspace.TryGetHierarchy(projectId, out var hierarchy) &&
-                hierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out var targetFrameworkMoniker))
-            {
-                return targetFrameworkMoniker ?? string.Empty;
-            }
-
-            return string.Empty;
-        }
-
-        public Task<string> GetProjectAssetsFilePathAsync(string projectPath, CancellationToken cancellationToken)
-        {
-#if false // PROTOTYPE: Temporary disabling code causing a build break
-            return _projectSystemReferenceUpdateService.GetProjectAssetsFilePathAsync(projectPath, cancellationToken);
-#else
-            return Task<string>.FromResult("");
-#endif
-        }
-
-        public async Task<ImmutableArray<ReferenceInfo>> GetProjectReferencesAsync(string projectPath, string targetFramework, CancellationToken cancellationToken)
-        {
-#if false // PROTOTYPE: Temporary disabling code causing a build break
-            var projectSystemReferences = await _projectSystemReferenceUpdateService.GetProjectReferencesAsync(projectPath, targetFramework, cancellationToken).ConfigureAwait(false);
+            var projectSystemReferences = await _projectSystemReferenceUpdateService.GetProjectReferencesAsync(projectPath, cancellationToken).ConfigureAwait(false);
             return projectSystemReferences.Select(reference => reference.ToReferenceInfo()).ToImmutableArray();
-#else
-            return await Task<ImmutableArray<ReferenceInfo>>.FromResult(ImmutableArray<ReferenceInfo>.Empty).ConfigureAwait(false);
-#endif
         }
 
-        public Task<bool> TryUpdateReferenceAsync(string projectPath, string targetFramework, ReferenceUpdate referenceUpdate, CancellationToken cancellationToken)
+        public Task<bool> TryUpdateReferenceAsync(string projectPath, ReferenceUpdate referenceUpdate, CancellationToken cancellationToken)
         {
-#if false // PROTOTYPE: Temporary disabling code causing a build break
-            return _projectSystemReferenceUpdateService.TryUpdateReferenceAsync(projectPath, targetFramework, referenceUpdate.ToProjectSystemReferenceUpdate(), cancellationToken);
-#else
-            return Task<bool>.FromResult(false);
-#endif
+            return _projectSystemReferenceUpdateService.TryUpdateReferenceAsync(projectPath, referenceUpdate.ToProjectSystemReferenceUpdate(), cancellationToken);
         }
     }
 }
