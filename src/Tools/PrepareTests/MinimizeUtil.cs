@@ -77,9 +77,9 @@ internal static class MinimizeUtil
             // we should avoid copying the files under Resources.
             var individualFiles = new[]
             {
-                "./global.json",
-                "./dotnet-tools.json",
-                "./Nuget.config",
+                "global.json",
+                "dotnet-tools.json",
+                "Nuget.config",
                 "src/Workspaces/MSBuildTest/Resources/.editorconfig",
                 "src/Workspaces/MSBuildTest/Resources/global.json",
                 "src/Workspaces/MSBuildTest/Resources/Directory.Build.props",
