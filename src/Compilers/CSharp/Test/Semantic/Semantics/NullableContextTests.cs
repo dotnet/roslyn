@@ -305,6 +305,61 @@ struct B2
             }
         }
 
+        [Fact]
+        public void NullableAnalysisFlags_04()
+        {
+            var source =
+@"#nullable enable
+class Program
+{
+    static object F(object? obj)
+    {
+        if (obj == null) return null; // 1
+        return obj;
+    }
+}";
+
+            // https://github.com/dotnet/roslyn/issues/49746: Currently, if we analyze any members, we analyze all.
+            var expectedAnalyzedKeysAll = new[] { ".cctor", ".ctor", "F" };
+
+            verify(parseOptions: TestOptions.Regular, expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("nullableAnalysis", null), expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("nullableAnalysis", "true"), expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("nullableAnalysis", "false"), expectedFlowState: false);
+            verify(parseOptions: TestOptions.Regular.WithFeature("nullableAnalysis", "false").WithFeature("run-nullable-analysis", "false"), expectedFlowState: false);
+            verify(parseOptions: TestOptions.Regular.WithFeature("nullableAnalysis", "false").WithFeature("run-nullable-analysis", "true"), expectedFlowState: true, "F");
+            verify(parseOptions: TestOptions.Regular.WithFeature("nullableAnalysis", "true").WithFeature("run-nullable-analysis", "false"), expectedFlowState: false, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("nullableAnalysis", "true").WithFeature("run-nullable-analysis", "true"), expectedFlowState: true, expectedAnalyzedKeysAll);
+
+            void verify(CSharpParseOptions parseOptions, bool expectedFlowState, params string[] expectedAnalyzedKeys)
+            {
+                var comp = CreateCompilation(source, parseOptions: parseOptions);
+                comp.NullableAnalysisData = new ConcurrentDictionary<object, int>();
+                if (expectedAnalyzedKeys.Length > 0)
+                {
+                    comp.VerifyDiagnostics(
+                        // (6,33): warning CS8603: Possible null reference return.
+                        //         if (obj == null) return null; // 1
+                        Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(6, 33));
+                }
+                else
+                {
+                    comp.VerifyDiagnostics();
+                }
+
+                var syntaxTree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(syntaxTree);
+                var statement = syntaxTree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Skip(1).Single();
+                Assert.Equal("return obj;", statement.ToString());
+                var typeInfo = model.GetTypeInfo(statement.Expression);
+                var expectedNullability = expectedFlowState ? Microsoft.CodeAnalysis.NullableFlowState.NotNull : Microsoft.CodeAnalysis.NullableFlowState.None;
+                Assert.Equal(expectedNullability, typeInfo.Nullability.FlowState);
+
+                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData);
+                AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
+            }
+        }
+
         private static string[] GetNullableDataKeysAsStrings(ConcurrentDictionary<object, int> nullableData) =>
             nullableData.Keys.Select(key => GetNullableDataKeyAsString(key)).OrderBy(key => key).ToArray();
 

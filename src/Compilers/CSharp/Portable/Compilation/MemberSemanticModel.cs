@@ -1730,7 +1730,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // https://github.com/dotnet/roslyn/issues/35038: We need to do a rewrite here, and create a test that can hit this.
 #if DEBUG
-                AnalyzeBoundNodeNullability(boundOuterExpression, incrementalBinder, diagnostics: new DiagnosticBag(), createSnapshots: false);
+                if (Compilation.ShouldRunNullableWalkerInDebug)
+                {
+                    AnalyzeBoundNodeNullability(boundOuterExpression, incrementalBinder, diagnostics: new DiagnosticBag(), createSnapshots: false);
+                }
 #endif
 
                 nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
@@ -2003,7 +2006,10 @@ done:
 #if DEBUG
                 if (!Compilation.NullableSemanticAnalysisEnabled)
                 {
-                    AnalyzeBoundNodeNullability(boundRoot, binder, diagnosticBag, createSnapshots: true);
+                    if (Compilation.ShouldRunNullableWalkerInDebug)
+                    {
+                        AnalyzeBoundNodeNullability(boundRoot, binder, diagnosticBag, createSnapshots: true);
+                    }
                     return;
                 }
 #endif

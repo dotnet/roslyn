@@ -1075,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker)
             {
 #if DEBUG
-                if (ShouldRunAnalysisInDebug(compilation))
+                if (compilation.ShouldRunNullableWalkerInDebug)
                 {
                     // Always run analysis in debug builds so that we can more reliably catch
                     // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
@@ -1091,13 +1091,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Analyze(compilation, method, node, diagnostics, useConstructorExitWarnings, initialNullableState, getFinalNullableState, out finalNullableState);
         }
-
-#if DEBUG
-        private static bool ShouldRunAnalysisInDebug(CSharpCompilation compilation)
-        {
-            return compilation.Feature("nullableAnalysis") != "false";
-        }
-#endif
 
         internal static void Analyze(
             CSharpCompilation compilation,
@@ -1305,7 +1298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             // Always run analysis in debug builds so that we can more reliably catch
             // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
-            return ShouldRunAnalysisInDebug(compilation);
+            return compilation.ShouldRunNullableWalkerInDebug;
 #else
             var canSkipAnalysis = compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker;
             return !canSkipAnalysis;
@@ -1322,7 +1315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker)
             {
 #if DEBUG
-                if (ShouldRunAnalysisInDebug(compilation))
+                if (compilation.ShouldRunNullableWalkerInDebug)
                 {
                     // Always run analysis in debug builds so that we can more reliably catch
                     // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136

@@ -246,6 +246,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#if DEBUG
+        internal bool ShouldRunNullableWalkerInDebug => Feature("nullableAnalysis") != "false";
+#endif
+
         /// <summary>
         /// The language version that was used to parse the syntax trees of this compilation.
         /// </summary>
