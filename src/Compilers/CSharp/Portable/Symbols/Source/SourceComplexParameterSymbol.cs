@@ -224,17 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(completedOnThisThread);
                 }
 
-#if DEBUG
-                // If we accidentally access DefaultSyntaxValue in a reentrant manner, and we use a cancellation token
-                // that never expires, then the failure mode will be to spin wait forever.
-                // For debug purposes let's instead use a token which expires after a modest amount of time
-                // to wait for the default syntax value to be available.
-                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-                var token = cts.Token;
-#else
-                var token = CancellationToken.None;
-#endif
-                state.SpinWaitComplete(CompletionPart.EndDefaultSyntaxValue, token);
+                state.SpinWaitComplete(CompletionPart.EndDefaultSyntaxValue, default(CancellationToken));
                 return _lazyDefaultSyntaxValue;
             }
         }

@@ -121,7 +121,7 @@ namespace Roslyn.Test.Utilities
         /// <typeparam name="T">the JSON object type.</typeparam>
         /// <param name="expected">the expected object to be converted to JSON.</param>
         /// <param name="actual">the actual object to be converted to JSON.</param>
-        protected static void AssertJsonEquals<T>(T expected, T actual)
+        public static void AssertJsonEquals<T>(T expected, T actual)
         {
             var expectedStr = JsonConvert.SerializeObject(expected);
             var actualStr = JsonConvert.SerializeObject(actual);
@@ -240,7 +240,8 @@ namespace Roslyn.Test.Utilities
             LSP.CompletionParams requestParameters,
             bool preselect = false,
             ImmutableArray<char>? commitCharacters = null,
-            string? sortText = null)
+            string? sortText = null,
+            int resultId = 0)
         {
             var item = new LSP.VSCompletionItem()
             {
@@ -255,7 +256,8 @@ namespace Roslyn.Test.Utilities
                     DisplayText = insertText,
                     TextDocument = requestParameters.TextDocument,
                     Position = requestParameters.Position,
-                    CompletionTrigger = ProtocolConversions.LSPToRoslynCompletionTrigger(requestParameters.Context)
+                    CompletionTrigger = ProtocolConversions.LSPToRoslynCompletionTrigger(requestParameters.Context),
+                    ResultId = resultId,
                 }),
                 Preselect = preselect
             };
@@ -340,7 +342,7 @@ namespace Roslyn.Test.Utilities
             provider.SetTestWorkspace(workspace);
         }
 
-        private static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(TestWorkspace workspace, Solution solution)
+        public static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(TestWorkspace workspace, Solution solution)
         {
             var locations = new Dictionary<string, IList<LSP.Location>>();
             foreach (var testDocument in workspace.Documents)
@@ -383,7 +385,7 @@ namespace Roslyn.Test.Utilities
         {
             var workspace = (TestWorkspace)solution.Workspace;
             var solutionProvider = workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
-            return new RequestExecutionQueue(solutionProvider);
+            return new RequestExecutionQueue(solutionProvider, "Tests");
         }
 
         private static string GetDocumentFilePathFromName(string documentName)

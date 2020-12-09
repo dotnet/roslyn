@@ -83,8 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     _specificDiagnosticOptions = project.CompilationOptions!.SpecificDiagnosticOptions;
                     _analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
-                    _diagnosticItems = new BulkObservableCollection<BaseDiagnosticItem>();
-                    _diagnosticItems.AddRange(GetDiagnosticItems(project.Language, project.CompilationOptions, _analyzerConfigOptions));
+                    _diagnosticItems = CreateDiagnosticItems(project.Language, project.CompilationOptions, _analyzerConfigOptions);
 
                     Workspace.WorkspaceChanged += OnWorkspaceChangedLookForOptionsChanges;
                 }
@@ -97,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        private IEnumerable<BaseDiagnosticItem> GetDiagnosticItems(string language, CompilationOptions options, AnalyzerConfigOptionsResult? analyzerConfigOptions)
+        private BulkObservableCollection<BaseDiagnosticItem> CreateDiagnosticItems(string language, CompilationOptions options, AnalyzerConfigOptionsResult? analyzerConfigOptions)
         {
             // Within an analyzer assembly, an individual analyzer may report multiple different diagnostics
             // with the same ID. Or, multiple analyzers may report diagnostics with the same ID. Or a
@@ -110,7 +109,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             Contract.ThrowIfFalse(HasItems);
 
-            return AnalyzerReference.GetAnalyzers(language)
+            var collection = new BulkObservableCollection<BaseDiagnosticItem>();
+            collection.AddRange(
+                AnalyzerReference.GetAnalyzers(language)
                 .SelectMany(a => _diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(a))
                 .GroupBy(d => d.Id)
                 .OrderBy(g => g.Key, StringComparer.CurrentCulture)
@@ -119,7 +120,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
                     var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(options, analyzerConfigOptions);
                     return CreateItem(selectedDiagnostic, effectiveSeverity, language);
-                });
+                }));
+
+            return collection;
         }
 
         private void OnWorkspaceChangedLookForOptionsChanges(object sender, WorkspaceChangeEventArgs e)

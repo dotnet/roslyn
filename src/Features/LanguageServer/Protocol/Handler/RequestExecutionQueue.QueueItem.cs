@@ -16,10 +16,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly struct QueueItem
         {
             /// <summary>
-            /// Processes the queued request, and signals back to the called whether the handler ran to completion.
+            /// Processes the queued request. Exceptions that occur will be sent back to the requesting client, then re-thrown
             /// </summary>
-            /// <remarks>A return value of true does not imply that the request was handled successfully, only that no exception was thrown and the task wasn't cancelled.</remarks>
-            public readonly Func<RequestContext, CancellationToken, Task<bool>> CallbackAsync;
+            public readonly Func<RequestContext, CancellationToken, Task> CallbackAsync;
 
             /// <inheritdoc cref="ExportLspMethodAttribute.MutatesSolutionState" />
             public readonly bool MutatesSolutionState;
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// </summary>
             public readonly CancellationToken CancellationToken;
 
-            public QueueItem(bool mutatesSolutionState, ClientCapabilities clientCapabilities, string? clientName, TextDocumentIdentifier? textDocument, Func<RequestContext, CancellationToken, Task<bool>> callbackAsync, CancellationToken cancellationToken)
+            public QueueItem(bool mutatesSolutionState, ClientCapabilities clientCapabilities, string? clientName, TextDocumentIdentifier? textDocument, Func<RequestContext, CancellationToken, Task> callbackAsync, CancellationToken cancellationToken)
             {
                 MutatesSolutionState = mutatesSolutionState;
                 ClientCapabilities = clientCapabilities;

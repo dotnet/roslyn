@@ -470,7 +470,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     }
 
                                     int localSlot = GetOrCreateSlot(local, forceSlotEvenIfEmpty: true);
-                                    this.State[localSlot] = tempState;
+                                    if (localSlot > 0)
+                                    {
+                                        this.State[localSlot] = tempState;
+                                    }
                                 }
                                 else
                                 {

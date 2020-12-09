@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -187,9 +187,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node is AssignmentExpressionSyntax assignment && assignment.IsDeconstruction())
             {
-                var builder = ArrayBuilder<IMethodSymbol>.GetInstance();
-                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(assignment), builder);
-                return builder.ToImmutableAndFree();
+                using var builder = TemporaryArray<IMethodSymbol>.Empty;
+                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(assignment), ref builder.AsRef());
+                return builder.ToImmutableAndClear();
             }
 
             return ImmutableArray<IMethodSymbol>.Empty;
@@ -199,15 +199,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node is ForEachVariableStatementSyntax @foreach)
             {
-                var builder = ArrayBuilder<IMethodSymbol>.GetInstance();
-                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(@foreach), builder);
-                return builder.ToImmutableAndFree();
+                using var builder = TemporaryArray<IMethodSymbol>.Empty;
+                FlattenDeconstructionMethods(semanticModel.GetDeconstructionInfo(@foreach), ref builder.AsRef());
+                return builder.ToImmutableAndClear();
             }
 
             return ImmutableArray<IMethodSymbol>.Empty;
         }
 
-        private static void FlattenDeconstructionMethods(DeconstructionInfo deconstruction, ArrayBuilder<IMethodSymbol> builder)
+        private static void FlattenDeconstructionMethods(DeconstructionInfo deconstruction, ref TemporaryArray<IMethodSymbol> builder)
         {
             var method = deconstruction.Method;
             if (method != null)
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var nested in deconstruction.Nested)
             {
-                FlattenDeconstructionMethods(nested, builder);
+                FlattenDeconstructionMethods(nested, ref builder);
             }
         }
 
