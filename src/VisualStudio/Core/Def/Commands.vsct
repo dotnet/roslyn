@@ -20,6 +20,10 @@
         <Parent guid="guidRoslynGrpId" id="cmdidAnalyzerFolderContextMenu"/>
       </Group>
 
+      <Group guid="guidRoslynGrpId" id="grpRoslynReferenceCommands" priority="0x000">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_REFERENCEROOT"/>
+      </Group>
+
       <Group guid="guidRoslynGrpId" id="grpErrorListContextMenu" priority="0x0A01">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ERRORLIST"/>
       </Group>
@@ -27,7 +31,7 @@
       <Group guid="guidRoslynGrpId" id="grpAddSuppressions" priority="0x0001">
         <Parent guid="guidRoslynGrpId" id="cmdidAddSuppressionsContextMenu"/>
       </Group>
-      
+
       <Group guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJWIN_SCOPE" priority="0x001">
         <Parent guid="guidRoslynGrpId" id="cmdidAnalyzerFolderContextMenu"/>
       </Group>
@@ -61,6 +65,10 @@
       </Group>
 
       <Group guid="guidRoslynGrpId" id="grpSetActiveRuleSet">
+      </Group>
+
+      <Group guid="guidRoslynGrpId" id="grpDiagnosticSeverity" priority="0x000">
+        <Parent guid="guidRoslynGrpId" id="cmdidDiagnosticContextMenu"/>
       </Group>
     </Groups>
 
@@ -104,7 +112,7 @@
           <LocCanonicalName>RemoveAndSort</LocCanonicalName>
         </Strings>
       </Button>
-      
+
       <!-- <project context menu> | Add | Analyzer... -->
       <Button guid="guidRoslynGrpId" id="cmdidProjectContextAddAnalyzer" priority="0x0400" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_ADD_REFERENCES" />
@@ -373,9 +381,9 @@
       </Button>
 
       <!-- Run code analysis commands -->
-      
+
       <!-- "Run Code Analysis on <%ProjectName%>" command for Top level "Build" and "Analyze" menus.
-           "ECMD_RUNFXCOPSEL" is actually defined in stdidcmd.h, we're just referencing it here -->      
+           "ECMD_RUNFXCOPSEL" is actually defined in stdidcmd.h, we're just referencing it here -->
       <Button guid="guidVSStd2K" id="ECMD_RUNFXCOPSEL" priority="0x0000" type="Button">
         <CommandFlag>TextChanges</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
@@ -385,8 +393,8 @@
           <ButtonText>Run Code &amp;Analysis on Selection</ButtonText>
         </Strings>
       </Button>
-      
-      <!-- "Run Code Analysis" command for Solution Explorer "Analyze and Code Cleanup" context menu for project node -->      
+
+      <!-- "Run Code Analysis" command for Solution Explorer "Analyze and Code Cleanup" context menu for project node -->
       <Button guid="guidRoslynGrpId" id="cmdidRunCodeAnalysisForProject" priority="0x0000" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_ANALYZE_GENERAL"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
@@ -396,6 +404,20 @@
           <CanonicalName>RunCodeAnalysisForProject</CanonicalName>
           <LocCanonicalName>RunCodeAnalysisForProject</LocCanonicalName>
           <CommandName>RunCodeAnalysisForProject</CommandName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidRemoveUnusedReferences" priority="0x0100" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpRoslynReferenceCommands"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>Remove &amp;Unused References</ButtonText>
+          <CommandName>RemoveUnusedReferences</CommandName>
+          <CanonicalName>RemoveUnusedReferences</CanonicalName>
+          <LocCanonicalName>RemoveUnusedReferences</LocCanonicalName>
         </Strings>
       </Button>
     </Buttons>
@@ -437,7 +459,7 @@
           <LocCanonicalName>Set severity</LocCanonicalName>
         </Strings>
       </Menu>
-      
+
       <!-- Error list context menu items for Suppressions. -->
       <Menu guid="guidRoslynGrpId" id="cmdidAddSuppressionsContextMenu" priority="0xf002" type="Menu">
         <Parent guid="guidRoslynGrpId" id="grpErrorListContextMenu"/>
@@ -494,6 +516,10 @@
 
     <CommandPlacement guid="guidRoslynGrpId" id="cmdidGoToImplementation" priority="0x0200">
       <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_NAVIGATETOLOCATION"/>
+    </CommandPlacement>
+
+    <CommandPlacement guid="guidRoslynGrpId" id="cmdidRemoveUnusedReferences" priority="0x0425">
+      <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_BUILD" />
     </CommandPlacement>
   </CommandPlacements>
 
@@ -557,7 +583,7 @@
       <IDSymbol name="cmdidSetSeveritySubMenu"        value="0x0119" />
       <IDSymbol name="grpDiagnosticSeverityItems"     value="0x011a" />
       <IDSymbol name="cmdidSetSeverityDefault"        value="0x011b" />
-      
+
       <!-- Error List context menu IDs -->
       <IDSymbol name="grpErrorListContextMenu"        value="0x011c" />
       <IDSymbol name="cmdidAddSuppressionsContextMenu"        value="0x011d" />
@@ -578,6 +604,9 @@
       <IDSymbol name="cmdidGoToImplementation"        value="0x0200" />
 
       <IDSymbol name="cmdidRunCodeAnalysisForProject"  value="0x0201" />
+
+      <IDSymbol name="cmdidRemoveUnusedReferences" value="0x202" />
+      <IDSymbol name="grpRoslynReferenceCommands" value="0x203" />
     </GuidSymbol>
 
     <GuidSymbol name="guidCSharpInteractiveCommandSet" value="{1492db0a-85a2-4e43-bf0d-ce55b89a8cc6}">
