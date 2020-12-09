@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
@@ -13,22 +11,23 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 {
     internal partial class PreviewUpdater : ForegroundThreadAffinitizedObject
     {
-        private PreviewDialogWorkspace _previewWorkspace;
-        public static ITextView TextView;
-        private DocumentId _currentDocument;
-        internal static Span SpanToShow;
-        internal static PreviewTagger Tagger;
+        private PreviewDialogWorkspace? _previewWorkspace;
+        private readonly ITextView _textView;
+        private DocumentId? _currentDocumentId;
+        private readonly PreviewTagger _tagger;
 
         public PreviewUpdater(IThreadingContext threadingContext, ITextView textView)
             : base(threadingContext)
         {
-            PreviewUpdater.TextView = textView;
-            Tagger = new PreviewTagger(textView.TextBuffer);
+            _textView = textView;
+            _tagger = new PreviewTagger(textView.TextBuffer);
+            _textView.Properties[typeof(PreviewTagger)] = _tagger;
         }
 
         public void CloseWorkspace()
@@ -41,24 +40,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         public void UpdateView(TextDocument document, SpanChange spanSource)
         {
-            var documentText = document.GetTextAsync().Result.ToString();
-            if (TextView.TextBuffer.CurrentSnapshot.GetText() != documentText)
-            {
-                UpdateBuffer(document, spanSource);
-            }
+            UpdateBuffer(document);
 
             // Picking a different span: no text change; update span anyway.
-            SpanToShow = spanSource.GetSpan();
-            var spanInBuffer = new SnapshotSpan(TextView.TextBuffer.CurrentSnapshot, new Span(SpanToShow.Start, 0));
-            TextView.ViewScroller.EnsureSpanVisible(spanInBuffer, EnsureSpanVisibleOptions.None);
-            Tagger.OnTextBufferChanged();
+            _tagger.Span = spanSource.GetSpan();
+            var spanInBuffer = new SnapshotSpan(_textView.TextBuffer.CurrentSnapshot, new Span(_tagger.Span.Start, 0));
+            _textView.ViewScroller.EnsureSpanVisible(spanInBuffer, EnsureSpanVisibleOptions.None);
+
         }
 
-        private void UpdateBuffer(TextDocument document, SpanChange spanSource)
+        private void UpdateBuffer(TextDocument document)
         {
-            if (_currentDocument != null)
+            if (document.Id == _currentDocumentId)
             {
-                var currentDocument = _previewWorkspace.CurrentSolution.GetTextDocument(_currentDocument);
+                return;
+            }
+
+            if (_currentDocumentId != null)
+            {
+                Contract.ThrowIfNull(_previewWorkspace, "We shouldn't have a current document if we don't have a workspace.");
+                var currentDocument = _previewWorkspace.CurrentSolution.GetRequiredTextDocument(_currentDocumentId);
                 var currentDocumentText = currentDocument.GetTextSynchronously(CancellationToken.None);
                 _previewWorkspace.CloseDocument(currentDocument, currentDocumentText);
             }
@@ -68,28 +69,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 _previewWorkspace = new PreviewDialogWorkspace(document.Project.Solution);
             }
 
-            _currentDocument = document.Id;
-            ApplyDocumentToBuffer(document, spanSource, out var container);
+            _currentDocumentId = document.Id;
+            ApplyDocumentToBuffer(document, out var container);
             _previewWorkspace.OpenDocument(document.Id, container);
         }
 
-        private void ApplyDocumentToBuffer(TextDocument document, SpanChange spanSource, out SourceTextContainer container)
+        private void ApplyDocumentToBuffer(TextDocument document, out SourceTextContainer container)
         {
             var contentTypeService = document.Project.LanguageServices.GetRequiredService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
 
-            TextView.TextBuffer.ChangeContentType(contentType, null);
+            _textView.TextBuffer.ChangeContentType(contentType, null);
 
-            var documentText = document.GetTextAsync().Result.ToString();
-            SpanToShow = spanSource.GetSpan();
+            var documentText = document.GetTextSynchronously(CancellationToken.None).ToString();
 
-            using (var edit = TextView.TextBuffer.CreateEdit())
+            using (var edit = _textView.TextBuffer.CreateEdit())
             {
-                edit.Replace(new Span(0, TextView.TextBuffer.CurrentSnapshot.Length), documentText);
+                edit.Replace(new Span(0, _textView.TextBuffer.CurrentSnapshot.Length), documentText);
                 edit.ApplyAndLogExceptions();
             }
 
-            container = TextView.TextBuffer.AsTextContainer();
+            container = _textView.TextBuffer.AsTextContainer();
         }
     }
 }
