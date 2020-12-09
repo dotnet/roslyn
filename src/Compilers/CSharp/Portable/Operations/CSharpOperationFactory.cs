@@ -2342,7 +2342,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 argumentsBuilder,
                 argumentRefKindsBuilder: null,
                 ref argsToParams,
-                out var defaultArguments,
+                out BitVector defaultArguments,
                 expanded,
                 enableCallerInfo: true,
                 new DiagnosticBag());
