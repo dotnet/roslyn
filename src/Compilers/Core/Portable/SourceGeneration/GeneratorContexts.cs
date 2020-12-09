@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="source">The source code to add to the compilation</param>
-        public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8));
+        public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8, SourceHashAlgorithm.Sha256));
 
         /// <summary>
         /// Adds source code in the form of a <see cref="StringBuilder"/> to the compilation.
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="source">The source code to add to the compilation. This builder must not be further modified: undefined behavior will result.</param>
-        public void AddSource(string hintName, StringBuilder source) => AddSource(hintName, new StringBuilderText(source, Encoding.UTF8, SourceHashAlgorithm.Sha1));
+        public void AddSource(string hintName, StringBuilder source) => AddSource(hintName, new StringBuilderText(source, Encoding.UTF8, SourceHashAlgorithm.Sha256));
 
         /// <summary>
         /// Adds a <see cref="SourceText"/> to the compilation
