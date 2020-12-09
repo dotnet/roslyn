@@ -40,7 +40,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
         public void ExecuteCommand(PasteCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
             // Check that the feature is enabled before doing any work
-            if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AddImportsOnPaste))
+            var optionValue = args.SubjectBuffer.GetOptionalFeatureOnOffOption(FeatureOnOffOptions.AddImportsOnPaste);
+            var enabled = optionValue.HasValue && optionValue.Value
+                || !optionValue.HasValue && false;
+
+            if (!enabled)
             {
                 nextCommandHandler();
                 return;
