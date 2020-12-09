@@ -15,7 +15,7 @@ internal static class MinimizeUtil
 {
     internal record FilePathInfo(string RelativeDirectory, string Directory, string RelativePath, string FullPath);
 
-    internal static void Run(string sourceDirectory, string destinationDirectory)
+    internal static void Run(string sourceDirectory, string destinationDirectory, bool isUnix)
     {
         // Map of all PE files MVID to the path information
         var idToFilePathMap = new Dictionary<Guid, List<FilePathInfo>>();
@@ -117,7 +117,7 @@ internal static class MinimizeUtil
             }
         }
 
-        string getPeFileName(Guid mvid) => mvid.ToString();
+        static string getPeFileName(Guid mvid) => mvid.ToString();
 
         string getPeFilePath(Guid mvid) => Path.Combine(duplicateDirectory, getPeFileName(mvid));
 
@@ -131,9 +131,26 @@ internal static class MinimizeUtil
             var builder = new StringBuilder();
             foreach (var group in grouping)
             {
+                string filename;
                 builder.Clear();
+                if (isUnix)
+                {
+                    filename = "rehydrate.sh";
+                    writeUnixRehydrateContent(builder, group);
+                }
+                else
+                {
+                    filename = "rehydrate.cmd";
+                    writeWindowsRehydrateContent(builder, group);
+                }
+
+                Console.WriteLine("Writing to " + Path.Combine(destinationDirectory, group.Key, filename));
+                File.WriteAllText(Path.Combine(destinationDirectory, group.Key, filename), builder.ToString());
+            }
+
+            static void writeWindowsRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath)> group)
+            {
                 builder.AppendLine("@echo off");
-                // TODO: generate either cmd or bash depending on whether this is a windows or unix build
                 var count = 0;
                 foreach (var tuple in group)
                 {
@@ -154,9 +171,40 @@ if %errorlevel% neq 0 (
                     }
                 }
                 builder.AppendLine("@echo on"); // so the rest of the commands show up in helix logs
-                const string filename = "rehydrate.cmd";
-                Console.WriteLine("Writing to " + Path.Combine(destinationDirectory, group.Key, filename));
-                File.WriteAllText(Path.Combine(destinationDirectory, group.Key, filename), builder.ToString());
+            }
+
+            static void writeUnixRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath)> group)
+            {
+                builder.AppendLine(@"
+source=""${BASH_SOURCE[0]}""
+
+# resolve $source until the file is no longer a symlink
+while [[ -h ""$source"" ]]; do
+scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
+source=""$(readlink ""$source"")""
+# if $source was a relative symlink, we need to resolve it relative to the path where the
+# symlink file was located
+[[ $source != /* ]] && source=""$scriptroot/$source""
+done
+scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
+");
+
+                var count = 0;
+                foreach (var tuple in group)
+                {
+                    var source = getPeFileName(tuple.Id);
+                    var destFileName = Path.GetRelativePath(group.Key, tuple.FilePath.RelativePath);
+                    if (Path.GetDirectoryName(destFileName) is { Length: not 0 } directory)
+                    {
+                        builder.AppendLine($@"mkdir $scriptroot/{directory} 2> /dev/null");
+                    }
+                    builder.AppendLine($@"ln $HELIX_CORRELATION_PAYLOAD/{source} $scriptroot/{destFileName}");
+                    count++;
+                    if (count % 1_000 == 0)
+                    {
+                        builder.AppendLine($"echo '{count:n0} hydrated'");
+                    }
+                }
             }
 
             static string getGroupDirectory(string relativePath)

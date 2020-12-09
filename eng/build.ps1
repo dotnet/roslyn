@@ -63,7 +63,6 @@ param (
   [switch]$sequential,
   [switch]$helix,
   [string]$helixQueueName = "",
-  [string]$testResultsDir = "",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 

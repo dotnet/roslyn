@@ -28,12 +28,7 @@ jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.buildJobName }}
   pool:
-    ${{ if ne(parameters.queueName, '') }}:
-      name: NetCorePublic-Pool
-      queue: ${{ parameters.queueName }}
-
-    ${{ if ne(parameters.vmImageName, '') }}:
-      vmImage: ${{ parameters.vmImageName }}
+    vmImage: ubuntu-latest
   timeoutInMinutes: 40
   steps:
     - checkout: none
@@ -44,11 +39,12 @@ jobs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
 
-    - task: PowerShell@2
+    - task: ShellScript@2
       displayName: Rehydrate Unit Tests Environment
       inputs:
-        filePath: rehydrate.ps1
-        pwsh: true
+        scriptPath: ./artifacts/bin/RunTests/${{ parameters.configuration }}/netcoreapp3.1/rehydrate.sh
+      env:
+        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
 
     # Work around for files not maintaining permissions after pipeline download
     # https://github.com/microsoft/azure-pipelines-tasks/issues/6364
@@ -60,6 +56,8 @@ jobs:
 
     - script: ./eng/build.sh --ci --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
       displayName: Test
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
     - task: PublishTestResults@2
       displayName: Publish xUnit Test Results
@@ -68,7 +66,7 @@ jobs:
         testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/${{ parameters.configuration }}/*.xml'
         mergeTestResults: true
         testRunTitle: ${{ parameters.testRunName }}
-      condition: always()
+      condition: false
 
     - template: publish-logs.yml
       parameters:
