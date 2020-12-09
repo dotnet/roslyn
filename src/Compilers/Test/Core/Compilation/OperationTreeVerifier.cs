@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($"{nameof(IUsingDeclarationOperation)}");
             LogString($"(IsAsynchronous: {operation.IsAsynchronous}");
 
-            var disposeMethod = ((UsingDeclarationOperation)operation).DisposeMethod;
+            var disposeMethod = ((UsingDeclarationOperation)operation).DisposeInfo.DisposeMethod;
             if (disposeMethod is object)
             {
                 LogSymbol(disposeMethod, ", DisposeMethod");
@@ -476,8 +476,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.DeclarationGroup, "DeclarationGroup");
-            var disposeArgs = ((UsingDeclarationOperation)operation).DisposeArguments;
-            if (!disposeArgs.IsEmpty)
+            var disposeArgs = ((UsingDeclarationOperation)operation).DisposeInfo.DisposeArguments;
+            if (!disposeArgs.IsDefaultOrEmpty)
             {
                 VisitArray(disposeArgs, "DisposeArguments", logElementCount: true);
             }
@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 LogString($" (IsAsynchronous)");
             }
-            var disposeMethod = ((UsingOperation)operation).DisposeMethod;
+            var disposeMethod = ((UsingOperation)operation).DisposeInfo.DisposeMethod;
             if (disposeMethod is object)
             {
                 LogSymbol(disposeMethod, " (DisposeMethod");
@@ -758,8 +758,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.NotEqual(OperationKind.VariableDeclaration, operation.Resources.Kind);
             Assert.NotEqual(OperationKind.VariableDeclarator, operation.Resources.Kind);
 
-            var disposeArgs = ((UsingOperation)operation).DisposeArguments;
-            if (!disposeArgs.IsEmpty)
+            var disposeArgs = ((UsingOperation)operation).DisposeInfo.DisposeArguments;
+            if (!disposeArgs.IsDefaultOrEmpty)
             {
                 VisitArray(disposeArgs, "DisposeArguments", logElementCount: true);
             }

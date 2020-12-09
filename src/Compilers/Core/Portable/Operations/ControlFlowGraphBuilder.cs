@@ -3735,7 +3735,8 @@ oneMoreTime:
         public override IOperation? VisitUsing(IUsingOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
-            HandleUsingOperationParts(operation.Resources, operation.Body, ((UsingOperation)operation).DisposeMethod, ((UsingOperation)operation).DisposeArguments, operation.Locals, operation.IsAsynchronous);
+            DisposeOperationInfo disposeInfo = ((UsingOperation)operation).DisposeInfo;
+            HandleUsingOperationParts(operation.Resources, operation.Body, disposeInfo.DisposeMethod, disposeInfo.DisposeArguments, operation.Locals, operation.IsAsynchronous);
             return FinishVisitingStatement(operation);
         }
 
@@ -7008,11 +7009,13 @@ oneMoreTime:
             // a using statement introduces a 'logical' block after declaration, we synthesize one here in order to analyze it like a regular using 
             BlockOperation logicalBlock = BlockOperation.CreateTemporaryBlock(statements, ((Operation)operation).OwningSemanticModel!, operation.Syntax);
 
+            DisposeOperationInfo disposeInfo = ((UsingDeclarationOperation)operation).DisposeInfo;
+
             HandleUsingOperationParts(
                 resources: operation.DeclarationGroup,
                 body: logicalBlock,
-                ((UsingDeclarationOperation)operation).DisposeMethod,
-                ((UsingDeclarationOperation)operation).DisposeArguments,
+                disposeInfo.DisposeMethod,
+                disposeInfo.DisposeArguments,
                 locals: ImmutableArray<ILocalSymbol>.Empty,
                 isAsynchronous: operation.IsAsynchronous);
 

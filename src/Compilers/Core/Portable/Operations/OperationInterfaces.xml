@@ -485,14 +485,9 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="DisposeMethod" Type="IMethodSymbol?" Internal="true">
+    <Property Name="DisposeInfo" Type="DisposeOperationInfo" Internal="true">
       <Comments>
-        <summary>The method that will be invoked to dispose the <see cref="Resources" /> when pattern based disposal is used.</summary>
-      </Comments>
-    </Property>
-    <Property Name="DisposeArguments" Type="ImmutableArray&lt;IArgumentOperation&gt;" Internal="true">
-      <Comments>
-        <summary>The arguments passed to <see cref="DisposeMethod"/> when pattern based disposal is used.</summary>
+        <summary>Information about the method that will be invoked to dispose the <see cref="Resources" /> when pattern based disposal is used.</summary>
       </Comments>
     </Property>
   </Node>
@@ -2944,16 +2939,9 @@
         <summary>True if this is an asynchronous using declaration.</summary>
       </Comments>
     </Property>
-    <Property Name="DisposeMethod" Type="IMethodSymbol?" Internal="true">
+    <Property Name="DisposeInfo" Type="DisposeOperationInfo" Internal="true">
       <Comments>
-        <summary>The method that will be invoked to dispose the declared instances when pattern based disposal is used.</summary>
-      </Comments>
-    </Property>
-    <Property Name="DisposeArguments" Type="ImmutableArray&lt;IArgumentOperation&gt;" Internal="true">
-      <Comments>
-        <summary>
-          The arguments passed to <see cref="DisposeMethod"/> when pattern based disposal is used.
-        </summary>
+        <summary>Information about the method that will be invoked to dispose the declared instances when pattern based disposal is used.</summary>
       </Comments>
     </Property>
   </Node>

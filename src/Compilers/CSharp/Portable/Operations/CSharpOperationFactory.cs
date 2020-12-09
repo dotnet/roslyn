@@ -1755,13 +1755,14 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation body = Create(boundUsingStatement.Body);
             ImmutableArray<ILocalSymbol> locals = boundUsingStatement.Locals.GetPublicSymbols();
             bool isAsynchronous = boundUsingStatement.AwaitOpt != null;
-            IMethodSymbol? disposeMethod = boundUsingStatement.DisposeMethodOpt.GetPublicSymbol();
-            var disposeArguments = boundUsingStatement.DisposeMethodOpt is object
-                                     ? CreateDisposeArguments(boundUsingStatement.DisposeMethodOpt, boundUsingStatement.ExpressionOpt?.Type ?? boundUsingStatement.Locals[0].Type, boundUsingStatement.Syntax, boundUsingStatement.Binder)
-                                     : ImmutableArray<IArgumentOperation>.Empty;
+            DisposeOperationInfo disposeOperationInfo = boundUsingStatement.DisposeMethodOpt is object
+                                                         ? new DisposeOperationInfo(
+                                                                 disposeMethod: boundUsingStatement.DisposeMethodOpt.GetPublicSymbol(),
+                                                                 disposeArguments: CreateDisposeArguments(boundUsingStatement.DisposeMethodOpt, boundUsingStatement.ExpressionOpt?.Type ?? boundUsingStatement.Locals[0].Type, boundUsingStatement.Syntax, boundUsingStatement.Binder))
+                                                         : default;
             SyntaxNode syntax = boundUsingStatement.Syntax;
             bool isImplicit = boundUsingStatement.WasCompilerGenerated;
-            return new UsingOperation(resources, body, locals, isAsynchronous, disposeMethod, disposeArguments, _semanticModel, syntax, isImplicit);
+            return new UsingOperation(resources, body, locals, isAsynchronous, disposeOperationInfo, _semanticModel, syntax, isImplicit);
         }
 
         private IThrowOperation CreateBoundThrowStatementOperation(BoundThrowStatement boundThrowStatement)
@@ -1893,10 +1894,11 @@ namespace Microsoft.CodeAnalysis.Operations
                 return new UsingDeclarationOperation(
                     variableDeclaration,
                     isAsynchronous: usingDecl.AwaitOpt is object,
-                    usingDecl.DisposeMethodOpt.GetPublicSymbol(),
-                    disposeArguments: usingDecl.DisposeMethodOpt is object
-                      ? CreateDisposeArguments(usingDecl.DisposeMethodOpt, usingDecl.LocalDeclarations[0].LocalSymbol.Type, usingDecl.Syntax, usingDecl.Binder)
-                      : ImmutableArray<IArgumentOperation>.Empty,
+                    disposeInfo: usingDecl.DisposeMethodOpt is object
+                                   ? new DisposeOperationInfo(
+                                           disposeMethod: usingDecl.DisposeMethodOpt.GetPublicSymbol(),
+                                           disposeArguments: CreateDisposeArguments(usingDecl.DisposeMethodOpt, usingDecl.LocalDeclarations[0].LocalSymbol.Type, usingDecl.Syntax, usingDecl.Binder))
+                                   : default,
                      _semanticModel,
                     declarationGroupSyntax,
                     isImplicit: boundMultipleLocalDeclarations.WasCompilerGenerated);

@@ -426,9 +426,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.NotEqual(OperationKind.VariableDeclaration, operation.Resources.Kind);
             Assert.NotEqual(OperationKind.VariableDeclarator, operation.Resources.Kind);
 
-            _ = ((UsingOperation)operation).DisposeMethod;
-            var disposeArgs = ((UsingOperation)operation).DisposeArguments;
-            if (!disposeArgs.IsEmpty)
+            _ = ((UsingOperation)operation).DisposeInfo.DisposeMethod;
+            var disposeArgs = ((UsingOperation)operation).DisposeInfo.DisposeArguments;
+            if (!disposeArgs.IsDefaultOrEmpty)
             {
                 foreach (var arg in disposeArgs)
                 {
@@ -1542,9 +1542,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _ = operation.IsAsynchronous;
             _ = operation.IsImplicit;
 
-            _ = ((UsingDeclarationOperation)operation).DisposeMethod;
-            var disposeArgs = ((UsingDeclarationOperation)operation).DisposeArguments;
-            if (!disposeArgs.IsEmpty)
+            _ = ((UsingDeclarationOperation)operation).DisposeInfo.DisposeMethod;
+            var disposeArgs = ((UsingDeclarationOperation)operation).DisposeInfo.DisposeArguments;
+            if (!disposeArgs.IsDefaultOrEmpty)
             {
                 foreach (var arg in disposeArgs)
                 {
