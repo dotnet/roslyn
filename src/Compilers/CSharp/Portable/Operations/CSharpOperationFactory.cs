@@ -2330,6 +2330,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 return ImmutableArray<IArgumentOperation>.Empty;
             }
 
+            // can't be an extension method for dispose
+            Debug.Assert(!disposeMethod.IsStatic);
+
             var receiver = new BoundDisposableValuePlaceholder(receiverSyntax, receiverType);
 
             var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
