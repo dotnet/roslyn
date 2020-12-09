@@ -1,1 +1,1 @@
-'VS IDE'
+'VS Core'
