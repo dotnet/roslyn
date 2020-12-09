@@ -186,6 +186,8 @@ source=""$(readlink ""$source"")""
 [[ $source != /* ]] && source=""$scriptroot/$source""
 done
 scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
+
+find . -name ilasm | xargs chmod 755
 ");
 
                 var count = 0;
