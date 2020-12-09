@@ -173,8 +173,8 @@ if %errorlevel% neq 0 (
 
             static void writeUnixRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath)> group)
             {
-                builder.AppendLine(@"
-#!/bin/bash
+                builder.AppendLine(@"#!/bin/bash
+
 source=""${BASH_SOURCE[0]}""
 
 # resolve $source until the file is no longer a symlink
