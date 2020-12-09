@@ -37,7 +37,7 @@ stages:
               packagesToPush: $(Pipeline.Workspace)/CI/VSInsertion-windows/*.nupkg
               publishVstsFeed: 97a41293-2972-4f48-8c0e-05493ae82010
               allowPackageConflicts: true
-          - task: MicroBuildInsertVsPayload@3
+          - task: MicroBuildInsertVsPayload@4
             displayName: Insert VS Payload
             inputs:
               TeamName: $(TeamName)
