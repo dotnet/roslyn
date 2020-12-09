@@ -10,8 +10,12 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -90,6 +94,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
             var code = "#r \"" + windowsRoot + "$$";
             await VerifyItemExistsAsync(code, windowsFolderName, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+        }
+
+        [Theory]
+        [InlineData("$$", false)]
+        [InlineData("#$$", false)]
+        [InlineData("#r$$", false)]
+        [InlineData("#r\"$$", true)]
+        [InlineData(" # r \"$$", true)]
+        [InlineData(" # r \"$$\"", true)]
+        [InlineData(" # r \"\"$$", true)]
+        [InlineData("$$ # r \"\"", false)]
+        [InlineData(" # $$r \"\"", false)]
+        [InlineData(" # r $$\"\"", false)]
+        public void ShouldTriggerCompletion(string textWithPositionMarker, bool expectedResult)
+        {
+            var position = textWithPositionMarker.IndexOf("$$");
+            var text = textWithPositionMarker.Replace("$$", "");
+
+            var services = (IMefHostExportProvider)FeaturesTestCompositions.Features.GetHostServices();
+            var provider = services.GetExports<CompletionProvider, CompletionProviderMetadata>().Single(p => p.Metadata.Language == LanguageNames.CSharp && p.Metadata.Name == nameof(ReferenceDirectiveCompletionProvider)).Value;
+            
+            Assert.Equal(expectedResult, provider.ShouldTriggerCompletion(SourceText.From(text), position, trigger: default, new TestOptionSet()));
         }
     }
 }

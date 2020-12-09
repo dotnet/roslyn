@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return false;
             }
 
-            var directiveNameEndIndex = directiveNameStartIndex + DirectiveName.Length + 1;
+            var directiveNameEndIndex = directiveNameStartIndex + DirectiveName.Length;
             var quoteIndex = text.IndexOfNonWhiteSpace(directiveNameEndIndex, caretPosition - directiveNameEndIndex);
             if (quoteIndex == -1 || text[quoteIndex] != '"')
             {
