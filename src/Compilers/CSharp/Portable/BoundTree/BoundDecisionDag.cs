@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     case BoundLeafDecisionDagNode node:
-                        result.AppendLine($"  Case: " + node.Syntax);
+                        result.AppendLine($"  Case: {node.Label.Name}" + node.Syntax);
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(state);
