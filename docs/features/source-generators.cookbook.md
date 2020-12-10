@@ -191,7 +191,7 @@ public partial class {userClass.Identifier}
     {{
         // generated code
     }}
-}", Encoding.UTF8);
+}}", Encoding.UTF8);
         context.AddSource("UserClass.Generated.cs", sourceText);
     }
 
