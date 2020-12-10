@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,22 +27,27 @@ namespace RunTests
             Options = options;
         }
 
-        public string GetCommandLineArguments(AssemblyInfo assemblyInfo)
+        public string GetCommandLineArguments(AssemblyInfo assemblyInfo, bool unix)
         {
+            // http://www.gnu.org/software/bash/manual/html_node/Single-Quotes.html
+            // Single quotes are needed in bash to avoid the need to escape characters such as backtick (`) which are found in metadata names.
+            // Batch scripts don't need to worry about escaping backticks, but they don't support single quoted strings, so we have to use double quotes.
+            var sep = unix ? "'" : @"""";
+
             var builder = new StringBuilder();
             builder.Append($@"test");
-            builder.Append($@" '{assemblyInfo.AssemblyName}'");
+            builder.Append($@" {sep}{assemblyInfo.AssemblyName}{sep}");
             var typeInfoList = assemblyInfo.PartitionInfo.TypeInfoList;
             if (typeInfoList.Length > 0 || !string.IsNullOrWhiteSpace(Options.Trait) || !string.IsNullOrWhiteSpace(Options.NoTrait))
             {
-                builder.Append(@" --filter '");
+                builder.Append($@" --filter {sep}");
                 var any = false;
                 foreach (var typeInfo in typeInfoList)
                 {
                     MaybeAddSeparator();
                     builder.Append(typeInfo.FullName);
                 }
-                builder.Append(@"'");
+                builder.Append(sep);
 
                 if (Options.Trait is object)
                 {
@@ -73,11 +79,11 @@ namespace RunTests
             }
 
             builder.Append($@" --framework {assemblyInfo.TargetFramework}");
-            builder.Append($@" --logger 'xunit;LogFilePath={GetResultsFilePath(assemblyInfo, "xml")}'");
+            builder.Append($@" --logger {sep}xunit;LogFilePath={GetResultsFilePath(assemblyInfo, "xml")}{sep}");
 
             if (Options.IncludeHtml)
             {
-                builder.AppendFormat($@" --logger 'html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}'");
+                builder.AppendFormat($@" --logger {sep}html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}{sep}");
             }
 
             return builder.ToString();
@@ -106,7 +112,7 @@ namespace RunTests
         {
             try
             {
-                var commandLineArguments = GetCommandLineArguments(assemblyInfo);
+                var commandLineArguments = GetCommandLineArguments(assemblyInfo, unix: !RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
                 var resultsFilePath = GetResultsFilePath(assemblyInfo);
                 var resultsDir = Path.GetDirectoryName(resultsFilePath);
                 var htmlResultsFilePath = Options.IncludeHtml ? GetResultsFilePath(assemblyInfo, "html") : null;

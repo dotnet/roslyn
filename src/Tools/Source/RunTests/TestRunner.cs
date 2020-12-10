@@ -108,19 +108,15 @@ namespace RunTests
 
             string makeHelixWorkItemProject(AssemblyInfo assemblyInfo)
             {
-                var commandLineArguments = _testExecutor.GetCommandLineArguments(assemblyInfo);
-                commandLineArguments = SecurityElement.Escape(commandLineArguments);
-                var payloadDirectory = Path.GetDirectoryName(assemblyInfo.AssemblyPath);
 
                 // TODO: there ideally shouldn't be a coupling between RunTests.dll running on Windows vs. Unix and
                 // the actual tests running on Windows vs. Unix. For now, however, this is convenient to help us generate the right stuff
                 var isUnix = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+                var commandLineArguments = _testExecutor.GetCommandLineArguments(assemblyInfo, isUnix);
+                commandLineArguments = SecurityElement.Escape(commandLineArguments);
+                
                 var rehydrateFilename = isUnix ? "rehydrate.sh" : "rehydrate.cmd";
-                if (payloadDirectory is null || !File.Exists(Path.Combine("artifacts/testPayload", payloadDirectory, rehydrateFilename)))
-                {
-                    // TODO: this feels like something we should be able to verify before sending a work item.
-                    // throw new InvalidOperationException($"path did not contain {rehydrateFilename}: {payloadDirectory}");
-                }
                 var lsCommand = isUnix ? "ls" : "dir";
                 var rehydrateCommand = isUnix ? $"./{rehydrateFilename}" : $@"call .\{rehydrateFilename}";
                 var workItem = @"
