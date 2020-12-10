@@ -278,6 +278,32 @@ public class B
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
         [WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
+        public async Task TestExplicitParameterlessConstructor_TwoCalls()
+        {
+            const string input = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+{|2:public class Foo|}
+{
+    public Foo() { }
+}
+public class B
+{
+    private void Test()
+    {
+        var foo1 = new Foo();
+        var foo2 = new Foo();
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>";
+            await RunReferenceTest(input);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
+        [WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
         public async Task TestImplicitParameterlessConstructor()
         {
             const string input = @"<Workspace>
@@ -291,6 +317,31 @@ public class B
     private void Test()
     {
         var foo = new Foo();
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>";
+            await RunReferenceTest(input);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
+        [WorkItem(49636, "https://github.com/dotnet/roslyn/issues/49636")]
+        public async Task TestImplicitParameterlessConstructor_TwoCalls()
+        {
+            const string input = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+{|2:public class Foo|}
+{
+}
+public class B
+{
+    private void Test()
+    {
+        var foo1 = new Foo();
+        var foo2 = new Foo();
     }
 }
 ]]>
