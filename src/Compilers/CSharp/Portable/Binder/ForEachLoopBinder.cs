@@ -612,7 +612,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BoundCall.Synthesized(
                         syntax: exprSyntax,
                         receiverOpt: collectionExpr,
-                        method: nullableValueGetter);
+                        method: nullableValueGetter,
+                        binder: this);
                 }
                 else
                 {
