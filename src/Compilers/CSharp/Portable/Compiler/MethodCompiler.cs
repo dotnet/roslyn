@@ -606,10 +606,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NullableWalker.AnalyzeIfNeeded(
                     this._compilation,
                     new SynthesizedStaticConstructor(containingType),
+                    GetSyntaxNodesForConstructorNullableEnabledContext(sourceTypeSymbol),
                     GetSynthesizedEmptyBody(containingType),
                     _diagnostics,
                     useConstructorExitWarnings: true,
-                    initialNullableState: null);
+                    initialNullableState: null,
+                    getFinalNullableState: false,
+                    finalNullableState: out _);
             }
 
             // compile submission constructor last so that synthesized submission fields are collected from all script methods:
@@ -631,6 +634,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             compilationState.Free();
+        }
+
+        private static ImmutableArray<SyntaxNode> GetSyntaxNodesForConstructorNullableEnabledContext(NamedTypeSymbol containingType)
+        {
+            // If there are any nullable-enabled spans in the type declaration, assume
+            // those spans may contain fields, in which case the constructors should
+            // be analyzed to report WRN_UninitializedNonNullableField as necessary.
+            // We could be more careful, and only look at the spans of fields.
+            return (containingType is SourceMemberContainerTypeSymbol sourceType) ?
+                sourceType.SyntaxReferences.SelectAsArray(syntaxRef => syntaxRef.GetSyntax()) :
+                ImmutableArray<SyntaxNode>.Empty;
         }
 
         private void CompileSynthesizedMethods(PrivateImplementationDetails privateImplClass, DiagnosticBag diagnostics)
@@ -967,6 +981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NullableWalker.AnalyzeIfNeeded(
                         _compilation,
                         methodSymbol,
+                        GetSyntaxNodesForConstructorNullableEnabledContext(methodSymbol.ContainingType),
                         initializerStatements,
                         diagsForCurrentMethod,
                         useConstructorExitWarnings: false,
@@ -996,6 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NullableWalker.AnalyzeIfNeeded(
                             _compilation,
                             methodSymbol,
+                            GetSyntaxNodesForConstructorNullableEnabledContext(methodSymbol.ContainingType),
                             // we analyze to produce an AfterInitializersState even if there are no initializers
                             // because it conveniently allows us to capture all the 'default' states for applicable members
                             analyzedInitializers ?? GetSynthesizedEmptyBody(methodSymbol),
@@ -1689,7 +1705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableDictionary<Symbol, Symbol> remappedSymbols = null;
                     var compilation = bodyBinder.Compilation;
                     var isSufficientLangVersion = compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion();
-                    if (compilation.IsNullableAnalysisEnabled)
+                    if (compilation.IsNullableAnalysisEnabledInAny(ImmutableArray.Create<SyntaxNode>(syntaxNode)))
                     {
                         methodBodyForSemanticModel = NullableWalker.AnalyzeAndRewrite(
                             compilation,
@@ -1706,7 +1722,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        NullableWalker.AnalyzeIfNeeded(compilation, method, methodBody, diagnostics, useConstructorExitWarnings: true, nullableInitialState);
+                        NullableWalker.AnalyzeIfNeeded(
+                            compilation,
+                            method,
+                            ImmutableArray.Create<SyntaxNode>(syntaxNode),
+                            methodBody,
+                            diagnostics,
+                            useConstructorExitWarnings: true,
+                            nullableInitialState,
+                            getFinalNullableState: false,
+                            finalNullableState: out _);
                     }
 
                     forSemanticModel = new MethodBodySemanticModel.InitialState(syntaxNode, methodBodyForSemanticModel, bodyBinder, snapshotManager, remappedSymbols);
@@ -1780,7 +1805,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (method.IsConstructor() && method.IsImplicitlyDeclared && nullableInitialState is object)
             {
-                NullableWalker.AnalyzeIfNeeded(compilationState.Compilation, method, body ?? GetSynthesizedEmptyBody(method), diagnostics, useConstructorExitWarnings: true, nullableInitialState);
+                NullableWalker.AnalyzeIfNeeded(
+                    compilationState.Compilation,
+                    method,
+                    GetSyntaxNodesForConstructorNullableEnabledContext(method.ContainingType),
+                    body ?? GetSynthesizedEmptyBody(method),
+                    diagnostics,
+                    useConstructorExitWarnings: true,
+                    nullableInitialState,
+                    getFinalNullableState: false,
+                    finalNullableState: out _);
             }
 
             if (method.MethodKind == MethodKind.Destructor && body != null)

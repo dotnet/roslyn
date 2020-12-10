@@ -248,7 +248,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void NullableAnalyzeParameterDefaultValueFromAttributes()
         {
-            if (!NullableWalker.NeedsAnalysis(DeclaringCompilation))
+            var parameterSyntax = this.CSharpSyntaxNode;
+            if (parameterSyntax == null)
+            {
+                // If there is no syntax at all for the parameter, it means we are in a situation like
+                // a property setter whose 'value' parameter has a default value from attributes.
+                // There isn't a sensible use for this in the language, so we just bail in such scenarios.
+                return;
+            }
+
+            if (!NullableWalker.NeedsAnalysis(DeclaringCompilation, ImmutableArray.Create<SyntaxNode>(parameterSyntax)))
             {
                 return;
             }
@@ -256,15 +265,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var defaultValue = DefaultValueFromAttributes;
             if (defaultValue == null || defaultValue.IsBad)
             {
-                return;
-            }
-
-            var parameterSyntax = this.CSharpSyntaxNode;
-            if (parameterSyntax == null)
-            {
-                // If there is no syntax at all for the parameter, it means we are in a situation like
-                // a property setter whose 'value' parameter has a default value from attributes.
-                // There isn't a sensible use for this in the language, so we just bail in such scenarios.
                 return;
             }
 

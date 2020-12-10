@@ -308,5 +308,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             NullableWalker.AnalyzeWithoutRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots);
         }
+
+        protected override bool IsNullableAnalysisEnabled()
+        {
+            if (MemberSymbol is SourceMemberMethodSymbol method)
+            {
+                return Compilation.IsNullableAnalysisEnabledInAny(ImmutableArray.Create<SyntaxNode>(method.SyntaxNode));
+            }
+            return Compilation.IsNullableAnalysisEnabled;
+        }
     }
 }

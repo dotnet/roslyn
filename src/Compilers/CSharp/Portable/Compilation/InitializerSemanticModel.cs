@@ -276,5 +276,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             NullableWalker.AnalyzeWithoutRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots);
         }
+
+        protected override bool IsNullableAnalysisEnabled()
+        {
+            return Compilation.IsNullableAnalysisEnabledInAny(ImmutableArray.Create<SyntaxNode>(Root));
+        }
     }
 }

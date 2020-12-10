@@ -63,6 +63,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Data recorded for a particular analysis run.
+        /// </summary>
+        internal readonly struct Data
+        {
+            /// <summary>
+            /// Number of entries tracked during analysis.
+            /// </summary>
+            internal readonly int TrackedEntries;
+
+            /// <summary>
+            /// True if analysis was required; false if analysis was optional and results dropped.
+            /// </summary>
+            internal readonly bool RequiredAnalysis;
+
+            internal Data(int trackedEntries, bool requiredAnalysis)
+            {
+                TrackedEntries = trackedEntries;
+                RequiredAnalysis = requiredAnalysis;
+            }
+        }
+
+        /// <summary>
         /// Represents the result of visiting an expression.
         /// Contains a result type which tells us whether the expression may be null,
         /// and an l-value type which tells us whether we can assign null to the expression.
@@ -1051,22 +1073,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyzes a method body if settings indicate we should, discarding the final nullable state.
+        /// Analyzes a method body if settings indicate we should.
         /// </summary>
         internal static void AnalyzeIfNeeded(
             CSharpCompilation compilation,
             MethodSymbol method,
-            BoundNode node,
-            DiagnosticBag diagnostics,
-            bool useConstructorExitWarnings,
-            VariableState? initialNullableState)
-        {
-            AnalyzeIfNeeded(compilation, method, node, diagnostics, useConstructorExitWarnings, initialNullableState, getFinalNullableState: false, out _);
-        }
-
-        internal static void AnalyzeIfNeeded(
-            CSharpCompilation compilation,
-            MethodSymbol method,
+            ImmutableArray<SyntaxNode> syntaxNodes,
             BoundNode node,
             DiagnosticBag diagnostics,
             bool useConstructorExitWarnings,
@@ -1074,14 +1086,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool getFinalNullableState,
             out VariableState? finalNullableState)
         {
-            if (CanSkipAnalysis(compilation))
+            if (CanSkipAnalysis(compilation, syntaxNodes))
             {
                 if (compilation.IsNullableAnalysisEnabledAlways)
                 {
                     // Once we address https://github.com/dotnet/roslyn/issues/46579 we should also always pass `getFinalNullableState: true` in debug mode.
                     // We will likely always need to write a 'null' out for the out parameter in this code path, though, because
                     // we don't want to introduce behavior differences between debug and release builds
-                    Analyze(compilation, method, node, new DiagnosticBag(), useConstructorExitWarnings: false, initialNullableState: null, getFinalNullableState: false, out _);
+                    Analyze(compilation, method, node, new DiagnosticBag(), useConstructorExitWarnings: false, initialNullableState: null, getFinalNullableState: false, out _, requiredAnalysis: false);
                 }
                 finalNullableState = null;
                 return;
@@ -1098,7 +1110,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useConstructorExitWarnings,
             VariableState? initialNullableState,
             bool getFinalNullableState,
-            out VariableState? finalNullableState)
+            out VariableState? finalNullableState,
+            bool requiredAnalysis = true)
         {
             if (method.IsImplicitlyDeclared && !method.IsImplicitConstructor && !method.IsScriptInitializer)
             {
@@ -1124,7 +1137,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 snapshotBuilderOpt: null,
                 returnTypesOpt: null,
                 getFinalNullableState,
-                finalNullableState: out finalNullableState);
+                finalNullableState: out finalNullableState,
+                requiredAnalysis);
         }
 
         /// <summary>
@@ -1144,6 +1158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NullableWalker.AnalyzeIfNeeded(
                     compilation,
                     method,
+                    initializers.BoundInitializers.SelectAsArray(initializer => initializer.Syntax),
                     InitializerRewriter.RewriteConstructor(initializers.BoundInitializers, method),
                     unusedDiagnostics,
                     useConstructorExitWarnings: false,
@@ -1172,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool createSnapshots)
         {
-            _ = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState: GetAfterInitializersState(compilation, symbol), diagnostics, createSnapshots);
+            _ = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState: GetAfterInitializersState(compilation, symbol), diagnostics, createSnapshots, requiredAnalysis: false);
         }
 
         /// <summary>
@@ -1191,7 +1206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols)
         {
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)> analyzedNullabilitiesMap;
-            (snapshotManager, analyzedNullabilitiesMap) = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState, diagnostics, createSnapshots);
+            (snapshotManager, analyzedNullabilitiesMap) = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState, diagnostics, createSnapshots, requiredAnalysis: true);
             return Rewrite(analyzedNullabilitiesMap, snapshotManager, node, ref remappedSymbols);
         }
 
@@ -1202,7 +1217,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder,
             VariableState? initialState,
             DiagnosticBag diagnostics,
-            bool createSnapshots)
+            bool createSnapshots,
+            bool requiredAnalysis)
         {
             var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol?)>(EqualityComparer<BoundExpression>.Default, NullabilityInfoTypeComparer.Instance);
 
@@ -1225,7 +1241,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 snapshotBuilder,
                 returnTypesOpt: null,
                 getFinalNullableState: false,
-                out _);
+                out _,
+                requiredAnalysis);
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
             var snapshotManager = snapshotBuilder?.ToManagerAndFree();
@@ -1289,14 +1306,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rewrittenNode;
         }
 
-        private static bool CanSkipAnalysis(CSharpCompilation compilation)
+        private static bool CanSkipAnalysis(CSharpCompilation compilation, ImmutableArray<SyntaxNode> syntaxNodes)
         {
-            return compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.IsNullableAnalysisEnabled;
+            return compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() ||
+                !compilation.IsNullableAnalysisEnabledInAny(syntaxNodes);
         }
 
-        internal static bool NeedsAnalysis(CSharpCompilation compilation)
+        internal static bool NeedsAnalysis(CSharpCompilation compilation, ImmutableArray<SyntaxNode> syntaxNodes)
         {
-            return !CanSkipAnalysis(compilation) || compilation.IsNullableAnalysisEnabledAlways;
+            return !CanSkipAnalysis(compilation, syntaxNodes) || compilation.IsNullableAnalysisEnabledAlways;
         }
 
         /// <summary>Analyzes a node in a "one-off" context, such as for attributes or parameter default values.</summary>
@@ -1305,14 +1323,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             DiagnosticBag diagnostics)
         {
+            bool requiredAnalysis = true;
             var compilation = binder.Compilation;
-            if (CanSkipAnalysis(compilation))
+            if (CanSkipAnalysis(compilation, ImmutableArray.Create(node.Syntax)))
             {
                 if (!compilation.IsNullableAnalysisEnabledAlways)
                 {
                     return;
                 }
                 diagnostics = new DiagnosticBag();
+                requiredAnalysis = false;
             }
 
             Analyze(
@@ -1330,7 +1350,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 snapshotBuilderOpt: null,
                 returnTypesOpt: null,
                 getFinalNullableState: false,
-                out _);
+                out _,
+                requiredAnalysis);
         }
 
         internal static void Analyze(
@@ -1377,7 +1398,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SnapshotManager.Builder? snapshotBuilderOpt,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>? returnTypesOpt,
             bool getFinalNullableState,
-            out VariableState? finalNullableState)
+            out VariableState? finalNullableState,
+            bool requiredAnalysis = true)
         {
             Debug.Assert(diagnostics != null);
             var walker = new NullableWalker(compilation,
@@ -1396,7 +1418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             finalNullableState = null;
             try
             {
-                Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt);
+                Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt, requiredAnalysis);
                 if (getFinalNullableState)
                 {
                     Debug.Assert(!walker.IsConditionalState);
@@ -1414,7 +1436,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol? symbol,
             DiagnosticBag? diagnostics,
             VariableState? initialState,
-            SnapshotManager.Builder? snapshotBuilderOpt)
+            SnapshotManager.Builder? snapshotBuilderOpt,
+            bool requiredAnalysis = true)
         {
             Debug.Assert(snapshotBuilderOpt is null || symbol is object);
             try
@@ -1435,7 +1458,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (walker.compilation.NullableAnalysisData is { } state)
             {
                 var key = (object?)symbol ?? walker.methodMainNode.Syntax;
-                state[key] = walker._variableSlot.Count;
+                // For synthesized constructors, we may analyze the implicit (empty) constructor
+                // body separately from any explicit initializers. In those cases, the implicit body
+                // is likely requiredAnalysis: false while the initializers might be requiredAnalysis: true.
+                if (!state.TryGetValue(key, out var result) || !result.RequiredAnalysis)
+                {
+                    state[key] = new Data(walker._variableSlot.Count, requiredAnalysis);
+                }
             }
         }
 

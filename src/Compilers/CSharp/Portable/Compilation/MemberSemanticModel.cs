@@ -157,14 +157,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual NullableWalker.SnapshotManager GetSnapshotManager()
         {
             EnsureNullabilityAnalysisPerformedIfNecessary();
-            Debug.Assert(_lazySnapshotManager is object || !Compilation.IsNullableAnalysisEnabled);
+            Debug.Assert(_lazySnapshotManager is object || !IsNullableAnalysisEnabled());
             return _lazySnapshotManager;
         }
 
         internal ImmutableDictionary<Symbol, Symbol> GetRemappedSymbols()
         {
             EnsureNullabilityAnalysisPerformedIfNecessary();
-            Debug.Assert(_lazyRemappedSymbols is object || this is AttributeSemanticModel || !Compilation.IsNullableAnalysisEnabled);
+            Debug.Assert(_lazyRemappedSymbols is object || this is AttributeSemanticModel || !IsNullableAnalysisEnabled());
             return _lazyRemappedSymbols;
         }
 
@@ -1915,7 +1915,8 @@ done:
         /// </summary>
         protected void EnsureNullabilityAnalysisPerformedIfNecessary()
         {
-            if (!Compilation.IsNullableAnalysisEnabled && !Compilation.IsNullableAnalysisEnabledAlways)
+            bool isNullableAnalysisEnabled = IsNullableAnalysisEnabled();
+            if (!isNullableAnalysisEnabled && !Compilation.IsNullableAnalysisEnabledAlways)
             {
                 return;
             }
@@ -1939,7 +1940,7 @@ done:
             // first BoundNode corresponds to the underlying EqualsValueSyntax of the initializer)
             if (_guardedNodeMap.Count > 0)
             {
-                Debug.Assert(!Compilation.IsNullableAnalysisEnabled ||
+                Debug.Assert(!IsNullableAnalysisEnabled() ||
                              _guardedNodeMap.ContainsKey(bindableRoot) ||
                              _guardedNodeMap.ContainsKey(bind(bindableRoot, getDiagnosticBag(), out _).Syntax));
                 return;
@@ -1998,19 +1999,14 @@ done:
 
             void rewriteAndCache(DiagnosticBag diagnosticBag)
             {
-                if (!Compilation.IsNullableAnalysisEnabled && Compilation.IsNullableAnalysisEnabledAlways)
+                if (!isNullableAnalysisEnabled)
                 {
+                    Debug.Assert(Compilation.IsNullableAnalysisEnabledAlways);
                     AnalyzeBoundNodeNullability(boundRoot, binder, diagnosticBag, createSnapshots: true);
                     return;
                 }
 
                 boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnosticBag, createSnapshots: true, out snapshotManager, ref remappedSymbols);
-                cache(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
-            }
-
-            void cache(CSharpSyntaxNode bindableRoot, BoundNode boundRoot, NullableWalker.SnapshotManager snapshotManager, ImmutableDictionary<Symbol, Symbol> remappedSymbols)
-            {
-                Debug.Assert(Compilation.IsNullableAnalysisEnabled);
                 GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
             }
 
@@ -2018,7 +2014,7 @@ done:
             {
                 // If nullable analysis is not enabled, we want to use a temp diagnosticbag
                 // that can't produce any observable side effects
-                if (!Compilation.IsNullableAnalysisEnabled)
+                if (!isNullableAnalysisEnabled)
                 {
                     return new DiagnosticBag();
                 }
@@ -2045,6 +2041,8 @@ done:
         /// through "run-nullable-analysis=always" or when the compiler is running in DEBUG.
         /// </summary>
         protected abstract void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots);
+
+        protected abstract bool IsNullableAnalysisEnabled();
 #nullable disable
 
         /// <summary>

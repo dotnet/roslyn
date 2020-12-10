@@ -137,11 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Nullable analysis data for methods, parameter default values, and attributes.
-        /// The key is a symbol for methods or parameters, and syntax for attributes,
-        /// and the value is the number of entries tracked during analysis of that key.
+        /// The key is a symbol for methods or parameters, and syntax for attributes.
         /// The data is collected during testing only.
         /// </summary>
-        internal ConcurrentDictionary<object, int>? NullableAnalysisData;
+        internal ConcurrentDictionary<object, NullableWalker.Data>? NullableAnalysisData;
 
         public override string Language
         {
@@ -231,6 +230,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     return SyntaxTrees.Any(tree => ((CSharpSyntaxTree)tree).HasNullableEnables());
                 }
+            }
+        }
+
+        internal bool IsNullableAnalysisEnabledInAny(ImmutableArray<SyntaxNode> syntaxNodes)
+        {
+            return GetNullableAnalysisValue() ??
+                isEnabledInAny(syntaxNodes) ??
+                (Options.NullableContextOptions & NullableContextOptions.Warnings) != 0;
+
+            static bool? isEnabledInAny(ImmutableArray<SyntaxNode> syntaxNodes)
+            {
+                bool? result = false;
+                foreach (var syntax in syntaxNodes)
+                {
+                    switch (((CSharpSyntaxTree)syntax.SyntaxTree).IsNullableAnalysisEnabled(syntax.Span))
+                    {
+                        case true:
+                            return true;
+                        case null:
+                            result = null;
+                            break;
+                    }
+                }
+                return result;
             }
         }
 

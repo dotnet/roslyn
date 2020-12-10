@@ -718,6 +718,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool HasNullableEnables() => GetNullableContextStateMap().HasNullableEnables();
 
+        internal bool? IsNullableAnalysisEnabled(TextSpan span) => GetNullableContextStateMap().IsNullableAnalysisEnabled(span);
+
         internal bool IsGeneratedCode(SyntaxTreeOptionsProvider? provider, CancellationToken cancellationToken)
         {
             return provider?.IsGenerated(this, cancellationToken) switch

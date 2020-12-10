@@ -379,6 +379,31 @@ class Program
         }
 
         [Fact]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
+        public void AnalyzeMethodsInEnabledContextOnly()
+        {
+            const int nMethods = 10000;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("static class Program");
+            builder.AppendLine("{");
+            for (int i = 0; i < nMethods; i++)
+            {
+                builder.AppendLine(i % 2 == 0 ? "#nullable enable" : "#nullable disable");
+                builder.AppendLine($"    static object F{i}(object arg{i}) => arg{i};");
+            }
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.VerifyDiagnostics();
+
+            int analyzed = comp.NullableAnalysisData.Where(pair => pair.Value.RequiredAnalysis).Count();
+            Assert.Equal(nMethods / 2 + 1, analyzed);
+        }
+
+        [Fact]
         [WorkItem(49745, "https://github.com/dotnet/roslyn/issues/49745")]
         public void NullableStateLambdas()
         {
@@ -400,13 +425,13 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new ConcurrentDictionary<object, int>();
+            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
             comp.VerifyDiagnostics();
 
             CheckIsSimpleMethod(comp, "F2", true);
 
             var method = comp.GetMember("Program.F2");
-            Assert.Equal(1, comp.NullableAnalysisData[method]);
+            Assert.Equal(1, comp.NullableAnalysisData[method].TrackedEntries);
         }
 
         [Theory]
