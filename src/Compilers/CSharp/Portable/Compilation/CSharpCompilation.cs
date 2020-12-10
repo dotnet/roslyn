@@ -243,8 +243,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
 
         /// <summary>
-        /// Converts Feature("run-nullable-analysis") to a bool? value.
-        /// Returns true for "run-nullable-analysis=always"; false for "run-nullable-analysis=never"; null otherwise.
+        /// Returns Feature("run-nullable-analysis") as a bool? value:
+        /// true for "always"; false for "never"; and null otherwise.
         /// </summary>
         private bool? GetNullableAnalysisValue()
         {
