@@ -33,35 +33,17 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             base.Dispose(finalize);
         }
 
-        public new void SetCurrentSolution(Solution solution)
-        {
-            var oldSolution = this.CurrentSolution;
-            var newSolution = base.SetCurrentSolution(solution);
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
-        }
-
         public override bool CanOpenDocuments
-        {
-            get { return true; }
-        }
+            => true;
 
         public override bool CanApplyChange(ApplyChangesKind feature)
-        {
-            switch (feature)
-            {
-                case ApplyChangesKind.ChangeDocument:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
+            => feature == ApplyChangesKind.ChangeDocument;
 
         public void OpenDocument(DocumentId documentId, SourceTextContainer textContainer)
         {
             _openTextContainer = textContainer;
             _openDocumentId = documentId;
-            this.OnDocumentOpened(documentId, textContainer);
+            OnDocumentOpened(documentId, textContainer);
         }
 
         protected override void ApplyDocumentTextChanged(DocumentId document, SourceText newText)
@@ -87,16 +69,18 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 appliedText = edit.Apply();
             }
 
-            this.OnDocumentTextChanged(document, appliedText.AsText(), PreservationMode.PreserveIdentity);
+            OnDocumentTextChanged(document, appliedText.AsText(), PreservationMode.PreserveIdentity);
         }
 
-        public new void ClearSolution()
-            => base.ClearSolution();
+        /// <summary>
+        /// Closes all open documents and empties the solution but keeps all solution-level analyzers.
+        /// </summary>
+        public void ResetSolution()
+        {
+            ClearOpenDocuments();
 
-        internal new void ClearOpenDocument(DocumentId documentId)
-            => base.ClearOpenDocument(documentId);
-
-        internal new void UnregisterText(SourceTextContainer textContainer)
-            => base.UnregisterText(textContainer);
+            var emptySolution = CreateSolution(SolutionId.CreateNewId("InteractiveSolution"));
+            SetCurrentSolution(solution => emptySolution.WithAnalyzerReferences(solution.AnalyzerReferences), WorkspaceChangeKind.SolutionCleared);
+        }
     }
 }

@@ -108,8 +108,8 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             _ = _taskQueue.ScheduleTask(nameof(ProcessInitialized), () =>
             {
-                // clear workspace state:
-                _workspace.ClearSolution();
+                _workspace.ResetSolution();
+
                 _currentSubmissionProjectId = null;
                 _lastSuccessfulSubmissionProjectId = null;
 
@@ -142,10 +142,16 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private void AddSubmissionProjectNoLock(ITextBuffer submissionBuffer, string languageName)
         {
-            var solution = _workspace.CurrentSolution;
-            Project project;
+            var initResult = _initializationResult;
+
             var imports = ImmutableArray<string>.Empty;
             var references = ImmutableArray<MetadataReference>.Empty;
+
+            var initializationScriptImports = ImmutableArray<string>.Empty;
+            var initializationScriptReferences = ImmutableArray<MetadataReference>.Empty;
+
+            ProjectId? initializationScriptProjectId = null;
+            string? initializationScriptPath = null;
 
             if (_currentSubmissionProjectId == null)
             {
@@ -154,13 +160,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 // The Interactive Window may have added the first language buffer before 
                 // the host initialization has completed. Do not create a submission project 
                 // for the buffer in such case. It will be created when the initialization completes.
-                if (_initializationResult == null)
+                if (initResult == null)
                 {
                     _pendingBuffers.Add((submissionBuffer, languageName));
                     return;
                 }
-
-                var initResult = _initializationResult;
 
                 imports = initResult.Imports.ToImmutableArrayOrEmpty();
 
@@ -170,38 +174,61 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     metadataService);
 
                 // if a script was specified in .rps file insert a project with a document that represents it:
-                var scriptPath = initResult.ScriptPath;
-                if (scriptPath != null)
+                initializationScriptPath = initResult!.ScriptPath;
+                if (initializationScriptPath != null)
                 {
-                    project = CreateSubmissionProjectNoLock(solution, previousSubmissionProjectId: null, languageName, imports, references);
+                    initializationScriptProjectId = ProjectId.CreateNewId(CreateNewSubmissionName());
 
-                    var initDocumentId = DocumentId.CreateNewId(project.Id, debugName: scriptPath);
-                    solution = project.Solution.AddDocument(initDocumentId, Path.GetFileName(scriptPath), new FileTextLoader(scriptPath, defaultEncoding: null));
-                    _lastSuccessfulSubmissionProjectId = project.Id;
+                    _lastSuccessfulSubmissionProjectId = initializationScriptProjectId;
 
                     // imports and references will be inherited:
+                    initializationScriptImports = imports;
+                    initializationScriptReferences = references;
                     imports = ImmutableArray<string>.Empty;
                     references = ImmutableArray<MetadataReference>.Empty;
                 }
             }
 
-            // Project for the new submission - chain to the last submission that successfully executed.
-            project = CreateSubmissionProjectNoLock(solution, _lastSuccessfulSubmissionProjectId, languageName, imports, references);
+            var newSubmissionProjectName = CreateNewSubmissionName();
+            var newSubmissionText = submissionBuffer.CurrentSnapshot.AsText();
+            _currentSubmissionProjectId = ProjectId.CreateNewId(newSubmissionProjectName);
+            var newSubmissionDocumentId = DocumentId.CreateNewId(_currentSubmissionProjectId, newSubmissionProjectName);
 
-            var documentId = DocumentId.CreateNewId(project.Id, debugName: project.Name);
-            solution = project.Solution.AddDocument(documentId, project.Name, submissionBuffer.CurrentSnapshot.AsText());
+            // Chain projects to the the last submission that successfully executed.
+            _workspace.SetCurrentSolution(solution =>
+            {
+                if (initializationScriptProjectId != null)
+                {
+                    RoslynDebug.AssertNotNull(initializationScriptPath);
 
-            _workspace.SetCurrentSolution(solution);
+                    var initProject = CreateSubmissionProjectNoLock(solution, initializationScriptProjectId, previousSubmissionProjectId: null, languageName, initializationScriptImports, initializationScriptReferences);
+
+                    solution = initProject.Solution.AddDocument(
+                        DocumentId.CreateNewId(initializationScriptProjectId, debugName: initializationScriptPath),
+                        Path.GetFileName(initializationScriptPath),
+                        new FileTextLoader(initializationScriptPath, defaultEncoding: null));
+                }
+
+                var newSubmissionProject = CreateSubmissionProjectNoLock(solution, _currentSubmissionProjectId, _lastSuccessfulSubmissionProjectId, languageName, imports, references);
+                solution = newSubmissionProject.Solution.AddDocument(
+                    newSubmissionDocumentId,
+                    newSubmissionProjectName,
+                    newSubmissionText);
+
+                return solution;
+            }, WorkspaceChangeKind.SolutionChanged);
 
             // opening document will start workspace listening to changes in this text container
-            _workspace.OpenDocument(documentId, submissionBuffer.AsTextContainer());
-
-            _currentSubmissionProjectId = project.Id;
+            _workspace.OpenDocument(newSubmissionDocumentId, submissionBuffer.AsTextContainer());
         }
 
-        private Project CreateSubmissionProjectNoLock(Solution solution, ProjectId? previousSubmissionProjectId, string languageName, ImmutableArray<string> imports, ImmutableArray<MetadataReference> references)
+        private string CreateNewSubmissionName()
+            => "Submission#" + SubmissionCount++;
+
+        private Project CreateSubmissionProjectNoLock(Solution solution, ProjectId newSubmissionProjectId, ProjectId? previousSubmissionProjectId, string languageName, ImmutableArray<string> imports, ImmutableArray<MetadataReference> references)
         {
-            var name = "Submission#" + SubmissionCount++;
+            var name = newSubmissionProjectId.DebugName;
+            RoslynDebug.AssertNotNull(name);
 
             CompilationOptions compilationOptions;
             if (previousSubmissionProjectId != null)
@@ -232,11 +259,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     imports);
             }
 
-            var projectId = ProjectId.CreateNewId(debugName: name);
-
             solution = solution.AddProject(
                 ProjectInfo.Create(
-                    projectId,
+                    newSubmissionProjectId,
                     VersionStamp.Create(),
                     name: name,
                     assemblyName: name,
@@ -251,10 +276,10 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             if (previousSubmissionProjectId != null)
             {
-                solution = solution.AddProjectReference(projectId, new ProjectReference(previousSubmissionProjectId));
+                solution = solution.AddProjectReference(newSubmissionProjectId, new ProjectReference(previousSubmissionProjectId));
             }
 
-            return solution.GetProject(projectId)!;
+            return solution.GetRequiredProject(newSubmissionProjectId);
         }
 
         /// <summary>

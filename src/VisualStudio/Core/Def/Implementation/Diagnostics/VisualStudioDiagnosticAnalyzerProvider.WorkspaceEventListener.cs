@@ -7,6 +7,7 @@ using System.Composition;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -24,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         /// Loads VSIX analyzers into <see cref="VisualStudioWorkspace"/> when it's loaded.
         /// </summary>
         [Export]
-        [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
+        [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host, WorkspaceKind.Interactive), Shared]
         internal sealed class WorkspaceEventListener : IEventListener<object>
         {
             private readonly IAsynchronousOperationListener _listener;
@@ -45,15 +46,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             public void StartListening(Workspace workspace, object serviceOpt)
             {
-                if (workspace is VisualStudioWorkspaceImpl vsWorkspace)
+                if (workspace is VisualStudioWorkspaceImpl or InteractiveWorkspace)
                 {
                     // fire and forget
                     var token = _listener.BeginAsyncOperation(nameof(InitializeWorkspaceAsync));
-                    _ = Task.Run(() => InitializeWorkspaceAsync(vsWorkspace)).CompletesAsyncOperation(token);
+                    _ = Task.Run(() => InitializeWorkspaceAsync(workspace)).CompletesAsyncOperation(token);
                 }
             }
 
-            private async Task InitializeWorkspaceAsync(VisualStudioWorkspaceImpl workspace)
+            private async Task InitializeWorkspaceAsync(Workspace workspace)
             {
                 try
                 {
@@ -62,8 +63,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     var references = provider.GetAnalyzerReferencesInExtensions();
                     LogWorkspaceAnalyzerCount(references.Length);
 
-                    workspace.ApplyChangeToWorkspace(w =>
-                        w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged));
+                    if (workspace is VisualStudioWorkspaceImpl vsWorkspace)
+                    {
+                        vsWorkspace.ApplyChangeToWorkspace(w =>
+                            w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged));
+                    }
+                    else
+                    {
+                        workspace.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged);
+                    }
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagate(e))
                 {
