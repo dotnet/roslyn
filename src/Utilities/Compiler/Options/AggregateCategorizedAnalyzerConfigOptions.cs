@@ -83,8 +83,7 @@ namespace Analyzer.Utilities
             }
         }
 
-        [return: MaybeNull, NotNullIfNotNull("defaultValue")]
-        public T/*??*/ GetOptionValue<T>(string optionName, SyntaxTree? tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, [MaybeNull] T/*??*/ defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality)
+        public T GetOptionValue<T>(string optionName, SyntaxTree? tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, T defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality)
         {
             if (TryGetOptionValue(optionName, kind, tree, rule, tryParseValue, defaultValue, out var value))
             {
@@ -94,7 +93,7 @@ namespace Analyzer.Utilities
             return defaultValue;
         }
 
-        private bool TryGetOptionValue<T>(string optionName, OptionKind kind, SyntaxTree? tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, [MaybeNull] T/*??*/ defaultValue, [MaybeNullWhen(false), NotNullIfNotNull("defaultValue")] out T value)
+        private bool TryGetOptionValue<T>(string optionName, OptionKind kind, SyntaxTree? tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, T defaultValue, [MaybeNullWhen(false)] out T value)
         {
             if (ReferenceEquals(this, Empty))
             {
