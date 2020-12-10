@@ -14,24 +14,27 @@ parameters:
   # Optional: Enable publishing to the build asset registry
   enablePublishBuildAssets: false
 
+  # Optional: Enable publishing using release pipelines
+  enablePublishUsingPipelines: false
+  
+  graphFileGeneration:
+    # Optional: Enable generating the graph files at the end of the build
+    enabled: false
+    # Optional: Include toolset dependencies in the generated graph files
+    includeToolset: false
+    
   # Optional: Include PublishTestResults task
   enablePublishTestResults: false
 
   # Optional: enable sending telemetry
-  #           if 'true', these "variables" must be specified in the variables object or as part of the queue matrix
-  #             _HelixBuildConfig - differentiate between Debug, Release, other
-  #             _HelixType - Example: build/product/
-  #             _HelixSource - Example: official/dotnet/arcade/$(Build.SourceBranch)
+  # if enabled then the 'helixRepo' parameter should also be specified
   enableTelemetry: false
 
   # Required: A collection of jobs to run - https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=vsts&tabs=schema#job
   jobs: []
 
-  # Optional: If specified, then automatically derive "_HelixSource" variable for telemetry
+  # Optional: define the helix repo for telemetry (example: 'dotnet/arcade')
   helixRepo: ''
-
-  # Optional: Define the type for helix telemetry (must end in '/')
-  helixType: build/product/
 
   # Optional: Override automatically derived dependsOn value for "publish build assets" job
   publishBuildAssetsDependsOn: ''
@@ -73,5 +76,15 @@ jobs:
       pool:
         vmImage: vs2017-win2016
       runAsPublic: ${{ parameters.runAsPublic }}
+      publishUsingPipelines: ${{ parameters.enablePublishUsingPipelines }}
       enablePublishBuildArtifacts: ${{ parameters.enablePublishBuildArtifacts }}
-
+      
+- ${{ if and(eq(parameters.graphFileGeneration.enabled, true), eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+  - template: ../job/generate-graph-files.yml
+    parameters:
+      continueOnError: ${{ parameters.continueOnError }}
+      includeToolset: ${{ parameters.graphFileGeneration.includeToolset }}
+      dependsOn:
+        - Asset_Registry_Publish
+      pool:
+        vmImage: vs2017-win2016

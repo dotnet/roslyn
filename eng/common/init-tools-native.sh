@@ -9,7 +9,7 @@ clean=false
 force=false
 download_retries=5
 retry_wait_time_seconds=30
-global_json_file="${scriptroot}/../../global.json"
+global_json_file="$(dirname "$(dirname "${scriptroot}")")/global.json"
 declare -A native_assets
 
 . $scriptroot/native/common-library.sh
@@ -70,7 +70,7 @@ function ReadGlobalJsonNativeTools {
   # Only extract the contents of the object.
   local native_tools_list=$(echo $native_tools_section | awk -F"[{}]" '{print $2}')
   native_tools_list=${native_tools_list//[\" ]/}
-  native_tools_list=${native_tools_list//,/$'\n'}
+  native_tools_list=$( echo "$native_tools_list" | sed 's/\s//g' | sed 's/,/\n/g' )
 
   local old_IFS=$IFS
   while read -r line; do
@@ -107,6 +107,7 @@ else
     installer_command+=" --baseuri $base_uri"
     installer_command+=" --installpath $install_bin"
     installer_command+=" --version $tool_version"
+    echo $installer_command
 
     if [[ $force = true ]]; then
       installer_command+=" --force"
@@ -116,8 +117,6 @@ else
       installer_command+=" --clean"
     fi
 
-    echo "Installing $tool version $tool_version"
-    echo "Executing '$installer_command'"
     $installer_command
 
     if [[ $? != 0 ]]; then
@@ -127,19 +126,16 @@ else
   done
 fi
 
-if [[ ! -z $clean ]]; then
+if [[ $clean = true ]]; then
   exit 0
 fi
 
 if [[ -d $install_bin ]]; then
   echo "Native tools are available from $install_bin"
-  if [[ !-z BUILD_BUILDNUMBER ]]; then
-    echo "##vso[task.prependpath]$install_bin"
-  fi
+  echo "##vso[task.prependpath]$install_bin"
 else
   echo "Native tools install directory does not exist, installation failed" >&2
   exit 1
 fi
 
 exit 0
-
