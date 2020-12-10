@@ -1072,13 +1072,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool getFinalNullableState,
             out VariableState? finalNullableState)
         {
-            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker)
+            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableAnalysis)
             {
 #if DEBUG
-                if (compilation.ShouldRunNullableWalkerInDebug)
+                if (compilation.ShouldRunNullableAnalysisAndIgnoreResults)
                 {
-                    // Always run analysis in debug builds so that we can more reliably catch
-                    // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
                     // Once we address https://github.com/dotnet/roslyn/issues/46579 we should also always pass `getFinalNullableState: true` in debug mode.
                     // We will likely always need to write a 'null' out for the out parameter in this code path, though, because
                     // we don't want to introduce behavior differences between debug and release builds
@@ -1236,7 +1234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
-            if (compilation.NullableSemanticAnalysisEnabled)
+            if (compilation.ShouldRunNullableAnalysisAndIgnoreResults)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManager, node);
             }
@@ -1269,7 +1267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             newSnapshots = newSnapshotBuilder.ToManagerAndFree();
 
 #if DEBUG
-            if (binder.Compilation.NullableSemanticAnalysisEnabled)
+            if (binder.Compilation.ShouldRunNullableAnalysisAndIgnoreResults)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, newSnapshots, node);
             }
@@ -1296,9 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool NeedsAnalysis(CSharpCompilation compilation)
         {
 #if DEBUG
-            // Always run analysis in debug builds so that we can more reliably catch
-            // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
-            return compilation.ShouldRunNullableWalkerInDebug;
+            return compilation.ShouldRunNullableAnalysisAndIgnoreResults;
 #else
             var canSkipAnalysis = compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker;
             return !canSkipAnalysis;
@@ -1312,13 +1308,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             var compilation = binder.Compilation;
-            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker)
+            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableAnalysis)
             {
 #if DEBUG
-                if (compilation.ShouldRunNullableWalkerInDebug)
+                if (compilation.ShouldRunNullableAnalysisAndIgnoreResults)
                 {
-                    // Always run analysis in debug builds so that we can more reliably catch
-                    // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
                     diagnostics = new DiagnosticBag();
                 }
                 else

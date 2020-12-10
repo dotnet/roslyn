@@ -9728,18 +9728,14 @@ public class Program
             string[] expectedWarningsNone = Array.Empty<string>();
 
             AssertEx.Equal(expectedWarningsAll, compileAndRun(featureOpt: null));
-            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:nullableAnalysis"));
-            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:nullableAnalysis=true"));
-            AssertEx.Equal(expectedWarningsNone, compileAndRun("/features:nullableAnalysis=false"));
-            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:nullableAnalysis=TRUE")); // unrecognized value (incorrect case) treated as "true"
-            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:nullableAnalysis=FALSE")); // unrecognized value (incorrect case) treated as "true"
-            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:nullableAnalysis=unknown")); // unrecognized value treated as "true"
-            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=true"));
-            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=false"));
-            AssertEx.Equal(expectedWarningsNone, compileAndRun("/features:nullableAnalysis=false,run-nullable-analysis=false"));
-            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:nullableAnalysis=false,run-nullable-analysis=true"));
-            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:nullableAnalysis=true,run-nullable-analysis=false"));
-            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:nullableAnalysis=true,run-nullable-analysis=true"));
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis"));
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=always"));
+            AssertEx.Equal(expectedWarningsNone, compileAndRun("/features:run-nullable-analysis=never"));
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=ALWAYS")); // unrecognized value (incorrect case) ignored
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=NEVER")); // unrecognized value (incorrect case) ignored
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=true")); // unrecognized value ignored
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=false")); // unrecognized value ignored
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=unknown")); // unrecognized value ignored
 
             CleanupAllGeneratedFiles(filePath);
 

@@ -133,7 +133,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Run the nullable walker during the flow analysis passes. True if the project-level nullable
         /// context option is set, or if any file enables nullable or just the nullable warnings.
         /// </summary>
-        private ThreeState _lazyShouldRunNullableWalker;
+        private ThreeState _lazyShouldRunNullableAnalysis;
+
+        // Nullable analysis data for methods, parameter default values, and attributes. Collected during testing only.
+        internal ConcurrentDictionary<object, int>? NullableAnalysisData;
 
         public override string Language
         {
@@ -188,19 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// True if we should enable nullable semantic analysis in this compilation.
         /// </summary>
-        internal bool NullableSemanticAnalysisEnabled
-        {
-            get
-            {
-                var nullableAnalysisFlag = Feature("run-nullable-analysis");
-                if (nullableAnalysisFlag == "false")
-                {
-                    return false;
-                }
-
-                return ShouldRunNullableWalker || nullableAnalysisFlag == "true";
-            }
-        }
+        internal bool NullableSemanticAnalysisEnabled => ShouldRunNullableAnalysis;
 
         /// <summary>
         /// True when the "peverify-compat" feature flag is set or the language version is below C# 7.2.
@@ -210,45 +201,60 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null;
 
-        internal bool ShouldRunNullableWalker
+        /// <summary>
+        /// Returns true if nullable analysis should be run in this compilation.
+        /// </summary>
+        /// <return>
+        /// Returns true if analysis is explicitly enabled for all methods;
+        /// false if analysis is explicitly disabled; and otherwise returns true
+        /// if there are any nullable-enabled contexts in the compilation.
+        /// </return>
+        internal bool ShouldRunNullableAnalysis
         {
             get
             {
-                if (!_lazyShouldRunNullableWalker.HasValue())
+                if (!_lazyShouldRunNullableAnalysis.HasValue())
                 {
-                    _lazyShouldRunNullableWalker = calculateResult();
+                    _lazyShouldRunNullableAnalysis = (GetNullableAnalysisValue() ?? hasEnabledContexts()).ToThreeState();
                 }
-                return _lazyShouldRunNullableWalker.Value();
+                return _lazyShouldRunNullableAnalysis.Value();
 
-                ThreeState calculateResult()
+                bool hasEnabledContexts()
                 {
-                    var feature = Feature("nullableAnalysis");
-                    if (feature == "false")
-                    {
-                        return ThreeState.False;
-                    }
-
                     if (Options.NullableContextOptions != NullableContextOptions.Disable)
                     {
-                        return ThreeState.True;
+                        return true;
                     }
-
-                    foreach (var syntaxTree in SyntaxTrees)
-                    {
-                        if (((CSharpSyntaxTree)syntaxTree).HasNullableEnables())
-                        {
-                            return ThreeState.True;
-                        }
-                    }
-
-                    return ThreeState.False;
+                    return SyntaxTrees.Any(tree => ((CSharpSyntaxTree)tree).HasNullableEnables());
                 }
             }
         }
 
 #if DEBUG
-        internal bool ShouldRunNullableWalkerInDebug => Feature("nullableAnalysis") != "false";
+        /// <summary>
+        /// Returns true if nullable analysis should be run and results ignored in cases where analysis
+        /// is not otherwise necessary. Used for testing in debug builds to increase the chance of catching
+        /// nullable regressions (e.g. https://github.com/dotnet/roslyn/issues/40136).
+        /// </summary>
+        /// <return>
+        /// Returns true unless analysis is explicitly disabled.
+        /// </return>
+        internal bool ShouldRunNullableAnalysisAndIgnoreResults => GetNullableAnalysisValue() != false;
 #endif
+
+        /// <summary>
+        /// Converts Feature("run-nullable-analysis") to a bool? value.
+        /// Returns true for "run-nullable-analysis=always"; false for "run-nullable-analysis=never"; null otherwise.
+        /// </summary>
+        private bool? GetNullableAnalysisValue()
+        {
+            return Feature("run-nullable-analysis") switch
+            {
+                "always" => true,
+                "never" => false,
+                _ => null,
+            };
+        }
 
         /// <summary>
         /// The language version that was used to parse the syntax trees of this compilation.
@@ -411,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxAndDeclarationManager syntaxAndDeclarations,
             IReadOnlyDictionary<string, string> features,
             SemanticModelProvider? semanticModelProvider,
-            AsyncQueue<CompilationEvent>? eventQueue)
+            AsyncQueue<CompilationEvent>? eventQueue = null)
             : base(assemblyName, references, features, isSubmission, semanticModelProvider, eventQueue)
         {
             WellKnownMemberSignatureComparer = new WellKnownMembersSignatureComparer(this);
@@ -696,9 +702,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.SemanticModelProvider,
                 eventQueue);
         }
-
-        // Nullable analysis data for methods, parameter default values, and attributes. Collected during testing only.
-        internal ConcurrentDictionary<object, int>? NullableAnalysisData;
 
         #endregion
 
