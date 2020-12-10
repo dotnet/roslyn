@@ -45,46 +45,45 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule);
 
-        public override void Initialize(AnalysisContext analysisContext)
+        public override void Initialize(AnalysisContext context)
         {
-            analysisContext.EnableConcurrentExecution();
+            context.EnableConcurrentExecution();
 
-            analysisContext.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
-            analysisContext.RegisterCompilationStartAction(
-                (context) =>
+            context.RegisterCompilationStartAction(context =>
+            {
+                INamedTypeSymbol? specializedCollectionsSymbol = context.Compilation.GetOrCreateTypeByMetadataName(SpecializedCollectionsMetadataName);
+                if (specializedCollectionsSymbol == null)
                 {
-                    INamedTypeSymbol? specializedCollectionsSymbol = context.Compilation.GetOrCreateTypeByMetadataName(SpecializedCollectionsMetadataName);
-                    if (specializedCollectionsSymbol == null)
-                    {
-                        // TODO: In the future, we may want to run this analyzer even if the SpecializedCollections
-                        // type cannot be found in this compilation. In some cases, we may want to add a reference
-                        // to SpecializedCollections as a linked file or an assembly that contains it. With this
-                        // check, we will not warn where SpecializedCollections is not yet referenced.
-                        return;
-                    }
+                    // TODO: In the future, we may want to run this analyzer even if the SpecializedCollections
+                    // type cannot be found in this compilation. In some cases, we may want to add a reference
+                    // to SpecializedCollections as a linked file or an assembly that contains it. With this
+                    // check, we will not warn where SpecializedCollections is not yet referenced.
+                    return;
+                }
 
-                    INamedTypeSymbol? genericEnumerableSymbol = context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIEnumerable1);
-                    if (genericEnumerableSymbol == null)
-                    {
-                        return;
-                    }
+                INamedTypeSymbol? genericEnumerableSymbol = context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCollectionsGenericIEnumerable1);
+                if (genericEnumerableSymbol == null)
+                {
+                    return;
+                }
 
-                    INamedTypeSymbol? linqEnumerableSymbol = context.Compilation.GetOrCreateTypeByMetadataName(LinqEnumerableMetadataName);
-                    if (linqEnumerableSymbol == null)
-                    {
-                        return;
-                    }
+                INamedTypeSymbol? linqEnumerableSymbol = context.Compilation.GetOrCreateTypeByMetadataName(LinqEnumerableMetadataName);
+                if (linqEnumerableSymbol == null)
+                {
+                    return;
+                }
 
-                    if (!(linqEnumerableSymbol.GetMembers(EmptyMethodName).FirstOrDefault() is IMethodSymbol genericEmptyEnumerableSymbol) ||
-                        genericEmptyEnumerableSymbol.Arity != 1 ||
-                        !genericEmptyEnumerableSymbol.Parameters.IsEmpty)
-                    {
-                        return;
-                    }
+                if (!(linqEnumerableSymbol.GetMembers(EmptyMethodName).FirstOrDefault() is IMethodSymbol genericEmptyEnumerableSymbol) ||
+                    genericEmptyEnumerableSymbol.Arity != 1 ||
+                    !genericEmptyEnumerableSymbol.Parameters.IsEmpty)
+                {
+                    return;
+                }
 
-                    GetCodeBlockStartedAnalyzer(context, genericEnumerableSymbol, genericEmptyEnumerableSymbol);
-                });
+                GetCodeBlockStartedAnalyzer(context, genericEnumerableSymbol, genericEmptyEnumerableSymbol);
+            });
         }
 
         protected abstract void GetCodeBlockStartedAnalyzer(CompilationStartAnalysisContext context, INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol);
