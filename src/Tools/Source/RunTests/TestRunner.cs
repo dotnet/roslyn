@@ -127,9 +127,9 @@ namespace RunTests
         <HelixWorkItem Include=""" + assemblyInfo.DisplayName + @""">
             <PayloadDirectory>" + Path.Combine(msbuildTestPayloadRoot, Path.GetDirectoryName(assemblyInfo.AssemblyPath)!) + @"</PayloadDirectory>
             <Command>
-                {lsCommand}
+                " + lsCommand + @"
                 " + rehydrateCommand + @"
-                {lsCommand}
+                " + lsCommand + @"
                 dotnet " + commandLineArguments + @"
             </Command>
         </HelixWorkItem>
