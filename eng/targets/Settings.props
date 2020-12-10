@@ -5,15 +5,15 @@
   <PropertyGroup>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <RepositoryUrl>https://github.com/dotnet/roslyn</RepositoryUrl>
     <RepositoryRawUrl>https://raw.githubusercontent.com/dotnet/roslyn</RepositoryRawUrl>
-    
+
     <!-- Package Settings -->
     <PackageLicenseUrl>$(RepositoryUrl)/blob/master/License.txt</PackageLicenseUrl>
     <!-- The SPDX name for the source license. See https://spdx.org/licenses/. -->
-    <PackageLicenseType>Apache-2.0</PackageLicenseType>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageIconUrl>https://go.microsoft.com/fwlink/?LinkID=288859</PackageIconUrl>
     <PackageProjectUrl>https://github.com/dotnet/roslyn</PackageProjectUrl>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</PackageTags>
@@ -22,7 +22,7 @@
       replace PackageLicenseUrl with PackageLicenseExpression. See https://github.com/dotnet/roslyn/issues/31589 for details
     -->
     <NoWarn>$(NoWarn);NU5125</NoWarn>
-    
+
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
 
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
@@ -60,7 +60,7 @@
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
   </PropertyGroup>
 
-  <!-- 
+  <!--
     Disable Source Link and Xliff in WPF temp projects to avoid generating non-deterministic file names to obj dir.
     The project name is non-deterministic and is included in the Source Link json file name and xlf directory names.
     It's also not necessary to generate these assets.
@@ -96,19 +96,19 @@
     <VisualStudioDebuggerKey>$(VisualStudioKey)</VisualStudioDebuggerKey>
   </PropertyGroup>
 
-  <!-- 
-       Enable hard links for the build. This is not done by default due to fears about 
+  <!--
+       Enable hard links for the build. This is not done by default due to fears about
        inadvertently corrupting the NuGet cache (hard links in the output directory will
        point into the cache). The build itself will not due this but a developer directly
        modifying this directory could cause it to happen.
 
-       Developers who do not modify the output directory directly can enable this safely 
+       Developers who do not modify the output directory directly can enable this safely
 
        Related discussion in https://github.com/dotnet/roslyn/issues/30005
   -->
   <PropertyGroup Condition="'$(ROSLYNUSEHARDLINKS)' != ''">
     <CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>true</CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>
-    <CreateHardLinksForCopyAdditionalFilesIfPossible>true</CreateHardLinksForCopyAdditionalFilesIfPossible> 
+    <CreateHardLinksForCopyAdditionalFilesIfPossible>true</CreateHardLinksForCopyAdditionalFilesIfPossible>
     <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
     <CreateHardLinksForPublishFilesIfPossible>true</CreateHardLinksForPublishFilesIfPossible>
   </PropertyGroup>
@@ -124,7 +124,7 @@
     <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
   </PropertyGroup>
 
-  <!-- 
+  <!--
     Bootstrapping compilers
   -->
   <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
