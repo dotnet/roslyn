@@ -199,7 +199,7 @@
       </trans-unit>
       <trans-unit id="ERR_IteratorMustBeAsync">
         <source>Method '{0}' with an iterator block must be 'async' to return '{1}'</source>
-        <target state="translated">O método '{0}' com um bloco iterador deve ser 'async' para retornar '\ {1 \}'</target>
+        <target state="translated">O método '{0}' com um bloco iterador deve ser 'async' para retornar '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPattern">
