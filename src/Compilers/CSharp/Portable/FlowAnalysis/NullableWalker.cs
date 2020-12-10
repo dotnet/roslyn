@@ -1296,7 +1296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             return compilation.ShouldRunNullableAnalysisAndIgnoreResults;
 #else
-            var canSkipAnalysis = compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker;
+            var canSkipAnalysis = compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableAnalysis;
             return !canSkipAnalysis;
 #endif
         }
