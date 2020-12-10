@@ -508,8 +508,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // pointer case for regular pointers
-            if ((currentToken.Kind() == SyntaxKind.AsteriskToken && currentToken.Parent is PointerTypeSyntax) ||
-                (previousToken.Kind() == SyntaxKind.AsteriskToken && previousToken.Parent is PrefixUnaryExpressionSyntax))
+            if (currentToken.Kind() == SyntaxKind.AsteriskToken && currentToken.Parent is PointerTypeSyntax)
+            {
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
+            if (previousToken.Kind() == SyntaxKind.AsteriskToken &&
+                (previousToken.Parent is PrefixUnaryExpressionSyntax || previousToken.Kind() == SyntaxKind.IdentifierToken))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
