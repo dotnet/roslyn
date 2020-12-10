@@ -6,31 +6,41 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.TextManager.Interop;
 using MSXML;
 using Roslyn.Utilities;
+using CommonFormattingHelpers = Microsoft.CodeAnalysis.Editor.Shared.Utilities.CommonFormattingHelpers;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
@@ -42,19 +52,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly ITextView TextView;
         protected readonly ITextBuffer SubjectBuffer;
 
+        private readonly IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _allArgumentProviders;
+        private ImmutableArray<ArgumentProvider> _argumentProviders;
+
         protected bool indentCaretOnCommit;
         protected int indentDepth;
         protected bool earlyEndExpansionHappened;
 
         internal IVsExpansionSession ExpansionSession;
+        private bool _preserveSymbols;
+        private ImmutableArray<IMethodSymbol> _symbols;
+        private IMethodSymbol _symbol;
+        private ImmutableDictionary<string, string> _arguments = ImmutableDictionary.Create<string, string>();
 
-        public AbstractSnippetExpansionClient(IThreadingContext threadingContext, Guid languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
+        public AbstractSnippetExpansionClient(
+            IThreadingContext threadingContext,
+            Guid languageServiceGuid,
+            ITextView textView,
+            ITextBuffer subjectBuffer,
+            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+            IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders)
             : base(threadingContext)
         {
             this.LanguageServiceGuid = languageServiceGuid;
             this.TextView = textView;
             this.SubjectBuffer = subjectBuffer;
             this.EditorAdaptersFactoryService = editorAdaptersFactoryService;
+            this._allArgumentProviders = argumentProviders;
+        }
+
+        internal ImmutableDictionary<string, string> Arguments => _arguments;
+
+        internal ImmutableArray<ArgumentProvider> GetArgumentProviders(Workspace workspace)
+        {
+            if (_argumentProviders.IsDefault)
+            {
+                _argumentProviders = workspace.Services
+                    .SelectMatchingExtensionValues(ExtensionOrderer.Order(_allArgumentProviders), SubjectBuffer.ContentType)
+                    .ToImmutableArray();
+            }
+
+            return _argumentProviders;
         }
 
         public abstract int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction pFunc);
@@ -63,6 +101,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public int FormatSpan(IVsTextLines pBuffer, VsTextSpan[] tsInSurfaceBuffer)
         {
+            // If this is a manually-constructed snippet for a full method call, avoid formatting the snippet since
+            // doing so will disrupt signature help.
+            if (!_symbols.IsDefault)
+            {
+                return VSConstants.S_OK;
+            }
+
             // Formatting a snippet isn't cancellable.
             var cancellationToken = CancellationToken.None;
             // At this point, the $selection$ token has been replaced with the selected text and
@@ -299,12 +344,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             if (ExpansionSession != null)
             {
-                var tabbedInsideSnippetField = VSConstants.S_OK == ExpansionSession.GoToNextExpansionField(0);
+                var isFullMethodCallSnippet = !_symbols.IsDefault;
+                var tabbedInsideSnippetField = VSConstants.S_OK == ExpansionSession.GoToNextExpansionField(fCommitIfLast: isFullMethodCallSnippet ? 1 : 0);
 
                 if (!tabbedInsideSnippetField)
                 {
                     ExpansionSession.EndCurrentExpansion(fLeaveCaret: 1);
                     ExpansionSession = null;
+                    _symbols = default;
+                    _symbol = null;
+                    _arguments = _arguments.Clear();
                 }
 
                 return tabbedInsideSnippetField;
@@ -323,6 +372,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 {
                     ExpansionSession.EndCurrentExpansion(fLeaveCaret: 1);
                     ExpansionSession = null;
+                    _symbols = default;
+                    _symbol = null;
+                    _arguments = _arguments.Clear();
                 }
 
                 return tabbedInsideSnippetField;
@@ -337,6 +389,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             {
                 ExpansionSession.EndCurrentExpansion(fLeaveCaret: 1);
                 ExpansionSession = null;
+                _symbols = default;
+                _symbol = null;
+                _arguments = _arguments.Clear();
                 return true;
             }
 
@@ -351,6 +406,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 var hitWithinField = VSConstants.S_OK == ExpansionSession.GoToNextExpansionField(fCommitIfLast: 0);
                 ExpansionSession.EndCurrentExpansion(fLeaveCaret: hitWithinField ? 0 : 1);
                 ExpansionSession = null;
+                _symbols = default;
+                _symbol = null;
+                _arguments = _arguments.Clear();
 
                 return hitWithinField;
             }
@@ -358,7 +416,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return false;
         }
 
-        public virtual bool TryInsertExpansion(int startPositionInSubjectBuffer, int endPositionInSubjectBuffer)
+        public virtual bool TryInsertExpansion(int startPositionInSubjectBuffer, int endPositionInSubjectBuffer, CancellationToken cancellationToken)
         {
             var textViewModel = TextView.TextViewModel;
             if (textViewModel == null)
@@ -393,7 +451,338 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 iEndIndex = endIndex
             };
 
-            return expansion.InsertExpansion(textSpan, textSpan, this, LanguageServiceGuid, out ExpansionSession) == VSConstants.S_OK;
+            if (expansion.InsertExpansion(textSpan, textSpan, this, LanguageServiceGuid, out ExpansionSession) == VSConstants.S_OK)
+            {
+                // This expansion is not derived from a symbol
+                _symbols = default;
+                _symbol = null;
+                _arguments = _arguments.Clear();
+                return true;
+            }
+
+            if (!(SubjectBuffer.GetFeatureOnOffOption(CompletionOptions.EnableCallCompletionOnTabTab) ?? false))
+            {
+                // Full method call completion is not enabled
+                return false;
+            }
+
+            var symbols = ThreadingContext.JoinableTaskFactory.Run(() =>
+            {
+                var caretPosition = SubjectBuffer.CurrentSnapshot.GetPoint(endPositionInSubjectBuffer);
+                return GetSymbolsAsync(caretPosition, cancellationToken);
+            });
+
+            if (symbols.OfType<IMethodSymbol>().Any())
+            {
+                XNamespace snippetNamespace = "http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet";
+
+                var methodName = dataBufferSpan.GetText();
+
+                var template = $"{methodName}($placeholder$)$end$";
+
+                var snippet = new XDocument(
+                    new XDeclaration("1.0", "utf-8", null),
+                    new XElement(
+                        snippetNamespace + "CodeSnippets",
+                        new XElement(
+                            snippetNamespace + "CodeSnippet",
+                            new XAttribute(snippetNamespace + "Format", "1.0.0"),
+                            new XElement(
+                                snippetNamespace + "Header",
+                                new XElement(
+                                    snippetNamespace + "SnippetTypes",
+                                    new XElement(snippetNamespace + "SnippetType", new XText("Expansion"))),
+                                new XElement(snippetNamespace + "Title", new XText(methodName)),
+                                new XElement(snippetNamespace + "Author", "Microsoft"),
+                                new XElement(snippetNamespace + "Description"),
+                                new XElement(snippetNamespace + "HelpUrl"),
+                                new XElement(snippetNamespace + "Shortcut", methodName)),
+                            new XElement(
+                                snippetNamespace + "Snippet",
+                                new XElement(
+                                    snippetNamespace + "Declarations",
+                                    new XElement(
+                                        snippetNamespace + "Literal",
+                                        new XAttribute(snippetNamespace + "Editable", "true"),
+                                        new XElement(snippetNamespace + "ID", new XText("placeholder")),
+                                        new XElement(snippetNamespace + "ToolTip", new XText("")),
+                                        new XElement(snippetNamespace + "Default", new XText("")),
+                                        new XElement(snippetNamespace + "Function"))),
+                                new XElement(
+                                    snippetNamespace + "Code",
+                                    new XAttribute(snippetNamespace + "Language", "csharp"),
+                                    new XCData(template))))));
+
+                var doc = new DOMDocumentClass();
+                if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
+                {
+                    var methodSymbols = symbols.OfType<IMethodSymbol>().ToImmutableArray();
+                    _symbols = methodSymbols;
+                    _symbol = null;
+
+                    if (expansion.InsertSpecificExpansion(doc, textSpan, this, LanguageServiceGuid, pszRelativePath: null, out ExpansionSession) == VSConstants.S_OK)
+                    {
+                        Debug.Assert(_symbols == methodSymbols);
+                        Debug.Assert(_symbol == null);
+
+                        // Trigger signature help after starting the snippet session
+                        var workspace = (VisualStudioWorkspace)SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()!.Project.Solution.Workspace;
+                        var exportProvider = (IMefHostExportProvider)workspace.Services.HostServices;
+                        var editorCommandHandlerServiceFactory = exportProvider.GetExports<IEditorCommandHandlerServiceFactory>().Single().Value;
+                        var editorCommandHandlerService = editorCommandHandlerServiceFactory.GetService(TextView, SubjectBuffer);
+                        editorCommandHandlerService.Execute((view, buffer) => new InvokeSignatureHelpCommandArgs(view, buffer), nextCommandHandler: null);
+
+                        ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
+                        {
+                            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+                            while (ExpansionSession is not null)
+                            {
+                                var controller = Controller.TryGetInstance(TextView, SubjectBuffer);
+                                if (controller is null)
+                                {
+                                    await Task.Yield();
+                                    continue;
+                                }
+
+                                controller.ModelUpdated -= OnModelUpdated;
+                                controller.ModelUpdated += OnModelUpdated;
+                                return;
+                            }
+                        });
+
+                        return true;
+                    }
+                    else
+                    {
+                        _symbols = default;
+                        _symbol = null;
+                        _arguments = _arguments.Clear();
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private void OnModelUpdated(object sender, Model e)
+        {
+            if (e is null)
+            {
+                return;
+            }
+
+            if (_symbols.IsDefaultOrEmpty)
+            {
+                return;
+            }
+
+            var document = SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document is null)
+            {
+                return;
+            }
+
+            var newSymbolKey = (e.SelectedItem as AbstractSignatureHelpProvider.SymbolKeySignatureHelpItem)?.SymbolKey ?? default;
+            var newSymbol = newSymbolKey.Resolve(document.Project.GetRequiredCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None), cancellationToken: CancellationToken.None).GetAnySymbol();
+            if (newSymbol is not IMethodSymbol method)
+                return;
+
+            MoveToSymbol(_symbols, method, CancellationToken.None);
+        }
+
+        private async Task<ImmutableArray<ISymbol>> GetSymbolsAsync(
+            SnapshotPoint caretPosition,
+            CancellationToken cancellationToken)
+        {
+            var document = SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document is null)
+            {
+                return ImmutableArray<ISymbol>.Empty;
+            }
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var token = await semanticModel.SyntaxTree.GetTouchingTokenAsync(caretPosition.Position, cancellationToken).ConfigureAwait(false);
+            var semanticInfo = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken);
+            return semanticInfo.ReferencedSymbols;
+        }
+
+        public void MoveToSymbol(ImmutableArray<IMethodSymbol> symbols, IMethodSymbol symbol, CancellationToken cancellationToken)
+        {
+            AssertIsForeground();
+
+            if (ExpansionSession is null)
+            {
+                return;
+            }
+
+            if (SymbolEqualityComparer.Default.Equals(_symbol, symbol))
+            {
+                return;
+            }
+
+            var symbolName = _symbol?.Name ?? _symbols.FirstOrDefault()?.Name;
+            if (symbolName != symbol.Name)
+            {
+                // Can't track this request
+                _symbols = default;
+                _symbol = null;
+                _arguments = _arguments.Clear();
+                return;
+            }
+
+            if (!_symbols.IsDefaultOrEmpty && _symbols != symbols)
+            {
+                // Can't track this request
+                _symbols = default;
+                _symbol = null;
+                _arguments = _arguments.Clear();
+                return;
+            }
+
+            var textViewModel = TextView.TextViewModel;
+            if (textViewModel == null)
+            {
+                Debug.Assert(TextView.IsClosed);
+                return;
+            }
+
+            var buffer = EditorAdaptersFactoryService.GetBufferAdapter(textViewModel.DataBuffer);
+            if (buffer is not IVsExpansion expansion)
+            {
+                return;
+            }
+
+            // Track current argument values
+            if (_symbol is not null)
+            {
+                foreach (var previousParameter in _symbol.Parameters)
+                {
+                    if (ExpansionSession.GetFieldValue(previousParameter.Name, out var previousValue) == VSConstants.S_OK)
+                    {
+                        _arguments = _arguments.SetItem(previousParameter.Name, previousValue);
+                    }
+                }
+            }
+
+            XNamespace snippetNamespace = "http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet";
+
+            var methodName = symbol.Name;
+
+            var template = new StringBuilder();
+
+            var declarations = new List<XElement>();
+            foreach (var parameter in symbol.Parameters)
+            {
+                if (declarations.Any())
+                {
+                    template.Append(", ");
+                }
+
+                template.Append('$').Append(parameter.Name).Append('$');
+                declarations.Add(new XElement(
+                    snippetNamespace + "Literal",
+                    new XAttribute(snippetNamespace + "Editable", "true"),
+                    new XElement(snippetNamespace + "ID", new XText(parameter.Name)),
+                    new XElement(snippetNamespace + "Function", new XText($"ArgumentValue({SymbolKey.CreateString(parameter, cancellationToken)})"))));
+            }
+
+            if (!declarations.Any())
+            {
+                template.Append("$placeholder$");
+                declarations.Add(new XElement(
+                    snippetNamespace + "Literal",
+                    new XAttribute(snippetNamespace + "Editable", "true"),
+                    new XElement(snippetNamespace + "ID", new XText("placeholder")),
+                    new XElement(snippetNamespace + "ToolTip", new XText("")),
+                    new XElement(snippetNamespace + "Default", new XText("")),
+                    new XElement(snippetNamespace + "Function")));
+            }
+
+            var snippet = new XDocument(
+                new XDeclaration("1.0", "utf-8", null),
+                new XElement(
+                    snippetNamespace + "CodeSnippets",
+                    new XElement(
+                        snippetNamespace + "CodeSnippet",
+                        new XAttribute(snippetNamespace + "Format", "1.0.0"),
+                        new XElement(
+                            snippetNamespace + "Header",
+                            new XElement(
+                                snippetNamespace + "SnippetTypes",
+                                new XElement(snippetNamespace + "SnippetType", new XText("Expansion"))),
+                            new XElement(snippetNamespace + "Title", new XText(methodName)),
+                            new XElement(snippetNamespace + "Author", "Microsoft"),
+                            new XElement(snippetNamespace + "Description"),
+                            new XElement(snippetNamespace + "HelpUrl"),
+                            new XElement(snippetNamespace + "Shortcut", methodName)),
+                        new XElement(
+                            snippetNamespace + "Snippet",
+                            new XElement(snippetNamespace + "Declarations", declarations.ToArray()),
+                            new XElement(
+                                snippetNamespace + "Code",
+                                new XAttribute(snippetNamespace + "Language", "csharp"),
+                                new XCData(template.ToString()))))));
+
+            var textSpan = new VsTextSpan[1];
+            if (ExpansionSession is null || ExpansionSession.GetSnippetSpan(textSpan) != VSConstants.S_OK)
+            {
+                return;
+            }
+
+            var adjustedTextSpan = textSpan[0];
+            var firstField = _symbol?.Parameters.FirstOrDefault()?.Name ?? "placeholder";
+            if (ExpansionSession.GetFieldSpan(firstField, textSpan) != VSConstants.S_OK)
+            {
+                return;
+            }
+
+            adjustedTextSpan.iStartLine = textSpan[0].iStartLine;
+            adjustedTextSpan.iStartIndex = textSpan[0].iStartIndex;
+
+            var lastField = _symbol?.Parameters.LastOrDefault()?.Name ?? "placeholder";
+            if (ExpansionSession.GetFieldSpan(lastField, textSpan) != VSConstants.S_OK)
+            {
+                return;
+            }
+
+            adjustedTextSpan.iEndLine = textSpan[0].iEndLine;
+            adjustedTextSpan.iEndIndex = textSpan[0].iEndIndex;
+
+            // Explicitly carry forward arguments, since the field will be cleared when the new snippet session replaces
+            // the current one.
+            var previousArguments = _arguments;
+            var doc = new DOMDocumentClass();
+            if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
+            {
+                _preserveSymbols = true;
+                _symbols = symbols;
+                _symbol = symbol;
+                _arguments = previousArguments;
+
+                if (expansion.InsertSpecificExpansion(doc, adjustedTextSpan, this, LanguageServiceGuid, pszRelativePath: null, out ExpansionSession) == VSConstants.S_OK)
+                {
+                    _preserveSymbols = false;
+                    Debug.Assert(_symbols == symbols);
+                    Debug.Assert(_symbol == symbol);
+                    Debug.Assert(_arguments == previousArguments);
+
+                    // Even though the closing parenthesis is not part of the updated snippet, make sure the $end$
+                    // position lies after it.
+                    if (ExpansionSession.GetEndSpan(textSpan) == VSConstants.S_OK)
+                    {
+                        textSpan[0].iStartIndex++;
+                        textSpan[0].iEndIndex++;
+                        ExpansionSession.SetEndSpan(textSpan[0]);
+                    }
+                }
+                else
+                {
+                    _preserveSymbols = false;
+                    _symbols = default;
+                    _symbol = null;
+                    _arguments = _arguments.Clear();
+                }
+            }
         }
 
         public int EndExpansion()
@@ -404,6 +793,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             ExpansionSession = null;
+            if (!_preserveSymbols)
+            {
+                _symbols = default;
+                _symbol = null;
+                _arguments = _arguments.Clear();
+            }
+
             indentCaretOnCommit = false;
 
             return VSConstants.S_OK;
@@ -433,6 +829,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             Logger.Log(FunctionId.Snippet_OnBeforeInsertion);
 
             this.ExpansionSession = pSession;
+
+            // Symbol information (when necessary) is set by the caller
+
             return VSConstants.S_OK;
         }
 
@@ -456,6 +855,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
                 var expansion = EditorAdaptersFactoryService.GetBufferAdapter(textViewModel.DataBuffer) as IVsExpansion;
                 earlyEndExpansionHappened = false;
+                _symbols = default;
+                _symbol = null;
+                _arguments = _arguments.Clear();
                 hr = expansion.InsertNamedExpansion(pszTitle, pszPath, textSpan, this, LanguageServiceGuid, fShowDisambiguationUI: 0, pSession: out ExpansionSession);
 
                 if (earlyEndExpansionHappened)

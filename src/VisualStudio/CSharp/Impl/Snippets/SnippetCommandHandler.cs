@@ -4,12 +4,16 @@
 
 #nullable disable
 
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Editor;
@@ -30,13 +34,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
     [Order(After = Microsoft.CodeAnalysis.Editor.PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)]
     internal sealed class SnippetCommandHandler :
         AbstractSnippetCommandHandler,
-        ICommandHandler<SurroundWithCommandArgs>
+        ICommandHandler<SurroundWithCommandArgs>,
+        IChainedCommandHandler<TypeCharCommandArgs>
     {
+        private readonly IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _argumentProviders;
+
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public SnippetCommandHandler(IThreadingContext threadingContext, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, SVsServiceProvider serviceProvider)
+        public SnippetCommandHandler(
+            IThreadingContext threadingContext,
+            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+            SVsServiceProvider serviceProvider,
+            [ImportMany] IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders)
             : base(threadingContext, editorAdaptersFactoryService, serviceProvider)
         {
+            _argumentProviders = argumentProviders;
         }
 
         public bool ExecuteCommand(SurroundWithCommandArgs args, CommandExecutionContext context)
@@ -73,11 +85,29 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             return CommandState.Available;
         }
 
+        public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextCommandHandler)
+        {
+            return nextCommandHandler();
+        }
+
+        public void ExecuteCommand(TypeCharCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
+        {
+            AssertIsForeground();
+            if (args.TypedChar == ';'
+                && AreSnippetsEnabled(args)
+                && args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient))
+            {
+                snippetExpansionClient.TryHandleReturn();
+            }
+
+            nextCommandHandler();
+        }
+
         protected override AbstractSnippetExpansionClient GetSnippetExpansionClient(ITextView textView, ITextBuffer subjectBuffer)
         {
             if (!textView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient expansionClient))
             {
-                expansionClient = new SnippetExpansionClient(ThreadingContext, Guids.CSharpLanguageServiceId, textView, subjectBuffer, EditorAdaptersFactoryService);
+                expansionClient = new SnippetExpansionClient(ThreadingContext, Guids.CSharpLanguageServiceId, textView, subjectBuffer, EditorAdaptersFactoryService, _argumentProviders);
                 textView.Properties.AddProperty(typeof(AbstractSnippetExpansionClient), expansionClient);
             }
 

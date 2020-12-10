@@ -69,6 +69,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             _completionBroker = completionBroker;
         }
 
+        public event EventHandler<Model> ModelUpdated;
+
+        internal static Controller TryGetInstance(ITextView textView, ITextBuffer subjectBuffer)
+        {
+            if (!textView.TryGetPerSubjectBufferProperty(subjectBuffer, s_controllerPropertyKey, out Controller controller))
+                return null;
+
+            return controller;
+        }
+
         internal static Controller GetInstance(
             IThreadingContext threadingContext,
             EditorCommandArgs args,
@@ -115,6 +125,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 this.sessionOpt.PresenterSession.PresentItems(
                      trackingSpan, modelOpt.Items, modelOpt.SelectedItem, modelOpt.SelectedParameter);
             }
+
+            ModelUpdated?.Invoke(this, modelOpt);
         }
 
         private void StartSession(

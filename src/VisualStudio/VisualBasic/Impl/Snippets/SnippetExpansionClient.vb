@@ -4,9 +4,11 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -24,16 +26,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     Friend NotInheritable Class SnippetExpansionClient
         Inherits AbstractSnippetExpansionClient
 
-        Public Sub New(threadingContext As IThreadingContext, languageServiceId As Guid, textView As ITextView, subjectBuffer As ITextBuffer, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService)
-            MyBase.New(threadingContext, languageServiceId, textView, subjectBuffer, editorAdaptersFactoryService)
+        Public Sub New(threadingContext As IThreadingContext, languageServiceId As Guid, textView As ITextView, subjectBuffer As ITextBuffer, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService, argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)))
+            MyBase.New(threadingContext, languageServiceId, textView, subjectBuffer, editorAdaptersFactoryService, argumentProviders)
         End Sub
 
-        Public Shared Function GetSnippetExpansionClient(threadingContext As IThreadingContext, textView As ITextView, subjectBuffer As ITextBuffer, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService) As AbstractSnippetExpansionClient
+        Public Shared Function GetSnippetExpansionClient(threadingContext As IThreadingContext, textView As ITextView, subjectBuffer As ITextBuffer, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService, argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))) As AbstractSnippetExpansionClient
 
             Dim expansionClient As AbstractSnippetExpansionClient = Nothing
 
             If Not textView.Properties.TryGetProperty(GetType(AbstractSnippetExpansionClient), expansionClient) Then
-                expansionClient = New SnippetExpansionClient(threadingContext, Guids.VisualBasicDebuggerLanguageId, textView, subjectBuffer, editorAdaptersFactoryService)
+                expansionClient = New SnippetExpansionClient(threadingContext, Guids.VisualBasicDebuggerLanguageId, textView, subjectBuffer, editorAdaptersFactoryService, argumentProviders)
                 textView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), expansionClient)
             End If
 
@@ -83,6 +85,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                     Return VSConstants.S_OK
                 Case "GenerateSwitchCases"
                     pFunc = New SnippetFunctionGenerateSwitchCases(Me, SubjectBuffer, bstrFieldName, param)
+                    Return VSConstants.S_OK
+                Case "ArgumentValue"
+                    pFunc = New SnippetFunctionArgumentValue(Me, SubjectBuffer, bstrFieldName, param)
                     Return VSConstants.S_OK
                 Case Else
                     pFunc = Nothing

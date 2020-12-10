@@ -11,6 +11,7 @@ using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctions;
@@ -33,8 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
     internal sealed partial class SnippetExpansionClient : AbstractSnippetExpansionClient
     {
-        public SnippetExpansionClient(IThreadingContext threadingContext, Guid languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : base(threadingContext, languageServiceGuid, textView, subjectBuffer, editorAdaptersFactoryService)
+        public SnippetExpansionClient(IThreadingContext threadingContext, Guid languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders)
+            : base(threadingContext, languageServiceGuid, textView, subjectBuffer, editorAdaptersFactoryService, argumentProviders)
         {
         }
 
@@ -80,6 +82,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                     return VSConstants.S_OK;
                 case "GenerateSwitchCases":
                     pFunc = new SnippetFunctionGenerateSwitchCases(this, SubjectBuffer, bstrFieldName, param);
+                    return VSConstants.S_OK;
+                case "ArgumentValue":
+                    pFunc = new SnippetFunctionArgumentValue(this, SubjectBuffer, bstrFieldName, param);
                     return VSConstants.S_OK;
                 default:
                     pFunc = null;

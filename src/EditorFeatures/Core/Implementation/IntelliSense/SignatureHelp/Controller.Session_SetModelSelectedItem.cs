@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 AssertIsForeground();
 
                 Computation.ChainTaskAndNotifyControllerWhenFinished(
-                    model => SetModelExplicitlySelectedItemInBackground(model, selector),
-                    updateController: false);
+                    model => SetModelExplicitlySelectedItemInBackground(model, selector));
             }
 
             private Model SetModelExplicitlySelectedItemInBackground(

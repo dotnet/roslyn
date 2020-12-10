@@ -4,10 +4,12 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 Imports Microsoft.VisualStudio.Text.Projection
@@ -355,7 +357,8 @@ End Class</Test>
                     Guids.CSharpLanguageServiceId,
                     document.GetTextView(),
                     document.GetTextBuffer(),
-                    Nothing)
+                    Nothing,
+                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)())
 
                 SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
             End Using
@@ -395,7 +398,8 @@ End Class</Test>
                     Guids.VisualBasicDebuggerLanguageId,
                     workspace.Documents.Single().GetTextView(),
                     workspace.Documents.Single().GetTextBuffer(),
-                    Nothing)
+                    Nothing,
+                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)())
 
                 Dim updatedDocument = expansionClient.AddImports(
                     workspace.CurrentSolution.Projects.Single().Documents.Single(),
@@ -424,7 +428,8 @@ End Class</Test>
                     Guids.CSharpLanguageServiceId,
                     surfaceBufferDocument.GetTextView(),
                     subjectBufferDocument.GetTextBuffer(),
-                    Nothing)
+                    Nothing,
+                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)())
 
                 SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, surfaceBufferDocument, expectedSurfaceBuffer)
             End Using
