@@ -22,6 +22,10 @@ parameters:
   type: string
   default: Test
   values: [ 'Test', 'Real' ]
+- name: includeMacOS
+  displayName: Build on macOS
+  type: boolean
+  default: false # macOS is often bogged down in Azure Pipelines
 
 stages:
 
@@ -39,6 +43,7 @@ stages:
   - template: build.yml
     parameters:
       windowsPool: VSEng-MicroBuildVS2019
+      includeMacOS: ${{ parameters.includeMacOS }}
 
 - stage: symbol_archive
   displayName: Symbol archival
