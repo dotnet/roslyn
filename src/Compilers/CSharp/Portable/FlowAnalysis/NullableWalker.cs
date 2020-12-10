@@ -626,15 +626,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return;
                 }
-                if (!fieldType.NullableAnnotation.IsNotAnnotated())
+                var annotations = symbol.GetFlowAnalysisAnnotations();
+                if ((annotations & (FlowAnalysisAnnotations.AllowNull)) != 0)
                 {
+                    // We assume that if a member has AllowNull then the user
+                    // does not care that we exit at a point where the member might be null.
                     return;
                 }
-                var annotations = symbol.GetFlowAnalysisAnnotations();
-                if ((annotations & (FlowAnalysisAnnotations.MaybeNull | FlowAnalysisAnnotations.AllowNull)) != 0)
+                fieldType = ApplyUnconditionalAnnotations(fieldType, annotations);
+                if (!fieldType.NullableAnnotation.IsNotAnnotated())
                 {
-                    // We assume that if a member has MaybeNull or AllowNull then the user
-                    // does not care that we exit at a point where the member might be null.
                     return;
                 }
                 var slot = GetOrCreateSlot(symbol, thisSlot);
@@ -822,6 +823,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
+                    // we don't use a default initial state for value type instance constructors without `: this()` because
+                    // any usages of uninitialized fields will get definite assignment errors anyway.
                     if (!method.HasThisConstructorInitializer() && (!method.ContainingType.IsValueType || method.IsStatic))
                     {
                         return true;
