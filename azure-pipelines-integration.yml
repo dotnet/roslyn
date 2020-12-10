@@ -20,7 +20,9 @@ pr:
 
 jobs:
 - job: Windows_VisualStudio_Integration_Tests
-  pool: dotnet-external-vs2019-preview
+  pool:
+    name: NetCorePublic-Pool
+    queue: buildpool.windows.10.amd64.vs2019.open
   strategy:
     maxParallel: 4
     matrix:
@@ -48,7 +50,7 @@ jobs:
         testRunner: XUnit
         testResultsFiles: $(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml
         mergeTestResults: true
-        testRunTitle: 'Windows Visual Studio Integration $(_configuration)_$(_useLegacyCompletion)' 
+        testRunTitle: 'Windows Visual Studio Integration $(_configuration)_$(_useLegacyCompletion)'
       condition: always()
 
     - task: PublishBuildArtifacts@1
@@ -64,7 +66,7 @@ jobs:
       displayName: Publish Screenshots
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\bin\Microsoft.VisualStudio.LanguageServices.IntegrationTests\$(_configuration)\net472\xUnitResults'
-        ArtifactName: 'Screenshots $(_configuration)_$(_useLegacyCompletion)' 
+        ArtifactName: 'Screenshots $(_configuration)_$(_useLegacyCompletion)'
         publishLocation: Container
       continueOnError: true
       condition: not(succeeded())
