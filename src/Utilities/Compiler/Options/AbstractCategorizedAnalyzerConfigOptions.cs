@@ -93,7 +93,7 @@ namespace Analyzer.Utilities
         {
             var optionKeyPrefix = MapOptionKindToKeyPrefix(kind);
 
-            T optionValue;
+            T? optionValue;
             if (rule != null)
             {
                 if (TryGetSpecificOptionValue(rule.Id, optionKeyPrefix, out optionValue) ||
