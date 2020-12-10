@@ -119,7 +119,27 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             {
                 if (this.DataFlowAnalysisContext.SourceInfos.IsSourceParameter(parameter, WellKnownTypeProvider))
                 {
-                    return TaintedDataAbstractValue.CreateTainted(parameter, parameter.DeclaringSyntaxReferences[0].GetSyntax(), this.OwningSymbol);
+                    // Location of the parameter, so we can track where the tainted data appears in code.
+                    // The parameter itself may not have any DeclaringSyntaxReferences, e.g. 'value' inside property setters.
+                    SyntaxNode parameterSyntaxNode;
+                    if (!parameter.DeclaringSyntaxReferences.IsEmpty)
+                    {
+                        parameterSyntaxNode = parameter.DeclaringSyntaxReferences[0].GetSyntax();
+                    }
+                    else if (!parameter.ContainingSymbol.DeclaringSyntaxReferences.IsEmpty)
+                    {
+                        parameterSyntaxNode = parameter.ContainingSymbol.DeclaringSyntaxReferences[0].GetSyntax();
+                    }
+                    else
+                    {
+                        // Unless there are others, the only case we have for parameters being tainted data sources is inside
+                        // ASP.NET Core MVC controller action methods (see WebInputSources.cs), so those parameters should
+                        // always be declared somewhere.
+                        Debug.Fail("Can we have a tainted data parameter with no syntax references?");
+                        return ValueDomain.UnknownOrMayBeValue;
+                    }
+
+                    return TaintedDataAbstractValue.CreateTainted(parameter, parameterSyntaxNode, this.OwningSymbol);
                 }
 
                 return ValueDomain.UnknownOrMayBeValue;

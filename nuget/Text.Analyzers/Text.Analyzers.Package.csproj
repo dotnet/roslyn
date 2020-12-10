@@ -10,14 +10,14 @@
     <ReleaseNotes>Text Analyzers</ReleaseNotes>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics</PackageTags>
     
-    <!-- 'ContainsPortedFxCopRules' should be switched to 'true' once we have ported FxCop rules in this package -->
-    <ContainsPortedFxCopRules>false</ContainsPortedFxCopRules>
+    <ContainsPortedFxCopRules>true</ContainsPortedFxCopRules>
   </PropertyGroup>
 
   <ItemGroup>
     <AnalyzerNupkgAssembly Include="Text.Analyzers.dll" />
     <AnalyzerNupkgAssembly Include="Text.CSharp.Analyzers.dll" />
     <AnalyzerNupkgAssembly Include="Text.VisualBasic.Analyzers.dll" />
+    <AnalyzerNupkgAssembly Include="$(NuGetPackageRoot)humanizer.core\$(HumanizerVersion)\lib\netstandard1.0\Humanizer.dll" />
   </ItemGroup>
 
   <ItemGroup>

@@ -570,11 +570,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         (containingType, false),
                         out string containingTypeName))
                 {
-                    if (hazardousUsageTypeNames == null)
-                    {
-                        hazardousUsageTypeNames = PooledHashSet<string>.GetInstance();
-                    }
-
+                    hazardousUsageTypeNames = PooledHashSet<string>.GetInstance();
                     hazardousUsageTypeNames.Add(containingTypeName);
                 }
 
