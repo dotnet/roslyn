@@ -1918,11 +1918,11 @@ done:
         protected void EnsureNullabilityAnalysisPerformedIfNecessary()
         {
             // If we're in DEBUG mode, enable the analysis unless explicitly disabled, but throw away the results
+            if (!Compilation.NullableSemanticAnalysisEnabled
 #if DEBUG
-            if (!Compilation.ShouldRunNullableAnalysisAndIgnoreResults)
-#else
-            if (!Compilation.NullableSemanticAnalysisEnabled)
+                && !Compilation.ShouldRunNullableAnalysisAndIgnoreResults
 #endif
+                )
             {
                 return;
             }

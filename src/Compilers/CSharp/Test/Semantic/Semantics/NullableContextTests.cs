@@ -302,7 +302,7 @@ struct B2
         }
 
         [Fact]
-        public void NullableAnalysisFlags_04()
+        public void NullableAnalysisFlags_MethodBodySemanticModel()
         {
             var source =
 @"#nullable enable
@@ -310,13 +310,12 @@ class Program
 {
     static object F(object? obj)
     {
-        if (obj == null) return null; // 1
+        if (obj == null) return null;
         return obj;
     }
 }";
 
-            // https://github.com/dotnet/roslyn/issues/49746: Currently, if we analyze any members, we analyze all.
-            var expectedAnalyzedKeysAll = new[] { ".cctor", ".ctor", "F" };
+            var expectedAnalyzedKeysAll = new[] { "F" };
 
             verify(parseOptions: TestOptions.Regular, expectedFlowState: true, expectedAnalyzedKeysAll);
             verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", null), expectedFlowState: true, expectedAnalyzedKeysAll);
@@ -327,24 +326,86 @@ class Program
             {
                 var comp = CreateCompilation(source, parseOptions: parseOptions);
                 comp.NullableAnalysisData = new ConcurrentDictionary<object, int>();
-                if (expectedAnalyzedKeys.Length > 0)
-                {
-                    comp.VerifyDiagnostics(
-                        // (6,33): warning CS8603: Possible null reference return.
-                        //         if (obj == null) return null; // 1
-                        Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(6, 33));
-                }
-                else
-                {
-                    comp.VerifyDiagnostics();
-                }
-
                 var syntaxTree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(syntaxTree);
-                var statement = syntaxTree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Skip(1).Single();
-                Assert.Equal("return obj;", statement.ToString());
-                var typeInfo = model.GetTypeInfo(statement.Expression);
+                var syntax = syntaxTree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Skip(1).Single();
+                Assert.Equal("return obj;", syntax.ToString());
+                var typeInfo = model.GetTypeInfo(syntax.Expression);
                 var expectedNullability = expectedFlowState ? Microsoft.CodeAnalysis.NullableFlowState.NotNull : Microsoft.CodeAnalysis.NullableFlowState.None;
+                Assert.Equal(expectedNullability, typeInfo.Nullability.FlowState);
+
+                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData);
+                AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
+            }
+        }
+
+        [Fact]
+        public void NullableAnalysisFlags_AttributeSemanticModel()
+        {
+            var source =
+@"#nullable enable
+class A : System.Attribute
+{
+    public A(object obj) { }
+    public static object F;
+}
+[A(A.F = null)]
+class B
+{
+}";
+
+            var expectedAnalyzedKeysAll = new[] { "A(A.F = null)" };
+
+            verify(parseOptions: TestOptions.Regular, expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", null), expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "always"), expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), expectedFlowState: false);
+
+            void verify(CSharpParseOptions parseOptions, bool expectedFlowState, params string[] expectedAnalyzedKeys)
+            {
+                var comp = CreateCompilation(source, parseOptions: parseOptions);
+                comp.NullableAnalysisData = new ConcurrentDictionary<object, int>();
+                var syntaxTree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(syntaxTree);
+                var syntax = syntaxTree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().Single();
+                Assert.Equal("A.F = null", syntax.ToString());
+                var typeInfo = model.GetTypeInfo(syntax.Expression);
+                var expectedNullability = expectedFlowState ? Microsoft.CodeAnalysis.NullableFlowState.MaybeNull : Microsoft.CodeAnalysis.NullableFlowState.None;
+                Assert.Equal(expectedNullability, typeInfo.Nullability.FlowState);
+
+                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData);
+                AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
+            }
+        }
+
+        [Fact]
+        public void NullableAnalysisFlags_InitializerSemanticModel()
+        {
+            var source =
+@"#nullable enable
+class Program
+{
+    static object F;
+    static void M(object arg = (F = null)) { }
+}";
+
+            var expectedAnalyzedKeysAll = new[] { "arg" };
+
+            verify(parseOptions: TestOptions.Regular, expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", null), expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "always"), expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), expectedFlowState: false);
+
+            void verify(CSharpParseOptions parseOptions, bool expectedFlowState, params string[] expectedAnalyzedKeys)
+            {
+                var comp = CreateCompilation(source, parseOptions: parseOptions);
+                comp.NullableAnalysisData = new ConcurrentDictionary<object, int>();
+                var syntaxTree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(syntaxTree);
+                var syntax = syntaxTree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().First().Value;
+                Assert.Equal("(F = null)", syntax.ToString());
+                var typeInfo = model.GetTypeInfo(syntax);
+                var expectedNullability = expectedFlowState ? Microsoft.CodeAnalysis.NullableFlowState.MaybeNull : Microsoft.CodeAnalysis.NullableFlowState.None;
                 Assert.Equal(expectedNullability, typeInfo.Nullability.FlowState);
 
                 var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData);

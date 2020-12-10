@@ -1072,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool getFinalNullableState,
             out VariableState? finalNullableState)
         {
-            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableAnalysis)
+            if (CanSkipAnalysis(compilation))
             {
 #if DEBUG
                 if (compilation.ShouldRunNullableAnalysisAndIgnoreResults)
@@ -1291,14 +1291,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rewrittenNode;
         }
 
+        private static bool CanSkipAnalysis(CSharpCompilation compilation)
+        {
+            return compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableAnalysis;
+        }
+
         internal static bool NeedsAnalysis(CSharpCompilation compilation)
         {
+            var canSkipAnalysis = CanSkipAnalysis(compilation);
 #if DEBUG
-            return compilation.ShouldRunNullableAnalysisAndIgnoreResults;
-#else
-            var canSkipAnalysis = compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableAnalysis;
-            return !canSkipAnalysis;
+            if (canSkipAnalysis)
+            {
+                return compilation.ShouldRunNullableAnalysisAndIgnoreResults;
+            }
 #endif
+            return !canSkipAnalysis;
         }
 
         /// <summary>Analyzes a node in a "one-off" context, such as for attributes or parameter default values.</summary>
@@ -1308,7 +1315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             var compilation = binder.Compilation;
-            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableAnalysis)
+            if (CanSkipAnalysis(compilation))
             {
 #if DEBUG
                 if (compilation.ShouldRunNullableAnalysisAndIgnoreResults)
