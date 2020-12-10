@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         #endregion
 
         protected DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> GetClonedAnalysisDataHelper(IDictionary<AnalysisEntity, TAbstractAnalysisValue> analysisData)
-            => new DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue>(analysisData);
+            => new(analysisData);
 
         protected void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(
             DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> coreDataAtException,

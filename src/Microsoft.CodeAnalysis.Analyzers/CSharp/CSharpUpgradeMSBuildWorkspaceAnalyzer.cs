@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
         }
 
         internal static CSharpUpgradeMSBuildWorkspaceAnalyzer CreateForTests()
-            => new CSharpUpgradeMSBuildWorkspaceAnalyzer(performAssemblyChecks: false);
+            => new(performAssemblyChecks: false);
 
         protected override void RegisterIdentifierAnalysis(CompilationStartAnalysisContext context)
         {

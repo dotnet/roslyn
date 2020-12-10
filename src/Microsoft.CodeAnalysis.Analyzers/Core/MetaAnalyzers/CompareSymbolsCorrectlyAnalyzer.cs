@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private const string s_symbolEqualsName = nameof(ISymbol.Equals);
         public const string SymbolEqualityComparerName = "Microsoft.CodeAnalysis.SymbolEqualityComparer";
 
-        public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor Rule = new(
             DiagnosticIds.CompareSymbolsCorrectlyRuleId,
             s_localizableTitle,
             s_localizableMessage,

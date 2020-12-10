@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     public abstract class AnalysisEntityMapAbstractDomain<TValue> : MapAbstractDomain<AnalysisEntity, TValue>
     {
-        private static readonly Func<AnalysisEntity, bool> s_defaultIsTrackedEntity = new Func<AnalysisEntity, bool>(_ => true);
-        private static readonly Func<PointsToAbstractValue, bool> s_defaultIsTrackedPointsToValue = new Func<PointsToAbstractValue, bool>(_ => true);
+        private static readonly Func<AnalysisEntity, bool> s_defaultIsTrackedEntity = new(_ => true);
+        private static readonly Func<PointsToAbstractValue, bool> s_defaultIsTrackedPointsToValue = new(_ => true);
 
         private readonly Func<AnalysisEntity, bool> _isTrackedEntity;
         private readonly Func<PointsToAbstractValue, bool> _isTrackedPointsToValue;

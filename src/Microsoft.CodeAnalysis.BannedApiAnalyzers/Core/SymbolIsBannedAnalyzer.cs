@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
     {
         public const string BannedSymbolsFileName = "BannedSymbols.txt";
 
-        public static readonly DiagnosticDescriptor SymbolIsBannedRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor SymbolIsBannedRule = new(
             id: DiagnosticIds.SymbolIsBannedRuleId,
             title: BannedApiAnalyzerResources.SymbolIsBannedTitle,
             messageFormat: BannedApiAnalyzerResources.SymbolIsBannedMessage,
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public static readonly DiagnosticDescriptor DuplicateBannedSymbolRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DuplicateBannedSymbolRule = new(
             id: DiagnosticIds.DuplicateBannedSymbolRuleId,
             title: BannedApiAnalyzerResources.DuplicateBannedSymbolTitle,
             messageFormat: BannedApiAnalyzerResources.DuplicateBannedSymbolMessage,

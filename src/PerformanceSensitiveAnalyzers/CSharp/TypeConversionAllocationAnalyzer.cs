@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         private static readonly LocalizableString s_localizableReadonlyMethodGroupAllocationRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.ReadonlyMethodGroupAllocationRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         private static readonly LocalizableString s_localizableReadonlyMethodGroupAllocationRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.ReadonlyMethodGroupAllocationRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
-        internal static DiagnosticDescriptor ValueTypeToReferenceTypeConversionRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor ValueTypeToReferenceTypeConversionRule = new(
             ValueTypeToReferenceTypeConversionRuleId,
             s_localizableValueTypeToReferenceTypeConversionRuleTitle,
             s_localizableValueTypeToReferenceTypeConversionRuleMessage,
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor DelegateOnStructInstanceRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor DelegateOnStructInstanceRule = new(
             DelegateOnStructInstanceRuleId,
             s_localizableDelegateOnStructInstanceRuleTitle,
             s_localizableDelegateOnStructInstanceRuleMessage,
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor MethodGroupAllocationRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor MethodGroupAllocationRule = new(
             MethodGroupAllocationRuleId,
             s_localizableMethodGroupAllocationRuleTitle,
             s_localizableMethodGroupAllocationRuleMessage,
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor ReadonlyMethodGroupAllocationRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor ReadonlyMethodGroupAllocationRule = new(
             ReadonlyMethodGroupAllocationRuleId,
             s_localizableReadonlyMethodGroupAllocationRuleTitle,
             s_localizableReadonlyMethodGroupAllocationRuleMessage,

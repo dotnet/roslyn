@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
         where TNameSyntax : SyntaxNode
         where TSyntaxKind : struct
     {
-        public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor Rule = new(
             id: DiagnosticIds.RestrictedInternalsVisibleToRuleId,
             title: BannedApiAnalyzerResources.RestrictedInternalsVisibleToTitle,
             messageFormat: BannedApiAnalyzerResources.RestrictedInternalsVisibleToMessage,

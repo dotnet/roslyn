@@ -368,7 +368,7 @@ namespace Test.Utilities
             ImmutableArray.Create(GetAdditionalTextFile(fileName, text));
 
         protected TestAdditionalDocument GetAdditionalTextFile(string fileName, string text) =>
-            new TestAdditionalDocument(fileName, text);
+            new(fileName, text);
 
         private static (Document[] documents, bool useSpans, TextSpan?[] spans) GetDocumentsAndSpans(FileAndSource[] sources, string language, CompilationOptions compilationOptions, ParseOptions parseOptions, ReferenceFlags referenceFlags = ReferenceFlags.None, string projectName = TestProjectName, bool allowUnsafeCode = false)
         {
@@ -664,7 +664,7 @@ namespace Test.Utilities
         }
 
         public static FileAndSource GetEditorConfigAdditionalFile(string source)
-            => new FileAndSource() { Source = source, FilePath = ".editorconfig" };
+            => new() { Source = source, FilePath = ".editorconfig" };
     }
 
     // Justification for suppression: We are not going to compare FileAndSource objects for equality.

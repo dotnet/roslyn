@@ -29,7 +29,7 @@ namespace Analyzer.Utilities
                 "System.Resources.IResourceReader",
             };
         private static readonly BoundedCacheWithFactory<Compilation, DisposeAnalysisHelper> s_DisposeHelperCache =
-            new BoundedCacheWithFactory<Compilation, DisposeAnalysisHelper>();
+            new();
 
         private static readonly ImmutableHashSet<OperationKind> s_DisposableCreationKinds = ImmutableHashSet.Create(
             OperationKind.ObjectCreation,
@@ -95,7 +95,7 @@ namespace Analyzer.Utilities
 
             // Local functions
             static DisposeAnalysisHelper CreateDisposeAnalysisHelper(Compilation compilation)
-                => new DisposeAnalysisHelper(compilation);
+                => new(compilation);
         }
 
         public bool TryGetOrComputeResult(

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         internal const string RemovedApiPrefix = "*REMOVED*";
         internal const string InvalidReasonShippedCantHaveRemoved = "The shipped API file can't have removed members";
 
-        internal static readonly DiagnosticDescriptor DeclareNewApiRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor DeclareNewApiRule = new(
             id: DiagnosticIds.DeclarePublicApiRuleId,
             title: PublicApiAnalyzerResources.DeclarePublicApiTitle,
             messageFormat: PublicApiAnalyzerResources.DeclarePublicApiMessage,
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        internal static readonly DiagnosticDescriptor RemoveDeletedApiRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor RemoveDeletedApiRule = new(
             id: DiagnosticIds.RemoveDeletedApiRuleId,
             title: PublicApiAnalyzerResources.RemoveDeletedApiTitle,
             messageFormat: PublicApiAnalyzerResources.RemoveDeletedApiMessage,
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor ExposedNoninstantiableType = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor ExposedNoninstantiableType = new(
             id: DiagnosticIds.ExposedNoninstantiableTypeRuleId,
             title: PublicApiAnalyzerResources.ExposedNoninstantiableTypeTitle,
             messageFormat: PublicApiAnalyzerResources.ExposedNoninstantiableTypeMessage,
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        internal static readonly DiagnosticDescriptor PublicApiFilesInvalid = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor PublicApiFilesInvalid = new(
             id: DiagnosticIds.PublicApiFilesInvalid,
             title: PublicApiAnalyzerResources.PublicApiFilesInvalidTitle,
             messageFormat: PublicApiAnalyzerResources.PublicApiFilesInvalidMessage,
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor DuplicateSymbolInApiFiles = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor DuplicateSymbolInApiFiles = new(
             id: DiagnosticIds.DuplicatedSymbolInPublicApiFiles,
             title: PublicApiAnalyzerResources.DuplicateSymbolsInPublicApiFilesTitle,
             messageFormat: PublicApiAnalyzerResources.DuplicateSymbolsInPublicApiFilesMessage,
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor AvoidMultipleOverloadsWithOptionalParameters = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor AvoidMultipleOverloadsWithOptionalParameters = new(
             id: DiagnosticIds.AvoidMultipleOverloadsWithOptionalParameters,
             title: PublicApiAnalyzerResources.AvoidMultipleOverloadsWithOptionalParametersTitle,
             messageFormat: PublicApiAnalyzerResources.AvoidMultipleOverloadsWithOptionalParametersMessage,
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             helpLinkUri: @"https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        internal static readonly DiagnosticDescriptor OverloadWithOptionalParametersShouldHaveMostParameters = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor OverloadWithOptionalParametersShouldHaveMostParameters = new(
             id: DiagnosticIds.OverloadWithOptionalParametersShouldHaveMostParameters,
             title: PublicApiAnalyzerResources.OverloadWithOptionalParametersShouldHaveMostParametersTitle,
             messageFormat: PublicApiAnalyzerResources.OverloadWithOptionalParametersShouldHaveMostParametersMessage,
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         internal static readonly SymbolDisplayFormat ShortSymbolNameFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     SymbolDisplayMiscellaneousOptions.None);
 
         private static readonly SymbolDisplayFormat s_publicApiFormat =
-            new SymbolDisplayFormat(
+            new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,

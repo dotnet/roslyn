@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     {
 #pragma warning disable RS0030 // The symbol 'DiagnosticDescriptor.DiagnosticDescriptor.#ctor' is banned in this project: Use 'DiagnosticDescriptorHelper.Create' instead
 #pragma warning disable RS2000 // Add analyzer diagnostic IDs to analyzer release
-        private static readonly DiagnosticDescriptor s_dummyDataflowAnalysisDescriptor = new DiagnosticDescriptor(
+        private static readonly DiagnosticDescriptor s_dummyDataflowAnalysisDescriptor = new(
             id: "InterproceduralDataflow",
             title: string.Empty,
             messageFormat: string.Empty,

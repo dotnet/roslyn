@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     public sealed class AbstractLocation : CacheBasedEquatable<AbstractLocation>
     {
         private readonly bool _isSpecialSingleton;
-        public static readonly AbstractLocation Null = new AbstractLocation(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: null, symbolOpt: null, captureIdOpt: null, locationTypeOpt: null, isSpecialSingleton: true);
-        public static readonly AbstractLocation NoLocation = new AbstractLocation(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: null, symbolOpt: null, captureIdOpt: null, locationTypeOpt: null, isSpecialSingleton: true);
+        public static readonly AbstractLocation Null = new(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: null, symbolOpt: null, captureIdOpt: null, locationTypeOpt: null, isSpecialSingleton: true);
+        public static readonly AbstractLocation NoLocation = new(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: null, symbolOpt: null, captureIdOpt: null, locationTypeOpt: null, isSpecialSingleton: true);
 
         private AbstractLocation(IOperation? creationOpt, ImmutableStack<IOperation>? creationCallStackOpt, AnalysisEntity? analysisEntityOpt, ISymbol? symbolOpt, InterproceduralCaptureId? captureIdOpt, ITypeSymbol? locationTypeOpt, bool isSpecialSingleton)
         {
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         /// <summary>
-        /// Attempts to get the syntax node to report diagnostic for this abstract location 
+        /// Attempts to get the syntax node to report diagnostic for this abstract location
         /// Returns null if the location is owned by another method invoked through interprocedural analysis.
         /// </summary>
         public SyntaxNode? TryGetNodeToReportDiagnostic(PointsToAnalysisResult? pointsToAnalysisResultOpt)

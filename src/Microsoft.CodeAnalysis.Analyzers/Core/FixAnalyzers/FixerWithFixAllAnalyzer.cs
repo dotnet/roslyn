@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
         private static readonly LocalizableString s_localizableCodeActionNeedsEquivalenceKeyDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.CodeActionNeedsEquivalenceKeyDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableOverrideGetFixAllProviderDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.OverrideGetFixAllProviderDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        internal static readonly DiagnosticDescriptor CreateCodeActionEquivalenceKeyRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor CreateCodeActionEquivalenceKeyRule = new(
             DiagnosticIds.CreateCodeActionWithEquivalenceKeyRuleId,
             s_localizableCreateCodeActionWithEquivalenceKeyTitle,
             s_localizableCreateCodeActionWithEquivalenceKeyMessage,
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        internal static readonly DiagnosticDescriptor OverrideCodeActionEquivalenceKeyRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor OverrideCodeActionEquivalenceKeyRule = new(
             DiagnosticIds.OverrideCodeActionEquivalenceKeyRuleId,
             s_localizableOverrideCodeActionEquivalenceKeyTitle,
             s_localizableOverrideCodeActionEquivalenceKeyMessage,
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        internal static readonly DiagnosticDescriptor OverrideGetFixAllProviderRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor OverrideGetFixAllProviderRule = new(
             DiagnosticIds.OverrideGetFixAllProviderRuleId,
             s_localizableOverrideGetFixAllProviderTitle,
             s_localizableOverrideGetFixAllProviderMessage,
@@ -128,22 +128,22 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             /// <summary>
             /// Set of all non-abstract sub-types of <see cref="CodeFixProvider"/> in this compilation.
             /// </summary>
-            private readonly HashSet<INamedTypeSymbol> _codeFixProviders = new HashSet<INamedTypeSymbol>();
+            private readonly HashSet<INamedTypeSymbol> _codeFixProviders = new();
 
             /// <summary>
             /// Set of all non-abstract sub-types of <see cref="CodeAction"/> which override <see cref="CodeAction.EquivalenceKey"/> in this compilation.
             /// </summary>
-            private readonly HashSet<INamedTypeSymbol> _codeActionsWithEquivalenceKey = new HashSet<INamedTypeSymbol>();
+            private readonly HashSet<INamedTypeSymbol> _codeActionsWithEquivalenceKey = new();
 
             /// <summary>
             /// Map of invocations from code fix providers to invocations that create a code action using the static "Create" methods on <see cref="CodeAction"/>.
             /// </summary>
-            private readonly Dictionary<INamedTypeSymbol, HashSet<IInvocationOperation>> _codeActionCreateInvocations = new Dictionary<INamedTypeSymbol, HashSet<IInvocationOperation>>();
+            private readonly Dictionary<INamedTypeSymbol, HashSet<IInvocationOperation>> _codeActionCreateInvocations = new();
 
             /// <summary>
             /// Map of invocations from code fix providers to object creations that create a code action using sub-types of <see cref="CodeAction"/>.
             /// </summary>
-            private readonly Dictionary<INamedTypeSymbol, HashSet<IObjectCreationOperation>> _codeActionObjectCreations = new Dictionary<INamedTypeSymbol, HashSet<IObjectCreationOperation>>();
+            private readonly Dictionary<INamedTypeSymbol, HashSet<IObjectCreationOperation>> _codeActionObjectCreations = new();
 
             public CompilationAnalyzer(
                 INamedTypeSymbol codeFixProviderSymbol,

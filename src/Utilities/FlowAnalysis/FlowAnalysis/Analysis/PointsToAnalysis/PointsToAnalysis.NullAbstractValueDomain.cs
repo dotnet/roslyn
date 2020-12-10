@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         /// </summary>
         private sealed class NullAbstractValueDomain : AbstractValueDomain<NullAbstractValue>
         {
-            public static NullAbstractValueDomain Default = new NullAbstractValueDomain();
+            public static NullAbstractValueDomain Default = new();
 
             private NullAbstractValueDomain() { }
 
