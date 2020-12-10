@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project>
 
@@ -308,8 +308,8 @@
       https://api.nuget.org/v3/index.json;
       https://pkgs.dev.azure.com/dnceng/public/_packaging/myget-legacy/nuget/v3/index.json;
       https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json;
-      https://pkgs.dev.azure.com/devdiv/_packaging/vssdk/nuget/v3/index.json;
-      https://pkgs.dev.azure.com/devdiv/_packaging/vs-impl/nuget/v3/index.json;
+      https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json;
+      https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json;
       https://dotnetmygetlegacy.blob.core.windows.net/dotnet-core/index.json;
     </RestoreSources>
   </PropertyGroup>
