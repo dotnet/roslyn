@@ -27296,6 +27296,9 @@ namespace System.Runtime.CompilerServices
                 // (2,23): warning CS1591: Missing XML comment for publicly visible type or member 'C.C(int)'
                 // public partial record C(int I1);
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C.C(int)").WithLocation(2, 23),
+                // (5,18): warning CS1572: XML comment has a param tag for 'I1', but there is no parameter by that name
+                // /// <param name="I1">Description for I1</param>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "I1").WithArguments("I1").WithLocation(5, 18),
                 // (6,24): error CS8863: Only a single record partial declaration may have a parameter list
                 // public partial record C(int I1);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(6, 24)
@@ -27387,9 +27390,9 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
             comp.VerifyDiagnostics(
-                // (7,12): warning CS1571: XML comment has a duplicate param tag for 'I1'
+                // (7,18): warning CS1572: XML comment has a param tag for 'I1', but there is no parameter by that name
                 // /// <param name="I1">Description2 for I1</param>
-                Diagnostic(ErrorCode.WRN_DuplicateParamTag, @"name=""I1""").WithArguments("I1").WithLocation(7, 12),
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "I1").WithArguments("I1").WithLocation(7, 18),
                 // (8,24): error CS8863: Only a single record partial declaration may have a parameter list
                 // public partial record E(int I1);
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int I1)").WithLocation(8, 24)
@@ -27564,6 +27567,69 @@ namespace System.Runtime.CompilerServices
 
             var property = cMember.GetMembers("I1").Single();
             Assert.Equal("", property.GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc_Nested_ReferencingOuterParam()
+        {
+            var src = @"
+/// <summary>Summary</summary>
+/// <param name=""O1"">Description for O1</param>
+public record Outer(object O1)
+{
+    /// <summary>Summary</summary>
+    public int P1 { get; set; }
+
+    /// <summary>Summary</summary>
+    /// <param name=""I1"">Description for I1</param>
+    /// <param name=""O1"">Error</param>
+    /// <param name=""P1"">Error</param>
+    /// <param name=""C"">Error</param>
+    public record C(int I1);
+}
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (11,22): warning CS1572: XML comment has a param tag for 'O1', but there is no parameter by that name
+                //     /// <param name="O1">Error</param>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "O1").WithArguments("O1").WithLocation(11, 22),
+                // (11,22): warning CS1572: XML comment has a param tag for 'O1', but there is no parameter by that name
+                //     /// <param name="O1">Error</param>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "O1").WithArguments("O1").WithLocation(11, 22),
+                // (12,22): warning CS1572: XML comment has a param tag for 'P1', but there is no parameter by that name
+                //     /// <param name="P1">Error</param>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "P1").WithArguments("P1").WithLocation(12, 22),
+                // (12,22): warning CS1572: XML comment has a param tag for 'P1', but there is no parameter by that name
+                //     /// <param name="P1">Error</param>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "P1").WithArguments("P1").WithLocation(12, 22),
+                // (13,22): warning CS1572: XML comment has a param tag for 'C', but there is no parameter by that name
+                //     /// <param name="C">Error</param>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "C").WithArguments("C").WithLocation(13, 22),
+                // (13,22): warning CS1572: XML comment has a param tag for 'C', but there is no parameter by that name
+                //     /// <param name="C">Error</param>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "C").WithArguments("C").WithLocation(13, 22)
+                );
+
+            var cMember = comp.GetMember<NamedTypeSymbol>("Outer.C");
+            var constructor = cMember.GetMembers(".ctor").First();
+            Assert.Equal(
+@"<member name=""M:Outer.C.#ctor(System.Int32)"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+    <param name=""O1"">Error</param>
+    <param name=""P1"">Error</param>
+    <param name=""C"">Error</param>
+</member>
+", constructor.GetDocumentationCommentXml());
         }
     }
 }

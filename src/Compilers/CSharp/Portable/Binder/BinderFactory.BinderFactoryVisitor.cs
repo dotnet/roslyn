@@ -1144,7 +1144,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Binder outerBinder = VisitCore(memberSyntax);
                     SourceNamedTypeSymbol recordType = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember(recordDeclSyntax);
                     var primaryConstructor = recordType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault();
-                    Debug.Assert(primaryConstructor is not null);
+
+                    if (primaryConstructor.GetSyntax() != recordDeclSyntax)
+                    {
+                        return nextBinder;
+                    }
+
                     return new WithParametersBinder(primaryConstructor.Parameters, nextBinder);
                 }
 
