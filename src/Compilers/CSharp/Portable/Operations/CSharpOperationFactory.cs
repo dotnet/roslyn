@@ -1650,21 +1650,18 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     getEnumeratorArguments: enumeratorInfoOpt.GetEnumeratorMethod is { IsExtensionMethod: true } enumeratorMethod
                                                         ? Operation.SetParentOperation(
                                                             DeriveArguments(
-                                                                boundForEachStatement,
                                                                 enumeratorInfoOpt.Binder,
                                                                 enumeratorMethod,
                                                                 ImmutableArray.Create(boundForEachStatement.Expression),
-                                                                argumentNamesOpt: default,
                                                                 argumentsToParametersOpt: default,
                                                                 defaultArguments: default,
-                                                                argumentRefKindsOpt: default,
                                                                 expanded: false,
                                                                 boundForEachStatement.Expression.Syntax,
                                                                 invokedAsExtensionMethod: true),
                                                             null)
                                                         : default,
-                                                    disposeArguments: enumeratorInfoOpt.DisposeMethod is object && enumeratorInfoOpt.GetEnumeratorMethod is object
-                                                        ? CreateDisposeArguments(enumeratorInfoOpt.DisposeMethod, enumeratorInfoOpt.GetEnumeratorMethod.ReturnType, boundForEachStatement.Syntax, enumeratorInfoOpt.Binder)
+                                                    disposeArguments: enumeratorInfoOpt.DisposeMethod is object
+                                                        ? CreateDisposeArguments(enumeratorInfoOpt.DisposeMethod, boundForEachStatement.Syntax, enumeratorInfoOpt.Binder)
                                                         : default);
             }
             else
@@ -1758,7 +1755,7 @@ namespace Microsoft.CodeAnalysis.Operations
             DisposeOperationInfo disposeOperationInfo = boundUsingStatement.DisposeMethodOpt is object
                                                          ? new DisposeOperationInfo(
                                                                  disposeMethod: boundUsingStatement.DisposeMethodOpt.GetPublicSymbol(),
-                                                                 disposeArguments: CreateDisposeArguments(boundUsingStatement.DisposeMethodOpt, boundUsingStatement.ExpressionOpt?.Type ?? boundUsingStatement.Locals[0].Type, boundUsingStatement.Syntax, boundUsingStatement.Binder))
+                                                                 disposeArguments: CreateDisposeArguments(boundUsingStatement.DisposeMethodOpt, boundUsingStatement.Syntax, boundUsingStatement.Binder))
                                                          : default;
             SyntaxNode syntax = boundUsingStatement.Syntax;
             bool isImplicit = boundUsingStatement.WasCompilerGenerated;
@@ -1897,7 +1894,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     disposeInfo: usingDecl.DisposeMethodOpt is object
                                    ? new DisposeOperationInfo(
                                            disposeMethod: usingDecl.DisposeMethodOpt.GetPublicSymbol(),
-                                           disposeArguments: CreateDisposeArguments(usingDecl.DisposeMethodOpt, usingDecl.LocalDeclarations[0].LocalSymbol.Type, usingDecl.Syntax, usingDecl.Binder))
+                                           disposeArguments: CreateDisposeArguments(usingDecl.DisposeMethodOpt, usingDecl.Syntax, usingDecl.Binder))
                                    : default,
                      _semanticModel,
                     declarationGroupSyntax,
@@ -2331,7 +2328,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, isImplicit);
         }
 
-        private ImmutableArray<IArgumentOperation> CreateDisposeArguments(MethodSymbol disposeMethod, TypeSymbol receiverType, SyntaxNode receiverSyntax, Binder binder)
+        private ImmutableArray<IArgumentOperation> CreateDisposeArguments(MethodSymbol disposeMethod, SyntaxNode syntax, Binder binder)
         {
             // can't be an extension method for dispose
             Debug.Assert(!disposeMethod.IsStatic);
@@ -2341,14 +2338,12 @@ namespace Microsoft.CodeAnalysis.Operations
                 return ImmutableArray<IArgumentOperation>.Empty;
             }
 
-            var receiver = new BoundDisposableValuePlaceholder(receiverSyntax, receiverType);
-
             var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
             ImmutableArray<int> argsToParams = default;
             var expanded = disposeMethod.HasParamsParameter();
 
             binder.BindDefaultArguments(
-                receiver.Syntax,
+                syntax,
                 disposeMethod.Parameters,
                 argumentsBuilder,
                 argumentRefKindsBuilder: null,
@@ -2359,16 +2354,13 @@ namespace Microsoft.CodeAnalysis.Operations
                 new DiagnosticBag());
 
             var args = DeriveArguments(
-                            receiver,
                             binder,
                             disposeMethod,
                             argumentsBuilder.ToImmutableAndFree(),
-                            argumentNamesOpt: default,
                             argsToParams,
                             defaultArguments,
-                            argumentRefKindsOpt: default,
                             expanded,
-                            receiver.Syntax,
+                            syntax,
                             invokedAsExtensionMethod: false);
 
             return Operation.SetParentOperation(args, null);
