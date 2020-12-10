@@ -2370,7 +2370,8 @@ namespace Microsoft.CodeAnalysis.Operations
                             expanded,
                             receiver.Syntax,
                             invokedAsExtensionMethod: false);
-            return args;
+
+            return Operation.SetParentOperation(args, null);
         }
     }
 }

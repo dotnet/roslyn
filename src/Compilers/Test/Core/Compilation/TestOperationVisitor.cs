@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 foreach (var arg in disposeArgs)
                 {
-                    VisitArgument(arg);
+                    VerifySubTree(arg);
                 }
             }
         }
@@ -1548,7 +1548,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 foreach (var arg in disposeArgs)
                 {
-                    VisitArgument(arg);
+                    VerifySubTree(arg);
                 }
             }
         }
