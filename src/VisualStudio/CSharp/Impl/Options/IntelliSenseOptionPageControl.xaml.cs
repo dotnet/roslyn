@@ -35,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Show_name_suggestions, CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp);
 
             Show_items_from_unimported_namespaces.IsChecked = this.OptionStore.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp);
+            Enable_call_completion_on_Tab_Tab.IsChecked = this.OptionStore.GetOption(CompletionOptions.EnableCallCompletionOnTabTab, LanguageNames.CSharp);
             Automatically_show_completion_list_in_argument_lists.IsChecked = this.OptionStore.GetOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp);
         }
 
@@ -58,6 +59,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             Show_items_from_unimported_namespaces.IsThreeState = false;
             this.OptionStore.SetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, value: Show_items_from_unimported_namespaces.IsChecked);
+        }
+
+        private void Enable_call_completion_on_Tab_Tab_CheckedChanged(object sender, RoutedEventArgs e)
+        {
+            Enable_call_completion_on_Tab_Tab.IsThreeState = false;
+            this.OptionStore.SetOption(CompletionOptions.EnableCallCompletionOnTabTab, LanguageNames.CSharp, value: Enable_call_completion_on_Tab_Tab.IsChecked);
         }
 
         private void Automatically_show_completion_list_in_argument_lists_CheckedChanged(object sender, RoutedEventArgs e)

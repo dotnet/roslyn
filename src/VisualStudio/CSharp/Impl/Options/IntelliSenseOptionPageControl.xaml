@@ -80,6 +80,14 @@
                               Unchecked="Show_items_from_unimported_namespaces_CheckedChanged"
                               Indeterminate="Show_items_from_unimported_namespaces_CheckedChanged"
                               IsThreeState="True"/>
+
+                    <CheckBox x:Uid="Enable_call_completion_on_Tab_Tab"
+                                  x:Name="Enable_call_completion_on_Tab_Tab"
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Enable_call_completion_on_Tab_Tab}" 
+                              Checked="Enable_call_completion_on_Tab_Tab_CheckedChanged"
+                              Unchecked="Enable_call_completion_on_Tab_Tab_CheckedChanged"
+                              Indeterminate="Enable_call_completion_on_Tab_Tab_CheckedChanged"
+                              IsThreeState="True"/>
                 </StackPanel>
             </GroupBox>
         </StackPanel>

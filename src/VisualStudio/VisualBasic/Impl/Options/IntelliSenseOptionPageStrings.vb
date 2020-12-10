@@ -46,5 +46,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Show_items_from_unimported_namespaces As String =
             BasicVSResources.Show_items_from_unimported_namespaces
 
+        Public ReadOnly Property Option_Enable_call_completion_on_Tab_Tab As String =
+            BasicVSResources.Enable_call_completion_on_Tab_Tab
+
     End Module
 End Namespace

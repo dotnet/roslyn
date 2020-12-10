@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Experiments
     {
         public const string PartialLoadMode = "Roslyn.PartialLoadMode";
         public const string TypeImportCompletion = "Roslyn.TypeImportCompletion";
+        public const string InsertFullMethodCall = "Roslyn.InsertFullMethodCall";
         public const string TargetTypedCompletionFilter = "Roslyn.TargetTypedCompletionFilter";
         public const string TriggerCompletionInArgumentLists = "Roslyn.TriggerCompletionInArgumentLists";
         public const string OOPServerGC = "Roslyn.OOPServerGC";
