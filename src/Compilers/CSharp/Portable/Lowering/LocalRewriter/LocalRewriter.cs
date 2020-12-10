@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly bool _allowOmissionOfConditionalCalls;
         private LoweredDynamicOperationFactory _dynamicFactory;
         private bool _sawLambdas;
-        private int _availablelocalFunctionOrdinal;
+        private int _availableLocalFunctionOrdinal;
         private bool _inExpressionLambda;
 
         private bool _sawAwait;
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(loweredStatement is { });
                 loweredStatement.CheckLocalsDefined();
                 sawLambdas = localRewriter._sawLambdas;
-                sawLocalFunctions = localRewriter._availablelocalFunctionOrdinal != 0;
+                sawLocalFunctions = localRewriter._availableLocalFunctionOrdinal != 0;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
 
                 if (localRewriter._needsSpilling && !loweredStatement.HasErrors)
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            int localFunctionOrdinal = _availablelocalFunctionOrdinal++;
+            int localFunctionOrdinal = _availableLocalFunctionOrdinal++;
 
             var localFunction = node.Symbol;
             CheckRefReadOnlySymbols(localFunction);
