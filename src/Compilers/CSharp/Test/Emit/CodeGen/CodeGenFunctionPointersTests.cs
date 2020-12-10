@@ -11117,6 +11117,65 @@ static ref int M()
 ");
         }
 
+        [Fact]
+        public void RefReturnInCompoundAssignment()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe
+{
+    delegate*<ref int, ref int> ptr = &RefReturn;
+    int i = 0;
+    ptr(ref i) += 1;
+    System.Console.WriteLine(i);
+
+    static ref int RefReturn(ref int i) => ref i;
+}", expectedOutput: "1");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  .locals init (int V_0, //i
+                delegate*<ref int, ref int> V_1)
+  IL_0000:  ldftn      ""ref int <Program>$.<<Main>$>g__RefReturn|0_0(ref int)""
+  IL_0006:  ldc.i4.0
+  IL_0007:  stloc.0
+  IL_0008:  stloc.1
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldloc.1
+  IL_000c:  calli      ""delegate*<ref int, ref int>""
+  IL_0011:  dup
+  IL_0012:  ldind.i4
+  IL_0013:  ldc.i4.1
+  IL_0014:  add
+  IL_0015:  stind.i4
+  IL_0016:  ldloc.0
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void InvalidReturnInCompoundAssignment()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    delegate*<int, int> ptr = &RefReturn;
+    int i = 0;
+    ptr(i) += 1;
+
+    static int RefReturn(int i) => i;
+}", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (6,5): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //     ptr(i) += 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "ptr(i)").WithLocation(6, 5)
+            );
+        }
+
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
         private static readonly BlobContentId s_contentId = new BlobContentId(s_guid, 0x04030201);
 
