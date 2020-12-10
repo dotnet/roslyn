@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             if (previousToken.Kind() == SyntaxKind.AsteriskToken &&
-                (previousToken.Parent is PrefixUnaryExpressionSyntax || previousToken.Kind() == SyntaxKind.IdentifierToken))
+                (previousToken.Parent is PrefixUnaryExpressionSyntax || currentToken.Kind() == SyntaxKind.IdentifierToken))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
