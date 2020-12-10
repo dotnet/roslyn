@@ -35,6 +35,7 @@
     <PackageReference Include="VSLangProj80" Version="$(VSLangProj80Version)" />
     <PackageReference Include="VSLangProj140" Version="$(VSLangProj140Version)" />
     <PackageReference Include="Microsoft.VisualStudio.CodeAnalysis.Sdk.UI" Version="$(MicrosoftVisualStudioCodeAnalysisSdkUIVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="$(MicrosoftVisualStudioImageCatalogVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />

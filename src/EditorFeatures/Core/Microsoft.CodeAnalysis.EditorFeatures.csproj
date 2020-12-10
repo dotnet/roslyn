@@ -13,7 +13,7 @@
     <PackageId>Microsoft.CodeAnalysis.EditorFeatures.Common</PackageId>
     <IsPackable>true</IsPackable>
     <PackageDescription>
-      .NET Compiler Platform ("Roslyn") support for editor features inside the Visual Studio editor.       
+      .NET Compiler Platform ("Roslyn") support for editor features inside the Visual Studio editor.
     </PackageDescription>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -27,6 +27,7 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="$(MicrosoftVisualStudioImageCatalogVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
