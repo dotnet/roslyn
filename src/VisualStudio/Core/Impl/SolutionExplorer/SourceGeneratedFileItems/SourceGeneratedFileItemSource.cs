@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// The returned collection of items. Can only be mutated on the UI thread, as other parts of WPF are subscribed to the change
         /// events and expect that.
         /// </summary>
-        private readonly BulkObservableCollection<SourceGeneratedFileItem> _items = new();
+        private readonly BulkObservableCollectionWithInit<SourceGeneratedFileItem> _items = new();
 
         /// <summary>
         /// Gate to guard mutation of <see cref="_cancellationTokenSource"/> and <see cref="_resettableDelay"/>.
@@ -120,6 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             finally
             {
                 _items.EndBulkOperation();
+                _items.MarkAsInitialized();
             }
         }
 
@@ -213,6 +216,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                         return UpdateSourceGeneratedFileItemsAsync(_workspace.CurrentSolution, cancellationToken);
                     }, cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
+                }
+            }
+        }
+
+        /// <summary>
+        /// This derivation of <see cref="ObservableCollection{T}"/> also supports raising an initialized event through
+        /// <see cref="ISupportInitializeNotification"/>. This is used to show the spinning icon in the solution explorer
+        /// the first time you expand it.
+        /// </summary>
+        private sealed class BulkObservableCollectionWithInit<T> : BulkObservableCollection<T>, ISupportInitializeNotification
+        {
+            public bool IsInitialized { get; private set; } = false;
+
+            public event EventHandler? Initialized;
+
+            void ISupportInitialize.BeginInit()
+            {
+            }
+
+            void ISupportInitialize.EndInit()
+            {
+            }
+
+            public void MarkAsInitialized()
+            {
+                if (!IsInitialized)
+                {
+                    IsInitialized = true;
+                    Initialized?.Invoke(this, EventArgs.Empty);
                 }
             }
         }
