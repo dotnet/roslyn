@@ -20,7 +20,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.BracePlacement
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(
             nameof(RoslynDiagnosticsAnalyzersResources.BracePlacementMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
-        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.BracePlacementRuleId,
             s_localizableMessage,
             s_localizableMessage,

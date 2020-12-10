@@ -41,7 +41,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private static readonly LocalizableString s_localizableNoUnboxingMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCopyValueNoUnboxingMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly LocalizableString s_localizableNoUnboxingDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCopyValueNoUnboxingDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
-        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.DoNotCopyValueRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -52,7 +52,7 @@ namespace Roslyn.Diagnostics.Analyzers
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        internal static DiagnosticDescriptor UnsupportedUseRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor UnsupportedUseRule = new(
             RoslynDiagnosticIds.DoNotCopyValueRuleId,
             s_localizableTitle,
             s_localizableUnsupportedUseMessage,
@@ -63,7 +63,7 @@ namespace Roslyn.Diagnostics.Analyzers
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        internal static DiagnosticDescriptor AvoidNullableWrapperRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor AvoidNullableWrapperRule = new(
             RoslynDiagnosticIds.DoNotCopyValueRuleId,
             s_localizableTitle,
             s_localizableAvoidNullableWrapperMessage,
@@ -74,7 +74,7 @@ namespace Roslyn.Diagnostics.Analyzers
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        internal static DiagnosticDescriptor NoAssignValueFromReferenceRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor NoAssignValueFromReferenceRule = new(
             RoslynDiagnosticIds.DoNotCopyValueRuleId,
             s_localizableTitle,
             s_localizableNoAssignValueFromReferenceMessage,
@@ -85,7 +85,7 @@ namespace Roslyn.Diagnostics.Analyzers
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        internal static DiagnosticDescriptor NoReturnValueFromReferenceRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor NoReturnValueFromReferenceRule = new(
             RoslynDiagnosticIds.DoNotCopyValueRuleId,
             s_localizableTitle,
             s_localizableNoReturnValueFromReferenceMessage,
@@ -96,7 +96,7 @@ namespace Roslyn.Diagnostics.Analyzers
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        internal static DiagnosticDescriptor NoBoxingRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor NoBoxingRule = new(
             RoslynDiagnosticIds.DoNotCopyValueRuleId,
             s_localizableTitle,
             s_localizableNoBoxingMessage,
@@ -107,7 +107,7 @@ namespace Roslyn.Diagnostics.Analyzers
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        internal static DiagnosticDescriptor NoUnboxingRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor NoUnboxingRule = new(
             RoslynDiagnosticIds.DoNotCopyValueRuleId,
             s_localizableTitle,
             s_localizableNoUnboxingMessage,
@@ -181,7 +181,7 @@ namespace Roslyn.Diagnostics.Analyzers
         protected abstract class NonCopyableWalker : OperationWalker
         {
             private readonly OperationBlockAnalysisContext _context;
-            private readonly HashSet<IOperation> _handledOperations = new HashSet<IOperation>();
+            private readonly HashSet<IOperation> _handledOperations = new();
 
             protected NonCopyableWalker(OperationBlockAnalysisContext context, NonCopyableTypesCache cache)
             {
@@ -1484,7 +1484,7 @@ namespace Roslyn.Diagnostics.Analyzers
         protected sealed class NonCopyableTypesCache
         {
             private readonly ConcurrentDictionary<INamedTypeSymbol, bool> _typesToNonCopyable
-                = new ConcurrentDictionary<INamedTypeSymbol, bool>();
+                = new();
 
             public INamedTypeSymbol? ValueTaskT { get; }
             public INamedTypeSymbol? ConfiguredValueTaskAwaitableT { get; }

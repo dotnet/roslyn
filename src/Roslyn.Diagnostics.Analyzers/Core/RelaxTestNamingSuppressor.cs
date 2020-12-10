@@ -21,7 +21,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private static readonly LocalizableString s_localizableJustification = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.RelaxTestNamingSuppressorJustification), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
         internal static readonly SuppressionDescriptor Rule =
-            new SuppressionDescriptor(Id, SuppressedDiagnosticId, s_localizableJustification);
+            new(Id, SuppressedDiagnosticId, s_localizableJustification);
 
         public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions { get; } = ImmutableArray.Create(Rule);
 

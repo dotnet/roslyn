@@ -18,7 +18,7 @@ namespace Analyzer.Utilities
         internal const SymbolKind AllKinds = SymbolKind.ErrorType;
         internal const char WildcardChar = '*';
 
-        public static readonly SymbolNamesWithValueOption<TValue> Empty = new SymbolNamesWithValueOption<TValue>();
+        public static readonly SymbolNamesWithValueOption<TValue> Empty = new();
 
         private readonly ImmutableDictionary<string, TValue> _names;
         private readonly ImmutableDictionary<ISymbol, TValue> _symbols;
@@ -48,9 +48,9 @@ namespace Analyzer.Utilities
         /// <summary>
         /// Cache for the wildcard matching algorithm. The current implementation can be slow so we want to make sure that once a match is performed we save its result.
         /// </summary>
-        private readonly ConcurrentDictionary<ISymbol, KeyValuePair<string?, TValue?>> _wildcardMatchResult = new ConcurrentDictionary<ISymbol, KeyValuePair<string?, TValue?>>();
+        private readonly ConcurrentDictionary<ISymbol, KeyValuePair<string?, TValue?>> _wildcardMatchResult = new();
 
-        private readonly ConcurrentDictionary<ISymbol, string> _symbolToDeclarationId = new ConcurrentDictionary<ISymbol, string>();
+        private readonly ConcurrentDictionary<ISymbol, string> _symbolToDeclarationId = new();
 
         private SymbolNamesWithValueOption(ImmutableDictionary<string, TValue> names, ImmutableDictionary<ISymbol, TValue> symbols,
             ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> wildcardNamesBySymbolKind)

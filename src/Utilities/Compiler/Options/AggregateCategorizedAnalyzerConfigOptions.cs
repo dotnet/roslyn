@@ -26,7 +26,7 @@ namespace Analyzer.Utilities
     /// </summary>
     internal sealed class AggregateCategorizedAnalyzerConfigOptions : ICategorizedAnalyzerConfigOptions
     {
-        public static readonly AggregateCategorizedAnalyzerConfigOptions Empty = new AggregateCategorizedAnalyzerConfigOptions(
+        public static readonly AggregateCategorizedAnalyzerConfigOptions Empty = new(
             globalOptions: null,
             ImmutableDictionary<SyntaxTree, Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>>.Empty,
             CompilationCategorizedAnalyzerConfigOptions.Empty);

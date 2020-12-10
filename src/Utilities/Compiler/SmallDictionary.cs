@@ -39,7 +39,7 @@ namespace Analyzer.Utilities
         public readonly IEqualityComparer<K> Comparer;
 
         // https://github.com/dotnet/roslyn/issues/40344
-        public static readonly SmallDictionary<K, V> Empty = new SmallDictionary<K, V>(null!);
+        public static readonly SmallDictionary<K, V> Empty = new(null!);
 
         public SmallDictionary() : this(EqualityComparer<K>.Default) { }
 
@@ -504,7 +504,7 @@ namespace Analyzer.Utilities
             }
         }
 
-        public KeyCollection Keys => new KeyCollection(this);
+        public KeyCollection Keys => new(this);
 
 #pragma warning disable CA1815 // Override equals and operator equals on value types
         internal struct KeyCollection : IEnumerable<K>
@@ -621,7 +621,7 @@ namespace Analyzer.Utilities
             }
         }
 
-        public ValueCollection Values => new ValueCollection(this);
+        public ValueCollection Values => new(this);
 
         internal struct ValueCollection : IEnumerable<V>
         {
@@ -765,7 +765,7 @@ namespace Analyzer.Utilities
                 }
             }
 
-            public KeyValuePair<K, V> Current => new KeyValuePair<K, V>(_current.Key, _current.Value);
+            public KeyValuePair<K, V> Current => new(_current.Key, _current.Value);
 
             public bool MoveNext()
             {
