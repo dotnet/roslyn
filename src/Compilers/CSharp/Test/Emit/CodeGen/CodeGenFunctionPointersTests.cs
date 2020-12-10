@@ -11049,6 +11049,11 @@ unsafe
         return ptr(s);
     }
 
+    static Span<int> ptrTest2(Span<int> s)
+    {
+        delegate*<Span<int>, Span<int>> ptr = &test;
+        return ptr(s);
+    }
     static Span<int> test(Span<int> s) => s;
 }
 ", options: TestOptions.UnsafeReleaseExe);
