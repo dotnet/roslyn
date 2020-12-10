@@ -979,15 +979,15 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         {
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract | DeclarationModifiers.ReadOnly),
-                "abstract x p\r\n{\r\n    get;\r\n}");
+                "abstract x p { get; }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract | DeclarationModifiers.WriteOnly),
-                "abstract x p\r\n{\r\n    set;\r\n}");
+                "abstract x p { set; }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly),
-                "x p\r\n{\r\n    get;\r\n}");
+                "x p { get; }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly, getAccessorStatements: Array.Empty<SyntaxNode>()),
@@ -995,7 +995,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly),
-                "x p\r\n{\r\n    set;\r\n}");
+                "x p { set; }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.WriteOnly, setAccessorStatements: Array.Empty<SyntaxNode>()),
@@ -1003,7 +1003,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract),
-                "abstract x p\r\n{\r\n    get;\r\n    set;\r\n}");
+                "abstract x p { get; set; }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly, getAccessorStatements: new[] { Generator.IdentifierName("y") }),
@@ -1027,15 +1027,15 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         {
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract | DeclarationModifiers.ReadOnly),
-                "abstract x this[y z]\r\n{\r\n    get;\r\n}");
+                "abstract x this[y z] { get; }");
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract | DeclarationModifiers.WriteOnly),
-                "abstract x this[y z]\r\n{\r\n    set;\r\n}");
+                "abstract x this[y z] { set; }");
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract),
-                "abstract x this[y z]\r\n{\r\n    get;\r\n    set;\r\n}");
+                "abstract x this[y z] { get; set; }");
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), modifiers: DeclarationModifiers.ReadOnly),
@@ -1091,11 +1091,11 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         {
             VerifySyntax<EventDeclarationSyntax>(
                 Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t"), modifiers: DeclarationModifiers.Abstract),
-                "abstract event t ep\r\n{\r\n    add;\r\n    remove;\r\n}");
+                "abstract event t ep { add; remove; }");
 
             VerifySyntax<EventDeclarationSyntax>(
                 Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.Abstract),
-                "public abstract event t ep\r\n{\r\n    add;\r\n    remove;\r\n}");
+                "public abstract event t ep { add; remove; }");
 
             VerifySyntax<EventDeclarationSyntax>(
                 Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t")),
@@ -1308,19 +1308,19 @@ public interface IFace
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 Generator.InterfaceDeclaration("i", members: new[] { Generator.PropertyDeclaration("p", Generator.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.Sealed) }),
-                "interface i\r\n{\r\n    t p\r\n    {\r\n        get;\r\n        set;\r\n    }\r\n}");
+                "interface i\r\n{\r\n    t p { get; set; }\r\n}");
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 Generator.InterfaceDeclaration("i", members: new[] { Generator.PropertyDeclaration("p", Generator.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.ReadOnly) }),
-                "interface i\r\n{\r\n    t p\r\n    {\r\n        get;\r\n    }\r\n}");
+                "interface i\r\n{\r\n    t p { get; }\r\n}");
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 Generator.InterfaceDeclaration("i", members: new[] { Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("y", Generator.IdentifierName("x")) }, Generator.IdentifierName("t"), Accessibility.Public, DeclarationModifiers.Sealed) }),
-                "interface i\r\n{\r\n    t this[x y]\r\n    {\r\n        get;\r\n        set;\r\n    }\r\n}");
+                "interface i\r\n{\r\n    t this[x y] { get; set; }\r\n}");
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 Generator.InterfaceDeclaration("i", members: new[] { Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("y", Generator.IdentifierName("x")) }, Generator.IdentifierName("t"), Accessibility.Public, DeclarationModifiers.ReadOnly) }),
-                "interface i\r\n{\r\n    t this[x y]\r\n    {\r\n        get;\r\n    }\r\n}");
+                "interface i\r\n{\r\n    t this[x y] { get; }\r\n}");
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 Generator.InterfaceDeclaration("i", members: new[] { Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.Static) }),
@@ -1332,7 +1332,7 @@ public interface IFace
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 Generator.InterfaceDeclaration("i", members: new[] { Generator.FieldDeclaration("f", Generator.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.Sealed) }),
-                "interface i\r\n{\r\n    t f\r\n    {\r\n        get;\r\n        set;\r\n    }\r\n}");
+                "interface i\r\n{\r\n    t f { get; set; }\r\n}");
         }
 
         [Fact]
@@ -1527,19 +1527,19 @@ public interface IFace
                 Generator.AddAttributes(
                     Generator.PropertyDeclaration("p", Generator.IdentifierName("x"), accessibility: Accessibility.NotApplicable, modifiers: DeclarationModifiers.Abstract),
                     Generator.Attribute("a")),
-                "[a]\r\nabstract x p\r\n{\r\n    get;\r\n    set;\r\n}");
+                "[a]\r\nabstract x p { get; set; }");
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.AddAttributes(
                     Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("z", Generator.IdentifierName("y")) }, Generator.IdentifierName("x"), modifiers: DeclarationModifiers.Abstract),
                     Generator.Attribute("a")),
-                "[a]\r\nabstract x this[y z]\r\n{\r\n    get;\r\n    set;\r\n}");
+                "[a]\r\nabstract x this[y z] { get; set; }");
 
             VerifySyntax<EventDeclarationSyntax>(
                 Generator.AddAttributes(
                     Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t"), modifiers: DeclarationModifiers.Abstract),
                     Generator.Attribute("a")),
-                "[a]\r\nabstract event t ep\r\n{\r\n    add;\r\n    remove;\r\n}");
+                "[a]\r\nabstract event t ep { add; remove; }");
 
             VerifySyntax<EventFieldDeclarationSyntax>(
                 Generator.AddAttributes(
@@ -2441,7 +2441,7 @@ public class C
         {
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.WithAccessorDeclarations(Generator.PropertyDeclaration("p", Generator.IdentifierName("x"))),
-                "x p\r\n{\r\n}");
+                "x p { }");
 
             VerifySyntax<PropertyDeclarationSyntax>(
                 Generator.WithAccessorDeclarations(
@@ -2463,7 +2463,7 @@ public class C
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.WithAccessorDeclarations(Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) }, Generator.IdentifierName("x"))),
-                "x this[t p]\r\n{\r\n}");
+                "x this[t p] { }");
 
             VerifySyntax<IndexerDeclarationSyntax>(
                 Generator.WithAccessorDeclarations(Generator.IndexerDeclaration(new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) }, Generator.IdentifierName("x")),
