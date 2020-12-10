@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_missing_using_directives_on_paste">
         <source>Add missing using directives on paste</source>
-        <target state="new">Add missing using directives on paste</target>
+        <target state="translated">Agregar las directivas using que faltan al pegar</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
