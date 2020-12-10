@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
+using Analyzer.Utilities.Lightup;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
@@ -914,7 +916,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
                 var value = VisitInvocationCommon(originalOperation, visitedInstance);
 
-                if (IsSpecialEmptyOrFactoryMethod(method) &&
+                if (IsSpecialMethodReturningNonNullValue(method, DataFlowAnalysisContext.WellKnownTypeProvider) &&
                     !TryGetInterproceduralAnalysisResult(originalOperation, out _))
                 {
                     return value.MakeNonNull();
@@ -923,22 +925,38 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return value;
             }
 
-            private static bool IsSpecialEmptyOrFactoryMethod(IMethodSymbol method)
-                => IsSpecialFactoryMethod(method) || IsSpecialEmptyMember(method);
+            private static bool IsSpecialMethodReturningNonNullValue(IMethodSymbol method, WellKnownTypeProvider wellKnownTypeProvider)
+                => IsSpecialFactoryMethodReturningNonNullValue(method, wellKnownTypeProvider) || IsSpecialEmptyMember(method);
 
             /// <summary>
             /// Returns true if this special static factory method whose name starts with "Create", such that
+            /// method's return type is not nullable, i.e. 'type?', and
             /// method's containing type is static OR a special type OR derives from or is same as the type of the field/property/method return.
             /// For example: class SomeType { static SomeType CreateXXX(...); }
             /// </summary>
-            private static bool IsSpecialFactoryMethod(IMethodSymbol method)
+            private static bool IsSpecialFactoryMethodReturningNonNullValue(IMethodSymbol method, WellKnownTypeProvider wellKnownTypeProvider)
             {
-                return method.IsStatic &&
+                var isFactoryMethod = method.IsStatic &&
                     method.Name.StartsWith("Create", StringComparison.Ordinal) &&
+                    !method.ReturnType.IsAnnotatedAsNullable() &&
                     (method.ContainingType.IsStatic ||
                      method.ContainingType.SpecialType != SpecialType.None ||
                      method.ReturnType is INamedTypeSymbol namedType &&
                      method.ContainingType.DerivesFromOrImplementsAnyConstructionOf(namedType.OriginalDefinition));
+                if (!isFactoryMethod)
+                {
+                    return false;
+                }
+
+                // Activator.CreateInstance can return 'null'
+                if (method.Name.Equals("CreateInstance", StringComparison.Ordinal) &&
+                    wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemActivator) is { } activatorType &&
+                    activatorType.Equals(method.ContainingType))
+                {
+                    return false;
+                }
+
+                return true;
             }
 
             /// <summary>
