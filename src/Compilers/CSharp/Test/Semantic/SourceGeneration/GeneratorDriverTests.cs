@@ -973,5 +973,26 @@ class C
 
             Assert.Same(parseOptions, passedOptions);
         }
+
+        [Fact]
+        public void CanAddStringBuilderAsSource()
+        {
+            var source = @"
+class C : D{ }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics(
+                // (2,11): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
+                // class C : D{ }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(2, 11));
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new CallbackGenerator((ic) => { }, (sgc) => { sgc.AddSource("test", new StringBuilder("public class D {}")); });
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+            Assert.Empty(diagnostics);
+            outputCompilation.VerifyDiagnostics();
+        }
     }
 }
