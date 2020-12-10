@@ -31,8 +31,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 {
     internal abstract class AbstractChangeSignatureService : ILanguageService
     {
-        private static readonly ChangeSignatureResult s_ChangeSignatureResultFailure = new ChangeSignatureResult(succeeded: false);
-
         protected SyntaxAnnotation changeSignatureFormattingAnnotation = new("ChangeSignatureFormatting");
 
         /// <summary>
