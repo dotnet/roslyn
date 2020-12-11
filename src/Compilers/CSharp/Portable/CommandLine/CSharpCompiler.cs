@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If errors had been reported in ParseFile, while trying to read files, then we should simply exit.
-            if (ReportDiagnostics(diagnosticBag.ToReadOnlyAndFree(), consoleOutput, errorLogger, null))
+            if (ReportDiagnostics(diagnosticBag.ToReadOnlyAndFree(), consoleOutput, errorLogger, compilation: null))
             {
                 Debug.Assert(hadErrors);
                 return null;

@@ -470,8 +470,6 @@ namespace Microsoft.CodeAnalysis
             return new DiagnosticWithProgrammaticSuppression(this, programmaticSuppressionInfo);
         }
 
-        internal virtual SuppressionInfo? SuppressionInfo { get { return null; } }
-
         internal virtual ProgrammaticSuppressionInfo? ProgrammaticSuppressionInfo { get { return null; } }
 
         // compatibility

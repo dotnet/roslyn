@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            ReportDiagnostics(diagnostics.ToReadOnlyAndFree(), consoleOutput, errorLoggerOpt: logger, null);
+            ReportDiagnostics(diagnostics.ToReadOnlyAndFree(), consoleOutput, errorLoggerOpt: logger, compilation: null);
             return logger;
         }
 
@@ -759,7 +759,7 @@ namespace Microsoft.CodeAnalysis
                 return Succeeded;
             }
 
-            if (ReportDiagnostics(Arguments.Errors, consoleOutput, errorLogger, null))
+            if (ReportDiagnostics(Arguments.Errors, consoleOutput, errorLogger, compilation: null))
             {
                 return Failed;
             }
