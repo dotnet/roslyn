@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="AnnotatePublicApiMessage">
         <source>Symbol '{0}' is missing nullability annotations in the declared API</source>
-        <target state="needs-review-translation">Symbol „{0}” nie ma adnotacji opcji dopuszczania wartości null w zadeklarowanym interfejsie API.</target>
+        <target state="translated">Symbol „{0}” nie ma adnotacji opcji dopuszczania wartości null w zadeklarowanym interfejsie API</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiTitle">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="DeclarePublicApiMessage">
         <source>Symbol '{0}' is not part of the declared API</source>
-        <target state="needs-review-translation">Symbol „{0}” nie jest częścią zadeklarowanego interfejsu API.</target>
+        <target state="translated">Symbol „{0}” nie jest częścią zadeklarowanego interfejsu API</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiTitle">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
         <source>The symbol '{0}' appears more than once in the public API files</source>
-        <target state="needs-review-translation">Symbol „{0}” występuje więcej niż raz w plikach publicznego interfejsu API.</target>
+        <target state="translated">Symbol „{0}” występuje więcej niż raz w plikach publicznego interfejsu API</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesTitle">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
         <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</source>
-        <target state="needs-review-translation">Konstruktor umożliwia dziedziczenie klasy podstawowej nieprzeznaczonej do dziedziczenia, tym samym ujawniając jej chronione składowe.</target>
+        <target state="translated">Konstruktor umożliwia dziedziczenie klasy podstawowej nieprzeznaczonej do dziedziczenia, tym samym ujawniając jej składowe chronione</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeTitle">
@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="ObliviousPublicApiMessage">
         <source>Symbol '{0}' uses some oblivious reference types</source>
-        <target state="needs-review-translation">Symbol „{0}” używa pewnych nieświadomych typów referencyjnych.</target>
+        <target state="translated">Symbol „{0}” używa pewnych nieświadomych typów referencyjnych</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiTitle">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
         <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads</source>
-        <target state="needs-review-translation">Publiczny interfejs API z opcjonalnymi parametrami powinien mieć najwięcej parametrów spośród przeciążeń publicznych.</target>
+        <target state="translated">Publiczny interfejs API z opcjonalnymi parametrami powinien mieć najwięcej parametrów spośród jego przeciążeń publicznych</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFileMissingMessage">

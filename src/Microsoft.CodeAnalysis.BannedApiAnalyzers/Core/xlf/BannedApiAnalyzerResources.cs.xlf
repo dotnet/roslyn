@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToMessage">
         <source>External access to internal symbol '{0}' is prohibited. Assembly '{1}' only allows access to internal symbols defined in the following namespace(s): '{2}'.</source>
-        <target state="needs-review-translation">Externí přístup k internímu symbolu {0} je zakázaný. Sestavení {1} povoluje přístup jen k interním symbolům definovaným v následujících oborech názvů: {2}</target>
+        <target state="translated">Externí přístup k internímu symbolu {0} je zakázaný. Sestavení {1} povoluje přístup jen k interním symbolům definovaným v následujících oborech názvů: {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="RestrictedInternalsVisibleToTitle">
