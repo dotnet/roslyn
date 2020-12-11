@@ -11260,36 +11260,6 @@ tryAgain:
                         var tk => CanFollowCast(tk)
                     };
 
-                    bool isBinaryPattern()
-                    {
-                        if (!isBinaryPatternKeyword())
-                        {
-                            return false;
-                        }
-
-                        bool lastTokenIsBinaryOperator = true;
-
-                        EatToken();
-                        while (isBinaryPatternKeyword())
-                        {
-                            // If the parenthesized type is followed by an even-number of binary pattern tokens, it is a cast.
-                            // Such as `(int)or or string`
-                            // If the parenthesized type is followed by an odd-number of binary pattern token, it is not a cast.
-                            // Such as `(int) or string`
-                            lastTokenIsBinaryOperator = !lastTokenIsBinaryOperator;
-                            EatToken();
-                        }
-
-                        // In case a combinator token is used as a constant, we explicitly check that a pattern is NOT followed.
-                        // Such as `(e is (int)or or >= 0)` versus `(e is (int) or or)`
-                        return lastTokenIsBinaryOperator == IsPossibleSubpatternElement();
-                    }
-
-                    bool isBinaryPatternKeyword()
-                    {
-                        return this.CurrentToken.ContextualKind is SyntaxKind.OrKeyword or SyntaxKind.AndKeyword;
-                    }
-
                 case ScanTypeFlags.GenericTypeOrMethod:
                 case ScanTypeFlags.GenericTypeOrExpression:
                 case ScanTypeFlags.NonGenericTypeOrExpression:
@@ -11301,6 +11271,34 @@ tryAgain:
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(type);
+            }
+
+            bool isBinaryPattern()
+            {
+                if (!isBinaryPatternKeyword())
+                {
+                    return false;
+                }
+
+                bool lastTokenIsBinaryOperator = true;
+
+                EatToken();
+                while (isBinaryPatternKeyword())
+                {
+                    // If we see a subsequent binary pattern token, it can't be an operator.
+                    // Later, it will be parsed as an identifier.
+                    lastTokenIsBinaryOperator = !lastTokenIsBinaryOperator;
+                    EatToken();
+                }
+
+                // In case a combinator token is used as a constant, we explicitly check that a pattern is NOT followed.
+                // Such as `(e is (int)or or >= 0)` versus `(e is (int) or or)`
+                return lastTokenIsBinaryOperator == IsPossibleSubpatternElement();
+            }
+
+            bool isBinaryPatternKeyword()
+            {
+                return this.CurrentToken.ContextualKind is SyntaxKind.OrKeyword or SyntaxKind.AndKeyword;
             }
         }
 
