@@ -1777,7 +1777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Symbol RemapSymbolIfNecessary(Symbol symbol)
         {
-            if (!Compilation.NullableSemanticAnalysisEnabled) return symbol;
+            if (!Compilation.IsNullableAnalysisEnabled) return symbol;
 
             switch (symbol)
             {

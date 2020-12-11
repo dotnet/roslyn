@@ -1234,7 +1234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
-            if (compilation.NullableSemanticAnalysisEnabled)
+            if (compilation.IsNullableAnalysisEnabled)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManager, node);
             }
@@ -1267,7 +1267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             newSnapshots = newSnapshotBuilder.ToManagerAndFree();
 
 #if DEBUG
-            if (binder.Compilation.NullableSemanticAnalysisEnabled)
+            if (binder.Compilation.IsNullableAnalysisEnabled)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, newSnapshots, node);
             }
@@ -1293,7 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool CanSkipAnalysis(CSharpCompilation compilation)
         {
-            return compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableAnalysis;
+            return compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.IsNullableAnalysisEnabled;
         }
 
         internal static bool NeedsAnalysis(CSharpCompilation compilation)

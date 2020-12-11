@@ -135,7 +135,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private ThreeState _lazyShouldRunNullableAnalysis;
 
-        // Nullable analysis data for methods, parameter default values, and attributes. Collected during testing only.
+        /// <summary>
+        /// Nullable analysis data for methods, parameter default values, and attributes.
+        /// The key is a symbol for methods or parameters, and syntax for attributes,
+        /// and the value is the number of entries tracked during analysis of that key.
+        /// The data is collected during testing only.
+        /// </summary>
         internal ConcurrentDictionary<object, int>? NullableAnalysisData;
 
         public override string Language
@@ -189,11 +194,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool FeatureStrictEnabled => Feature("strict") != null;
 
         /// <summary>
-        /// True if we should enable nullable semantic analysis in this compilation.
-        /// </summary>
-        internal bool NullableSemanticAnalysisEnabled => ShouldRunNullableAnalysis;
-
-        /// <summary>
         /// True when the "peverify-compat" feature flag is set or the language version is below C# 7.2.
         /// With this flag we will avoid certain patterns known not be compatible with PEVerify.
         /// The code may be less efficient and may deviate from spec in corner cases.
@@ -202,14 +202,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null;
 
         /// <summary>
-        /// Returns true if nullable analysis should be run in this compilation.
+        /// Returns true if nullable analysis is enabled in this compilation.
         /// </summary>
         /// <return>
         /// Returns true if analysis is explicitly enabled for all methods;
         /// false if analysis is explicitly disabled; and otherwise returns true
         /// if there are any nullable-enabled contexts in the compilation.
         /// </return>
-        internal bool ShouldRunNullableAnalysis
+        internal bool IsNullableAnalysisEnabled
         {
             get
             {

@@ -1747,7 +1747,7 @@ class C
                 //         object o = null;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(9, 16));
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled);
+            Assert.False(comp.IsNullableAnalysisEnabled);
 
             comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
@@ -1764,7 +1764,7 @@ class C
                 //         object o = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 20));
 
-            Assert.True(comp.NullableSemanticAnalysisEnabled);
+            Assert.True(comp.IsNullableAnalysisEnabled);
         }
 
         private class CSharp73ProvidesNullableSemanticInfo_Analyzer : DiagnosticAnalyzer
