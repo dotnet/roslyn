@@ -8,10 +8,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class DocumentExtensions
     {
-        public static bool IsInCloudEnvironmentClientContext(this Document document)
+        public static bool IsInLspEditorContext(this Document? document)
         {
-            var workspaceContextService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
-            return workspaceContextService.IsCloudEnvironmentClient();
+            var workspaceContextService = document?.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
+            return workspaceContextService?.IsInLspEditorContext() == true;
         }
     }
 }
