@@ -495,6 +495,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return true;
             }
 
+            // No space before an asterisk that's part of a PointerTypeSyntax.
+            if (next.IsKind(SyntaxKind.AsteriskToken) && next.Parent is PointerTypeSyntax)
+            {
+                return false;
+            }
+
+            // The last asterisk of a pointer declaration should be followed by a space.
+            if (token.IsKind(SyntaxKind.AsteriskToken) && token.Parent is PointerTypeSyntax && next.IsKind(SyntaxKind.IdentifierToken))
+            {
+                return true;
+            }
+
             if (IsKeyword(token.Kind()))
             {
                 if (!next.IsKind(SyntaxKind.ColonToken) &&
