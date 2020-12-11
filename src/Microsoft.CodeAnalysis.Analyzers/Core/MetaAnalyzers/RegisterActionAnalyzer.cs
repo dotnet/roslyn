@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                         }
 
                                         SyntaxNode invocationExpression = GetInvocationExpression(invocation);
-                                        Diagnostic diagnostic = Diagnostic.Create(rule, invocationExpression.GetLocation());
+                                        Diagnostic diagnostic = invocationExpression.CreateDiagnostic(rule);
                                         context.ReportDiagnostic(diagnostic);
                                     }
                                     else if (isRegisterSymbolAction)
@@ -369,11 +369,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                         {
                                             symbol = semanticModel.GetSymbolInfo(argument, context.CancellationToken).Symbol;
                                             if (symbol != null &&
+#pragma warning disable CA1508 // Avoid dead conditional code - https://github.com/dotnet/roslyn-analyzers/issues/4519
                                                 symbol.Kind == SymbolKind.Field &&
+#pragma warning restore CA1508 // Avoid dead conditional code
                                                 _symbolKind.Equals(symbol.ContainingType) &&
                                                 !s_supportedSymbolKinds.Contains(symbol.Name))
                                             {
-                                                Diagnostic diagnostic = Diagnostic.Create(UnsupportedSymbolKindArgumentRule, argument.GetLocation(), symbol.Name);
+                                                Diagnostic diagnostic = argument.CreateDiagnostic(UnsupportedSymbolKindArgumentRule, symbol.Name);
                                                 context.ReportDiagnostic(diagnostic);
                                             }
                                         }
