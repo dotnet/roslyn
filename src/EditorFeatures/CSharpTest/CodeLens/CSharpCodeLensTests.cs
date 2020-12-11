@@ -258,7 +258,7 @@ public class A
             const string input = @"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""CurrentDocument.cs""><![CDATA[
-{|1:public class Foo|}
+{|2:public class Foo|}
 {
     public Foo() { }
 }
@@ -283,7 +283,7 @@ public class B
             const string input = @"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""CurrentDocument.cs""><![CDATA[
-{|2:public class Foo|}
+{|3:public class Foo|}
 {
     public Foo() { }
 }
