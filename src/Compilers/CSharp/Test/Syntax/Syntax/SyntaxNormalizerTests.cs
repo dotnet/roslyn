@@ -171,6 +171,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeStatement("Func<string, int> f = blah;", "Func<string, int> f = blah;");
         }
 
+        [Theory]
+        [InlineData("int*p;", "int* p;")]
+        [InlineData("int *p;", "int* p;")]
+        [InlineData("int*p1,p2;", "int* p1, p2;")]
+        [InlineData("int *p1, p2;", "int* p1, p2;")]
+        [InlineData("int**p;", "int** p;")]
+        [InlineData("int **p;", "int** p;")]
+        [InlineData("int**p1,p2;", "int** p1, p2;")]
+        [InlineData("int **p1, p2;", "int** p1, p2;")]
+        [WorkItem(49733, "https://github.com/dotnet/roslyn/issues/49733")]
+        public void TestNormalizeAsteriskInPointerDeclaration(string text, string expected)
+        {
+            TestNormalizeStatement(text, expected);
+        }
+
         private void TestNormalizeStatement(string text, string expected)
         {
             var node = SyntaxFactory.ParseStatement(text);
