@@ -11,6 +11,15 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
+    /// <summary>
+    /// Represents a collection of keys and values.
+    /// </summary>
+    /// <remarks>
+    /// <para>This collection has the same performance characteristics as <see cref="Dictionary{TKey, TValue}"/>, but
+    /// uses segmented arrays to avoid allocations in the Large Object Heap.</para>
+    /// </remarks>
+    /// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
+    /// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
     [DebuggerTypeProxy(typeof(IDictionaryDebugView<,>))]
     [DebuggerDisplay("Count = {Count}")]
     internal class SegmentedDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>

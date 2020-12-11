@@ -8,6 +8,10 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
+    /// <summary>
+    /// Provides methods for creating a segmented dictionary that is immutable; meaning it cannot be changed once it is
+    /// created.
+    /// </summary>
     internal static class ImmutableSegmentedDictionary
     {
         public static ImmutableSegmentedDictionary<TKey, TValue> Create<TKey, TValue>()

@@ -10,6 +10,47 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
 {
+    /// <summary>
+    /// Represents a segmented dictionary that is immutable; meaning it cannot be changed once it is created.
+    /// </summary>
+    /// <remarks>
+    /// <para>There are different scenarios best for <see cref="ImmutableSegmentedDictionary{TKey, TValue}"/> and others
+    /// best for <see cref="ImmutableDictionary{TKey, TValue}"/>.</para>
+    ///
+    /// <para>In general, <see cref="ImmutableSegmentedDictionary{TKey, TValue}"/> is applicable in scenarios most like
+    /// the scenarios where <see cref="ImmutableArray{T}"/> is applicable, and
+    /// <see cref="ImmutableDictionary{TKey, TValue}"/> is applicable in scenarios most like the scenarios where
+    /// <see cref="ImmutableList{T}"/> is applicable.</para>
+    ///
+    /// <para>The following table summarizes the performance characteristics of
+    /// <see cref="ImmutableSegmentedDictionary{TKey, TValue}"/>:</para>
+    /// 
+    /// <list type="table">
+    ///   <item>
+    ///     <description>Operation</description>
+    ///     <description><see cref="ImmutableSegmentedDictionary{TKey, TValue}"/> Complexity</description>
+    ///     <description><see cref="ImmutableDictionary{TKey, TValue}"/> Complexity</description>
+    ///     <description>Comments</description>
+    ///   </item>
+    ///   <item>
+    ///     <description>Item</description>
+    ///     <description>O(1)</description>
+    ///     <description>O(log n)</description>
+    ///     <description>Directly index into the underlying segmented dictionary</description>
+    ///   </item>
+    ///   <item>
+    ///     <description>Add()</description>
+    ///     <description>O(n)</description>
+    ///     <description>O(log n)</description>
+    ///     <description>Requires creating a new segmented dictionary</description>
+    ///   </item>
+    /// </list>
+    /// 
+    /// <para>This type is backed by segmented arrays to avoid using the Large Object Heap without impacting algorithmic
+    /// complexity.</para>
+    /// </remarks>
+    /// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
+    /// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
     internal partial class ImmutableSegmentedDictionary<TKey, TValue> : IImmutableDictionary<TKey, TValue>, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDictionary
         where TKey : notnull
     {
