@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         protected override string LanguageName => LanguageNames.CSharp;
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AddMissingImports)]
-        public void VerifyMissingByDefault()
+        public void VerifyDisabled()
         {
             var project = new Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.AddFile(project, "Foo.cs", contents: @"
@@ -42,6 +42,7 @@ class Program
 
     $$
 }");
+            VisualStudio.Workspace.SetFeatureOption(FeatureOnOffOptions.AddImportsOnPaste.Feature, FeatureOnOffOptions.AddImportsOnPaste.Name, LanguageNames.CSharp, "True");
 
             VisualStudio.Editor.Paste(@"Task DoThingAsync() => Task.CompletedTask;");
 
