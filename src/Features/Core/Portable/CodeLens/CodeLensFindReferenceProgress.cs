@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
         private static bool FilterDefinition(ISymbol definition)
         {
-            return (definition.IsImplicitlyDeclared && !definition.IsConstructor()) ||
+            return definition.IsImplicitlyDeclared ||
                    (definition as IMethodSymbol)?.AssociatedSymbol != null;
         }
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             // Add remote locations for all the syntax references except the queried syntax node.
             // To query for the partial locations, filter definition locations that occur in source whose span is part of
             // span of any syntax node from Definition.DeclaringSyntaxReferences except for the queried syntax node.
-            var locations = symbol.Locations.Intersect(_queriedSymbol.Locations, LocationComparer.Instance).Any() && !symbol.IsImplicitlyDeclared
+            var locations = symbol.Locations.Intersect(_queriedSymbol.Locations, LocationComparer.Instance).Any()
                 ? GetPartialLocations(symbol, _aggregateCancellationTokenSource.Token)
                 : symbol.Locations;
 
