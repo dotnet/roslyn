@@ -165,5 +165,8 @@ csharp_prefer_braces = true:silent
 # SA1130: Use lambda syntax
 dotnet_diagnostic.SA1130.severity = silent
 
+# CA1508: Avoid dead conditional code
+dotnet_diagnostic.CA1508.severity = warning
+
 [*.sln]
 indent_style = tab
