@@ -1730,7 +1730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // https://github.com/dotnet/roslyn/issues/35038: We need to do a rewrite here, and create a test that can hit this.
 #if DEBUG
-                if (Compilation.ShouldRunNullableAnalysisAndIgnoreResults)
+                if (!Compilation.IsNullableAnalysisExplicitlyDisabled)
                 {
                     AnalyzeBoundNodeNullability(boundOuterExpression, incrementalBinder, diagnostics: new DiagnosticBag(), createSnapshots: false);
                 }
@@ -1920,7 +1920,7 @@ done:
             // If we're in DEBUG mode, enable the analysis unless explicitly disabled, but throw away the results
             if (!Compilation.IsNullableAnalysisEnabled
 #if DEBUG
-                && !Compilation.ShouldRunNullableAnalysisAndIgnoreResults
+                && Compilation.IsNullableAnalysisExplicitlyDisabled
 #endif
                 )
             {
@@ -2008,7 +2008,7 @@ done:
 #if DEBUG
                 if (!Compilation.IsNullableAnalysisEnabled)
                 {
-                    if (Compilation.ShouldRunNullableAnalysisAndIgnoreResults)
+                    if (!Compilation.IsNullableAnalysisExplicitlyDisabled)
                     {
                         AnalyzeBoundNodeNullability(boundRoot, binder, diagnosticBag, createSnapshots: true);
                     }

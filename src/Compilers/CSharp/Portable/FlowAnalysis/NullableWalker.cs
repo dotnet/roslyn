@@ -1075,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (CanSkipAnalysis(compilation))
             {
 #if DEBUG
-                if (compilation.ShouldRunNullableAnalysisAndIgnoreResults)
+                if (!compilation.IsNullableAnalysisExplicitlyDisabled)
                 {
                     // Once we address https://github.com/dotnet/roslyn/issues/46579 we should also always pass `getFinalNullableState: true` in debug mode.
                     // We will likely always need to write a 'null' out for the out parameter in this code path, though, because
@@ -1302,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             if (canSkipAnalysis)
             {
-                return compilation.ShouldRunNullableAnalysisAndIgnoreResults;
+                return !compilation.IsNullableAnalysisExplicitlyDisabled;
             }
 #endif
             return !canSkipAnalysis;
@@ -1318,7 +1318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (CanSkipAnalysis(compilation))
             {
 #if DEBUG
-                if (compilation.ShouldRunNullableAnalysisAndIgnoreResults)
+                if (!compilation.IsNullableAnalysisExplicitlyDisabled)
                 {
                     diagnostics = new DiagnosticBag();
                 }

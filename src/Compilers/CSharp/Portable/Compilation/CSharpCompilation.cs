@@ -232,14 +232,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
         /// <summary>
-        /// Returns true if nullable analysis should be run and results ignored in cases where analysis
-        /// is not otherwise necessary. Used for testing in debug builds to increase the chance of catching
-        /// nullable regressions (e.g. https://github.com/dotnet/roslyn/issues/40136).
+        /// Returns false if nullable analysis is disabled for the entire compilation.
         /// </summary>
-        /// <return>
-        /// Returns true unless analysis is explicitly disabled.
-        /// </return>
-        internal bool ShouldRunNullableAnalysisAndIgnoreResults => GetNullableAnalysisValue() != false;
+        /// <remarks>
+        /// This method is only used for debug builds. In debug builds, unless analysis is
+        /// explicitly disabled, analysis is run, even though the results may be ignored,
+        /// to increase the chance of catching nullable regressions
+        /// (e.g. https://github.com/dotnet/roslyn/issues/40136).
+        /// </remarks>
+        internal bool IsNullableAnalysisExplicitlyDisabled => GetNullableAnalysisValue() == false;
 #endif
 
         /// <summary>
