@@ -11181,20 +11181,24 @@ unsafe
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
 using System;
-using System.Threading.Tasks;
 unsafe
 {
     test<int>(null);
+    test<int>(&intTest);
 
     static void test<T>(delegate*<T, void> f)
     {
         Console.WriteLine(f == null);
         Console.WriteLine(f is null);
     }
+
+    static void intTest(int i) {}
 }
 ", expectedOutput: @"
 True
-True");
+True
+False
+False");
 
             verifier.VerifyIL("<Program>$.<<Main>$>g__test|0_0<T>(delegate*<T, void>)", @"
 {
