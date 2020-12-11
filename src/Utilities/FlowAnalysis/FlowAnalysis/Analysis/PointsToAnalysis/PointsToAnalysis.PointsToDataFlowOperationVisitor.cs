@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
+    using NullableAnnotation = Analyzer.Utilities.Lightup.NullableAnnotation;
+
     public partial class PointsToAnalysis : ForwardDataFlowAnalysis<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToBlockAnalysisResult, PointsToAbstractValue>
     {
         /// <summary>
@@ -936,19 +938,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             /// </summary>
             private static bool IsSpecialFactoryMethodReturningNonNullValue(IMethodSymbol method, WellKnownTypeProvider wellKnownTypeProvider)
             {
-                var isFactoryMethod = method.IsStatic &&
-                    method.Name.StartsWith("Create", StringComparison.Ordinal) &&
-                    !method.ReturnType.IsAnnotatedAsNullable() &&
-                    (method.ContainingType.IsStatic ||
-                     method.ContainingType.SpecialType != SpecialType.None ||
-                     method.ReturnType is INamedTypeSymbol namedType &&
-                     method.ContainingType.DerivesFromOrImplementsAnyConstructionOf(namedType.OriginalDefinition));
-                if (!isFactoryMethod)
+                if (!method.IsStatic ||
+                    !method.Name.StartsWith("Create", StringComparison.Ordinal) ||
+                    method.ReturnType.NullableAnnotation() == NullableAnnotation.Annotated)
                 {
                     return false;
                 }
 
-                // Activator.CreateInstance can return 'null'
+                // 'Activator.CreateInstance' can return 'null'.
+                // Even though it is nullable annotated to return 'object?',
+                // the NullableAnnotation check above fails for VB, so we special case it here.
                 if (method.Name.Equals("CreateInstance", StringComparison.Ordinal) &&
                     wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemActivator) is { } activatorType &&
                     activatorType.Equals(method.ContainingType))
@@ -956,7 +955,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     return false;
                 }
 
-                return true;
+                return method.ContainingType.IsStatic ||
+                     method.ContainingType.SpecialType != SpecialType.None ||
+                     method.ReturnType is INamedTypeSymbol namedType &&
+                     method.ContainingType.DerivesFromOrImplementsAnyConstructionOf(namedType.OriginalDefinition);
             }
 
             /// <summary>

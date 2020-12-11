@@ -16,9 +16,6 @@ namespace Analyzer.Utilities.Lightup
         public static NullableAnnotation NullableAnnotation(this ITypeSymbol typeSymbol)
             => s_nullableAnnotation(typeSymbol);
 
-        public static bool IsAnnotatedAsNullable(this ITypeSymbol typeSymbol)
-            => s_nullableAnnotation(typeSymbol) == Lightup.NullableAnnotation.Annotated;
-
         public static ITypeSymbol WithNullableAnnotation(this ITypeSymbol typeSymbol, NullableAnnotation nullableAnnotation)
             => s_withNullableAnnotation(typeSymbol, nullableAnnotation);
     }
