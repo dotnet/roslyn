@@ -10750,9 +10750,9 @@ unsafe
 }", options: TestOptions.UnsafeReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (10,20): error CS8347: Cannot use a result of 'delegate*<ref Span<int>, Span<int>>' in this context because it may expose variables referenced by parameter '' outside of their declaration scope
+                // (10,20): error CS8347: Cannot use a result of 'delegate*<ref Span<int>, Span<int>>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
                 //         return ref ptr(ref span);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "ptr(ref span)").WithArguments("delegate*<ref System.Span<int>, System.Span<int>>", "").WithLocation(10, 20),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ptr(ref span)").WithArguments("delegate*<ref System.Span<int>, System.Span<int>>", "0").WithLocation(10, 20),
                 // (10,28): error CS8168: Cannot return local 'span' by reference because it is not a ref local
                 //         return ref ptr(ref span);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "span").WithArguments("span").WithLocation(10, 28)
@@ -10997,6 +10997,183 @@ unsafe
   IL_0021:  ret
 }
 ");
+        }
+
+        [Fact, WorkItem(49760, "https://github.com/dotnet/roslyn/issues/49760")]
+        public void ReturnRefStructByValue_CanEscape()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+
+unsafe
+{
+    Console.WriteLine(ptrTest().field);
+    
+    static BorrowedReference ptrTest()
+    {
+        delegate*<BorrowedReference> ptr = &test;
+        return ptr();
+    }
+
+    static BorrowedReference test() => new BorrowedReference() { field = 1 };
+}
+
+ref struct BorrowedReference {
+    public int field;
+}
+", expectedOutput: "1");
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ptrTest|0_0()", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldftn      ""BorrowedReference <Program>$.<<Main>$>g__test|0_1()""
+  IL_0006:  calli      ""delegate*<BorrowedReference>""
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(49760, "https://github.com/dotnet/roslyn/issues/49760")]
+        public void ReturnRefStructByValue_CannotEscape()
+        {
+            var comp = CreateCompilationWithSpan(@"
+#pragma warning disable CS8321 // Unused local function ptrTest
+using System;
+unsafe
+{
+    static Span<int> ptrTest()
+    {
+        Span<int> s = stackalloc int[1];
+        delegate*<Span<int>, Span<int>> ptr = &test;
+        return ptr(s);
+    }
+
+    static Span<int> ptrTest2(Span<int> s)
+    {
+        delegate*<Span<int>, Span<int>> ptr = &test;
+        return ptr(s);
+    }
+    static Span<int> test(Span<int> s) => s;
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (10,16): error CS8347: Cannot use a result of 'delegate*<Span<int>, Span<int>>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
+                //         return ptr(s);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ptr(s)").WithArguments("delegate*<System.Span<int>, System.Span<int>>", "0").WithLocation(10, 16),
+                // (10,20): error CS8352: Cannot use local 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ptr(s);
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s").WithArguments("s").WithLocation(10, 20)
+            );
+        }
+
+        [Fact]
+        public void RefEscapeNestedArrayAccess()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+System.Console.WriteLine(M());
+
+static ref int M()
+{
+    var arr = new int[1]{40};
+
+    unsafe ref int N()
+    {
+        static ref int NN(ref int arg) => ref arg;
+
+        delegate*<ref int, ref int> ptr = &NN;
+        ref var r = ref ptr(ref arr[0]); 
+        r += 2;
+
+        return ref r;
+    }
+
+    return ref N();
+}
+", expectedOutput: "42");
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__N|0_1(ref <Program>$.<>c__DisplayClass0_0)", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  4
+  .locals init (delegate*<ref int, ref int> V_0)
+  IL_0000:  ldftn      ""ref int <Program>$.<<Main>$>g__NN|0_2(ref int)""
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""int[] <Program>$.<>c__DisplayClass0_0.arr""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldelema    ""int""
+  IL_0013:  ldloc.0
+  IL_0014:  calli      ""delegate*<ref int, ref int>""
+  IL_0019:  dup
+  IL_001a:  dup
+  IL_001b:  ldind.i4
+  IL_001c:  ldc.i4.2
+  IL_001d:  add
+  IL_001e:  stind.i4
+  IL_001f:  ret
+}
+");
+        }
+
+        [Fact]
+        public void RefReturnInCompoundAssignment()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+unsafe
+{
+    delegate*<ref int, ref int> ptr = &RefReturn;
+    int i = 0;
+    ptr(ref i) += 1;
+    System.Console.WriteLine(i);
+
+    static ref int RefReturn(ref int i) => ref i;
+}", expectedOutput: "1");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  .locals init (int V_0, //i
+                delegate*<ref int, ref int> V_1)
+  IL_0000:  ldftn      ""ref int <Program>$.<<Main>$>g__RefReturn|0_0(ref int)""
+  IL_0006:  ldc.i4.0
+  IL_0007:  stloc.0
+  IL_0008:  stloc.1
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldloc.1
+  IL_000c:  calli      ""delegate*<ref int, ref int>""
+  IL_0011:  dup
+  IL_0012:  ldind.i4
+  IL_0013:  ldc.i4.1
+  IL_0014:  add
+  IL_0015:  stind.i4
+  IL_0016:  ldloc.0
+  IL_0017:  call       ""void System.Console.WriteLine(int)""
+  IL_001c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void InvalidReturnInCompoundAssignment()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    delegate*<int, int> ptr = &RefReturn;
+    int i = 0;
+    ptr(i) += 1;
+
+    static int RefReturn(int i) => i;
+}", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (6,5): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //     ptr(i) += 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "ptr(i)").WithLocation(6, 5)
+            );
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
