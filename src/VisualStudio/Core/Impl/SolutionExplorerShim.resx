@@ -216,4 +216,7 @@
   <data name="Source_Generated_File_Properties" xml:space="preserve">
     <value>Source Generated File Properties</value>
   </data>
+  <data name="This_generator_is_not_generating_files" xml:space="preserve">
+    <value>This generator is not generating files.</value>
+  </data>
 </root>

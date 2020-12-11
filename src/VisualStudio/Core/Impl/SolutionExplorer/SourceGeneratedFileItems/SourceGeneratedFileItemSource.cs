@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// The returned collection of items. Can only be mutated on the UI thread, as other parts of WPF are subscribed to the change
         /// events and expect that.
         /// </summary>
-        private readonly BulkObservableCollectionWithInit<SourceGeneratedFileItem> _items = new();
+        private readonly BulkObservableCollectionWithInit<BaseItem> _items = new();
 
         /// <summary>
         /// Gate to guard mutation of <see cref="_cancellationTokenSource"/> and <see cref="_resettableDelay"/>.
@@ -54,7 +54,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             get
             {
                 // Since we are expensive to compute, always say we have items.
-                // TODO: show a placeholder item in this case
                 return true;
             }
         }
@@ -84,11 +83,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 // and repopulated the list from scratch each time we'd lose the selection.
                 _items.BeginBulkOperation();
 
+                // Do we already have a "no files" placeholder item?
+                if (_items.Count == 1 && _items[0] is NoSourceGeneratedFilesPlaceholderItem)
+                {
+                    // We do -- if we have no items, we're done, since the placeholder is all that needs to be there;
+                    // otherwise remove it since we have real files now
+                    if (sourceGeneratedDocumentsForGeneratorById.Count == 0)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        _items.RemoveAt(0);
+                    }
+                }
+
                 for (int i = 0; i < _items.Count; i++)
                 {
                     // If this item that we already have is still a generated document, we'll remove it from our list; the list when we're
                     // done is going to have the new items remaining. If it no longer exists, remove it from list.
-                    if (!sourceGeneratedDocumentsForGeneratorById.Remove(_items[i].DocumentId))
+                    if (!sourceGeneratedDocumentsForGeneratorById.Remove(((SourceGeneratedFileItem)_items[i]).DocumentId))
                     {
                         _items.RemoveAt(i);
                         i--;
@@ -96,6 +110,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
 
                 // Whatever is left in sourceGeneratedDocumentsForGeneratorById we should add
+                if (sourceGeneratedDocumentsForGeneratorById.Count == 0)
+                {
+                    // We don't have any items at all, so add the placeholder
+                    Contract.ThrowIfFalse(_items.Count == 0);
+                    _items.Add(new NoSourceGeneratedFilesPlaceholderItem());
+                    return;
+                }
+
                 foreach (var document in sourceGeneratedDocumentsForGeneratorById.Values)
                 {
                     // Binary search to figure out where to insert
@@ -106,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     {
                         int mid = (low + high) / 2;
 
-                        if (StringComparer.OrdinalIgnoreCase.Compare(document.HintName, _items[mid].HintName) < 0)
+                        if (StringComparer.OrdinalIgnoreCase.Compare(document.HintName, ((SourceGeneratedFileItem)_items[mid]).HintName) < 0)
                         {
                             high = mid;
                         }
