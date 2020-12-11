@@ -2342,7 +2342,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ImmutableArray<int> argsToParams = default;
             var expanded = disposeMethod.HasParamsParameter();
 
-            Debug.Assert(!expanded || disposeMethod.GetParameters().Last().Type.IsArray());
+            Debug.Assert(!expanded || disposeMethod.GetParameters().Last().OriginalDefinition.Type.IsSZArray());
 
             binder.BindDefaultArguments(
                 syntax,
