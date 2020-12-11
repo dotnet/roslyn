@@ -131,8 +131,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             // reference location for the invocation while computing references count for the named type symbol. 
             var isImplicitReference = _queriedSymbol.Kind == SymbolKind.NamedType &&
                                       (definition as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
-            return isImplicitlyDeclared ||
-                   isImplicitReference ||
+            return (isImplicitlyDeclared && !isImplicitReference) ||
                    !reference.Location.IsInSource ||
                    !definition.Locations.Any(loc => loc.IsInSource);
         }
