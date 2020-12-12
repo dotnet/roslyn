@@ -199,7 +199,7 @@ scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
                     var destFilePath = Path.GetRelativePath(group.Key, tuple.FilePath.RelativePath);
                     if (Path.GetDirectoryName(destFilePath) is { Length: not 0 } directory)
                     {
-                        builder.AppendLine($@"mkdir ""$scriptroot/{directory}"" 2> /dev/null");
+                        builder.AppendLine($@"mkdir -p ""$scriptroot/{directory}""");
                     }
                     builder.AppendLine($@"ln ""$HELIX_CORRELATION_PAYLOAD/{source}"" ""$scriptroot/{destFilePath}"" || exit $?");
 
