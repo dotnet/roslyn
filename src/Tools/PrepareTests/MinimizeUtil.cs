@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 
 internal static class MinimizeUtil
@@ -50,12 +51,12 @@ internal static class MinimizeUtil
                     Directory.CreateDirectory(currentOutputDirectory);
                     var fileName = Path.GetFileName(sourceFilePath);
 
-                    if (fileName.EndsWith(".dll") && TryGetMvid(sourceFilePath, out var mvid))
+                    if (TryGetGuid(sourceFilePath, out var guid))
                     {
-                        if (!idToFilePathMap.TryGetValue(mvid, out var list))
+                        if (!idToFilePathMap.TryGetValue(guid, out var list))
                         {
                             list = new List<FilePathInfo>();
-                            idToFilePathMap[mvid] = list;
+                            idToFilePathMap[guid] = list;
                         }
 
                         var filePathInfo = new FilePathInfo(
@@ -65,7 +66,10 @@ internal static class MinimizeUtil
                             FullPath: sourceFilePath);
                         list.Add(filePathInfo);
                     }
-                    else
+                    // it's messy but we happen to know that the xml files are all documentation files that we don't need to run tests
+                    // TODO: can we come up with some msbuild logic that prevents copying these docs into test project output folders?
+                    // this saves ~700MB uncompressed
+                    else if (!fileName.EndsWith(".xml"))
                     {
                         var destFilePath = Path.Combine(currentOutputDirectory, fileName);
                         CreateHardLink(destFilePath, sourceFilePath);
@@ -259,26 +263,49 @@ find . -name ilasm | xargs chmod 755
         static extern int link(string oldpath, string newpath);
     }
 
-    private static bool TryGetMvid(string filePath, out Guid mvid)
+    private static bool TryGetGuid(string filePath, out Guid guid)
     {
-        try
+        if (Path.GetFileName(filePath) is "ilasm" or "ilasm.exe" or "Microsoft.DiaSymReader.Native.amd64.dll" or "Microsoft.DiaSymReader.Native.x86.dll")
         {
+            // todo: is there a better way to prevent including so many copies of ilasm and DiaSymReader in the payload?
+            // doing this saves ~200 MB uncompressed
+            using var checksum = MD5.Create();
             using var stream = File.OpenRead(filePath);
-            var reader = new PEReader(stream);
-            if (!reader.HasMetadata)
+            var hash = checksum.ComputeHash(stream);
+            guid = new Guid(hash);
+            return true;
+        }
+        else if (filePath.EndsWith(".dll"))
+        {
+            return TryGetMvid(filePath, out guid);
+        }
+        else
+        {
+            guid = default;
+            return false;
+        }
+
+        static bool TryGetMvid(string filePath, out Guid mvid)
+        {
+            try
+            {
+                using var stream = File.OpenRead(filePath);
+                var reader = new PEReader(stream);
+                if (!reader.HasMetadata)
+                {
+                    mvid = default;
+                    return false;
+                }
+                var metadataReader = reader.GetMetadataReader();
+                var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
+                mvid = metadataReader.GetGuid(mvidHandle);
+                return true;
+            }
+            catch
             {
                 mvid = default;
                 return false;
             }
-            var metadataReader = reader.GetMetadataReader();
-            var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
-            mvid = metadataReader.GetGuid(mvidHandle);
-            return true;
-        }
-        catch
-        {
-            mvid = default;
-            return false;
         }
     }
 }
