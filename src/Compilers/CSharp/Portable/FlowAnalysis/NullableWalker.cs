@@ -1230,7 +1230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
-            if (compilation.IsNullableAnalysisEnabled || compilation.IsNullableAnalysisEnabledAlways)
+            if (compilation.IsNullableAnalysisEnabled)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManager, node);
             }
@@ -1263,8 +1263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             newSnapshots = newSnapshotBuilder.ToManagerAndFree();
 
 #if DEBUG
-            var compilation = binder.Compilation;
-            if (compilation.IsNullableAnalysisEnabled || compilation.IsNullableAnalysisEnabledAlways)
+            if (binder.Compilation.IsNullableAnalysisEnabled)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, newSnapshots, node);
             }
