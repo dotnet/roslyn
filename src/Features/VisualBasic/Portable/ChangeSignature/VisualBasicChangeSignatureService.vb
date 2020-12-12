@@ -341,6 +341,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     isReducedExtensionMethod = True
                 End If
 
+                If invocation.ArgumentList Is Nothing
+                    ' If the invocation doesn't contain an argument list, we don't want to add one unless necessary.
+                    ' For example, if we have invocation 'M', we don't want to add '()' unless actually needed.
+                    ' In the case an argument list isn't needed, we can return early as there will be no changes to the invocation.
+                    If updatedSignature.UpdatedConfiguration.ParametersWithoutDefaultValues.IsEmpty
+                        Return invocation
+                    Else
+                        ' The invocation requires an argument list. Add one if not already present.
+                        Dim emptyArgumentList = SyntaxFactory.ArgumentList().WithTrailingTrivia(invocation.GetTrailingTrivia())
+                        invocation = invocation.WithoutTrailingTrivia().WithArgumentList(emptyArgumentList)
+                    End If
+                End If
+
                 Return invocation.WithArgumentList(Await UpdateArgumentListAsync(
                     declarationSymbol,
                     updatedSignature,

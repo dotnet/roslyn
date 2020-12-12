@@ -576,5 +576,31 @@ End Class]]></Text>.NormalizedValue()
 
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
+
+        <WorkItem(49944, "https://github.com/dotnet/roslyn/issues/49944")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function TestReorderParameters_DoNotAddUnnecessaryParensToInvocation() As Task
+
+            Dim markup = <Text><![CDATA[
+Class C
+    Sub M(Optional s As String = "str", Optional i As Integer = 1)
+        $$M
+        M()
+        M("test", 0)
+    End Sub
+End Class]]></Text>.NormalizedValue()
+            Dim permutation = {1, 0}
+            Dim updatedCode = <Text><![CDATA[
+Class C
+    Sub M(Optional i As Integer = 1, Optional s As String = "str")
+        M
+        M()
+        M(0, "test")
+    End Sub
+End Class]]></Text>.NormalizedValue()
+
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+
+        End Function
     End Class
 End Namespace
