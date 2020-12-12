@@ -158,9 +158,11 @@ internal static class MinimizeUtil
                 {
                     var source = getPeFileName(tuple.Id);
                     var destFileName = Path.GetRelativePath(group.Key, tuple.FilePath.RelativePath);
-                    var mkdirCommand = Path.GetDirectoryName(destFileName) is { Length: not 0 } directory ? $@"mkdir %~dp0\{directory} 2> nul" : null;
+                    if (Path.GetDirectoryName(destFileName) is { Length: not 0 } directory)
+                    {
+                        builder.AppendLine($@"mkdir %~dp0\{directory} 2> nul");
+                    }
                     builder.AppendLine($@"
-{mkdirCommand}
 mklink /h %~dp0\{destFileName} %HELIX_CORRELATION_PAYLOAD%\{source} > nul
 if %errorlevel% neq 0 (
     echo Cmd failed: mklink /h %~dp0\{destFileName} %HELIX_CORRELATION_PAYLOAD%\{source}
