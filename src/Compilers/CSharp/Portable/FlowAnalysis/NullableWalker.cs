@@ -1074,7 +1074,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (CanSkipAnalysis(compilation))
             {
-                if (compilation.IsNullableAnalysisExplicitlyEnabled)
+                if (compilation.IsNullableAnalysisEnabledAlways)
                 {
                     // Once we address https://github.com/dotnet/roslyn/issues/46579 we should also always pass `getFinalNullableState: true` in debug mode.
                     // We will likely always need to write a 'null' out for the out parameter in this code path, though, because
@@ -1230,7 +1230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
-            if (compilation.IsNullableAnalysisEnabled || compilation.IsNullableAnalysisExplicitlyEnabled)
+            if (compilation.IsNullableAnalysisEnabled || compilation.IsNullableAnalysisEnabledAlways)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManager, node);
             }
@@ -1264,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
             var compilation = binder.Compilation;
-            if (compilation.IsNullableAnalysisEnabled || compilation.IsNullableAnalysisExplicitlyEnabled)
+            if (compilation.IsNullableAnalysisEnabled || compilation.IsNullableAnalysisEnabledAlways)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, newSnapshots, node);
             }
@@ -1295,7 +1295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool NeedsAnalysis(CSharpCompilation compilation)
         {
-            return !CanSkipAnalysis(compilation) || compilation.IsNullableAnalysisExplicitlyEnabled;
+            return !CanSkipAnalysis(compilation) || compilation.IsNullableAnalysisEnabledAlways;
         }
 
         /// <summary>Analyzes a node in a "one-off" context, such as for attributes or parameter default values.</summary>
@@ -1307,7 +1307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var compilation = binder.Compilation;
             if (CanSkipAnalysis(compilation))
             {
-                if (!compilation.IsNullableAnalysisExplicitlyEnabled)
+                if (!compilation.IsNullableAnalysisEnabledAlways)
                 {
                     return;
                 }

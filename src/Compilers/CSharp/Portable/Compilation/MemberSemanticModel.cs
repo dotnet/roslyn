@@ -1729,7 +1729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundNode boundOuterExpression = this.Bind(incrementalBinder, lambdaOrQuery, _ignoredDiagnostics);
 
                 // https://github.com/dotnet/roslyn/issues/35038: We need to do a rewrite here, and create a test that can hit this.
-                if (!Compilation.IsNullableAnalysisEnabled && Compilation.IsNullableAnalysisExplicitlyEnabled)
+                if (!Compilation.IsNullableAnalysisEnabled && Compilation.IsNullableAnalysisEnabledAlways)
                 {
                     AnalyzeBoundNodeNullability(boundOuterExpression, incrementalBinder, diagnostics: new DiagnosticBag(), createSnapshots: false);
                 }
@@ -1915,7 +1915,7 @@ done:
         /// </summary>
         protected void EnsureNullabilityAnalysisPerformedIfNecessary()
         {
-            if (!Compilation.IsNullableAnalysisEnabled && !Compilation.IsNullableAnalysisExplicitlyEnabled)
+            if (!Compilation.IsNullableAnalysisEnabled && !Compilation.IsNullableAnalysisEnabledAlways)
             {
                 return;
             }
@@ -1998,7 +1998,7 @@ done:
 
             void rewriteAndCache(DiagnosticBag diagnosticBag)
             {
-                if (!Compilation.IsNullableAnalysisEnabled && Compilation.IsNullableAnalysisExplicitlyEnabled)
+                if (!Compilation.IsNullableAnalysisEnabled && Compilation.IsNullableAnalysisEnabledAlways)
                 {
                     AnalyzeBoundNodeNullability(boundRoot, binder, diagnosticBag, createSnapshots: true);
                     return;

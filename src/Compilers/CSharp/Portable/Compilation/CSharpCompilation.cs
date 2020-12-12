@@ -235,8 +235,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true if nullable analysis is explicitly enabled for the entire compilation,
-        /// but not otherwise enabled.
+        /// Returns true if nullable analysis is enabled for all methods regardless
+        /// of the actual nullable context.
+        /// If this property returns true but IsNullableAnalysisEnabled returns false,
+        /// any nullable analysis should be enabled but results should be ignored.
         /// </summary>
         /// <remarks>
         /// For DEBUG builds, we treat nullable analysis as enabled for all methods
@@ -244,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// be ignored, to increase the chance of catching nullable regressions
         /// (e.g. https://github.com/dotnet/roslyn/issues/40136).
         /// </remarks>
-        internal bool IsNullableAnalysisExplicitlyEnabled
+        internal bool IsNullableAnalysisEnabledAlways
         {
             get
             {
