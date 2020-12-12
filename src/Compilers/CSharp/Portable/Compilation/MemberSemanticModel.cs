@@ -1917,14 +1917,15 @@ done:
         /// </summary>
         protected void EnsureNullabilityAnalysisPerformedIfNecessary()
         {
-            // If we're in DEBUG mode, enable the analysis unless explicitly disabled, but throw away the results
-            if (!Compilation.IsNullableAnalysisEnabled
-#if DEBUG
-                && Compilation.IsNullableAnalysisExplicitlyDisabled
-#endif
-                )
+            if (!Compilation.IsNullableAnalysisEnabled)
             {
-                return;
+                // If we're in DEBUG mode, enable the analysis unless explicitly disabled, but throw away the results
+#if DEBUG
+                if (Compilation.IsNullableAnalysisExplicitlyDisabled)
+#endif
+                {
+                    return;
+                }
             }
 
             // If we have a snapshot manager, then we've already done
