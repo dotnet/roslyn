@@ -190,20 +190,27 @@ source=""$(readlink ""$source"")""
 [[ $source != /* ]] && source=""$scriptroot/$source""
 done
 scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
-
-find . -name ilasm | xargs chmod 755
 ");
 
                 var count = 0;
                 foreach (var tuple in group)
                 {
                     var source = getPeFileName(tuple.Id);
-                    var destFileName = Path.GetRelativePath(group.Key, tuple.FilePath.RelativePath);
-                    if (Path.GetDirectoryName(destFileName) is { Length: not 0 } directory)
+                    var destFilePath = Path.GetRelativePath(group.Key, tuple.FilePath.RelativePath);
+                    if (Path.GetDirectoryName(destFilePath) is { Length: not 0 } directory)
                     {
                         builder.AppendLine($@"mkdir ""$scriptroot/{directory}"" 2> /dev/null");
                     }
-                    builder.AppendLine($@"ln ""$HELIX_CORRELATION_PAYLOAD/{source}"" ""$scriptroot/{destFileName}"" || exit $?");
+                    builder.AppendLine($@"ln ""$HELIX_CORRELATION_PAYLOAD/{source}"" ""$scriptroot/{destFilePath}"" || exit $?");
+
+                    // Working around an AzDo file permissions bug.
+                    // If we ever change the test payload upload process to manually
+                    // zip up the contents, we shouldn't need to do this any more.
+                    if (Path.GetFileName(destFilePath) == "ilasm")
+                    {
+                        builder.AppendLine($"chmod 755 $scriptroot/{destFilePath}");
+                    }
+
                     count++;
                     if (count % 1_000 == 0)
                     {

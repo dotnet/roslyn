@@ -160,6 +160,7 @@ namespace RunTests
                     ProcessRunner.CreateProcessStartInfo(
                         Options.DotnetFilePath,
                         commandLineArguments,
+                        workingDirectory: Path.GetDirectoryName(assemblyInfo.AssemblyPath),
                         displayWindow: false,
                         captureOutput: true,
                         environmentVariables: environmentVariables),
