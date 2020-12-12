@@ -342,13 +342,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 End If
 
                 If invocation.ArgumentList Is Nothing
-                    ' If the invocation doesn't contain an argument list, we don't want to add one unless necessary -
-                    ' i.e. if we have invocation 'M', we don't want to add '()' unless required.
+                    ' If the invocation doesn't contain an argument list, we don't want to add one unless necessary.
                     ' In the case an argument list isn't needed, we can return early as there will be no changes to the invocation.
                     If updatedSignature.UpdatedConfiguration.ParametersWithoutDefaultValues.IsEmpty
                         Return invocation
                     Else
-                        ' The invocation requires an argument list. Add one if not already present.
+                        ' The invocation requires an argument list - add one.
                         Dim emptyArgumentList = SyntaxFactory.ArgumentList().WithTrailingTrivia(invocation.GetTrailingTrivia())
                         invocation = invocation.WithoutTrailingTrivia().WithArgumentList(emptyArgumentList)
                     End If
