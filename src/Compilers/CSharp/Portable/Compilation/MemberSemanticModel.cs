@@ -1729,12 +1729,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundNode boundOuterExpression = this.Bind(incrementalBinder, lambdaOrQuery, _ignoredDiagnostics);
 
                 // https://github.com/dotnet/roslyn/issues/35038: We need to do a rewrite here, and create a test that can hit this.
-#if DEBUG
-                if (!Compilation.IsNullableAnalysisExplicitlyDisabled)
+                if (!Compilation.IsNullableAnalysisEnabled && Compilation.IsNullableAnalysisExplicitlyEnabled)
                 {
                     AnalyzeBoundNodeNullability(boundOuterExpression, incrementalBinder, diagnostics: new DiagnosticBag(), createSnapshots: false);
                 }
-#endif
 
                 nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
             }
@@ -1917,15 +1915,9 @@ done:
         /// </summary>
         protected void EnsureNullabilityAnalysisPerformedIfNecessary()
         {
-            if (!Compilation.IsNullableAnalysisEnabled)
+            if (!Compilation.IsNullableAnalysisEnabled && !Compilation.IsNullableAnalysisExplicitlyEnabled)
             {
-                // If we're in DEBUG mode, enable the analysis unless explicitly disabled, but throw away the results
-#if DEBUG
-                if (Compilation.IsNullableAnalysisExplicitlyDisabled)
-#endif
-                {
-                    return;
-                }
+                return;
             }
 
             // If we have a snapshot manager, then we've already done
@@ -2006,16 +1998,11 @@ done:
 
             void rewriteAndCache(DiagnosticBag diagnosticBag)
             {
-#if DEBUG
-                if (!Compilation.IsNullableAnalysisEnabled)
+                if (!Compilation.IsNullableAnalysisEnabled && Compilation.IsNullableAnalysisExplicitlyEnabled)
                 {
-                    if (!Compilation.IsNullableAnalysisExplicitlyDisabled)
-                    {
-                        AnalyzeBoundNodeNullability(boundRoot, binder, diagnosticBag, createSnapshots: true);
-                    }
+                    AnalyzeBoundNodeNullability(boundRoot, binder, diagnosticBag, createSnapshots: true);
                     return;
                 }
-#endif
 
                 boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnosticBag, createSnapshots: true, out snapshotManager, ref remappedSymbols);
                 cache(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
@@ -2029,14 +2016,12 @@ done:
 
             DiagnosticBag getDiagnosticBag()
             {
-                // In DEBUG without nullable analysis enabled, we want to use a temp diagnosticbag
+                // If nullable analysis is not enabled, we want to use a temp diagnosticbag
                 // that can't produce any observable side effects
-#if DEBUG
                 if (!Compilation.IsNullableAnalysisEnabled)
                 {
                     return new DiagnosticBag();
                 }
-#endif
                 return _ignoredDiagnostics;
             }
         }
@@ -2053,13 +2038,12 @@ done:
             out NullableWalker.SnapshotManager snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols);
 
-#if DEBUG
         /// <summary>
-        /// Performs just the analysis step of getting nullability information for a semantic model. This is only used during DEBUG builds where nullable
-        /// is turned off on a compilation level, giving some extra debug verification of the nullable flow analysis. 
+        /// Performs just the analysis step of getting nullability information for a semantic model.
+        /// This is only used when nullable analysis is explicitly enabled for all methods but nullable
+        /// is turned off on a compilation level, giving some extra verification of the nullable flow analysis. 
         /// </summary>
         protected abstract void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots);
-#endif
 #nullable disable
 
         /// <summary>

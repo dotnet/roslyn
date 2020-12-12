@@ -204,23 +204,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if nullable analysis is enabled in this compilation.
         /// </summary>
-        /// <return>
-        /// Returns true if analysis is explicitly enabled for all methods;
-        /// false if analysis is explicitly disabled; and otherwise returns true
-        /// if there are any nullable-enabled contexts in the compilation.
-        /// </return>
+        /// <remarks>
+        /// Returns false if analysis is explicitly disabled for all methods; otherwise
+        /// returns true if the nullable context is enabled in the compilation options
+        /// or if there are any nullable-enabled contexts in the compilation.
+        /// </remarks>
         internal bool IsNullableAnalysisEnabled
         {
             get
             {
                 if (!_lazyShouldRunNullableAnalysis.HasValue())
                 {
-                    _lazyShouldRunNullableAnalysis = (GetNullableAnalysisValue() ?? hasEnabledContexts()).ToThreeState();
+                    _lazyShouldRunNullableAnalysis = isEnabled().ToThreeState();
                 }
                 return _lazyShouldRunNullableAnalysis.Value();
 
-                bool hasEnabledContexts()
+                bool isEnabled()
                 {
+                    if (GetNullableAnalysisValue() == false)
+                    {
+                        return false;
+                    }
                     if (Options.NullableContextOptions != NullableContextOptions.Disable)
                     {
                         return true;
@@ -230,18 +234,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-#if DEBUG
         /// <summary>
-        /// Returns false if nullable analysis is disabled for the entire compilation.
+        /// Returns true if nullable analysis is explicitly enabled for the entire compilation,
+        /// but not otherwise enabled.
         /// </summary>
         /// <remarks>
-        /// This method is only used for debug builds. In debug builds, unless analysis is
-        /// explicitly disabled, analysis is run, even though the results may be ignored,
-        /// to increase the chance of catching nullable regressions
+        /// For DEBUG builds, we treat nullable analysis as enabled for all methods
+        /// unless explicitly disabled, so that analysis is run, even though results may
+        /// be ignored, to increase the chance of catching nullable regressions
         /// (e.g. https://github.com/dotnet/roslyn/issues/40136).
         /// </remarks>
-        internal bool IsNullableAnalysisExplicitlyDisabled => GetNullableAnalysisValue() == false;
+        internal bool IsNullableAnalysisExplicitlyEnabled
+        {
+            get
+            {
+                var value = GetNullableAnalysisValue();
+#if DEBUG
+                return value != false;
+#else
+                return value == true;
 #endif
+            }
+        }
 
         /// <summary>
         /// Returns Feature("run-nullable-analysis") as a bool? value:
@@ -279,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                        name).GetPublicSymbol();
         }
 
-        #region Constructors and Factories
+#region Constructors and Factories
 
         private static readonly CSharpCompilationOptions s_defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
         private static readonly CSharpCompilationOptions s_defaultSubmissionOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithReferencesSupersedeLowerVersions(true);
@@ -704,9 +718,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 eventQueue);
         }
 
-        #endregion
+#endregion
 
-        #region Submission
+#region Submission
 
         public new CSharpScriptCompilationInfo? ScriptCompilationInfo { get; }
         internal override ScriptCompilationInfo? CommonScriptCompilationInfo => ScriptCompilationInfo;
@@ -757,9 +771,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        #endregion
+#endregion
 
-        #region Syntax Trees (maintain an ordered list)
+#region Syntax Trees (maintain an ordered list)
 
         /// <summary>
         /// The syntax trees (parsed from source code) that this compilation was created with.
@@ -986,9 +1000,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _syntaxAndDeclarations.GetLazyState().OrdinalMap[tree];
         }
 
-        #endregion
+#endregion
 
-        #region References
+#region References
 
         internal override CommonReferenceManager CommonGetBoundReferenceManager()
         {
@@ -1208,9 +1222,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetBoundReferenceManager().GetMetadataReference(assemblySymbol);
         }
 
-        #endregion
+#endregion
 
-        #region Symbols
+#region Symbols
 
         /// <summary>
         /// The AssemblySymbol that represents the assembly being created.
@@ -2144,9 +2158,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             LazyInitializer.EnsureInitialized(ref _moduleInitializerMethods).Add(method);
         }
 
-        #endregion
+#endregion
 
-        #region Binding
+#region Binding
 
         /// <summary>
         /// Gets a new SyntaxTreeSemanticModel for the specified syntax tree.
@@ -2373,9 +2387,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        #endregion
+#endregion
 
-        #region Diagnostics
+#region Diagnostics
 
         internal override CommonMessageProvider MessageProvider
         {
@@ -2772,9 +2786,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result.ToReadOnlyAndFree<Diagnostic>();
         }
 
-        #endregion
+#endregion
 
-        #region Resources
+#region Resources
 
         protected override void AppendDefaultVersionResource(Stream resourceStream)
         {
@@ -2796,9 +2810,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 companyName: sourceAssembly.Company);
         }
 
-        #endregion
+#endregion
 
-        #region Emit
+#region Emit
 
         internal override byte LinkerMajorVersion => 0x30;
 
@@ -3214,9 +3228,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        #endregion
+#endregion
 
-        #region Common Members
+#region Common Members
 
         protected override Compilation CommonWithReferences(IEnumerable<MetadataReference> newReferences)
         {
@@ -3645,7 +3659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
-        #endregion
+#endregion
 
         /// <summary>
         /// Returns if the compilation has all of the members necessary to emit metadata about

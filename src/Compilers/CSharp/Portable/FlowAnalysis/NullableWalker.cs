@@ -1074,15 +1074,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (CanSkipAnalysis(compilation))
             {
-#if DEBUG
-                if (!compilation.IsNullableAnalysisExplicitlyDisabled)
+                if (compilation.IsNullableAnalysisExplicitlyEnabled)
                 {
                     // Once we address https://github.com/dotnet/roslyn/issues/46579 we should also always pass `getFinalNullableState: true` in debug mode.
                     // We will likely always need to write a 'null' out for the out parameter in this code path, though, because
                     // we don't want to introduce behavior differences between debug and release builds
                     Analyze(compilation, method, node, new DiagnosticBag(), useConstructorExitWarnings: false, initialNullableState: null, getFinalNullableState: false, out _);
                 }
-#endif
                 finalNullableState = null;
                 return;
             }
@@ -1159,11 +1157,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-#if DEBUG
         /// <summary>
         /// Analyzes a set of bound nodes, recording updated nullability information. This method is only
-        /// used during debug runs when nullability is disabled to verify that correct semantic information
-        /// is being recorded for all bound nodes. The results are thrown away.
+        /// used when nullable is explicitly enabled for all methods but diabled otherwise to verify that
+        /// correct semantic information is being recorded for all bound nodes. The results are thrown away.
         /// </summary>
         internal static void AnalyzeWithoutRewrite(
             CSharpCompilation compilation,
@@ -1175,7 +1172,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _ = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState: GetAfterInitializersState(compilation, symbol), diagnostics, createSnapshots);
         }
-#endif
 
         /// <summary>
         /// Analyzes a set of bound nodes, recording updated nullability information, and returns an
@@ -1234,7 +1230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
-            if (compilation.IsNullableAnalysisEnabled && !compilation.IsNullableAnalysisExplicitlyDisabled)
+            if (compilation.IsNullableAnalysisEnabled || compilation.IsNullableAnalysisExplicitlyEnabled)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManager, node);
             }
@@ -1268,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
             var compilation = binder.Compilation;
-            if (compilation.IsNullableAnalysisEnabled && !compilation.IsNullableAnalysisExplicitlyDisabled)
+            if (compilation.IsNullableAnalysisEnabled || compilation.IsNullableAnalysisExplicitlyEnabled)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, newSnapshots, node);
             }
@@ -1299,14 +1295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool NeedsAnalysis(CSharpCompilation compilation)
         {
-            var canSkipAnalysis = CanSkipAnalysis(compilation);
-#if DEBUG
-            if (canSkipAnalysis)
-            {
-                return !compilation.IsNullableAnalysisExplicitlyDisabled;
-            }
-#endif
-            return !canSkipAnalysis;
+            return !CanSkipAnalysis(compilation) || compilation.IsNullableAnalysisExplicitlyEnabled;
         }
 
         /// <summary>Analyzes a node in a "one-off" context, such as for attributes or parameter default values.</summary>
@@ -1318,16 +1307,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var compilation = binder.Compilation;
             if (CanSkipAnalysis(compilation))
             {
-#if DEBUG
-                if (!compilation.IsNullableAnalysisExplicitlyDisabled)
-                {
-                    diagnostics = new DiagnosticBag();
-                }
-                else
-#endif
+                if (!compilation.IsNullableAnalysisExplicitlyEnabled)
                 {
                     return;
                 }
+                diagnostics = new DiagnosticBag();
             }
 
             Analyze(
