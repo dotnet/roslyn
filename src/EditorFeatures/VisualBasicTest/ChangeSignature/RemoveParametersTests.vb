@@ -124,7 +124,7 @@ End Module
             End Using
         End Sub
 
-        <WorkItem(49944, "https://github.com/dotnet/roslyn/issues/49944")>
+        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestRemoveParameters_DoNotAddUnnecessaryParensToInvocation() As Task
 

@@ -577,7 +577,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WorkItem(49944, "https://github.com/dotnet/roslyn/issues/49944")>
+        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestReorderParameters_DoNotAddUnnecessaryParensToInvocation() As Task
 
