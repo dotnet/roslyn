@@ -23,7 +23,7 @@
     </MajorVersion>
     <MinorVersion>
     </MinorVersion>
-    <MicrosoftNetCompilersToolsetVersion>3.9.0-2.20570.24</MicrosoftNetCompilersToolsetVersion>
+    <MicrosoftNetCompilersToolsetVersion>3.9.0-3.20607.4</MicrosoftNetCompilersToolsetVersion>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
@@ -211,16 +211,16 @@
     <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
     <SystemIOPipesAccessControlVersion>4.5.1</SystemIOPipesAccessControlVersion>
-    <SystemIOPipelinesVersion>4.7.0</SystemIOPipelinesVersion>
+    <SystemIOPipelinesVersion>5.0.0</SystemIOPipelinesVersion>
     <SystemManagementVersion>5.0.0-preview.8.20407.11</SystemManagementVersion>
     <SystemMemoryVersion>4.5.4</SystemMemoryVersion>
     <SystemResourcesExtensionsVersion>4.7.1</SystemResourcesExtensionsVersion>
-    <SystemRuntimeCompilerServicesUnsafeVersion>4.7.1</SystemRuntimeCompilerServicesUnsafeVersion>
+    <SystemRuntimeCompilerServicesUnsafeVersion>5.0.0</SystemRuntimeCompilerServicesUnsafeVersion>
     <SystemRuntimeLoaderVersion>4.3.0</SystemRuntimeLoaderVersion>
     <SystemSecurityPrincipalVersion>4.3.0</SystemSecurityPrincipalVersion>
     <SystemTextEncodingCodePagesVersion>4.5.1</SystemTextEncodingCodePagesVersion>
     <SystemTextEncodingExtensionsVersion>4.3.0</SystemTextEncodingExtensionsVersion>
-    <SystemThreadingTasksDataflowVersion>4.11.1</SystemThreadingTasksDataflowVersion>
+    <SystemThreadingTasksDataflowVersion>5.0.0</SystemThreadingTasksDataflowVersion>
     <!-- We need System.ValueTuple assembly version at least 4.0.3.0 on net47 to make F5 work against Dev15 - see https://github.com/dotnet/roslyn/issues/29705 -->
     <SystemValueTupleVersion>4.5.0</SystemValueTupleVersion>
     <SystemThreadingTasksExtensionsVersion>4.5.4</SystemThreadingTasksExtensionsVersion>
@@ -257,7 +257,7 @@
     <StreamJsonRpcVersion>2.6.104</StreamJsonRpcVersion>
     <SystemCollectionsImmutableVersion>5.0.0</SystemCollectionsImmutableVersion>
     <SystemReflectionMetadataVersion>5.0.0</SystemReflectionMetadataVersion>
-    <MicrosoftBclAsyncInterfacesVersion>1.1.1</MicrosoftBclAsyncInterfacesVersion>
+    <MicrosoftBclAsyncInterfacesVersion>5.0.0</MicrosoftBclAsyncInterfacesVersion>
   </PropertyGroup>
   <PropertyGroup>
     <UsingToolPdbConverter>true</UsingToolPdbConverter>
