@@ -771,18 +771,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.[Equals](TryCast(other, Symbol), equalityComparer.CompareKind)
         End Function
 
-        Overloads Function Equals(other As ISymbolInternal, compareKind As TypeCompareKind) As Boolean Implements ISymbolInternal.Equals
+        Private Overloads Function ISymbolInternal_Equals(other As ISymbolInternal, compareKind As TypeCompareKind) As Boolean Implements ISymbolInternal.Equals
             Return Me.Equals(TryCast(other, Symbol), compareKind)
         End Function
 
         ' By default we don't consider the compareKind. This can be overridden.
-        Public Overloads Function Equals(other As Symbol, compareKind As TypeCompareKind) As Boolean
+        Public Overridable Overloads Function Equals(other As Symbol, compareKind As TypeCompareKind) As Boolean
             Return Me.Equals(other)
         End Function
 
         ' By default, we do reference equality. This can be overridden.
         Public Overrides Function GetHashCode() As Integer
-            Return MyBase.GetHashCode()
+            Return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(Me)
         End Function
 
         Public NotOverridable Overrides Function ToString() As String

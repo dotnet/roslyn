@@ -157,14 +157,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual NullableWalker.SnapshotManager GetSnapshotManager()
         {
             EnsureNullabilityAnalysisPerformedIfNecessary();
-            Debug.Assert(_lazySnapshotManager is object || !Compilation.NullableSemanticAnalysisEnabled);
+            Debug.Assert(_lazySnapshotManager is object || !Compilation.IsNullableAnalysisEnabled);
             return _lazySnapshotManager;
         }
 
         internal ImmutableDictionary<Symbol, Symbol> GetRemappedSymbols()
         {
             EnsureNullabilityAnalysisPerformedIfNecessary();
-            Debug.Assert(_lazyRemappedSymbols is object || this is AttributeSemanticModel || !Compilation.NullableSemanticAnalysisEnabled);
+            Debug.Assert(_lazyRemappedSymbols is object || this is AttributeSemanticModel || !Compilation.IsNullableAnalysisEnabled);
             return _lazyRemappedSymbols;
         }
 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(expression));
             }
 
-            if (!Compilation.NullableSemanticAnalysisEnabled || bindingOption != SpeculativeBindingOption.BindAsExpression)
+            if (!Compilation.IsNullableAnalysisEnabled || bindingOption != SpeculativeBindingOption.BindAsExpression)
             {
                 return GetSpeculativelyBoundExpressionWithoutNullability(position, expression, bindingOption, out binder, out crefSymbols);
             }
@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private T GetRemappedSymbol<T>(T originalSymbol) where T : Symbol
         {
-            if (!Compilation.NullableSemanticAnalysisEnabled) return originalSymbol;
+            if (!Compilation.IsNullableAnalysisEnabled) return originalSymbol;
 
             EnsureNullabilityAnalysisPerformedIfNecessary();
             if (_lazyRemappedSymbols is null) return originalSymbol;
@@ -1512,11 +1512,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NodeMapBuilder.AddToMap(bound, _guardedNodeMap, SyntaxTree, syntax);
                 }
 
-                Debug.Assert((manager is null && (!Compilation.NullableSemanticAnalysisEnabled || syntax != Root || syntax is TypeSyntax ||
+                Debug.Assert((manager is null && (!Compilation.IsNullableAnalysisEnabled || syntax != Root || syntax is TypeSyntax ||
                                                   // Supporting attributes is tracked by
                                                   // https://github.com/dotnet/roslyn/issues/36066
                                                   this is AttributeSemanticModel)) ||
-                             (manager is object && remappedSymbols is object && syntax == Root && Compilation.NullableSemanticAnalysisEnabled && _lazySnapshotManager is null));
+                             (manager is object && remappedSymbols is object && syntax == Root && Compilation.IsNullableAnalysisEnabled && _lazySnapshotManager is null));
                 if (manager is object)
                 {
                     _lazySnapshotManager = manager;
@@ -1729,9 +1729,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundNode boundOuterExpression = this.Bind(incrementalBinder, lambdaOrQuery, _ignoredDiagnostics);
 
                 // https://github.com/dotnet/roslyn/issues/35038: We need to do a rewrite here, and create a test that can hit this.
-#if DEBUG
-                AnalyzeBoundNodeNullability(boundOuterExpression, incrementalBinder, diagnostics: new DiagnosticBag(), createSnapshots: false);
-#endif
+                if (!Compilation.IsNullableAnalysisEnabled && Compilation.IsNullableAnalysisEnabledAlways)
+                {
+                    AnalyzeBoundNodeNullability(boundOuterExpression, incrementalBinder, diagnostics: new DiagnosticBag(), createSnapshots: false);
+                }
 
                 nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
             }
@@ -1914,13 +1915,10 @@ done:
         /// </summary>
         protected void EnsureNullabilityAnalysisPerformedIfNecessary()
         {
-            // If we're in DEBUG mode, always enable the analysis, but throw away the results
-#if !DEBUG
-            if (!Compilation.NullableSemanticAnalysisEnabled)
+            if (!Compilation.IsNullableAnalysisEnabled && !Compilation.IsNullableAnalysisEnabledAlways)
             {
                 return;
             }
-#endif
 
             // If we have a snapshot manager, then we've already done
             // all the work necessary and we should avoid taking an
@@ -1941,7 +1939,7 @@ done:
             // first BoundNode corresponds to the underlying EqualsValueSyntax of the initializer)
             if (_guardedNodeMap.Count > 0)
             {
-                Debug.Assert(!Compilation.NullableSemanticAnalysisEnabled ||
+                Debug.Assert(!Compilation.IsNullableAnalysisEnabled ||
                              _guardedNodeMap.ContainsKey(bindableRoot) ||
                              _guardedNodeMap.ContainsKey(bind(bindableRoot, getDiagnosticBag(), out _).Syntax));
                 return;
@@ -2000,13 +1998,11 @@ done:
 
             void rewriteAndCache(DiagnosticBag diagnosticBag)
             {
-#if DEBUG
-                if (!Compilation.NullableSemanticAnalysisEnabled)
+                if (!Compilation.IsNullableAnalysisEnabled && Compilation.IsNullableAnalysisEnabledAlways)
                 {
                     AnalyzeBoundNodeNullability(boundRoot, binder, diagnosticBag, createSnapshots: true);
                     return;
                 }
-#endif
 
                 boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnosticBag, createSnapshots: true, out snapshotManager, ref remappedSymbols);
                 cache(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
@@ -2014,20 +2010,18 @@ done:
 
             void cache(CSharpSyntaxNode bindableRoot, BoundNode boundRoot, NullableWalker.SnapshotManager snapshotManager, ImmutableDictionary<Symbol, Symbol> remappedSymbols)
             {
-                Debug.Assert(Compilation.NullableSemanticAnalysisEnabled);
+                Debug.Assert(Compilation.IsNullableAnalysisEnabled);
                 GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
             }
 
             DiagnosticBag getDiagnosticBag()
             {
-                // In DEBUG without nullable analysis enabled, we want to use a temp diagnosticbag
+                // If nullable analysis is not enabled, we want to use a temp diagnosticbag
                 // that can't produce any observable side effects
-#if DEBUG
-                if (!Compilation.NullableSemanticAnalysisEnabled)
+                if (!Compilation.IsNullableAnalysisEnabled)
                 {
                     return new DiagnosticBag();
                 }
-#endif
                 return _ignoredDiagnostics;
             }
         }
@@ -2044,13 +2038,13 @@ done:
             out NullableWalker.SnapshotManager snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols);
 
-#if DEBUG
         /// <summary>
-        /// Performs just the analysis step of getting nullability information for a semantic model. This is only used during DEBUG builds where nullable
-        /// is turned off on a compilation level, giving some extra debug verification of the nullable flow analysis. 
+        /// Performs the analysis step of getting nullability information for a semantic model but
+        /// does not actually use the results. This gives us extra verification of nullable flow analysis.
+        /// It is only used in contexts where nullable analysis is disabled in the compilation but requested
+        /// through "run-nullable-analysis=always" or when the compiler is running in DEBUG.
         /// </summary>
         protected abstract void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots);
-#endif
 #nullable disable
 
         /// <summary>
@@ -2323,7 +2317,7 @@ foundParent:;
             Debug.Assert(symbol is LocalSymbol ||
                          symbol is ParameterSymbol ||
                          symbol is MethodSymbol { MethodKind: MethodKind.LambdaMethod });
-            Debug.Assert(Compilation.NullableSemanticAnalysisEnabled);
+            Debug.Assert(Compilation.IsNullableAnalysisEnabled);
             EnsureNullabilityAnalysisPerformedIfNecessary();
 
             if (_lazyRemappedSymbols is null)
