@@ -1145,12 +1145,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SourceNamedTypeSymbol recordType = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember(recordDeclSyntax);
                     var primaryConstructor = recordType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault();
 
-                    if (primaryConstructor.GetSyntax() != recordDeclSyntax)
+                    if (primaryConstructor.SyntaxRef.SyntaxTree == recordDeclSyntax.SyntaxTree &&
+                        primaryConstructor.GetSyntax() == recordDeclSyntax)
                     {
-                        return nextBinder;
+                        return new WithParametersBinder(primaryConstructor.Parameters, nextBinder);
                     }
 
-                    return new WithParametersBinder(primaryConstructor.Parameters, nextBinder);
+                    return nextBinder;
                 }
 
                 // As in Dev11, we do not allow <param name="value"> on events.

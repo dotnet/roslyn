@@ -26996,8 +26996,7 @@ namespace System.Runtime.CompilerServices
     <param name=""I1"">Description for I1</param>
 </member>
 ", cMember.GetDocumentationCommentXml());
-
-            var constructor = cMember.GetMembers(".ctor").First();
+            var constructor = cMember.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
             Assert.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -27044,7 +27043,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", cMember.GetDocumentationCommentXml());
 
-            var constructor = cMember.GetMembers(".ctor").First();
+            var constructor = cMember.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
             Assert.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -27089,7 +27088,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", cMember.GetDocumentationCommentXml());
 
-            var constructor = cMember.GetMembers(".ctor").First();
+            var constructor = cMember.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.IsEmpty).Single();
             Assert.Equal(
 @"<member name=""M:C.#ctor"">
     <summary>Summary</summary>
@@ -27128,7 +27127,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", c.GetDocumentationCommentXml());
 
-            var cConstructor = c.GetMembers(".ctor").First();
+            var cConstructor = c.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
             Assert.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -27171,7 +27170,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", d.GetDocumentationCommentXml());
 
-            var dConstructor = d.GetMembers(".ctor").First();
+            var dConstructor = d.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
             Assert.Equal(
 @"<member name=""M:D.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -27221,7 +27220,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", e.GetDocumentationCommentXml());
 
-            var eConstructor = e.GetMembers(".ctor").First();
+            var eConstructor = e.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
             Assert.Equal("", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
             Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
@@ -27265,7 +27264,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", e.GetDocumentationCommentXml());
 
-            var eConstructor = e.GetMembers(".ctor").First();
+            var eConstructor = e.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
             Assert.Equal("", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
             Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
@@ -27312,7 +27311,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", c.GetDocumentationCommentXml());
 
-            var cConstructor = c.GetMembers(".ctor").First();
+            var cConstructor = c.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
             Assert.Equal(1, cConstructor.DeclaringSyntaxReferences.Count());
             Assert.Equal("", cConstructor.GetDocumentationCommentXml());
             Assert.Equal("", cConstructor.GetParameters()[0].GetDocumentationCommentXml());
@@ -27354,7 +27353,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", d.GetDocumentationCommentXml());
 
-            var dConstructor = d.GetMembers(".ctor").First();
+            var dConstructor = d.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
             Assert.Equal(
 @"<member name=""M:D.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -27408,7 +27407,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", e.GetDocumentationCommentXml());
 
-            var eConstructor = e.GetMembers(".ctor").First();
+            var eConstructor = e.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
             Assert.Equal(1, eConstructor.DeclaringSyntaxReferences.Count());
             Assert.Equal(
 @"<member name=""M:E.#ctor(System.Int32)"">
@@ -27461,7 +27460,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", e.GetDocumentationCommentXml());
 
-            var eConstructor = e.GetMembers(".ctor").First();
+            var eConstructor = e.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
             Assert.Equal(1, eConstructor.DeclaringSyntaxReferences.Count());
             Assert.Equal("", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
@@ -27510,7 +27509,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", e.GetDocumentationCommentXml());
 
-            var eConstructor = e.GetMembers(".ctor").First();
+            var eConstructor = e.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
             Assert.Equal(1, eConstructor.DeclaringSyntaxReferences.Count());
             Assert.Equal(
 @"<member name=""M:E.#ctor(System.Int32)"">
@@ -27555,7 +27554,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", cMember.GetDocumentationCommentXml());
 
-            var constructor = cMember.GetMembers(".ctor").First();
+            var constructor = cMember.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()?.Name == "I1").Single();
             Assert.Equal(
 @"<member name=""M:Outer.C.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -27620,7 +27619,7 @@ namespace System.Runtime.CompilerServices
                 );
 
             var cMember = comp.GetMember<NamedTypeSymbol>("Outer.C");
-            var constructor = cMember.GetMembers(".ctor").First();
+            var constructor = cMember.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
             Assert.Equal(
 @"<member name=""M:Outer.C.#ctor(System.Int32)"">
     <summary>Summary</summary>
