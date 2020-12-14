@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
                     return operation.Parent switch
                     {
-                        IObjectCreationOperation _ => DisposeOwnershipTransferAtConstructor ||
+                        IObjectCreationOperation => DisposeOwnershipTransferAtConstructor ||
                             DisposeOwnershipTransferLikelyTypes.Contains(operation.Parameter.Type),
 
                         IInvocationOperation invocation => DisposeOwnershipTransferAtMethodCall ||
