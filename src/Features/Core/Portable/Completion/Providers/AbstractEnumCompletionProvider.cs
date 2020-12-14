@@ -90,23 +90,35 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         // PERF: Cached values for GetDisplayAndInsertionText. Cuts down on the number of calls to ToMinimalDisplayString for large enums.
+        private readonly ReaderWriterLockSlim _cacheLock = new ReaderWriterLockSlim();
         private (INamedTypeSymbol? containingType, SyntaxContext? context, string? containingTypeText) _cachedDisplayAndInsertionText;
 
         protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context)
         {
             if (symbol.ContainingType != null && symbol.ContainingType.TypeKind == TypeKind.Enum)
             {
-                if (!Equals(_cachedDisplayAndInsertionText.containingType, symbol.ContainingType) || _cachedDisplayAndInsertionText.context != context)
+                _cacheLock.EnterUpgradeableReadLock();
+                try
                 {
-                    var displayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat
-                        .WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType)
-                        .WithLocalOptions(SymbolDisplayLocalOptions.None);
-                    var containingTypeText = symbol.ContainingType.ToMinimalDisplayString(context.SemanticModel, context.Position, displayFormat);
-                    _cachedDisplayAndInsertionText = (symbol.ContainingType, context, containingTypeText);
-                }
 
-                var text = _cachedDisplayAndInsertionText.containingTypeText + "." + symbol.Name;
-                return (text, "", text);
+                    if (!Equals(_cachedDisplayAndInsertionText.containingType, symbol.ContainingType) || _cachedDisplayAndInsertionText.context != context)
+                    {
+                        var displayFormat = SymbolDisplayFormat.MinimallyQualifiedFormat
+                            .WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType)
+                            .WithLocalOptions(SymbolDisplayLocalOptions.None);
+                        var containingTypeText = symbol.ContainingType.ToMinimalDisplayString(context.SemanticModel, context.Position, displayFormat);
+                        _cacheLock.EnterWriteLock();
+                        _cachedDisplayAndInsertionText = (symbol.ContainingType, context, containingTypeText);
+                        _cacheLock.ExitWriteLock();
+                    }
+
+                    var text = _cachedDisplayAndInsertionText.containingTypeText + "." + symbol.Name;
+                    return (text, "", text);
+                }
+                finally
+                {
+                    _cacheLock.ExitUpgradeableReadLock();
+                }
             }
 
             return GetDefaultDisplayAndSuffixAndInsertionText(symbol, context);
