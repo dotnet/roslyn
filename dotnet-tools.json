@@ -12,6 +12,12 @@
       "commands": [
         "pwsh"
       ]
+    },
+    "dotnet-trace": {
+      "version": "5.0.160202",
+      "commands": [
+        "dotnet-trace"
+      ]
     }
   }
 }
