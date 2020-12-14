@@ -38,6 +38,12 @@ jobs:
       displayName: Prepare Test Payload
 
     - task: PublishPipelineArtifact@1
+      displayName: Publish Prepare Tests Trace
+      inputs:
+        targetPath: '$(Build.SourcesDirectory)/trace.speedscope.json'
+        artifactName: trace.speedscope.${{ parameters.queueName }}.json
+
+    - task: PublishPipelineArtifact@1
       displayName: Publish Test Payload
       inputs:
         targetPath: '$(Build.SourcesDirectory)/artifacts/testPayload'
