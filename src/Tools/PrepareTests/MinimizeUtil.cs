@@ -103,7 +103,7 @@ total dlls opened: " + stats.Total;
                 "src/Workspaces/MSBuildTest/Resources/NuGet.Config",
             };
 
-            Directory.CreateDirectory("src/Workspaces/MSBuildTest/Resources");
+            Directory.CreateDirectory(Path.Combine(destinationDirectory, "src/Workspaces/MSBuildTest/Resources"));
             foreach (var individualFile in individualFiles)
             {
                 var currentDirName = Path.GetDirectoryName(individualFile)!;
@@ -174,7 +174,7 @@ total dlls opened: " + stats.Total;
             if (!success)
             {
                 // for debugging: https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes
-                throw new IOException($"Failed to create hard link from {fileName} to {existingFileName} with exception 0x{Marshal.GetLastWin32Error():X}");
+                throw new IOException($"Failed to create hard link from {existingFileName} to {fileName} with exception 0x{Marshal.GetLastWin32Error():X}");
             }
         }
         else
