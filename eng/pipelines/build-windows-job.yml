@@ -45,7 +45,7 @@ jobs:
     - task: PublishPipelineArtifact@1
       displayName: Publish Prepare Tests Trace
       inputs:
-        targetPath: '$(Build.SourcesDirectory)\trace.speedscope.json'
+        targetPath: '$(Build.SourcesDirectory)\trace.speedscope.${{ parameters.configuration }}.json'
         artifactName: trace.speedscope.json
 
     - template: publish-logs.yml
