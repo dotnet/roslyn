@@ -11123,5 +11123,28 @@ public class C
 ";
             await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 1 {FeaturesResources.overload})");
         }
+
+        [WorkItem(49609, "https://github.com/dotnet/roslyn/issues/49609")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task FirstObsoleteOverloadIsUsedIfAllOverloadsAreObsolete()
+        {
+            var markup =
+@"
+public class C
+{
+    [System.Obsolete]
+    public void M() { }
+
+    [System.Obsolete]
+    public void M(int i) { }
+    
+    public void Test()
+    {
+        this.$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"[{CSharpFeaturesResources.deprecated}] void C.M() (+ 1 {FeaturesResources.overload})");
+        }
     }
 }
