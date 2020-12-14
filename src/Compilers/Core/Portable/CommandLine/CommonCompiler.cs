@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis
                 if (errorCode > 0)
                 {
                     var diag = new DiagnosticInfo(MessageProvider, errorCode);
-                    ReportDiagnostics(new[] { diag }, consoleOutput, errorLogger, null);
+                    ReportDiagnostics(new[] { diag }, consoleOutput, errorLogger, compilation: null);
                 }
 
                 return Failed;
@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!TryGetAnalyzerConfigSet(Arguments.AnalyzerConfigPaths, diagnostics, out analyzerConfigSet))
                 {
-                    var hadErrors = ReportDiagnostics(diagnostics, consoleOutput, errorLogger, null);
+                    var hadErrors = ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation: null);
                     Debug.Assert(hadErrors);
                     return Failed;
                 }
