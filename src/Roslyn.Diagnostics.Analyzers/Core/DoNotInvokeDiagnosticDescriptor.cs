@@ -18,7 +18,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotInvokeDiagnosticDescriptorMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotInvokeDiagnosticDescriptorDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
-        internal static readonly DiagnosticDescriptor DoNotRealizeDiagnosticDescriptorRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor DoNotRealizeDiagnosticDescriptorRule = new(
             RoslynDiagnosticIds.DoNotAccessDiagnosticDescriptorRuleId,
             s_localizableTitle,
             s_localizableMessage,

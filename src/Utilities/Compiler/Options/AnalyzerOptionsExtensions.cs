@@ -15,8 +15,7 @@ namespace Analyzer.Utilities
 {
     internal static partial class AnalyzerOptionsExtensions
     {
-        private static readonly ConditionalWeakTable<AnalyzerOptions, CategorizedAnalyzerConfigOptions> s_cachedOptions
-            = new ConditionalWeakTable<AnalyzerOptions, CategorizedAnalyzerConfigOptions>();
+        private static readonly ConditionalWeakTable<AnalyzerOptions, CategorizedAnalyzerConfigOptions> s_cachedOptions = new();
         private static readonly ImmutableHashSet<OutputKind> s_defaultOutputKinds =
             ImmutableHashSet.CreateRange(Enum.GetValues(typeof(OutputKind)).Cast<OutputKind>());
 
@@ -184,7 +183,7 @@ namespace Analyzer.Utilities
         private static CategorizedAnalyzerConfigOptions GetOrComputeCategorizedAnalyzerConfigOptions(
             this AnalyzerOptions options, CancellationToken cancellationToken)
         {
-            // TryGetValue upfront to avoid allocating createValueCallback if the entry already exists. 
+            // TryGetValue upfront to avoid allocating createValueCallback if the entry already exists.
             if (s_cachedOptions.TryGetValue(options, out var categorizedAnalyzerConfigOptions))
             {
                 return categorizedAnalyzerConfigOptions;

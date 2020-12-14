@@ -109,6 +109,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             => dataFlowAnalysisResult;
 
         protected override ValueContentBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, ValueContentAnalysisData blockAnalysisData)
-            => new ValueContentBlockAnalysisResult(basicBlock, blockAnalysisData);
+            => new(basicBlock, blockAnalysisData);
     }
 }

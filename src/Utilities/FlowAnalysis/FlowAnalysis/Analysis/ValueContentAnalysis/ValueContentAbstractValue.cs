@@ -184,11 +184,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             {
                 return ValueContainsNonLiteralState.Maybe;
             }
-            else if (value1 == ValueContainsNonLiteralState.Invalid || value1 == ValueContainsNonLiteralState.Undefined)
+            else if (value1 is ValueContainsNonLiteralState.Invalid or ValueContainsNonLiteralState.Undefined)
             {
                 return value2;
             }
-            else if (value2 == ValueContainsNonLiteralState.Invalid || value2 == ValueContainsNonLiteralState.Undefined)
+            else if (value2 is ValueContainsNonLiteralState.Invalid or ValueContainsNonLiteralState.Undefined)
             {
                 return value1;
             }

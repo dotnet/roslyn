@@ -10,7 +10,7 @@ namespace Analyzer.Utilities
 {
     internal sealed class SymbolNamesOption : IEquatable<SymbolNamesOption?>
     {
-        public static readonly SymbolNamesOption Empty = new SymbolNamesOption();
+        public static readonly SymbolNamesOption Empty = new();
 
         private readonly ImmutableHashSet<string> _names;
         private readonly ImmutableHashSet<ISymbol> _symbols;

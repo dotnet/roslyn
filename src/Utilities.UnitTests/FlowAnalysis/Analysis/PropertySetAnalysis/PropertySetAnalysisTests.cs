@@ -215,7 +215,7 @@ public class OtherClass
         /// when calling its Method() method, OtherClass.OtherMethod() method, or OtherClass.StaticMethod() method.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrack_HazardousIfStringIsNonNull =
-            new PropertySetAnalysisParameters(
+            new(
                 "TestTypeToTrack",
                 new ConstructorMapper(     // Only one constructor, which leaves its AString property as null (not hazardous).
                     ImmutableArray.Create<PropertySetAbstractValueKind>(
@@ -396,7 +396,7 @@ class TestClass
         /// is not null when calling its Method() method.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrackWithConstructor_HazardousIfStringIsNonNull =
-            new PropertySetAnalysisParameters(
+            new(
                 "TestTypeToTrackWithConstructor",
                 new ConstructorMapper(
                     (IMethodSymbol method, IReadOnlyList<PointsToAbstractValue> argumentPointsToAbstractValues) =>
@@ -517,7 +517,7 @@ class TestClass
         /// calling its Method() method.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrack_HazardousIfEnumIsValue0 =
-            new PropertySetAnalysisParameters(
+            new(
                 "TestTypeToTrack",
                 new ConstructorMapper(     // Only one constructor, which leaves its AnEnum property as Value0 (hazardous).
                     ImmutableArray.Create<PropertySetAbstractValueKind>(
@@ -583,7 +583,7 @@ class TestClass
         /// is Value0 when calling its Method() method.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrackWithConstructor_HazardousIfEnumIsValue0 =
-            new PropertySetAnalysisParameters(
+            new(
                 "TestTypeToTrackWithConstructor",
                 new ConstructorMapper(
                     (IMethodSymbol method, IReadOnlyList<ValueContentAbstractValue> argumentValueContentAbstractValues, IReadOnlyList<PointsToAbstractValue> argumentPointsToAbstractValues) =>
@@ -654,7 +654,7 @@ class TestClass
         /// TestTypeToTrack.AnEnum is Value2 when calling its Method() method.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrack_HazardousIfStringStartsWithTAndValue2 =
-            new PropertySetAnalysisParameters(
+            new(
                 "TestTypeToTrack",
                 new ConstructorMapper(
                     ImmutableArray.Create<PropertySetAbstractValueKind>(   // Order is the same as the PropertyMappers below.
@@ -820,7 +820,7 @@ class TestClass
         /// Parameters for PropertySetAnalysis to flag hazardous usage when both TestTypeToTrack.AnObject is a BitArray.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray =
-            new PropertySetAnalysisParameters(
+            new(
                 "TestTypeToTrackWithConstructor",
                 new ConstructorMapper(
                     (IMethodSymbol constructorMethodSymbol, IReadOnlyList<PointsToAbstractValue> argumentPointsToAbstractValues) =>
@@ -943,7 +943,7 @@ class TestClass
         /// with 'A'.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrackWithConstructor_HazardousIfAStringStartsWithA =
-            new PropertySetAnalysisParameters(
+            new(
                 "TestTypeToTrackWithConstructor",
                 new ConstructorMapper(
                     (IMethodSymbol constructorMethodSymbol,
@@ -1030,7 +1030,7 @@ class TestClass
         /// when returning a TestTypeToTrack.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrack_HazardousIfStringIsNonNullOnReturn =
-            new PropertySetAnalysisParameters(
+            new(
                 "TestTypeToTrack",
                 new ConstructorMapper(     // Only one constructor, which leaves its AString property as null (not hazardous).
                     ImmutableArray.Create<PropertySetAbstractValueKind>(
@@ -1134,7 +1134,7 @@ class TestClass
         /// TestTypeToTrack.AnObject are aliases, and the aliased value is not null, when calling its Method() method.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrack_HazardousIfStringObjectIsNonNull =
-            new PropertySetAnalysisParameters(
+            new(
                 "TestTypeToTrack",
                 new ConstructorMapper(     // Only one constructor, which leaves its AString property as null (not hazardous).
                     ImmutableArray.Create<PropertySetAbstractValueKind>(

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         private static readonly LocalizableString s_localizableReferenceTypeEnumeratorRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.ReferenceTypeEnumeratorRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         private static readonly LocalizableString s_localizableReferenceTypeEnumeratorRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.ReferenceTypeEnumeratorRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
-        internal static DiagnosticDescriptor ReferenceTypeEnumeratorRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor ReferenceTypeEnumeratorRule = new(
             ReferenceTypeEnumeratorRuleId,
             s_localizableReferenceTypeEnumeratorRuleTitle,
             s_localizableReferenceTypeEnumeratorRuleMessage,
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
                     {
                         foreach (var @interface in methodInfo.ReturnType.AllInterfaces)
                         {
-                            if (@interface.SpecialType == SpecialType.System_Collections_Generic_IEnumerator_T || @interface.SpecialType == SpecialType.System_Collections_IEnumerator)
+                            if (@interface.SpecialType is SpecialType.System_Collections_Generic_IEnumerator_T or SpecialType.System_Collections_IEnumerator)
                             {
                                 reportDiagnostic(Diagnostic.Create(ReferenceTypeEnumeratorRule, invocationExpression.GetLocation(), EmptyMessageArgs));
                             }

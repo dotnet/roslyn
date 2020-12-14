@@ -342,7 +342,7 @@ namespace Test.Utilities
 
         protected void VerifyAcrossTwoAssemblies(string dependencySource, string source, string dependencyLanguage, string language, FileAndSource? additionalFileOpt, params DiagnosticResult[] expected)
         {
-            Debug.Assert(language == LanguageNames.CSharp || language == LanguageNames.VisualBasic);
+            Debug.Assert(language is LanguageNames.CSharp or LanguageNames.VisualBasic);
 
             var dependencyProject = CreateProject(new[] { dependencySource }, language: dependencyLanguage, referenceFlags: ReferenceFlags.RemoveCodeAnalysis, projectName: "DependencyProject");
             var project =
@@ -368,11 +368,11 @@ namespace Test.Utilities
             ImmutableArray.Create(GetAdditionalTextFile(fileName, text));
 
         protected TestAdditionalDocument GetAdditionalTextFile(string fileName, string text) =>
-            new TestAdditionalDocument(fileName, text);
+            new(fileName, text);
 
         private static (Document[] documents, bool useSpans, TextSpan?[] spans) GetDocumentsAndSpans(FileAndSource[] sources, string language, CompilationOptions compilationOptions, ParseOptions parseOptions, ReferenceFlags referenceFlags = ReferenceFlags.None, string projectName = TestProjectName, bool allowUnsafeCode = false)
         {
-            Assert.True(language == LanguageNames.CSharp || language == LanguageNames.VisualBasic, "Unsupported language");
+            Assert.True(language is LanguageNames.CSharp or LanguageNames.VisualBasic, "Unsupported language");
 
             var spans = new TextSpan?[sources.Length];
             bool useSpans = false;
@@ -664,7 +664,7 @@ namespace Test.Utilities
         }
 
         public static FileAndSource GetEditorConfigAdditionalFile(string source)
-            => new FileAndSource() { Source = source, FilePath = ".editorconfig" };
+            => new() { Source = source, FilePath = ".editorconfig" };
     }
 
     // Justification for suppression: We are not going to compare FileAndSource objects for equality.

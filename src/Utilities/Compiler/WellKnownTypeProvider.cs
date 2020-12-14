@@ -19,8 +19,7 @@ namespace Analyzer.Utilities
     /// </summary>
     public class WellKnownTypeProvider
     {
-        private static readonly BoundedCacheWithFactory<Compilation, WellKnownTypeProvider> s_providerCache =
-            new BoundedCacheWithFactory<Compilation, WellKnownTypeProvider>();
+        private static readonly BoundedCacheWithFactory<Compilation, WellKnownTypeProvider> s_providerCache = new();
 
         private WellKnownTypeProvider(Compilation compilation)
         {
@@ -42,8 +41,7 @@ namespace Analyzer.Utilities
             return s_providerCache.GetOrCreateValue(compilation, CreateWellKnownTypeProvider);
 
             // Local functions
-            static WellKnownTypeProvider CreateWellKnownTypeProvider(Compilation compilation)
-                => new WellKnownTypeProvider(compilation);
+            static WellKnownTypeProvider CreateWellKnownTypeProvider(Compilation compilation) => new(compilation);
         }
 
         public Compilation Compilation { get; }
@@ -70,13 +68,13 @@ namespace Analyzer.Utilities
         /// </summary>
         /// <remarks>
         /// Example: "System.Collections.Generic.List`1" => [ "System", "Collections", "Generic" ]
-        /// 
+        ///
         /// https://github.com/dotnet/roslyn/blob/9e786147b8cb884af454db081bb747a5bd36a086/src/Compilers/CSharp/Portable/Symbols/AssemblySymbol.cs#L455
         /// suggests the TypeNames collection can be checked to avoid expensive operations. But realizing TypeNames seems to be
         /// as memory intensive as unnecessary calls GetTypeByMetadataName() in some cases. So we'll go with namespace names.
         /// </remarks>
         private static readonly ConcurrentDictionary<string, ImmutableArray<string>> _fullTypeNameToNamespaceNames =
-            new ConcurrentDictionary<string, ImmutableArray<string>>(StringComparer.Ordinal);
+            new(StringComparer.Ordinal);
 #endif
 
         /// <summary>
@@ -96,7 +94,7 @@ namespace Analyzer.Utilities
                     // Caching null results is intended.
 
                     // sharwell says: Suppose you reference assembly A with public API X.Y, and you reference assembly B with
-                    // internal API X.Y. Even though you can use X.Y from assembly A, compilation.GetTypeByMetadataName will 
+                    // internal API X.Y. Even though you can use X.Y from assembly A, compilation.GetTypeByMetadataName will
                     // fail outright because it finds two types with the same name.
 
                     INamedTypeSymbol? type = null;
@@ -233,12 +231,12 @@ namespace Analyzer.Utilities
             {
                 if (ch < 'A') // '\u0041'
                 {
-                    return ch >= '0'  // '\u0030'
-                        && ch <= '9'; // '\u0039'
+                    return ch is >= '0'  // '\u0030'
+                        and <= '9'; // '\u0039'
                 }
 
-                return ch <= 'Z'  // '\u005A'
-                    || ch == '_'; // '\u005F'
+                return ch is <= 'Z'  // '\u005A'
+                    or '_'; // '\u005F'
             }
 
             if (ch <= 'z') // '\u007A'

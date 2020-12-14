@@ -126,7 +126,7 @@ namespace Analyzer.Utilities.Extensions
 
         private static bool HasConstantValue(Optional<object> constantValue, ITypeSymbol constantValueType, ulong comparand)
         {
-            if (constantValueType.SpecialType == SpecialType.System_Double || constantValueType.SpecialType == SpecialType.System_Single)
+            if (constantValueType.SpecialType is SpecialType.System_Double or SpecialType.System_Single)
             {
                 return (double)constantValue.Value == comparand;
             }
@@ -415,7 +415,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         /// <remarks>Also see <see cref="IMethodSymbolExtensions.s_methodToTopmostOperationBlockCache"/></remarks>
         private static readonly BoundedCache<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph?>> s_operationToCfgCache
-            = new BoundedCache<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph?>>();
+            = new();
 
         public static bool TryGetEnclosingControlFlowGraph(this IOperation operation, [NotNullWhen(returnValue: true)] out ControlFlowGraph? cfg)
         {

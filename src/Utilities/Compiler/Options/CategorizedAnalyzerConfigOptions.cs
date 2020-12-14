@@ -32,7 +32,7 @@ namespace Analyzer.Utilities
     {
         private const string KeyPrefix = "dotnet_code_quality.";
 
-        public static readonly CategorizedAnalyzerConfigOptions Empty = new CategorizedAnalyzerConfigOptions(
+        public static readonly CategorizedAnalyzerConfigOptions Empty = new(
             ImmutableDictionary<string, string>.Empty,
             ImmutableDictionary<string, ImmutableDictionary<string, string>>.Empty);
 

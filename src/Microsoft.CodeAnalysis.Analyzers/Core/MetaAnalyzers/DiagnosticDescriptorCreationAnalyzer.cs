@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableAnalyzerCategoryAndIdRangeFileInvalidMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableAnalyzerCategoryAndIdRangeFileInvalidDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        public static readonly DiagnosticDescriptor UseLocalizableStringsInDescriptorRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor UseLocalizableStringsInDescriptorRule = new(
             DiagnosticIds.UseLocalizableStringsInDescriptorRuleId,
             s_localizableUseLocalizableStringsTitle,
             s_localizableUseLocalizableStringsMessage,
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableUseLocalizableStringsDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public static readonly DiagnosticDescriptor ProvideHelpUriInDescriptorRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor ProvideHelpUriInDescriptorRule = new(
             DiagnosticIds.ProvideHelpUriInDescriptorRuleId,
             s_localizableProvideHelpUriTitle,
             s_localizableProvideHelpUriMessage,
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableProvideHelpUriDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public static readonly DiagnosticDescriptor DiagnosticIdMustBeAConstantRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DiagnosticIdMustBeAConstantRule = new(
             DiagnosticIds.DiagnosticIdMustBeAConstantRuleId,
             s_localizableDiagnosticIdMustBeAConstantTitle,
             s_localizableDiagnosticIdMustBeAConstantMessage,
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDiagnosticIdMustBeAConstantDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public static readonly DiagnosticDescriptor DiagnosticIdMustBeInSpecifiedFormatRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DiagnosticIdMustBeInSpecifiedFormatRule = new(
             DiagnosticIds.DiagnosticIdMustBeInSpecifiedFormatRuleId,
             s_localizableDiagnosticIdMustBeInSpecifiedFormatTitle,
             s_localizableDiagnosticIdMustBeInSpecifiedFormatMessage,
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDiagnosticIdMustBeInSpecifiedFormatDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public static readonly DiagnosticDescriptor UseUniqueDiagnosticIdRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor UseUniqueDiagnosticIdRule = new(
             DiagnosticIds.UseUniqueDiagnosticIdRuleId,
             s_localizableUseUniqueDiagnosticIdTitle,
             s_localizableUseUniqueDiagnosticIdMessage,
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableUseUniqueDiagnosticIdDescription,
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        public static readonly DiagnosticDescriptor UseCategoriesFromSpecifiedRangeRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor UseCategoriesFromSpecifiedRangeRule = new(
             DiagnosticIds.UseCategoriesFromSpecifiedRangeRuleId,
             s_localizableUseCategoriesFromSpecifiedRangeTitle,
             s_localizableUseCategoriesFromSpecifiedRangeMessage,
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableUseCategoriesFromSpecifiedRangeDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public static readonly DiagnosticDescriptor AnalyzerCategoryAndIdRangeFileInvalidRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor AnalyzerCategoryAndIdRangeFileInvalidRule = new(
             DiagnosticIds.AnalyzerCategoryAndIdRangeFileInvalidRuleId,
             s_localizableAnalyzerCategoryAndIdRangeFileInvalidTitle,
             s_localizableAnalyzerCategoryAndIdRangeFileInvalidMessage,
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var idToAnalyzerMap = new ConcurrentDictionary<string, ConcurrentDictionary<string, ConcurrentBag<Location>>>();
                 compilationContext.RegisterOperationAction(operationAnalysisContext =>
                 {
-                    if (!(((IFieldInitializerOperation)operationAnalysisContext.Operation).Value is IObjectCreationOperation objectCreation))
+                    if (((IFieldInitializerOperation)operationAnalysisContext.Operation).Value is not IObjectCreationOperation objectCreation)
                     {
                         return;
                     }
@@ -327,7 +327,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                         // Factory methods to track declaration locations for every analyzer rule ID.
                         ConcurrentBag<Location> AddLocationFactory(string analyzerName)
-                            => new ConcurrentBag<Location> { location };
+                            => new()
+                            { location };
 
                         ConcurrentBag<Location> UpdateLocationsFactory(string analyzerName, ConcurrentBag<Location> bag)
                         {

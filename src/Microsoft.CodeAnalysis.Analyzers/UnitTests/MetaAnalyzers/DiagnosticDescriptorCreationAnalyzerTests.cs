@@ -899,7 +899,7 @@ CategoryWithBadId5: Prefix000-DifferentPrefix099
 
         private const string AdditionalFileName = "DiagnosticCategoryAndIdRanges.txt";
         private FileAndSource GetAdditionalFile(string source)
-            => new FileAndSource() { Source = source, FilePath = AdditionalFileName };
+            => new() { Source = source, FilePath = AdditionalFileName };
 
         #endregion
     }

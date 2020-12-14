@@ -103,7 +103,7 @@ namespace Analyzer.Utilities
         {
             private readonly Func<INamedTypeSymbol, bool> _isDisallowedCatchType;
             private readonly bool _checkAnonymousFunctions;
-            private readonly Stack<bool> _seenRethrowInCatchClauses = new Stack<bool>();
+            private readonly Stack<bool> _seenRethrowInCatchClauses = new();
 
             public ISet<ICatchClauseOperation> CatchClausesForDisallowedTypesWithoutRethrow { get; } = new HashSet<ICatchClauseOperation>();
 

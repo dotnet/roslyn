@@ -343,8 +343,8 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsPropertyAccessor(this IMethodSymbol method)
         {
-            return method.MethodKind == MethodKind.PropertyGet ||
-                   method.MethodKind == MethodKind.PropertySet;
+            return method.MethodKind is MethodKind.PropertyGet or
+                   MethodKind.PropertySet;
         }
 
         /// <summary>
@@ -352,14 +352,14 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         public static bool IsEventAccessor(this IMethodSymbol method)
         {
-            return method.MethodKind == MethodKind.EventAdd ||
-                   method.MethodKind == MethodKind.EventRaise ||
-                   method.MethodKind == MethodKind.EventRemove;
+            return method.MethodKind is MethodKind.EventAdd or
+                   MethodKind.EventRaise or
+                   MethodKind.EventRemove;
         }
 
         public static bool IsOperator(this IMethodSymbol methodSymbol)
         {
-            return methodSymbol.MethodKind == MethodKind.UserDefinedOperator || methodSymbol.MethodKind == MethodKind.BuiltinOperator;
+            return methodSymbol.MethodKind is MethodKind.UserDefinedOperator or MethodKind.BuiltinOperator;
         }
 
         public static bool HasOptionalParameters(this IMethodSymbol methodSymbol)
@@ -445,7 +445,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         /// <remarks>Also see <see cref="IOperationExtensions.s_operationToCfgCache"/></remarks>
         private static readonly BoundedCache<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation?>> s_methodToTopmostOperationBlockCache
-            = new BoundedCache<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation?>>();
+            = new();
 
         /// <summary>
         /// Returns the topmost <see cref="IBlockOperation"/> for given <paramref name="method"/>.

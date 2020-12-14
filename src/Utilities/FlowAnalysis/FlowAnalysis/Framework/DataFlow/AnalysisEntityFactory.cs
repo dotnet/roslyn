@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public bool TryCreateForSymbolDeclaration(ISymbol symbol, [NotNullWhen(returnValue: true)] out AnalysisEntity? analysisEntity)
         {
-            Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Parameter || symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Property);
+            Debug.Assert(symbol.Kind is SymbolKind.Local or SymbolKind.Parameter or SymbolKind.Field or SymbolKind.Property);
 
             var indices = ImmutableArray<AbstractIndex>.Empty;
             IOperation? instance = null;
