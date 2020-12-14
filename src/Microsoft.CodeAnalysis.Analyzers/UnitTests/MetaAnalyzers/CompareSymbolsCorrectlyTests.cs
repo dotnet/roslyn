@@ -866,7 +866,9 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, WorkItem(4470, "https://github.com/dotnet/roslyn-analyzers/issues/4470")]
+        [Fact]
+        [WorkItem(4470, "https://github.com/dotnet/roslyn-analyzers/issues/4470")]
+        [WorkItem(4568, "https://github.com/dotnet/roslyn-analyzers/issues/4568")]
         public async Task RS1024_InvocationArgumentTypeIsNull()
         {
             await new VerifyCS.Test
@@ -883,7 +885,7 @@ using Microsoft.CodeAnalysis;
 
 public class C
 {
-    private readonly HashSet<ITypeSymbol> _types = [|new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default)|];
+    private readonly HashSet<ITypeSymbol> _types = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
 }",
                         SymbolEqualityComparerStubCSharp,
                     },
