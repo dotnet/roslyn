@@ -7,6 +7,7 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using Xunit;
@@ -399,9 +400,13 @@ class Program
 
             var source = builder.ToString();
             var comp = CreateCompilation(source);
+            comp.NullableAnalysisData = new ConcurrentDictionary<object, int>();
             comp.VerifyDiagnostics();
 
             CheckIsSimpleMethod(comp, "F2", true);
+
+            var method = comp.GetMember("Program.F2");
+            Assert.Equal(1, comp.NullableAnalysisData[method]);
         }
 
         [Theory]
