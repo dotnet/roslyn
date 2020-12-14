@@ -2039,9 +2039,10 @@ done:
             ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols);
 
         /// <summary>
-        /// Performs just the analysis step of getting nullability information for a semantic model.
-        /// This is only used when nullable analysis is explicitly enabled for all methods but nullable
-        /// is turned off on a compilation level, giving some extra verification of the nullable flow analysis. 
+        /// Performs the analysis step of getting nullability information for a semantic model but
+        /// does not actually use the results. This gives us extra verification of nullable flow analysis.
+        /// It is only used in contexts where nullable analysis is disabled in the compilation but requested
+        /// through "run-nullable-analysis=always" or when the compiler is running in DEBUG.
         /// </summary>
         protected abstract void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots);
 #nullable disable

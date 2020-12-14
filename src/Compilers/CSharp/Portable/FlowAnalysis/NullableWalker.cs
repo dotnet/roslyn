@@ -1159,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Analyzes a set of bound nodes, recording updated nullability information. This method is only
-        /// used when nullable is explicitly enabled for all methods but diabled otherwise to verify that
+        /// used when nullable is explicitly enabled for all methods but disabled otherwise to verify that
         /// correct semantic information is being recorded for all bound nodes. The results are thrown away.
         /// </summary>
         internal static void AnalyzeWithoutRewrite(
