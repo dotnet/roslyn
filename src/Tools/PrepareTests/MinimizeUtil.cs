@@ -11,6 +11,8 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Text;
 
+namespace System.Runtime.CompilerServices { class IsExternalInit { } }
+
 internal static class MinimizeUtil
 {
     internal record FilePathInfo(string RelativeDirectory, string Directory, string RelativePath, string FullPath);
