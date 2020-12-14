@@ -11101,5 +11101,27 @@ namespace Bar1
             await VerifyItemExistsAsync(markup, "EveryoneElse");
             await VerifyItemIsAbsentAsync(markup, "Equals");
         }
+
+        [WorkItem(49609, "https://github.com/dotnet/roslyn/issues/49609")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ObsoleteOverloadsAreSkippedIfNonObsoleteOverloadIsAvailable()
+        {
+            var markup =
+@"
+public class C
+{
+    [System.Obsolete]
+    public void M() { }
+
+    public void M(int i) { }
+    
+    public void Test()
+    {
+        this.$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 1 {FeaturesResources.overload})");
+        }
     }
 }
