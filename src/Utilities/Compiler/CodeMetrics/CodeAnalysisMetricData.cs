@@ -33,13 +33,13 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             ImmutableArray<CodeAnalysisMetricData> children)
         {
             Debug.Assert(
-                symbol.Kind == SymbolKind.Assembly ||
-                symbol.Kind == SymbolKind.Namespace ||
-                symbol.Kind == SymbolKind.NamedType ||
-                symbol.Kind == SymbolKind.Method ||
-                symbol.Kind == SymbolKind.Field ||
-                symbol.Kind == SymbolKind.Event ||
-                symbol.Kind == SymbolKind.Property);
+                symbol.Kind is SymbolKind.Assembly or
+                SymbolKind.Namespace or
+                SymbolKind.NamedType or
+                SymbolKind.Method or
+                SymbolKind.Field or
+                SymbolKind.Event or
+                SymbolKind.Property);
             Debug.Assert(depthOfInheritance.HasValue == (symbol.Kind == SymbolKind.Assembly || symbol.Kind == SymbolKind.Namespace || symbol.Kind == SymbolKind.NamedType));
 
             var executableLines = !computationalComplexityMetrics.IsDefault ?

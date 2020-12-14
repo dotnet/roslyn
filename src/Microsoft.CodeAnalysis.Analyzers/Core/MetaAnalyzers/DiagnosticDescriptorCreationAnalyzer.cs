@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var idToAnalyzerMap = new ConcurrentDictionary<string, ConcurrentDictionary<string, ConcurrentBag<Location>>>();
                 compilationContext.RegisterOperationAction(operationAnalysisContext =>
                 {
-                    if (!(((IFieldInitializerOperation)operationAnalysisContext.Operation).Value is IObjectCreationOperation objectCreation))
+                    if (((IFieldInitializerOperation)operationAnalysisContext.Operation).Value is not IObjectCreationOperation objectCreation)
                     {
                         return;
                     }

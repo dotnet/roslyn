@@ -96,7 +96,7 @@ namespace Analyzer.Utilities
         /// </exception>
         public WordParser(string text, WordParserOptions options, char prefix)
         {
-            if (options < WordParserOptions.None || options > (WordParserOptions.IgnoreMnemonicsIndicators | WordParserOptions.SplitCompoundWords))
+            if (options is < WordParserOptions.None or > (WordParserOptions.IgnoreMnemonicsIndicators | WordParserOptions.SplitCompoundWords))
             {
                 throw new ArgumentException($"'{nameof(options)}' ({(int)options}) is invalid for Enum type'{nameof(WordParserOptions)}'");
             }
@@ -612,7 +612,7 @@ namespace Analyzer.Utilities
             // interpreted as '&OK', instead of 'OK'.
             if (SkipMnemonics)
             {
-                return c == '&' || c == '_';
+                return c is '&' or '_';
             }
 
             return false;

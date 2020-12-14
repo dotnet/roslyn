@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
 #if LEGACY_CODE_METRICS_MODE
                 // Legacy mode skips metrics for field/property/event symbols, and explicitly includes accessors as methods.
-                members = members.Where(m => m.Kind != SymbolKind.Field && m.Kind != SymbolKind.Property && m.Kind != SymbolKind.Event);
+                members = members.Where(m => m.Kind is not SymbolKind.Field and not SymbolKind.Property and not SymbolKind.Event);
 #else
                 // Filter out accessors as they are children of their associated symbols, for which we generate a separate node.
                 members = members.Where(m => m.Kind != SymbolKind.Method || ((IMethodSymbol)m).AssociatedSymbol == null);

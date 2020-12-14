@@ -57,8 +57,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 WellKnownTypeNames.SystemObject,
                  new ParameterMatcher[]{
                     (parameter, wellKnownTypeProvider) => {
-                        if (!(parameter.ContainingSymbol is IMethodSymbol methodSymbol)
-                            || !(methodSymbol.ContainingSymbol is INamedTypeSymbol typeSymbol))
+                        if (parameter.ContainingSymbol is not IMethodSymbol methodSymbol
+                            || methodSymbol.ContainingSymbol is not INamedTypeSymbol typeSymbol)
                         {
                             return false;
                         }

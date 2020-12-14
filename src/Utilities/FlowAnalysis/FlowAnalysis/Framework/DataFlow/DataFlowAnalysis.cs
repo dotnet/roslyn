@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             catchBlockInputDataMap.TryGetValue(enclosingTryAndCatchRegion, out var catchBlockInput))
                         {
                             Debug.Assert(enclosingTryAndCatchRegion.Kind == ControlFlowRegionKind.TryAndCatch);
-                            Debug.Assert(block.EnclosingRegion.Kind == ControlFlowRegionKind.Catch || block.EnclosingRegion.Kind == ControlFlowRegionKind.Filter);
+                            Debug.Assert(block.EnclosingRegion.Kind is ControlFlowRegionKind.Catch or ControlFlowRegionKind.Filter);
                             Debug.Assert(block.EnclosingRegion.FirstBlockOrdinal == block.Ordinal);
                             Debug.Assert(!catchBlockInput.IsDisposed);
                             input = catchBlockInput;
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 // Get the catch region to merge input data.
                 // Ensure that the source block is not itself within the catch region,
                 // in which case a throw cannot enter the catch region. 
-                var catchRegion = tryAndCatchRegion.NestedRegions.FirstOrDefault(region => region.Kind == ControlFlowRegionKind.Catch || region.Kind == ControlFlowRegionKind.FilterAndHandler);
+                var catchRegion = tryAndCatchRegion.NestedRegions.FirstOrDefault(region => region.Kind is ControlFlowRegionKind.Catch or ControlFlowRegionKind.FilterAndHandler);
                 if (catchRegion == null || sourceBlock.Ordinal >= catchRegion.FirstBlockOrdinal)
                 {
                     return null;

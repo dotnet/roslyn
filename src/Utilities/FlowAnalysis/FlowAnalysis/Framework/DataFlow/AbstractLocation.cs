@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         return syntaxNode;
                     }
 
-                    if (!(creation is IInvocationOperation invocation) ||
+                    if (creation is not IInvocationOperation invocation ||
                         !invocation.TargetMethod.IsLambdaOrLocalFunctionOrDelegate())
                     {
                         return null;

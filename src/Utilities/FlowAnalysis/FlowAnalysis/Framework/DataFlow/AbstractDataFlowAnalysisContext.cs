@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>? interproceduralAnalysisDataOpt,
             InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt)
         {
-            Debug.Assert(owningSymbol.Kind == SymbolKind.Method ||
-                owningSymbol.Kind == SymbolKind.Field ||
-                owningSymbol.Kind == SymbolKind.Property ||
-                owningSymbol.Kind == SymbolKind.Event);
+            Debug.Assert(owningSymbol.Kind is SymbolKind.Method or
+                SymbolKind.Field or
+                SymbolKind.Property or
+                SymbolKind.Event);
             Debug.Assert(Equals(owningSymbol.OriginalDefinition, owningSymbol));
             Debug.Assert(pointsToAnalysisResultOpt == null ||
                 pointsToAnalysisResultOpt.ControlFlowGraph == controlFlowGraph);

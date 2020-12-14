@@ -41,7 +41,7 @@ namespace OtherDll
                 Random r = new Random();
                 byte[] bytes = new byte[r.Next(20) + 10];
                 r.NextBytes(bytes);
-                bytes = bytes.Where(b => (byte)' ' <= b && b <= (byte)'~').ToArray();
+                bytes = bytes.Where(b => b is >= ((byte)' ') and <= ((byte)'~')).ToArray();
                 return Encoding.ASCII.GetString(bytes);
             }
 
@@ -73,7 +73,7 @@ namespace OtherDll
             Random r = new Random();
             byte[] bytes = new byte[r.Next(20) + 10];
             r.NextBytes(bytes);
-            bytes = bytes.Where(b => (byte)' ' <= b && b <= (byte)'~').ToArray();
+            bytes = bytes.Where(b => b is >= ((byte)' ') and <= ((byte)'~')).ToArray();
             return Encoding.ASCII.GetString(bytes);
         }
 
@@ -102,7 +102,7 @@ namespace OtherDll
             Random r = new Random();
             byte[] bytes = new byte[r.Next(20) + 10];
             r.NextBytes(bytes);
-            bytes = bytes.Where(b => (byte)' ' <= b && b <= (byte)'~').ToArray();
+            bytes = bytes.Where(b => b is >= ((byte)' ') and <= ((byte)'~')).ToArray();
             output = Encoding.ASCII.GetString(bytes);
         }
 
@@ -131,7 +131,7 @@ namespace OtherDll
             Random r = new Random();
             byte[] bytes = new byte[r.Next(20) + 10];
             r.NextBytes(bytes);
-            bytes = bytes.Where(b => (byte)' ' <= b && b <= (byte)'~').ToArray();
+            bytes = bytes.Where(b => b is >= ((byte)' ') and <= ((byte)'~')).ToArray();
             output = Encoding.ASCII.GetString(bytes);
         }
     }

@@ -1224,7 +1224,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return false;
 
             // We are currently bailing out if an interface or type parameter is involved.
-            static bool IsInterfaceOrTypeParameter(ITypeSymbol? type) => type?.TypeKind == TypeKind.Interface || type?.TypeKind == TypeKind.TypeParameter;
+            static bool IsInterfaceOrTypeParameter(ITypeSymbol? type) => type?.TypeKind is TypeKind.Interface or TypeKind.TypeParameter;
         }
 
         #endregion
@@ -1264,13 +1264,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private void PerformPredicateAnalysis(IOperation operation)
         {
             Debug.Assert(PredicateAnalysis);
-            Debug.Assert(operation.Kind == OperationKind.BinaryOperator ||
-                operation.Kind == OperationKind.UnaryOperator ||
-                operation.Kind == OperationKind.IsNull ||
-                operation.Kind == OperationKind.Invocation ||
-                operation.Kind == OperationKind.Argument ||
-                operation.Kind == OperationKind.FlowCaptureReference ||
-                operation.Kind == OperationKind.IsPattern);
+            Debug.Assert(operation.Kind is OperationKind.BinaryOperator or
+                OperationKind.UnaryOperator or
+                OperationKind.IsNull or
+                OperationKind.Invocation or
+                OperationKind.Argument or
+                OperationKind.FlowCaptureReference or
+                OperationKind.IsPattern);
 
             if (FlowBranchConditionKind == ControlFlowConditionKind.None || !IsRootOfCondition())
             {
@@ -2883,8 +2883,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
                 else if (operation.Instance != null)
                 {
-                    Debug.Assert(operation.TargetMethod.MethodKind == MethodKind.LambdaMethod ||
-                        operation.TargetMethod.MethodKind == MethodKind.DelegateInvoke);
+                    Debug.Assert(operation.TargetMethod.MethodKind is MethodKind.LambdaMethod or
+                        MethodKind.DelegateInvoke);
 
                     var invocationTarget = GetPointsToAbstractValue(operation.Instance);
                     if (invocationTarget.Kind == PointsToAbstractValueKind.KnownLocations)
