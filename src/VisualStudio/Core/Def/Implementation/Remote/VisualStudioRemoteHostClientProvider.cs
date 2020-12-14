@@ -49,9 +49,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 // We don't want to bring up the OOP process in a VS cloud environment client instance
                 // Avoids proffering brokered services on the client instance.
-                var isCloudEnvironmentClient = workspaceServices.GetRequiredService<IWorkspaceContextService>().IsCloudEnvironmentClient();
-                if (!RemoteHostOptions.IsUsingServiceHubOutOfProcess(workspaceServices)
-                    || workspaceServices.Workspace is not VisualStudioWorkspace || isCloudEnvironmentClient)
+                if (!RemoteHostOptions.IsUsingServiceHubOutOfProcess(workspaceServices) ||
+                    workspaceServices.Workspace is not VisualStudioWorkspace ||
+                    workspaceServices.GetRequiredService<IWorkspaceContextService>().IsCloudEnvironmentClient())
                 {
                     // Run code in the current process
                     return new DefaultRemoteHostClientProvider();
