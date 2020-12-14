@@ -9562,7 +9562,7 @@ struct S<T> {}
 True
 True
 False
-False");
+False", verify: Verification.Skipped);
 
             verifier.VerifyIL("<Program>$.<<Main>$>g__test|0_0<T>(S<T>*)", @"
 {
@@ -9604,7 +9604,7 @@ unsafe
 True
 True
 False
-False");
+False", verify: Verification.Skipped);
 
             verifier.VerifyIL("<Program>$.<<Main>$>g__test|0_0<T>(T*)", @"
 {
@@ -9623,6 +9623,30 @@ False");
   IL_0014:  ret
 }
 ");
+        }
+
+        [Theory]
+        [InlineData("int*")]
+        [InlineData("delegate*<void>")]
+        [InlineData("T*")]
+        [InlineData("delegate*<T>")]
+        public void CompareToNullInPatternOutsideUnsafe(string pointerType)
+        {
+            var comp = CreateCompilation($@"
+var c = default(S<int>);
+_ = c.Field is null;
+unsafe struct S<T> where T : unmanaged
+{{
+#pragma warning disable CS0649 // Field is unassigned 
+    public {pointerType} Field;
+}}
+", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (3,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // _ = c.Field is null;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c.Field").WithLocation(3, 5)
+            );
         }
 
         #endregion Pointer comparison tests
