@@ -40,17 +40,27 @@ internal static class MinimizeUtil
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "*.UnitTests"));
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "RunTests"));
 
+            Stats stats = default;
             foreach (var unitDirPath in directories)
             {
+                string? lastOutputDir = null;
                 foreach (var sourceFilePath in Directory.EnumerateFiles(unitDirPath, "*", SearchOption.AllDirectories))
                 {
                     var currentDirName = Path.GetDirectoryName(sourceFilePath)!;
                     var currentRelativeDirectory = Path.GetRelativePath(sourceDirectory, currentDirName);
                     var currentOutputDirectory = Path.Combine(destinationDirectory, currentRelativeDirectory);
-                    Directory.CreateDirectory(currentOutputDirectory);
+
+                    // TODO: decide if this is worth keeping to save <1s
+                    if (lastOutputDir != currentOutputDirectory)
+                    {
+                        lastOutputDir = currentOutputDirectory;
+                        // we want to reduce repeated calls to CreateDirectory for perf
+                        Directory.CreateDirectory(currentOutputDirectory);
+                    }
+
                     var fileName = Path.GetFileName(sourceFilePath);
 
-                    if (fileName.EndsWith(".dll") && TryGetMvid(sourceFilePath, out var mvid))
+                    if (fileName.EndsWith(".dll") && TryGetMvid(sourceFilePath, out var mvid, ref stats))
                     {
                         if (!idToFilePathMap.TryGetValue(mvid, out var list))
                         {
@@ -73,6 +83,13 @@ internal static class MinimizeUtil
                 }
             }
 
+            string results = @"
+successful dlls opened: " + stats.Success + @"
+thrown dlls: " + stats.Thrown + @"
+total dlls opened: " + stats.Total;
+
+            File.WriteAllText("prepare-stats.log", results);
+
             // https://github.com/dotnet/roslyn/issues/49486
             // we should avoid copying the files under Resources.
             var individualFiles = new[]
@@ -86,12 +103,12 @@ internal static class MinimizeUtil
                 "src/Workspaces/MSBuildTest/Resources/NuGet.Config",
             };
 
+            Directory.CreateDirectory("src/Workspaces/MSBuildTest/Resources");
             foreach (var individualFile in individualFiles)
             {
                 var currentDirName = Path.GetDirectoryName(individualFile)!;
                 var currentRelativeDirectory = Path.GetRelativePath(sourceDirectory, currentDirName);
                 var currentOutputDirectory = Path.Combine(destinationDirectory, currentRelativeDirectory);
-                Directory.CreateDirectory(currentOutputDirectory);
 
                 var destGlobalJsonPath = Path.Combine(destinationDirectory, individualFile);
                 CreateHardLink(destGlobalJsonPath, Path.Combine(sourceDirectory, individualFile));
@@ -178,7 +195,14 @@ internal static class MinimizeUtil
         static extern int link(string oldpath, string newpath);
     }
 
-    private static bool TryGetMvid(string filePath, out Guid mvid)
+    internal struct Stats
+    {
+        public int Success;
+        public int Thrown;
+        public int Total;
+    }
+
+    private static bool TryGetMvid(string filePath, out Guid mvid, ref Stats stats)
     {
         try
         {
@@ -186,16 +210,22 @@ internal static class MinimizeUtil
             var reader = new PEReader(stream);
             if (!reader.HasMetadata)
             {
+                stats.Thrown++;
+                stats.Total++;
                 mvid = default;
                 return false;
             }
             var metadataReader = reader.GetMetadataReader();
             var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
+            stats.Success++;
+            stats.Total++;
             mvid = metadataReader.GetGuid(mvidHandle);
             return true;
         }
         catch
         {
+            stats.Thrown++;
+            stats.Total++;
             mvid = default;
             return false;
         }
