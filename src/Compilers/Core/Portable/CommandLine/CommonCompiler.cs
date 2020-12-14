@@ -1266,11 +1266,11 @@ namespace Microsoft.CodeAnalysis
             CompilerAnalyzerConfigOptionsProvider analyzerConfigProvider,
             CancellationToken cancellationToken)
         {
+            AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
+                   additionalTextFiles, analyzerConfigProvider);
+
             if (!analyzers.IsEmpty)
             {
-                AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
-                      additionalTextFiles, analyzerConfigProvider);
-
                 analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 analyzerExceptionDiagnostics = new DiagnosticBag();
 
