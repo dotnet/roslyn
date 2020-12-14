@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
             var services = (IMefHostExportProvider)FeaturesTestCompositions.Features.GetHostServices();
             var provider = services.GetExports<CompletionProvider, CompletionProviderMetadata>().Single(p => p.Metadata.Language == LanguageNames.CSharp && p.Metadata.Name == nameof(ReferenceDirectiveCompletionProvider)).Value;
-            
+
             Assert.Equal(expectedResult, provider.ShouldTriggerCompletion(SourceText.From(text), position, trigger: default, new TestOptionSet()));
         }
     }
