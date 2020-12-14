@@ -192,10 +192,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public void AfterCollapse()
         {
+            StopUpdating();
+        }
+
+        private void StopUpdating()
+        {
             lock (_gate)
             {
-                Contract.ThrowIfNull(_cancellationTokenSource, "We created a token when we expanded, how do we not have one when collapsing?");
-                _cancellationTokenSource.Cancel();
+                _cancellationTokenSource?.Cancel();
                 _cancellationTokenSource = null;
                 _workspace.WorkspaceChanged -= OnWorkpaceChanged;
                 _resettableDelay = null;
@@ -204,6 +208,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void OnWorkpaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
+            if (!e.NewSolution.ContainsProject(_parentGeneratorItem.ProjectId))
+            {
+                StopUpdating();
+            }
+
             lock (_gate)
             {
                 // If we already have a ResettableDelay, just delay it further; otherwise we either have no delay
