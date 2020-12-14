@@ -146,7 +146,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' property has a setter or it is a getter only autoproperty accessed 
         ''' in a corresponding constructor or initializer
         ''' </summary>
-        Friend Function IsWritable(receiver As BoundExpression, containingBinder As Binder) As Boolean
+        Friend Function IsWritable(receiverOpt As BoundExpression, containingBinder As Binder) As Boolean
+            Debug.Assert(containingBinder IsNot Nothing)
+
             If Me.HasSet Then
                 Return True
             End If
@@ -155,11 +157,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim propertyIsStatic As Boolean = Me.IsShared
             Dim fromMember = containingBinder.ContainingMember
 
-            Return sourceProperty IsNot Nothing AndAlso
+            Return sourceProperty IsNot Nothing AndAlso fromMember IsNot Nothing AndAlso
                 sourceProperty.IsAutoProperty AndAlso
                 TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything) AndAlso
                 propertyIsStatic = fromMember.IsShared AndAlso
-                (propertyIsStatic OrElse receiver.Kind = BoundKind.MeReference) AndAlso
+                (propertyIsStatic OrElse (receiverOpt IsNot Nothing AndAlso receiverOpt.Kind = BoundKind.MeReference)) AndAlso
                 ((fromMember.Kind = SymbolKind.Method AndAlso DirectCast(fromMember, MethodSymbol).IsAnyConstructor) OrElse
                         TypeOf containingBinder Is DeclarationInitializerBinder)
 
