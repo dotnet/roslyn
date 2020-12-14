@@ -27,7 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 
-    internal sealed class InteractiveEvaluator : IResettableInteractiveEvaluator
+    // TODO: Rename to InteractiveEvaluator https://github.com/dotnet/roslyn/issues/6441
+    // The code is not specific to C#, but Interactive Window has hardcoded "CSharpInteractiveEvaluator" name.
+    internal sealed class CSharpInteractiveEvaluator : IResettableInteractiveEvaluator
     {
         private const string CommandPrefix = "#";
 
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         public InteractiveEvaluatorResetOptions ResetOptions { get; set; }
             = new InteractiveEvaluatorResetOptions(InteractiveHostPlatform.Desktop64);
 
-        internal InteractiveEvaluator(
+        internal CSharpInteractiveEvaluator(
             IThreadingContext threadingContext,
             IAsynchronousOperationListener listener,
             IContentType contentType,

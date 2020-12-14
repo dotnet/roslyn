@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             _commandsFactory = commandsFactory;
         }
 
-        protected abstract InteractiveEvaluator CreateInteractiveEvaluator(
+        protected abstract CSharpInteractiveEvaluator CreateInteractiveEvaluator(
             SVsServiceProvider serviceProvider,
             IViewClassifierAggregatorService classifierAggregator,
             IContentTypeRegistryService contentTypeRegistry,

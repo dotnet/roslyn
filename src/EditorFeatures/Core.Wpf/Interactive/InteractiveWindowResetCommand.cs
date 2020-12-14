@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 return ExecutionResult.Failed;
             }
 
-            var evaluator = (InteractiveEvaluator)window.Evaluator;
+            var evaluator = (CSharpInteractiveEvaluator)window.Evaluator;
             evaluator.ResetOptions = new InteractiveEvaluatorResetOptions(platform);
             return window.Operations.ResetAsync(initialize);
         }

@@ -54,13 +54,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
 
         protected override FunctionId InteractiveWindowFunctionId => FunctionId.CSharp_Interactive_Window;
 
-        protected override InteractiveEvaluator CreateInteractiveEvaluator(
+        protected override CSharpInteractiveEvaluator CreateInteractiveEvaluator(
             SVsServiceProvider serviceProvider,
             IViewClassifierAggregatorService classifierAggregator,
             IContentTypeRegistryService contentTypeRegistry,
             VisualStudioWorkspace workspace)
         {
-            return new InteractiveEvaluator(
+            return new CSharpInteractiveEvaluator(
                 _threadingContext,
                 _listener,
                 contentTypeRegistry.GetContentType(ContentTypeNames.CSharpContentType),
