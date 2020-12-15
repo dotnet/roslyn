@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
         private static DiagnosticDescriptor CreateDescriptor(bool isEnabledByDefault)
             => CreateDescriptor(
                 IDEDiagnosticIds.DisposableFieldsShouldBeDisposedDiagnosticId,
+                EnforceOnBuildValues.DisposableFieldsShouldBeDisposed,
                 title: new LocalizableResourceString(nameof(FeaturesResources.Disposable_fields_should_be_disposed), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 messageFormat: new LocalizableResourceString(nameof(FeaturesResources.Disposable_field_0_is_never_disposed), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 description: new LocalizableResourceString(nameof(FeaturesResources.DisposableFieldsShouldBeDisposedDescription), FeaturesResources.ResourceManager, typeof(FeaturesResources)),

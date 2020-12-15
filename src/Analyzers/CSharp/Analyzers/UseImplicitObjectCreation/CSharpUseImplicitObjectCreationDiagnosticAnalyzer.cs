@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
     {
         public CSharpUseImplicitObjectCreationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseImplicitObjectCreationDiagnosticId,
+                   EnforceOnBuildValues.UseImplicitObjectCreation,
                    CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_new), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),

@@ -13,7 +13,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         where TSwitchSyntax : SyntaxNode
     {
         protected AbstractPopulateSwitchExpressionDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.PopulateSwitchExpressionDiagnosticId)
+            : base(IDEDiagnosticIds.PopulateSwitchExpressionDiagnosticId,
+                   EnforceOnBuildValues.PopulateSwitchExpression)
         {
         }
 
