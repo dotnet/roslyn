@@ -777,6 +777,11 @@
         <target state="translated">'{0}' : 'readonly' peut uniquement être utilisé sur des accesseurs si la propriété ou l'indexeur a un accesseur get et un accesseur set</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RecordAmbigCtor">
+        <source>A record cannot be declared with a single positional parameter with the type of that record.</source>
+        <target state="new">A record cannot be declared with a single positional parameter with the type of that record.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">Impossible d'effectuer une assignation par référence de '{1}' vers '{0}', car '{1}' a une portée de sortie plus limitée que '{0}'.</target>

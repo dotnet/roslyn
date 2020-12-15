@@ -777,6 +777,11 @@
         <target state="translated">'„{0}”: modyfikatora „readonly” można użyć dla metod dostępu tylko wtedy, gdy właściwość lub indeksator mają metody dostępu get i set</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RecordAmbigCtor">
+        <source>A record cannot be declared with a single positional parameter with the type of that record.</source>
+        <target state="new">A record cannot be declared with a single positional parameter with the type of that record.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">Nie można przypisać odwołania elementu „{1}” do elementu „{0}”, ponieważ element „{1}” ma węższy zakres wyjścia niż element „{0}”.</target>

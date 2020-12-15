@@ -777,6 +777,11 @@
         <target state="translated">'{0}': 'readonly' は、プロパティまたはインデクサーが get および set の両方のアクセサーを含む場合にのみ、アクセサーで使用できます</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RecordAmbigCtor">
+        <source>A record cannot be declared with a single positional parameter with the type of that record.</source>
+        <target state="new">A record cannot be declared with a single positional parameter with the type of that record.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">'{1}' を '{0}' に ref 割り当てすることはできません。'{1}' のエスケープ スコープが '{0}' より狭いためです。</target>

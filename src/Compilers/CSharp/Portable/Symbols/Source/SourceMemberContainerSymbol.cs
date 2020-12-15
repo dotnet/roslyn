@@ -3058,7 +3058,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var ctor = addCtor(builder.RecordDeclarationWithParameters);
 
-                if (ctor.ParameterCount != 0)
+                if (ctor is not null && ctor.ParameterCount != 0)
                 {
                     var existingOrAddedMembers = addProperties(ctor.Parameters);
                     addDeconstruct(ctor, existingOrAddedMembers);
@@ -3094,12 +3094,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return;
 
-            SynthesizedRecordConstructor addCtor(RecordDeclarationSyntax declWithParameters)
+            SynthesizedRecordConstructor? addCtor(RecordDeclarationSyntax declWithParameters)
             {
                 Debug.Assert(declWithParameters.ParameterList is object);
                 var ctor = new SynthesizedRecordConstructor(this, declWithParameters, diagnostics);
-                members.Add(ctor);
-                return ctor;
+
+                if (ctor.ParameterCount == 1 && ctor.Parameters[0].Type.Equals(this))
+                {
+                    diagnostics.Add(ErrorCode.ERR_RecordAmbigCtor, ctor.Locations[0]);
+                    return null;
+                }
+                else
+                {
+                    members.Add(ctor);
+                    return ctor;
+                }
             }
 
             void addDeconstruct(SynthesizedRecordConstructor ctor, ImmutableArray<PropertySymbol> properties)

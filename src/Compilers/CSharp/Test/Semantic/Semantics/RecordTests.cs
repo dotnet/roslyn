@@ -229,6 +229,34 @@ class E
             comp.VerifyDiagnostics();
         }
 
+        [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
+        public void AmbigCtor()
+        {
+            var src = @"
+record R(R x);
+
+#nullable enable
+record R2(R2? x) { }
+
+record R3([System.Diagnostics.CodeAnalysis.NotNull] R3 x);
+";
+            var comp = CreateCompilation(new[] { src, NotNullAttributeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // (2,8): error CS8909: A record cannot be declared with a single positional parameter with the type of that record.
+                // record R(R x);
+                Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R").WithLocation(2, 8),
+                // (5,8): error CS8909: A record cannot be declared with a single positional parameter with the type of that record.
+                // record R2(R2? x) { }
+                Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R2").WithLocation(5, 8),
+                // (7,8): error CS8909: A record cannot be declared with a single positional parameter with the type of that record.
+                // record R3([System.Diagnostics.CodeAnalysis.NotNull] R3 x);
+                Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R3").WithLocation(7, 8)
+                );
+
+            var r = comp.GlobalNamespace.GetTypeMember("R");
+            Assert.Equal(new[] { "R..ctor(R original)", "R..ctor()" }, r.GetMembers(".ctor").ToTestDisplayStrings());
+        }
+
         [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
         public void IncompletePositionalRecord()
         {
