@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
         public async Task<ParameterConfiguration> GetParameterConfigurationAsync()
         {
-            var context = await ChangeSignatureService.GetContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, CancellationToken.None);
+            var context = await ChangeSignatureService.GetChangeSignatureContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, CancellationToken.None);
             if (context is ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext)
             {
                 return changeSignatureAnalyzedSucceedContext.ParameterConfiguration;

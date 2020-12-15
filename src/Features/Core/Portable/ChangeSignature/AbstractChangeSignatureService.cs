@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var context = await GetContextAsync(document, span.Start, restrictToDeclarations: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var context = await GetChangeSignatureContextAsync(document, span.Start, restrictToDeclarations: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return context is ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext
                 ? ImmutableArray.Create(new ChangeSignatureCodeAction(this, changeSignatureAnalyzedSucceedContext))
@@ -90,8 +90,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         internal async Task<ChangeSignatureResult> ChangeSignatureAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var context = await GetContextAsync(document, position, restrictToDeclarations: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-
+            var context = await GetChangeSignatureContextAsync(document, position, restrictToDeclarations: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await Task.Yield();
             return context switch
             {
                 ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext => await ChangeSignatureWithContextAsync(changeSignatureAnalyzedSucceedContext, cancellationToken).ConfigureAwait(false),
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             };
         }
 
-        internal async Task<ChangeSignatureAnalyzedContext> GetContextAsync(
+        internal async Task<ChangeSignatureAnalyzedContext> GetChangeSignatureContextAsync(
             Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
             var (symbol, selectedIndex) = await GetInvocationSymbolAsync(
