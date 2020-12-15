@@ -1743,6 +1743,9 @@ namespace Microsoft.CodeAnalysis
         internal Task<GeneratorDriverRunResult?> GetGeneratorDriverRunResultAsync(ProjectState projectState, CancellationToken cancellationToken)
             => GetCompilationTracker(projectState.Id).GetGeneratorDriverRunResultAsync(this, cancellationToken);
 
+        internal Task<ImmutableArray<Diagnostic>> GetTransformerDiagnosticsAsync(ProjectState projectState, CancellationToken cancellationToken)
+            => GetCompilationTracker(projectState.Id).GetTransformerDiagnosticsAsync(this, cancellationToken);
+
         /// <summary>
         /// Return reference completeness for the given project and all projects this references.
         /// </summary>

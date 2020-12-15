@@ -229,7 +229,8 @@ namespace Microsoft.CodeAnalysis
                         inProgressCompilation,
                         generatorDriver: new TrackedGeneratorDriver(null),
                         hasSuccessfullyLoaded: false,
-                        State.GetUnrootedSymbols(inProgressCompilation)));
+                        State.GetUnrootedSymbols(inProgressCompilation),
+                        default));
             }
 
             /// <summary>
@@ -398,6 +399,13 @@ namespace Microsoft.CodeAnalysis
                 return compilationInfo.GeneratorDriverRunResult;
             }
 
+            public async Task<ImmutableArray<Diagnostic>> GetTransformerDiagnosticsAsync(SolutionState solution, CancellationToken cancellationToken)
+            {
+                var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                return compilationInfo.TransformerDiagnostics;
+            }
+
             private async Task<Compilation> GetOrBuildDeclarationCompilationAsync(SolutionServices solutionServices, CancellationToken cancellationToken)
             {
                 try
@@ -470,7 +478,7 @@ namespace Microsoft.CodeAnalysis
                         if (finalCompilation != null)
                         {
                             RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                            return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoaded.Value, state.GeneratorDriver.GeneratorDriver?.GetRunResult());
+                            return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoaded.Value, state.GeneratorDriver.GeneratorDriver?.GetRunResult(), state.TransformerDiagnostics);
                         }
 
                         // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
@@ -512,7 +520,7 @@ namespace Microsoft.CodeAnalysis
                 if (compilation != null)
                 {
                     RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                    return Task.FromResult(new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratorDriver.GeneratorDriver?.GetRunResult()));
+                    return Task.FromResult(new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratorDriver.GeneratorDriver?.GetRunResult(), state.TransformerDiagnostics));
                 }
 
                 compilation = state.Compilation?.GetValueOrNull(cancellationToken);
@@ -655,12 +663,14 @@ namespace Microsoft.CodeAnalysis
                 public Compilation Compilation { get; }
                 public bool HasSuccessfullyLoaded { get; }
                 public GeneratorDriverRunResult? GeneratorDriverRunResult { get; }
+                public ImmutableArray<Diagnostic> TransformerDiagnostics { get; }
 
-                public CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded, GeneratorDriverRunResult? generatorDriverRunResult)
+                public CompilationInfo(Compilation compilation, bool hasSuccessfullyLoaded, GeneratorDriverRunResult? generatorDriverRunResult, ImmutableArray<Diagnostic> transformerDiagnostics)
                 {
                     Compilation = compilation;
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     GeneratorDriverRunResult = generatorDriverRunResult;
+                    TransformerDiagnostics = transformerDiagnostics;
                 }
             }
 
@@ -760,7 +770,8 @@ namespace Microsoft.CodeAnalysis
                     var loader = this.ProjectState.LanguageServices.WorkspaceServices.GetRequiredService<IAnalyzerService>().GetLoader();
 
                     var runTransformers = compilationFactory.GetRunTransformersDelegate(transformers, plugins, this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider, loader);
-                    (compilation, _) = runTransformers(compilation);
+                    ImmutableArray<Diagnostic> transformerDiagnostics;
+                    (compilation, transformerDiagnostics) = runTransformers(compilation);
 
                     RecordAssemblySymbols(compilation, metadataReferenceToProjectId);
 
@@ -771,10 +782,11 @@ namespace Microsoft.CodeAnalysis
                             compilationWithoutGeneratedFiles,
                             generatorDriver,
                             hasSuccessfullyLoaded,
-                            State.GetUnrootedSymbols(compilation)),
+                            State.GetUnrootedSymbols(compilation),
+                            transformerDiagnostics),
                         solution.Services);
 
-                    return new CompilationInfo(compilation, hasSuccessfullyLoaded, generatorDriver.GeneratorDriver?.GetRunResult());
+                    return new CompilationInfo(compilation, hasSuccessfullyLoaded, generatorDriver.GeneratorDriver?.GetRunResult(), transformerDiagnostics);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
