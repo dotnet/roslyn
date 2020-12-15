@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 
-namespace Microsoft.CodeAnalysis.Shared.Collections
+namespace Microsoft.CodeAnalysis.Collections
 {
     /// <summary>
     /// Defines a fixed-size collection with the same API surface and behavior as an "SZArray", which is a
