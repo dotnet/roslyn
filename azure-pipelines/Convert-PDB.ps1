@@ -18,13 +18,13 @@
         [string]$OutputPath
     )
 
-    $version = '1.1.0-beta1-64128-01'
+    $version = '1.1.0-beta2-20115-01'
     $baseDir = "$PSScriptRoot\..\obj\tools"
-    $pdb2pdbpath = "$baseDir\pdb2pdb.$version\tools\Pdb2Pdb.exe"
+    $pdb2pdbpath = "$baseDir\Microsoft.DiaSymReader.Pdb2Pdb.$version\tools\Pdb2Pdb.exe"
     if (-not (Test-Path $pdb2pdbpath)) {
         if (-not (Test-Path $baseDir)) { New-Item -Type Directory -Path $baseDir | Out-Null }
         $baseDir = (Resolve-Path $baseDir).Path # Normalize it
-        & (& $PSScriptRoot\Get-NuGetTool.ps1) install pdb2pdb -version $version -PackageSaveMode nuspec -OutputDirectory $baseDir -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/myget-legacy/nuget/v3/index.json | Out-Null
+        & (& $PSScriptRoot\Get-NuGetTool.ps1) install Microsoft.DiaSymReader.Pdb2Pdb -version $version -PackageSaveMode nuspec -OutputDirectory $baseDir -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json | Out-Null
     }
 
     $args = $DllPath,'/out',$OutputPath,'/nowarn','0021'
