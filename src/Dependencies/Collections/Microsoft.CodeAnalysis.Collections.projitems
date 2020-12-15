@@ -12,6 +12,8 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedArrayHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedArray`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)StackTraceHiddenAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ThrowHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)Strings.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.Collections.SR" />
