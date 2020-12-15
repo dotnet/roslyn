@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // If this is a pull client, but pull diagnostics is not on, then they get nothing.  Similarly, if this is a
             // push client and pull diagnostics are on, they get nothing.
-            var isPull = workspace.Options.GetOption(diagnosticMode) == DiagnosticMode.Pull;
+            var isPull = workspace.IsPullDiagnostics(diagnosticMode);
             if (forPullDiagnostics != isPull)
                 return ImmutableArray<DiagnosticData>.Empty;
 
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // If this is a pull client, but pull diagnostics is not on, then they get nothing.  Similarly, if this is a
             // push client and pull diagnostics are on, they get nothing.
-            var isPull = workspace.Options.GetOption(diagnosticMode) == DiagnosticMode.Pull;
+            var isPull = workspace.IsPullDiagnostics(diagnosticMode);
             if (forPullDiagnostics != isPull)
                 return ImmutableArray<DiagnosticBucket>.Empty;
 

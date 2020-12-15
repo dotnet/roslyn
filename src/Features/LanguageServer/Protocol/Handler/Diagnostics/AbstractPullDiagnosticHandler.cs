@@ -24,6 +24,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : IRequestHandler<TDiagnosticsParams, TReport[]?>
         where TReport : DiagnosticReport
     {
+        /// <summary>
+        /// Special value we use to designate workspace diagnostics vs document diagnostics.  Document diagnostics
+        /// should always <see cref="DiagnosticReport.Supersedes"/> a workspace diagnostic as the former are 'live'
+        /// while the latter are cached and may be stale.
+        /// </summary>
+        protected const int WorkspaceDiagnosticIdentifier = 1;
+        protected const int DocumentDiagnosticIdentifier = 2;
+
         protected readonly IDiagnosticService DiagnosticService;
 
         /// <summary>
@@ -77,6 +85,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// Produce the diagnostics for the specified document.
         /// </summary>
         protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Generate the right diagnostic tags for a particular diagnostic.
+        /// </summary>
+        protected abstract DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData);
 
         private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs updateArgs)
         {
@@ -179,7 +192,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 : InternalDiagnosticsOptions.NormalDiagnosticMode;
 
             var workspace = document.Project.Solution.Workspace;
-            var isPull = workspace.Options.GetOption(diagnosticMode) == DiagnosticMode.Pull;
+            var isPull = workspace.IsPullDiagnostics(diagnosticMode);
 
             using var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var result);
 
@@ -233,8 +246,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             lock (_gate)
             {
                 // Keep track of the diagnostics we reported here so that we can short-circuit producing diagnostics for
-                // the same diagnostic set in the future.
-                var resultId = _nextDocumentResultId++.ToString();
+                // the same diagnostic set in the future.  Use a custom result-id per type (doc diagnostics or workspace
+                // diagnostics) so that clients of one don't errantly call into the other.  For example, a client
+                // getting document diagnostics should not ask for workspace diagnostics with the result-ids it got for
+                // doc-diagnostics.  The two systems are different and cannot share results, or do things like report
+                // what changed between each other.
+                var resultId = $"{GetType().Name}:{_nextDocumentResultId++}";
                 _documentIdToLastResultId[(document.Project.Solution.Workspace, document.Id)] = resultId;
                 return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), diagnostics, resultId);
             }
@@ -286,7 +303,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// If you make change in this method, please also update the corresponding file in
         /// src\VisualStudio\Xaml\Impl\Implementation\LanguageServer\Handler\Diagnostics\AbstractPullDiagnosticHandler.cs
         /// </summary>
-        private static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
+        protected static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool potentialDuplicate)
         {
             using var _ = ArrayBuilder<DiagnosticTag>.GetInstance(out var result);
 
@@ -300,6 +317,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 result.Add(VSDiagnosticTags.VisibleInErrorList);
             }
+
+            if (potentialDuplicate)
+                result.Add(VSDiagnosticTags.PotentialDuplicate);
 
             result.Add(diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Build)
                 ? VSDiagnosticTags.BuildError

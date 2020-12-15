@@ -80,13 +80,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(compilerHash), "CompilerHash is required to send request to the build server");
 
-            Log($@"
-Creating BuildRequest
-  Working directory: {workingDirectory}
-  Temp directory: {tempDirectory}
-  Lib directory: {libDirectory ?? null}
-  Compiler hash: {compilerHash}");
-
             var requestLength = args.Count + 1 + (libDirectory == null ? 0 : 1);
             var requestArgs = new List<Argument>(requestLength);
 

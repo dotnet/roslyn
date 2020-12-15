@@ -32,6 +32,11 @@
         <target state="translated">Das Ändern des Dokuments "{0}" wird nicht unterstützt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CodeAction_{0}_did_not_produce_a_changed_solution">
+        <source>CodeAction '{0}' did not produce a changed solution</source>
+        <target state="translated">Durch CodeAction "{0}" wurde keine geänderte Lösung erstellt.</target>
+        <note>"CodeAction" is a specific type, and {0} represents the title shown by the action.</note>
+      </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
         <target state="translated">Wichtige EditorConfig-Optionen</target>
@@ -192,6 +197,11 @@
         <target state="translated">Namespace mit Ordnerstruktur synchronisieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed">
+        <source>The contents of a SourceGeneratedDocument may not be changed.</source>
+        <target state="translated">Der Inhalt eines SourceGeneratedDocument kann nicht geändert werden.</target>
+        <note>{locked:SourceGeneratedDocument}</note>
+      </trans-unit>
       <trans-unit id="The_project_already_contains_the_specified_reference">
         <source>The project already contains the specified reference.</source>
         <target state="translated">Im Projekt ist der angegebene Verweis bereits enthalten.</target>
@@ -234,7 +244,7 @@
       </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">
         <source>'{0}' is not part of the workspace.</source>
-        <target state="translated">'"{0}" ist nicht Teil des Arbeitsbereichs.</target>
+        <target state="translated">"{0}" ist nicht Teil des Arbeitsbereichs.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_already_part_of_the_workspace">
@@ -244,12 +254,12 @@
       </trans-unit>
       <trans-unit id="_0_is_not_referenced">
         <source>'{0}' is not referenced.</source>
-        <target state="translated">'"{0}" ist nicht referenziert.</target>
+        <target state="translated">"{0}" ist nicht referenziert.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_already_referenced">
         <source>'{0}' is already referenced.</source>
-        <target state="translated">'"{0}" ist bereits referenziert.</target>
+        <target state="translated">"{0}" ist bereits referenziert.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_project_reference_from_0_to_1_will_cause_a_circular_reference">
@@ -319,7 +329,7 @@
       </trans-unit>
       <trans-unit id="_0_is_not_open">
         <source>'{0}' is not open.</source>
-        <target state="translated">'"{0}" ist nicht geöffnet.</target>
+        <target state="translated">"{0}" ist nicht geöffnet.</target>
         <note />
       </trans-unit>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
@@ -664,7 +674,7 @@
       </trans-unit>
       <trans-unit id="_0_returned_an_uninitialized_ImmutableArray">
         <source>'{0}' returned an uninitialized ImmutableArray</source>
-        <target state="translated">'"{0}" hat ein nicht initialisiertes "ImmutableArray" zurückgegeben.</target>
+        <target state="translated">"{0}" hat ein nicht initialisiertes "ImmutableArray" zurückgegeben.</target>
         <note />
       </trans-unit>
       <trans-unit id="Failure">
@@ -689,7 +699,7 @@
       </trans-unit>
       <trans-unit id="_0_encountered_an_error_and_has_been_disabled">
         <source>'{0}' encountered an error and has been disabled.</source>
-        <target state="translated">'"{0}" hat einen Fehler festgestellt und wurde deaktiviert.</target>
+        <target state="translated">"{0}" hat einen Fehler festgestellt und wurde deaktiviert.</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_Stack_Trace">

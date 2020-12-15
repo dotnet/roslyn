@@ -1846,13 +1846,13 @@ class Program
 
     static void Main()
     {
-        Goo();
+        Goo(); // 1
     }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (13,9): error CS0029: Cannot implicitly convert type 'int' to 'Enum'
-                //         Goo();
+            comp.VerifyDiagnostics(
+                // (13,9): error CS0029: Cannot implicitly convert type 'int' to 'System.Enum'
+                //         Goo(); // 1
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "Goo()").WithArguments("int", "System.Enum").WithLocation(13, 9));
         }
 
@@ -10301,7 +10301,7 @@ public class C
 
         #region SkipLocalsInitAttribute
 
-        private CompilationVerifier CompileAndVerifyWithSkipLocalsInit(string src, CSharpParseOptions parseOptions = null)
+        private CompilationVerifier CompileAndVerifyWithSkipLocalsInit(string src, CSharpCompilationOptions options, CSharpParseOptions parseOptions = null, Verification verify = Verification.Fails)
         {
             const string skipLocalsInitDef = @"
 namespace System.Runtime.CompilerServices
@@ -10311,8 +10311,13 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-            var comp = CreateCompilation(new[] { src, skipLocalsInitDef }, options: TestOptions.UnsafeReleaseDll, parseOptions: parseOptions);
-            return CompileAndVerify(comp, verify: Verification.Fails);
+            var comp = CreateCompilation(new[] { src, skipLocalsInitDef }, options: options, parseOptions: parseOptions);
+            return CompileAndVerify(comp, verify: verify);
+        }
+
+        private CompilationVerifier CompileAndVerifyWithSkipLocalsInit(string src, CSharpParseOptions parseOptions = null, Verification verify = Verification.Fails)
+        {
+            return CompileAndVerifyWithSkipLocalsInit(src, TestOptions.UnsafeReleaseDll, parseOptions, verify);
         }
 
         [Fact]
@@ -11214,6 +11219,48 @@ public class C
             var verifier = CompileAndVerifyWithSkipLocalsInit(source);
             Assert.False(verifier.HasLocalsInit("C.M"));
             Assert.False(verifier.HasLocalsInit("C.<M>g__local|0_0"));
+        }
+
+        [Fact, WorkItem(49434, "https://github.com/dotnet/roslyn/issues/49434")]
+        public void SkipLocalsInit_Module_TopLevelStatements()
+        {
+            var source = @"
+using System.Runtime.CompilerServices;
+
+[module: SkipLocalsInit]
+
+var w = 1;
+w = w + w + w;
+
+void local()
+{
+    var x = 1;
+    x = x + x + x;
+}
+";
+
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.UnsafeReleaseExe);
+            Assert.False(verifier.HasLocalsInit("<top-level-statements-entry-point>"));
+            Assert.False(verifier.HasLocalsInit("<Program>$.<<Main>$>g__local|0_0"));
+        }
+
+        [Fact, WorkItem(49434, "https://github.com/dotnet/roslyn/issues/49434")]
+        public void SkipLocalsInit_Module_TopLevelStatements_WithoutAttribute()
+        {
+            var source = @"
+var w = 1;
+w = w + w + w;
+
+void local()
+{
+    var x = 1;
+    x = x + x + x;
+}
+";
+
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.UnsafeReleaseExe, verify: Verification.Passes);
+            Assert.True(verifier.HasLocalsInit("<top-level-statements-entry-point>"));
+            Assert.True(verifier.HasLocalsInit("<Program>$.<<Main>$>g__local|0_0"));
         }
 
         [Fact]

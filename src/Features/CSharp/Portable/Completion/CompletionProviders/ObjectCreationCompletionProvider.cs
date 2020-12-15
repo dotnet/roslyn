@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -116,13 +117,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static readonly CompletionItemRules s_objectRules =
             CompletionItemRules.Create(
-                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[')),
+                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', ';')),
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
         private static readonly CompletionItemRules s_defaultRules =
             CompletionItemRules.Create(
-                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '{')),
+                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '{', ';')),
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
@@ -144,6 +145,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return s_defaultRules;
+        }
+
+        protected override string GetInsertionText(CompletionItem item, char ch)
+        {
+            if (ch == ';')
+            {
+                CompletionProvidersLogger.LogCommitUsingSemicolonToAddParenthesis();
+                var insertionText = SymbolCompletionItem.GetInsertionText(item);
+                return insertionText + "()";
+            }
+
+            return base.GetInsertionText(item, ch);
         }
     }
 }

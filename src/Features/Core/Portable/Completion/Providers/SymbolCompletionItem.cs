@@ -67,12 +67,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var symbol = symbols[0];
             var isGeneric = symbol.GetArity() > 0;
-
             item = item
                 .AddProperty("SymbolKind", ((int)symbol.Kind).ToString())
                 .AddProperty("SymbolName", symbol.Name);
 
             return isGeneric ? item.AddProperty("IsGeneric", isGeneric.ToString()) : item;
+        }
+
+        public static CompletionItem AddShouldProvideParenthesisCompletion(CompletionItem item)
+            => item.AddProperty("ShouldProvideParenthesisCompletion", true.ToString());
+
+        public static bool GetShouldProvideParenthesisCompletion(CompletionItem item)
+        {
+            if (item.Properties.TryGetValue("ShouldProvideParenthesisCompletion", out _))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public static string EncodeSymbols(IReadOnlyList<ISymbol> symbols)

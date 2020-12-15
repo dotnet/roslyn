@@ -207,15 +207,15 @@
       "nugetKind": [ "Shipping", "NonShipping" ],
       "version": "3.9.*",
       "packageFeeds": "default",
-      "channels": [ "dev16.9p1" ],
+      "channels": [ "dev16.9p2" ],
       "vsBranch": "rel/d16.9",
       "vsMajorVersion": 16
     },
     "master-vs-deps": {
       "nugetKind": ["Shipping", "NonShipping"],
-      "version": "3.8.*",
+      "version": "3.9.*",
       "packageFeeds": "default",
-      "channels": [ "dev16.9", "dev16.9p2" ],
+      "channels": [ "dev16.9", "dev16.9p3" ],
       "vsBranch": "main",
       "vsMajorVersion": 16
     },

@@ -1158,7 +1158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.InitializerExpressionOpt == null);
             BoundSpillSequenceBuilder builder = null;
             var arguments = this.VisitExpressionList(ref builder, node.Arguments, node.ArgumentRefKindsOpt);
-            return UpdateExpression(builder, node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, node.InitializerExpressionOpt, node.BinderOpt, node.Type));
+            return UpdateExpression(builder, node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ConstantValueOpt, node.InitializerExpressionOpt, node.BinderOpt, node.Type));
         }
 
         public override BoundNode VisitPointerElementAccess(BoundPointerElementAccess node)

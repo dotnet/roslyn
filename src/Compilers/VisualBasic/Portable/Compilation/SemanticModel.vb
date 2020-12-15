@@ -891,7 +891,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Else
                 ' 2 or more symbols. Use a hash set to remove duplicates.
-                Dim symbolSet As New HashSet(Of Symbol)
+                Dim symbolSet = PooledHashSet(Of Symbol).GetInstance()
                 For Each s In symbolsBuilder
                     If (options And SymbolInfoOptions.ResolveAliases) <> 0 Then
                         s = UnwrapAlias(s)
@@ -909,7 +909,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Next
 
-                Return ImmutableArray.CreateRange(symbolSet)
+                Dim result = ImmutableArray.CreateRange(symbolSet)
+                symbolSet.Free()
+                Return result
             End If
         End Function
 
@@ -1393,13 +1395,7 @@ _Default:
         End Sub
 
         Private Shared Function UnwrapAliases(symbols As ImmutableArray(Of Symbol)) As ImmutableArray(Of Symbol)
-            Dim anyAliases As Boolean = False
-
-            For Each sym In symbols
-                If sym.Kind = SymbolKind.Alias Then
-                    anyAliases = True
-                End If
-            Next
+            Dim anyAliases As Boolean = symbols.Any(Function(sym) sym.Kind = SymbolKind.Alias)
 
             If Not anyAliases Then
                 Return symbols

@@ -15,32 +15,33 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal static class AnalyzerConsistencyChecker
     {
-        private static readonly ImmutableArray<string> s_defaultIgnorableReferenceNames = ImmutableArray.Create("mscorlib", "System", "Microsoft.CodeAnalysis", "netstandard");
-
-        public static bool Check(string baseDirectory, IEnumerable<CommandLineAnalyzerReference> analyzerReferences, IAnalyzerAssemblyLoader loader, IEnumerable<string>? ignorableReferenceNames = null)
+        public static bool Check(
+            string baseDirectory,
+            IEnumerable<CommandLineAnalyzerReference> analyzerReferences,
+            IAnalyzerAssemblyLoader loader,
+            ICompilerServerLogger? logger = null)
         {
-            if (ignorableReferenceNames == null)
-            {
-                ignorableReferenceNames = s_defaultIgnorableReferenceNames;
-            }
-
             try
             {
-                CompilerServerLogger.Log("Begin Analyzer Consistency Check");
-                return CheckCore(baseDirectory, analyzerReferences, loader, ignorableReferenceNames);
+                logger?.Log("Begin Analyzer Consistency Check");
+                return CheckCore(baseDirectory, analyzerReferences, loader, logger);
             }
             catch (Exception e)
             {
-                CompilerServerLogger.LogException(e, "Analyzer Consistency Check");
+                logger?.LogException(e, "Analyzer Consistency Check");
                 return false;
             }
             finally
             {
-                CompilerServerLogger.Log("End Analyzer Consistency Check");
+                logger?.Log("End Analyzer Consistency Check");
             }
         }
 
-        private static bool CheckCore(string baseDirectory, IEnumerable<CommandLineAnalyzerReference> analyzerReferences, IAnalyzerAssemblyLoader loader, IEnumerable<string> ignorableReferenceNames)
+        private static bool CheckCore(
+            string baseDirectory,
+            IEnumerable<CommandLineAnalyzerReference> analyzerReferences,
+            IAnalyzerAssemblyLoader loader,
+            ICompilerServerLogger? logger)
         {
             var resolvedPaths = new List<string>();
 
@@ -57,21 +58,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
 
                 // Don't worry about paths we can't resolve. The compiler will report an error for that later.
-            }
-
-            // First, check that the set of references is complete, modulo items in the safe list.
-            foreach (var resolvedPath in resolvedPaths)
-            {
-                var missingDependencies = AssemblyUtilities.IdentifyMissingDependencies(resolvedPath, resolvedPaths);
-
-                foreach (var missingDependency in missingDependencies)
-                {
-                    if (!ignorableReferenceNames.Any(name => missingDependency.Name.StartsWith(name)))
-                    {
-                        CompilerServerLogger.LogError($"Analyzer assembly {resolvedPath} depends on '{missingDependency}' but it was not found.");
-                        return false;
-                    }
-                }
             }
 
             // Register analyzers and their dependencies upfront, 
@@ -98,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 if (resolvedPathMvid != loadedAssemblyMvid)
                 {
-                    CompilerServerLogger.LogError($"Analyzer assembly {resolvedPath} has MVID '{resolvedPathMvid}' but loaded assembly '{loadedAssembly.FullName}' has MVID '{loadedAssemblyMvid}'.");
+                    logger?.LogError($"Analyzer assembly {resolvedPath} has MVID '{resolvedPathMvid}' but loaded assembly '{loadedAssembly.FullName}' has MVID '{loadedAssemblyMvid}'.");
                     return false;
                 }
             }

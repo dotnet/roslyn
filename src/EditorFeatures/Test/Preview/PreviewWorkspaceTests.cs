@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -22,7 +21,6 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -107,10 +105,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var solution = previewWorkspace.CurrentSolution;
             var project = solution.AddProject("project", "project.dll", LanguageNames.CSharp);
             var document = project.AddDocument("document", "");
+            var sourceTextContainer = SourceText.From("Text").Container;
 
             Assert.True(previewWorkspace.TryApplyChanges(document.Project.Solution));
 
-            previewWorkspace.OpenDocument(document.Id);
+            previewWorkspace.OpenDocument(document.Id, sourceTextContainer);
             Assert.Equal(1, previewWorkspace.GetOpenDocumentIds().Count());
             Assert.True(previewWorkspace.IsDocumentOpen(document.Id));
 
@@ -134,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
         [WorkItem(923196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923196")]
         [WpfFact, Trait(Traits.Editor, Traits.Editors.Preview)]
-        public void TestPreviewDiagnostic()
+        public async Task TestPreviewDiagnostic()
         {
             var hostServices = EditorTestCompositions.EditorFeatures.GetHostServices();
 
@@ -155,7 +154,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
             Assert.True(previewWorkspace.TryApplyChanges(solution));
 
-            previewWorkspace.OpenDocument(previewWorkspace.CurrentSolution.Projects.First().DocumentIds[0]);
+            var document = previewWorkspace.CurrentSolution.Projects.First().Documents.Single();
+
+            previewWorkspace.OpenDocument(document.Id, (await document.GetTextAsync()).Container);
             previewWorkspace.EnableDiagnostic();
 
             // wait 20 seconds
@@ -212,6 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
             var previewFactoryService = (PreviewFactoryService)workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
             using var diffView = await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None);
+            AssertEx.NotNull(diffView);
 
             var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
 

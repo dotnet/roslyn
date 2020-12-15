@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                 Dim symbols = Me._model.GetSymbolInfo(expression, _cancellationToken).GetAllSymbols()
                 Return symbols.Any() AndAlso symbols.All(
-                    Function(s) (TryCast(s, IMethodSymbol)?.MethodKind).GetValueOrDefault() = MethodKind.Ordinary)
+                    Function(s) If(TryCast(s, IMethodSymbol)?.MethodKind = MethodKind.Ordinary, False))
             End Function
 
             Private Function IsDelegateType(expression As ExpressionSyntax) As Boolean
