@@ -13,15 +13,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
     internal class DifferenceViewerPreview : IDisposable
     {
-        private IWpfDifferenceViewer _viewer;
+        private IDifferenceViewer _viewer;
 
-        public DifferenceViewerPreview(IWpfDifferenceViewer viewer)
+        public DifferenceViewerPreview(IDifferenceViewer viewer)
         {
             Contract.ThrowIfNull(viewer);
             _viewer = viewer;
         }
 
-        public IWpfDifferenceViewer Viewer => _viewer;
+        public IDifferenceViewer Viewer => _viewer;
 
         public void Dispose()
         {
