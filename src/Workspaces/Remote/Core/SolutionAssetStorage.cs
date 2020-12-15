@@ -24,12 +24,10 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Map from solution checksum scope id to its associated <see cref="SolutionState"/>.
         /// </summary>
-        private readonly ConcurrentDictionary<int, SolutionState> _solutionStates;
+        private readonly ConcurrentDictionary<int, (SolutionState Solution, SolutionReplicationContext ReplicationContext)> _solutionStates = new(concurrencyLevel: 2, capacity: 10);
 
-        public SolutionAssetStorage()
-        {
-            _solutionStates = new ConcurrentDictionary<int, SolutionState>(concurrencyLevel: 2, capacity: 10);
-        }
+        public SolutionReplicationContext GetReplicationContext(int scopeId)
+            => _solutionStates[scopeId].ReplicationContext;
 
         /// <summary>
         /// Adds given snapshot into the storage. This snapshot will be available within the returned <see cref="Scope"/>.
@@ -38,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var solutionState = solution.State;
             var solutionChecksum = await solutionState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            var context = SolutionReplicationContext.Create();
 
             var id = Interlocked.Increment(ref s_scopeId);
             var solutionInfo = new PinnedSolutionInfo(
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 solutionState.WorkspaceVersion,
                 solutionChecksum);
 
-            Contract.ThrowIfFalse(_solutionStates.TryAdd(id, solutionState));
+            Contract.ThrowIfFalse(_solutionStates.TryAdd(id, (solutionState, context)));
 
             return new Scope(this, solutionInfo);
         }
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return SolutionAsset.Null;
             }
 
-            var remotableData = await FindAssetAsync(_solutionStates[scopeId], checksum, cancellationToken).ConfigureAwait(false);
+            var remotableData = await FindAssetAsync(_solutionStates[scopeId].Solution, checksum, cancellationToken).ConfigureAwait(false);
             if (remotableData != null)
             {
                 return remotableData;
@@ -93,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 result[Checksum.Null] = SolutionAsset.Null;
             }
 
-            await FindAssetsAsync(_solutionStates[scopeId], checksumsToFind.Object, result, cancellationToken).ConfigureAwait(false);
+            await FindAssetsAsync(_solutionStates[scopeId].Solution, checksumsToFind.Object, result, cancellationToken).ConfigureAwait(false);
             if (result.Count == numberOfChecksumsToSearch)
             {
                 // no checksum left to find
