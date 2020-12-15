@@ -11,6 +11,11 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Text;
 
+namespace System.Runtime.CompilerServices
+{
+    class IsExternalInit { }
+}
+
 internal static class MinimizeUtil
 {
     internal record FilePathInfo(string RelativeDirectory, string Directory, string RelativePath, string FullPath);
@@ -45,7 +50,7 @@ internal static class MinimizeUtil
                 foreach (var sourceFilePath in Directory.EnumerateFiles(unitDirPath, "*", SearchOption.AllDirectories))
                 {
                     var currentDirName = Path.GetDirectoryName(sourceFilePath)!;
-                    var currentRelativeDirectory = Path.GetRelativePath(sourceDirectory, currentDirName);
+                    var currentRelativeDirectory = currentDirName.Substring(sourceDirectory.Length + 1);
                     var currentOutputDirectory = Path.Combine(destinationDirectory, currentRelativeDirectory);
                     Directory.CreateDirectory(currentOutputDirectory);
                     var fileName = Path.GetFileName(sourceFilePath);
@@ -88,13 +93,10 @@ internal static class MinimizeUtil
 
             foreach (var individualFile in individualFiles)
             {
-                var currentDirName = Path.GetDirectoryName(individualFile)!;
-                var currentRelativeDirectory = Path.GetRelativePath(sourceDirectory, currentDirName);
-                var currentOutputDirectory = Path.Combine(destinationDirectory, currentRelativeDirectory);
-                Directory.CreateDirectory(currentOutputDirectory);
-
-                var destGlobalJsonPath = Path.Combine(destinationDirectory, individualFile);
-                CreateHardLink(destGlobalJsonPath, Path.Combine(sourceDirectory, individualFile));
+                var outputPath = Path.Combine(destinationDirectory, individualFile);
+                var outputDirectory = Path.GetDirectoryName(outputPath)!;
+                Directory.CreateDirectory(outputDirectory);
+                CreateHardLink(outputPath, Path.Combine(sourceDirectory, individualFile));
             }
         }
 
