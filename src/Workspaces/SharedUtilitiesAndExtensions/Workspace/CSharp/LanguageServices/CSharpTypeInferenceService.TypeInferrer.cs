@@ -1520,6 +1520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return pattern switch
                 {
+                    ConstantPatternSyntax constantPattern => GetTypes(constantPattern.Expression),
                     RecursivePatternSyntax recursivePattern => GetTypesForRecursivePattern(recursivePattern),
                     _ => GetPatternTypesFromOperation(pattern),
                 };
