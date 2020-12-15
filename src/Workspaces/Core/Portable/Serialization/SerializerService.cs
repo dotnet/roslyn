@@ -148,11 +148,11 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return;
 
                     case WellKnownSynchronizationKind.SerializableSourceText:
-                        SerializeSourceText((SerializableSourceText)value, writer, cancellationToken);
+                        SerializeSourceText((SerializableSourceText)value, writer, context, cancellationToken);
                         return;
 
                     case WellKnownSynchronizationKind.SourceText:
-                        SerializeSourceText(new SerializableSourceText((SourceText)value), writer, cancellationToken);
+                        SerializeSourceText(new SerializableSourceText((SourceText)value), writer, context, cancellationToken);
                         return;
 
                     case WellKnownSynchronizationKind.OptionSet:

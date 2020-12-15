@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     {
         void Serialize(object value, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken);
 
-        void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, CancellationToken cancellationToken);
+        void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken);
 
         void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken);
 
