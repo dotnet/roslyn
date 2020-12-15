@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.NamespaceSync
 
             private static async Task<Solution> GetSolutionFixesAsync(FixAllContext fixAllContext, ImmutableArray<Document> documents)
             {
-                var documentDiagnosticsToFix = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext, progressTrackerOpt: null).ConfigureAwait(false);
+                var documentDiagnosticsToFix = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
 
                 using var _ = PooledHashSet<DocumentId>.GetInstance(out var documentIds);
                 foreach (var document in documents)
