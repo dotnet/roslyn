@@ -315,6 +315,14 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                     finally
                     {
+                        if (cancellationToken.IsCancellationRequested && exception is OperationCanceledException)
+                        {
+                            // Make sure to wait for writerTask to process the cancellation request before closing the
+                            // reader. This code uses 'WhenAny' instead of 'WhenAll' to avoid throwing exceptions if the
+                            // writer completes in a faulted or canceled state.
+                            await Task.WhenAny(writerTask).ConfigureAwait(false);
+                        }
+
                         await pipe.Reader.CompleteAsync(exception).ConfigureAwait(false);
                     }
                 }, mustNotCancelToken);
