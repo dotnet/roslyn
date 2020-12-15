@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 
             Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
 
-            assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[] { MetadataReference.CreateFromImage(TestMetadata.ResourcesNetCoreApp31.SystemRuntime.AsImmutableOrNull()) });
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[] { MetadataReference.CreateFromImage(TestMetadata.ResourcesNetCoreApp.SystemRuntime.AsImmutableOrNull()) });
 
             msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
             Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes);

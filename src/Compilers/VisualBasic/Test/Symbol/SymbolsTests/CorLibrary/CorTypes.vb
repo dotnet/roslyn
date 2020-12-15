@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
 
             Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
 
-            assemblies = MetadataTestHelpers.GetSymbolsForReferences({MetadataReference.CreateFromImage(TestMetadata.ResourcesNetCoreApp31.SystemRuntime)})
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences({MetadataReference.CreateFromImage(TestMetadata.ResourcesNetCoreApp.SystemRuntime)})
             msCorLibRef = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
             Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
 
