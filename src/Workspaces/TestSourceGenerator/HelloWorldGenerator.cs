@@ -11,7 +11,8 @@ namespace Microsoft.CodeAnalysis.TestSourceGenerator
     [Generator]
     public sealed class HelloWorldGenerator : ISourceGenerator
     {
-        public const string GeneratedClassName = "HelloWorld";
+        public const string GeneratedEnglishClassName = "HelloWorld";
+        public const string GeneratedSpanishClassName = "HolaMundo";
 
         public void Initialize(GeneratorInitializationContext context)
         {
@@ -19,12 +20,22 @@ namespace Microsoft.CodeAnalysis.TestSourceGenerator
 
         public void Execute(GeneratorExecutionContext context)
         {
-            context.AddSource(GeneratedClassName, SourceText.From(@"
-internal class " + GeneratedClassName + @"
+            context.AddSource(GeneratedEnglishClassName, SourceText.From(@"
+internal class " + GeneratedEnglishClassName + @"
 {
     public static string GetMessage()
     {
         return ""Hello, World!"";
+    }
+}
+", encoding: Encoding.UTF8));
+
+            context.AddSource(GeneratedSpanishClassName, SourceText.From(@"
+internal class " + GeneratedSpanishClassName + @"
+{
+    public static string GetMessage()
+    {
+        return ""Hola, Mundo!"";
     }
 }
 ", encoding: Encoding.UTF8));

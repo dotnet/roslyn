@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
@@ -432,14 +433,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),
-                BraceCompletionSessionProvider.SingleQuote.OpenCharacter, BraceCompletionSessionProvider.SingleQuote.CloseCharacter);
+                SingleQuote.OpenCharacter, SingleQuote.CloseCharacter);
         }
 
         internal static Holder CreateSessionDoubleQuote(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),
-                BraceCompletionSessionProvider.DoubleQuote.OpenCharacter, BraceCompletionSessionProvider.DoubleQuote.CloseCharacter);
+                DoubleQuote.OpenCharacter, DoubleQuote.CloseCharacter);
         }
     }
 }

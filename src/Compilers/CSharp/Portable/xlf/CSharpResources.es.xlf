@@ -942,9 +942,19 @@
         <target state="translated">' {0} ' tiene un atributo ' UnmanagedCallersOnly ' y no se puede convertir en un tipo de delegado. Obtenga un puntero de función a este método.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
+        <source>covariant returns</source>
+        <target state="translated">valores devueltos de covariante</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDiscards">
         <source>discards</source>
         <target state="translated">descartes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureImplicitObjectCreation">
+        <source>target-typed object creation</source>
+        <target state="translated">creación de objetos con tipo de destino</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -955,11 +965,6 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">El ensamblado que se ha cargado hace referencia a .NET Framework, lo cual no se admite.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureImplicitObjectCreation">
-        <source>target-typed object creation</source>
-        <target state="translated">creación de objetos con tipo de destino</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -1447,9 +1452,9 @@
         <target state="translated">asignación de incorporación</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
-        <source>covariant returns</source>
-        <target state="translated">valores devueltos de covariante</target>
+      <trans-unit id="IDS_FeatureConstantInterpolatedStrings">
+        <source>constant interpolated strings</source>
+        <target state="translated">cadenas interpoladas constantes</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDefaultTypeParameterConstraint">

@@ -730,7 +730,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (value.ConstantValue != null) return false;
+            // In C# 9 and before, interpolated string values were never constant, so field initializers
+            // that used them were always considered used. We now consider interpolated strings that are
+            // made up of only constant expressions to be constant values, but for backcompat we consider
+            // the writes to be uses anyway.
+            if (value is { ConstantValue: not null, Kind: not BoundKind.InterpolatedString }) return false;
             switch (value.Kind)
             {
                 case BoundKind.Conversion:
@@ -1158,7 +1162,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(unassignedSlot > 0);
-            return this.State.IsAssigned(unassignedSlot);
+            if (unassignedSlot > 0)
+            {
+                return this.State.IsAssigned(unassignedSlot);
+            }
+
+            return true;
         }
 
         private Symbol UseNonFieldSymbolUnsafely(BoundExpression expression)
@@ -1802,7 +1811,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Since we've already reported a use of the variable where not permitted, we
                 // suppress the diagnostic that the variable may not be assigned where used.
                 int slot = GetOrCreateSlot(node.LocalSymbol);
-                _alreadyReported[slot] = true;
+                if (slot > 0)
+                {
+                    _alreadyReported[slot] = true;
+                }
             }
 
             // Note: the caller should avoid allowing this to be called for the left-hand-side of
@@ -1822,7 +1834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
         {
-            int slot = GetOrCreateSlot(node.LocalSymbol); // not initially assigned
+            _ = GetOrCreateSlot(node.LocalSymbol); // not initially assigned
             if (initiallyAssignedVariables?.Contains(node.LocalSymbol) == true)
             {
                 // When data flow analysis determines that the variable is sometimes
