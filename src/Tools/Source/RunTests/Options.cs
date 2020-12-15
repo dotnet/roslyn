@@ -182,8 +182,6 @@ namespace RunTests
                 return null;
             }
 
-            artifactsPath = TryGetArtifactsPath();
-            dotnetFilePath ??= TryGetDotNetPath();
             if (includeFilter.Count == 0)
             {
                 includeFilter.Add(".*UnitTests.*");
@@ -194,6 +192,7 @@ namespace RunTests
                 targetFrameworks.Add("net472");
             }
 
+            artifactsPath ??= TryGetArtifactsPath();
             if (artifactsPath is null || !Directory.Exists(artifactsPath))
             {
                 ConsoleUtil.WriteLine($"Did not find artifacts directory at {artifactsPath}");
@@ -206,6 +205,7 @@ namespace RunTests
 
             logFileDirectory ??= resultFileDirectory;
 
+            dotnetFilePath ??= TryGetDotNetPath();
             if (dotnetFilePath is null || !File.Exists(dotnetFilePath))
             {
                 ConsoleUtil.WriteLine($"Did not find 'dotnet' at {dotnetFilePath}");
