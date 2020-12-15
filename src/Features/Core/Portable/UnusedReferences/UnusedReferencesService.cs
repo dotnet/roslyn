@@ -33,7 +33,12 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         {
             // Create a lookup of used assembly paths
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var usedAssemblyReferences = compilation.GetUsedAssemblyReferences(cancellationToken).Select(reference => reference.Display);
+            if (compilation is null)
+            {
+                return ImmutableArray<ReferenceInfo>.Empty;
+            }
+
+            var usedAssemblyReferences = compilation.GetUsedAssemblyReferences(cancellationToken).Select(reference => reference.Display).OfType<string>();
             var usedAssemblyLookup = usedAssemblyReferences.ToImmutableHashSet();
 
             var unusedReferences = ImmutableArray.CreateBuilder<ReferenceInfo>();
