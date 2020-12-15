@@ -11176,6 +11176,49 @@ unsafe
             );
         }
 
+        [Fact, WorkItem(49639, "https://github.com/dotnet/roslyn/issues/49639")]
+        public void CompareToNullWithNestedUnconstrainedTypeParameter()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe
+{
+    test<int>(null);
+    test<int>(&intTest);
+
+    static void test<T>(delegate*<T, void> f)
+    {
+        Console.WriteLine(f == null);
+        Console.WriteLine(f is null);
+    }
+
+    static void intTest(int i) {}
+}
+", expectedOutput: @"
+True
+True
+False
+False");
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__test|0_0<T>(delegate*<T, void>)", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  ceq
+  IL_0005:  call       ""void System.Console.WriteLine(bool)""
+  IL_000a:  ldarg.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  conv.u
+  IL_000d:  ceq
+  IL_000f:  call       ""void System.Console.WriteLine(bool)""
+  IL_0014:  ret
+}
+");
+        }
+
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");
         private static readonly BlobContentId s_contentId = new BlobContentId(s_guid, 0x04030201);
 
