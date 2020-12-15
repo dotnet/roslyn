@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AttributeTargetSpecifierSyntax attributeTargetSpecifier => InferTypeInAttributeTargetSpecifier(attributeTargetSpecifier, token),
                     AwaitExpressionSyntax awaitExpression => InferTypeInAwaitExpression(awaitExpression, token),
                     BinaryExpressionSyntax binaryExpression => InferTypeInBinaryOrAssignmentExpression(binaryExpression, binaryExpression.OperatorToken, binaryExpression.Left, binaryExpression.Right, previousToken: token),
-                    BinaryPatternSyntax binaryPattern => GetPatternTypes(binaryPattern),
+                    BinaryPatternSyntax binaryPattern => GetPatternTypesFromOperation(binaryPattern),
                     BracketedArgumentListSyntax bracketedArgumentList => InferTypeInBracketedArgumentList(bracketedArgumentList, token),
                     CastExpressionSyntax castExpression => InferTypeInCastExpression(castExpression, previousToken: token),
                     CatchDeclarationSyntax catchDeclaration => InferTypeInCatchDeclaration(catchDeclaration, token),
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SwitchStatementSyntax switchStatement => InferTypeInSwitchStatement(switchStatement, token),
                     ThrowStatementSyntax throwStatement => InferTypeInThrowStatement(throwStatement, token),
                     TupleExpressionSyntax tupleExpression => InferTypeInTupleExpression(tupleExpression, token),
-                    UnaryPatternSyntax unaryPattern => GetPatternTypes(unaryPattern),
+                    UnaryPatternSyntax unaryPattern => GetPatternTypesFromOperation(unaryPattern),
                     UsingStatementSyntax usingStatement => InferTypeInUsingStatement(usingStatement, token),
                     WhenClauseSyntax whenClause => InferTypeInWhenClause(whenClause, token),
                     WhileStatementSyntax whileStatement => InferTypeInWhileStatement(whileStatement, token),
@@ -1493,7 +1493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (identifier.HasMatchingText(SyntaxKind.OrKeyword) ||
                         identifier.HasMatchingText(SyntaxKind.AndKeyword))
                     {
-                        return GetPatternTypes(declarationPattern);
+                        return GetPatternTypesFromOperation(declarationPattern);
                     }
                 }
 
@@ -1516,7 +1516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
-            private IEnumerable<TypeInferenceInfo> GetPatternTypes(PatternSyntax pattern)
+            private IEnumerable<TypeInferenceInfo> GetPatternTypesFromOperation(PatternSyntax pattern)
             {
                 if (this.SemanticModel.GetOperation(pattern, CancellationToken) is IPatternOperation patternOperation)
                 {
@@ -1524,6 +1524,61 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ? patternOperation.InputType
                         : patternOperation.NarrowedType;
                     return CreateResult(resultType);
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
+            private IEnumerable<TypeInferenceInfo> GetPatternTypes(PatternSyntax pattern)
+                => pattern switch
+                {
+                    ConstantPatternSyntax constantPattern => GetTypes(constantPattern.Expression),
+                    DeclarationPatternSyntax declarationPattern => GetTypes(declarationPattern.Type),
+                    RecursivePatternSyntax recursivePattern => GetTypesForRecursivePattern(recursivePattern),
+                    _ => SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>(),
+                };
+
+            private IEnumerable<TypeInferenceInfo> GetTypesForRecursivePattern(RecursivePatternSyntax recursivePattern)
+            {
+                // if it's of the for "X (...)" then just infer 'X' as the type.
+                if (recursivePattern.Type != null)
+                {
+                    var typeInfo = SemanticModel.GetTypeInfo(recursivePattern);
+                    return CreateResult(typeInfo.GetConvertedTypeWithAnnotatedNullability());
+                }
+
+                // If it's of the form (...) then infer that the type should be a 
+                // tuple, whose elements are inferred from the individual patterns
+                // in the deconstruction.
+                var positionalPart = recursivePattern.PositionalPatternClause;
+                if (positionalPart != null)
+                {
+                    var subPatternCount = positionalPart.Subpatterns.Count;
+                    if (subPatternCount >= 2)
+                    {
+                        // infer a tuple type for this deconstruction.
+                        var elementTypesBuilder = ArrayBuilder<ITypeSymbol>.GetInstance(subPatternCount);
+                        var elementNamesBuilder = ArrayBuilder<string>.GetInstance(subPatternCount);
+
+                        foreach (var subPattern in positionalPart.Subpatterns)
+                        {
+                            elementNamesBuilder.Add(subPattern.NameColon?.Name.Identifier.ValueText);
+
+                            var patternType = GetPatternTypes(subPattern.Pattern).FirstOrDefault();
+                            if (patternType.InferredType == null)
+                            {
+                                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                            }
+
+                            elementTypesBuilder.Add(patternType.InferredType);
+                        }
+
+                        // Pass the nullable annotations explicitly to work around https://github.com/dotnet/roslyn/issues/40105
+                        var elementTypes = elementTypesBuilder.ToImmutableAndFree();
+                        var type = Compilation.CreateTupleTypeSymbol(
+                            elementTypes, elementNamesBuilder.ToImmutableAndFree(), elementNullableAnnotations: GetNullableAnnotations(elementTypes));
+                        return CreateResult(type);
+                    }
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
