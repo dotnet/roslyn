@@ -5031,6 +5031,7 @@ unsafe class C
         public void SupportedBinaryOperators()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
+#pragma warning disable CS8909 // Function pointers should not be compared
 using System;
 unsafe class C
 {
@@ -5140,6 +5141,29 @@ func_1a <= int_2: True");
   IL_0026:  ret
 }
 ");
+        }
+
+        [Theory, WorkItem(48919, "https://github.com/dotnet/roslyn/issues/48919")]
+        [InlineData("==")]
+        [InlineData("!=")]
+        [InlineData(">=")]
+        [InlineData(">")]
+        [InlineData("<=")]
+        [InlineData("<")]
+        public void BinaryComparisonWarnings(string @operator)
+        {
+            var comp = CreateCompilationWithFunctionPointers($@"
+unsafe
+{{
+    delegate*<void> a = null, b = null;
+    _ = a {@operator} b;
+}}", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (5,9): error CS8909: Function pointer values should not be compared, as JIT tiering and recompilation means that taking the address of a method can return different addresses at different times.
+                //     _ = a {@operator} b;
+                Diagnostic(ErrorCode.WRN_DoNotCompareFunctionPointers, @operator).WithLocation(5, 11)
+            );
         }
 
         [Theory]

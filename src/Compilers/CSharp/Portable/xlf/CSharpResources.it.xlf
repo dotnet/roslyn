@@ -967,6 +967,16 @@
         <target state="translated">L'assembly caricato fa riferimento a .NET Framework, che non è supportato.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_DoNotCompareFunctionPointers">
+        <source>Function pointer values should not be compared, as JIT tiering and recompilation means that taking the address of a method can return different addresses at different times.</source>
+        <target state="new">Function pointer values should not be compared, as JIT tiering and recompilation means that taking the address of a method can return different addresses at different times.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoNotCompareFunctionPointers_Title">
+        <source>Do not compare function pointer values</source>
+        <target state="new">Do not compare function pointer values</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">Il parametro '{0}' deve avere un valore non Null quando viene terminato perché il parametro '{1}' è non Null.</target>
