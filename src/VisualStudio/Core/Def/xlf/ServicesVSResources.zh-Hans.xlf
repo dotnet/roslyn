@@ -602,6 +602,11 @@
         <target state="translated">新类型名称:</target>
         <note />
       </trans-unit>
+      <trans-unit id="No_unused_references_were_found">
+        <source>No unused references were found.</source>
+        <target state="new">No unused references were found.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Non_public_methods">
         <source>Non-public methods</source>
         <target state="translated">非公共成员</target>

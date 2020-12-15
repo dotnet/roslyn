@@ -1635,4 +1635,7 @@ I agree to all of the foregoing:</value>
   <data name="Updating_project_references" xml:space="preserve">
     <value>Updating project references.</value>
   </data>
+  <data name="No_unused_references_were_found" xml:space="preserve">
+    <value>No unused references were found.</value>
+  </data>
 </root>

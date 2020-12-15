@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.ProjectAssets;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
@@ -123,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             if (TryGetSelectedProjectHierarchy(out var hierarchy))
             {
                 Project? project = null;
-                ImmutableArray<ReferenceUpdate> referenceUpdates;
+                ImmutableArray<ReferenceUpdate> referenceUpdates = default;
                 _threadOperationExecutor.Execute(ServicesVSResources.Remove_Unused_References, ServicesVSResources.Analyzing_project_references, allowCancellation: true, showProgress: true, (operationContext) =>
                 {
                     (project, referenceUpdates) = GetUnusedReferencesForProjectHierarchy(hierarchy, operationContext.UserCancellationToken);
@@ -132,6 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                 if (project is null ||
                     referenceUpdates.IsEmpty)
                 {
+                    MessageDialog.Show(ServicesVSResources.Remove_Unused_References, "No unused references were found.", MessageDialogCommandSet.Ok);
                     return;
                 }
 
