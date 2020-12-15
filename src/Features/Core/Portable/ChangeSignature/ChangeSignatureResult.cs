@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
     internal sealed class ChangeSignatureResult
     {
+        [MemberNotNullWhen(true, nameof(UpdatedSolution))]
         public bool Succeeded { get; }
         public Solution? UpdatedSolution { get; }
         public Glyph? Glyph { get; }

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                 if (changeSignatureResult.Succeeded)
                 {
-                    return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ChangeSignatureCodeActionOperation(changeSignatureResult.UpdatedSolution!, changeSignatureResult.ConfirmationMessage));
+                    return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ChangeSignatureCodeActionOperation(changeSignatureResult.UpdatedSolution, changeSignatureResult.ConfirmationMessage));
                 }
             }
 
