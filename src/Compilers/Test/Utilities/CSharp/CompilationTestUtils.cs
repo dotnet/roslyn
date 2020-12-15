@@ -442,7 +442,7 @@ getOperation:
         /// </summary>
         internal static void VerifyTypes(this CSharpCompilation compilation, SyntaxTree tree = null)
         {
-            Assert.True(compilation.NullableSemanticAnalysisEnabled);
+            Assert.True(compilation.IsNullableAnalysisEnabled);
 
             if (tree == null)
             {

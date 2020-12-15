@@ -849,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (fd.Declaration.Variables.Count == 1)
                     {
                         var vd = fd.Declaration.Variables[0];
-                        return (EnumMemberDeclarationSyntax)this.EnumMember(vd.Identifier.ToString(), vd.Initializer);
+                        return (EnumMemberDeclarationSyntax)this.EnumMember(vd.Identifier.ToString(), vd.Initializer?.Value);
                     }
                     break;
             }

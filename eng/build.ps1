@@ -331,7 +331,6 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_IOPERATION = "true"
   }
 
-  $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
   $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "netcoreapp3.1"
 
   if (!(Test-Path $runTests)) {
@@ -341,7 +340,6 @@ function TestUsingRunTests() {
 
   $dotnetExe = Join-Path $dotnet "dotnet.exe"
   $args += " --dotnet `"$dotnetExe`""
-  $args += " --out `"$testResultsDir`""
   $args += " --logs `"$LogDir`""
   $args += " --configuration $configuration"
 

@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.[Shared].Collections
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
 
@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Inherits AbstractSyntaxTriviaStructureProvider
 
         Public Overrides Sub CollectBlockSpans(trivia As SyntaxTrivia,
-                                               spans As ArrayBuilder(Of BlockSpan),
+                                               ByRef spans As TemporaryArray(Of BlockSpan),
                                                optionProvider As BlockStructureOptionProvider,
                                                cancellationToken As CancellationToken)
             If trivia.Kind = SyntaxKind.DisabledTextTrivia Then
