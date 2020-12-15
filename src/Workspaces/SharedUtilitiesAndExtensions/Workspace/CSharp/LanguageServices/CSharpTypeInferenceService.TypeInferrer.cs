@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AttributeTargetSpecifierSyntax attributeTargetSpecifier => InferTypeInAttributeTargetSpecifier(attributeTargetSpecifier, token),
                     AwaitExpressionSyntax awaitExpression => InferTypeInAwaitExpression(awaitExpression, token),
                     BinaryExpressionSyntax binaryExpression => InferTypeInBinaryOrAssignmentExpression(binaryExpression, binaryExpression.OperatorToken, binaryExpression.Left, binaryExpression.Right, previousToken: token),
-                    BinaryPatternSyntax binaryPattern => GetPatternTypesFromOperation(binaryPattern),
+                    BinaryPatternSyntax binaryPattern => GetPatternTypes(binaryPattern),
                     BracketedArgumentListSyntax bracketedArgumentList => InferTypeInBracketedArgumentList(bracketedArgumentList, token),
                     CastExpressionSyntax castExpression => InferTypeInCastExpression(castExpression, previousToken: token),
                     CatchDeclarationSyntax catchDeclaration => InferTypeInCatchDeclaration(catchDeclaration, token),
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SwitchStatementSyntax switchStatement => InferTypeInSwitchStatement(switchStatement, token),
                     ThrowStatementSyntax throwStatement => InferTypeInThrowStatement(throwStatement, token),
                     TupleExpressionSyntax tupleExpression => InferTypeInTupleExpression(tupleExpression, token),
-                    UnaryPatternSyntax unaryPattern => GetPatternTypesFromOperation(unaryPattern),
+                    UnaryPatternSyntax unaryPattern => GetPatternTypes(unaryPattern),
                     UsingStatementSyntax usingStatement => InferTypeInUsingStatement(usingStatement, token),
                     WhenClauseSyntax whenClause => InferTypeInWhenClause(whenClause, token),
                     WhileStatementSyntax whileStatement => InferTypeInWhileStatement(whileStatement, token),
@@ -1493,7 +1493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (identifier.HasMatchingText(SyntaxKind.OrKeyword) ||
                         identifier.HasMatchingText(SyntaxKind.AndKeyword))
                     {
-                        return GetPatternTypesFromOperation(declarationPattern);
+                        return GetPatternTypes(declarationPattern);
                     }
                 }
 
@@ -1516,27 +1516,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
-            private IEnumerable<TypeInferenceInfo> GetPatternTypesFromOperation(PatternSyntax pattern)
-            {
-                if (this.SemanticModel.GetOperation(pattern, CancellationToken) is IPatternOperation patternOperation)
-                {
-                    var resultType = patternOperation.NarrowedType.IsErrorType()
-                        ? patternOperation.InputType
-                        : patternOperation.NarrowedType;
-                    return CreateResult(resultType);
-                }
-
-                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-            }
-
             private IEnumerable<TypeInferenceInfo> GetPatternTypes(PatternSyntax pattern)
-                => pattern switch
+            {
+                return pattern switch
                 {
-                    ConstantPatternSyntax constantPattern => GetTypes(constantPattern.Expression),
-                    DeclarationPatternSyntax declarationPattern => GetTypes(declarationPattern.Type),
                     RecursivePatternSyntax recursivePattern => GetTypesForRecursivePattern(recursivePattern),
-                    _ => SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>(),
+                    _ => GetPatternTypesFromOperation(pattern),
                 };
+
+                IEnumerable<TypeInferenceInfo> GetPatternTypesFromOperation(PatternSyntax pattern)
+                {
+                    if (this.SemanticModel.GetOperation(pattern, CancellationToken) is IPatternOperation patternOperation)
+                    {
+                        var resultType = patternOperation.NarrowedType.IsErrorType()
+                            ? patternOperation.InputType
+                            : patternOperation.NarrowedType;
+                        return CreateResult(resultType);
+                    }
+
+                    return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                }
+            }
 
             private IEnumerable<TypeInferenceInfo> GetTypesForRecursivePattern(RecursivePatternSyntax recursivePattern)
             {
