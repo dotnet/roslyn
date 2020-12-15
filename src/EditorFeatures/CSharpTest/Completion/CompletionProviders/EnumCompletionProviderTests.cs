@@ -596,6 +596,30 @@ class C
             await VerifyItemExistsAsync(markup, "Palette.AccentColor1");
         }
 
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestNullableEnum()
+        {
+            var markup = @"
+class C
+{
+    public enum Color
+    {
+        Red,
+        Green,
+    }
+
+    public void SetColor(Color? color) { }
+
+    public void Main()
+    {
+        SetColor($$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Color.Red");
+        }
+
         [Theory]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData("")]

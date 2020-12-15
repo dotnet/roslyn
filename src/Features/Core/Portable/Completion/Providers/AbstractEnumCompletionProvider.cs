@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // We'll want to build a list of the actual enum members and all accessible instances of that enum, too
             var result = inferedTypes
+                .Select(t => t.RemoveNullableIfPresent())
                 .Where(s => s.TypeKind == TypeKind.Enum)
                 .SelectMany(e => e.GetMembers().OfType<IFieldSymbol>())
                 .Where(f =>
@@ -90,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SupportedPlatformData supportedPlatformData)
         {
             var rules = GetCompletionItemRules(symbols);
+
             rules = rules.WithMatchPriority(preselect ? MatchPriority.Preselect : MatchPriority.Default);
 
             var sortText = symbols[0] is IFieldSymbol field && field.IsConst
