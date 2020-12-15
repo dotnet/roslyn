@@ -20,9 +20,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractEnumCompletionProvider : AbstractSymbolCompletionProvider
     {
-        private static readonly CompletionItemRules s_rules = CompletionItemRules.Default;
+        private static readonly CompletionItemRules s_rules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect);
 
         protected abstract (string displayText, string suffix, string insertionText) GetDefaultDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context);
+
+        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken) 
+            => await GetSymbolsAsync(context, position, options, cancellationToken).ConfigureAwait(false);
 
         protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(
             SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
