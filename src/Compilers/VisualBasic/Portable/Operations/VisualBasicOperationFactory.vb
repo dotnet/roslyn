@@ -20,12 +20,6 @@ Namespace Microsoft.CodeAnalysis.Operations
             _semanticModel = semanticModel
         End Sub
 
-        Private Function Clone() As VisualBasicOperationFactory
-            Dim factory As New VisualBasicOperationFactory(_semanticModel)
-            factory._lazyPlaceholderToParentMap = _lazyPlaceholderToParentMap
-            Return factory
-        End Function
-
         ''' <summary>
         ''' Returns <code>Nothing</code> if parent is not known.
         ''' </summary>
@@ -1062,17 +1056,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Friend Function CreateBoundCaseBlockCondition(boundCaseBlock As BoundCaseBlock) As IOperation
-            ' Some bound nodes used by the boundCaseBlock.CaseStatement.CaseClauses are also going to be used in boundCaseBlock.CaseStatement.ConditionOpt.
-            ' If we simply create another tree based on boundCaseBlock.CaseStatement.ConditionOpt, due to the caching we will end up with the same
-            ' IOperation nodes in two trees, and two parents will compete for assigning itself as the parent - trouble. To avoid that, we simply use
-            ' a new factory to create IOperation tree for the condition. Note that the condition tree is internal and regular consumers cannot get to
-            ' the nodes it contains. At the moment, it is used only by CFG builder. The builder, rewrites all nodes anyway, it is producing a "forest"
-            ' of different trees. So, there is really no chance of some external consumer getting confused by multiple explicit nodes tied to the same
-            ' syntax.
-            '
-            ' PROTOTYPE(iop): this can be removed when `Create` is refactored to not cache here
-
-            Return Clone().Create(boundCaseBlock.CaseStatement.ConditionOpt)
+            Return Create(boundCaseBlock.CaseStatement.ConditionOpt)
         End Function
 
         Private Function CreateBoundCaseBlockOperation(boundCaseBlock As BoundCaseBlock) As ISwitchCaseOperation
