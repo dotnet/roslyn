@@ -177,7 +177,7 @@ namespace RunTests
             }
             catch (OptionException e)
             {
-                Console.WriteLine($"Error parsing command line arguments: {e.Message}");
+                ConsoleUtil.WriteLine($"Error parsing command line arguments: {e.Message}");
                 optionSet.WriteOptionDescriptions(Console.Out);
                 return null;
             }
@@ -196,7 +196,7 @@ namespace RunTests
 
             if (artifactsPath is null || !Directory.Exists(artifactsPath))
             {
-                Console.WriteLine($"Did not find artifacts directory at {artifactsPath}");
+                ConsoleUtil.WriteLine($"Did not find artifacts directory at {artifactsPath}");
                 return null;
             }
 
@@ -208,19 +208,19 @@ namespace RunTests
 
             if (dotnetFilePath is null || !File.Exists(dotnetFilePath))
             {
-                Console.WriteLine($"Did not find 'dotnet' at {dotnetFilePath}");
+                ConsoleUtil.WriteLine($"Did not find 'dotnet' at {dotnetFilePath}");
                 return null;
             }
 
             if (retry && includeHtml)
             {
-                Console.WriteLine($"Cannot specify both --retry and --html");
+                ConsoleUtil.WriteLine($"Cannot specify both --retry and --html");
                 return null;
             }
 
             if (procDumpFilePath is { } && !collectDumps)
             {
-                Console.WriteLine($"procdumppath was specified without collectdumps hence it will not be used");
+                ConsoleUtil.WriteLine($"procdumppath was specified without collectdumps hence it will not be used");
             }
 
             return new Options(

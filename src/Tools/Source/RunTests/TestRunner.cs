@@ -49,7 +49,7 @@ namespace RunTests
             var sourceBranch = Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCH");
             if (sourceBranch is null)
             {
-                Console.WriteLine("BUILD_SOURCEBRANCH is not set");
+                ConsoleUtil.WriteLine("BUILD_SOURCEBRANCH is not set");
                 sourceBranch = "local";
                 Environment.SetEnvironmentVariable("BUILD_SOURCEBRANCH", sourceBranch);
             }
@@ -60,7 +60,7 @@ namespace RunTests
             var isAzureDevOpsRun = Environment.GetEnvironmentVariable("SYSTEM_ACCESSTOKEN") is not null;
             if (!isAzureDevOpsRun)
             {
-                Console.WriteLine("SYSTEM_ACCESSTOKEN environment variable was not set, so test results will not be published.");
+                ConsoleUtil.WriteLine("SYSTEM_ACCESSTOKEN environment variable was not set, so test results will not be published.");
                 msbuildTestPayloadRoot = "$(RepoRoot)artifacts/testPayload";
             }
             var correlationPayload = $@"<HelixCorrelationPayload Include=""{msbuildTestPayloadRoot}/.duplicate"" />";
@@ -95,12 +95,11 @@ namespace RunTests
 ";
 
             File.WriteAllText("helix-tmp.csproj", project);
-            Console.WriteLine(project);
             var process = ProcessRunner.CreateProcess(
                 executable: _options.DotnetFilePath,
                 arguments: "build helix-tmp.csproj",
                 captureOutput: true,
-                onOutputDataReceived: (e) => Console.WriteLine(e.Data),
+                onOutputDataReceived: (e) => ConsoleUtil.WriteLine(e.Data),
                 cancellationToken: cancellationToken);
             var result = await process.Result;
 
