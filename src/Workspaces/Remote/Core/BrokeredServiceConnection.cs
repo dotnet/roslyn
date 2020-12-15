@@ -300,6 +300,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }, mustNotCancelToken);
 
+            // Create a separate cancellation token for the reader, which we keep open until after the call to invoke
+            // completes. If we close the reader before cancellation is processed by the remote call, it might block
+            // (deadlock) while writing to a stream which is no longer processing data.
+            using var readerCancellationSource = new CancellationTokenSource();
+
+            // Make sure the reader is cancelled if the writer completes abnormally
+            readerCancellationSource.CancelOnAbnormalCompletion(writerTask);
+
             var readerTask = Task.Run(
                 async () =>
                 {
@@ -307,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     try
                     {
-                        return await reader(pipe.Reader, cancellationToken).ConfigureAwait(false);
+                        return await reader(pipe.Reader, readerCancellationSource.Token).ConfigureAwait(false);
                     }
                     catch (Exception e) when ((exception = e) == null)
                     {
@@ -315,17 +323,9 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                     finally
                     {
-                        if (cancellationToken.IsCancellationRequested && exception is OperationCanceledException)
-                        {
-                            // Make sure to wait for writerTask to process the cancellation request before closing the
-                            // reader. This code uses 'WhenAny' instead of 'WhenAll' to avoid throwing exceptions if the
-                            // writer completes in a faulted or canceled state.
-                            await Task.WhenAny(writerTask).ConfigureAwait(false);
-                        }
-
                         await pipe.Reader.CompleteAsync(exception).ConfigureAwait(false);
                     }
-                }, mustNotCancelToken);
+                }, readerCancellationSource.Token);
 
             await Task.WhenAll(writerTask, readerTask).ConfigureAwait(false);
 
