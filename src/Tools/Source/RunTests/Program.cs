@@ -33,18 +33,6 @@ namespace RunTests
 
         internal static async Task<int> Main(string[] args)
         {
-            // TODO: find a better way to get the repo root dir
-            var currentDir = Directory.GetCurrentDirectory();
-            while (Path.GetFileName(currentDir) is not (null or "artifacts"))
-            {
-                currentDir = Path.GetDirectoryName(currentDir);
-            }
-            // go one above "artifacts"
-            currentDir = Path.GetDirectoryName(currentDir);
-            if (currentDir is object)
-            {
-                Directory.SetCurrentDirectory(currentDir);
-            }
 
             Logger.Log("RunTest command line");
             Logger.Log(string.Join(" ", args));

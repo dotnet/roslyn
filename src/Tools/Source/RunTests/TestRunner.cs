@@ -46,27 +46,24 @@ namespace RunTests
 
         internal async Task<RunAllResult> RunAllOnHelixAsync(IEnumerable<AssemblyInfo> assemblyInfoList, CancellationToken cancellationToken)
         {
-            var msbuildTestPayloadRoot = ".";
-            // TODO: does having an accurate branch name matter?
             var sourceBranch = Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCH");
             if (sourceBranch is null)
             {
                 Console.WriteLine("BUILD_SOURCEBRANCH is not set");
                 sourceBranch = "local";
                 Environment.SetEnvironmentVariable("BUILD_SOURCEBRANCH", sourceBranch);
-
-                // TODO: can we minimize the number of repeated uploads/downloads?
-                // for example, by uploading .duplicate dir as its own artifact for Helix to consume as a correlation payload.
-                msbuildTestPayloadRoot = "$(RepoRoot)artifacts/testPayload";
             }
 
-            var correlationPayload = $@"<HelixCorrelationPayload Include=""{msbuildTestPayloadRoot}/.duplicate"" />";
-
+            // TODO: can we minimize the number of repeated uploads/downloads?
+            // for example, by uploading .duplicate dir as its own artifact for Helix to consume as a correlation payload.
+            var msbuildTestPayloadRoot = ".";
             var isAzureDevOpsRun = Environment.GetEnvironmentVariable("SYSTEM_ACCESSTOKEN") is not null;
             if (!isAzureDevOpsRun)
             {
                 Console.WriteLine("SYSTEM_ACCESSTOKEN environment variable was not set, so test results will not be published.");
+                msbuildTestPayloadRoot = "$(RepoRoot)artifacts/testPayload";
             }
+            var correlationPayload = $@"<HelixCorrelationPayload Include=""{msbuildTestPayloadRoot}/.duplicate"" />";
 
             if (Environment.GetEnvironmentVariable("BUILD_REPOSITORY_NAME") is null)
                 Environment.SetEnvironmentVariable("BUILD_REPOSITORY_NAME", "dotnet/roslyn");
@@ -99,10 +96,14 @@ namespace RunTests
 
             File.WriteAllText("helix-tmp.csproj", project);
             Console.WriteLine(project);
-            var process = ProcessRunner.CreateProcess(_options.DotnetFilePath, "build helix-tmp.csproj", captureOutput: true, cancellationToken: cancellationToken);
+            var process = ProcessRunner.CreateProcess(
+                executable: _options.DotnetFilePath,
+                arguments: "build helix-tmp.csproj",
+                captureOutput: true,
+                onOutputDataReceived: (e) => Console.WriteLine(e.Data),
+                cancellationToken: cancellationToken);
             var result = await process.Result;
 
-            // TODO: it seems prohibitively difficult to extract and pass through meaningful results when running using a generated csproj.
             // TODO: how do we handle publishing stuff like proc dumps when test runs have crashes?
             return new RunAllResult(result.ExitCode == 0, ImmutableArray<TestResult>.Empty, ImmutableArray.Create(result));
 
@@ -115,7 +116,7 @@ namespace RunTests
 
                 var commandLineArguments = _testExecutor.GetCommandLineArguments(assemblyInfo, isUnix);
                 commandLineArguments = SecurityElement.Escape(commandLineArguments);
-                
+
                 var rehydrateFilename = isUnix ? "rehydrate.sh" : "rehydrate.cmd";
                 var lsCommand = isUnix ? "ls" : "dir";
                 var rehydrateCommand = isUnix ? $"./{rehydrateFilename}" : $@"call .\{rehydrateFilename}";
