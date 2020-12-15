@@ -29,3 +29,4 @@ InitializeDotNetCli true
 rm -rf "$repo_root/artifacts/testPayload"
 
 dotnet trace collect --format speedscope -- dotnet exec "$repo_root/artifacts/bin/PrepareTests/Debug/net5.0/PrepareTests.dll" "$repo_root" "$repo_root/artifacts/testPayload"
+cat "$repo_root/artifacts/prepare-stats.log"

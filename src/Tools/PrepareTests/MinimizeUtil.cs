@@ -88,7 +88,7 @@ successful dlls opened: " + stats.Success + @"
 thrown dlls: " + stats.Thrown + @"
 total dlls opened: " + stats.Total;
 
-            File.WriteAllText("prepare-stats.log", results);
+            File.WriteAllText(Path.Combine(sourceDirectory, "artifacts", "prepare-stats.log"), results);
 
             // https://github.com/dotnet/roslyn/issues/49486
             // we should avoid copying the files under Resources.
