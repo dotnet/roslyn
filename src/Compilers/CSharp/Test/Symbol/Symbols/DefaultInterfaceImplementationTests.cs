@@ -54968,8 +54968,8 @@ class Test : C0, I1
         public void WindowsRuntimeEvent_01()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntimeInteropServicesWindowsRuntime) +
+BuildAssemblyExternClause(TestMetadata.Net451.SystemRuntime) +
+BuildAssemblyExternClause(TestMetadata.Net451.SystemRuntimeInteropServicesWindowsRuntime) +
 @"
 .class public auto ansi sealed Event
        extends [System.Runtime]System.MulticastDelegate
