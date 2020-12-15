@@ -49,7 +49,7 @@ class C
 interface C
 {
     int P => 1;
-}", parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest);
+}", parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (4,14): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     int P => 1;
