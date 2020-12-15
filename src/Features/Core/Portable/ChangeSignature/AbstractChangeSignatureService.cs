@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +18,6 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -86,18 +84,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return context is ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext
                 ? ImmutableArray.Create(new ChangeSignatureCodeAction(this, changeSignatureAnalyzedSucceedContext))
                 : ImmutableArray<ChangeSignatureCodeAction>.Empty;
-        }
-
-        internal async Task<ChangeSignatureResult> ChangeSignatureAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var context = await GetChangeSignatureContextAsync(document, position, restrictToDeclarations: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-            await Task.Yield();
-            return context switch
-            {
-                ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext => await ChangeSignatureWithContextAsync(changeSignatureAnalyzedSucceedContext, cancellationToken).ConfigureAwait(false),
-                CannotChangeSignatureAnalyzedContext cannotChangeSignatureAnalyzedContext => new ChangeSignatureResult(succeeded: false, changeSignatureFailureKind: cannotChangeSignatureAnalyzedContext.CannotChangeSignatureReason),
-                _ => throw ExceptionUtilities.Unreachable,
-            };
         }
 
         internal async Task<ChangeSignatureAnalyzedContext> GetChangeSignatureContextAsync(
@@ -185,30 +171,39 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 declarationDocument, positionForTypeBinding, symbol, parameterConfiguration);
         }
 
-        private Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalysisSucceededContext context, CancellationToken cancellationToken)
+        internal async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult? options, CancellationToken cancellationToken)
         {
-            var options = GetChangeSignatureOptions(context);
-            if (options == null)
+            return context switch
             {
-                return Task.FromResult(new ChangeSignatureResult(succeeded: false));
+                ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext => await GetChangeSignatureResultAsync(changeSignatureAnalyzedSucceedContext, options, cancellationToken).ConfigureAwait(false),
+                CannotChangeSignatureAnalyzedContext cannotChangeSignatureAnalyzedContext => new ChangeSignatureResult(succeeded: false, changeSignatureFailureKind: cannotChangeSignatureAnalyzedContext.CannotChangeSignatureReason),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
+
+            async Task<ChangeSignatureResult> GetChangeSignatureResultAsync(ChangeSignatureAnalysisSucceededContext context, ChangeSignatureOptionsResult? options, CancellationToken cancellationToken)
+            {
+                if (options == null)
+                {
+                    return new ChangeSignatureResult(succeeded: false);
+                }
+
+                var (updatedSolution, confirmationMessage) = await CreateUpdatedSolutionAsync(context, options, cancellationToken).ConfigureAwait(false);
+                return new ChangeSignatureResult(updatedSolution != null, updatedSolution, context.Symbol.ToDisplayString(), context.Symbol.GetGlyph(), options.PreviewChanges, confirmationMessage: confirmationMessage);
             }
-
-            return ChangeSignatureWithContextAsync(context, options, cancellationToken);
-        }
-
-        internal async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalysisSucceededContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
-        {
-            var (updatedSolution, confirmationMessage) = await CreateUpdatedSolutionAsync(context, options, cancellationToken).ConfigureAwait(false);
-            return new ChangeSignatureResult(updatedSolution != null, updatedSolution, context.Symbol.ToDisplayString(), context.Symbol.GetGlyph(), options.PreviewChanges, confirmationMessage: confirmationMessage);
         }
 
         /// <returns>Returns <c>null</c> if the operation is cancelled.</returns>
-        internal static ChangeSignatureOptionsResult? GetChangeSignatureOptions(ChangeSignatureAnalysisSucceededContext context)
+        internal static ChangeSignatureOptionsResult? GetChangeSignatureOptions(ChangeSignatureAnalyzedContext context)
         {
-            var changeSignatureOptionsService = context.Solution.Workspace.Services.GetRequiredService<IChangeSignatureOptionsService>();
+            if (context is not ChangeSignatureAnalysisSucceededContext succeededContext)
+            {
+                return null;
+            }
+
+            var changeSignatureOptionsService = succeededContext.Solution.Workspace.Services.GetRequiredService<IChangeSignatureOptionsService>();
 
             return changeSignatureOptionsService.GetChangeSignatureOptions(
-                context.Document, context.PositionForTypeBinding, context.Symbol, context.ParameterConfiguration);
+                succeededContext.Document, succeededContext.PositionForTypeBinding, succeededContext.Symbol, succeededContext.ParameterConfiguration);
         }
 
         private static async Task<ImmutableArray<ReferencedSymbol>> FindChangeSignatureReferencesAsync(

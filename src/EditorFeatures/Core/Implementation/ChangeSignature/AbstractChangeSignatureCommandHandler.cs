@@ -72,11 +72,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
                 }
 
                 var changeSignatureService = document.GetRequiredLanguageService<AbstractChangeSignatureService>();
-                var result = changeSignatureService.ChangeSignatureAsync(
+
+                var cancellationToken = context.OperationContext.UserCancellationToken;
+
+                // Async operation to determine the change signature
+                var changeSignatureContext = changeSignatureService.GetChangeSignatureContextAsync(
                     document,
                     caretPoint.Value.Position,
-                    context.OperationContext.UserCancellationToken).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+                    restrictToDeclarations: false,
+                    cancellationToken).WaitAndGetResult(context.OperationContext.UserCancellationToken);
 
+                // UI thread bound operation to show the change signature dialog.
+                var changeSignatureOptions = AbstractChangeSignatureService.GetChangeSignatureOptions(changeSignatureContext);
+
+                // Async operation to compute the new solution created from the specified options.
+                var result = changeSignatureService.ChangeSignatureWithContextAsync(changeSignatureContext, changeSignatureOptions, cancellationToken).WaitAndGetResult(cancellationToken);
+
+                // UI thread bound operation to show preview changes dialog / show error message, then apply the solution changes (if applicable).
                 HandleResult(result, document.Project.Solution, workspace, context);
 
                 return true;
