@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Notification;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -108,7 +109,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             return args.SubjectBuffer.TryGetWorkspace(out var workspace) &&
                 workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
-                args.SubjectBuffer.SupportsRename();
+                args.SubjectBuffer.SupportsRename() &&
+                !workspace.Services.GetService<IWorkspaceContextService>().IsInLspEditorContext();
         }
 
         private static void ShowErrorDialog(Workspace workspace, string message)

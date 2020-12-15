@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             IClassificationService classificationService,
             ClassificationTypeMap typeMap)
         {
+            if (spanToTag.SnapshotSpan.Snapshot.TextBuffer.IsInLspEditorContext())
+            {
+                return;
+            }
+
             var document = spanToTag.Document;
             if (document == null)
             {
