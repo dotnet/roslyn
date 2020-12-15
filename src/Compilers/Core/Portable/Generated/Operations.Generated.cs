@@ -3321,7 +3321,6 @@ namespace Microsoft.CodeAnalysis.Operations
     #region Implementations
     internal sealed partial class BlockOperation : Operation, IBlockOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal BlockOperation(ImmutableArray<IOperation> operations, ImmutableArray<ILocalSymbol> locals, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -3330,17 +3329,27 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public ImmutableArray<IOperation> Operations { get; }
         public ImmutableArray<ILocalSymbol> Locals { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (!Operations.IsEmpty) builder.AddRange(Operations);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when index < Operations.Length
+                    => Operations[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!Operations.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+                case 0 when previousIndex + 1 < Operations.Length:
+                    return (true, 0, previousIndex + 1);
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -3351,24 +3360,33 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class VariableDeclarationGroupOperation : Operation, IVariableDeclarationGroupOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal VariableDeclarationGroupOperation(ImmutableArray<IVariableDeclarationOperation> declarations, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             Declarations = SetParentOperation(declarations, this);
         }
         public ImmutableArray<IVariableDeclarationOperation> Declarations { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (!Declarations.IsEmpty) builder.AddRange(Declarations);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when index < Declarations.Length
+                    => Declarations[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!Declarations.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+                case 0 when previousIndex + 1 < Declarations.Length:
+                    return (true, 0, previousIndex + 1);
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -3379,7 +3397,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class SwitchOperation : Operation, ISwitchOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal SwitchOperation(ImmutableArray<ILocalSymbol> locals, IOperation value, ImmutableArray<ISwitchCaseOperation> cases, ILabelSymbol exitLabel, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -3392,18 +3409,32 @@ namespace Microsoft.CodeAnalysis.Operations
         public IOperation Value { get; }
         public ImmutableArray<ISwitchCaseOperation> Cases { get; }
         public ILabelSymbol ExitLabel { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Value is not null) builder.Add(Value);
-                    if (!Cases.IsEmpty) builder.AddRange(Cases);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Value != null
+                    => Value,
+                1 when index < Cases.Length
+                    => Cases[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Value != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (!Cases.IsEmpty) return (true, 1, 0);
+                    else goto case 1;
+                case 1 when previousIndex + 1 < Cases.Length:
+                    return (true, 1, previousIndex + 1);
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -3430,7 +3461,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ForEachLoopOperation : BaseLoopOperation, IForEachLoopOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ForEachLoopOperation(IOperation loopControlVariable, IOperation collection, ImmutableArray<IOperation> nextVariables, ForEachLoopOperationInfo? info, bool isAsynchronous, IOperation body, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(body, locals, continueLabel, exitLabel, semanticModel, syntax, isImplicit)
         {
@@ -3445,20 +3475,42 @@ namespace Microsoft.CodeAnalysis.Operations
         public ImmutableArray<IOperation> NextVariables { get; }
         public ForEachLoopOperationInfo? Info { get; }
         public bool IsAsynchronous { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(4);
-                    if (Collection is not null) builder.Add(Collection);
-                    if (LoopControlVariable is not null) builder.Add(LoopControlVariable);
-                    if (Body is not null) builder.Add(Body);
-                    if (!NextVariables.IsEmpty) builder.AddRange(NextVariables);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Collection != null
+                    => Collection,
+                1 when LoopControlVariable != null
+                    => LoopControlVariable,
+                2 when Body != null
+                    => Body,
+                3 when index < NextVariables.Length
+                    => NextVariables[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Collection != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (LoopControlVariable != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                    if (Body != null) return (true, 2, 0);
+                    else goto case 2;
+                case 2:
+                    if (!NextVariables.IsEmpty) return (true, 3, 0);
+                    else goto case 3;
+                case 3 when previousIndex + 1 < NextVariables.Length:
+                    return (true, 3, previousIndex + 1);
+                case 3:
+                case 4:
+                    return (false, 4, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -3469,7 +3521,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ForLoopOperation : BaseLoopOperation, IForLoopOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ForLoopOperation(ImmutableArray<IOperation> before, ImmutableArray<ILocalSymbol> conditionLocals, IOperation? condition, ImmutableArray<IOperation> atLoopBottom, IOperation body, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(body, locals, continueLabel, exitLabel, semanticModel, syntax, isImplicit)
         {
@@ -3482,20 +3533,44 @@ namespace Microsoft.CodeAnalysis.Operations
         public ImmutableArray<ILocalSymbol> ConditionLocals { get; }
         public IOperation? Condition { get; }
         public ImmutableArray<IOperation> AtLoopBottom { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(4);
-                    if (!Before.IsEmpty) builder.AddRange(Before);
-                    if (Condition is not null) builder.Add(Condition);
-                    if (Body is not null) builder.Add(Body);
-                    if (!AtLoopBottom.IsEmpty) builder.AddRange(AtLoopBottom);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when index < Before.Length
+                    => Before[index],
+                1 when Condition != null
+                    => Condition,
+                2 when Body != null
+                    => Body,
+                3 when index < AtLoopBottom.Length
+                    => AtLoopBottom[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!Before.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+                case 0 when previousIndex + 1 < Before.Length:
+                    return (true, 0, previousIndex + 1);
+                case 0:
+                    if (Condition != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                    if (Body != null) return (true, 2, 0);
+                    else goto case 2;
+                case 2:
+                    if (!AtLoopBottom.IsEmpty) return (true, 3, 0);
+                    else goto case 3;
+                case 3 when previousIndex + 1 < AtLoopBottom.Length:
+                    return (true, 3, previousIndex + 1);
+                case 3:
+                case 4:
+                    return (false, 4, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -3506,7 +3581,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ForToLoopOperation : BaseLoopOperation, IForToLoopOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ForToLoopOperation(IOperation loopControlVariable, IOperation initialValue, IOperation limitValue, IOperation stepValue, bool isChecked, ImmutableArray<IOperation> nextVariables, (ILocalSymbol LoopObject, ForToLoopOperationUserDefinedInfo UserDefinedInfo) info, IOperation body, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(body, locals, continueLabel, exitLabel, semanticModel, syntax, isImplicit)
         {
@@ -3525,22 +3599,52 @@ namespace Microsoft.CodeAnalysis.Operations
         public bool IsChecked { get; }
         public ImmutableArray<IOperation> NextVariables { get; }
         public (ILocalSymbol LoopObject, ForToLoopOperationUserDefinedInfo UserDefinedInfo) Info { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(6);
-                    if (LoopControlVariable is not null) builder.Add(LoopControlVariable);
-                    if (InitialValue is not null) builder.Add(InitialValue);
-                    if (LimitValue is not null) builder.Add(LimitValue);
-                    if (StepValue is not null) builder.Add(StepValue);
-                    if (Body is not null) builder.Add(Body);
-                    if (!NextVariables.IsEmpty) builder.AddRange(NextVariables);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when LoopControlVariable != null
+                    => LoopControlVariable,
+                1 when InitialValue != null
+                    => InitialValue,
+                2 when LimitValue != null
+                    => LimitValue,
+                3 when StepValue != null
+                    => StepValue,
+                4 when Body != null
+                    => Body,
+                5 when index < NextVariables.Length
+                    => NextVariables[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (LoopControlVariable != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (InitialValue != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                    if (LimitValue != null) return (true, 2, 0);
+                    else goto case 2;
+                case 2:
+                    if (StepValue != null) return (true, 3, 0);
+                    else goto case 3;
+                case 3:
+                    if (Body != null) return (true, 4, 0);
+                    else goto case 4;
+                case 4:
+                    if (!NextVariables.IsEmpty) return (true, 5, 0);
+                    else goto case 5;
+                case 5 when previousIndex + 1 < NextVariables.Length:
+                    return (true, 5, previousIndex + 1);
+                case 5:
+                case 6:
+                    return (false, 6, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -3551,7 +3655,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class WhileLoopOperation : BaseLoopOperation, IWhileLoopOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal WhileLoopOperation(IOperation? condition, bool conditionIsTop, bool conditionIsUntil, IOperation? ignoredCondition, IOperation body, ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(body, locals, continueLabel, exitLabel, semanticModel, syntax, isImplicit)
         {
@@ -3572,7 +3675,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class LabeledOperation : Operation, ILabeledOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal LabeledOperation(ILabelSymbol label, IOperation? operation, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -3581,17 +3683,25 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public ILabelSymbol Label { get; }
         public IOperation? Operation { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Operation is not null) builder.Add(Operation);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Operation != null
+                    => Operation,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Operation != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -3610,7 +3720,8 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public ILabelSymbol Target { get; }
         public BranchKind BranchKind { get; }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type => null;
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.Branch;
@@ -3621,7 +3732,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         internal EmptyOperation(SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit) { }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type => null;
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.Empty;
@@ -3630,7 +3742,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ReturnOperation : Operation, IReturnOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ReturnOperation(IOperation? returnedValue, OperationKind kind, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -3638,17 +3749,25 @@ namespace Microsoft.CodeAnalysis.Operations
             Kind = kind;
         }
         public IOperation? ReturnedValue { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (ReturnedValue is not null) builder.Add(ReturnedValue);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when ReturnedValue != null
+                    => ReturnedValue,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (ReturnedValue != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -3659,7 +3778,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class LockOperation : Operation, ILockOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal LockOperation(IOperation lockedValue, IOperation body, ILocalSymbol? lockTakenSymbol, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -3670,18 +3788,30 @@ namespace Microsoft.CodeAnalysis.Operations
         public IOperation LockedValue { get; }
         public IOperation Body { get; }
         public ILocalSymbol? LockTakenSymbol { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (LockedValue is not null) builder.Add(LockedValue);
-                    if (Body is not null) builder.Add(Body);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when LockedValue != null
+                    => LockedValue,
+                1 when Body != null
+                    => Body,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (LockedValue != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Body != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -3692,7 +3822,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class TryOperation : Operation, ITryOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal TryOperation(IBlockOperation body, ImmutableArray<ICatchClauseOperation> catches, IBlockOperation? @finally, ILabelSymbol? exitLabel, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -3705,19 +3834,37 @@ namespace Microsoft.CodeAnalysis.Operations
         public ImmutableArray<ICatchClauseOperation> Catches { get; }
         public IBlockOperation? Finally { get; }
         public ILabelSymbol? ExitLabel { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(3);
-                    if (Body is not null) builder.Add(Body);
-                    if (!Catches.IsEmpty) builder.AddRange(Catches);
-                    if (Finally is not null) builder.Add(Finally);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Body != null
+                    => Body,
+                1 when index < Catches.Length
+                    => Catches[index],
+                2 when Finally != null
+                    => Finally,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Body != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (!Catches.IsEmpty) return (true, 1, 0);
+                    else goto case 1;
+                case 1 when previousIndex + 1 < Catches.Length:
+                    return (true, 1, previousIndex + 1);
+                case 1:
+                    if (Finally != null) return (true, 2, 0);
+                    else goto case 2;
+                case 2:
+                case 3:
+                    return (false, 3, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -3728,7 +3875,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class UsingOperation : Operation, IUsingOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal UsingOperation(IOperation resources, IOperation body, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous, IMethodSymbol? disposeMethod, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -3743,18 +3889,30 @@ namespace Microsoft.CodeAnalysis.Operations
         public ImmutableArray<ILocalSymbol> Locals { get; }
         public bool IsAsynchronous { get; }
         public IMethodSymbol? DisposeMethod { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Resources is not null) builder.Add(Resources);
-                    if (Body is not null) builder.Add(Body);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Resources != null
+                    => Resources,
+                1 when Body != null
+                    => Body,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Resources != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Body != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -3765,24 +3923,31 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ExpressionStatementOperation : Operation, IExpressionStatementOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ExpressionStatementOperation(IOperation operation, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             Operation = SetParentOperation(operation, this);
         }
         public IOperation Operation { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Operation is not null) builder.Add(Operation);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Operation != null
+                    => Operation,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Operation != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -3793,7 +3958,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class LocalFunctionOperation : Operation, ILocalFunctionOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal LocalFunctionOperation(IMethodSymbol symbol, IBlockOperation? body, IBlockOperation? ignoredBody, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -3804,18 +3968,30 @@ namespace Microsoft.CodeAnalysis.Operations
         public IMethodSymbol Symbol { get; }
         public IBlockOperation? Body { get; }
         public IBlockOperation? IgnoredBody { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Body is not null) builder.Add(Body);
-                    if (IgnoredBody is not null) builder.Add(IgnoredBody);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Body != null
+                    => Body,
+                1 when IgnoredBody != null
+                    => IgnoredBody,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Body != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (IgnoredBody != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -3828,7 +4004,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         internal StopOperation(SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit) { }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type => null;
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.Stop;
@@ -3839,7 +4016,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         internal EndOperation(SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit) { }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type => null;
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.End;
@@ -3848,7 +4026,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class RaiseEventOperation : Operation, IRaiseEventOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal RaiseEventOperation(IEventReferenceOperation eventReference, ImmutableArray<IArgumentOperation> arguments, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -3857,18 +4034,32 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public IEventReferenceOperation EventReference { get; }
         public ImmutableArray<IArgumentOperation> Arguments { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (EventReference is not null) builder.Add(EventReference);
-                    if (!Arguments.IsEmpty) builder.AddRange(Arguments);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when EventReference != null
+                    => EventReference,
+                1 when index < Arguments.Length
+                    => Arguments[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (EventReference != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (!Arguments.IsEmpty) return (true, 1, 0);
+                    else goto case 1;
+                case 1 when previousIndex + 1 < Arguments.Length:
+                    return (true, 1, previousIndex + 1);
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -3885,7 +4076,8 @@ namespace Microsoft.CodeAnalysis.Operations
             OperationConstantValue = constantValue;
             Type = type;
         }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue { get; }
         public override OperationKind Kind => OperationKind.Literal;
@@ -3894,7 +4086,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ConversionOperation : Operation, IConversionOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ConversionOperation(IOperation operand, IConvertibleConversion conversion, bool isTryCast, bool isChecked, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -3910,17 +4101,25 @@ namespace Microsoft.CodeAnalysis.Operations
         public CommonConversion Conversion => ConversionConvertible.ToCommonConversion();
         public bool IsTryCast { get; }
         public bool IsChecked { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Operand is not null) builder.Add(Operand);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Operand != null
+                    => Operand,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Operand != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -3931,7 +4130,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class InvocationOperation : Operation, IInvocationOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal InvocationOperation(IMethodSymbol targetMethod, IOperation? instance, bool isVirtual, ImmutableArray<IArgumentOperation> arguments, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -3945,18 +4143,32 @@ namespace Microsoft.CodeAnalysis.Operations
         public IOperation? Instance { get; }
         public bool IsVirtual { get; }
         public ImmutableArray<IArgumentOperation> Arguments { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Instance is not null) builder.Add(Instance);
-                    if (!Arguments.IsEmpty) builder.AddRange(Arguments);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Instance != null
+                    => Instance,
+                1 when index < Arguments.Length
+                    => Arguments[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Instance != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (!Arguments.IsEmpty) return (true, 1, 0);
+                    else goto case 1;
+                case 1 when previousIndex + 1 < Arguments.Length:
+                    return (true, 1, previousIndex + 1);
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -3967,7 +4179,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ArrayElementReferenceOperation : Operation, IArrayElementReferenceOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ArrayElementReferenceOperation(IOperation arrayReference, ImmutableArray<IOperation> indices, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -3977,18 +4188,32 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public IOperation ArrayReference { get; }
         public ImmutableArray<IOperation> Indices { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (ArrayReference is not null) builder.Add(ArrayReference);
-                    if (!Indices.IsEmpty) builder.AddRange(Indices);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when ArrayReference != null
+                    => ArrayReference,
+                1 when index < Indices.Length
+                    => Indices[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (ArrayReference != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (!Indices.IsEmpty) return (true, 1, 0);
+                    else goto case 1;
+                case 1 when previousIndex + 1 < Indices.Length:
+                    return (true, 1, previousIndex + 1);
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4009,7 +4234,8 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public ILocalSymbol Local { get; }
         public bool IsDeclaration { get; }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue { get; }
         public override OperationKind Kind => OperationKind.LocalReference;
@@ -4025,7 +4251,8 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public IParameterSymbol Parameter { get; }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.ParameterReference;
@@ -4043,7 +4270,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class FieldReferenceOperation : BaseMemberReferenceOperation, IFieldReferenceOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal FieldReferenceOperation(IFieldSymbol field, bool isDeclaration, IOperation? instance, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(instance, semanticModel, syntax, isImplicit)
         {
@@ -4054,17 +4280,25 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public IFieldSymbol Field { get; }
         public bool IsDeclaration { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Instance is not null) builder.Add(Instance);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Instance != null
+                    => Instance,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Instance != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4075,7 +4309,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class MethodReferenceOperation : BaseMemberReferenceOperation, IMethodReferenceOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal MethodReferenceOperation(IMethodSymbol method, bool isVirtual, IOperation? instance, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(instance, semanticModel, syntax, isImplicit)
         {
@@ -4085,17 +4318,25 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public IMethodSymbol Method { get; }
         public bool IsVirtual { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Instance is not null) builder.Add(Instance);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Instance != null
+                    => Instance,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Instance != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4106,7 +4347,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class PropertyReferenceOperation : BaseMemberReferenceOperation, IPropertyReferenceOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal PropertyReferenceOperation(IPropertySymbol property, ImmutableArray<IArgumentOperation> arguments, IOperation? instance, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(instance, semanticModel, syntax, isImplicit)
         {
@@ -4116,18 +4356,32 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public IPropertySymbol Property { get; }
         public ImmutableArray<IArgumentOperation> Arguments { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Instance is not null) builder.Add(Instance);
-                    if (!Arguments.IsEmpty) builder.AddRange(Arguments);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Instance != null
+                    => Instance,
+                1 when index < Arguments.Length
+                    => Arguments[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Instance != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (!Arguments.IsEmpty) return (true, 1, 0);
+                    else goto case 1;
+                case 1 when previousIndex + 1 < Arguments.Length:
+                    return (true, 1, previousIndex + 1);
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4138,7 +4392,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class EventReferenceOperation : BaseMemberReferenceOperation, IEventReferenceOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal EventReferenceOperation(IEventSymbol @event, IOperation? instance, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(instance, semanticModel, syntax, isImplicit)
         {
@@ -4146,17 +4399,25 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public IEventSymbol Event { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Instance is not null) builder.Add(Instance);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Instance != null
+                    => Instance,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Instance != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4167,7 +4428,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class UnaryOperation : Operation, IUnaryOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal UnaryOperation(UnaryOperatorKind operatorKind, IOperation operand, bool isLifted, bool isChecked, IMethodSymbol? operatorMethod, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4184,17 +4444,25 @@ namespace Microsoft.CodeAnalysis.Operations
         public bool IsLifted { get; }
         public bool IsChecked { get; }
         public IMethodSymbol? OperatorMethod { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Operand is not null) builder.Add(Operand);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Operand != null
+                    => Operand,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Operand != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4205,7 +4473,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class BinaryOperation : Operation, IBinaryOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal BinaryOperation(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol? operatorMethod, IMethodSymbol? unaryOperatorMethod, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4228,18 +4495,30 @@ namespace Microsoft.CodeAnalysis.Operations
         public bool IsCompareText { get; }
         public IMethodSymbol? OperatorMethod { get; }
         public IMethodSymbol? UnaryOperatorMethod { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (LeftOperand is not null) builder.Add(LeftOperand);
-                    if (RightOperand is not null) builder.Add(RightOperand);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when LeftOperand != null
+                    => LeftOperand,
+                1 when RightOperand != null
+                    => RightOperand,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (LeftOperand != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (RightOperand != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4250,7 +4529,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ConditionalOperation : Operation, IConditionalOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ConditionalOperation(IOperation condition, IOperation whenTrue, IOperation? whenFalse, bool isRef, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4265,19 +4543,35 @@ namespace Microsoft.CodeAnalysis.Operations
         public IOperation WhenTrue { get; }
         public IOperation? WhenFalse { get; }
         public bool IsRef { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(3);
-                    if (Condition is not null) builder.Add(Condition);
-                    if (WhenTrue is not null) builder.Add(WhenTrue);
-                    if (WhenFalse is not null) builder.Add(WhenFalse);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Condition != null
+                    => Condition,
+                1 when WhenTrue != null
+                    => WhenTrue,
+                2 when WhenFalse != null
+                    => WhenFalse,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Condition != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (WhenTrue != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                    if (WhenFalse != null) return (true, 2, 0);
+                    else goto case 2;
+                case 2:
+                case 3:
+                    return (false, 3, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4288,7 +4582,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class CoalesceOperation : Operation, ICoalesceOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal CoalesceOperation(IOperation value, IOperation whenNull, IConvertibleConversion valueConversion, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4302,18 +4595,30 @@ namespace Microsoft.CodeAnalysis.Operations
         public IOperation WhenNull { get; }
         internal IConvertibleConversion ValueConversionConvertible { get; }
         public CommonConversion ValueConversion => ValueConversionConvertible.ToCommonConversion();
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Value is not null) builder.Add(Value);
-                    if (WhenNull is not null) builder.Add(WhenNull);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Value != null
+                    => Value,
+                1 when WhenNull != null
+                    => WhenNull,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Value != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (WhenNull != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4324,7 +4629,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class AnonymousFunctionOperation : Operation, IAnonymousFunctionOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal AnonymousFunctionOperation(IMethodSymbol symbol, IBlockOperation body, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4333,17 +4637,25 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public IMethodSymbol Symbol { get; }
         public IBlockOperation Body { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Body is not null) builder.Add(Body);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Body != null
+                    => Body,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Body != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -4354,7 +4666,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ObjectCreationOperation : Operation, IObjectCreationOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ObjectCreationOperation(IMethodSymbol? constructor, IObjectOrCollectionInitializerOperation? initializer, ImmutableArray<IArgumentOperation> arguments, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4367,18 +4678,32 @@ namespace Microsoft.CodeAnalysis.Operations
         public IMethodSymbol? Constructor { get; }
         public IObjectOrCollectionInitializerOperation? Initializer { get; }
         public ImmutableArray<IArgumentOperation> Arguments { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (!Arguments.IsEmpty) builder.AddRange(Arguments);
-                    if (Initializer is not null) builder.Add(Initializer);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when index < Arguments.Length
+                    => Arguments[index],
+                1 when Initializer != null
+                    => Initializer,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!Arguments.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+                case 0 when previousIndex + 1 < Arguments.Length:
+                    return (true, 0, previousIndex + 1);
+                case 0:
+                    if (Initializer != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4389,7 +4714,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class TypeParameterObjectCreationOperation : Operation, ITypeParameterObjectCreationOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal TypeParameterObjectCreationOperation(IObjectOrCollectionInitializerOperation? initializer, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4397,17 +4721,25 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public IObjectOrCollectionInitializerOperation? Initializer { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Initializer is not null) builder.Add(Initializer);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Initializer != null
+                    => Initializer,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Initializer != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4418,7 +4750,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ArrayCreationOperation : Operation, IArrayCreationOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ArrayCreationOperation(ImmutableArray<IOperation> dimensionSizes, IArrayInitializerOperation? initializer, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4428,18 +4759,32 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public ImmutableArray<IOperation> DimensionSizes { get; }
         public IArrayInitializerOperation? Initializer { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (!DimensionSizes.IsEmpty) builder.AddRange(DimensionSizes);
-                    if (Initializer is not null) builder.Add(Initializer);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when index < DimensionSizes.Length
+                    => DimensionSizes[index],
+                1 when Initializer != null
+                    => Initializer,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!DimensionSizes.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+                case 0 when previousIndex + 1 < DimensionSizes.Length:
+                    return (true, 0, previousIndex + 1);
+                case 0:
+                    if (Initializer != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4457,7 +4802,8 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public InstanceReferenceKind ReferenceKind { get; }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.InstanceReference;
@@ -4466,7 +4812,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class IsTypeOperation : Operation, IIsTypeOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal IsTypeOperation(IOperation valueOperand, ITypeSymbol typeOperand, bool isNegated, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4478,17 +4823,25 @@ namespace Microsoft.CodeAnalysis.Operations
         public IOperation ValueOperand { get; }
         public ITypeSymbol TypeOperand { get; }
         public bool IsNegated { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (ValueOperand is not null) builder.Add(ValueOperand);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when ValueOperand != null
+                    => ValueOperand,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (ValueOperand != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4499,7 +4852,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class AwaitOperation : Operation, IAwaitOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal AwaitOperation(IOperation operation, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4507,17 +4859,25 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public IOperation Operation { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Operation is not null) builder.Add(Operation);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Operation != null
+                    => Operation,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Operation != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4539,7 +4899,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class SimpleAssignmentOperation : BaseAssignmentOperation, ISimpleAssignmentOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal SimpleAssignmentOperation(bool isRef, IOperation target, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(target, value, semanticModel, syntax, isImplicit)
         {
@@ -4548,18 +4907,30 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public bool IsRef { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Target is not null) builder.Add(Target);
-                    if (Value is not null) builder.Add(Value);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Target != null
+                    => Target,
+                1 when Value != null
+                    => Value,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Target != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Value != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4570,7 +4941,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class CompoundAssignmentOperation : BaseAssignmentOperation, ICompoundAssignmentOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal CompoundAssignmentOperation(IConvertibleConversion inConversion, IConvertibleConversion outConversion, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol? operatorMethod, IOperation target, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(target, value, semanticModel, syntax, isImplicit)
         {
@@ -4590,18 +4960,30 @@ namespace Microsoft.CodeAnalysis.Operations
         public bool IsLifted { get; }
         public bool IsChecked { get; }
         public IMethodSymbol? OperatorMethod { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Target is not null) builder.Add(Target);
-                    if (Value is not null) builder.Add(Value);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Target != null
+                    => Target,
+                1 when Value != null
+                    => Value,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Target != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Value != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4612,7 +4994,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ParenthesizedOperation : Operation, IParenthesizedOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ParenthesizedOperation(IOperation operand, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4621,17 +5002,25 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public IOperation Operand { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Operand is not null) builder.Add(Operand);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Operand != null
+                    => Operand,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Operand != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4642,7 +5031,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class EventAssignmentOperation : Operation, IEventAssignmentOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal EventAssignmentOperation(IOperation eventReference, IOperation handlerValue, bool adds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4654,18 +5042,30 @@ namespace Microsoft.CodeAnalysis.Operations
         public IOperation EventReference { get; }
         public IOperation HandlerValue { get; }
         public bool Adds { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (EventReference is not null) builder.Add(EventReference);
-                    if (HandlerValue is not null) builder.Add(HandlerValue);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when EventReference != null
+                    => EventReference,
+                1 when HandlerValue != null
+                    => HandlerValue,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (EventReference != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (HandlerValue != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4676,7 +5076,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ConditionalAccessOperation : Operation, IConditionalAccessOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ConditionalAccessOperation(IOperation operation, IOperation whenNotNull, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4686,18 +5085,30 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public IOperation Operation { get; }
         public IOperation WhenNotNull { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Operation is not null) builder.Add(Operation);
-                    if (WhenNotNull is not null) builder.Add(WhenNotNull);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Operation != null
+                    => Operation,
+                1 when WhenNotNull != null
+                    => WhenNotNull,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Operation != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (WhenNotNull != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4713,7 +5124,8 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Type = type;
         }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.ConditionalAccessInstance;
@@ -4722,7 +5134,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class InterpolatedStringOperation : Operation, IInterpolatedStringOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal InterpolatedStringOperation(ImmutableArray<IInterpolatedStringContentOperation> parts, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4731,17 +5142,27 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public ImmutableArray<IInterpolatedStringContentOperation> Parts { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (!Parts.IsEmpty) builder.AddRange(Parts);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when index < Parts.Length
+                    => Parts[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!Parts.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+                case 0 when previousIndex + 1 < Parts.Length:
+                    return (true, 0, previousIndex + 1);
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4752,7 +5173,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class AnonymousObjectCreationOperation : Operation, IAnonymousObjectCreationOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal AnonymousObjectCreationOperation(ImmutableArray<IOperation> initializers, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4760,17 +5180,27 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public ImmutableArray<IOperation> Initializers { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (!Initializers.IsEmpty) builder.AddRange(Initializers);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when index < Initializers.Length
+                    => Initializers[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!Initializers.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+                case 0 when previousIndex + 1 < Initializers.Length:
+                    return (true, 0, previousIndex + 1);
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4781,7 +5211,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ObjectOrCollectionInitializerOperation : Operation, IObjectOrCollectionInitializerOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ObjectOrCollectionInitializerOperation(ImmutableArray<IOperation> initializers, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4789,17 +5218,27 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public ImmutableArray<IOperation> Initializers { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (!Initializers.IsEmpty) builder.AddRange(Initializers);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when index < Initializers.Length
+                    => Initializers[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!Initializers.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+                case 0 when previousIndex + 1 < Initializers.Length:
+                    return (true, 0, previousIndex + 1);
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4810,7 +5249,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class MemberInitializerOperation : Operation, IMemberInitializerOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal MemberInitializerOperation(IOperation initializedMember, IObjectOrCollectionInitializerOperation initializer, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4820,18 +5258,30 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public IOperation InitializedMember { get; }
         public IObjectOrCollectionInitializerOperation Initializer { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (InitializedMember is not null) builder.Add(InitializedMember);
-                    if (Initializer is not null) builder.Add(Initializer);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when InitializedMember != null
+                    => InitializedMember,
+                1 when Initializer != null
+                    => Initializer,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (InitializedMember != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Initializer != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4842,7 +5292,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class NameOfOperation : Operation, INameOfOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal NameOfOperation(IOperation argument, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4851,17 +5300,25 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public IOperation Argument { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Argument is not null) builder.Add(Argument);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Argument != null
+                    => Argument,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Argument != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4872,7 +5329,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class TupleOperation : Operation, ITupleOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal TupleOperation(ImmutableArray<IOperation> elements, ITypeSymbol? naturalType, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4882,17 +5338,27 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public ImmutableArray<IOperation> Elements { get; }
         public ITypeSymbol? NaturalType { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (!Elements.IsEmpty) builder.AddRange(Elements);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when index < Elements.Length
+                    => Elements[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!Elements.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+                case 0 when previousIndex + 1 < Elements.Length:
+                    return (true, 0, previousIndex + 1);
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4903,7 +5369,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class DynamicMemberReferenceOperation : Operation, IDynamicMemberReferenceOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal DynamicMemberReferenceOperation(IOperation? instance, string memberName, ImmutableArray<ITypeSymbol> typeArguments, ITypeSymbol? containingType, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4917,17 +5382,25 @@ namespace Microsoft.CodeAnalysis.Operations
         public string MemberName { get; }
         public ImmutableArray<ITypeSymbol> TypeArguments { get; }
         public ITypeSymbol? ContainingType { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Instance is not null) builder.Add(Instance);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Instance != null
+                    => Instance,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Instance != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4938,7 +5411,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class TranslatedQueryOperation : Operation, ITranslatedQueryOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal TranslatedQueryOperation(IOperation operation, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4946,17 +5418,25 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public IOperation Operation { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Operation is not null) builder.Add(Operation);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Operation != null
+                    => Operation,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Operation != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -4967,7 +5447,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class DelegateCreationOperation : Operation, IDelegateCreationOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal DelegateCreationOperation(IOperation target, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -4975,17 +5454,25 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public IOperation Target { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Target is not null) builder.Add(Target);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Target != null
+                    => Target,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Target != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -5002,7 +5489,8 @@ namespace Microsoft.CodeAnalysis.Operations
             OperationConstantValue = constantValue;
             Type = type;
         }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue { get; }
         public override OperationKind Kind => OperationKind.DefaultValue;
@@ -5018,7 +5506,8 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public ITypeSymbol TypeOperand { get; }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.TypeOf;
@@ -5035,7 +5524,8 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public ITypeSymbol TypeOperand { get; }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue { get; }
         public override OperationKind Kind => OperationKind.SizeOf;
@@ -5044,7 +5534,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class AddressOfOperation : Operation, IAddressOfOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal AddressOfOperation(IOperation reference, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -5052,17 +5541,25 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public IOperation Reference { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Reference is not null) builder.Add(Reference);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Reference != null
+                    => Reference,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Reference != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -5073,7 +5570,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class IsPatternOperation : Operation, IIsPatternOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal IsPatternOperation(IOperation value, IPatternOperation pattern, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -5083,18 +5579,30 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public IOperation Value { get; }
         public IPatternOperation Pattern { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Value is not null) builder.Add(Value);
-                    if (Pattern is not null) builder.Add(Pattern);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Value != null
+                    => Value,
+                1 when Pattern != null
+                    => Pattern,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Value != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Pattern != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -5105,7 +5613,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class IncrementOrDecrementOperation : Operation, IIncrementOrDecrementOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal IncrementOrDecrementOperation(bool isPostfix, bool isLifted, bool isChecked, IOperation target, IMethodSymbol? operatorMethod, OperationKind kind, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -5122,17 +5629,25 @@ namespace Microsoft.CodeAnalysis.Operations
         public bool IsChecked { get; }
         public IOperation Target { get; }
         public IMethodSymbol? OperatorMethod { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Target is not null) builder.Add(Target);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Target != null
+                    => Target,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Target != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -5143,7 +5658,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ThrowOperation : Operation, IThrowOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ThrowOperation(IOperation? exception, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -5151,17 +5665,25 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public IOperation? Exception { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Exception is not null) builder.Add(Exception);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Exception != null
+                    => Exception,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Exception != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -5172,24 +5694,35 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class DeconstructionAssignmentOperation : BaseAssignmentOperation, IDeconstructionAssignmentOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal DeconstructionAssignmentOperation(IOperation target, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(target, value, semanticModel, syntax, isImplicit)
         {
             Type = type;
         }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Target is not null) builder.Add(Target);
-                    if (Value is not null) builder.Add(Value);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Target != null
+                    => Target,
+                1 when Value != null
+                    => Value,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Target != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Value != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -5200,7 +5733,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class DeclarationExpressionOperation : Operation, IDeclarationExpressionOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal DeclarationExpressionOperation(IOperation expression, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -5208,17 +5740,25 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public IOperation Expression { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Expression is not null) builder.Add(Expression);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Expression != null
+                    => Expression,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Expression != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -5234,7 +5774,8 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Type = type;
         }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.OmittedArgument;
@@ -5254,24 +5795,31 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class FieldInitializerOperation : BaseSymbolInitializerOperation, IFieldInitializerOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal FieldInitializerOperation(ImmutableArray<IFieldSymbol> initializedFields, ImmutableArray<ILocalSymbol> locals, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(locals, value, semanticModel, syntax, isImplicit)
         {
             InitializedFields = initializedFields;
         }
         public ImmutableArray<IFieldSymbol> InitializedFields { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Value is not null) builder.Add(Value);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Value != null
+                    => Value,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Value != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5282,20 +5830,27 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class VariableInitializerOperation : BaseSymbolInitializerOperation, IVariableInitializerOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal VariableInitializerOperation(ImmutableArray<ILocalSymbol> locals, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(locals, value, semanticModel, syntax, isImplicit) { }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Value is not null) builder.Add(Value);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Value != null
+                    => Value,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Value != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5306,24 +5861,31 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class PropertyInitializerOperation : BaseSymbolInitializerOperation, IPropertyInitializerOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal PropertyInitializerOperation(ImmutableArray<IPropertySymbol> initializedProperties, ImmutableArray<ILocalSymbol> locals, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(locals, value, semanticModel, syntax, isImplicit)
         {
             InitializedProperties = initializedProperties;
         }
         public ImmutableArray<IPropertySymbol> InitializedProperties { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Value is not null) builder.Add(Value);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Value != null
+                    => Value,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Value != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5334,24 +5896,31 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ParameterInitializerOperation : BaseSymbolInitializerOperation, IParameterInitializerOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ParameterInitializerOperation(IParameterSymbol parameter, ImmutableArray<ILocalSymbol> locals, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(locals, value, semanticModel, syntax, isImplicit)
         {
             Parameter = parameter;
         }
         public IParameterSymbol Parameter { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Value is not null) builder.Add(Value);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Value != null
+                    => Value,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Value != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5362,24 +5931,33 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ArrayInitializerOperation : Operation, IArrayInitializerOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ArrayInitializerOperation(ImmutableArray<IOperation> elementValues, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             ElementValues = SetParentOperation(elementValues, this);
         }
         public ImmutableArray<IOperation> ElementValues { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (!ElementValues.IsEmpty) builder.AddRange(ElementValues);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when index < ElementValues.Length
+                    => ElementValues[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!ElementValues.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+                case 0 when previousIndex + 1 < ElementValues.Length:
+                    return (true, 0, previousIndex + 1);
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5390,7 +5968,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class VariableDeclaratorOperation : Operation, IVariableDeclaratorOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal VariableDeclaratorOperation(ILocalSymbol symbol, IVariableInitializerOperation? initializer, ImmutableArray<IOperation> ignoredArguments, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -5401,18 +5978,32 @@ namespace Microsoft.CodeAnalysis.Operations
         public ILocalSymbol Symbol { get; }
         public IVariableInitializerOperation? Initializer { get; }
         public ImmutableArray<IOperation> IgnoredArguments { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (!IgnoredArguments.IsEmpty) builder.AddRange(IgnoredArguments);
-                    if (Initializer is not null) builder.Add(Initializer);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when index < IgnoredArguments.Length
+                    => IgnoredArguments[index],
+                1 when Initializer != null
+                    => Initializer,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!IgnoredArguments.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+                case 0 when previousIndex + 1 < IgnoredArguments.Length:
+                    return (true, 0, previousIndex + 1);
+                case 0:
+                    if (Initializer != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5423,7 +6014,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class VariableDeclarationOperation : Operation, IVariableDeclarationOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal VariableDeclarationOperation(ImmutableArray<IVariableDeclaratorOperation> declarators, IVariableInitializerOperation? initializer, ImmutableArray<IOperation> ignoredDimensions, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -5434,19 +6024,39 @@ namespace Microsoft.CodeAnalysis.Operations
         public ImmutableArray<IVariableDeclaratorOperation> Declarators { get; }
         public IVariableInitializerOperation? Initializer { get; }
         public ImmutableArray<IOperation> IgnoredDimensions { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(3);
-                    if (!IgnoredDimensions.IsEmpty) builder.AddRange(IgnoredDimensions);
-                    if (!Declarators.IsEmpty) builder.AddRange(Declarators);
-                    if (Initializer is not null) builder.Add(Initializer);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when index < IgnoredDimensions.Length
+                    => IgnoredDimensions[index],
+                1 when index < Declarators.Length
+                    => Declarators[index],
+                2 when Initializer != null
+                    => Initializer,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!IgnoredDimensions.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+                case 0 when previousIndex + 1 < IgnoredDimensions.Length:
+                    return (true, 0, previousIndex + 1);
+                case 0:
+                    if (!Declarators.IsEmpty) return (true, 1, 0);
+                    else goto case 1;
+                case 1 when previousIndex + 1 < Declarators.Length:
+                    return (true, 1, previousIndex + 1);
+                case 1:
+                    if (Initializer != null) return (true, 2, 0);
+                    else goto case 2;
+                case 2:
+                case 3:
+                    return (false, 3, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5457,7 +6067,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ArgumentOperation : Operation, IArgumentOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ArgumentOperation(ArgumentKind argumentKind, IParameterSymbol? parameter, IOperation value, IConvertibleConversion inConversion, IConvertibleConversion outConversion, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -5474,17 +6083,25 @@ namespace Microsoft.CodeAnalysis.Operations
         public CommonConversion InConversion => InConversionConvertible.ToCommonConversion();
         internal IConvertibleConversion OutConversionConvertible { get; }
         public CommonConversion OutConversion => OutConversionConvertible.ToCommonConversion();
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Value is not null) builder.Add(Value);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Value != null
+                    => Value,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Value != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5495,7 +6112,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class CatchClauseOperation : Operation, ICatchClauseOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal CatchClauseOperation(IOperation? exceptionDeclarationOrExpression, ITypeSymbol exceptionType, ImmutableArray<ILocalSymbol> locals, IOperation? filter, IBlockOperation handler, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -5510,19 +6126,35 @@ namespace Microsoft.CodeAnalysis.Operations
         public ImmutableArray<ILocalSymbol> Locals { get; }
         public IOperation? Filter { get; }
         public IBlockOperation Handler { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(3);
-                    if (ExceptionDeclarationOrExpression is not null) builder.Add(ExceptionDeclarationOrExpression);
-                    if (Filter is not null) builder.Add(Filter);
-                    if (Handler is not null) builder.Add(Handler);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when ExceptionDeclarationOrExpression != null
+                    => ExceptionDeclarationOrExpression,
+                1 when Filter != null
+                    => Filter,
+                2 when Handler != null
+                    => Handler,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (ExceptionDeclarationOrExpression != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Filter != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                    if (Handler != null) return (true, 2, 0);
+                    else goto case 2;
+                case 2:
+                case 3:
+                    return (false, 3, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5533,7 +6165,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class SwitchCaseOperation : Operation, ISwitchCaseOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal SwitchCaseOperation(ImmutableArray<ICaseClauseOperation> clauses, ImmutableArray<IOperation> body, ImmutableArray<ILocalSymbol> locals, IOperation? condition, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -5546,18 +6177,34 @@ namespace Microsoft.CodeAnalysis.Operations
         public ImmutableArray<IOperation> Body { get; }
         public ImmutableArray<ILocalSymbol> Locals { get; }
         public IOperation? Condition { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (!Clauses.IsEmpty) builder.AddRange(Clauses);
-                    if (!Body.IsEmpty) builder.AddRange(Body);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when index < Clauses.Length
+                    => Clauses[index],
+                1 when index < Body.Length
+                    => Body[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!Clauses.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+                case 0 when previousIndex + 1 < Clauses.Length:
+                    return (true, 0, previousIndex + 1);
+                case 0:
+                    if (!Body.IsEmpty) return (true, 1, 0);
+                    else goto case 1;
+                case 1 when previousIndex + 1 < Body.Length:
+                    return (true, 1, previousIndex + 1);
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5580,7 +6227,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         internal DefaultCaseClauseOperation(ILabelSymbol? label, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(label, semanticModel, syntax, isImplicit) { }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type => null;
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.CaseClause;
@@ -5589,7 +6237,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class PatternCaseClauseOperation : BaseCaseClauseOperation, IPatternCaseClauseOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal PatternCaseClauseOperation(ILabelSymbol label, IPatternOperation pattern, IOperation? guard, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(label, semanticModel, syntax, isImplicit)
         {
@@ -5599,18 +6246,30 @@ namespace Microsoft.CodeAnalysis.Operations
         public new ILabelSymbol Label => base.Label!;
         public IPatternOperation Pattern { get; }
         public IOperation? Guard { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Pattern is not null) builder.Add(Pattern);
-                    if (Guard is not null) builder.Add(Guard);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Pattern != null
+                    => Pattern,
+                1 when Guard != null
+                    => Guard,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Pattern != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Guard != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5621,7 +6280,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class RangeCaseClauseOperation : BaseCaseClauseOperation, IRangeCaseClauseOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal RangeCaseClauseOperation(IOperation minimumValue, IOperation maximumValue, ILabelSymbol? label, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(label, semanticModel, syntax, isImplicit)
         {
@@ -5630,18 +6288,30 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public IOperation MinimumValue { get; }
         public IOperation MaximumValue { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (MinimumValue is not null) builder.Add(MinimumValue);
-                    if (MaximumValue is not null) builder.Add(MaximumValue);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when MinimumValue != null
+                    => MinimumValue,
+                1 when MaximumValue != null
+                    => MaximumValue,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (MinimumValue != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (MaximumValue != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5652,7 +6322,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class RelationalCaseClauseOperation : BaseCaseClauseOperation, IRelationalCaseClauseOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal RelationalCaseClauseOperation(IOperation value, BinaryOperatorKind relation, ILabelSymbol? label, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(label, semanticModel, syntax, isImplicit)
         {
@@ -5661,17 +6330,25 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public IOperation Value { get; }
         public BinaryOperatorKind Relation { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Value is not null) builder.Add(Value);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Value != null
+                    => Value,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Value != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5682,24 +6359,31 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class SingleValueCaseClauseOperation : BaseCaseClauseOperation, ISingleValueCaseClauseOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal SingleValueCaseClauseOperation(IOperation value, ILabelSymbol? label, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(label, semanticModel, syntax, isImplicit)
         {
             Value = SetParentOperation(value, this);
         }
         public IOperation Value { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Value is not null) builder.Add(Value);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Value != null
+                    => Value,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Value != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5715,24 +6399,31 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class InterpolatedStringTextOperation : BaseInterpolatedStringContentOperation, IInterpolatedStringTextOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal InterpolatedStringTextOperation(IOperation text, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             Text = SetParentOperation(text, this);
         }
         public IOperation Text { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Text is not null) builder.Add(Text);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Text != null
+                    => Text,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Text != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5743,7 +6434,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class InterpolationOperation : BaseInterpolatedStringContentOperation, IInterpolationOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal InterpolationOperation(IOperation expression, IOperation? alignment, IOperation? formatString, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -5754,19 +6444,35 @@ namespace Microsoft.CodeAnalysis.Operations
         public IOperation Expression { get; }
         public IOperation? Alignment { get; }
         public IOperation? FormatString { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(3);
-                    if (Expression is not null) builder.Add(Expression);
-                    if (Alignment is not null) builder.Add(Alignment);
-                    if (FormatString is not null) builder.Add(FormatString);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Expression != null
+                    => Expression,
+                1 when Alignment != null
+                    => Alignment,
+                2 when FormatString != null
+                    => FormatString,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Expression != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Alignment != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                    if (FormatString != null) return (true, 2, 0);
+                    else goto case 2;
+                case 2:
+                case 3:
+                    return (false, 3, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5788,24 +6494,31 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ConstantPatternOperation : BasePatternOperation, IConstantPatternOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ConstantPatternOperation(IOperation value, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(inputType, narrowedType, semanticModel, syntax, isImplicit)
         {
             Value = SetParentOperation(value, this);
         }
         public IOperation Value { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Value is not null) builder.Add(Value);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Value != null
+                    => Value,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Value != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5826,7 +6539,8 @@ namespace Microsoft.CodeAnalysis.Operations
         public ITypeSymbol? MatchedType { get; }
         public bool MatchesNull { get; }
         public ISymbol? DeclaredSymbol { get; }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type => null;
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.DeclarationPattern;
@@ -5835,7 +6549,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class TupleBinaryOperation : Operation, ITupleBinaryOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal TupleBinaryOperation(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -5847,18 +6560,30 @@ namespace Microsoft.CodeAnalysis.Operations
         public BinaryOperatorKind OperatorKind { get; }
         public IOperation LeftOperand { get; }
         public IOperation RightOperand { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (LeftOperand is not null) builder.Add(LeftOperand);
-                    if (RightOperand is not null) builder.Add(RightOperand);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when LeftOperand != null
+                    => LeftOperand,
+                1 when RightOperand != null
+                    => RightOperand,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (LeftOperand != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (RightOperand != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -5880,21 +6605,32 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class MethodBodyOperation : BaseMethodBodyBaseOperation, IMethodBodyOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal MethodBodyOperation(IBlockOperation? blockBody, IBlockOperation? expressionBody, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(blockBody, expressionBody, semanticModel, syntax, isImplicit) { }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (BlockBody is not null) builder.Add(BlockBody);
-                    if (ExpressionBody is not null) builder.Add(ExpressionBody);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when BlockBody != null
+                    => BlockBody,
+                1 when ExpressionBody != null
+                    => ExpressionBody,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (BlockBody != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (ExpressionBody != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5905,7 +6641,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ConstructorBodyOperation : BaseMethodBodyBaseOperation, IConstructorBodyOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ConstructorBodyOperation(ImmutableArray<ILocalSymbol> locals, IOperation? initializer, IBlockOperation? blockBody, IBlockOperation? expressionBody, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(blockBody, expressionBody, semanticModel, syntax, isImplicit)
         {
@@ -5914,19 +6649,35 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public ImmutableArray<ILocalSymbol> Locals { get; }
         public IOperation? Initializer { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(3);
-                    if (Initializer is not null) builder.Add(Initializer);
-                    if (BlockBody is not null) builder.Add(BlockBody);
-                    if (ExpressionBody is not null) builder.Add(ExpressionBody);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Initializer != null
+                    => Initializer,
+                1 when BlockBody != null
+                    => BlockBody,
+                2 when ExpressionBody != null
+                    => ExpressionBody,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Initializer != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (BlockBody != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                    if (ExpressionBody != null) return (true, 2, 0);
+                    else goto case 2;
+                case 2:
+                case 3:
+                    return (false, 3, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5944,7 +6695,8 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public IDiscardSymbol DiscardSymbol { get; }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.Discard;
@@ -5953,7 +6705,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class FlowCaptureOperation : Operation, IFlowCaptureOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal FlowCaptureOperation(CaptureId id, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -5962,17 +6713,25 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public CaptureId Id { get; }
         public IOperation Value { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Value is not null) builder.Add(Value);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Value != null
+                    => Value,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Value != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -5991,7 +6750,8 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public CaptureId Id { get; }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue { get; }
         public override OperationKind Kind => OperationKind.FlowCaptureReference;
@@ -6000,7 +6760,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class IsNullOperation : Operation, IIsNullOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal IsNullOperation(IOperation operand, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -6009,17 +6768,25 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public IOperation Operand { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Operand is not null) builder.Add(Operand);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Operand != null
+                    => Operand,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Operand != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -6035,7 +6802,8 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Type = type;
         }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.CaughtException;
@@ -6051,7 +6819,8 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public ILocalSymbol Local { get; }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.StaticLocalInitializationSemaphore;
@@ -6060,24 +6829,35 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class CoalesceAssignmentOperation : BaseAssignmentOperation, ICoalesceAssignmentOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal CoalesceAssignmentOperation(IOperation target, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(target, value, semanticModel, syntax, isImplicit)
         {
             Type = type;
         }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Target is not null) builder.Add(Target);
-                    if (Value is not null) builder.Add(Value);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Target != null
+                    => Target,
+                1 when Value != null
+                    => Value,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Target != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Value != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -6088,7 +6868,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class RangeOperation : Operation, IRangeOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal RangeOperation(IOperation? leftOperand, IOperation? rightOperand, bool isLifted, IMethodSymbol? method, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -6102,18 +6881,30 @@ namespace Microsoft.CodeAnalysis.Operations
         public IOperation? RightOperand { get; }
         public bool IsLifted { get; }
         public IMethodSymbol? Method { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (LeftOperand is not null) builder.Add(LeftOperand);
-                    if (RightOperand is not null) builder.Add(RightOperand);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when LeftOperand != null
+                    => LeftOperand,
+                1 when RightOperand != null
+                    => RightOperand,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (LeftOperand != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (RightOperand != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -6124,7 +6915,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ReDimOperation : Operation, IReDimOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ReDimOperation(ImmutableArray<IReDimClauseOperation> clauses, bool preserve, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -6133,17 +6923,27 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public ImmutableArray<IReDimClauseOperation> Clauses { get; }
         public bool Preserve { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (!Clauses.IsEmpty) builder.AddRange(Clauses);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when index < Clauses.Length
+                    => Clauses[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!Clauses.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+                case 0 when previousIndex + 1 < Clauses.Length:
+                    return (true, 0, previousIndex + 1);
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -6154,7 +6954,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class ReDimClauseOperation : Operation, IReDimClauseOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal ReDimClauseOperation(IOperation operand, ImmutableArray<IOperation> dimensionSizes, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -6163,18 +6962,32 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public IOperation Operand { get; }
         public ImmutableArray<IOperation> DimensionSizes { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Operand is not null) builder.Add(Operand);
-                    if (!DimensionSizes.IsEmpty) builder.AddRange(DimensionSizes);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Operand != null
+                    => Operand,
+                1 when index < DimensionSizes.Length
+                    => DimensionSizes[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Operand != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (!DimensionSizes.IsEmpty) return (true, 1, 0);
+                    else goto case 1;
+                case 1 when previousIndex + 1 < DimensionSizes.Length:
+                    return (true, 1, previousIndex + 1);
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -6185,7 +6998,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class RecursivePatternOperation : BasePatternOperation, IRecursivePatternOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal RecursivePatternOperation(ITypeSymbol matchedType, ISymbol? deconstructSymbol, ImmutableArray<IPatternOperation> deconstructionSubpatterns, ImmutableArray<IPropertySubpatternOperation> propertySubpatterns, ISymbol? declaredSymbol, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(inputType, narrowedType, semanticModel, syntax, isImplicit)
         {
@@ -6200,18 +7012,34 @@ namespace Microsoft.CodeAnalysis.Operations
         public ImmutableArray<IPatternOperation> DeconstructionSubpatterns { get; }
         public ImmutableArray<IPropertySubpatternOperation> PropertySubpatterns { get; }
         public ISymbol? DeclaredSymbol { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (!DeconstructionSubpatterns.IsEmpty) builder.AddRange(DeconstructionSubpatterns);
-                    if (!PropertySubpatterns.IsEmpty) builder.AddRange(PropertySubpatterns);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when index < DeconstructionSubpatterns.Length
+                    => DeconstructionSubpatterns[index],
+                1 when index < PropertySubpatterns.Length
+                    => PropertySubpatterns[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!DeconstructionSubpatterns.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+                case 0 when previousIndex + 1 < DeconstructionSubpatterns.Length:
+                    return (true, 0, previousIndex + 1);
+                case 0:
+                    if (!PropertySubpatterns.IsEmpty) return (true, 1, 0);
+                    else goto case 1;
+                case 1 when previousIndex + 1 < PropertySubpatterns.Length:
+                    return (true, 1, previousIndex + 1);
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -6224,7 +7052,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         internal DiscardPatternOperation(ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(inputType, narrowedType, semanticModel, syntax, isImplicit) { }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type => null;
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.DiscardPattern;
@@ -6233,7 +7062,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class SwitchExpressionOperation : Operation, ISwitchExpressionOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal SwitchExpressionOperation(IOperation value, ImmutableArray<ISwitchExpressionArmOperation> arms, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -6243,18 +7071,32 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public IOperation Value { get; }
         public ImmutableArray<ISwitchExpressionArmOperation> Arms { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Value is not null) builder.Add(Value);
-                    if (!Arms.IsEmpty) builder.AddRange(Arms);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Value != null
+                    => Value,
+                1 when index < Arms.Length
+                    => Arms[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Value != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (!Arms.IsEmpty) return (true, 1, 0);
+                    else goto case 1;
+                case 1 when previousIndex + 1 < Arms.Length:
+                    return (true, 1, previousIndex + 1);
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -6265,7 +7107,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class SwitchExpressionArmOperation : Operation, ISwitchExpressionArmOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal SwitchExpressionArmOperation(IPatternOperation pattern, IOperation? guard, IOperation value, ImmutableArray<ILocalSymbol> locals, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -6278,19 +7119,35 @@ namespace Microsoft.CodeAnalysis.Operations
         public IOperation? Guard { get; }
         public IOperation Value { get; }
         public ImmutableArray<ILocalSymbol> Locals { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(3);
-                    if (Pattern is not null) builder.Add(Pattern);
-                    if (Guard is not null) builder.Add(Guard);
-                    if (Value is not null) builder.Add(Value);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Pattern != null
+                    => Pattern,
+                1 when Guard != null
+                    => Guard,
+                2 when Value != null
+                    => Value,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Pattern != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Guard != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                    if (Value != null) return (true, 2, 0);
+                    else goto case 2;
+                case 2:
+                case 3:
+                    return (false, 3, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -6301,7 +7158,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class PropertySubpatternOperation : Operation, IPropertySubpatternOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal PropertySubpatternOperation(IOperation member, IPatternOperation pattern, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -6310,18 +7166,30 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public IOperation Member { get; }
         public IPatternOperation Pattern { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Member is not null) builder.Add(Member);
-                    if (Pattern is not null) builder.Add(Pattern);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Member != null
+                    => Member,
+                1 when Pattern != null
+                    => Pattern,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Member != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Pattern != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -6332,7 +7200,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class AggregateQueryOperation : Operation, IAggregateQueryOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal AggregateQueryOperation(IOperation group, IOperation aggregation, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -6342,18 +7209,30 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public IOperation Group { get; }
         public IOperation Aggregation { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Group is not null) builder.Add(Group);
-                    if (Aggregation is not null) builder.Add(Aggregation);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Group != null
+                    => Group,
+                1 when Aggregation != null
+                    => Aggregation,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Group != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Aggregation != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -6364,7 +7243,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class FixedOperation : Operation, IFixedOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal FixedOperation(ImmutableArray<ILocalSymbol> locals, IVariableDeclarationGroupOperation variables, IOperation body, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -6375,18 +7253,30 @@ namespace Microsoft.CodeAnalysis.Operations
         public ImmutableArray<ILocalSymbol> Locals { get; }
         public IVariableDeclarationGroupOperation Variables { get; }
         public IOperation Body { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Variables is not null) builder.Add(Variables);
-                    if (Body is not null) builder.Add(Body);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Variables != null
+                    => Variables,
+                1 when Body != null
+                    => Body,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Variables != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Body != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -6397,7 +7287,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class NoPiaObjectCreationOperation : Operation, INoPiaObjectCreationOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal NoPiaObjectCreationOperation(IObjectOrCollectionInitializerOperation? initializer, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -6405,17 +7294,25 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public IObjectOrCollectionInitializerOperation? Initializer { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Initializer is not null) builder.Add(Initializer);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Initializer != null
+                    => Initializer,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Initializer != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }
@@ -6433,7 +7330,8 @@ namespace Microsoft.CodeAnalysis.Operations
             Type = type;
         }
         public PlaceholderKind PlaceholderKind { get; }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.None;
@@ -6442,7 +7340,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class WithStatementOperation : Operation, IWithStatementOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal WithStatementOperation(IOperation body, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -6451,18 +7348,30 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public IOperation Body { get; }
         public IOperation Value { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Value is not null) builder.Add(Value);
-                    if (Body is not null) builder.Add(Body);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Value != null
+                    => Value,
+                1 when Body != null
+                    => Body,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Value != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Body != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -6473,7 +7382,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class UsingDeclarationOperation : Operation, IUsingDeclarationOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal UsingDeclarationOperation(IVariableDeclarationGroupOperation declarationGroup, bool isAsynchronous, IMethodSymbol? disposeMethod, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -6484,17 +7392,25 @@ namespace Microsoft.CodeAnalysis.Operations
         public IVariableDeclarationGroupOperation DeclarationGroup { get; }
         public bool IsAsynchronous { get; }
         public IMethodSymbol? DisposeMethod { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (DeclarationGroup is not null) builder.Add(DeclarationGroup);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when DeclarationGroup != null
+                    => DeclarationGroup,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (DeclarationGroup != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -6505,24 +7421,31 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class NegatedPatternOperation : BasePatternOperation, INegatedPatternOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal NegatedPatternOperation(IPatternOperation pattern, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(inputType, narrowedType, semanticModel, syntax, isImplicit)
         {
             Pattern = SetParentOperation(pattern, this);
         }
         public IPatternOperation Pattern { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Pattern is not null) builder.Add(Pattern);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Pattern != null
+                    => Pattern,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Pattern != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -6533,7 +7456,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class BinaryPatternOperation : BasePatternOperation, IBinaryPatternOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal BinaryPatternOperation(BinaryOperatorKind operatorKind, IPatternOperation leftPattern, IPatternOperation rightPattern, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(inputType, narrowedType, semanticModel, syntax, isImplicit)
         {
@@ -6544,18 +7466,30 @@ namespace Microsoft.CodeAnalysis.Operations
         public BinaryOperatorKind OperatorKind { get; }
         public IPatternOperation LeftPattern { get; }
         public IPatternOperation RightPattern { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (LeftPattern is not null) builder.Add(LeftPattern);
-                    if (RightPattern is not null) builder.Add(RightPattern);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when LeftPattern != null
+                    => LeftPattern,
+                1 when RightPattern != null
+                    => RightPattern,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (LeftPattern != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (RightPattern != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -6572,7 +7506,8 @@ namespace Microsoft.CodeAnalysis.Operations
             MatchedType = matchedType;
         }
         public ITypeSymbol MatchedType { get; }
-        public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();
+        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
         public override ITypeSymbol? Type => null;
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.TypePattern;
@@ -6581,7 +7516,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class RelationalPatternOperation : BasePatternOperation, IRelationalPatternOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal RelationalPatternOperation(BinaryOperatorKind operatorKind, IOperation value, ITypeSymbol inputType, ITypeSymbol narrowedType, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(inputType, narrowedType, semanticModel, syntax, isImplicit)
         {
@@ -6590,17 +7524,25 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public BinaryOperatorKind OperatorKind { get; }
         public IOperation Value { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(1);
-                    if (Value is not null) builder.Add(Value);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Value != null
+                    => Value,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Value != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type => null;
@@ -6611,7 +7553,6 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class WithOperation : Operation, IWithOperation
     {
-        private IEnumerable<IOperation>? _lazyChildren;
         internal WithOperation(IOperation operand, IMethodSymbol? cloneMethod, IObjectOrCollectionInitializerOperation initializer, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
@@ -6623,18 +7564,30 @@ namespace Microsoft.CodeAnalysis.Operations
         public IOperation Operand { get; }
         public IMethodSymbol? CloneMethod { get; }
         public IObjectOrCollectionInitializerOperation Initializer { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
             {
-                if (_lazyChildren is null)
-                {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(2);
-                    if (Operand is not null) builder.Add(Operand);
-                    if (Initializer is not null) builder.Add(Initializer);
-                    Interlocked.CompareExchange(ref _lazyChildren, builder.ToImmutableAndFree(), null);
-                }
-                return _lazyChildren;
+                0 when Operand != null
+                    => Operand,
+                1 when Initializer != null
+                    => Initializer,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Operand != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Initializer != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
         public override ITypeSymbol? Type { get; }

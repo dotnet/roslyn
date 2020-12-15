@@ -388,7 +388,6 @@ namespace IOperationGenerator
                 var ioperationProperties = allProps.Where(p => IsIOperationType(p.Type)).ToList();
                 var publicIOperationProps = ioperationProperties.Where(p => !p.IsInternal).ToList();
                 string typeName = type.Name[1..];
-                var lazyChildren = @"_lazyChildren";
                 var hasType = false;
                 var hasConstantValue = false;
                 var multipleValidKinds = HasMultipleValidKinds(type);
@@ -410,11 +409,6 @@ namespace IOperationGenerator
 
                 if (type is Node and var node)
                 {
-                    if (publicIOperationProps.Count != 0)
-                    {
-                        WriteLine($"private IEnumerable<IOperation>? {lazyChildren};");
-                    }
-
                     hasType = node.HasType;
                     hasConstantValue = node.HasConstantValue;
                 }
@@ -444,7 +438,7 @@ namespace IOperationGenerator
                 {
                     if (!node.SkipChildrenGeneration)
                     {
-                        writeChildrenProperty(type, publicIOperationProps, lazyChildren, node);
+                        writeEnumeratorMethods(type, publicIOperationProps, node);
                     }
 
                     WriteLine($"public override ITypeSymbol? Type {(node.HasType ? "{ get; }" : "=> null;")}");
@@ -643,20 +637,10 @@ namespace IOperationGenerator
                     return GetSubName(node.Name);
                 }
 
-                void writeChildrenProperty(AbstractNode type, List<Property> publicIOperationProps, string lazyChildren, Node node)
+                void writeEnumeratorMethods(AbstractNode type, List<Property> publicIOperationProps, Node node)
                 {
                     if (publicIOperationProps.Count > 0)
                     {
-                        WriteLine("public override IEnumerable<IOperation> Children");
-                        Brace();
-                        WriteLine("get");
-                        Brace();
-
-                        // PROTOTYPE(iop): Look at making this a better generated impl
-                        WriteLine($"if ({lazyChildren} is null)");
-                        Brace();
-                        WriteLine($"var builder = ArrayBuilder<IOperation>.GetInstance({publicIOperationProps.Count});");
-
                         var orderedProperties = new List<Property>();
 
                         if (publicIOperationProps.Count == 1)
@@ -675,28 +659,115 @@ namespace IOperationGenerator
                             }
                         }
 
-                        foreach (var prop in orderedProperties)
+                        WriteLine("protected override IOperation GetCurrent(int slot, int index)");
+                        Indent();
+                        WriteLine("=> slot switch");
+                        Brace();
+
+                        for (int i = 0; i < orderedProperties.Count; i++)
                         {
+                            var prop = orderedProperties[i];
+
+                            Write($"{i} when ");
+
                             if (IsImmutableArray(prop.Type, out _))
                             {
-                                WriteLine($"if (!{prop.Name}.IsEmpty) builder.AddRange({prop.Name});");
+                                WriteLine($"index < {prop.Name}.Length");
+                                Indent();
+                                WriteLine($"=> {prop.Name}[index],");
+                                Outdent();
                             }
                             else
                             {
-                                WriteLine($"if ({prop.Name} is not null) builder.Add({prop.Name});");
+                                WriteLine($"{prop.Name} != null");
+                                Indent();
+                                WriteLine($"=> {prop.Name},");
+                                Outdent();
                             }
                         }
 
-                        WriteLine($"Interlocked.CompareExchange(ref {lazyChildren}, builder.ToImmutableAndFree(), null);");
-                        Unbrace();
+                        WriteLine("_ => throw ExceptionUtilities.UnexpectedValue((slot, index)),");
+                        Outdent();
+                        WriteLine("};");
+                        Outdent();
 
-                        WriteLine($"return {lazyChildren};");
+                        WriteLine("protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)");
+                        Brace();
+                        WriteLine("switch (previousSlot)");
+                        Brace();
+
+                        int slot = 0;
+                        for (; slot < orderedProperties.Count; slot++)
+                        {
+                            // Operation.Enumerator starts indexes at -1. For a given property, the general psuedocode is:
+
+                            // case previousSlot:
+                            //     if (element i is valid) return (true, i, 0);
+                            //     else goto i;
+
+                            // If i is an IOperation, is valid means not null. If i is an ImmutableArray, it means not empty.
+                            // As IOperation is fully nullable-enabled, and the abstract `Current` method is nullable, we'll
+                            // get a warning if it attempts to return a null IOperation from such an array, so we don't need
+                            // to have explicit Debug.Assert code for this.
+
+                            // Then, if the property is an immutable array:
+                            // case i when previousIndex + 1 < property[i].Length:
+                            //    return (true, i, previousIndex + 1);
+
+                            // While the next index is still valid, this will hit this case for i, only moving to the next
+                            // element after the array is exhausted.
+
+                            var previousSlot = slot - 1;
+                            var prop = orderedProperties[slot];
+
+                            WriteLine($"case {previousSlot}:");
+                            Indent();
+
+                            bool isImmutableArray = IsImmutableArray(prop.Type, out _);
+                            if (isImmutableArray)
+                            {
+                                WriteLine($"if (!{prop.Name}.IsEmpty) return (true, {slot}, 0);");
+                            }
+                            else
+                            {
+                                WriteLine($"if ({prop.Name} != null) return (true, {slot}, 0);");
+                            }
+
+                            WriteLine($"else goto case {slot};");
+
+                            Outdent();
+
+                            if (isImmutableArray)
+                            {
+                                WriteLine($"case {slot} when previousIndex + 1 < {prop.Name}.Length:");
+                                Indent();
+                                WriteLine($"return (true, {slot}, previousIndex + 1);");
+                                Outdent();
+                            }
+                        }
+
+                        // We introduce an explicit "eof" slot, that indicates the enumerator has moved beyond
+                        // the end of the sequence. This allows us to differentiate between repeated calls to
+                        // MoveNext, which are valid and always return false and the "eof" slot, and invalid
+                        // usage of the API (which may give us a slot that we are not expecting.)
+                        int lastSlot = slot - 1;
+                        WriteLine($"case {lastSlot}:");
+                        WriteLine($"case {slot}:");
+                        Indent();
+                        WriteLine($"return (false, {slot}, 0);");
+                        Outdent();
+
+                        WriteLine("default:");
+                        Indent();
+                        WriteLine("throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));");
+                        Outdent();
                         Unbrace();
                         Unbrace();
                     }
                     else
                     {
-                        WriteLine("public override IEnumerable<IOperation> Children => Array.Empty<IOperation>();");
+                        WriteLine("protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));");
+                        WriteLine("protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);");
                     }
                 }
             }
