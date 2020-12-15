@@ -387,7 +387,7 @@ class C
 }
 ";
 
-            await VerifyItemExistsAsync(markup, "e");
+            await VerifyItemExistsAsync(markup, "E.A");
             await VerifyItemIsAbsentAsync(markup, "e as E");
         }
 
@@ -410,7 +410,7 @@ class C
 }
 ";
 
-            await VerifyItemExistsAsync(markup, "E");
+            await VerifyItemExistsAsync(markup, "E.A");
         }
 
         [Fact]

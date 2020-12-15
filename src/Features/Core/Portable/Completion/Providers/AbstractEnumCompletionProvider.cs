@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract (string displayText, string suffix, string insertionText) GetDefaultDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context);
 
-        protected override Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(
+            SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
             if (syntaxFacts.IsInNonUserCode(context.SyntaxTree, context.Position, cancellationToken))
@@ -51,42 +52,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 .ToImmutableArray<ISymbol>();
 
             return Task.FromResult(result);
-        }
-
-        protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(
-            SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
-        {
-            var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts.IsInNonUserCode(context.SyntaxTree, context.Position, cancellationToken))
-            {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
-            }
-
-            // This providers provides fully qualified names, eg "DayOfWeek.Monday"
-            // Don't run after dot because SymbolCompletionProvider will provide
-            // members in situations like Dim x = DayOfWeek.$$
-            if (context.TargetToken.RawKind == syntaxFacts.SyntaxKinds.DotToken)
-            {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
-            }
-
-            var typeInferenceService = context.GetLanguageService<ITypeInferenceService>();
-            var enumType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault: true, cancellationToken: cancellationToken);
-
-            if (enumType?.TypeKind != TypeKind.Enum)
-            {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
-            }
-
-            var hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language);
-
-            var otherSymbols = context.SemanticModel.LookupSymbols(position).WhereAsArray(s =>
-                s.MatchesKind(SymbolKind.Field, SymbolKind.Local, SymbolKind.Parameter, SymbolKind.Property) &&
-                s.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation));
-
-            var otherInstances = otherSymbols.WhereAsArray(s => Equals(enumType, s.GetSymbolType()));
-
-            return Task.FromResult(otherInstances.Concat(enumType));
         }
 
         // PERF: Cached values for GetDisplayAndInsertionText. Cuts down on the number of calls to ToMinimalDisplayString for large enums.

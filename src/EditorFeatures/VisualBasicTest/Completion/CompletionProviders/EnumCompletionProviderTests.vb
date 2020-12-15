@@ -408,7 +408,7 @@ Class C
     End Sub
 End Class
 ]]></Text>.Value
-            Await VerifyItemExistsAsync(markup, "e")
+            Await VerifyItemExistsAsync(markup, "E.A")
             Await VerifyItemIsAbsentAsync(markup, "e As E")
         End Function
 
@@ -426,7 +426,7 @@ Class C
     End Sub
 End Class
 ]]></Text>.Value
-            Await VerifyItemExistsAsync(markup, "E")
+            Await VerifyItemExistsAsync(markup, "E.A")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
