@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string filterText = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default)
+            ImmutableArray<string> tags = default,
+            string inlineDescription = null)
         {
             var props = properties ?? ImmutableDictionary<string, string>.Empty;
 
@@ -54,7 +55,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 glyph: firstSymbol.GetGlyph(),
                 showsWarningIcon: supportedPlatforms != null,
                 properties: props,
-                tags: tags);
+                tags: tags,
+                inlineDescription: inlineDescription);
 
             item = WithSupportedPlatforms(item, supportedPlatforms);
             return symbolEncoder(symbols, item);
@@ -294,12 +296,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string filterText = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default)
+            ImmutableArray<string> tags = default,
+            string inlineDescription = null)
         {
             return CreateWorker(
                 displayText, displayTextSuffix, symbols, rules, contextPosition,
                 s_addSymbolEncoding, sortText, insertionText,
-                filterText, supportedPlatforms, properties, tags);
+                filterText, supportedPlatforms, properties, tags, inlineDescription);
         }
 
         public static CompletionItem CreateWithNameAndKind(
