@@ -5656,7 +5656,7 @@ class C
 }
 enum Color { Red, Greed, Blue }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators, targetFramework: TargetFramework.NetCoreApp30);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithPatternCombinators, targetFramework: TargetFramework.NetCoreApp);
             compilation.VerifyDiagnostics(
                 // (4,37): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(_, (Color)3)' is not covered.
                 //     int M(int i, Color c) => (i, c) switch

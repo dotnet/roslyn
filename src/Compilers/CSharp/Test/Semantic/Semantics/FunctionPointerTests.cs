@@ -3048,7 +3048,7 @@ using System;
 unsafe static class C
 {
     static delegate*<ArgIterator, ref ArgIterator, ArgIterator> Ptr;
-}", targetFramework: TargetFramework.NetCoreApp30);
+}", targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
                 // (5,35): error CS1601: Cannot make reference to variable of type 'ArgIterator'

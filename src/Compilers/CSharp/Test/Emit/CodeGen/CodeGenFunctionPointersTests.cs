@@ -7006,7 +7006,7 @@ public class C
         Console.Write(new string(ptr(chars)));
     }
 }
-", targetFramework: TargetFramework.NetCoreApp30, expectedOutput: "123");
+", targetFramework: TargetFramework.NetCoreApp, expectedOutput: "123");
 
             comp.VerifyIL("C.Main", @"
 {
