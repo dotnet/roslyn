@@ -626,4 +626,8 @@
   <data name="Show_hints_for_new_expressions" xml:space="preserve">
     <value>Show hints for 'new' expressions</value>
   </data>
+  <data name="Add_missing_using_directives_on_paste" xml:space="preserve">
+    <value>Add missing using directives on paste</value>
+    <comment>'using' is a C# keyword and should not be localized</comment>
+  </data>
 </root>

@@ -128,5 +128,49 @@ End Module
 
             Await VerifyRecommendationsMissingAsync(code, "True", "False")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function TrueFalseInDirective1() As Task
+            Await VerifyRecommendationsContainAsync(<File>#if |</File>, "True", "False")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function TrueFalseInDirective2() As Task
+            Await VerifyRecommendationsContainAsync(<File>#if not |</File>, "True", "False")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function TrueFalseInDirective3() As Task
+            Await VerifyRecommendationsContainAsync(<File>#if (|</File>, "True", "False")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function TrueFalseInDirective4() As Task
+            Await VerifyRecommendationsContainAsync(<File>#if true andalso |</File>, "True", "False")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function TrueFalseInDirective5() As Task
+            Await VerifyRecommendationsContainAsync(<File>#if true and |</File>, "True", "False")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function TrueFalseInDirective6() As Task
+            Await VerifyRecommendationsContainAsync(<File>#if true orelse |</File>, "True", "False")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function TrueFalseInDirective7() As Task
+            Await VerifyRecommendationsContainAsync(<File>#if true or |</File>, "True", "False")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function TrueFalseInDirective() As Task
+            Await VerifyRecommendationsContainAsync(
+<File>
+#if true
+#elseif |
+</File>, "True", "False")
+        End Function
     End Class
 End Namespace

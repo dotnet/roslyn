@@ -30,17 +30,21 @@ jobs:
     queue: ${{ parameters.queueName }}
   timeoutInMinutes: 120
   steps:
+    - checkout: none
+
     - task: DownloadPipelineArtifact@2
+      displayName: Download Test Payload
       inputs:
         artifact: ${{ parameters.testArtifactName }}
-        path: '$(Build.SourcesDirectory)\artifacts\bin' 
+        path: '$(Build.SourcesDirectory)'
 
-    - task: PowerShell@2 
+    - task: PowerShell@2
       displayName: Rehydrate Unit Tests Environment
       inputs:
-        filePath: eng/rehydrate-tests.ps1
+        filePath: rehydrate.ps1
+        pwsh: true
 
-    - task: PowerShell@2 
+    - task: PowerShell@2
       displayName: Run Unit Tests
       inputs:
         filePath: eng/build.ps1

@@ -174,7 +174,10 @@ namespace Microsoft.CodeAnalysis.Remote
             // if this end-point is already disconnected do not log more errors:
             var logError = _disconnectedReason == null;
 
-            using var linkedCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            // Create a separate cancellation token for the reader, which we keep open until after the call to invoke
+            // completes. If we close the reader before cancellation is processed by the remote call, it might block
+            // (deadlock) while writing to a stream which is no longer processing data.
+            using var readerCancellationSource = new CancellationTokenSource();
 
             var pipeName = Guid.NewGuid().ToString();
 
@@ -182,23 +185,23 @@ namespace Microsoft.CodeAnalysis.Remote
 
             try
             {
-                // Transfer ownership of the pipe to BufferedStream, it will dispose it:
-                using var stream = new BufferedStream(pipe, BufferSize);
-
                 // send request to asset source
                 var task = _rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(pipeName).ToArray(), cancellationToken);
 
                 // if invoke throws an exception, make sure we raise cancellation.
-                RaiseCancellationIfInvokeFailed(task, linkedCancellationSource, cancellationToken);
+                RaiseCancellationIfInvokeFailed(task, readerCancellationSource);
 
                 var task2 = Task.Run(async () =>
                 {
+                    // Transfer ownership of the pipe to BufferedStream, it will dispose it:
+                    using var stream = new BufferedStream(pipe, BufferSize);
+
                     // wait for asset source to respond
-                    await pipe.WaitForConnectionAsync(linkedCancellationSource.Token).ConfigureAwait(false);
+                    await pipe.WaitForConnectionAsync(readerCancellationSource.Token).ConfigureAwait(false);
 
                     // run user task with direct stream
-                    return await dataReader(stream, linkedCancellationSource.Token).ConfigureAwait(false);
-                }, linkedCancellationSource.Token);
+                    return await dataReader(stream, readerCancellationSource.Token).ConfigureAwait(false);
+                }, readerCancellationSource.Token);
 
                 // Wait for all tasks to finish. If we return while one of the tasks is still in flight, the task would
                 // operate as a fire-and-forget operation where the caller might release state objects still in use by
@@ -208,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Debug.Assert(task2.Status == TaskStatus.RanToCompletion);
                 return task2.Result;
             }
-            catch (Exception ex) when (!logError || ReportUnlessCanceled(ex, linkedCancellationSource.Token, cancellationToken))
+            catch (Exception ex) when (!logError || ReportUnlessCanceled(ex, readerCancellationSource.Token, cancellationToken))
             {
                 // Remote call may fail with different exception even when our cancellation token is signaled
                 // (e.g. on shutdown if the connection is dropped).
@@ -305,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private static void RaiseCancellationIfInvokeFailed(Task task, CancellationTokenSource linkedCancellationSource, CancellationToken cancellationToken)
+        private static void RaiseCancellationIfInvokeFailed(Task task, CancellationTokenSource linkedCancellationSource)
         {
             // if invoke throws an exception, make sure we raise cancellation
             _ = task.ContinueWith(p =>
@@ -322,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     // merged cancellation is already disposed
                 }
-            }, cancellationToken, TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            }, CancellationToken.None, TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         }
 
         private static bool ReportUnlessCanceled(Exception ex, CancellationToken linkedCancellationToken, CancellationToken cancellationToken)

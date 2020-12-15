@@ -177,7 +177,7 @@ void local() => System.Console.WriteLine(2);
 
             static void verifyModel(CSharpCompilation comp, SyntaxTree tree1, bool nullableEnabled = false)
             {
-                Assert.Equal(nullableEnabled, comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+                Assert.Equal(nullableEnabled, comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
                 var model1 = comp.GetSemanticModel(tree1);
 
                 verifyModelForGlobalStatements(tree1, model1);
@@ -302,7 +302,7 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'local(); .
 
             static void verifyModel(CSharpCompilation comp, SyntaxTree tree1, SyntaxTree tree2, bool nullableEnabled = false)
             {
-                Assert.Equal(nullableEnabled, comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+                Assert.Equal(nullableEnabled, comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
                 var model1 = comp.GetSemanticModel(tree1);
 
                 verifyModelForGlobalStatements(tree1, model1);
@@ -467,7 +467,7 @@ void local() => System.Console.WriteLine(i);
 
             static void verifyModel(CSharpCompilation comp, SyntaxTree tree1, SyntaxTree tree2)
             {
-                Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+                Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
                 var model1 = comp.GetSemanticModel(tree1);
                 var localDecl = tree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
@@ -519,7 +519,7 @@ System.Console.Write(i);
 
             var tree1 = comp.SyntaxTrees[0];
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var model1 = comp.GetSemanticModel(tree1);
             var localDecl = tree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
@@ -559,7 +559,7 @@ void local() => System.Console.WriteLine(i);
 
             static void verifyModel(CSharpCompilation comp, SyntaxTree tree1)
             {
-                Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+                Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
                 var model1 = comp.GetSemanticModel(tree1);
                 var localDecl = tree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
@@ -683,7 +683,7 @@ System.Console.WriteLine(s);
 
             CompileAndVerify(comp, expectedOutput: "Hi!");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -855,7 +855,7 @@ System.Console.Write(x);
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "int").WithLocation(2, 1)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -969,7 +969,7 @@ System.Console.Write(x);
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(4, 5)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -1024,7 +1024,7 @@ System.Console.Write(args);
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "args").WithArguments("args").WithLocation(2, 8)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -1379,7 +1379,7 @@ class C1
                 Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "x").WithArguments("x").WithLocation(6, 30)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree2 = comp.SyntaxTrees[1];
             var model2 = comp.GetSemanticModel(tree2);
@@ -1397,7 +1397,7 @@ class C1
                 Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "x").WithArguments("x").WithLocation(6, 30)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             tree2 = comp.SyntaxTrees[0];
             model2 = comp.GetSemanticModel(tree2);
@@ -1657,7 +1657,7 @@ namespace N1
             var getHashCode = ((Compilation)comp).GetMember("System.Object." + nameof(GetHashCode));
             var testType = ((Compilation)comp).GetTypeByMetadataName("Test");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -1680,7 +1680,7 @@ namespace N1
             Assert.DoesNotContain(declSymbol, symbols);
             Assert.Same(testType, model1.LookupNamespacesAndTypes(localDecl.SpanStart, name: "Test").Single());
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var nameRefs = tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Test").ToArray();
 
@@ -1830,7 +1830,7 @@ namespace N1
             var getHashCode = ((Compilation)comp).GetMember("System.Object." + nameof(GetHashCode));
             var testType = ((Compilation)comp).GetTypeByMetadataName("Test");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -1853,7 +1853,7 @@ namespace N1
             Assert.DoesNotContain(declSymbol, symbols);
             Assert.Same(testType, model1.LookupNamespacesAndTypes(localDecl.SpanStart, name: "Test").Single());
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree2 = comp.SyntaxTrees[1];
             var model2 = comp.GetSemanticModel(tree2);
@@ -2056,7 +2056,7 @@ namespace N1
 
             var testType = ((Compilation)comp).GetTypeByMetadataName("Test");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -2220,7 +2220,7 @@ namespace N1
 
             var testType = ((Compilation)comp).GetTypeByMetadataName("Test");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -2398,7 +2398,7 @@ namespace N1
 
             var testType = ((Compilation)comp).GetTypeByMetadataName("Test");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -2890,7 +2890,7 @@ void local()
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(7, 1)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -3913,7 +3913,7 @@ namespace N1
 
             var testType = ((Compilation)comp).GetTypeByMetadataName("args");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -4062,7 +4062,7 @@ namespace N1
 
             var testType = ((Compilation)comp).GetTypeByMetadataName("args");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree = comp.SyntaxTrees[1];
             var model = comp.GetSemanticModel(tree);
@@ -4187,7 +4187,7 @@ void local()
 
             CompileAndVerify(comp, expectedOutput: "15");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -4470,7 +4470,7 @@ void local2()
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local2").WithArguments("local2").WithLocation(5, 6)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -4534,7 +4534,7 @@ void local2()
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local1").WithArguments("local1").WithLocation(7, 6)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -4583,7 +4583,7 @@ void args(int x)
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "args").WithArguments("args").WithLocation(3, 6)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -4853,7 +4853,7 @@ label1: System.Console.WriteLine(""Hi!"");
 
             CompileAndVerify(comp, expectedOutput: "Hi!");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -4910,7 +4910,7 @@ goto label1;
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "label1").WithLocation(2, 1)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -4938,7 +4938,7 @@ args: System.Console.WriteLine(""Hi!"");
 
             CompileAndVerify(comp, expectedOutput: "Hi!");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);

@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedAccessorValueParameterSymbol(SourceMemberMethodSymbol accessor, TypeWithAnnotations paramType, int ordinal)
             : base(accessor, ordinal, paramType, RefKind.None, ParameterSymbol.ValueParameterName, accessor.Locations,
                    syntaxRef: null,
-                   defaultSyntaxValue: ConstantValue.Unset, // the default value can be set via [param: DefaultParameterValue] applied on the accessor
                    isParams: false,
                    isExtensionMethodThis: false)
         {

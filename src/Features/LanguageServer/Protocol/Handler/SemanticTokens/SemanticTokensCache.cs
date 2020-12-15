@@ -48,14 +48,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// We need this sempahore to ensure that we aren't making concurrent
         /// modifications to the _tokens dictionary.
         /// </summary>
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _semaphore = new(1);
 
         #region protected by _semaphore
         /// <summary>
         /// Maps a document URI to its n most recently cached token sets.
         /// </summary>
-        private readonly Dictionary<Uri, List<LSP.SemanticTokens>> _tokens =
-            new Dictionary<Uri, List<LSP.SemanticTokens>>();
+        private readonly Dictionary<Uri, List<LSP.SemanticTokens>> _tokens = new();
         #endregion
 
         static SemanticTokensCache()

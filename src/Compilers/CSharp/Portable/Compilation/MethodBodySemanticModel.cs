@@ -304,11 +304,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, afterInitializersState, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
         }
 
-#if DEBUG
         protected override void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots)
         {
             NullableWalker.AnalyzeWithoutRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots);
         }
-#endif
     }
 }

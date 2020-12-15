@@ -1689,7 +1689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableDictionary<Symbol, Symbol> remappedSymbols = null;
                     var compilation = bodyBinder.Compilation;
                     var isSufficientLangVersion = compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion();
-                    if (compilation.NullableSemanticAnalysisEnabled)
+                    if (compilation.IsNullableAnalysisEnabled)
                     {
                         methodBodyForSemanticModel = NullableWalker.AnalyzeAndRewrite(
                             compilation,
@@ -1754,7 +1754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var property = sourceMethod.AssociatedSymbol as SourcePropertySymbolBase;
-                    if ((object)property != null && property.IsAutoProperty)
+                    if ((object)property != null && property.IsAutoPropertyWithGetAccessor)
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
                     }
@@ -2018,6 +2018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded: false,
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: ImmutableArray<int>.Empty,
+                defaultArguments: BitVector.Empty,
                 resultKind: resultKind,
                 binderOpt: null,
                 type: baseConstructor.ReturnType,
@@ -2065,6 +2066,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded: false,
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: default,
+                defaultArguments: default,
                 resultKind: LookupResultKind.Viable,
                 binderOpt: null,
                 type: baseConstructor.ReturnType,

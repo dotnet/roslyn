@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
@@ -51,7 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptCompletionHandlerShim(ILspSolutionProvider solutionProvider) : base(Array.Empty<Lazy<CompletionProvider, CompletionProviderMetadata>>())
+        public TypeScriptCompletionHandlerShim(ILspSolutionProvider solutionProvider)
+            : base(completionProviders: Array.Empty<Lazy<CompletionProvider, CompletionProviderMetadata>>(), completionListCache: null)
         {
             _solutionProvider = solutionProvider;
         }
@@ -74,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptCompletionResolverHandlerShim(ILspSolutionProvider solutionProvider)
+        public TypeScriptCompletionResolverHandlerShim(ILspSolutionProvider solutionProvider) : base(completionListCache: null)
         {
             _solutionProvider = solutionProvider;
         }
@@ -196,7 +198,15 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             var (documentId, solution) = provider.GetDocumentAndSolution(textDocument, clientName);
             var document = solution.GetDocument(documentId);
 
-            return new LSP.RequestContext(solution, clientCapabilities, clientName, document, documentChangeTracker: null);
+            return new LSP.RequestContext(solution, clientCapabilities, clientName, document, new NoOpDocumentChangeTracker());
+        }
+
+        private class NoOpDocumentChangeTracker : RequestExecutionQueue.IDocumentChangeTracker
+        {
+            public bool IsTracking(Uri documentUri) => false;
+            public void StartTracking(Uri documentUri, SourceText initialText) { }
+            public void StopTracking(Uri documentUri) { }
+            public void UpdateTrackedDocument(Uri documentUri, SourceText text) { }
         }
     }
 }

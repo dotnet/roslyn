@@ -3483,6 +3483,12 @@ print Goodbye, World"
             parsedArgs.Errors.Verify()
             Assert.Equal(KeyValuePairUtil.Create("a =,b" & s, "1,= 2" & s), parsedArgs.PathMap(0))
             Assert.Equal(KeyValuePairUtil.Create("x =,y" & s, "3 4" & s), parsedArgs.PathMap(1))
+
+            parsedArgs = DefaultParse({"/pathmap:C:\temp\=/_1/,C:\temp\a\=/_2/,C:\temp\a\b\=/_3/", "a.cs", "a\b.cs", "a\b\c.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePairUtil.Create("C:\temp\a\b\", "/_3/"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePairUtil.Create("C:\temp\a\", "/_2/"), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePairUtil.Create("C:\temp\", "/_1/"), parsedArgs.PathMap(2))
         End Sub
 
         ' PathMapKeepsCrossPlatformRoot and PathMapInconsistentSlashes should be in an
@@ -10058,6 +10064,59 @@ End Class")
             End If
         End Sub
 
+        <WorkItem(49446, "https://github.com/dotnet/roslyn/issues/49446")>
+        <Theory>
+        <InlineData(False, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)>
+        <InlineData(True, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)>
+        <InlineData(False, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error)>
+        <InlineData(True, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Warning)>
+        <InlineData(False, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, DiagnosticSeverity.Warning, DiagnosticSeverity.Error, DiagnosticSeverity.Warning)>
+        <InlineData(False, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        <InlineData(True, DiagnosticSeverity.Info, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
+        Public Sub TestWarnAsErrorMinusDoesNotNullifyEditorConfig(warnAsErrorMinus As Boolean,
+                                                                  defaultSeverity As DiagnosticSeverity,
+                                                                  severityInConfigFile As DiagnosticSeverity?,
+                                                                  expectedEffectiveSeverity As DiagnosticSeverity)
+            Dim analyzer = New NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault:=True, defaultSeverity, throwOnAllNamedTypes:=False)
+            Dim diagnosticId = analyzer.Descriptor.Id
+
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Class C
+End Class")
+            Dim additionalFlags = {"/warnaserror+"}
+
+            If severityInConfigFile.HasValue Then
+                Dim severityString = DiagnosticDescriptor.MapSeverityToReport(severityInConfigFile.Value).ToAnalyzerConfigString()
+                Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($"
+[*.vb]
+dotnet_diagnostic.{diagnosticId}.severity = {severityString}")
+
+                additionalFlags = additionalFlags.Append($"/analyzerconfig:{analyzerConfig.Path}").ToArray()
+            End If
+
+            If warnAsErrorMinus Then
+                additionalFlags = additionalFlags.Append($"/warnaserror-:{diagnosticId}").ToArray()
+            End If
+
+            Dim expectedWarningCount As Integer = 0, expectedErrorCount As Integer = 0
+            Select Case expectedEffectiveSeverity
+                Case DiagnosticSeverity.Warning
+                    expectedWarningCount = 1
+                Case DiagnosticSeverity.[Error]
+                    expectedErrorCount = 1
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(expectedEffectiveSeverity)
+            End Select
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False,
+                         expectedWarningCount:=expectedWarningCount,
+                         expectedErrorCount:=expectedErrorCount,
+                         additionalFlags:=additionalFlags,
+                         analyzers:=ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+        End Sub
+
         <Fact>
         <WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")>
         Public Sub GlobalAnalyzerConfigDiagnosticOptionsCanBeOverridenByCommandLine()
@@ -10257,6 +10316,67 @@ dotnet_diagnostic.{diagnosticId}.severity = {analyzerConfigSeverity}")
                 Assert.DoesNotContain(diagnosticId, output)
             End If
         End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly), Reason:="Can't load a coreclr targeting generator on net framework / mono")>
+        Public Sub TestGeneratorsCantTargetNetFramework()
+            Dim directory = Temp.CreateDirectory()
+            Dim src = directory.CreateFile("test.vb").WriteAllText("
+Class C
+End Class")
+
+            'Core
+            Dim coreGenerator = EmitGenerator(".NETCoreApp,Version=v5.0")
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/analyzer:" & coreGenerator})
+
+            'NetStandard
+            Dim nsGenerator = EmitGenerator(".NETStandard,Version=v2.0")
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/analyzer:" & nsGenerator})
+
+            'NoTarget
+            Dim ntGenerator = EmitGenerator(targetFramework:=Nothing)
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/analyzer:" & ntGenerator})
+
+            'Framework
+            Dim frameworkGenerator = EmitGenerator(".NETFramework,Version=v4.7.2")
+            Dim output = VerifyOutput(directory, src, expectedWarningCount:=2, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/analyzer:" & frameworkGenerator})
+            Assert.Contains("CS8850", output)
+            Assert.Contains("CS8033", output)
+
+            'Framework, suppressed
+            output = VerifyOutput(directory, src, expectedWarningCount:=1, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/nowarn:CS8850", "/analyzer:" & frameworkGenerator})
+            Assert.Contains("CS8033", output)
+            VerifyOutput(directory, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/nowarn:CS8850,CS8033", "/analyzer:" & frameworkGenerator})
+        End Sub
+
+        Private Function EmitGenerator(ByVal targetFramework As String) As String
+            Dim targetFrameworkAttributeText As String = If(TypeOf targetFramework Is Object, $"<Assembly: System.Runtime.Versioning.TargetFramework(""{targetFramework}"")>", String.Empty)
+            Dim generatorSource As String = $"
+Imports Microsoft.CodeAnalysis
+
+{targetFrameworkAttributeText}
+
+<Generator>
+Public Class Generator
+    Inherits ISourceGenerator
+
+    Public Sub Execute(ByVal context As GeneratorExecutionContext)
+    End Sub
+
+    Public Sub Initialize(ByVal context As GeneratorInitializationContext)
+    End Sub
+End Class
+"
+            Dim directory = Temp.CreateDirectory()
+            Dim generatorPath = Path.Combine(directory.Path, "generator.dll")
+            Dim compilation = VisualBasicCompilation.Create($"generator_{targetFramework}",
+                                                            {VisualBasicSyntaxTree.ParseText(generatorSource)},
+                                                            TargetFrameworkUtil.GetReferences(Roslyn.Test.Utilities.TargetFramework.Standard, {MetadataReference.CreateFromAssemblyInternal(GetType(ISourceGenerator).Assembly)}),
+                                                            New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            compilation.VerifyDiagnostics()
+            Dim result = compilation.Emit(generatorPath)
+            Assert.[True](result.Success)
+            Return generatorPath
+        End Function
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

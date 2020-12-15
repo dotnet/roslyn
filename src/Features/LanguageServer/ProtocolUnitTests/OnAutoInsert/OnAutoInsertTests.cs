@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -179,16 +181,110 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
             await VerifyMarkupAndExpected("\n", markup, expected);
         }
 
-        private async Task VerifyMarkupAndExpected(string characterTyped, string markup, string expected)
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task OnAutoInsert_BraceFormatting()
+        {
+            // The test starts with the closing brace already on a new line.
+            // In LSP, hitting enter will first trigger a didChange event for the new line character
+            // (bringing the server text to the form below) and then trigger OnAutoInsert
+            // for the new line character.
+            var markup =
+@"class A
+{
+    void M() {{|type:|}
+    }
+}";
+            var expected =
+@"class A
+{
+    void M()
+    {
+        $0
+    }
+}";
+            await VerifyMarkupAndExpected("\n", markup, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task OnAutoInsert_BraceFormattingWithTabs()
+        {
+            var markup =
+@"class A
+{
+    void M() {{|type:|}
+    }
+}";
+            // Use show whitespace when modifying the expected value.
+            // The method braces and caret location should be indented with tabs.
+            var expected =
+@"class A
+{
+    void M()
+	{
+		$0
+	}
+}";
+            await VerifyMarkupAndExpected("\n", markup, expected, useTabs: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task OnAutoInsert_BraceFormattingInsideMethod()
+        {
+            var markup =
+@"class A
+{
+    void M()
+    {
+        if (true) {{|type:|}
+        }
+    }
+}";
+            var expected =
+@"class A
+{
+    void M()
+    {
+        if (true)
+        {
+            $0
+        }
+    }
+}";
+            await VerifyMarkupAndExpected("\n", markup, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task OnAutoInsert_BraceFormattingNoResultInInterpolation()
+        {
+            var markup =
+@"class A
+{
+    void M()
+    {
+        var s = $""Hello {{|type:|}
+        }
+}";
+            await VerifyNoResult("\n", markup);
+        }
+
+        private async Task VerifyMarkupAndExpected(string characterTyped, string markup, string expected, bool useTabs = false)
         {
             using var workspace = CreateTestWorkspace(markup, out var locations);
             var locationTyped = locations["type"].Single();
-            var documentText = await workspace.CurrentSolution.GetDocuments(locationTyped.Uri).Single().GetTextAsync();
 
-            var results = await RunOnAutoInsertAsync(workspace.CurrentSolution, characterTyped, locationTyped);
+            if (useTabs)
+            {
+                var newSolution = workspace.CurrentSolution.WithOptions(
+                    workspace.CurrentSolution.Options.WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs));
+                workspace.TryApplyChanges(newSolution);
+            }
 
-            Assert.Single(results);
-            var result = results[0];
+            var document = workspace.CurrentSolution.GetDocuments(locationTyped.Uri).Single();
+            var documentText = await document.GetTextAsync();
+
+            var result = await RunOnAutoInsertAsync(workspace.CurrentSolution, characterTyped, locationTyped);
+
+            AssertEx.NotNull(result);
             Assert.Equal(InsertTextFormat.Snippet, result.TextEditFormat);
             var actualText = ApplyTextEdits(new[] { result.TextEdit }, documentText);
             Assert.Equal(expected, actualText);
@@ -200,15 +296,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
             var locationTyped = locations["type"].Single();
             var documentText = await workspace.CurrentSolution.GetDocuments(locationTyped.Uri).Single().GetTextAsync();
 
-            var results = await RunOnAutoInsertAsync(workspace.CurrentSolution, characterTyped, locationTyped);
+            var result = await RunOnAutoInsertAsync(workspace.CurrentSolution, characterTyped, locationTyped);
 
-            Assert.Empty(results);
+            Assert.Null(result);
         }
 
-        private static async Task<LSP.DocumentOnAutoInsertResponseItem[]> RunOnAutoInsertAsync(Solution solution, string characterTyped, LSP.Location locationTyped)
+        private static async Task<LSP.DocumentOnAutoInsertResponseItem?> RunOnAutoInsertAsync(Solution solution, string characterTyped, LSP.Location locationTyped)
         {
             var queue = CreateRequestQueue(solution);
-            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem[]>(queue, MSLSPMethods.OnAutoInsertName,
+            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.DocumentOnAutoInsertParams, LSP.DocumentOnAutoInsertResponseItem?>(queue, MSLSPMethods.OnAutoInsertName,
                            CreateDocumentOnAutoInsertParams(characterTyped, locationTyped), new LSP.ClientCapabilities(), null, CancellationToken.None);
         }
 
