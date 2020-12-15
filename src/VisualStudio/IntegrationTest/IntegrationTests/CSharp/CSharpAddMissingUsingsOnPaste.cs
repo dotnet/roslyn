@@ -42,7 +42,7 @@ class Program
 
     $$
 }");
-            VisualStudio.Workspace.SetFeatureOption(FeatureOnOffOptions.AddImportsOnPaste.Feature, FeatureOnOffOptions.AddImportsOnPaste.Name, LanguageNames.CSharp, "True");
+            VisualStudio.Workspace.SetFeatureOption(FeatureOnOffOptions.AddImportsOnPaste.Feature, FeatureOnOffOptions.AddImportsOnPaste.Name, LanguageNames.CSharp, "False");
 
             VisualStudio.Editor.Paste(@"Task DoThingAsync() => Task.CompletedTask;");
 
