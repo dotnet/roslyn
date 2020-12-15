@@ -127,10 +127,16 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.CodeStyle", "src\CodeStyle\CSharp\Analyzers\Microsoft.CodeAnalysis.CSharp.CodeStyle.csproj", "{AA87BFED-089A-4096-B8D5-690BDC7D5B24}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes", "src\CodeStyle\CSharp\CodeFixes\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.csproj", "{A07ABCF5-BC43-4EE9-8FD8-B2D77FD54D73}"
+	ProjectSection(ProjectDependencies) = postProject
+		{432F4461-E198-44AA-8022-9E8C06A17C93} = {432F4461-E198-44AA-8022-9E8C06A17C93}
+	EndProjectSection
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.CodeAnalysis.VisualBasic.CodeStyle", "src\CodeStyle\VisualBasic\Analyzers\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.vbproj", "{2531A8C4-97DD-47BC-A79C-B7846051E137}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes", "src\CodeStyle\VisualBasic\CodeFixes\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.vbproj", "{0141285D-8F6C-42C7-BAF3-3C0CCD61C716}"
+	ProjectSection(ProjectDependencies) = postProject
+		{432F4461-E198-44AA-8022-9E8C06A17C93} = {432F4461-E198-44AA-8022-9E8C06A17C93}
+	EndProjectSection
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "CSharpAnalyzerDriver", "src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.shproj", "{54E08BF5-F819-404F-A18D-0AB9EA81EA04}"
 EndProject
@@ -157,6 +163,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildValidator", "src\Tools\BuildValidator\BuildValidator.csproj", "{E9211052-7700-4A2F-B1AE-34FD5CCAB8AF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrepareTests", "src\Tools\PrepareTests\PrepareTests.csproj", "{9B25E472-DF94-4E24-9F5D-E487CE5A91FB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeStyleConfigFileGenerator", "src\CodeStyle\Tools\CodeStyleConfigFileGenerator.csproj", "{432F4461-E198-44AA-8022-9E8C06A17C93}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -449,6 +457,10 @@ Global
 		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{432F4461-E198-44AA-8022-9E8C06A17C93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{432F4461-E198-44AA-8022-9E8C06A17C93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{432F4461-E198-44AA-8022-9E8C06A17C93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{432F4461-E198-44AA-8022-9E8C06A17C93}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -522,6 +534,7 @@ Global
 		{706CFC25-B6E0-4DAA-BCC4-F6FAAFEEDF87} = {3FF38FD4-DF16-44B0-924F-0D5AE155495B}
 		{E9211052-7700-4A2F-B1AE-34FD5CCAB8AF} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
+		{432F4461-E198-44AA-8022-9E8C06A17C93} = {B20208C3-D3A6-4020-A274-6BE3786D29FB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}
