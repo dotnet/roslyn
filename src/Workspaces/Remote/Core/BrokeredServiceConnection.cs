@@ -267,6 +267,12 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        /// <param name="service">The service instance.</param>
+        /// <param name="invocation">A callback to asynchronously write data. The callback is required to complete the
+        /// <see cref="PipeWriter"/> except in cases where the callback throws an exception.</param>
+        /// <param name="reader">A callback to asynchronously read data. The callback is allowed, but not required, to
+        /// complete the <see cref="PipeReader"/>.</param>
+        /// <param name="cancellationToken">A cancellation token the operation will observe.</param>
         internal static async ValueTask<TResult> InvokeStreamingServiceAsync<TResult>(
             TService service,
             Func<TService, PipeWriter, CancellationToken, ValueTask> invocation,
