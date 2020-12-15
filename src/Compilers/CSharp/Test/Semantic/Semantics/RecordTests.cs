@@ -242,13 +242,13 @@ record R3([System.Diagnostics.CodeAnalysis.NotNull] R3 x);
 ";
             var comp = CreateCompilation(new[] { src, NotNullAttributeDefinition });
             comp.VerifyEmitDiagnostics(
-                // (2,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor
+                // (2,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor.
                 // record R(R x);
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R").WithLocation(2, 8),
-                // (5,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor
+                // (5,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor.
                 // record R2(R2? x) { }
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R2").WithLocation(5, 8),
-                // (7,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor
+                // (7,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor.
                 // record R3([System.Diagnostics.CodeAnalysis.NotNull] R3 x);
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R3").WithLocation(7, 8)
                 );
@@ -268,10 +268,10 @@ record R2<T>(R2<T?> x) { }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (2,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor
+                // (2,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor.
                 // record R<T>(R<T> x);
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R").WithLocation(2, 8),
-                // (5,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor
+                // (5,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor.
                 // record R2<T>(R2<T?> x) { }
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R2").WithLocation(5, 8)
                 );
@@ -308,7 +308,7 @@ record R(R X)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (2,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor
+                // (2,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor.
                 // record R(R X)
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R").WithLocation(2, 8)
                 );

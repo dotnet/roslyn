@@ -778,8 +778,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
-        <source>Synthesized copy constructor conflicts with a primary constructor</source>
-        <target state="new">Synthesized copy constructor conflicts with a primary constructor</target>
+        <source>Synthesized copy constructor conflicts with a primary constructor.</source>
+        <target state="new">Synthesized copy constructor conflicts with a primary constructor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
