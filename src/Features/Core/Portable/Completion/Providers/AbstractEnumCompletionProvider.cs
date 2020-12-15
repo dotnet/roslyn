@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractEnumCompletionProvider : AbstractSymbolCompletionProvider
     {
-        private static readonly CompletionItemRules s_rules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect);
+        private static readonly CompletionItemRules s_rules = CompletionItemRules.Default;
 
         protected abstract (string displayText, string suffix, string insertionText) GetDefaultDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context);
 
