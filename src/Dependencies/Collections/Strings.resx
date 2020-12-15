@@ -117,4 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="NotSupported_FixedSizeCollection" xml:space="preserve">
+    <value>Collection was of a fixed size.</value>
+  </data>
+  <data name="ArgumentException_OtherNotArrayOfCorrectLength" xml:space="preserve">
+    <value>Object is not a array with the same number of elements as the array to compare it to.</value>
+  </data>
 </root>

@@ -10,6 +10,10 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Shared.Collections</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)SegmentedArrayHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SegmentedArray`1.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)Strings.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.Shared.Collections.SR" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
