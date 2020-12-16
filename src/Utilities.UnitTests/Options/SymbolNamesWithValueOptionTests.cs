@@ -19,7 +19,7 @@ namespace Analyzer.Utilities.UnitTests.Options
         public void WhenNoSymbolNames_ReturnsEmpty()
         {
             // Arrange & act
-            var options = SymbolNamesWithValueOption<Unit>.Create(ImmutableArray<string>.Empty, GetCompilation(), null, null);
+            var options = SymbolNamesWithValueOption<Unit>.Create(ImmutableArray<string>.Empty, GetCompilation(), null, static name => new SymbolNamesWithValueOption<Unit>.NameParts(name, Unit.Default));
 
             // Assert
             Assert.Equal(SymbolNamesWithValueOption<Unit>.Empty, options);
@@ -37,7 +37,7 @@ namespace Analyzer.Utilities.UnitTests.Options
                 {
                     callCount++;
                 }
-                return new SymbolNamesWithValueOption<Unit>.NameParts(symbolName);
+                return new SymbolNamesWithValueOption<Unit>.NameParts(symbolName, Unit.Default);
             }
 
             // Act
@@ -56,7 +56,7 @@ namespace Analyzer.Utilities.UnitTests.Options
             var symbolNames = ImmutableArray.Create("MyNamespace", "MyClass", "MyMethod()", "MyProperty", "MyEvent", "MyField");
 
             // Act
-            var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, null);
+            var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, static name => new SymbolNamesWithValueOption<Unit>.NameParts(name, Unit.Default));
 
             // Assert
             Assert.Equal(symbolNames.Length, options.GetTestAccessor().Names.Count);
@@ -90,7 +90,7 @@ public namespace MyNamespace
                 "MyNamespace.MyClass.MyMethod()");
 
             // Act
-            var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, null);
+            var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, static name => new SymbolNamesWithValueOption<Unit>.NameParts(name, Unit.Default));
 
             // Assert
             Assert.Empty(options.GetTestAccessor().Names);
@@ -124,7 +124,7 @@ public namespace MyNamespace
                 "M:MyNamespace.MyClass.MyMethod()");
 
             // Act
-            var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, null);
+            var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, static name => new SymbolNamesWithValueOption<Unit>.NameParts(name, Unit.Default));
 
             // Assert
             Assert.Empty(options.GetTestAccessor().Names);
@@ -146,7 +146,7 @@ public namespace MyNamespace
                 "M:MyNamespace.MyClass.MyMethod()");
 
             // Act
-            var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, null);
+            var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, static name => new SymbolNamesWithValueOption<Unit>.NameParts(name, Unit.Default));
 
             // Assert
             Assert.Empty(options.GetTestAccessor().Names);
@@ -166,7 +166,7 @@ public namespace MyNamespace
                 "*a*");     // more than one wildcard symbol
 
             // Act
-            var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, null);
+            var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, static name => new SymbolNamesWithValueOption<Unit>.NameParts(name, Unit.Default));
 
             // Assert
             Assert.Empty(options.GetTestAccessor().Names);
@@ -188,7 +188,7 @@ public namespace MyNamespace
                 "MyNamespace.MyClass.MyMethod(*");
 
             // Act
-            var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, null);
+            var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, static name => new SymbolNamesWithValueOption<Unit>.NameParts(name, Unit.Default));
 
             // Assert
             Assert.Empty(options.GetTestAccessor().Names);
@@ -217,7 +217,7 @@ public namespace MyNamespace
                 "M:MyNamespace.MyClass.MyMethod(*");
 
             // Act
-            var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, null);
+            var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, static name => new SymbolNamesWithValueOption<Unit>.NameParts(name, Unit.Default));
 
             // Assert
             Assert.Empty(options.GetTestAccessor().Names);
@@ -361,7 +361,7 @@ public namespace MyCompany.MyProduct.MyFeature
 }");
             var symbolNames = ImmutableArray.Create(patternName);
             var symbol = FindSymbol(compilation, symbolName);
-            var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, null);
+            var options = SymbolNamesWithValueOption<Unit>.Create(symbolNames, compilation, null, static name => new SymbolNamesWithValueOption<Unit>.NameParts(name, Unit.Default));
 
             // Act
             var isFound = options.Contains(symbol);

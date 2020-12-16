@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if NET_ANALYZERS || FXCOP_ANALYZERS || MICROSOFT_CODEANALYSIS_ANALYZERS
+#if NET_ANALYZERS || TEXT_ANALYZERS || MICROSOFT_CODEANALYSIS_ANALYZERS
 
 namespace Microsoft.CodeAnalysis
 {
