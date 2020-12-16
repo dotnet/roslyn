@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
     /// <remarks>This metric is based off of the Halstead metric.</remarks>
     internal sealed class ComputationalComplexityMetrics
     {
-        internal static readonly ComputationalComplexityMetrics Default = new ComputationalComplexityMetrics(0, 0, 0, 0, 0, ImmutableHashSet<OperationKind>.Empty,
+        internal static readonly ComputationalComplexityMetrics Default = new(0, 0, 0, 0, 0, ImmutableHashSet<OperationKind>.Empty,
             ImmutableHashSet<BinaryOperatorKind>.Empty, ImmutableHashSet<UnaryOperatorKind>.Empty, ImmutableHashSet<CaseKind>.Empty, ImmutableHashSet<ISymbol>.Empty, ImmutableHashSet<object>.Empty);
-        private static readonly object s_nullConstantPlaceholder = new object();
+        private static readonly object s_nullConstantPlaceholder = new();
         private readonly long _symbolUsageCounts;
         private readonly long _constantUsageCounts;
         private readonly ImmutableHashSet<OperationKind> _distinctOperatorKinds;

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         private static readonly LocalizableString s_localizableValueTypeToReferenceTypeInAStringConcatenationRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.ValueTypeToReferenceTypeInAStringConcatenationRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         private static readonly LocalizableString s_localizableValueTypeToReferenceTypeInAStringConcatenationRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.ValueTypeToReferenceTypeInAStringConcatenationRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
-        internal static DiagnosticDescriptor StringConcatenationAllocationRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor StringConcatenationAllocationRule = new(
             StringConcatenationAllocationRuleId,
             s_localizableStringConcatenationAllocationRuleTitle,
             s_localizableStringConcatenationAllocationRuleMessage,
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             isEnabledByDefault: true,
             helpLinkUri: "http://msdn.microsoft.com/en-us/library/2839d5h5(v=vs.110).aspx");
 
-        internal static DiagnosticDescriptor ValueTypeToReferenceTypeInAStringConcatenationRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor ValueTypeToReferenceTypeInAStringConcatenationRule = new(
             ValueTypeToReferenceTypeInAStringConcatenationRuleId,
             s_localizableValueTypeToReferenceTypeInAStringConcatenationRuleTitle,
             s_localizableValueTypeToReferenceTypeInAStringConcatenationRuleMessage,

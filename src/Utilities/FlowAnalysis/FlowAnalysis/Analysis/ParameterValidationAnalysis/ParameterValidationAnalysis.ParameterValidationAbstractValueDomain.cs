@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
         /// </summary>
         private class ParameterValidationAbstractValueDomain : AbstractValueDomain<ParameterValidationAbstractValue>
         {
-            public static ParameterValidationAbstractValueDomain Default = new ParameterValidationAbstractValueDomain();
+            public static ParameterValidationAbstractValueDomain Default = new();
 
             private ParameterValidationAbstractValueDomain() { }
 
