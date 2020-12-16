@@ -1,8 +1,8 @@
-# Checkout Roslyn sources on Windows
+# Checkout Roslyn sources on Unix
 steps:
   - checkout: none
 
-  - bash: |
+  - script: |
       set -x
       git init
       git remote add origin "$(Build.Repository.Uri)"
