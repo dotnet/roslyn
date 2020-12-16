@@ -2171,7 +2171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                     Return DeclarationKind.Namespace
                 Case SyntaxKind.ImportsStatement
                     Return DeclarationKind.NamespaceImport
-                Case SyntaxKind.ClassBlock
+                Case SyntaxKind.ClassBlock, SyntaxKind.ClassStatement
                     Return DeclarationKind.Class
                 Case SyntaxKind.StructureBlock
                     Return DeclarationKind.Struct
