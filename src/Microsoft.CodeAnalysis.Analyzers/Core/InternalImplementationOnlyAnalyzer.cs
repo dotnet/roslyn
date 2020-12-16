@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
         private static readonly LocalizableString s_localizableMessageFormat = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InternalImplementationOnlyDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor Rule = new(
                                                         DiagnosticIds.InternalImplementationOnlyRuleId,
                                                         s_localizableTitle,
                                                         s_localizableMessageFormat,

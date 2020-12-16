@@ -6,7 +6,7 @@ namespace Analyzer.Utilities
 {
     internal static class SymbolDisplayFormats
     {
-        public static readonly SymbolDisplayFormat ShortSymbolDisplayFormat = new SymbolDisplayFormat(
+        public static readonly SymbolDisplayFormat ShortSymbolDisplayFormat = new(
                 SymbolDisplayGlobalNamespaceStyle.Omitted,
                 SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
                 SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -19,7 +19,7 @@ namespace Analyzer.Utilities
                 SymbolDisplayKindOptions.None,
                 SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        public static readonly SymbolDisplayFormat QualifiedTypeAndNamespaceSymbolDisplayFormat = new SymbolDisplayFormat(
+        public static readonly SymbolDisplayFormat QualifiedTypeAndNamespaceSymbolDisplayFormat = new(
                 SymbolDisplayGlobalNamespaceStyle.Omitted,
                 SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 SymbolDisplayGenericsOptions.IncludeTypeParameters,

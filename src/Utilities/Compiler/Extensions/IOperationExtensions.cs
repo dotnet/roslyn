@@ -426,7 +426,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         /// <remarks>Also see <see cref="IMethodSymbolExtensions.s_methodToTopmostOperationBlockCache"/></remarks>
         private static readonly BoundedCache<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph?>> s_operationToCfgCache
-            = new BoundedCache<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph?>>();
+            = new();
 
         public static bool TryGetEnclosingControlFlowGraph(this IOperation operation, [NotNullWhen(returnValue: true)] out ControlFlowGraph? cfg)
         {

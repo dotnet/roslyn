@@ -13,14 +13,12 @@ namespace Analyzer.Utilities
         /// <summary>
         /// Caches by compilation.
         /// </summary>
-        private static readonly BoundedCacheWithFactory<Compilation, SymbolDisplayStringCache> s_byCompilationCache =
-            new BoundedCacheWithFactory<Compilation, SymbolDisplayStringCache>();
+        private static readonly BoundedCacheWithFactory<Compilation, SymbolDisplayStringCache> s_byCompilationCache = new();
 
         /// <summary>
         /// Mapping of a symbol to its ToDisplayString().
         /// </summary>
-        private readonly ConcurrentDictionary<ISymbol, string> SymbolToDisplayNames =
-            new ConcurrentDictionary<ISymbol, string>();
+        private readonly ConcurrentDictionary<ISymbol, string> SymbolToDisplayNames = new();
 
         /// <summary>
         /// Doesn't construct.
@@ -39,8 +37,7 @@ namespace Analyzer.Utilities
             return s_byCompilationCache.GetOrCreateValue(compilation, CreateSymbolDisplayNameCache);
 
             // Local functions
-            static SymbolDisplayStringCache CreateSymbolDisplayNameCache(Compilation compilation)
-                => new SymbolDisplayStringCache();
+            static SymbolDisplayStringCache CreateSymbolDisplayNameCache(Compilation compilation) => new();
         }
 
         /// <summary>

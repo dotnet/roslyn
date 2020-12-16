@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     public sealed class AbstractLocation : CacheBasedEquatable<AbstractLocation>
     {
         private readonly bool _isSpecialSingleton;
-        public static readonly AbstractLocation Null = new AbstractLocation(creation: null, creationCallStack: null, analysisEntity: null, symbol: null, captureId: null, locationType: null, isSpecialSingleton: true);
-        public static readonly AbstractLocation NoLocation = new AbstractLocation(creation: null, creationCallStack: null, analysisEntity: null, symbol: null, captureId: null, locationType: null, isSpecialSingleton: true);
+        public static readonly AbstractLocation Null = new(creation: null, creationCallStack: null, analysisEntity: null, symbol: null, captureId: null, locationType: null, isSpecialSingleton: true);
+        public static readonly AbstractLocation NoLocation = new(creation: null, creationCallStack: null, analysisEntity: null, symbol: null, captureId: null, locationType: null, isSpecialSingleton: true);
 
         private AbstractLocation(IOperation? creation, ImmutableStack<IOperation>? creationCallStack, AnalysisEntity? analysisEntity, ISymbol? symbol, InterproceduralCaptureId? captureId, ITypeSymbol? locationType, bool isSpecialSingleton)
         {
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         /// <summary>
-        /// Attempts to get the syntax node to report diagnostic for this abstract location 
+        /// Attempts to get the syntax node to report diagnostic for this abstract location
         /// Returns null if the location is owned by another method invoked through interprocedural analysis.
         /// </summary>
         public SyntaxNode? TryGetNodeToReportDiagnostic(PointsToAnalysisResult? pointsToAnalysisResult)

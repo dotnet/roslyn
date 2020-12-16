@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
         }
 
         public ParameterValidationAnalysisContext WithTrackHazardousParameterUsages()
-            => new ParameterValidationAnalysisContext(
+            => new(
                 ValueDomain, WellKnownTypeProvider, ControlFlowGraph,
                 OwningSymbol, AnalyzerOptions, NullCheckValidationMethodNames,
                 InterproceduralAnalysisConfiguration, PessimisticAnalysis,
