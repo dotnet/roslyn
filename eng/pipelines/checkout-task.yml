@@ -2,8 +2,8 @@
 steps:
   - checkout: none
 
-  - script: |
-      @echo on
+  - bash: |
+      set -x
       git init
       git remote add origin "$(Build.Repository.Uri)"
       git fetch --progress --no-tags --depth=1 origin "$(Build.SourceVersion)"
