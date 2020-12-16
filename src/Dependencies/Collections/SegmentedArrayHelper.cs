@@ -5,7 +5,7 @@
 using System;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Shared.Collections
+namespace Microsoft.CodeAnalysis.Collections
 {
     internal static class SegmentedArrayHelper
     {

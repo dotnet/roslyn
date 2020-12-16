@@ -7,9 +7,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Shared.Collections
+namespace Microsoft.CodeAnalysis.Collections
 {
     /// <summary>
     /// Defines a fixed-size collection with the same API surface and behavior as an "SZArray", which is a
@@ -71,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 // Avoid using (length & s_offsetMask) because it doesn't handle a last page size of s_segmentSize.
                 var lastPageSize = length - ((_items.Length - 1) << s_segmentShift);
 
-                _items[^1] = new T[lastPageSize];
+                _items[_items.Length - 1] = new T[lastPageSize];
                 _length = length;
             }
         }
@@ -153,12 +152,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         int IList.Add(object? value)
         {
-            throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
+            throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
         }
 
         void ICollection<T>.Add(T value)
         {
-            throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
+            throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
         }
 
         void IList.Clear()
@@ -174,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         void ICollection<T>.Clear()
         {
             // Matches `((ICollection<T>)new T[1]).Clear()`
-            throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
+            throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
         }
 
         bool IList.Contains(object? value)
@@ -231,32 +230,32 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         void IList.Insert(int index, object? value)
         {
-            throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
+            throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
         }
 
         void IList<T>.Insert(int index, T value)
         {
-            throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
+            throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
         }
 
         void IList.Remove(object? value)
         {
-            throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
+            throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
         }
 
         bool ICollection<T>.Remove(T value)
         {
-            throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
+            throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
         }
 
         void IList.RemoveAt(int index)
         {
-            throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
+            throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
         }
 
         void IList<T>.RemoveAt(int index)
         {
-            throw new NotSupportedException(CompilerExtensionsResources.NotSupported_FixedSizeCollection);
+            throw new NotSupportedException(SR.NotSupported_FixedSizeCollection);
         }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
@@ -275,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             if (!(other is SegmentedArray<T> o)
                 || Length != o.Length)
             {
-                throw new ArgumentException(CompilerExtensionsResources.ArgumentException_OtherNotArrayOfCorrectLength, nameof(other));
+                throw new ArgumentException(SR.ArgumentException_OtherNotArrayOfCorrectLength, nameof(other));
             }
 
             for (var i = 0; i < Length; i++)
@@ -320,7 +319,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             var ret = 0;
             for (var i = Length >= 8 ? Length - 8 : 0; i < Length; i++)
             {
-                ret = Hash.Combine(comparer.GetHashCode(this[i]!), ret);
+#if NETCOREAPP
+                ret = HashCode.Combine(comparer.GetHashCode(this[i]!), ret);
+#else
+                ret = unchecked((ret * (int)0xA5555529) + comparer.GetHashCode(this[i]!));
+#endif
             }
 
             return ret;

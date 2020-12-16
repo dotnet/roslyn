@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -33,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     {
         private readonly ColorSchemeApplier _colorSchemeApplier;
 
-        public AdvancedOptionPageControl(OptionStore optionStore, IComponentModel componentModel) : base(optionStore)
+        public AdvancedOptionPageControl(OptionStore optionStore, IComponentModel componentModel, IExperimentationService experimentationService) : base(optionStore)
         {
             _colorSchemeApplier = componentModel.GetService<ColorSchemeApplier>();
 
@@ -49,7 +50,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(SeparateImportGroups, GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp);
             BindToOption(SuggestForTypesInReferenceAssemblies, SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp);
             BindToOption(SuggestForTypesInNuGetPackages, SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp);
-            BindToOption(AddUsingsOnPaste, FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp);
+            BindToOption(AddUsingsOnPaste, FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp, () =>
+            {
+                // If the option has not been set by the user, check if the option to enable imports on paste
+                // is enabled from experimentation. If so, default to that. Otherwise default to disabled
+                return experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.ImportsOnPasteDefaultEnabled) ?? false;
+            });
+
             BindToOption(Split_string_literals_on_enter, SplitStringLiteralOptions.Enabled, LanguageNames.CSharp);
 
             BindToOption(EnterOutliningMode, FeatureOnOffOptions.Outlining, LanguageNames.CSharp);
