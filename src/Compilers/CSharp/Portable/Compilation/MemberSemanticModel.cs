@@ -1512,11 +1512,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NodeMapBuilder.AddToMap(bound, _guardedNodeMap, SyntaxTree, syntax);
                 }
 
-                Debug.Assert((manager is null && (!Compilation.IsNullableAnalysisEnabled || syntax != Root || syntax is TypeSyntax ||
+                Debug.Assert((manager is null && (!IsNullableAnalysisEnabled() || syntax != Root || syntax is TypeSyntax ||
                                                   // Supporting attributes is tracked by
                                                   // https://github.com/dotnet/roslyn/issues/36066
                                                   this is AttributeSemanticModel)) ||
-                             (manager is object && remappedSymbols is object && syntax == Root && Compilation.IsNullableAnalysisEnabled && _lazySnapshotManager is null));
+                             (manager is object && remappedSymbols is object && syntax == Root && IsNullableAnalysisEnabled() && _lazySnapshotManager is null));
                 if (manager is object)
                 {
                     _lazySnapshotManager = manager;

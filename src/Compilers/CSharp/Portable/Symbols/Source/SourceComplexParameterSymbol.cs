@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (!NullableWalker.NeedsAnalysis(DeclaringCompilation, ImmutableArray.Create<SyntaxNode>(parameterSyntax)))
+            if (!NullableWalker.NeedsAnalysis(DeclaringCompilation, parameterSyntax))
             {
                 return;
             }

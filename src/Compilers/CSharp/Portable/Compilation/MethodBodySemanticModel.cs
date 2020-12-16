@@ -311,11 +311,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool IsNullableAnalysisEnabled()
         {
-            if (MemberSymbol is SourceMemberMethodSymbol method)
-            {
-                return Compilation.IsNullableAnalysisEnabledInAny(ImmutableArray.Create<SyntaxNode>(method.SyntaxNode));
-            }
-            return Compilation.IsNullableAnalysisEnabled;
+            return (MemberSymbol is SourceMemberMethodSymbol method) ?
+                Compilation.IsNullableAnalysisEnabledIn(method.SyntaxNode) :
+                Compilation.IsNullableAnalysisEnabled;
         }
     }
 }

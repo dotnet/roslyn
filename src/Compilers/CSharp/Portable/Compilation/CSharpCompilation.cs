@@ -233,6 +233,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal bool IsNullableAnalysisEnabledIn(SyntaxNode syntaxNode)
+        {
+            return IsNullableAnalysisEnabledInAny(ImmutableArray.Create(syntaxNode));
+        }
+
         internal bool IsNullableAnalysisEnabledInAny(ImmutableArray<SyntaxNode> syntaxNodes)
         {
             return GetNullableAnalysisValue() ??

@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool IsNullableAnalysisEnabled()
         {
-            return Compilation.IsNullableAnalysisEnabledInAny(ImmutableArray.Create<SyntaxNode>(Root));
+            return Compilation.IsNullableAnalysisEnabledIn(Root);
         }
     }
 }

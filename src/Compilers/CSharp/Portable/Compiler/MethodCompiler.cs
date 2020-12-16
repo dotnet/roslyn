@@ -1705,7 +1705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableDictionary<Symbol, Symbol> remappedSymbols = null;
                     var compilation = bodyBinder.Compilation;
                     var isSufficientLangVersion = compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion();
-                    if (compilation.IsNullableAnalysisEnabledInAny(ImmutableArray.Create<SyntaxNode>(syntaxNode)))
+                    if (compilation.IsNullableAnalysisEnabledIn(syntaxNode))
                     {
                         methodBodyForSemanticModel = NullableWalker.AnalyzeAndRewrite(
                             compilation,

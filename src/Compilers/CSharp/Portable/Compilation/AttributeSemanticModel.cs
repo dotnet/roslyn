@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool IsNullableAnalysisEnabled()
         {
-            return Compilation.IsNullableAnalysisEnabledInAny(ImmutableArray.Create<SyntaxNode>(Root));
+            return Compilation.IsNullableAnalysisEnabledIn(Root);
         }
 
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)

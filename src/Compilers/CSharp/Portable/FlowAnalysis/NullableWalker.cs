@@ -1075,10 +1075,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Analyzes a method body if settings indicate we should.
         /// </summary>
+        /// <remarks>
+        /// <paramref name="methodDeclaration"/> is the set of syntax nodes for
+        /// the method declaration used to determine the overall nullable context.
+        /// For constructors, the syntax nodes should include any field initializers.
+        /// </remarks>
         internal static void AnalyzeIfNeeded(
             CSharpCompilation compilation,
             MethodSymbol method,
-            ImmutableArray<SyntaxNode> syntaxNodes,
+            ImmutableArray<SyntaxNode> methodDeclaration,
             BoundNode node,
             DiagnosticBag diagnostics,
             bool useConstructorExitWarnings,
@@ -1086,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool getFinalNullableState,
             out VariableState? finalNullableState)
         {
-            if (CanSkipAnalysis(compilation, syntaxNodes))
+            if (CanSkipAnalysis(compilation, methodDeclaration))
             {
                 if (compilation.IsNullableAnalysisEnabledAlways)
                 {
@@ -1306,15 +1311,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rewrittenNode;
         }
 
+        /// <summary>
+        /// Returns true if the nullable analysis can be skipped for the region represented by <paramref name="syntaxNodes"/>.
+        /// The syntax nodes are used to determine the overall nullable context for the region.
+        /// </summary>
         private static bool CanSkipAnalysis(CSharpCompilation compilation, ImmutableArray<SyntaxNode> syntaxNodes)
         {
             return compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() ||
                 !compilation.IsNullableAnalysisEnabledInAny(syntaxNodes);
         }
 
-        internal static bool NeedsAnalysis(CSharpCompilation compilation, ImmutableArray<SyntaxNode> syntaxNodes)
+        /// <summary>
+        /// Returns true if the nullable analysis is needed for the region represented by <paramref name="syntaxNode"/>.
+        /// The syntax node is used to determine the overall nullable context for the region.
+        /// </summary>
+        internal static bool NeedsAnalysis(CSharpCompilation compilation, SyntaxNode syntaxNode)
         {
-            return !CanSkipAnalysis(compilation, syntaxNodes) || compilation.IsNullableAnalysisEnabledAlways;
+            return !CanSkipAnalysis(compilation, ImmutableArray.Create(syntaxNode)) || compilation.IsNullableAnalysisEnabledAlways;
         }
 
         /// <summary>Analyzes a node in a "one-off" context, such as for attributes or parameter default values.</summary>
