@@ -28,6 +28,15 @@ jobs:
   timeoutInMinutes: 40
 
   steps:
+    - checkout: none
+
+    - script: |
+        git init
+        git remote add origin https://github.com/dotnet/roslyn
+        git fetch --progress --no-tags --depth=1 origin "$(Build.SourceVersion)"
+        git checkout "$(Build.SourceVersion)"
+      displayName: Roslyn Checkout
+
     - script: ./eng/build.sh --ci --restore --prepareMachine --binaryLog --configuration ${{ parameters.configuration }}
       displayName: Restore
 

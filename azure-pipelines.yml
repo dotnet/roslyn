@@ -92,13 +92,13 @@ jobs:
 #     configuration: Release
 #     testArguments: -testCoreClr
 
-# # Unix Build and Test Jobs 
-# - template: eng/pipelines/build-unix-job.yml
-#   parameters:
-#     jobName: Build_Unix_Debug
-#     testArtifactName: Transport_Artifacts_Unix_Debug
-#     configuration: Debug
-#     vmImageName: 'ubuntu-16.04'
+# Unix Build and Test Jobs 
+- template: eng/pipelines/build-unix-job.yml
+  parameters:
+    jobName: Build_Unix_Debug
+    testArtifactName: Transport_Artifacts_Unix_Debug
+    configuration: Debug
+    vmImageName: 'ubuntu-16.04'
 
 # - template: eng/pipelines/test-unix-job.yml
 #   parameters:
