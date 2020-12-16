@@ -31,12 +31,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const int DefaultBufferSize = 1024;
 #endif
 
+        /// <inheritdoc cref="CreateArtifactStream"/>
+        private Action<string, Action<Stream>>? _createArtifactStream;
+
         /// <summary>
         /// Callback the compiler can pass into us to actually generate artifacts.  This is safe to hold as a mutable
         /// value as this is only set once during batch compile as that's the only scenario where /generatedartifactsout
         /// can be provided.
         /// </summary>
-        internal Action<string, Action<Stream>>? CreateArtifactStream;
+        internal Action<string, Action<Stream>>? CreateArtifactStream
+        {
+            get => _createArtifactStream;
+
+            set
+            {
+                if (_createArtifactStream != null)
+                    throw new InvalidOperationException($"Tried to set {nameof(CreateArtifactStream)} twice.");
+
+                _createArtifactStream = value;
+            }
+        }
 
         // By default artifact generators don't report diagnostics.  However, they are still allowed to if they run into
         // any issues.
