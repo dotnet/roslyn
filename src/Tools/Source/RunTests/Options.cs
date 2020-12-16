@@ -114,6 +114,7 @@ namespace RunTests
             Platform = platform;
         }
 
+        /// <summary>wew</sumarie>
         internal static Options? Parse(string[] args)
         {
             string? dotnetFilePath = null;

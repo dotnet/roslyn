@@ -20,7 +20,7 @@
 
     <Features>strict</Features>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GenerateDocumentationFile Condition="'$(GenerateDocumentationFile)' == ''">true</GenerateDocumentationFile>
     <GenerateFullPaths>true</GenerateFullPaths>
 
     <!-- Set to non-existent file to prevent common targets from importing Microsoft.CodeAnalysis.targets -->
