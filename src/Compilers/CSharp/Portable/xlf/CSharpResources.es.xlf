@@ -1263,8 +1263,10 @@
 -modulename:&lt;string&gt;          Specify the name of the source module
 -generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
                               specified directory.
+-generatedartifactsout:&lt;dir&gt;      Place artifacts generated during compilation in the
+                              specified directory.
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                              Opciones del compilador de Visual C#
 
                        - ARCHIVOS DE SALIDA -

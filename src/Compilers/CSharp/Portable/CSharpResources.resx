@@ -4776,6 +4776,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -modulename:&lt;string&gt;          Specify the name of the source module
 -generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
                               specified directory.
+-generatedartifactsout:&lt;dir&gt;      Place artifacts generated during compilation in the
+                              specified directory.
 </value>
     <comment>Visual C# Compiler Options</comment>
   </data>
