@@ -40,9 +40,8 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-namespace Microsoft.CodeAnalysis.Collections
+namespace Microsoft.CodeAnalysis.Collections.Internal
 {
-    [StackTraceHidden]
     internal static class ThrowHelper
     {
         [DoesNotReturn]
