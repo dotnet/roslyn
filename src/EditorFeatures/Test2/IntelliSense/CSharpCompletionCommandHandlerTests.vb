@@ -2299,6 +2299,40 @@ class Goo
             End Using
         End Function
 
+        <WorkItem(49632, "https://github.com/dotnet/roslyn/pull/49632")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionEnumTypeAndValues() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+namespace A
+{
+    public enum Colors
+    {
+        Red,
+        Green
+    }
+}
+namespace B
+{
+    class Program
+    {
+        static void Main()
+        {
+            var color = A.Colors.Red;
+            switch (color)
+            {
+                case $$
+        }
+    }
+}                              </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors" AndAlso i.SortText = "Colors" AndAlso i.FilterText = "Colors")
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors.Green" AndAlso i.SortText = "Colors.Green" AndAlso i.FilterText = "Colors.Green")
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors.Red" AndAlso i.SortText = "Colors.Red" AndAlso i.FilterText = "Colors.Red")
+                Await state.AssertSelectedCompletionItem("A.Colors")
+            End Using
+        End Function
+
         <WorkItem(544296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544296")>
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>

@@ -2097,6 +2097,37 @@ End Class</Document>)
             End Using
         End Function
 
+        <WorkItem(49632, "https://github.com/dotnet/roslyn/pull/49632")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionEnumTypeAndValues() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                              <Document>
+Namespace A
+    Public Enum Colors
+        Red
+        Green
+    End Enum
+End Namespace
+
+Namespace B
+    Class Program
+        Private Shared Sub M(color as A.Colors)
+        End Sub
+
+        Private Shared Sub Main()
+             M($$)
+        End Sub
+    End Class
+End Namespace
+</Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsDoNotContainAny("A.Colors", "Colors")
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors.Green" AndAlso i.SortText = "Colors.Green" AndAlso i.FilterText = "Colors.Green")
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors.Red" AndAlso i.SortText = "Colors.Red" AndAlso i.FilterText = "Colors.Red")
+                Await state.AssertSelectedCompletionItem("A.Colors.Green")
+            End Using
+        End Function
+
         <WorkItem(951726, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951726")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function DismissUponSave() As Task
