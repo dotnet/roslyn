@@ -329,6 +329,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // generated, then actually initialize the generator with the necessary context values it needs to
                     // generate artifacts.  In all other circumstances, we will not initialize it, and as such it will
                     // not have any opportunity to register callbacks for us to call into in the future.
+                    //
+                    // Note: this looks odd as we're statefully setting this property on this shared instance.  However
+                    // this only runs during command-line-build scenarios, so there's no concern about stateful mutation
+                    // here as these instances are not ever used more than once.
                     if (analyzer is ArtifactProducer artifactProducer)
                     {
                         if (CreateArtifactStream == null)
