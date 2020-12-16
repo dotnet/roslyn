@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static readonly string[] s_editAndContinueCustomTags = new string[] { WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag };
         private static readonly string[] s_unnecessaryCustomTags = new string[] { WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry };
         private static readonly string[] s_notConfigurableCustomTags = new string[] { WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry };
-        private static readonly string[] s_unnecessaryAndNotConfigurableCustomTags = new string[] { WellKnownDiagnosticTags.Unnecessary, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry };
+        private static readonly string[] s_unnecessaryAndNotConfigurableCustomTags = new string[] { WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry };
 
         public static string[] Microsoft
         {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get
             {
-                Assert(s_unnecessaryAndNotConfigurableCustomTags, WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry);
+                Assert(s_unnecessaryAndNotConfigurableCustomTags, WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry);
                 return s_unnecessaryAndNotConfigurableCustomTags;
             }
         }
