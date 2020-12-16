@@ -1066,9 +1066,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (NamedTypeSymbol baseInterface in interfaces)
                 {
-                    if (seenInterfaces is null || !seenInterfaces.Contains(baseInterface))
+                    if (seenInterfaces is null || seenInterfaces.Add(baseInterface))
                     {
-                        seenInterfaces?.Add(baseInterface);
                         LookupMembersWithoutInheritance(tmp, baseInterface, name, arity, options, originalBinder, accessThroughType, diagnose, ref useSiteDiagnostics, basesBeingResolved);
                         MergeHidingLookupResults(current, tmp, basesBeingResolved, ref useSiteDiagnostics);
                         tmp.Clear();
