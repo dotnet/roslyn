@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract (string displayText, string suffix, string insertionText) GetDefaultDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context);
 
-        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken) 
+        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
             => await GetSymbolsAsync(context, position, options, cancellationToken).ConfigureAwait(false);
 
         protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(
@@ -93,14 +93,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             rules = rules.WithMatchPriority(preselect ? MatchPriority.Preselect : MatchPriority.Default);
 
+            var fieldSymbol = symbols.FirstOrDefault() as IFieldSymbol;
+            var enumType = fieldSymbol?.ContainingType;
+            var sortAndFilterText = enumType != null && fieldSymbol != null
+                ? $"{enumType.Name}.{fieldSymbol.Name}"
+                : insertionText;
+
             return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
                 insertionText: insertionText,
-                filterText: GetFilterText(symbols[0], displayText, context),
+                filterText: sortAndFilterText,
                 symbols: symbols,
                 contextPosition: context.Position,
-                sortText: insertionText,
+                sortText: sortAndFilterText,
                 supportedPlatforms: supportedPlatformData,
                 rules: rules);
         }
