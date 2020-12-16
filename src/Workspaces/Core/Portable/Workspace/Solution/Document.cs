@@ -320,41 +320,38 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new instance of this document updated to have the source code kind specified.
         /// </summary>
         public Document WithSourceCodeKind(SourceCodeKind kind)
-            => this.Project.Solution.WithDocumentSourceCodeKind(this.Id, kind).GetDocument(this.Id)!;
+            => this.Project.Solution.WithDocumentSourceCodeKind(Id, kind).GetDocument(Id)!;
 
         /// <summary>
         /// Creates a new instance of this document updated to have the text specified.
         /// </summary>
         public Document WithText(SourceText text)
-            => this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity).GetDocument(this.Id)!;
+            => this.Project.Solution.WithDocumentText(Id, text, PreservationMode.PreserveIdentity).GetDocument(Id)!;
 
         /// <summary>
         /// Creates a new instance of this document updated to have a syntax tree rooted by the specified syntax node.
         /// </summary>
         public Document WithSyntaxRoot(SyntaxNode root)
-            => this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity).GetDocument(this.Id)!;
+            => this.Project.Solution.WithDocumentSyntaxRoot(Id, root, PreservationMode.PreserveIdentity).GetDocument(Id)!;
 
         /// <summary>
         /// Creates a new instance of this document updated to have the specified name.
         /// </summary>
         public Document WithName(string name)
-            => this.Project.Solution.WithDocumentName(this.Id, name).GetDocument(this.Id)!;
+            => this.Project.Solution.WithDocumentName(Id, name).GetDocument(Id)!;
 
         /// <summary>
         /// Creates a new instance of this document updated to have the specified folders.
         /// </summary>
         public Document WithFolders(IEnumerable<string> folders)
-            => this.Project.Solution.WithDocumentFolders(this.Id, folders).GetDocument(this.Id)!;
+            => this.Project.Solution.WithDocumentFolders(Id, folders).GetDocument(Id)!;
 
         /// <summary>
         /// Creates a new instance of this document updated to have the specified file path.
         /// </summary>
         /// <param name="filePath"></param>
-        // TODO (https://github.com/dotnet/roslyn/issues/37125): Solution.WithDocumentFilePath will throw if
-        // filePath is null, but it's odd because we *do* support null file paths. Why can't you switch a
-        // document back to null?
-        public Document WithFilePath(string filePath)
-            => this.Project.Solution.WithDocumentFilePath(this.Id, filePath).GetDocument(this.Id)!;
+        public Document WithFilePath(string? filePath)
+            => this.Project.Solution.WithDocumentFilePath(Id, filePath).GetDocument(Id)!;
 
         /// <summary>
         /// Get the text changes between this document and a prior version of the same document.
@@ -364,7 +361,7 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                using (Logger.LogBlock(FunctionId.Workspace_Document_GetTextChanges, this.Name, cancellationToken))
+                using (Logger.LogBlock(FunctionId.Workspace_Document_GetTextChanges, Name, cancellationToken))
                 {
                     if (oldDocument == this)
                     {

@@ -842,10 +842,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (oldAttributes.FilePath != newInfo.FilePath)
                 {
-                    // TODO (https://github.com/dotnet/roslyn/issues/37125): Solution.WithDocumentFilePath will throw if
-                    // filePath is null, but it's odd because we *do* support null file paths. The suppression here is to silence it
-                    // but should be removed when the bug is fixed.
-                    newSolution = newSolution.WithDocumentFilePath(documentId, newInfo.FilePath!);
+                    newSolution = newSolution.WithDocumentFilePath(documentId, newInfo.FilePath);
                 }
 
                 if (oldAttributes.SourceCodeKind != newInfo.SourceCodeKind)

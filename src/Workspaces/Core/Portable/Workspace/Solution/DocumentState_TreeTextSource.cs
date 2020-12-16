@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -20,9 +19,9 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly ValueSource<SourceText> _lazyText;
             private readonly VersionStamp _version;
-            private readonly string _filePath;
+            private readonly string? _filePath;
 
-            public TreeTextSource(ValueSource<SourceText> text, VersionStamp version, string filePath)
+            public TreeTextSource(ValueSource<SourceText> text, VersionStamp version, string? filePath)
             {
                 _lazyText = text;
                 _version = version;
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis
                 return TextAndVersion.Create(text, _version, _filePath);
             }
 
-            public override bool TryGetValue(out TextAndVersion value)
+            public override bool TryGetValue([NotNullWhen(true)] out TextAndVersion? value)
             {
                 if (_lazyText.TryGetValue(out var text))
                 {

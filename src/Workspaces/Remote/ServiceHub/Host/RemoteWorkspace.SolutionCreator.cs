@@ -424,10 +424,18 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // there is no api to change these once document is created
                 Contract.ThrowIfFalse(document.State.Attributes.Id == newDocumentInfo.Id);
-                Contract.ThrowIfFalse(document.State.Attributes.Name == newDocumentInfo.Name);
-                Contract.ThrowIfFalse(document.State.Attributes.FilePath == newDocumentInfo.FilePath);
                 Contract.ThrowIfFalse(document.State.Attributes.IsGenerated == newDocumentInfo.IsGenerated);
                 Contract.ThrowIfFalse(document.State.Attributes.DesignTimeOnly == newDocumentInfo.DesignTimeOnly);
+
+                if (document.State.Attributes.Name != newDocumentInfo.Name)
+                {
+                    document = document.Project.Solution.WithDocumentName(document.Id, newDocumentInfo.Name).GetDocument(document.Id)!;
+                }
+
+                if (document.State.Attributes.FilePath != newDocumentInfo.FilePath)
+                {
+                    document = document.Project.Solution.WithDocumentFilePath(document.Id, newDocumentInfo.FilePath).GetDocument(document.Id)!;
+                }
 
                 if (document.State.Attributes.Folders != newDocumentInfo.Folders)
                 {
