@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild UseImplicitType = /*IDE0007*/ EnforceOnBuild.HighlyRecommended;
         public const EnforceOnBuild UseExplicitType = /*IDE0008*/ EnforceOnBuild.HighlyRecommended;
         public const EnforceOnBuild AddBraces = /*IDE0011*/ EnforceOnBuild.HighlyRecommended;
-        public const EnforceOnBuild RemoveUnreachableCode = /*IDE0035*/ EnforceOnBuild.HighlyRecommended;
         public const EnforceOnBuild OrderModifiers = /*IDE0036*/ EnforceOnBuild.HighlyRecommended;
         public const EnforceOnBuild AddAccessibilityModifiers = /*IDE0040*/ EnforceOnBuild.HighlyRecommended;
         public const EnforceOnBuild ValidateFormatString = /*IDE0043*/ EnforceOnBuild.HighlyRecommended;
@@ -100,6 +99,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild RemoveQualification = /*IDE0003*/ EnforceOnBuild.Never;
         public const EnforceOnBuild AddQualification = /*IDE0009*/ EnforceOnBuild.Never;
         public const EnforceOnBuild PreferBuiltInOrFrameworkType = /*IDE0049*/ EnforceOnBuild.Never;
+        public const EnforceOnBuild RemoveUnreachableCode = /*IDE0035*/ EnforceOnBuild.Never; // Non-configurable fading diagnostic corresponding to CS0162.
         public const EnforceOnBuild RemoveUnnecessarySuppression = /*IDE0079*/ EnforceOnBuild.Never; // IDE-only analyzer.
         // Analyzer error Ids
         public const EnforceOnBuild IntellisenseBuildFailed = /*IDE0006*/ EnforceOnBuild.Never;
