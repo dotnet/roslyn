@@ -18,6 +18,20 @@ jobs:
   timeoutInMinutes: 40
 
   steps:
+    - checkout: none
+
+    - powershell: |
+        git version
+        git init "F:\workspace\_work\1\s"
+        git remote add origin https://github.com/dotnet/roslyn
+        git config gc.auto 0
+        git config --get-all http.https://github.com/dotnet/roslyn.extraheader
+        git config --get-all http.proxy
+        git config http.version HTTP/1.1
+        git -c http.extraheader="AUTHORIZATION: basic $(System.AccessToken)" fetch --force --no-tags --progress --no-recurse-submodules --depth=1 origin "$(Build.SourceVersion)"
+        git checkout "$(Build.SourceVersion)"
+      displayName: Checkout Sources
+
     - task: PowerShell@2
       displayName: Restore
       inputs:
