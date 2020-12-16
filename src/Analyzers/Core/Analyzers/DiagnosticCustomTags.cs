@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get
             {
-                Assert(s_unnecessaryCustomTags, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry);
-                return s_unnecessaryCustomTags;
+                Assert(s_notConfigurableCustomTags, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry);
+                return s_notConfigurableCustomTags;
             }
         }
 
