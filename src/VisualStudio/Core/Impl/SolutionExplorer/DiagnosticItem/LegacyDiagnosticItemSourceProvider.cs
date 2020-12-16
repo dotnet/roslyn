@@ -13,17 +13,17 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
     [Export(typeof(IAttachedCollectionSourceProvider))]
-    [Name(nameof(LegacyDiagnosticItemProvider))]
+    [Name(nameof(LegacyDiagnosticItemSourceProvider))]
     [Order]
     [AppliesToProject("(CSharp | VisualBasic) & !CPS")]
-    internal sealed class LegacyDiagnosticItemProvider : AttachedCollectionSourceProvider<AnalyzerItem>
+    internal sealed class LegacyDiagnosticItemSourceProvider : AttachedCollectionSourceProvider<AnalyzerItem>
     {
         private readonly IAnalyzersCommandHandler _commandHandler;
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LegacyDiagnosticItemProvider(
+        public LegacyDiagnosticItemSourceProvider(
             [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler,
             IDiagnosticAnalyzerService diagnosticAnalyzerService)
         {

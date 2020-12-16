@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    internal abstract partial class BaseDiagnosticItemSource
+    internal abstract partial class BaseDiagnosticAndGeneratorItemSource
     {
         internal sealed class DiagnosticDescriptorComparer : IComparer<DiagnosticDescriptor>
         {

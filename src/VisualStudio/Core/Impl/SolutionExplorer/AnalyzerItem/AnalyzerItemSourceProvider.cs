@@ -14,17 +14,17 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
     [Export(typeof(IAttachedCollectionSourceProvider))]
-    [Name("AnalyzerItemsProvider")]
+    [Name(nameof(AnalyzerItemSourceProvider))]
     [Order]
     [AppliesToProject("(CSharp | VisualBasic) & !CPS")]  // in the CPS case, the Analyzers items are created by the project system
-    internal sealed class AnalyzerItemProvider : AttachedCollectionSourceProvider<AnalyzersFolderItem>
+    internal sealed class AnalyzerItemSourceProvider : AttachedCollectionSourceProvider<AnalyzersFolderItem>
     {
         [Import(typeof(AnalyzersCommandHandler))]
         private readonly IAnalyzersCommandHandler _commandHandler = null;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AnalyzerItemProvider()
+        public AnalyzerItemSourceProvider()
         {
         }
 
