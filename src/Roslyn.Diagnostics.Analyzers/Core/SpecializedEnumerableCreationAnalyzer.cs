@@ -78,12 +78,12 @@ namespace Roslyn.Diagnostics.Analyzers
                     return;
                 }
 
-                    if (linqEnumerableSymbol.GetMembers(EmptyMethodName).FirstOrDefault() is not IMethodSymbol genericEmptyEnumerableSymbol ||
-                        genericEmptyEnumerableSymbol.Arity != 1 ||
-                        !genericEmptyEnumerableSymbol.Parameters.IsEmpty)
-                    {
-                        return;
-                    }
+                if (linqEnumerableSymbol.GetMembers(EmptyMethodName).FirstOrDefault() is not IMethodSymbol genericEmptyEnumerableSymbol ||
+                    genericEmptyEnumerableSymbol.Arity != 1 ||
+                    !genericEmptyEnumerableSymbol.Parameters.IsEmpty)
+                {
+                    return;
+                }
 
                 GetCodeBlockStartedAnalyzer(context, genericEnumerableSymbol, genericEmptyEnumerableSymbol);
             });
