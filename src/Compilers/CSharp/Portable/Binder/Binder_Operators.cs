@@ -566,11 +566,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.GreaterThanOrEqualExpression:
                     // Function pointer comparisons are defined on `void*` with implicit conversions to `void*` on both sides. So if this is a
                     // pointer comparison operation, and the underlying types of the left and right are both function pointers, then we need to
-                    // warn about them because of JIT recompilation.
-                    if ((signature.Kind & BinaryOperatorKind.Pointer) == BinaryOperatorKind.Pointer &&
-                        left.Type?.TypeKind == TypeKind.FunctionPointer && right.Type?.TypeKind == TypeKind.FunctionPointer)
+                    // warn about them because of JIT recompilation. If either side is explicitly cast to void*, that side's type will be void*,
+                    // not delegate*, and we won't warn.
+                    if ((resultOperatorKind & BinaryOperatorKind.Pointer) == BinaryOperatorKind.Pointer &&
+                        leftType?.TypeKind == TypeKind.FunctionPointer && rightType?.TypeKind == TypeKind.FunctionPointer)
                     {
-                        // Function pointer values should not be compared, as JIT tiering and recompilation means that taking the address of a method can return different addresses at different times.
+                        // Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.
                         Error(diagnostics, ErrorCode.WRN_DoNotCompareFunctionPointers, node.OperatorToken);
                     }
 
@@ -608,7 +609,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultLeft = BindToNaturalType(resultLeft, diagnostics, reportNoTargetType: false);
                 resultRight = BindToNaturalType(resultRight, diagnostics, reportNoTargetType: false);
             }
-
 
             hasErrors = hasErrors || resultConstant != null && resultConstant.IsBad;
 

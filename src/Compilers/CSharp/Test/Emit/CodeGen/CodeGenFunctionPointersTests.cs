@@ -5160,10 +5160,30 @@ unsafe
 }}", options: TestOptions.UnsafeReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (5,9): error CS8909: Function pointer values should not be compared, as JIT tiering and recompilation means that taking the address of a method can return different addresses at different times.
+                // (5,9): error CS8909: Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.
                 //     _ = a {@operator} b;
                 Diagnostic(ErrorCode.WRN_DoNotCompareFunctionPointers, @operator).WithLocation(5, 11)
             );
+        }
+
+        [Theory, WorkItem(48919, "https://github.com/dotnet/roslyn/issues/48919")]
+        [InlineData("==")]
+        [InlineData("!=")]
+        [InlineData(">=")]
+        [InlineData(">")]
+        [InlineData("<=")]
+        [InlineData("<")]
+        public void BinaryComparisonCastToVoidStar_NoWarning(string @operator)
+        {
+            var comp = CreateCompilationWithFunctionPointers($@"
+unsafe
+{{
+    delegate*<void> a = null, b = null;
+    _ = (void*)a {@operator} b;
+    _ = a {@operator} (void*)b;
+}}", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics();
         }
 
         [Theory]

@@ -968,8 +968,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
-        <source>Function pointer values should not be compared, as JIT tiering and recompilation means that taking the address of a method can return different addresses at different times.</source>
-        <target state="new">Function pointer values should not be compared, as JIT tiering and recompilation means that taking the address of a method can return different addresses at different times.</target>
+        <source>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</source>
+        <target state="new">Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers_Title">
