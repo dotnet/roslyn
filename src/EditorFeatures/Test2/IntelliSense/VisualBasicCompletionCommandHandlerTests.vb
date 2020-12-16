@@ -2099,7 +2099,7 @@ End Class</Document>)
 
         <WorkItem(49632, "https://github.com/dotnet/roslyn/pull/49632")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CompletionEnumTypeAndValues() As Task
+        Public Async Function CompletionEnumTypeAndValuesInDifferentNamespaces() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <Document>
 Namespace A
@@ -2125,6 +2125,35 @@ End Namespace
                 Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors.Green" AndAlso i.SortText = "Colors.Green" AndAlso i.FilterText = "Colors.Green")
                 Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors.Red" AndAlso i.SortText = "Colors.Red" AndAlso i.FilterText = "Colors.Red")
                 Await state.AssertSelectedCompletionItem("A.Colors.Green")
+            End Using
+        End Function
+
+        <WorkItem(49632, "https://github.com/dotnet/roslyn/pull/49632")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionEnumTypeAndValuesInSameNamespaces() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                              <Document>
+Namespace A
+    Public Enum Colors
+        Red
+        Green
+    End Enum
+
+    Class Program
+        Private Shared Sub M(color as Colors)
+        End Sub
+
+        Private Shared Sub Main()
+             M($$)
+        End Sub
+    End Class
+End Namespace
+</Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "Colors" AndAlso i.SortText = "Colors" AndAlso i.FilterText = "Colors")
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "Colors.Green" AndAlso i.SortText = "Colors.Green" AndAlso i.FilterText = "Colors.Green")
+                Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "Colors.Red" AndAlso i.SortText = "Colors.Red" AndAlso i.FilterText = "Colors.Red")
+                Await state.AssertSelectedCompletionItem("Colors.Green")
             End Using
         End Function
 
