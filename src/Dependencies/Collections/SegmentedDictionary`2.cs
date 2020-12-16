@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,13 +10,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Collections.Internal;
 
-using Unsafe = Internal.Runtime.CompilerServices.Unsafe;
-
 namespace Microsoft.CodeAnalysis.Collections
 {
     [DebuggerTypeProxy(typeof(IDictionaryDebugView<,>))]
     [DebuggerDisplay("Count = {Count}")]
-    public class SegmentedDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>
+    internal class SegmentedDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>
         where TKey : notnull
     {
         private int[]? _buckets;
@@ -75,10 +71,10 @@ namespace Microsoft.CodeAnalysis.Collections
             // back-compat with subclasses that may have overridden the enumerator behavior.
             if (dictionary.GetType() == typeof(SegmentedDictionary<TKey, TValue>))
             {
-                SegmentedDictionary<TKey, TValue> d = (SegmentedDictionary<TKey, TValue>)dictionary;
-                int count = d._count;
-                Entry[]? entries = d._entries;
-                for (int i = 0; i < count; i++)
+                var d = (SegmentedDictionary<TKey, TValue>)dictionary;
+                var count = d._count;
+                var entries = d._entries;
+                for (var i = 0; i < count; i++)
                 {
                     if (entries![i].next >= -1)
                     {
@@ -88,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 return;
             }
 
-            foreach (KeyValuePair<TKey, TValue> pair in dictionary)
+            foreach (var pair in dictionary)
             {
                 Add(pair.Key, pair.Value);
             }
@@ -104,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.collection);
             }
 
-            foreach (KeyValuePair<TKey, TValue> pair in collection)
+            foreach (var pair in collection)
             {
                 Add(pair.Key, pair.Value);
             }
@@ -136,8 +132,8 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             get
             {
-                ref TValue value = ref FindValue(key);
-                if (!Unsafe.IsNullRef(ref value))
+                ref var value = ref FindValue(key);
+                if (!RoslynUnsafe.IsNullRef(ref value))
                 {
                     return value;
                 }
@@ -147,14 +143,14 @@ namespace Microsoft.CodeAnalysis.Collections
             }
             set
             {
-                bool modified = TryInsert(key, value, InsertionBehavior.OverwriteExisting);
+                var modified = TryInsert(key, value, InsertionBehavior.OverwriteExisting);
                 Debug.Assert(modified);
             }
         }
 
         public void Add(TKey key, TValue value)
         {
-            bool modified = TryInsert(key, value, InsertionBehavior.ThrowOnExisting);
+            var modified = TryInsert(key, value, InsertionBehavior.ThrowOnExisting);
             Debug.Assert(modified); // If there was an existing key and the Add failed, an exception will already have been thrown.
         }
 
@@ -163,8 +159,8 @@ namespace Microsoft.CodeAnalysis.Collections
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> keyValuePair)
         {
-            ref TValue value = ref FindValue(keyValuePair.Key);
-            if (!Unsafe.IsNullRef(ref value) && EqualityComparer<TValue>.Default.Equals(value, keyValuePair.Value))
+            ref var value = ref FindValue(keyValuePair.Key);
+            if (!RoslynUnsafe.IsNullRef(ref value) && EqualityComparer<TValue>.Default.Equals(value, keyValuePair.Value))
             {
                 return true;
             }
@@ -174,8 +170,8 @@ namespace Microsoft.CodeAnalysis.Collections
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> keyValuePair)
         {
-            ref TValue value = ref FindValue(keyValuePair.Key);
-            if (!Unsafe.IsNullRef(ref value) && EqualityComparer<TValue>.Default.Equals(value, keyValuePair.Value))
+            ref var value = ref FindValue(keyValuePair.Key);
+            if (!RoslynUnsafe.IsNullRef(ref value) && EqualityComparer<TValue>.Default.Equals(value, keyValuePair.Value))
             {
                 Remove(keyValuePair.Key);
                 return true;
@@ -186,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public void Clear()
         {
-            int count = _count;
+            var count = _count;
             if (count > 0)
             {
                 Debug.Assert(_buckets != null, "_buckets should be non-null");
@@ -202,14 +198,14 @@ namespace Microsoft.CodeAnalysis.Collections
         }
 
         public bool ContainsKey(TKey key) =>
-            !Unsafe.IsNullRef(ref FindValue(key));
+            !RoslynUnsafe.IsNullRef(ref FindValue(key));
 
         public bool ContainsValue(TValue value)
         {
-            Entry[]? entries = _entries;
+            var entries = _entries;
             if (value == null)
             {
-                for (int i = 0; i < _count; i++)
+                for (var i = 0; i < _count; i++)
                 {
                     if (entries![i].next >= -1 && entries[i].value == null)
                     {
@@ -220,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Collections
             else if (typeof(TValue).IsValueType)
             {
                 // ValueType: Devirtualize with EqualityComparer<TValue>.Default intrinsic
-                for (int i = 0; i < _count; i++)
+                for (var i = 0; i < _count; i++)
                 {
                     if (entries![i].next >= -1 && EqualityComparer<TValue>.Default.Equals(entries[i].value, value))
                     {
@@ -233,8 +229,8 @@ namespace Microsoft.CodeAnalysis.Collections
                 // Object type: Shared Generic, EqualityComparer<TValue>.Default won't devirtualize
                 // https://github.com/dotnet/runtime/issues/10050
                 // So cache in a local rather than get EqualityComparer per loop iteration
-                EqualityComparer<TValue> defaultComparer = EqualityComparer<TValue>.Default;
-                for (int i = 0; i < _count; i++)
+                var defaultComparer = EqualityComparer<TValue>.Default;
+                for (var i = 0; i < _count; i++)
                 {
                     if (entries![i].next >= -1 && defaultComparer.Equals(entries[i].value, value))
                     {
@@ -263,9 +259,9 @@ namespace Microsoft.CodeAnalysis.Collections
                 ThrowHelper.ThrowArgumentException(ExceptionResource.Arg_ArrayPlusOffTooSmall);
             }
 
-            int count = _count;
-            Entry[]? entries = _entries;
-            for (int i = 0; i < count; i++)
+            var count = _count;
+            var entries = _entries;
+            for (var i = 0; i < count; i++)
             {
                 if (entries![i].next >= -1)
                 {
@@ -286,16 +282,16 @@ namespace Microsoft.CodeAnalysis.Collections
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.key);
             }
 
-            ref Entry entry = ref Unsafe.NullRef<Entry>();
+            ref var entry = ref RoslynUnsafe.NullRef<Entry>();
             if (_buckets != null)
             {
                 Debug.Assert(_entries != null, "expected entries to be != null");
-                IEqualityComparer<TKey>? comparer = _comparer;
+                var comparer = _comparer;
                 if (comparer == null)
                 {
-                    uint hashCode = (uint)key.GetHashCode();
-                    int i = GetBucket(hashCode);
-                    Entry[]? entries = _entries;
+                    var hashCode = (uint)key.GetHashCode();
+                    var i = GetBucket(hashCode);
+                    var entries = _entries;
                     uint collisionCount = 0;
                     if (typeof(TKey).IsValueType)
                     {
@@ -331,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Collections
                         // Object type: Shared Generic, EqualityComparer<TValue>.Default won't devirtualize
                         // https://github.com/dotnet/runtime/issues/10050
                         // So cache in a local rather than get EqualityComparer per loop iteration
-                        EqualityComparer<TKey> defaultComparer = EqualityComparer<TKey>.Default;
+                        var defaultComparer = EqualityComparer<TKey>.Default;
 
                         i--; // Value in _buckets is 1-based; subtract 1 from i. We do it here so it fuses with the following conditional.
                         do
@@ -361,9 +357,9 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
                 else
                 {
-                    uint hashCode = (uint)comparer.GetHashCode(key);
-                    int i = GetBucket(hashCode);
-                    Entry[]? entries = _entries;
+                    var hashCode = (uint)comparer.GetHashCode(key);
+                    var i = GetBucket(hashCode);
+                    var entries = _entries;
                     uint collisionCount = 0;
                     i--; // Value in _buckets is 1-based; subtract 1 from i. We do it here so it fuses with the following conditional.
                     do
@@ -397,19 +393,19 @@ namespace Microsoft.CodeAnalysis.Collections
         ConcurrentOperation:
             ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
         ReturnFound:
-            ref TValue value = ref entry.value;
+            ref var value = ref entry.value;
         Return:
             return ref value;
         ReturnNotFound:
-            value = ref Unsafe.NullRef<TValue>();
+            value = ref RoslynUnsafe.NullRef<TValue>();
             goto Return;
         }
 
         private int Initialize(int capacity)
         {
-            int size = HashHelpers.GetPrime(capacity);
-            int[] buckets = new int[size];
-            Entry[] entries = new Entry[size];
+            var size = HashHelpers.GetPrime(capacity);
+            var buckets = new int[size];
+            var entries = new Entry[size];
 
             // Assign member variables after both arrays allocated to guard against corruption from OOM if second fails
             _freeList = -1;
@@ -435,15 +431,15 @@ namespace Microsoft.CodeAnalysis.Collections
             }
             Debug.Assert(_buckets != null);
 
-            Entry[]? entries = _entries;
+            var entries = _entries;
             Debug.Assert(entries != null, "expected entries to be non-null");
 
-            IEqualityComparer<TKey>? comparer = _comparer;
-            uint hashCode = (uint)((comparer == null) ? key.GetHashCode() : comparer.GetHashCode(key));
+            var comparer = _comparer;
+            var hashCode = (uint)((comparer == null) ? key.GetHashCode() : comparer.GetHashCode(key));
 
             uint collisionCount = 0;
-            ref int bucket = ref GetBucket(hashCode);
-            int i = bucket - 1; // Value in _buckets is 1-based
+            ref var bucket = ref GetBucket(hashCode);
+            var i = bucket - 1; // Value in _buckets is 1-based
 
             if (comparer == null)
             {
@@ -491,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     // Object type: Shared Generic, EqualityComparer<TValue>.Default won't devirtualize
                     // https://github.com/dotnet/runtime/issues/10050
                     // So cache in a local rather than get EqualityComparer per loop iteration
-                    EqualityComparer<TKey> defaultComparer = EqualityComparer<TKey>.Default;
+                    var defaultComparer = EqualityComparer<TKey>.Default;
                     while (true)
                     {
                         // Should be a while loop https://github.com/dotnet/runtime/issues/9422
@@ -578,7 +574,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
             else
             {
-                int count = _count;
+                var count = _count;
                 if (count == entries.Length)
                 {
                     Resize();
@@ -589,7 +585,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 entries = _entries;
             }
 
-            ref Entry entry = ref entries![index];
+            ref var entry = ref entries![index];
             entry.hashCode = hashCode;
             entry.next = bucket - 1; // Value in _buckets is 1-based
             entry.key = key;
@@ -606,9 +602,9 @@ namespace Microsoft.CodeAnalysis.Collections
             Debug.Assert(_entries != null, "_entries should be non-null");
             Debug.Assert(newSize >= _entries.Length);
 
-            Entry[] entries = new Entry[newSize];
+            var entries = new Entry[newSize];
 
-            int count = _count;
+            var count = _count;
             Array.Copy(_entries, entries, count);
 
             // Assign member variables after both arrays allocated to guard against corruption from OOM if second fails
@@ -616,11 +612,11 @@ namespace Microsoft.CodeAnalysis.Collections
 #if TARGET_64BIT
             _fastModMultiplier = HashHelpers.GetFastModMultiplier((uint)newSize);
 #endif
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 if (entries[i].next >= -1)
                 {
-                    ref int bucket = ref GetBucket(entries[i].hashCode);
+                    ref var bucket = ref GetBucket(entries[i].hashCode);
                     entries[i].next = bucket - 1; // Value in _buckets is 1-based
                     bucket = i + 1;
                 }
@@ -644,14 +640,14 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 Debug.Assert(_entries != null, "entries should be non-null");
                 uint collisionCount = 0;
-                uint hashCode = (uint)(_comparer?.GetHashCode(key) ?? key.GetHashCode());
-                ref int bucket = ref GetBucket(hashCode);
-                Entry[]? entries = _entries;
-                int last = -1;
-                int i = bucket - 1; // Value in buckets is 1-based
+                var hashCode = (uint)(_comparer?.GetHashCode(key) ?? key.GetHashCode());
+                ref var bucket = ref GetBucket(hashCode);
+                var entries = _entries;
+                var last = -1;
+                var i = bucket - 1; // Value in buckets is 1-based
                 while (i >= 0)
                 {
-                    ref Entry entry = ref entries[i];
+                    ref var entry = ref entries[i];
 
                     if (entry.hashCode == hashCode && (_comparer?.Equals(entry.key, key) ?? EqualityComparer<TKey>.Default.Equals(entry.key, key)))
                     {
@@ -716,14 +712,14 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 Debug.Assert(_entries != null, "entries should be non-null");
                 uint collisionCount = 0;
-                uint hashCode = (uint)(_comparer?.GetHashCode(key) ?? key.GetHashCode());
-                ref int bucket = ref GetBucket(hashCode);
-                Entry[]? entries = _entries;
-                int last = -1;
-                int i = bucket - 1; // Value in buckets is 1-based
+                var hashCode = (uint)(_comparer?.GetHashCode(key) ?? key.GetHashCode());
+                ref var bucket = ref GetBucket(hashCode);
+                var entries = _entries;
+                var last = -1;
+                var i = bucket - 1; // Value in buckets is 1-based
                 while (i >= 0)
                 {
-                    ref Entry entry = ref entries[i];
+                    ref var entry = ref entries[i];
 
                     if (entry.hashCode == hashCode && (_comparer?.Equals(entry.key, key) ?? EqualityComparer<TKey>.Default.Equals(entry.key, key)))
                     {
@@ -777,10 +773,12 @@ namespace Microsoft.CodeAnalysis.Collections
             return false;
         }
 
+#pragma warning disable CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
+#pragma warning restore CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
         {
-            ref TValue valRef = ref FindValue(key);
-            if (!Unsafe.IsNullRef(ref valRef))
+            ref var valRef = ref FindValue(key);
+            if (!RoslynUnsafe.IsNullRef(ref valRef))
             {
                 value = valRef;
                 return true;
@@ -831,8 +829,8 @@ namespace Microsoft.CodeAnalysis.Collections
             }
             else if (array is DictionaryEntry[] dictEntryArray)
             {
-                Entry[]? entries = _entries;
-                for (int i = 0; i < _count; i++)
+                var entries = _entries;
+                for (var i = 0; i < _count; i++)
                 {
                     if (entries![i].next >= -1)
                     {
@@ -842,7 +840,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
             else
             {
-                object[]? objects = array as object[];
+                var objects = array as object[];
                 if (objects == null)
                 {
                     ThrowHelper.ThrowArgumentException_Argument_InvalidArrayType();
@@ -850,9 +848,9 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 try
                 {
-                    int count = _count;
-                    Entry[]? entries = _entries;
-                    for (int i = 0; i < count; i++)
+                    var count = _count;
+                    var entries = _entries;
+                    for (var i = 0; i < count; i++)
                     {
                         if (entries![i].next >= -1)
                         {
@@ -879,7 +877,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.capacity);
             }
 
-            int currentCapacity = _entries == null ? 0 : _entries.Length;
+            var currentCapacity = _entries == null ? 0 : _entries.Length;
             if (currentCapacity >= capacity)
             {
                 return currentCapacity;
@@ -892,7 +890,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 return Initialize(capacity);
             }
 
-            int newSize = HashHelpers.GetPrime(capacity);
+            var newSize = HashHelpers.GetPrime(capacity);
             Resize(newSize);
             return newSize;
         }
@@ -925,27 +923,27 @@ namespace Microsoft.CodeAnalysis.Collections
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.capacity);
             }
 
-            int newSize = HashHelpers.GetPrime(capacity);
-            Entry[]? oldEntries = _entries;
-            int currentCapacity = oldEntries == null ? 0 : oldEntries.Length;
+            var newSize = HashHelpers.GetPrime(capacity);
+            var oldEntries = _entries;
+            var currentCapacity = oldEntries == null ? 0 : oldEntries.Length;
             if (newSize >= currentCapacity)
             {
                 return;
             }
 
-            int oldCount = _count;
+            var oldCount = _count;
             _version++;
             Initialize(newSize);
-            Entry[]? entries = _entries;
-            int count = 0;
-            for (int i = 0; i < oldCount; i++)
+            var entries = _entries;
+            var count = 0;
+            for (var i = 0; i < oldCount; i++)
             {
-                uint hashCode = oldEntries![i].hashCode; // At this point, we know we have entries.
+                var hashCode = oldEntries![i].hashCode; // At this point, we know we have entries.
                 if (oldEntries[i].next >= -1)
                 {
-                    ref Entry entry = ref entries![count];
+                    ref var entry = ref entries![count];
                     entry = oldEntries[i];
-                    ref int bucket = ref GetBucket(hashCode);
+                    ref var bucket = ref GetBucket(hashCode);
                     entry.next = bucket - 1; // Value in _buckets is 1-based
                     bucket = count + 1;
                     count++;
@@ -974,8 +972,8 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 if (IsCompatibleKey(key))
                 {
-                    ref TValue value = ref FindValue((TKey)key);
-                    if (!Unsafe.IsNullRef(ref value))
+                    ref var value = ref FindValue((TKey)key);
+                    if (!RoslynUnsafe.IsNullRef(ref value))
                     {
                         return value;
                     }
@@ -993,7 +991,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 try
                 {
-                    TKey tempKey = (TKey)key;
+                    var tempKey = (TKey)key;
                     try
                     {
                         this[tempKey] = (TValue)value!;
@@ -1029,7 +1027,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             try
             {
-                TKey tempKey = (TKey)key;
+                var tempKey = (TKey)key;
 
                 try
                 {
@@ -1069,7 +1067,7 @@ namespace Microsoft.CodeAnalysis.Collections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ref int GetBucket(uint hashCode)
         {
-            int[] buckets = _buckets!;
+            var buckets = _buckets!;
 #if TARGET_64BIT
             return ref buckets[HashHelpers.FastMod(hashCode, (uint)buckets.Length, _fastModMultiplier)];
 #else
@@ -1121,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // dictionary.count+1 could be negative if dictionary.count is int.MaxValue
                 while ((uint)_index < (uint)_dictionary._count)
                 {
-                    ref Entry entry = ref _dictionary._entries![_index++];
+                    ref var entry = ref _dictionary._entries![_index++];
 
                     if (entry.next >= -1)
                     {
@@ -1243,11 +1241,12 @@ namespace Microsoft.CodeAnalysis.Collections
                     ThrowHelper.ThrowArgumentException(ExceptionResource.Arg_ArrayPlusOffTooSmall);
                 }
 
-                int count = _dictionary._count;
-                Entry[]? entries = _dictionary._entries;
-                for (int i = 0; i < count; i++)
+                var count = _dictionary._count;
+                var entries = _dictionary._entries;
+                for (var i = 0; i < count; i++)
                 {
-                    if (entries![i].next >= -1) array[index++] = entries[i].key;
+                    if (entries![i].next >= -1)
+                        array[index++] = entries[i].key;
                 }
             }
 
@@ -1307,19 +1306,20 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
                 else
                 {
-                    object[]? objects = array as object[];
+                    var objects = array as object[];
                     if (objects == null)
                     {
                         ThrowHelper.ThrowArgumentException_Argument_InvalidArrayType();
                     }
 
-                    int count = _dictionary._count;
-                    Entry[]? entries = _dictionary._entries;
+                    var count = _dictionary._count;
+                    var entries = _dictionary._entries;
                     try
                     {
-                        for (int i = 0; i < count; i++)
+                        for (var i = 0; i < count; i++)
                         {
-                            if (entries![i].next >= -1) objects[index++] = entries[i].key;
+                            if (entries![i].next >= -1)
+                                objects[index++] = entries[i].key;
                         }
                     }
                     catch (ArrayTypeMismatchException)
@@ -1359,7 +1359,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
                     while ((uint)_index < (uint)_dictionary._count)
                     {
-                        ref Entry entry = ref _dictionary._entries![_index++];
+                        ref var entry = ref _dictionary._entries![_index++];
 
                         if (entry.next >= -1)
                         {
@@ -1436,11 +1436,12 @@ namespace Microsoft.CodeAnalysis.Collections
                     ThrowHelper.ThrowArgumentException(ExceptionResource.Arg_ArrayPlusOffTooSmall);
                 }
 
-                int count = _dictionary._count;
-                Entry[]? entries = _dictionary._entries;
-                for (int i = 0; i < count; i++)
+                var count = _dictionary._count;
+                var entries = _dictionary._entries;
+                for (var i = 0; i < count; i++)
                 {
-                    if (entries![i].next >= -1) array[index++] = entries[i].value;
+                    if (entries![i].next >= -1)
+                        array[index++] = entries[i].value;
                 }
             }
 
@@ -1499,19 +1500,20 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
                 else
                 {
-                    object[]? objects = array as object[];
+                    var objects = array as object[];
                     if (objects == null)
                     {
                         ThrowHelper.ThrowArgumentException_Argument_InvalidArrayType();
                     }
 
-                    int count = _dictionary._count;
-                    Entry[]? entries = _dictionary._entries;
+                    var count = _dictionary._count;
+                    var entries = _dictionary._entries;
                     try
                     {
-                        for (int i = 0; i < count; i++)
+                        for (var i = 0; i < count; i++)
                         {
-                            if (entries![i].next >= -1) objects[index++] = entries[i].value!;
+                            if (entries![i].next >= -1)
+                                objects[index++] = entries[i].value!;
                         }
                     }
                     catch (ArrayTypeMismatchException)
@@ -1551,7 +1553,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
                     while ((uint)_index < (uint)_dictionary._count)
                     {
-                        ref Entry entry = ref _dictionary._entries![_index++];
+                        ref var entry = ref _dictionary._entries![_index++];
 
                         if (entry.next >= -1)
                         {
