@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             private static readonly ImmutableArray<SymbolKindOrTypeKind> s_parameterSyntaxKind =
                 ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Parameter));
 
+            private static readonly ImmutableArray<SymbolKindOrTypeKind> s_propertySyntaxKind =
+                ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Property));
+
             public NameDeclarationInfo(
                 ImmutableArray<SymbolKindOrTypeKind> possibleSymbolKinds,
                 Accessibility? accessibility,
@@ -52,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
 
                 if (IsTupleTypeElement(token, semanticModel, cancellationToken, out var result)
+                    || IsPrimaryConstructorParameter(token, semanticModel, cancellationToken, out result)
                     || IsParameterDeclaration(token, semanticModel, cancellationToken, out result)
                     || IsTypeParameterDeclaration(token, out result)
                     || IsLocalFunctionDeclaration(token, semanticModel, cancellationToken, out result)
@@ -397,6 +401,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         type: null,
                         alias: null);
 
+                    return true;
+                }
+
+                result = default;
+                return false;
+            }
+
+            private static bool IsPrimaryConstructorParameter(SyntaxToken token, SemanticModel semanticModel,
+                CancellationToken cancellationToken, out NameDeclarationInfo result)
+            {
+                result = IsLastTokenOfType<ParameterSyntax>(
+                    token, semanticModel,
+                    p => p.Type,
+                    _ => default,
+                    _ => s_propertySyntaxKind,
+                    cancellationToken);
+
+                if (result.Type != null &&
+                    token.GetAncestor<ParameterSyntax>().Parent.IsParentKind(SyntaxKind.RecordDeclaration))
+                {
                     return true;
                 }
 

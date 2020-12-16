@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(savedInputExpression != null);
                 return decisionDag;
 
-                bool usesOriginalInput(BoundDecisionDagNode node)
+                static bool usesOriginalInput(BoundDecisionDagNode node)
                 {
                     switch (node)
                     {

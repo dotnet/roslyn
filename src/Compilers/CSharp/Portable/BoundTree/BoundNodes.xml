@@ -2027,9 +2027,14 @@
     <Field Name="Format" Type="BoundLiteral?"/>
   </Node>
   
+    <!-- An 'is pattern'. The fields DecisionDag, WhenTrueLabel, and WhenFalseLabel represent the inner pattern
+         after removing any outer 'not's, so consumers (such as lowering and definite assignment of the local in
+         'is not Type t') will need to compensate for negated patterns. IsNegated is set if Pattern is the negated
+         form of the inner pattern represented by DecisionDag. -->
   <Node Name="BoundIsPatternExpression" Base="BoundExpression">
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+    <Field Name="IsNegated" Type="bool"/>
     <Field Name="DecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
     <Field Name="WhenTrueLabel" Type="LabelSymbol" Null="disallow"/>
     <Field Name="WhenFalseLabel" Type="LabelSymbol" Null="disallow"/>

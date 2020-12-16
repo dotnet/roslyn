@@ -68,12 +68,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             }
         }
 
-        internal static bool IsInCloudEnvironmentClientContext(this ITextBuffer buffer)
+        internal static bool IsInLspEditorContext(this ITextBuffer buffer)
         {
             if (buffer.TryGetWorkspace(out var workspace))
             {
                 var workspaceContextService = workspace.Services.GetRequiredService<IWorkspaceContextService>();
-                return workspaceContextService.IsCloudEnvironmentClient();
+                return workspaceContextService.IsInLspEditorContext();
             }
 
             return false;

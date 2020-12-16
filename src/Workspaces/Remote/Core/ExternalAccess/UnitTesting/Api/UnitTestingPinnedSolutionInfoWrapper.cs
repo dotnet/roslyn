@@ -5,7 +5,7 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     [DataContract]
     internal readonly struct UnitTestingPinnedSolutionInfoWrapper

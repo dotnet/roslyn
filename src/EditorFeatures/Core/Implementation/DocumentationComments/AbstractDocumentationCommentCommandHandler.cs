@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             // Don't execute in cloud environment, as we let LSP handle that
-            if (args.SubjectBuffer.IsInCloudEnvironmentClientContext())
+            if (args.SubjectBuffer.IsInLspEditorContext())
             {
                 return;
             }
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
         {
             // Don't execute in cloud environment, as we let LSP handle that
-            if (args.SubjectBuffer.IsInCloudEnvironmentClientContext())
+            if (args.SubjectBuffer.IsInLspEditorContext())
             {
                 return false;
             }

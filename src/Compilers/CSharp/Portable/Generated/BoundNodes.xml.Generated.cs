@@ -7238,7 +7238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundIsPatternExpression : BoundExpression
     {
-        public BoundIsPatternExpression(SyntaxNode syntax, BoundExpression expression, BoundPattern pattern, BoundDecisionDag decisionDag, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel, TypeSymbol? type, bool hasErrors = false)
+        public BoundIsPatternExpression(SyntaxNode syntax, BoundExpression expression, BoundPattern pattern, bool isNegated, BoundDecisionDag decisionDag, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel, TypeSymbol? type, bool hasErrors = false)
             : base(BoundKind.IsPatternExpression, syntax, type, hasErrors || expression.HasErrors() || pattern.HasErrors() || decisionDag.HasErrors())
         {
 
@@ -7250,6 +7250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Expression = expression;
             this.Pattern = pattern;
+            this.IsNegated = isNegated;
             this.DecisionDag = decisionDag;
             this.WhenTrueLabel = whenTrueLabel;
             this.WhenFalseLabel = whenFalseLabel;
@@ -7260,6 +7261,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundPattern Pattern { get; }
 
+        public bool IsNegated { get; }
+
         public BoundDecisionDag DecisionDag { get; }
 
         public LabelSymbol WhenTrueLabel { get; }
@@ -7268,11 +7271,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitIsPatternExpression(this);
 
-        public BoundIsPatternExpression Update(BoundExpression expression, BoundPattern pattern, BoundDecisionDag decisionDag, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel, TypeSymbol? type)
+        public BoundIsPatternExpression Update(BoundExpression expression, BoundPattern pattern, bool isNegated, BoundDecisionDag decisionDag, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel, TypeSymbol? type)
         {
-            if (expression != this.Expression || pattern != this.Pattern || decisionDag != this.DecisionDag || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(whenTrueLabel, this.WhenTrueLabel) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(whenFalseLabel, this.WhenFalseLabel) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (expression != this.Expression || pattern != this.Pattern || isNegated != this.IsNegated || decisionDag != this.DecisionDag || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(whenTrueLabel, this.WhenTrueLabel) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(whenFalseLabel, this.WhenFalseLabel) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundIsPatternExpression(this.Syntax, expression, pattern, decisionDag, whenTrueLabel, whenFalseLabel, type, this.HasErrors);
+                var result = new BoundIsPatternExpression(this.Syntax, expression, pattern, isNegated, decisionDag, whenTrueLabel, whenFalseLabel, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10769,7 +10772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
             BoundDecisionDag decisionDag = node.DecisionDag;
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(expression, pattern, decisionDag, node.WhenTrueLabel, node.WhenFalseLabel, type);
+            return node.Update(expression, pattern, node.IsNegated, decisionDag, node.WhenTrueLabel, node.WhenFalseLabel, type);
         }
         public override BoundNode? VisitConstantPattern(BoundConstantPattern node)
         {
@@ -13054,12 +13057,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(expression, pattern, decisionDag, node.WhenTrueLabel, node.WhenFalseLabel, infoAndType.Type);
+                updatedNode = node.Update(expression, pattern, node.IsNegated, decisionDag, node.WhenTrueLabel, node.WhenFalseLabel, infoAndType.Type);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(expression, pattern, decisionDag, node.WhenTrueLabel, node.WhenFalseLabel, node.Type);
+                updatedNode = node.Update(expression, pattern, node.IsNegated, decisionDag, node.WhenTrueLabel, node.WhenFalseLabel, node.Type);
             }
             return updatedNode;
         }
@@ -14952,6 +14955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("pattern", null, new TreeDumperNode[] { Visit(node.Pattern, null) }),
+            new TreeDumperNode("isNegated", node.IsNegated, null),
             new TreeDumperNode("decisionDag", null, new TreeDumperNode[] { Visit(node.DecisionDag, null) }),
             new TreeDumperNode("whenTrueLabel", node.WhenTrueLabel, null),
             new TreeDumperNode("whenFalseLabel", node.WhenFalseLabel, null),

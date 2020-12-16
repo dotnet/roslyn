@@ -516,18 +516,18 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>Returns true if there were any errors, false otherwise.</summary>
-        internal bool ReportDiagnostics(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput, ErrorLogger? errorLoggerOpt)
+        internal bool ReportDiagnostics(IEnumerable<Diagnostic> diagnostics, TextWriter consoleOutput, ErrorLogger? errorLoggerOpt, Compilation? compilation)
         {
             bool hasErrors = false;
             foreach (var diag in diagnostics)
             {
-                reportDiagnostic(diag);
+                reportDiagnostic(diag, compilation == null ? null : diag.GetSuppressionInfo(compilation));
             }
 
             return hasErrors;
 
             // Local functions
-            void reportDiagnostic(Diagnostic diag)
+            void reportDiagnostic(Diagnostic diag, SuppressionInfo? suppressionInfo)
             {
                 if (_reportedDiagnostics.Contains(diag))
                 {
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis
 
                 // We want to report diagnostics with source suppression in the error log file.
                 // However, these diagnostics should not be reported on the console output.
-                errorLoggerOpt?.LogDiagnostic(diag);
+                errorLoggerOpt?.LogDiagnostic(diag, suppressionInfo);
 
                 // If the diagnostic was suppressed by one or more DiagnosticSuppressor(s), then we report info diagnostics for each suppression
                 // so that the suppression information is available in the binary logs and verbose build logs.
@@ -587,12 +587,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>Returns true if there were any errors, false otherwise.</summary>
-        private bool ReportDiagnostics(DiagnosticBag diagnostics, TextWriter consoleOutput, ErrorLogger? errorLoggerOpt)
-            => ReportDiagnostics(diagnostics.ToReadOnly(), consoleOutput, errorLoggerOpt);
+        private bool ReportDiagnostics(DiagnosticBag diagnostics, TextWriter consoleOutput, ErrorLogger? errorLoggerOpt, Compilation? compilation)
+            => ReportDiagnostics(diagnostics.ToReadOnly(), consoleOutput, errorLoggerOpt, compilation);
 
         /// <summary>Returns true if there were any errors, false otherwise.</summary>
-        internal bool ReportDiagnostics(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger? errorLoggerOpt)
-            => ReportDiagnostics(diagnostics.Select(info => Diagnostic.Create(info)), consoleOutput, errorLoggerOpt);
+        internal bool ReportDiagnostics(IEnumerable<DiagnosticInfo> diagnostics, TextWriter consoleOutput, ErrorLogger? errorLoggerOpt, Compilation? compilation)
+            => ReportDiagnostics(diagnostics.Select(info => Diagnostic.Create(info)), consoleOutput, errorLoggerOpt, compilation);
 
         /// <summary>
         /// Returns true if there are any error diagnostics in the bag which cannot be suppressed and
@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            ReportDiagnostics(diagnostics.ToReadOnlyAndFree(), consoleOutput, errorLoggerOpt: logger);
+            ReportDiagnostics(diagnostics.ToReadOnlyAndFree(), consoleOutput, errorLoggerOpt: logger, compilation: null);
             return logger;
         }
 
@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis
                 if (errorCode > 0)
                 {
                     var diag = new DiagnosticInfo(MessageProvider, errorCode);
-                    ReportDiagnostics(new[] { diag }, consoleOutput, errorLogger);
+                    ReportDiagnostics(new[] { diag }, consoleOutput, errorLogger, compilation: null);
                 }
 
                 return Failed;
@@ -759,7 +759,7 @@ namespace Microsoft.CodeAnalysis
                 return Succeeded;
             }
 
-            if (ReportDiagnostics(Arguments.Errors, consoleOutput, errorLogger))
+            if (ReportDiagnostics(Arguments.Errors, consoleOutput, errorLogger, compilation: null))
             {
                 return Failed;
             }
@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!TryGetAnalyzerConfigSet(Arguments.AnalyzerConfigPaths, diagnostics, out analyzerConfigSet))
                 {
-                    var hadErrors = ReportDiagnostics(diagnostics, consoleOutput, errorLogger);
+                    var hadErrors = ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation: null);
                     Debug.Assert(hadErrors);
                     return Failed;
                 }
@@ -799,13 +799,13 @@ namespace Microsoft.CodeAnalysis
             var diagnosticInfos = new List<DiagnosticInfo>();
             ResolveAnalyzersFromArguments(diagnosticInfos, MessageProvider, Arguments.SkipAnalyzers, out var analyzers, out var generators);
             var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnosticInfos, MessageProvider, touchedFilesLogger);
-            if (ReportDiagnostics(diagnosticInfos, consoleOutput, errorLogger))
+            if (ReportDiagnostics(diagnosticInfos, consoleOutput, errorLogger, compilation))
             {
                 return Failed;
             }
 
             ImmutableArray<EmbeddedText?> embeddedTexts = AcquireEmbeddedTexts(compilation, diagnostics);
-            if (ReportDiagnostics(diagnostics, consoleOutput, errorLogger))
+            if (ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation))
             {
                 return Failed;
             }
@@ -836,7 +836,7 @@ namespace Microsoft.CodeAnalysis
                 analyzerCts.Cancel();
             }
 
-            var exitCode = ReportDiagnostics(diagnostics, consoleOutput, errorLogger)
+            var exitCode = ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation)
                 ? Failed
                 : Succeeded;
 
@@ -844,7 +844,7 @@ namespace Microsoft.CodeAnalysis
             // additional files due to forcing all additional files to fetch text
             foreach (var additionalFile in additionalTextFiles)
             {
-                if (ReportDiagnostics(additionalFile.Diagnostics, consoleOutput, errorLogger))
+                if (ReportDiagnostics(additionalFile.Diagnostics, consoleOutput, errorLogger, compilation))
                 {
                     exitCode = Failed;
                 }
