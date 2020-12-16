@@ -171,16 +171,13 @@ namespace Microsoft.CodeAnalysis.Completion
             Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
         {
             var symbol = symbols[0];
-            if (IsObsolete(symbol))
+            if (symbol.IsObsolete())
             {
-                // The symbol is obsolete/deprecated. Lets try to find another one that is not and take that instead.
-                symbol = symbols.FirstOrDefault(s => !IsObsolete(s)) ?? symbol;
+                // The first symbol is obsolete/deprecated. Lets try to find another one that is not and take that instead.
+                symbol = symbols.Skip(1).FirstOrDefault(s => !s.IsObsolete()) ?? symbol;
             }
 
             return CreateDescriptionAsync(workspace, semanticModel, position, symbol, overloadCount: symbols.Count - 1, supportedPlatforms, cancellationToken);
-
-            static bool IsObsolete(ISymbol symbol)
-                => symbol.GetAttributes().Any(x => x.AttributeClass.MetadataName == "ObsoleteAttribute");
         }
 
         private static void AddOverloadPart(List<TaggedText> textContentBuilder, int overloadCount, bool isGeneric)
