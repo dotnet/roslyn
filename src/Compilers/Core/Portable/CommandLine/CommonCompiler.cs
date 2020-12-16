@@ -1283,20 +1283,10 @@ namespace Microsoft.CodeAnalysis
 
                 // Determine if we should support artifact generators or not.  If we have an specified output path, then
                 // we will run artifact generators.  Otherwise, we won't bother as we have no place to put their files.
-                Action<string, Action<Stream>>? createArtifactStream = null;
+                Action<string, Action<Stream>>? createArtifactStreamArg = null;
                 if (!string.IsNullOrWhiteSpace(Arguments.GeneratedArtifactsOutputDirectory))
                 {
-                    createArtifactStream =
-                        (hint, callback) =>
-                        {
-                            CreateFileStream(diagnostics, hint, Arguments.GeneratedArtifactsOutputDirectory, out var path, out var fileStream);
-                            if (fileStream is not null)
-                            {
-                                using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
-                                callback(fileStream);
-                                touchedFilesLogger?.AddWritten(path);
-                            };
-                        };
+                    createArtifactStreamArg = createArtifactStream;
                 }
 
                 analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
@@ -1305,13 +1295,26 @@ namespace Microsoft.CodeAnalysis
                     analyzerOptions,
                     new AnalyzerManager(analyzers),
                     analyzerExceptionDiagnostics.Add,
-                    createArtifactStream,
+                    createArtifactStreamArg,
                     Arguments.ReportAnalyzer,
                     severityFilter,
                     out compilation,
                     analyzerCts.Token);
                 reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
             }
+
+            return;
+
+            void createArtifactStream(string hint, Action<Stream> callback)
+            {
+                CreateFileStream(diagnostics, hint, Arguments.GeneratedArtifactsOutputDirectory, out var path, out var fileStream);
+                if (fileStream is not null)
+                {
+                    using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
+                    callback(fileStream);
+                    touchedFilesLogger?.AddWritten(path);
+                };
+            };
         }
 
         private void RunGenerators(
