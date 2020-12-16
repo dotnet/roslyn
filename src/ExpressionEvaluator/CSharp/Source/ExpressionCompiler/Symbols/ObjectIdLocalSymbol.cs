@@ -92,7 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     syntax,
                     receiverOpt: null,
                     method: method,
-                    arguments: ImmutableArray.Create<BoundExpression>(argument));
+                    arguments: ImmutableArray.Create<BoundExpression>(argument),
+                    binder: null);
             }
         }
     }
