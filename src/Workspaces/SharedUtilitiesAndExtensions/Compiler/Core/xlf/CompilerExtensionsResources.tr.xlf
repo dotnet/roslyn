@@ -17,11 +17,6 @@
         <target state="translated">Aynı anahtara, ancak farklı bir değere sahip olan bir öğe zaten var.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ArgumentException_OtherNotArrayOfCorrectLength">
-        <source>Object is not a array with the same number of elements as the array to compare it to.</source>
-        <target state="translated">Nesne, karşılaştırılacağı dizi ile aynı sayıda öğeye sahip bir dizi değil.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Begins_with_I">
         <source>Begins with I</source>
         <target state="translated">I ile başlar</target>
@@ -106,11 +101,6 @@
         <source>Non-Field Members</source>
         <target state="translated">Alan Olmayan Üyeler</target>
         <note>{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="NotSupported_FixedSizeCollection">
-        <source>Collection was of a fixed size.</source>
-        <target state="translated">Koleksiyon sabit bir boyuta sahipti.</target>
-        <note />
       </trans-unit>
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>
