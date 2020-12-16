@@ -31,6 +31,7 @@ jobs:
     - checkout: none
 
     - script: |
+        set -x
         git init
         git remote add origin https://github.com/dotnet/roslyn
         git fetch --progress --no-tags --depth=1 origin "$(Build.SourceVersion)"
