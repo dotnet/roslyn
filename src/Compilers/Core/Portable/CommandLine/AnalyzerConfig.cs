@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis
         ///     </description></item>
         ///  </list>
         ///  
-        /// This value is unsued when <see cref="IsGlobal"/> is <c>false</c>;
+        /// This value is unused when <see cref="IsGlobal"/> is <c>false</c>.
         /// </remarks>
         internal int GlobalLevel
         {
