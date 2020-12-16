@@ -20,6 +20,9 @@ using Nerdbank.Streams;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
+    /// <summary>
+    /// Provides solution assets present locally (in the current process) to a remote process where the solution is being replicated to.
+    /// </summary>
     internal sealed class SolutionAssetProvider : ISolutionAssetProvider
     {
         public const string ServiceName = ServiceDescriptors.ServiceNameTopLevelPrefix + ServiceDescriptors.ComponentName + ".SolutionAssetProvider";
@@ -37,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             var serializer = _services.GetRequiredService<ISerializerService>();
+            var replicationContext = assetStorage.GetReplicationContext(scopeId);
 
             SolutionAsset? singleAsset = null;
             IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap = null;
@@ -68,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var stream = localPipe.Writer.AsStream(leaveOpen: false);
                     using var writer = new ObjectWriter(stream, leaveOpen: false, cancellationToken);
-                    RemoteHostAssetSerialization.WriteData(writer, singleAsset, assetMap, serializer, scopeId, checksums, cancellationToken);
+                    RemoteHostAssetSerialization.WriteData(writer, singleAsset, assetMap, serializer, replicationContext, scopeId, checksums, cancellationToken);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
