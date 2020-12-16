@@ -20,10 +20,9 @@ jobs:
   steps:
     - checkout: none
 
-    - powershell: |
-        Set-PSDebug -Trace 1
+    - script: |
         git init
-        git remote add origin https://github.com/dotnet/roslyn
+        git remote add origin "$(Build.Repository.Uri)"
         git fetch --progress --no-tags --depth=1 origin "$(Build.SourceVersion)"
         git checkout "$(Build.SourceVersion)"
       displayName: Roslyn Checkout
