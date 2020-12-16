@@ -924,7 +924,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function IsClassDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsClassDeclaration
-            Return node.IsKind(SyntaxKind.ClassBlock)
+            Return node.IsKind(SyntaxKind.ClassBlock) OrElse node.IsKind(SyntaxKind.ClassStatement)
         End Function
 
         Public Function IsNamespaceDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNamespaceDeclaration
