@@ -28,4 +28,4 @@ InitializeDotNetCli true
 # permissions issues make this a pain to do in PrepareTests itself.
 rm -rf "$repo_root/artifacts/testPayload"
 
-dotnet run --project src/Tools/PrepareTests/PrepareTests.csproj "$repo_root" "$repo_root/artifacts/testPayload"
+dotnet "$repo_root/artifacts/bin/PrepareTests/Debug/net5.0/PrepareTests.dll" "$repo_root" "$repo_root/artifacts/testPayload"

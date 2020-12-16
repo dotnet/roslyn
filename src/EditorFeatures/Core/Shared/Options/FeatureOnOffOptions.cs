@@ -80,8 +80,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(UseEnhancedColors), defaultValue: 1,
             storageLocations: new RoamingProfileStorageLocation("WindowManagement.Options.UseEnhancedColorsForManagedLanguages"));
 
-        public static readonly PerLanguageOption2<bool> AddImportsOnPaste = new(
-            nameof(FeatureOnOffOptions), nameof(AddImportsOnPaste), defaultValue: false);
+        public static readonly PerLanguageOption2<bool?> AddImportsOnPaste = new(
+            nameof(FeatureOnOffOptions), nameof(AddImportsOnPaste), defaultValue: null,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(AddImportsOnPaste)}"));
     }
 
     [ExportOptionProvider, Shared]
