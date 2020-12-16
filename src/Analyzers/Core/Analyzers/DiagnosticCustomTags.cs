@@ -12,10 +12,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class DiagnosticCustomTags
     {
-        /// <summary>
-        /// it is string[] because DiagnosticDescriptor expects string[]. 
-        /// </summary>
         private static readonly string s_enforceOnBuildNeverTag = EnforceOnBuild.Never.ToCustomTag();
+
         private static readonly string[] s_microsoftCustomTags = new string[] { WellKnownDiagnosticTags.Telemetry };
         private static readonly string[] s_editAndContinueCustomTags = new string[] { WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag };
         private static readonly string[] s_unnecessaryCustomTags = new string[] { WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry };
