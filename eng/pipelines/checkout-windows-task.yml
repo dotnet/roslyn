@@ -1,4 +1,4 @@
-# Checkout Roslyn sources on Windows
+# Shallow checkout sources on Windows
 steps:
   - checkout: none
 
@@ -8,4 +8,4 @@ steps:
       git remote add origin "$(Build.Repository.Uri)"
       git fetch --progress --no-tags --depth=1 origin "$(Build.SourceVersion)"
       git checkout "$(Build.SourceVersion)"
-    displayName: Roslyn Checkout
+    displayName: Shallow Checkout
