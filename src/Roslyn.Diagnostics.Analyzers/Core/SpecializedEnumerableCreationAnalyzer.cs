@@ -97,7 +97,7 @@ namespace Roslyn.Diagnostics.Analyzers
             private readonly INamedTypeSymbol _genericEnumerableSymbol;
             private readonly IMethodSymbol _genericEmptyEnumerableSymbol;
 
-            public AbstractCodeBlockStartedAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
+            protected AbstractCodeBlockStartedAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
             {
                 _genericEnumerableSymbol = genericEnumerableSymbol;
                 _genericEmptyEnumerableSymbol = genericEmptyEnumerableSymbol;
@@ -120,7 +120,7 @@ namespace Roslyn.Diagnostics.Analyzers
             protected INamedTypeSymbol GenericEnumerableSymbol { get; }
             private readonly IMethodSymbol _genericEmptyEnumerableSymbol;
 
-            public AbstractSyntaxAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
+            protected AbstractSyntaxAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
             {
                 this.GenericEnumerableSymbol = genericEnumerableSymbol;
                 _genericEmptyEnumerableSymbol = genericEmptyEnumerableSymbol;

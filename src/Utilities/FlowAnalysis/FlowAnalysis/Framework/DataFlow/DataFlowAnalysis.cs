@@ -286,9 +286,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 // Check if we are starting a try region which has one or more associated catch/filter regions.
                 // If so, we conservatively merge the input data for try region into the input data for the associated catch/filter regions.
+#pragma warning disable CA1508 // Avoid dead conditional code - https://github.com/dotnet/roslyn-analyzers/issues/4408
                 if (block.EnclosingRegion?.Kind == ControlFlowRegionKind.Try &&
-                    block.EnclosingRegion?.EnclosingRegion?.Kind == ControlFlowRegionKind.TryAndCatch &&
+                    block.EnclosingRegion.EnclosingRegion?.Kind == ControlFlowRegionKind.TryAndCatch &&
                     block.EnclosingRegion.EnclosingRegion.FirstBlockOrdinal == block.Ordinal)
+#pragma warning restore CA1508 // Avoid dead conditional code
                 {
                     MergeIntoCatchInputData(block.EnclosingRegion.EnclosingRegion, input, block);
                 }
