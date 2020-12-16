@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                 if (project is null ||
                     referenceUpdates.IsEmpty)
                 {
-                    MessageDialog.Show(ServicesVSResources.Remove_Unused_References, "No unused references were found.", MessageDialogCommandSet.Ok);
+                    MessageDialog.Show(ServicesVSResources.Remove_Unused_References, ServicesVSResources.No_unused_references_were_found, MessageDialogCommandSet.Ok);
                     return;
                 }
 
@@ -143,9 +143,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                     return;
                 }
 
+                // If we are removing, then that is a change or if we are newly marking a reference as TreatAsUsed,
+                // then that is a change.
+                var referenceChanges = referenceUpdates
+                    .Where(update => update.Action != UpdateAction.TreatAsUsed || !update.ReferenceInfo.TreatAsUsed)
+                    .ToImmutableArray();
+
+                // If there are no changes, then we can return
+                if (referenceChanges.IsEmpty)
+                {
+                    return;
+                }
+
+                // Since undo/redo is not supported, get confirmation that we should apply these changes.
+                var result = MessageDialog.Show(ServicesVSResources.Remove_Unused_References, ServicesVSResources.This_action_cannot_be_undone_Do_you_wish_to_continue, MessageDialogCommandSet.YesNo);
+                if (result == MessageDialogCommand.No)
+                {
+                    return;
+                }
+
                 _threadOperationExecutor.Execute(ServicesVSResources.Remove_Unused_References, ServicesVSResources.Updating_project_references, allowCancellation: false, showProgress: true, (operationContext) =>
                 {
-                    ApplyUnusedReferenceUpdates(project, referenceUpdates, CancellationToken.None);
+                    ApplyUnusedReferenceUpdates(project, referenceChanges, CancellationToken.None);
                 });
             }
 
@@ -178,7 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         {
             ImmutableArray<ReferenceInfo> unusedReferences = ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
-                var projectReferences = await _referenceCleanupService.GetProjectReferencesAsync(project.FilePath, cancellationToken).ConfigureAwait(true);
+                var projectReferences = await _referenceCleanupService.GetProjectReferencesAsync(project.FilePath!, cancellationToken).ConfigureAwait(true);
                 var references = ProjectAssetsReader.ReadReferences(projectReferences, projectAssetsFile, targetFrameworkMoniker);
 
                 return await _unusedReferencesService.GetUnusedReferencesAsync(project, references, targetFrameworkMoniker, cancellationToken).ConfigureAwait(true);
@@ -193,10 +212,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
         private Window GetUnusedReferencesDialog(Project project, ImmutableArray<ReferenceUpdate> referenceUpdates)
         {
-            var uiShell = _serviceProvider.GetService<SVsUIShell, IVsUIShell>();
-            uiShell.GetDialogOwnerHwnd(out var ownerHwnd);
-
             var dialog = _unusedReferenceDialogProvider.CreateDialog(project, referenceUpdates);
+
+            var uiShell = _serviceProvider?.GetService<SVsUIShell, IVsUIShell>();
+            if (uiShell is null)
+            {
+                return dialog;
+            }
+
+            uiShell.GetDialogOwnerHwnd(out var ownerHwnd);
 
             var windowHelper = new WindowInteropHelper(dialog)
             {
