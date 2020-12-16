@@ -24,13 +24,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </remarks>
     public abstract class ArtifactProducer : DiagnosticAnalyzer
     {
-#if !NETCOREAPP
-        /// <summary>
-        /// From: https://github.com/microsoft/referencesource/blob/f461f1986ca4027720656a0c77bede9963e20b7e/mscorlib/system/io/streamwriter.cs#L48
-        /// </summary>
-        private const int DefaultBufferSize = 1024;
-#endif
-
         /// <inheritdoc cref="CreateArtifactStream"/>
         private Action<string, Action<Stream>>? _createArtifactStream;
 
@@ -67,11 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             WriteArtifact(fileName, stream =>
             {
-#if NETCOREAPP
-                using var writer = new StreamWriter(stream, Encoding.UTF8, leaveOpen: true);
-#else
-                using var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: DefaultBufferSize, leaveOpen: true);
-#endif
+                using var writer = CreateStreamWriter(stream, Encoding.UTF8);
                 writer.Write(source);
             });
         }
@@ -86,11 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             WriteArtifact(fileName, stream =>
             {
-#if NETCOREAPP
-                using var writer = new StreamWriter(stream, Encoding.UTF8, leaveOpen: true);
-#else
-                using var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: DefaultBufferSize, leaveOpen: true);
-#endif
+                using var writer = CreateStreamWriter(stream, Encoding.UTF8);
                 writer.Write(builder);
             });
         }
@@ -105,13 +90,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             WriteArtifact(fileName, stream =>
             {
-#if NETCOREAPP
-                using var writer = new StreamWriter(stream, sourceText.Encoding ?? Encoding.UTF8, leaveOpen: true);
-#else
-                using var writer = new StreamWriter(stream, sourceText.Encoding ?? Encoding.UTF8, bufferSize: DefaultBufferSize, leaveOpen: true);
-#endif
+                using var writer = CreateStreamWriter(stream, sourceText.Encoding ?? Encoding.UTF8);
                 sourceText.Write(writer);
             });
+        }
+
+        private StreamWriter CreateStreamWriter(Stream stream, Encoding encoding)
+        {
+#if NETCOREAPP
+            return new StreamWriter(stream, encoding, leaveOpen: true);
+#else
+            // From: https://github.com/microsoft/referencesource/blob/f461f1986ca4027720656a0c77bede9963e20b7e/mscorlib/system/io/streamwriter.cs#L48
+            const int DefaultBufferSize = 1024;
+
+            return new StreamWriter(stream, encoding, bufferSize: DefaultBufferSize, leaveOpen: true);
+#endif
         }
 
         /// <summary>
