@@ -3059,15 +3059,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var ctor = addCtor(builder.RecordDeclarationWithParameters);
 
-                if (ctor is not null && ctor.ParameterCount != 0)
+                if (ctor.ParameterCount != 0)
                 {
                     var existingOrAddedMembers = addProperties(ctor.Parameters);
                     addDeconstruct(ctor, existingOrAddedMembers);
                 }
-                if (ctor.ParameterCount == 1 && ctor.Parameters[0].Type.Equals(this, TypeCompareKind.AllIgnoreOptions))
-                {
-                    primaryAndCopyCtorAmbiguity = true;
-                }
+
+                primaryAndCopyCtorAmbiguity = ctor.ParameterCount == 1 && ctor.Parameters[0].Type.Equals(this, TypeCompareKind.AllIgnoreOptions);
             }
 
             addCopyCtor(primaryAndCopyCtorAmbiguity);
@@ -3551,7 +3549,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         case MethodKind.Constructor:
                             // Ignore the record copy constructor
-                            if (!IsRecord || !SynthesizedRecordCopyCtor.HasCopyConstructorSignature(method))
+                            if (!IsRecord ||
+                                !(SynthesizedRecordCopyCtor.HasCopyConstructorSignature(method) && method is not SynthesizedRecordConstructor))
                             {
                                 hasInstanceConstructor = true;
                                 hasParameterlessInstanceConstructor = hasParameterlessInstanceConstructor || method.ParameterCount == 0;

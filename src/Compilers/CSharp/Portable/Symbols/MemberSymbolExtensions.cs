@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return methodSymbol.IsConstructor()
                 && !methodSymbol.HasThisConstructorInitializer()
                 && !(methodSymbol is SynthesizedRecordCopyCtor) // A record copy constructor is special, regular initializers are not supposed to be executed by it.
-                && (!Binder.IsUserDefinedRecordCopyConstructor(methodSymbol) || methodSymbol is SynthesizedRecordConstructor);
+                && !Binder.IsUserDefinedRecordCopyConstructor(methodSymbol);
         }
 
         /// <summary>

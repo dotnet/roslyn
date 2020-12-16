@@ -254,7 +254,7 @@ record R3([System.Diagnostics.CodeAnalysis.NotNull] R3 x);
                 );
 
             var r = comp.GlobalNamespace.GetTypeMember("R");
-            Assert.Equal(new[] { "R..ctor(R x)", "R..ctor(R original)", "R..ctor()" }, r.GetMembers(".ctor").ToTestDisplayStrings());
+            Assert.Equal(new[] { "R..ctor(R x)", "R..ctor(R original)" }, r.GetMembers(".ctor").ToTestDisplayStrings());
         }
 
         [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
@@ -294,7 +294,70 @@ record R(R x)
                 );
 
             var r = comp.GlobalNamespace.GetTypeMember("R");
-            Assert.Equal(new[] { "R..ctor(R x)", "R..ctor(R x)", "R..ctor()" }, r.GetMembers(".ctor").ToTestDisplayStrings());
+            Assert.Equal(new[] { "R..ctor(R x)", "R..ctor(R x)" }, r.GetMembers(".ctor").ToTestDisplayStrings());
+        }
+
+        [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
+        public void AmbigCtor_WithBase()
+        {
+            var src = @"
+record Base;
+
+record R(R x) : Base; // 1
+
+record Derived(Derived y) : R(y) // 2
+{
+    public Derived(Derived y) : base(y) => throw null; // 3, 4, 5
+}
+
+record Derived2(Derived2 y) : R(y); // 6, 7, 8
+
+record R2(R2 x) : Base
+{
+    public R2(R2 x) => throw null; // 9, 10
+}
+
+record R3(R3 x) : Base
+{
+    public R3(R3 x) : base(x) => throw null; // 11
+}
+";
+            var comp = CreateCompilation(new[] { src, NotNullAttributeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // (4,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor.
+                // record R(R x) : Base; // 1
+                Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R").WithLocation(4, 8),
+                // (6,30): error CS0121: The call is ambiguous between the following methods or properties: 'R.R(R)' and 'R.R(R)'
+                // record Derived(Derived y) : R(y) // 2
+                Diagnostic(ErrorCode.ERR_AmbigCall, "(y)").WithArguments("R.R(R)", "R.R(R)").WithLocation(6, 30),
+                // (8,12): error CS0111: Type 'Derived' already defines a member called 'Derived' with the same parameter types
+                //     public Derived(Derived y) : base(y) => throw null; // 3, 4, 5
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Derived").WithArguments("Derived", "Derived").WithLocation(8, 12),
+                // (8,33): error CS0121: The call is ambiguous between the following methods or properties: 'R.R(R)' and 'R.R(R)'
+                //     public Derived(Derived y) : base(y) => throw null; // 3, 4, 5
+                Diagnostic(ErrorCode.ERR_AmbigCall, "base").WithArguments("R.R(R)", "R.R(R)").WithLocation(8, 33),
+                // (8,33): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
+                //     public Derived(Derived y) : base(y) => throw null; // 3, 4, 5
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithLocation(8, 33),
+                // (11,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor.
+                // record Derived2(Derived2 y) : R(y); // 6, 7, 8
+                Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "Derived2").WithLocation(11, 8),
+                // (11,8): error CS8867: No accessible copy constructor found in base type 'R'.
+                // record Derived2(Derived2 y) : R(y); // 6, 7, 8
+                Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "Derived2").WithArguments("R").WithLocation(11, 8),
+                // (11,32): error CS0121: The call is ambiguous between the following methods or properties: 'R.R(R)' and 'R.R(R)'
+                // record Derived2(Derived2 y) : R(y); // 6, 7, 8
+                Diagnostic(ErrorCode.ERR_AmbigCall, "(y)").WithArguments("R.R(R)", "R.R(R)").WithLocation(11, 32),
+                // (15,12): error CS0111: Type 'R2' already defines a member called 'R2' with the same parameter types
+                //     public R2(R2 x) => throw null; // 9, 10
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "R2").WithArguments("R2", "R2").WithLocation(15, 12),
+                // (15,12): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
+                //     public R2(R2 x) => throw null; // 9, 10
+                Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "R2").WithLocation(15, 12),
+                // (20,12): error CS0111: Type 'R3' already defines a member called 'R3' with the same parameter types
+                //     public R3(R3 x) : base(x) => throw null; // 11
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "R3").WithArguments("R3", "R3").WithLocation(20, 12)
+                );
         }
 
         [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
