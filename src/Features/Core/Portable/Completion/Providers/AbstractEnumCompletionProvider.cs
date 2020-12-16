@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract (string displayText, string suffix, string insertionText) GetDefaultDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context);
 
-        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken) 
             => await GetSymbolsAsync(context, position, options, cancellationToken).ConfigureAwait(false);
 
         protected override Task<ImmutableArray<ISymbol>> GetSymbolsAsync(
@@ -94,10 +93,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             rules = rules.WithMatchPriority(preselect ? MatchPriority.Preselect : MatchPriority.Default);
 
-            var sortText = symbols[0] is IFieldSymbol field && field.IsConst
-                // e.g. System.IO.FileAccess.ReadWrite (underlying type is Int32 and value = 3), becomes "System.IO.FileAccess#2147483651"
-                ? $"{insertionText.Substring(0, insertionText.LastIndexOf("."))}#{SortableUnderlyingEnumValue(field.ConstantValue)}"
-                : insertionText;
             return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
@@ -105,31 +100,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 filterText: GetFilterText(symbols[0], displayText, context),
                 symbols: symbols,
                 contextPosition: context.Position,
-                sortText: sortText,
+                sortText: insertionText,
                 supportedPlatforms: supportedPlatformData,
-                rules: rules,
-                inlineDescription: $"= {((IFieldSymbol)symbols[0]).ConstantValue}");
-        }
-
-        private static string SortableUnderlyingEnumValue(object? constantValue)
-        {
-            // Convert the enum value to a string with leading zeros, so text sorting is the same as numerical sorting
-            // Signed values are "shifted" into the positiv range by adding the "MinValue" e.g. sbyte:
-            // -128 becomes "000"
-            // 0 becomes "128"
-            // 127 becomes "255"
-            return constantValue switch
-            {
-                byte b => b.ToString("000", CultureInfo.InvariantCulture),
-                sbyte s => (s - sbyte.MinValue).ToString("000", CultureInfo.InvariantCulture),
-                short s => (s - short.MinValue).ToString("00000", CultureInfo.InvariantCulture),
-                ushort u => u.ToString("00000", CultureInfo.InvariantCulture),
-                int i => (i - (long)int.MinValue).ToString("0000000000", CultureInfo.InvariantCulture),
-                uint u => u.ToString("0000000000", CultureInfo.InvariantCulture),
-                long l => ((ulong)(l - long.MinValue)).ToString("00000000000000000000", CultureInfo.InvariantCulture),
-                ulong u => u.ToString("00000000000000000000", CultureInfo.InvariantCulture),
-                _ => throw ExceptionUtilities.UnexpectedValue(constantValue),
-            };
+                rules: rules);
         }
 
         protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols) => s_rules;
