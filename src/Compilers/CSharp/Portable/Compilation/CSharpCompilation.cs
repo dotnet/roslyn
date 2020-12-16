@@ -233,9 +233,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal bool IsNullableAnalysisEnabledIn(SyntaxNode syntaxNode)
+        internal bool IsNullableAnalysisEnabledIn(SyntaxNode syntax)
         {
-            return IsNullableAnalysisEnabledInAny(ImmutableArray.Create(syntaxNode));
+            return IsNullableAnalysisEnabledIn(syntax, syntax => ((CSharpSyntaxTree)syntax.SyntaxTree).IsNullableAnalysisEnabled(syntax.Span));
+        }
+
+        internal bool IsNullableAnalysisEnabledIn(MethodSymbol method)
+        {
+            return IsNullableAnalysisEnabledIn(method, method => method.IsNullableEnabled());
+        }
+
+        private bool IsNullableAnalysisEnabledIn<T>(T arg, Func<T, bool?> isEnabledIn)
+        {
+            return GetNullableAnalysisValue() ??
+                isEnabledIn(arg) ??
+                (Options.NullableContextOptions & NullableContextOptions.Warnings) != 0;
         }
 
         internal bool IsNullableAnalysisEnabledInAny(ImmutableArray<SyntaxNode> syntaxNodes)

@@ -311,8 +311,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool IsNullableAnalysisEnabled()
         {
-            return (MemberSymbol is SourceMemberMethodSymbol method) ?
-                Compilation.IsNullableAnalysisEnabledIn(method.SyntaxNode) :
+            return (MemberSymbol is MethodSymbol method) ?
+                Compilation.IsNullableAnalysisEnabledIn(method) :
                 Compilation.IsNullableAnalysisEnabled;
         }
     }

@@ -238,6 +238,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _resultType; }
         }
 
+        // PROTOTYPE: Check nullable context.
+        internal override bool? IsNullableEnabled() => true;
+
         private static void CalculateReturnType(
             SourceMemberContainerTypeSymbol containingType,
             DiagnosticBag diagnostics,

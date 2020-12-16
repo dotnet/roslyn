@@ -577,7 +577,7 @@ static class Program
         object obj = null;
     }
 }";
-            verify(source, new[] { ".cctor", "M1" },
+            verify(source, new[] { "M1" },
                 // (9,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object obj = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 22));
@@ -593,7 +593,7 @@ static class Program
         object obj = null;
     }
 }";
-            verify(source, new[] { ".cctor", "M2" },
+            verify(source, new[] { "M2" },
                 // (8,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object obj = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 22));
@@ -609,7 +609,7 @@ static class Program
         object obj = null;
     }
 }";
-            verify(source, new[] { ".cctor", "M3" },
+            verify(source, new[] { "M3" },
                 // (8,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object obj = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 22));
@@ -626,7 +626,7 @@ static class Program
     }
 #nullable enable
 }";
-            verify(source, new[] { ".cctor" });
+            verify(source, new string[0]);
 
             source =
 @"#pragma warning disable 219
@@ -640,7 +640,7 @@ static class Program
         object obj = null;
     }
 }";
-            verify(source, new[] { ".cctor", "M5" });
+            verify(source, new[] { "M5" });
 
             source =
 @"#pragma warning disable 219
@@ -654,7 +654,7 @@ static class Program
         object obj = null;
     }
 }";
-            verify(source, new[] { ".cctor", "M6" });
+            verify(source, new[] { "M6" });
 
             source =
 @"static class Program
@@ -663,7 +663,7 @@ static class Program
 #nullable enable
         => default(object);
 }";
-            verify(source, new[] { ".cctor", "M7" });
+            verify(source, new[] { "M7" });
 
             source =
 @"static class Program
@@ -674,7 +674,7 @@ static class Program
 #nullable enable
             object);
 }";
-            verify(source, new[] { ".cctor", "M8" });
+            verify(source, new[] { "M8" });
 
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
@@ -701,6 +701,32 @@ static class Program
         public void AnalyzeMethodsInEnabledContextOnly_03()
         {
             var source =
+@"class Program
+{
+    Program(object o) { o = null; }
+}
+#nullable enable
+";
+            verify(source, new string[0]);
+
+            source =
+@"#nullable enable
+#nullable disable
+class Program
+{
+    Program(object o) { o = null; }
+}";
+            verify(source, new string[0]);
+
+            source =
+@"class Program
+{
+    Program(object o) { o = null; }
+#nullable enable
+}";
+            verify(source, new string[0]);
+
+            source =
 @"#pragma warning disable 414
 class Program
 {
@@ -708,7 +734,7 @@ class Program
     object F1 = null;
 #nullable enable
 }";
-            verify(source, new[] { ".cctor", ".ctor" });
+            verify(source, new string[0]);
 
             source =
 @"#pragma warning disable 414
@@ -719,7 +745,7 @@ class Program
 #nullable enable
     static object F2 = null;
 }";
-            verify(source, new[] { ".cctor", ".ctor" },
+            verify(source, new[] { ".cctor" },
                 // (7,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     static object F2 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 24));
@@ -733,7 +759,7 @@ class Program
 #nullable disable
     static object F2 = null;
 }";
-            verify(source, new[] { ".cctor", ".ctor" },
+            verify(source, new[] { ".ctor" },
                 // (5,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     object F1 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 17));
@@ -772,7 +798,7 @@ class Program
 #nullable enable
     Program() { F1 = null; }
 }";
-            verify(source, new[] { ".cctor", ".ctor" });
+            verify(source, new[] { ".ctor" });
 
             source =
 @"#pragma warning disable 414
@@ -783,7 +809,7 @@ class Program
 #nullable disable
     Program() { F1 = null; }
 }";
-            verify(source, new[] { ".cctor", ".ctor" },
+            verify(source, new[] { ".ctor" },
                 // (5,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     object F1 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 17));
@@ -799,7 +825,7 @@ class Program
 #nullable enable
     object F3 = null;
 }";
-            verify(source, new[] { ".cctor", ".ctor" },
+            verify(source, new[] { ".ctor" },
                 // (5,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     object F1 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 17),
@@ -818,7 +844,7 @@ class Program
 #nullable disable
     object F3 = null;
 }";
-            verify(source, new[] { ".cctor", ".ctor", "F2" },
+            verify(source, new[] { "F2" },
                 // (7,20): warning CS8603: Possible null reference return.
                 //     object F2() => null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(7, 20));
@@ -878,31 +904,31 @@ partial class Program
 
             verify(new[] { source1, source2 }, options, new string[0]);
 
-            verify(new[] { source1, source3 }, options, new[] { ".cctor", ".ctor" },
+            verify(new[] { source1, source3 }, options, new[] { ".ctor" },
                 // (5,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     object F3 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 17));
 
             verify(new[] { source1, source4 }, options, new string[0]);
 
-            verify(new[] { source2, source3 }, options, new[] { ".cctor", ".ctor" },
+            verify(new[] { source2, source3 }, options, new[] { ".ctor" },
                 // (5,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     object F3 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 17));
 
             verify(new[] { source2, source4 }, options, new string[0]);
 
-            verify(new[] { source3, source4 }, options, new[] { ".cctor", ".ctor" },
+            verify(new[] { source3, source4 }, options, new[] { ".ctor" },
                 // (5,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     object F3 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 17));
 
-            verify(new[] { source1, source2, source3, source4 }, options, new[] { ".cctor", ".ctor" },
+            verify(new[] { source1, source2, source3, source4 }, options, new[] { ".ctor" },
                 // (5,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     object F3 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 17));
 
-            verify(new[] { source1, source2, source3, source4 }, TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Enable), new[] { ".cctor", ".ctor" },
+            verify(new[] { source1, source2, source3, source4 }, TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Enable), new[] { ".ctor" },
                 // (4,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     object F1 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 17),
@@ -960,7 +986,7 @@ partial class Program
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 43));
 
             var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
-            AssertEx.Equal(new[] { ".cctor", ".ctor", "F1", "F4" }, actualAnalyzedKeys);
+            AssertEx.Equal(new[] { "F1", "F4" }, actualAnalyzedKeys);
         }
 
         [Fact]
@@ -995,7 +1021,46 @@ partial class Program
                 Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "x").WithArguments("x").WithLocation(7, 28));
 
             var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
-            AssertEx.Equal(new[] { ".cctor", ".ctor", "= null", "= null", "F2" }, actualAnalyzedKeys);
+            AssertEx.Equal(new[] { "= null", "= null", "F2" }, actualAnalyzedKeys);
+        }
+
+        [Fact]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
+        public void AnalyzeMethodsInEnabledContextOnly_TopLevelStatements()
+        {
+            var sourceA =
+@"object x = A.F();
+if (x == null) { }
+_ = x.ToString();
+static class A
+{
+#nullable enable
+    internal static object F() => new object();
+}";
+            verify(new[] { sourceA }, "<Main>$", "F");
+
+            sourceA =
+@"static class A
+{
+#nullable enable
+    internal static object F() => new object();
+}";
+            var sourceB =
+@"object x = A.F();
+if (x == null) { }
+_ = x.ToString();
+";
+            verify(new[] { sourceA, sourceB }, "F");
+
+            static void verify(string[] source, params string[] expectedAnalyzedKeys)
+            {
+                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.VerifyDiagnostics();
+
+                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
+                AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
+            }
         }
 
         [Fact]
@@ -1044,47 +1109,62 @@ partial class Program
         public void AnalyzeMethodsInEnabledContextOnly_MethodBodySemanticModel_02()
         {
             var source =
-@"class A
+@"class Program
 {
 #nullable enable
     object F;
-    A(object o1)
+    Program(object obj)
 #nullable disable
     {
-        if (o1 == null) { }
-        F = o1;
-    }
-}
-class B
-{
-#nullable enable
-    object F;
-#nullable disable
-    B(object o2)
-    {
-        if (o2 == null) { }
-        F = o2;
+        if (obj == null) { }
+        F = obj;
     }
 }";
+            verify(source, Microsoft.CodeAnalysis.NullableFlowState.MaybeNull, ".ctor");
 
-            var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
-            var syntaxTree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(syntaxTree);
-            var assignmentValues = syntaxTree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Select(e => e.Right).ToArray();
+            source =
+@"class Program
+{
+#nullable enable
+    object F;
+#nullable disable
+    Program(object obj)
+    {
+        if (obj == null) { }
+        F = obj;
+    }
+}";
+            verify(source, Microsoft.CodeAnalysis.NullableFlowState.MaybeNull, ".ctor");
 
-            var syntax = assignmentValues[0];
-            Assert.Equal("o1", syntax.ToString());
-            var typeInfo = model.GetTypeInfo(syntax);
-            Assert.Equal(Microsoft.CodeAnalysis.NullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+            source =
+@"class Program
+{
+#nullable enable
+    object F = new object();
+#nullable disable
+    Program(object obj)
+    {
+        if (obj == null) { }
+        F = obj;
+    }
+}";
+            verify(source, Microsoft.CodeAnalysis.NullableFlowState.MaybeNull, ".ctor");
 
-            syntax = assignmentValues[1];
-            Assert.Equal("o2", syntax.ToString());
-            typeInfo = model.GetTypeInfo(syntax);
-            Assert.Equal(Microsoft.CodeAnalysis.NullableFlowState.None, typeInfo.Nullability.FlowState);
+            static void verify(string source, Microsoft.CodeAnalysis.NullableFlowState expectedFlowState, params string[] expectedAnalyzedKeys)
+            {
+                var comp = CreateCompilation(source);
+                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
 
-            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
-            AssertEx.Equal(new[] { ".ctor" }, actualAnalyzedKeys);
+                var syntaxTree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(syntaxTree);
+                var syntax = syntaxTree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single().Right;
+                Assert.Equal("obj", syntax.ToString());
+                var typeInfo = model.GetTypeInfo(syntax);
+                Assert.Equal(expectedFlowState, typeInfo.Nullability.FlowState);
+
+                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
+                AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
+            }
         }
 
         [Fact]

@@ -1075,15 +1075,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Analyzes a method body if settings indicate we should.
         /// </summary>
-        /// <remarks>
-        /// <paramref name="methodDeclaration"/> is the set of syntax nodes for
-        /// the method declaration used to determine the overall nullable context.
-        /// For constructors, the syntax nodes should include any field initializers.
-        /// </remarks>
         internal static void AnalyzeIfNeeded(
             CSharpCompilation compilation,
             MethodSymbol method,
-            ImmutableArray<SyntaxNode> methodDeclaration,
             BoundNode node,
             DiagnosticBag diagnostics,
             bool useConstructorExitWarnings,
@@ -1091,7 +1085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool getFinalNullableState,
             out VariableState? finalNullableState)
         {
-            if (CanSkipAnalysis(compilation, methodDeclaration))
+            if (!HasRequiredLanguageVersion(compilation) || !compilation.IsNullableAnalysisEnabledIn(method))
             {
                 if (compilation.IsNullableAnalysisEnabledAlways)
                 {
@@ -1150,7 +1144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Gets the "after initializers state" which should be used at the beginning of nullable analysis
         /// of certain constructors. Only used for semantic model and debug verification.
         /// </summary>
-        internal static VariableState? GetAfterInitializersState(CSharpCompilation compilation, Symbol? symbol)
+        internal static VariableState? GetAfterInitializersState(CSharpCompilation compilation, Symbol symbol)
         {
             if (symbol is MethodSymbol method
                 && method.IncludeFieldInitializersInBody()
@@ -1163,7 +1157,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NullableWalker.AnalyzeIfNeeded(
                     compilation,
                     method,
-                    initializers.BoundInitializers.SelectAsArray(initializer => initializer.Syntax),
                     InitializerRewriter.RewriteConstructor(initializers.BoundInitializers, method),
                     unusedDiagnostics,
                     useConstructorExitWarnings: false,
@@ -1311,14 +1304,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rewrittenNode;
         }
 
-        /// <summary>
-        /// Returns true if the nullable analysis can be skipped for the region represented by <paramref name="syntaxNodes"/>.
-        /// The syntax nodes are used to determine the overall nullable context for the region.
-        /// </summary>
-        private static bool CanSkipAnalysis(CSharpCompilation compilation, ImmutableArray<SyntaxNode> syntaxNodes)
+        private static bool HasRequiredLanguageVersion(CSharpCompilation compilation)
         {
-            return compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() ||
-                !compilation.IsNullableAnalysisEnabledInAny(syntaxNodes);
+            return compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion();
         }
 
         /// <summary>
@@ -1327,7 +1315,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static bool NeedsAnalysis(CSharpCompilation compilation, SyntaxNode syntaxNode)
         {
-            return !CanSkipAnalysis(compilation, ImmutableArray.Create(syntaxNode)) || compilation.IsNullableAnalysisEnabledAlways;
+            return HasRequiredLanguageVersion(compilation) &&
+                (compilation.IsNullableAnalysisEnabledIn(syntaxNode) || compilation.IsNullableAnalysisEnabledAlways);
         }
 
         /// <summary>Analyzes a node in a "one-off" context, such as for attributes or parameter default values.</summary>
@@ -1338,7 +1327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool requiredAnalysis = true;
             var compilation = binder.Compilation;
-            if (CanSkipAnalysis(compilation, ImmutableArray.Create(node.Syntax)))
+            if (!HasRequiredLanguageVersion(compilation) || !compilation.IsNullableAnalysisEnabledIn(node.Syntax))
             {
                 if (!compilation.IsNullableAnalysisEnabledAlways)
                 {
@@ -1471,12 +1460,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (walker.compilation.NullableAnalysisData is { } state)
             {
                 var key = (object?)symbol ?? walker.methodMainNode.Syntax;
-                // For synthesized constructors, we may analyze the implicit (empty) constructor
-                // body separately from any explicit initializers. In those cases, the implicit body
-                // is likely requiredAnalysis: false while the initializers might be requiredAnalysis: true.
-                if (!state.TryGetValue(key, out var result) || !result.RequiredAnalysis)
+                if (state.TryGetValue(key, out var result))
                 {
-                    state[key] = new Data(walker._variableSlot.Count, requiredAnalysis);
+                    Debug.Assert(result.RequiredAnalysis == requiredAnalysis);
+                }
+                else
+                {
+                    state.TryAdd(key, new Data(walker._variableSlot.Count, requiredAnalysis));
                 }
             }
         }

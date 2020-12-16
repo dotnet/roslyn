@@ -1166,6 +1166,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract bool AreLocalsZeroed { get; }
 
+        // PROTOTYPE: Cache the result.
+        internal virtual bool? IsNullableEnabled()
+        {
+            bool? result = false;
+            if (this is SourceMemberMethodSymbol sourceMethod)
+            {
+                result = isNullableEnabled(sourceMethod.SyntaxNode);
+                if (result == true)
+                {
+                    return true;
+                }
+            }
+
+            if (this.IncludeFieldInitializersInBody() &&
+                ContainingType is SourceMemberContainerTypeSymbol containingType)
+            {
+                foreach (var member in containingType.GetMembersUnordered())
+                {
+                    if (member.IsStatic != this.IsStatic)
+                    {
+                        continue;
+                    }
+                    var syntax = member switch
+                    {
+                        SourceFieldSymbolWithSyntaxReference field => field.SyntaxNode,
+                        SourcePropertySymbolBase { BackingField: { } } property => property.SyntaxReference.GetSyntax(),
+                        SourceFieldLikeEventSymbol { AssociatedEventField: { } } @event => @event.SyntaxReference.GetSyntax(),
+                        _ => null,
+                    };
+                    if (syntax is { })
+                    {
+                        switch (isNullableEnabled(syntax))
+                        {
+                            case true:
+                                return true;
+                            case null:
+                                result = null;
+                                break;
+                        }
+                    }
+                }
+            }
+            return result;
+
+            static bool? isNullableEnabled(SyntaxNode syntax) => ((CSharpSyntaxTree)syntax.SyntaxTree).IsNullableAnalysisEnabled(syntax.Span);
+        }
+
         #region IMethodSymbolInternal
 
         bool IMethodSymbolInternal.IsIterator => IsIterator;
