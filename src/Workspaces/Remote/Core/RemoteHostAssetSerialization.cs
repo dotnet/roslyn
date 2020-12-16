@@ -114,7 +114,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 finally
                 {
                     await localPipe.Writer.CompleteAsync(exception).ConfigureAwait(false);
-                    await pipeReader.CompleteAsync(exception).ConfigureAwait(false);
                 }
             }, mustNotCancelToken);
 
