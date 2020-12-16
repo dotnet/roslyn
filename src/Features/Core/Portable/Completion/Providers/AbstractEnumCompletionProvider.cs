@@ -93,11 +93,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             rules = rules.WithMatchPriority(preselect ? MatchPriority.Preselect : MatchPriority.Default);
 
-            var fieldSymbol = symbols.FirstOrDefault() as IFieldSymbol;
-            var enumType = fieldSymbol?.ContainingType;
-            var sortAndFilterText = enumType != null && fieldSymbol != null
-                ? $"{enumType.Name}.{fieldSymbol.Name}"
-                : insertionText;
+            var sortAndFilterText = RemoveNamespaceFromDisplayText(displayText);
 
             return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
@@ -109,6 +105,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 sortText: sortAndFilterText,
                 supportedPlatforms: supportedPlatformData,
                 rules: rules);
+        }
+
+        private static string RemoveNamespaceFromDisplayText(string displayText)
+        {
+            // Remove the namespace part of an enum value:
+            // Namespace.EnumType.EnumValue -> EnumType.EnumValue
+            var typeAndValueSeparator = displayText.LastIndexOf('.');
+            if (typeAndValueSeparator > 0)
+            {
+                var namespaceSeparator = displayText.LastIndexOf('.', typeAndValueSeparator - 1);
+                if (namespaceSeparator > 0)
+                {
+                    return displayText[(namespaceSeparator + 1)..];
+                }
+            }
+
+            return displayText;
         }
 
         protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols) => s_rules;

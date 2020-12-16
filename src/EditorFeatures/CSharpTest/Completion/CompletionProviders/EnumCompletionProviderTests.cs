@@ -620,6 +620,25 @@ class C
             await VerifyItemExistsAsync(markup, "Color.Red");
         }
 
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestTypeAlias()
+        {
+            var markup = @"
+using AT = System.AttributeTargets;
+
+public class Program
+{
+    static void M(AT attributeTargets) { }
+    
+    public static void Main()
+    {
+        M($$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "AT.Assembly");
+        }
+
         [Theory]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData("")]
