@@ -242,13 +242,13 @@ record R3([System.Diagnostics.CodeAnalysis.NotNull] R3 x);
 ";
             var comp = CreateCompilation(new[] { src, NotNullAttributeDefinition });
             comp.VerifyEmitDiagnostics(
-                // (2,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor.
+                // (2,8): error CS8909: The primary constructor conflicts with the synthesized copy constructor.
                 // record R(R x);
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R").WithLocation(2, 8),
-                // (5,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor.
+                // (5,8): error CS8909: The primary constructor conflicts with the synthesized copy constructor.
                 // record R2(R2? x) { }
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R2").WithLocation(5, 8),
-                // (7,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor.
+                // (7,8): error CS8909: The primary constructor conflicts with the synthesized copy constructor.
                 // record R3([System.Diagnostics.CodeAnalysis.NotNull] R3 x);
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R3").WithLocation(7, 8)
                 );
@@ -268,10 +268,10 @@ record R2<T>(R2<T?> x) { }
 ";
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (2,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor.
+                // (2,8): error CS8909: The primary constructor conflicts with the synthesized copy constructor.
                 // record R<T>(R<T> x);
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R").WithLocation(2, 8),
-                // (5,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor.
+                // (5,8): error CS8909: The primary constructor conflicts with the synthesized copy constructor.
                 // record R2<T>(R2<T?> x) { }
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R2").WithLocation(5, 8)
                 );
@@ -324,7 +324,7 @@ record R3(R3 x) : Base
 ";
             var comp = CreateCompilation(new[] { src, NotNullAttributeDefinition });
             comp.VerifyEmitDiagnostics(
-                // (4,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor.
+                // (4,8): error CS8909: The primary constructor conflicts with the synthesized copy constructor.
                 // record R(R x) : Base; // 1
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R").WithLocation(4, 8),
                 // (6,30): error CS0121: The call is ambiguous between the following methods or properties: 'R.R(R)' and 'R.R(R)'
@@ -339,7 +339,7 @@ record R3(R3 x) : Base
                 // (8,33): error CS8868: A copy constructor in a record must call a copy constructor of the base, or a parameterless object constructor if the record inherits from object.
                 //     public Derived(Derived y) : base(y) => throw null; // 3, 4, 5
                 Diagnostic(ErrorCode.ERR_CopyConstructorMustInvokeBaseCopyConstructor, "base").WithLocation(8, 33),
-                // (11,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor.
+                // (11,8): error CS8909: The primary constructor conflicts with the synthesized copy constructor.
                 // record Derived2(Derived2 y) : R(y); // 6, 7, 8
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "Derived2").WithLocation(11, 8),
                 // (11,8): error CS8867: No accessible copy constructor found in base type 'R'.
@@ -371,7 +371,7 @@ record R(R X)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (2,8): error CS8909: Synthesized copy constructor conflicts with a primary constructor.
+                // (2,8): error CS8909: The primary constructor conflicts with the synthesized copy constructor.
                 // record R(R X)
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R").WithLocation(2, 8)
                 );
