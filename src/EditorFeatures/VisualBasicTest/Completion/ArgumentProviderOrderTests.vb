@@ -24,6 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion
             Dim expectedOrder =
                 {
                 GetType(FirstBuiltInArgumentProvider),
+                GetType(ContextVariableArgumentProvider),
                 GetType(DefaultArgumentProvider),
                 GetType(LastBuiltInArgumentProvider)
                 }

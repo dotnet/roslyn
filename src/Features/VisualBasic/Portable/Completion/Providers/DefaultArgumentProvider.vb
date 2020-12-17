@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportArgumentProvider(NameOf(DefaultArgumentProvider), LanguageNames.VisualBasic)>
-    <ExtensionOrder(After:=NameOf(FirstBuiltInArgumentProvider))>
+    <ExtensionOrder(After:=NameOf(ContextVariableArgumentProvider))>
     <[Shared]>
     Friend Class DefaultArgumentProvider
         Inherits AbstractDefaultArgumentProvider

@@ -83,25 +83,25 @@ public class Test
             VisualStudio.Editor.Verify.CurrentLineText("f.ToString($$)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(VirtualKey.Down);
-            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(null$$)", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(provider$$)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(VirtualKey.Down);
             VisualStudio.Editor.Verify.CurrentLineText("f.ToString(null$$)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(VirtualKey.Down);
-            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(null$$, null)", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(null$$, provider)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys("\"format\"");
-            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(\"format\"$$, null)", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(\"format\"$$, provider)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(VirtualKey.Tab);
-            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(\"format\", null$$)", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(\"format\", provider$$)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(VirtualKey.Up);
             VisualStudio.Editor.Verify.CurrentLineText("f.ToString(\"format\"$$)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(VirtualKey.Up);
-            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(null$$)", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(provider$$)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(VirtualKey.Down);
             VisualStudio.Editor.Verify.CurrentLineText("f.ToString(\"format\"$$)", assertCaretPosition: true);

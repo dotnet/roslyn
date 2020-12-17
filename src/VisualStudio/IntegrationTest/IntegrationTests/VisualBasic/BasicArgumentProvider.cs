@@ -79,25 +79,25 @@ End Class
             VisualStudio.Editor.Verify.CurrentLineText("f.ToString($$)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(VirtualKey.Down);
-            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(Nothing$$)", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(provider$$)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(VirtualKey.Down);
             VisualStudio.Editor.Verify.CurrentLineText("f.ToString(Nothing$$)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(VirtualKey.Down);
-            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(Nothing$$, Nothing)", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(Nothing$$, provider)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys("\"format\"");
-            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(\"format\"$$, Nothing)", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(\"format\"$$, provider)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(VirtualKey.Tab);
-            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(\"format\", Nothing$$)", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(\"format\", provider$$)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(VirtualKey.Up);
             VisualStudio.Editor.Verify.CurrentLineText("f.ToString(\"format\"$$)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(VirtualKey.Up);
-            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(Nothing$$)", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("f.ToString(provider$$)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(VirtualKey.Down);
             VisualStudio.Editor.Verify.CurrentLineText("f.ToString(\"format\"$$)", assertCaretPosition: true);
