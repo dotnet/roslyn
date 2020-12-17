@@ -16,7 +16,12 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
     [ExportWorkspaceService(typeof(IUnusedReferencesService), ServiceLayer.Default), Shared]
     internal class UnusedReferencesService : IUnusedReferencesService
     {
-        private readonly ReferenceType[] _processingOrder = new[] { ReferenceType.Project, ReferenceType.Package, ReferenceType.Assembly };
+        private readonly ReferenceType[] _processingOrder = new[]
+        {
+            ReferenceType.Project,
+            ReferenceType.Package,
+            ReferenceType.Assembly
+        };
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,7 +33,6 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         public async Task<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(
             Project project,
             ImmutableArray<ReferenceInfo> references,
-            string targetFrameworkMoniker,
             CancellationToken cancellationToken)
         {
             // Create a lookup of used assembly paths
@@ -38,12 +42,17 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 return ImmutableArray<ReferenceInfo>.Empty;
             }
 
-            var usedAssemblyReferences = compilation.GetUsedAssemblyReferences(cancellationToken).Select(reference => reference.Display).OfType<string>();
+            var usedAssemblyReferences = compilation.GetUsedAssemblyReferences(cancellationToken)
+                .Select(reference => reference.Display)
+                .OfType<string>();
             var usedAssemblyLookup = usedAssemblyReferences.ToImmutableHashSet();
 
             var unusedReferences = ImmutableArray.CreateBuilder<ReferenceInfo>();
-            var referencesByType = references.GroupBy(reference => reference.ReferenceType).ToImmutableDictionary(group => group.Key);
+            var referencesByType = references.GroupBy(reference => reference.ReferenceType)
+                .ToImmutableDictionary(group => group.Key);
 
+            // We process the references in order by their type. This means we favor transitive references
+            // over direct references where possible.
             foreach (var referenceType in _processingOrder)
             {
                 if (!referencesByType.ContainsKey(referenceType))
@@ -63,10 +72,10 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
 
             // Determine which toplevel references have compilation assemblies in set of used assemblies.
             var toplevelUsedReferences = references.Where(reference =>
-                reference.CompilationAssemblies.Any(assembly => usedAssemblyLookup.Contains(assembly)));
+                reference.CompilationAssemblies.Any(usedAssemblyLookup.Contains));
             var toplevelUsedAssemblyReferences = toplevelUsedReferences.SelectMany(reference => reference.GetAllCompilationAssemblies());
 
-            // Remove all assemblies that are brought into the compilation from the toplevel used references. When
+            // Remove all assemblies that are brought into the compilation from those toplevel used references. When
             // determining transtively used references this will reduce false positives.
             var remainingReferences = references.Except(toplevelUsedReferences);
             var remainingUsedAssemblyReferences = usedAssemblyReferences.Except(toplevelUsedAssemblyReferences);
@@ -78,14 +87,15 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 var allCompilationAssemblies = reference.GetAllCompilationAssemblies();
                 if (allCompilationAssemblies.IsEmpty)
                 {
-                    // Analyzer packages won't contribute any assemblies to the compilation but will
-                    // show up as a reference. We will consider them used.
+                    // We will consider References that do not contribute any assemblies to the compilation,
+                    // such as Analyzer packages, as used.
                     continue;
                 }
 
-                if (!allCompilationAssemblies.Any(assembly => remainingUsedAssemblyLookup.Contains(assembly)))
+                if (!allCompilationAssemblies.Any(remainingUsedAssemblyLookup.Contains))
                 {
-                    // References that do not contribute a used compilation assembly are considered unsused.
+                    // None of the assemblies brought into this compilation are in the remaining
+                    // used assemblies list, so we will consider the reference unused.
                     unusedReferences.Add(reference);
                     continue;
                 }
@@ -100,8 +110,6 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         public async Task<Project> UpdateReferencesAsync(Project project, ImmutableArray<ReferenceUpdate> referenceUpdates, CancellationToken cancellationToken)
         {
             var referenceCleanupService = project.Solution.Workspace.Services.GetRequiredService<IReferenceCleanupService>();
-
-            // Remove unused usings
 
             foreach (var referenceUpdate in referenceUpdates)
             {
@@ -124,9 +132,9 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 }
 
                 await referenceCleanupService.TryUpdateReferenceAsync(
-                    project.FilePath,
+                    project.FilePath!,
                     referenceUpdate,
-                    cancellationToken).ConfigureAwait(true);
+                    cancellationToken).ConfigureAwait(false);
             }
 
             return project;

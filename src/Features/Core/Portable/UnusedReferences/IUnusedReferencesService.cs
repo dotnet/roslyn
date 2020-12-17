@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         Task<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(
             Project project,
             ImmutableArray<ReferenceInfo> references,
-            string targetFrameworkMoniker,
             CancellationToken cancellationToken);
 
         /// <summary>
