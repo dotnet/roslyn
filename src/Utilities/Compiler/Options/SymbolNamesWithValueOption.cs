@@ -335,7 +335,9 @@ namespace Analyzer.Utilities
             }
         }
 
+#pragma warning disable CA1024 // Use properties where appropriate
         internal TestAccessor GetTestAccessor()
+#pragma warning restore CA1024 // Use properties where appropriate
         {
             return new TestAccessor(this);
         }

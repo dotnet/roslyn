@@ -110,7 +110,9 @@ namespace Analyzer.Utilities.PooledObjects
             return new KeyEnumerator(_dictionary);
         }
 
+#pragma warning disable CA1024 // Use properties where appropriate
         private IEnumerator<T> GetEnumeratorCore()
+#pragma warning restore CA1024 // Use properties where appropriate
         {
             // PERF: Do not use dictionary.Keys here because that creates a snapshot
             // of the collection resulting in a List<T> allocation. Instead, use the
