@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis
                         continue;
                     }
 
-                    bool keyInSection = sectionDict.TryGetValue(key, out var sectionValue) == true;
+                    bool keyInSection = sectionDict.TryGetValue(key, out var sectionValue);
 
                     (int globalLevel, ArrayBuilder<string> configPaths) duplicateValue = default;
                     bool keyDuplicated = duplicateDict?.TryGetValue(key, out duplicateValue) == true;
