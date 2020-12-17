@@ -195,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                 var projectReferences = await _referenceCleanupService.GetProjectReferencesAsync(project.FilePath!, cancellationToken).ConfigureAwait(true);
                 var references = ProjectAssetsReader.ReadReferences(projectReferences, projectAssetsFile, targetFrameworkMoniker);
 
-                return await _unusedReferencesService.GetUnusedReferencesAsync(project, references, targetFrameworkMoniker, cancellationToken).ConfigureAwait(true);
+                return await _unusedReferencesService.GetUnusedReferencesAsync(project, references, cancellationToken).ConfigureAwait(true);
             });
 
             var referenceUpdates = unusedReferences
