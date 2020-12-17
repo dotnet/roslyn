@@ -756,8 +756,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <param name="symbol"></param>
         /// <returns><see langword="true"/> if the symbol is marked with the <see cref="System.ObsoleteAttribute"/>.</returns>
         public static bool IsObsolete(this ISymbol symbol)
-            => symbol.GetAttributes().Any(x =>
-                x.AttributeClass?.MetadataName == nameof(ObsoleteAttribute) &&
-                x.AttributeClass?.ContainingNamespace.Name == nameof(System));
+            => symbol.GetAttributes().Any(x => x.AttributeClass is
+            {
+                MetadataName: nameof(ObsoleteAttribute),
+                ContainingNamespace: { Name: nameof(System) },
+            });
     }
 }

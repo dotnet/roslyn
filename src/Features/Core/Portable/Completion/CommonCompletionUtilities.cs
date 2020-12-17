@@ -170,12 +170,9 @@ namespace Microsoft.CodeAnalysis.Completion
         public static Task<CompletionDescription> CreateDescriptionAsync(
             Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
         {
-            var symbol = symbols[0];
-            if (symbol.IsObsolete())
-            {
-                // The first symbol is obsolete/deprecated. Lets try to find another one that is not and take that instead.
-                symbol = symbols.Skip(1).FirstOrDefault(s => !s.IsObsolete()) ?? symbol;
-            }
+            // Lets try to find the first non-obsolete symbol (overload) and fall-back
+            // to the first symbol if all are obsolete.
+            var symbol = symbols.FirstOrDefault(s => !s.IsObsolete()) ?? symbols[0];
 
             return CreateDescriptionAsync(workspace, semanticModel, position, symbol, overloadCount: symbols.Count - 1, supportedPlatforms, cancellationToken);
         }
