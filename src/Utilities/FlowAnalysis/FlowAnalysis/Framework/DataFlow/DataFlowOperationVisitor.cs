@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> InterproceduralResultsMap => _interproceduralResultsBuilder.ToImmutable();
         public ImmutableDictionary<IMethodSymbol, IDataFlowAnalysisResult<TAbstractAnalysisValue>> StandaloneLocalFunctionAnalysisResultsMap => _standaloneLocalFunctionAnalysisResultsBuilder.ToImmutable();
         internal LambdaAndLocalFunctionAnalysisInfo LambdaAndLocalFunctionAnalysisInfo =>
-            new LambdaAndLocalFunctionAnalysisInfo(_escapedLocalFunctions, _analyzedLocalFunctions, _escapedLambdas, _analyzedLambdas);
+            new(_escapedLocalFunctions, _analyzedLocalFunctions, _escapedLambdas, _analyzedLambdas);
 
         /// <summary>
         /// Optional map from points to values of tasks to the underlying abstract value returned by the task.
