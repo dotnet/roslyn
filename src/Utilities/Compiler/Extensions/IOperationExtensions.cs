@@ -372,8 +372,7 @@ namespace Analyzer.Utilities.Extensions
         /// <param name="binaryOperation"></param>
         /// <returns></returns>
         public static bool IsComparisonOperator(this IBinaryOperation binaryOperation)
-        {
-            return binaryOperation.OperatorKind switch
+            => binaryOperation.OperatorKind switch
             {
                 BinaryOperatorKind.Equals
                 or BinaryOperatorKind.NotEquals
@@ -385,7 +384,6 @@ namespace Analyzer.Utilities.Extensions
                 or BinaryOperatorKind.GreaterThanOrEqual => true,
                 _ => false,
             };
-        }
 
         public static IOperation GetRoot(this IOperation operation)
         {
@@ -930,20 +928,13 @@ namespace Analyzer.Utilities.Extensions
             }
             else if (operation.Parent is IArgumentOperation argumentOperation)
             {
-                switch (argumentOperation.Parameter.RefKind)
+                return argumentOperation.Parameter.RefKind switch
                 {
-                    case RefKind.RefReadOnly:
-                        return ValueUsageInfo.ReadableReference;
-
-                    case RefKind.Out:
-                        return ValueUsageInfo.WritableReference;
-
-                    case RefKind.Ref:
-                        return ValueUsageInfo.ReadableWritableReference;
-
-                    default:
-                        return ValueUsageInfo.Read;
-                }
+                    RefKind.RefReadOnly => ValueUsageInfo.ReadableReference,
+                    RefKind.Out => ValueUsageInfo.WritableReference,
+                    RefKind.Ref => ValueUsageInfo.ReadableWritableReference,
+                    _ => ValueUsageInfo.Read,
+                };
             }
             else if (operation.Parent is IReturnOperation returnOperation)
             {
@@ -1062,17 +1053,11 @@ namespace Analyzer.Utilities.Extensions
         /// such as <code>a ??= b</code>.
         /// </summary>
         public static bool IsAnyCompoundAssignment(this IOperation operation)
-        {
-            switch (operation)
+            => operation switch
             {
-                case ICompoundAssignmentOperation:
-                case ICoalesceAssignmentOperation:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
+                ICompoundAssignmentOperation or ICoalesceAssignmentOperation => true,
+                _ => false,
+            };
 #endif
     }
 }
