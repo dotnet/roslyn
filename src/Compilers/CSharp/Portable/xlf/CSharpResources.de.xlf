@@ -967,6 +967,16 @@
         <target state="translated">Die geladene Assembly verweist auf das .NET Framework. Dies wird nicht unterstützt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_DoNotCompareFunctionPointers">
+        <source>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</source>
+        <target state="new">Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DoNotCompareFunctionPointers_Title">
+        <source>Do not compare function pointer values</source>
+        <target state="new">Do not compare function pointer values</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">Der Parameter "{0}" muss beim Beenden einen Wert ungleich NULL aufweisen, weil Parameter "{1}" nicht NULL ist.</target>
