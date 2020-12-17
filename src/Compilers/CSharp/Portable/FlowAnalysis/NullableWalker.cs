@@ -1320,14 +1320,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Analyzes a node in a "one-off" context, such as for attributes or parameter default values.</summary>
+        /// <remarks><paramref name="syntax"/> is the syntax span used to determine the overall nullable context.</remarks>
         internal static void AnalyzeIfNeeded(
             Binder binder,
             BoundNode node,
+            SyntaxNode syntax,
             DiagnosticBag diagnostics)
         {
             bool requiredAnalysis = true;
             var compilation = binder.Compilation;
-            if (!HasRequiredLanguageVersion(compilation) || !compilation.IsNullableAnalysisEnabledIn(node.Syntax))
+            if (!HasRequiredLanguageVersion(compilation) || !compilation.IsNullableAnalysisEnabledIn(syntax))
             {
                 if (!compilation.IsNullableAnalysisEnabledAlways)
                 {

@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             RoslynDebug.Assert((object)attributeType != null);
 
-            NullableWalker.AnalyzeIfNeeded(this, boundAttribute, diagnostics);
+            NullableWalker.AnalyzeIfNeeded(this, boundAttribute, boundAttribute.Syntax, diagnostics);
 
             bool hasErrors = boundAttribute.HasAnyErrors;
 

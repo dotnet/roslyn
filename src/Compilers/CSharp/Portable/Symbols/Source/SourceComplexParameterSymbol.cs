@@ -213,8 +213,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (binder is not null && parameterEqualsValue is not null && !_lazyDefaultSyntaxValue.IsBad)
                     {
-                        NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, diagnostics);
-                        VerifyParamDefaultValueMatchesAttributeIfAny(_lazyDefaultSyntaxValue, parameterEqualsValue.Value.Syntax, diagnostics);
+                        var valueSyntax = parameterEqualsValue.Value.Syntax;
+                        NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, valueSyntax, diagnostics);
+                        VerifyParamDefaultValueMatchesAttributeIfAny(_lazyDefaultSyntaxValue, valueSyntax, diagnostics);
                     }
 
                     AddDeclarationDiagnostics(diagnostics);
@@ -283,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 new BoundLiteral(parameterSyntax, defaultValue, Type));
 
             var diagnostics = DiagnosticBag.GetInstance();
-            NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, diagnostics);
+            NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, parameterSyntax, diagnostics);
             AddDeclarationDiagnostics(diagnostics);
             diagnostics.Free();
         }
