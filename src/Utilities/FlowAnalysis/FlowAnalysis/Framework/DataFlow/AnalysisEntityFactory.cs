@@ -144,15 +144,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 case IMemberReferenceOperation memberReference:
                     instance = memberReference.Instance;
                     GetSymbolAndIndicesForMemberReference(memberReference, ref symbol, ref indices);
-
-                    // Workaround for https://github.com/dotnet/roslyn/issues/22736 (IPropertyReferenceExpressions in IAnonymousObjectCreationExpression are missing a receiver).
-                    if (instance == null &&
-                        symbol != null &&
-                        memberReference is IPropertyReferenceOperation propertyReference)
-                    {
-                        instance = propertyReference.GetAnonymousObjectCreation();
-                    }
-
                     break;
 
                 case IArrayElementReferenceOperation arrayElementReference:
