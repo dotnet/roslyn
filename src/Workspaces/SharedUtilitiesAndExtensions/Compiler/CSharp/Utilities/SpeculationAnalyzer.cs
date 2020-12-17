@@ -342,6 +342,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 var newExpression = (ConditionalExpressionSyntax)currentReplacedNode;
 
+                // If we removed a cast, causing a conditional expression to now use a conditional *conversion*, then that is always
+                // an error before CSharp9, and should not be allowed.
+                var originalConditionalConversion = this.OriginalSemanticModel.GetConversion(originalExpression);
+                var newConditionalConversion = this.SpeculativeSemanticModel.GetConversion(newExpression);
+                if (newConditionalConversion.IsConditionalExpression &&
+                    !originalConditionalConversion.IsConditionalExpression &&
+                    !ConditionalExpressionConversionsAreAllowed(originalExpression))
+                {
+                    return true;
+                }
+
                 if (originalExpression.Condition != previousOriginalNode)
                 {
                     ExpressionSyntax originalOtherPartOfConditional, newOtherPartOfConditional;
@@ -719,8 +730,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private static bool IsPotentiallyTargetTypedConditionalExpression(ExpressionSyntax expressionSyntax)
         {
             return expressionSyntax is ConditionalExpressionSyntax &&
-                   ((CSharpParseOptions)expressionSyntax.SyntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp9;
+                   ConditionalExpressionConversionsAreAllowed(expressionSyntax);
         }
+
+        private static bool ConditionalExpressionConversionsAreAllowed(ExpressionSyntax expressionSyntax)
+            => ((CSharpParseOptions)expressionSyntax.SyntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp9;
 
         protected override bool ReplacementIntroducesErrorType(ExpressionSyntax originalExpression, ExpressionSyntax newExpression)
         {
