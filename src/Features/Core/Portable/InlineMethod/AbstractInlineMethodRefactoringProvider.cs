@@ -105,11 +105,6 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 return;
             }
 
-            if (calleeMethodSymbol.IsVararg)
-            {
-                return;
-            }
-
             if (calleeMethodSymbol.DeclaredAccessibility != Accessibility.Private)
             {
                 return;

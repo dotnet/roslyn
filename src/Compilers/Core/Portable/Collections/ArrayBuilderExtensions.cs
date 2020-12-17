@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
@@ -159,18 +158,6 @@ namespace Microsoft.CodeAnalysis
             var e = builder.Peek();
             builder.RemoveAt(builder.Count - 1);
             return e;
-        }
-
-        public static bool TryPop<T>(this ArrayBuilder<T> builder, [MaybeNullWhen(false)] out T result)
-        {
-            if (builder.Count > 0)
-            {
-                result = builder.Pop();
-                return true;
-            }
-
-            result = default;
-            return false;
         }
 
         public static T Peek<T>(this ArrayBuilder<T> builder)

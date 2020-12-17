@@ -163,26 +163,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Update(receiverOpt, method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ArgsToParamsOpt, DefaultArguments, ResultKind, OriginalMethodsOpt, BinderOpt, Type);
         }
 
-        /// <param name="binder">Must be non-null if coming from initial binding for use in IOperation</param>
-        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method, Binder? binder)
+        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method)
         {
-            return Synthesized(syntax, receiverOpt, method, ImmutableArray<BoundExpression>.Empty, binder);
+            return Synthesized(syntax, receiverOpt, method, ImmutableArray<BoundExpression>.Empty);
         }
 
-        /// <param name="binder">Must be non-null if coming from initial binding for use in IOperation</param>
-        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method, BoundExpression arg0, Binder? binder)
+        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method, BoundExpression arg0)
         {
-            return Synthesized(syntax, receiverOpt, method, ImmutableArray.Create(arg0), binder);
+            return Synthesized(syntax, receiverOpt, method, ImmutableArray.Create(arg0));
         }
 
-        /// <param name="binder">Must be non-null if coming from initial binding for use in IOperation</param>
-        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method, BoundExpression arg0, BoundExpression arg1, Binder? binder)
+        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method, BoundExpression arg0, BoundExpression arg1)
         {
-            return Synthesized(syntax, receiverOpt, method, ImmutableArray.Create(arg0, arg1), binder);
+            return Synthesized(syntax, receiverOpt, method, ImmutableArray.Create(arg0, arg1));
         }
 
-        /// <param name="binder">Must be non-null if coming from initial binding for use in IOperation</param>
-        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments, Binder? binder)
+        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
         {
             return new BoundCall(syntax,
                     receiverOpt,
@@ -197,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     defaultArguments: default(BitVector),
                     resultKind: LookupResultKind.Viable,
                     originalMethodsOpt: default,
-                    binder,
+                    binderOpt: null,
                     type: method.ReturnType,
                     hasErrors: method.OriginalDefinition is ErrorMethodSymbol
                 )

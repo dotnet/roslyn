@@ -145,8 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenOperand: BoundCall.Synthesized(
                         syntax: forEachSyntax,
                         receiverOpt: boundEnumeratorVar,
-                        method: enumeratorInfo.CurrentPropertyGetter,
-                        binder: null),
+                        method: enumeratorInfo.CurrentPropertyGetter),
                     conversion: enumeratorInfo.CurrentConversion,
                     rewrittenType: elementType,
                     @checked: node.Checked),
@@ -377,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement disposableVarDecl = MakeLocalDeclaration(forEachSyntax, disposableVar, disposableVarInitValue);
 
                 // d.Dispose()
-                BoundExpression disposeCall = BoundCall.Synthesized(syntax: forEachSyntax, receiverOpt: boundDisposableVar, method: disposeMethod, binder: null);
+                BoundExpression disposeCall = BoundCall.Synthesized(syntax: forEachSyntax, receiverOpt: boundDisposableVar, method: disposeMethod);
                 BoundStatement disposeCallStatement = new BoundExpressionStatement(forEachSyntax, expression: disposeCall);
 
                 // if (d != null) d.Dispose();
@@ -495,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Generate a call with literally zero arguments
-            return BoundCall.Synthesized(syntax, receiver, method, arguments: ImmutableArray<BoundExpression>.Empty, binder: null);
+            return BoundCall.Synthesized(syntax, receiver, method, arguments: ImmutableArray<BoundExpression>.Empty);
         }
 
         /// <summary>
@@ -558,8 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax: forEachSyntax,
                     receiverOpt: boundArrayVar,
                     indexerGet,
-                    boundPositionVar,
-                    binder: null),
+                    boundPositionVar),
                 conversion: node.ElementConversion,
                 rewrittenType: node.IterationVariableType.Type,
                 @checked: node.Checked);
@@ -577,8 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression arrayLength = BoundCall.Synthesized(
                 syntax: forEachSyntax,
                 receiverOpt: boundArrayVar,
-                lengthGet,
-                binder: null);
+                lengthGet);
 
             // p < a.Length
             BoundExpression exitCondition = new BoundBinaryOperator(
@@ -901,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: intType));
 
                 // a.GetUpperBound(dimension)
-                BoundExpression currentDimensionUpperBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, getUpperBoundMethod, dimensionArgument, binder: null);
+                BoundExpression currentDimensionUpperBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, getUpperBoundMethod, dimensionArgument);
 
                 // int q_dimension = a.GetUpperBound(dimension);
                 upperVarDecl[dimension] = MakeLocalDeclaration(forEachSyntax, upperVar[dimension], currentDimensionUpperBound);
@@ -958,7 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: intType));
 
                 // a.GetLowerBound(dimension)
-                BoundExpression currentDimensionLowerBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, getLowerBoundMethod, dimensionArgument, binder: null);
+                BoundExpression currentDimensionLowerBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, getLowerBoundMethod, dimensionArgument);
 
                 // int p_dimension = a.GetLowerBound(dimension);
                 BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar[dimension], currentDimensionLowerBound);

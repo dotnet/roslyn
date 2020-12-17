@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private void VisitArray<T>(ImmutableArray<T> list, string header, bool logElementCount, bool logNullForDefault = false)
             where T : IOperation
         {
-            VisitArrayCommon(list, header, logElementCount, logNullForDefault, o => Visit(o));
+            VisitArrayCommon(list, header, logElementCount, logNullForDefault, VisitOperationArrayElement);
         }
 
         private void VisitArray(ImmutableArray<ISymbol> list, string header, bool logElementCount, bool logNullForDefault = false)
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.Clauses, "Clauses", logElementCount: false);
             VisitArray(operation.Body, "Body", logElementCount: false);
             Unindent();
-            _ = ((SwitchCaseOperation)operation).Condition;
+            _ = ((BaseSwitchCaseOperation)operation).Condition;
         }
 
         public override void VisitWhileLoop(IWhileLoopOperation operation)
@@ -574,14 +574,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Body, "Body");
             VisitArray(operation.NextVariables, "NextVariables", logElementCount: true);
 
-            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((ForToLoopOperation)operation).Info;
+            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((BaseForToLoopOperation)operation).Info;
 
             if (userDefinedInfo != null)
             {
-                _ = userDefinedInfo.Addition;
-                _ = userDefinedInfo.Subtraction;
-                _ = userDefinedInfo.LessThanOrEqual;
-                _ = userDefinedInfo.GreaterThanOrEqual;
+                _ = userDefinedInfo.Addition.Value;
+                _ = userDefinedInfo.Subtraction.Value;
+                _ = userDefinedInfo.LessThanOrEqual.Value;
+                _ = userDefinedInfo.GreaterThanOrEqual.Value;
             }
         }
 
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Collection, "Collection");
             Visit(operation.Body, "Body");
             VisitArray(operation.NextVariables, "NextVariables", logElementCount: true);
-            ForEachLoopOperationInfo info = ((ForEachLoopOperation)operation).Info;
+            ForEachLoopOperationInfo info = ((BaseForEachLoopOperation)operation).Info;
         }
 
         public override void VisitLabeled(ILabeledOperation operation)
@@ -1114,7 +1114,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             LogString($" ({kindStr})");
             LogHasOperatorMethodExpressionCommon(operation.OperatorMethod);
-            var unaryOperatorMethod = ((BinaryOperation)operation).UnaryOperatorMethod;
+            var unaryOperatorMethod = ((BaseBinaryOperation)operation).UnaryOperatorMethod;
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.LeftOperand, "Left");
@@ -1159,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 LogNewLine();
                 Indent();
-                LogString($"({((ConversionOperation)operation).ConversionConvertible})");
+                LogString($"({((BaseConversionOperation)operation).ConversionConvertible})");
                 Unindent();
             }
 
@@ -1195,7 +1195,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogConversion(operation.ValueConversion, "ValueConversion");
             LogNewLine();
             Indent();
-            LogString($"({((CoalesceOperation)operation).ValueConversionConvertible})");
+            LogString($"({((BaseCoalesceOperation)operation).ValueConversionConvertible})");
             Unindent();
             LogNewLine();
             Unindent();

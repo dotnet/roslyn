@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         internal ControlFlowBranch(
             BasicBlock source,
-            BasicBlock? destination,
+            BasicBlock destination,
             ControlFlowBranchSemantics semantics,
             bool isConditionalSuccessor)
         {
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// <summary>
         /// Destination basic block of this branch.
         /// </summary>
-        public BasicBlock? Destination { get; }
+        public BasicBlock Destination { get; }
 
         /// <summary>
         /// Semantics associated with this branch (such as "regular", "return", "throw", etc).
@@ -86,7 +88,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             while (!source.ContainsBlock(destinationOrdinal))
             {
                 Debug.Assert(source.Kind != ControlFlowRegionKind.Root);
-                Debug.Assert(source.EnclosingRegion != null);
                 builder.Add(source);
                 source = source.EnclosingRegion;
             }
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 if (_lazyFinallyRegions.IsDefault)
                 {
-                    ArrayBuilder<ControlFlowRegion>? builder = null;
+                    ArrayBuilder<ControlFlowRegion> builder = null;
                     ImmutableArray<ControlFlowRegion> leavingRegions = LeavingRegions;
                     int stopAt = leavingRegions.Length - 1;
                     for (int i = 0; i < stopAt; i++)

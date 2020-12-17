@@ -160,8 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         syntax,
                         receiverOpt: null,
                         method: conversionMethod,
-                        arg0: temp,
-                        binder: null);
+                        arg0: temp);
                 }
                 else
                 {

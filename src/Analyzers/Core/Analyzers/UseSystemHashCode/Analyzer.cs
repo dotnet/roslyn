@@ -99,13 +99,13 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return null;
             }
 
-            if (!(statements[0] is IReturnOperation { ReturnedValue: { } returnedValue }))
+            if (!(statements[0] is IReturnOperation returnOperation))
             {
                 return null;
             }
 
             using var analyzer = new OperationDeconstructor(this, method, hashCodeVariable: null);
-            if (!analyzer.TryAddHashedSymbol(returnedValue, seenHash: false))
+            if (!analyzer.TryAddHashedSymbol(returnOperation.ReturnedValue, seenHash: false))
             {
                 return null;
             }
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             // First statement has to be the declaration of the accumulator.
             // Last statement has to be the return of it.
             if (!(statements.First() is IVariableDeclarationGroupOperation varDeclStatement) ||
-                !(statements.Last() is IReturnOperation { ReturnedValue: { } returnedValue }))
+                !(statements.Last() is IReturnOperation returnStatement))
             {
                 return null;
             }
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             }
 
             var hashCodeVariable = declarator.Symbol;
-            if (!(IsLocalReference(returnedValue, hashCodeVariable)))
+            if (!(IsLocalReference(returnStatement.ReturnedValue, hashCodeVariable)))
             {
                 return null;
             }

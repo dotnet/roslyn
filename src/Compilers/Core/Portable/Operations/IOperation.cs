@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Operations;
@@ -19,9 +21,9 @@ namespace Microsoft.CodeAnalysis
     public interface IOperation
     {
         /// <summary>
-        /// IOperation that has this operation as a child. Null for the root.
+        /// IOperation that has this operation as a child
         /// </summary>
-        IOperation? Parent { get; }
+        IOperation Parent { get; }
 
         /// <summary>
         /// Identifies the kind of the operation.
@@ -36,12 +38,12 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Result type of the operation, or null if the operation does not produce a result.
         /// </summary>
-        ITypeSymbol? Type { get; }
+        ITypeSymbol Type { get; }
 
         /// <summary>
         /// If the operation is an expression that evaluates to a constant value, <see cref="Optional{Object}.HasValue"/> is true and <see cref="Optional{Object}.Value"/> is the value of the expression. Otherwise, <see cref="Optional{Object}.HasValue"/> is false.
         /// </summary>
-        Optional<object?> ConstantValue { get; }
+        Optional<object> ConstantValue { get; }
 
         /// <summary>
         /// An array of child operations for this operation.
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis
 
         void Accept(OperationVisitor visitor);
 
-        TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
+        TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
 
         /// <summary>
         /// Set to True if compiler generated /implicitly computed by compiler code
@@ -68,6 +70,6 @@ namespace Microsoft.CodeAnalysis
         /// and operation callbacks made to analyzers.
         /// Null for operations inside a <see cref="FlowAnalysis.ControlFlowGraph"/>.
         /// </summary>
-        SemanticModel? SemanticModel { get; }
+        SemanticModel SemanticModel { get; }
     }
 }

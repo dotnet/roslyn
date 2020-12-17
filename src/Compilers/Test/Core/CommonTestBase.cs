@@ -485,6 +485,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // check parent property returns same parent we gathered by walking down operation tree
                 Assert.Equal(child.Parent, parent);
 
+                // check SearchparentOperation return same parent
+                Assert.Equal(((Operation)child).SearchParentOperation(), parent);
+
                 if (parent == null)
                 {
                     // this is root of operation tree

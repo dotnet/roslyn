@@ -90,23 +90,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (rootSyntax.Kind())
             {
                 case SyntaxKind.VariableDeclarator:
-                    rootSyntax = ((VariableDeclaratorSyntax)rootSyntax).Initializer;
+                    rootSyntax = ((VariableDeclaratorSyntax)rootSyntax).Initializer.Value;
                     break;
 
                 case SyntaxKind.Parameter:
-                    rootSyntax = ((ParameterSyntax)rootSyntax).Default;
+                    var paramDefault = ((ParameterSyntax)rootSyntax).Default;
+                    rootSyntax = (paramDefault == null) ? null : paramDefault.Value;
                     break;
 
                 case SyntaxKind.EqualsValueClause:
-                    rootSyntax = ((EqualsValueClauseSyntax)rootSyntax);
+                    rootSyntax = ((EqualsValueClauseSyntax)rootSyntax).Value;
                     break;
 
                 case SyntaxKind.EnumMemberDeclaration:
-                    rootSyntax = ((EnumMemberDeclarationSyntax)rootSyntax).EqualsValue;
+                    rootSyntax = ((EnumMemberDeclarationSyntax)rootSyntax).EqualsValue.Value;
                     break;
 
                 case SyntaxKind.PropertyDeclaration:
-                    rootSyntax = ((PropertyDeclarationSyntax)rootSyntax).Initializer;
+                    rootSyntax = ((PropertyDeclarationSyntax)rootSyntax).Initializer.Value;
                     break;
 
                 default:

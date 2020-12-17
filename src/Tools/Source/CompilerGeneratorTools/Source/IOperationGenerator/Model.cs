@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+#nullable enable annotations
 
 using System.Collections.Generic;
 using System.Xml;
@@ -75,22 +76,10 @@ namespace IOperationGenerator
         public string? SkipChildrenGenerationText;
         public bool SkipChildrenGeneration => SkipChildrenGenerationText == "true";
 
-        [XmlAttribute(AttributeName = "SkipInCloner")]
-        public string? SkipInClonerText;
-        public bool SkipInCloner => SkipInClonerText == "true";
-
         [XmlAttribute]
         public string? ChildrenOrder;
 
         public override bool IsAbstract => false;
-
-        [XmlAttribute(AttributeName = "HasType")]
-        public string HasTypeText;
-        public bool HasType => HasTypeText == "true";
-
-        [XmlAttribute(AttributeName = "HasConstantValue")]
-        public string HasConstantValueText;
-        public bool HasConstantValue => HasConstantValueText == "true";
     }
 
     public class Kind
@@ -118,10 +107,6 @@ namespace IOperationGenerator
         [XmlAttribute(AttributeName = "SkipGeneration")]
         public string? SkipGenerationText;
         public bool SkipGeneration => SkipGenerationText == "true";
-
-        [XmlAttribute(AttributeName = "MakeAbstract")]
-        public string? MakeAbstractText;
-        public bool MakeAbstract => MakeAbstractText == "true";
 
         [XmlElement(ElementName = "Comments", Type = typeof(Comments))]
         public Comments? Comments;

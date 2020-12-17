@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,11 +19,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         internal struct Context
         {
-            public readonly IOperation? ImplicitInstance;
-            public readonly INamedTypeSymbol? AnonymousType;
+            public readonly IOperation ImplicitInstance;
+            public readonly INamedTypeSymbol AnonymousType;
             public readonly ImmutableArray<KeyValuePair<IPropertySymbol, IOperation>> AnonymousTypePropertyValues;
 
-            internal Context(IOperation? implicitInstance, INamedTypeSymbol? anonymousType, ImmutableArray<KeyValuePair<IPropertySymbol, IOperation>> anonymousTypePropertyValues)
+            internal Context(IOperation implicitInstance, INamedTypeSymbol anonymousType, ImmutableArray<KeyValuePair<IPropertySymbol, IOperation>> anonymousTypePropertyValues)
             {
                 Debug.Assert(!anonymousTypePropertyValues.IsDefault);
                 Debug.Assert(implicitInstance == null || anonymousType == null);

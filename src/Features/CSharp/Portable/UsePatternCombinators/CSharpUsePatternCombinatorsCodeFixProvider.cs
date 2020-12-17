@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -101,7 +100,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         private static ExpressionSyntax AsExpressionSyntax(ExpressionSyntax expr, AnalyzedPattern p)
         {
             var semanticModel = p.Target.SemanticModel;
-            Debug.Assert(semanticModel != null);
             var type = semanticModel.GetTypeInfo(expr).Type;
             if (type != null)
             {

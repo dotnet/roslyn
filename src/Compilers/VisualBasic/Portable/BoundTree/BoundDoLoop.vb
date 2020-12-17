@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class BoundDoLoopStatement
+        Implements IBoundConditionalLoop
 
         ''' <summary>
         ''' Gets a value indicating whether this do loop is a DoTopLoop or not. In syntax error cases
@@ -55,6 +56,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else
                     Return Me.BottomConditionOpt
                 End If
+            End Get
+        End Property
+
+        Private ReadOnly Property IBoundConditionalLoop_Condition As BoundExpression Implements IBoundConditionalLoop.Condition
+            Get
+                Return ConditionOpt
+            End Get
+        End Property
+
+        Private ReadOnly Property IBoundConditionalLoop_IgnoredCondition As BoundExpression Implements IBoundConditionalLoop.IgnoredCondition
+            Get
+                If TopConditionOpt IsNot Nothing AndAlso BottomConditionOpt IsNot Nothing Then
+                    Return BottomConditionOpt
+                Else
+                    Return Nothing
+                End If
+            End Get
+        End Property
+
+        Private ReadOnly Property IBoundConditionalLoop_Body As BoundNode Implements IBoundConditionalLoop.Body
+            Get
+                Return Body
             End Get
         End Property
     End Class

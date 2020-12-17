@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -21,14 +23,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private bool _predecessorsAreSealed;
 #endif
 
-        private ControlFlowBranch? _lazySuccessor;
-        private ControlFlowBranch? _lazyConditionalSuccessor;
+        private ControlFlowBranch _lazySuccessor;
+        private ControlFlowBranch _lazyConditionalSuccessor;
         private ImmutableArray<ControlFlowBranch> _lazyPredecessors;
 
         internal BasicBlock(
             BasicBlockKind kind,
             ImmutableArray<IOperation> operations,
-            IOperation? branchValue,
+            IOperation branchValue,
             ControlFlowConditionKind conditionKind,
             int ordinal,
             bool isReachable,
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// For non-conditional branches, this value is used to represent the return or throw value associated
         /// with the <see cref="FallThroughSuccessor"/>.
         /// </summary>
-        public IOperation? BranchValue { get; }
+        public IOperation BranchValue { get; }
 
         /// <summary>
         /// Indicates the condition kind for the branch out of the basic block.
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// Optional fall through branch executed at the end of the basic block.
         /// This branch is null for exit block, and non-null for all other basic blocks.
         /// </summary>
-        public ControlFlowBranch? FallThroughSuccessor
+        public ControlFlowBranch FallThroughSuccessor
         {
             get
             {
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// If non-null, this branch may be taken at the end of the basic block based
         /// on the <see cref="ConditionKind"/> and <see cref="BranchValue"/>.
         /// </summary>
-        public ControlFlowBranch? ConditionalSuccessor
+        public ControlFlowBranch ConditionalSuccessor
         {
             get
             {
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         public ControlFlowRegion EnclosingRegion { get; }
 
-        internal void SetSuccessors(ControlFlowBranch? successor, ControlFlowBranch? conditionalSuccessor)
+        internal void SetSuccessors(ControlFlowBranch successor, ControlFlowBranch conditionalSuccessor)
         {
 #if DEBUG
             Debug.Assert(!_successorsAreSealed);

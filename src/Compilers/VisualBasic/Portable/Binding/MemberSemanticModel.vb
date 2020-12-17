@@ -850,36 +850,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
+            ' see whether we can bind smaller scope than GetBindingRoot to make perf better
+            ' https://github.com/dotnet/roslyn/issues/22176
+            Dim bindingRoot = DirectCast(GetBindingRoot(node), VisualBasicSyntaxNode)
 
-            Dim result As IOperation = Nothing
-            Try
-                _rwLock.EnterReadLock()
+            Dim statementOrRootOperation As IOperation = GetStatementOrRootOperation(bindingRoot, cancellationToken)
+            If statementOrRootOperation Is Nothing Then
+                Return Nothing
+            End If
 
-                If _guardedIOperationNodeMap.Count > 0 Then
-                    Return If(_guardedIOperationNodeMap.TryGetValue(node, result), result, Nothing)
-                End If
-            Finally
-                _rwLock.ExitReadLock()
-            End Try
+            ' we might optimize it later
+            ' https://github.com/dotnet/roslyn/issues/22180
+            Return statementOrRootOperation.DescendantsAndSelf().FirstOrDefault(Function(o) Not o.IsImplicit AndAlso o.Syntax Is node)
+        End Function
 
-            Dim rootNode As BoundNode = GetBoundRoot()
-            Dim rootOperation As IOperation = _operationFactory.Value.Create(rootNode)
+        Private Function GetStatementOrRootOperation(node As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
+            Debug.Assert(node Is GetBindingRoot(node))
 
+            Dim summary As BoundNodeSummary = GetBoundNodeSummary(node)
 
-            Try
-                _rwLock.EnterWriteLock()
+            ' decide whether we should use highest or lowest bound node here 
+            ' https://github.com/dotnet/roslyn/issues/22179
+            Dim result As BoundNode = summary.HighestBoundNode
 
-                If _guardedIOperationNodeMap.Count > 0 Then
-                    Return If(_guardedIOperationNodeMap.TryGetValue(node, result), result, Nothing)
-                End If
-
-                Operation.SetParentOperation(rootOperation, Nothing)
-                OperationMapBuilder.AddToMap(rootOperation, _guardedIOperationNodeMap)
-
-                Return If(_guardedIOperationNodeMap.TryGetValue(node, result), result, Nothing)
-            Finally
-                _rwLock.ExitWriteLock()
-            End Try
+            Return _operationFactory.Value.Create(result)
         End Function
 
         Friend Overrides Function GetExpressionTypeInfo(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo
@@ -1139,7 +1133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Sub CacheBoundNodes(boundNode As BoundNode, Optional thisSyntaxNodeOnly As SyntaxNode = Nothing)
             _rwLock.EnterWriteLock()
             Try
-                SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundNode, Me, Me._guardedBoundNodeMap, thisSyntaxNodeOnly)
+                SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundNode, Me, Me._guardedNodeMap, thisSyntaxNodeOnly)
             Finally
                 _rwLock.ExitWriteLock()
             End Try
@@ -1220,8 +1214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '' map, so that we can answer GetEnclosingBinder questions.
 
         ' The bound nodes associated with syntaxnode, from highest in the tree to lowest.
-        Private ReadOnly _guardedBoundNodeMap As New SmallDictionary(Of SyntaxNode, ImmutableArray(Of BoundNode))(ReferenceEqualityComparer.Instance)
-        Private ReadOnly _guardedIOperationNodeMap As New Dictionary(Of SyntaxNode, IOperation)
+        Private ReadOnly _guardedNodeMap As New SmallDictionary(Of SyntaxNode, ImmutableArray(Of BoundNode))(ReferenceEqualityComparer.Instance)
 
         Private ReadOnly _guardedQueryBindersMap As New Dictionary(Of SyntaxNode, ImmutableArray(Of Binder))()
         Private ReadOnly _guardedAnonymousTypeBinderMap As New Dictionary(Of FieldInitializerSyntax, Binder.AnonymousTypeFieldInitializerBinder)()
@@ -1253,7 +1246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GuardedGetBoundNodesFromMap(node As SyntaxNode) As ImmutableArray(Of BoundNode)
             Debug.Assert(_rwLock.IsReadLockHeld OrElse _rwLock.IsWriteLockHeld)
             Dim result As ImmutableArray(Of BoundNode) = Nothing
-            Return If(Me._guardedBoundNodeMap.TryGetValue(node, result), result, Nothing)
+            Return If(Me._guardedNodeMap.TryGetValue(node, result), result, Nothing)
         End Function
 
         ''' <summary>
@@ -1902,7 +1895,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If bound.IsDefault Then
                         ' Bind the node and cache any associated bound nodes we find.
                         Dim boundNode = Me.Bind(binder, node, Me._guardedDiagnostics)
-                        SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundNode, Me, _guardedBoundNodeMap, node)
+                        SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundNode, Me, _guardedNodeMap, node)
                     End If
 
                     bound = GuardedGetBoundNodesFromMap(node)
@@ -1947,7 +1940,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub GuardedIncrementalBind(bindingRoot As SyntaxNode, enclosingBinder As Binder)
             Debug.Assert(_rwLock.IsWriteLockHeld)
 
-            If _guardedBoundNodeMap.ContainsKey(bindingRoot) Then
+            If _guardedNodeMap.ContainsKey(bindingRoot) Then
                 ' We've already bound this. No need to bind it again (saves a bit of 
                 ' work below).
                 Return
@@ -1962,9 +1955,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return
             End If
 
-            SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundRoot, Me, _guardedBoundNodeMap)
+            SemanticModelMapsBuilder.GuardedCacheBoundNodes(boundRoot, Me, _guardedNodeMap)
 
-            If Not _guardedBoundNodeMap.ContainsKey(bindingRoot) Then
+            If Not _guardedNodeMap.ContainsKey(bindingRoot) Then
                 ' Generally 'bindingRoot' is supposed to be found in node map at this point,
                 ' but it will not happen in some scenarios such as for field or property 
                 ' initializers, let's add it to prevent re-binding 
@@ -1975,7 +1968,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                              bindingRoot.Kind = SyntaxKind.EnumMemberDeclaration OrElse
                              bindingRoot Is Me.Root AndAlso Me.IsSpeculativeSemanticModel)
 
-                _guardedBoundNodeMap.Add(bindingRoot, ImmutableArray.Create(Of BoundNode)(boundRoot))
+                _guardedNodeMap.Add(bindingRoot, ImmutableArray.Create(Of BoundNode)(boundRoot))
             End If
         End Sub
 

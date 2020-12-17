@@ -132,24 +132,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitLocals(operation.Locals);
             AssertEx.Equal(operation.Clauses.Concat(operation.Body), operation.Children);
 
-            VerifySubTree(((SwitchCaseOperation)operation).Condition, hasNonNullParent: true);
+            VerifySubTree(((BaseSwitchCaseOperation)operation).Condition);
         }
 
-        internal static void VerifySubTree(IOperation root, bool hasNonNullParent = false)
+        internal static void VerifySubTree(IOperation root)
         {
             if (root != null)
             {
-                if (hasNonNullParent)
-                {
-                    // This is only ever true for ISwitchCaseOperation.Condition.
-                    Assert.NotNull(root.Parent);
-                    Assert.Same(root, ((SwitchCaseOperation)root.Parent).Condition);
-                }
-                else
-                {
-                    Assert.Null(root.Parent);
-                }
-
+                Assert.Null(root.Parent);
                 var explicitNodeMap = new Dictionary<SyntaxNode, IOperation>();
 
                 foreach (IOperation descendant in root.DescendantsAndSelf())
@@ -271,14 +261,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitLoop(operation);
             Assert.Equal(LoopKind.ForTo, operation.LoopKind);
             _ = operation.IsChecked;
-            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((ForToLoopOperation)operation).Info;
+            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((BaseForToLoopOperation)operation).Info;
 
             if (userDefinedInfo != null)
             {
-                VerifySubTree(userDefinedInfo.Addition);
-                VerifySubTree(userDefinedInfo.Subtraction);
-                VerifySubTree(userDefinedInfo.LessThanOrEqual);
-                VerifySubTree(userDefinedInfo.GreaterThanOrEqual);
+                VerifySubTree(userDefinedInfo.Addition.Value);
+                VerifySubTree(userDefinedInfo.Subtraction.Value);
+                VerifySubTree(userDefinedInfo.LessThanOrEqual.Value);
+                VerifySubTree(userDefinedInfo.GreaterThanOrEqual.Value);
             }
 
             IEnumerable<IOperation> children;
@@ -294,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             IEnumerable<IOperation> children = new[] { operation.Collection, operation.LoopControlVariable, operation.Body }.Concat(operation.NextVariables);
             AssertEx.Equal(children, operation.Children);
-            ForEachLoopOperationInfo info = ((ForEachLoopOperation)operation).Info;
+            ForEachLoopOperationInfo info = ((BaseForEachLoopOperation)operation).Info;
             if (info != null)
             {
                 visitArguments(info.GetEnumeratorArguments);
@@ -655,7 +645,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.BinaryOperator, operation.Kind);
             Assert.Equal(OperationKind.Binary, operation.Kind);
             var operatorMethod = operation.OperatorMethod;
-            var unaryOperatorMethod = ((BinaryOperation)operation).UnaryOperatorMethod;
+            var unaryOperatorMethod = ((BaseBinaryOperation)operation).UnaryOperatorMethod;
             var binaryOperationKind = operation.OperatorKind;
             var isLifted = operation.IsLifted;
             var isChecked = operation.IsChecked;
