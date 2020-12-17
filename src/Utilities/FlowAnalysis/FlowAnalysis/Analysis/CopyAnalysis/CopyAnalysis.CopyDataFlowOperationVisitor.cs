@@ -442,9 +442,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             protected override CopyAnalysisData GetClonedAnalysisData(CopyAnalysisData analysisData)
                 => (CopyAnalysisData)analysisData.Clone();
             public override CopyAnalysisData GetEmptyAnalysisData()
-                => new CopyAnalysisData();
+                => new();
             protected override CopyAnalysisData GetExitBlockOutputData(CopyAnalysisResult analysisResult)
-                => new CopyAnalysisData(analysisResult.ExitBlockOutput.Data);
+                => new(analysisResult.ExitBlockOutput.Data);
             protected override void AssertValidAnalysisData(CopyAnalysisData analysisData)
                 => AssertValidCopyAnalysisData(analysisData);
             protected override bool Equals(CopyAnalysisData value1, CopyAnalysisData value2)

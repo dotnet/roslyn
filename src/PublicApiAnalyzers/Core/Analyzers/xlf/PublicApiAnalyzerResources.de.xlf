@@ -38,7 +38,7 @@
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiMessage">
-        <source>Symbol '{0}' is missing nullability annotations in the declared API.</source>
+        <source>Symbol '{0}' is missing nullability annotations in the declared API</source>
         <target state="translated">Für das Symbol "{0}" fehlen Anmerkungen zur NULL-Zulässigkeit in der deklarierten API.</target>
         <note />
       </trans-unit>
@@ -63,7 +63,7 @@
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiMessage">
-        <source>Symbol '{0}' is not part of the declared API.</source>
+        <source>Symbol '{0}' is not part of the declared API</source>
         <target state="translated">Das Symbol "{0}" ist nicht Teil der deklarierten API.</target>
         <note />
       </trans-unit>
@@ -73,7 +73,7 @@
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
-        <source>The symbol '{0}' appears more than once in the public API files.</source>
+        <source>The symbol '{0}' appears more than once in the public API files</source>
         <target state="translated">Das Symbol "{0}" wird in den öffentlichen API-Dateien mehrmals aufgeführt.</target>
         <note />
       </trans-unit>
@@ -93,7 +93,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
-        <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</source>
+        <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</source>
         <target state="translated">Der Konstruktor legt die nicht vererbbare Basisklasse als vererbbar fest und macht damit deren geschützte Member verfügbar.</target>
         <note />
       </trans-unit>
@@ -108,7 +108,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiMessage">
-        <source>Symbol '{0}' uses some oblivious reference types.</source>
+        <source>Symbol '{0}' uses some oblivious reference types</source>
         <target state="translated">Das Symbol "{0}" verwendet einige nicht beachtende Verweistypen.</target>
         <note />
       </trans-unit>
@@ -123,8 +123,8 @@
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
-        <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads.</source>
-        <target state="translated">Öffentliche API mit optionalen Parametern muss die meisten Parameter bei den öffentlichen Überladungen aufweisen.</target>
+        <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads</source>
+        <target state="translated">Öffentliche API mit optionalen Parametern muss die meisten Parameter bei den öffentlichen Überladungen aufweisen</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFileMissingMessage">

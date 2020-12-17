@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable disable warnings
+
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Analyzer.Utilities;
@@ -99,7 +101,7 @@ namespace Roslyn.Diagnostics.Analyzers
             }
 
             var sourceSymbol = (field.IsImplicitlyDeclared ? field.AssociatedSymbol : null) ?? field;
-            originalContext.ReportDiagnostic(Diagnostic.Create(Rule, field.Locations[0], field.ContainingType, sourceSymbol.Name));
+            originalContext.ReportDiagnostic(field.CreateDiagnostic(Rule, field.ContainingType, sourceSymbol.Name));
         }
 
         private static bool IsDefaultable(ITypeSymbol type, INamedTypeSymbol nonDefaultableAttribute, ConcurrentDictionary<ITypeSymbol, bool> knownNonDefaultableTypes)

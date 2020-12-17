@@ -4273,7 +4273,7 @@ End Class
                 GetRS1007ExpectedDiagnostic(2));
         }
 
-        [Fact, WorkItem(3958, "https://github.com/dotnet/roslyn-analyzers/issues/3958")]
+        [WindowsOnlyFact, WorkItem(3958, "https://github.com/dotnet/roslyn-analyzers/issues/3958")]
         public async Task RS1033_LeadingOrTrailingWhitespaces_Diagnostic()
         {
             var additionalFileName = "Resources.resx";
