@@ -342,9 +342,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 var newExpression = (ConditionalExpressionSyntax)currentReplacedNode;
 
-                if (!ConversionsAreCompatible(OriginalSemanticModel, originalExpression, SpeculativeSemanticModel, newExpression))
-                    return true;
-
                 if (originalExpression.Condition != previousOriginalNode)
                 {
                     ExpressionSyntax originalOtherPartOfConditional, newOtherPartOfConditional;
