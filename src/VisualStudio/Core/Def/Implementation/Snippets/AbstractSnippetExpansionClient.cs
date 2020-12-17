@@ -394,19 +394,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public virtual bool TryHandleReturn()
         {
-            return CommitSnippet();
+            return CommitSnippet(leaveCaret: false);
         }
 
-        public bool CommitSnippet()
+        public bool CommitSnippet(bool leaveCaret)
         {
             if (ExpansionSession != null)
             {
-                // Only move the caret if the enter was hit within the snippet fields.
-                var hitWithinField = VSConstants.S_OK == ExpansionSession.GoToNextExpansionField(fCommitIfLast: 0);
-                ExpansionSession.EndCurrentExpansion(fLeaveCaret: hitWithinField ? 0 : 1);
+                if (!leaveCaret)
+                {
+                    // Only move the caret if the enter was hit within the snippet fields.
+                    var hitWithinField = VSConstants.S_OK == ExpansionSession.GoToNextExpansionField(fCommitIfLast: 0);
+                    leaveCaret = !hitWithinField;
+                }
+
+                ExpansionSession.EndCurrentExpansion(fLeaveCaret: leaveCaret ? 1 : 0);
                 _state.Clear(forceClearSymbolInformation: true);
 
-                return hitWithinField;
+                return !leaveCaret;
             }
 
             return false;

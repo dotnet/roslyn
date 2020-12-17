@@ -113,9 +113,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             if (AreSnippetsEnabled(args)
                 && args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient))
             {
-                // Commit the snippet. Subsequent handlers in the chain will handle the remaining Smart Break Line
-                // operations.
-                snippetExpansionClient.CommitSnippet();
+                // Commit the snippet. Leave the caret in place, but clear the selection. Subsequent handlers in the
+                // chain will handle the remaining Smart Break Line operations.
+                snippetExpansionClient.CommitSnippet(leaveCaret: true);
+                args.TextView.Selection.Clear();
             }
 
             nextCommandHandler();

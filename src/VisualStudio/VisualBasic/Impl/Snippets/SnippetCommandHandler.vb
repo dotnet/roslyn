@@ -31,6 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     <Name("VB Snippets")>
     <Order(After:=PredefinedCompletionNames.CompletionCommandHandler)>
     <Order(After:=PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)>
+    <Order(Before:=PredefinedCommandHandlerNames.AutomaticLineEnder)>
     Friend NotInheritable Class SnippetCommandHandler
         Inherits AbstractSnippetCommandHandler
 

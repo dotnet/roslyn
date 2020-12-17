@@ -33,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
     [Name("CSharp Snippets")]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     [Order(After = Microsoft.CodeAnalysis.Editor.PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)]
+    [Order(Before = Microsoft.CodeAnalysis.Editor.PredefinedCommandHandlerNames.AutomaticLineEnder)]
     internal sealed class SnippetCommandHandler :
         AbstractSnippetCommandHandler,
         ICommandHandler<SurroundWithCommandArgs>,
@@ -98,8 +99,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 && AreSnippetsEnabled(args)
                 && args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient))
             {
-                // Commit the snippet, and then allow subsequent command handlers to handle the ';' insertion
-                snippetExpansionClient.CommitSnippet();
+                // Commit the snippet. Leave the caret in place, but clear the selection. Subsequent handlers in the
+                // chain will handle the remaining Complete Statement (';' insertion) operations.
+                snippetExpansionClient.CommitSnippet(leaveCaret: true);
+                args.TextView.Selection.Clear();
             }
 
             nextCommandHandler();
