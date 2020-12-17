@@ -5,4 +5,4 @@ T:Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption`1; Use 'Microsoft.CodeAnalysi
 T:Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions; Use 'Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions2' instead
 T:Microsoft.CodeAnalysis.Options.OptionKey; Use 'Microsoft.CodeAnalysis.Options.OptionKey2' instead
 T:Microsoft.CodeAnalysis.CodeStyle.NotificationOption; Use 'Microsoft.CodeAnalysis.CodeStyle.NotificationOption2' instead
-M:Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer.#ctor; Analyzers should extend 'AbstractBuiltInCodeStyleDiagnosticAnalyzer' or 'AbstractCodeQualityDiagnosticAnalyzer'
+M:Microsoft.CodeAnalysis.Diagnostics.DiagnosticDescriptor.#ctor; Analyzers should extend 'AbstractBuiltInCodeStyleDiagnosticAnalyzer' or 'AbstractCodeQualityDiagnosticAnalyzer'
