@@ -234,6 +234,7 @@ namespace Analyzer.Utilities
         public const string SystemObsoleteAttribute = "System.ObsoleteAttribute";
         public const string SystemOperatingSystem = "System.OperatingSystem";
         public const string SystemOutOfMemoryException = "System.OutOfMemoryException";
+        public const string SystemPlatformNotSupportedException = "System.PlatformNotSupportedException";
         public const string SystemRandom = "System.Random";
         public const string SystemRange = "System.Range";
         public const string SystemReadOnlyMemory1 = "System.ReadOnlyMemory`1";
