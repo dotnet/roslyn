@@ -867,6 +867,11 @@
         <target state="translated">Üye seçin:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">
+        <source>Show "Remove Unused References" command in Solution Explorer (experimental)</source>
+        <target state="new">Show "Remove Unused References" command in Solution Explorer (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">Tamamlama listesini göster</target>

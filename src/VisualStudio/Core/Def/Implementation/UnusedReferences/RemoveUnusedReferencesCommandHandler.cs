@@ -14,6 +14,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -63,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
             Contract.ThrowIfNull(_serviceProvider);
 
-            // Hook up the "Run Code Analysis" menu command for CPS based managed projects.
+            // Hook up the "Remove Unused References" menu command for CPS based managed projects.
             var menuCommandService = (IMenuCommandService)_serviceProvider.GetService(typeof(IMenuCommandService));
             if (menuCommandService != null)
             {
@@ -91,21 +92,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         {
             var command = (OleMenuCommand)sender;
 
-            // We hook up the "Run Code Analysis" menu commands for CPS based managed projects.
-            // These commands are already hooked up for csproj based projects in StanCore, but those will eventually go away.
+            // Only show the "Remove Unused Reference" menu commands for CPS based managed projects.
             var visible = TryGetSelectedProjectHierarchy(out var hierarchy) &&
                 hierarchy.IsCapabilityMatch("CPS") &&
-                hierarchy.IsCapabilityMatch(".NET");
+                hierarchy.IsCapabilityMatch(".NET") &&
+                _workspace.Options.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferences);
             var enabled = false;
 
             if (visible)
             {
-                if (hierarchy!.TryGetProject(out _))
-                {
-                    // Change to show the name of the project as part of the menu item display text.
-                    // command.Text = string.Format("Remove Unused References for {0}", project!.Name);
-                }
-
                 enabled = !IsBuildActive();
             }
 

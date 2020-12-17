@@ -86,6 +86,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 
         public static readonly PerLanguageOption2<bool> AddImportsOnPaste = new(
             nameof(FeatureOnOffOptions), nameof(AddImportsOnPaste), defaultValue: false);
+
+        public static readonly Option2<bool> OfferRemoveUnusedReferences = new(
+            nameof(FeatureOnOffOptions), nameof(OfferRemoveUnusedReferences), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(OfferRemoveUnusedReferences)}"));
+
     }
 
     [ExportOptionProvider, Shared]
@@ -116,6 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.StreamingGoToImplementation,
             FeatureOnOffOptions.NavigateToDecompiledSources,
             FeatureOnOffOptions.UseEnhancedColors,
-            FeatureOnOffOptions.AddImportsOnPaste);
+            FeatureOnOffOptions.AddImportsOnPaste,
+            FeatureOnOffOptions.OfferRemoveUnusedReferences);
     }
 }

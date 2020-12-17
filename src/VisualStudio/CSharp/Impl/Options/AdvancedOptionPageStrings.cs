@@ -261,5 +261,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static SchemeName Color_Scheme_VisualStudio2017_Tag
             => SchemeName.VisualStudio2017;
+
+        public static string Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental
+            => ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental;
     }
 }
