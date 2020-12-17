@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
@@ -26,11 +27,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     Friend NotInheritable Class SnippetExpansionClient
         Inherits AbstractSnippetExpansionClient
 
-        Public Sub New(threadingContext As IThreadingContext, languageServiceId As Guid, textView As ITextView, subjectBuffer As ITextBuffer, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService, argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)))
+        Public Sub New(threadingContext As IThreadingContext, languageServiceId As Guid, textView As ITextView, subjectBuffer As ITextBuffer, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService, argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)))
             MyBase.New(threadingContext, languageServiceId, textView, subjectBuffer, editorAdaptersFactoryService, argumentProviders)
         End Sub
 
-        Public Shared Function GetSnippetExpansionClient(threadingContext As IThreadingContext, textView As ITextView, subjectBuffer As ITextBuffer, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService, argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))) As AbstractSnippetExpansionClient
+        Public Shared Function GetSnippetExpansionClient(threadingContext As IThreadingContext, textView As ITextView, subjectBuffer As ITextBuffer, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService, argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))) As AbstractSnippetExpansionClient
 
             Dim expansionClient As AbstractSnippetExpansionClient = Nothing
 
@@ -87,7 +88,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                     pFunc = New SnippetFunctionGenerateSwitchCases(Me, SubjectBuffer, bstrFieldName, param)
                     Return VSConstants.S_OK
                 Case "ArgumentValue"
-                    pFunc = New SnippetFunctionArgumentValue(Me, SubjectBuffer, bstrFieldName, param)
+                    ' For the internal ArgumentValue function, the snippet field name is expected to match the parameter
+                    ' name, and the string passed to the function is a serialized SymbolKey allowing the snippet
+                    ' function to resolve the original IParameterSymbol.
+                    pFunc = New SnippetFunctionArgumentValue(Me, SubjectBuffer, parameterName:=bstrFieldName, parameterKey:=New SymbolKey(param))
                     Return VSConstants.S_OK
                 Case Else
                     pFunc = Nothing

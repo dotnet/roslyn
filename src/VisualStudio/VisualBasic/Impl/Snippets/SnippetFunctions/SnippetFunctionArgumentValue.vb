@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Text
 
@@ -9,8 +10,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFu
     Friend NotInheritable Class SnippetFunctionArgumentValue
         Inherits AbstractSnippetFunctionArgumentValue
 
-        Public Sub New(snippetExpansionClient As SnippetExpansionClient, subjectBuffer As ITextBuffer, fieldName As String, parameter As String)
-            MyBase.New(snippetExpansionClient, subjectBuffer, fieldName, parameter)
+        Public Sub New(snippetExpansionClient As SnippetExpansionClient, subjectBuffer As ITextBuffer, parameterName As String, parameterKey As SymbolKey)
+            MyBase.New(snippetExpansionClient, subjectBuffer, parameterName, parameterKey)
         End Sub
 
         Protected Overrides ReadOnly Property FallbackDefaultLiteral As String

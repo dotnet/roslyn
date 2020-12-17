@@ -2,73 +2,100 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
+using static Roslyn.Utilities.TaskExtensions;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
     internal abstract class AbstractSnippetFunctionArgumentValue : AbstractSnippetFunction
     {
+        /// <summary>
+        /// The name of the parameter for which an argument value is requested.
+        /// </summary>
         private readonly string _parameterName;
-        private readonly SymbolKey _parameter;
 
-        protected AbstractSnippetFunctionArgumentValue(AbstractSnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer, string fieldName, string parameter)
+        /// <summary>
+        /// A <see cref="SymbolKey"/> allowing the <see cref="IParameterSymbol"/> to be resolved.
+        /// </summary>
+        private readonly SymbolKey _parameterKey;
+
+        protected AbstractSnippetFunctionArgumentValue(AbstractSnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer, string parameterName, SymbolKey parameterKey)
             : base(snippetExpansionClient, subjectBuffer)
         {
-            _parameterName = fieldName;
-            _parameter = new SymbolKey(parameter);
+            _parameterName = parameterName;
+            _parameterKey = parameterKey;
         }
 
         protected abstract string? FallbackDefaultLiteral { get; }
 
         protected override int GetDefaultValue(CancellationToken cancellationToken, out string? value, out int hasCurrentValue)
         {
-            if (!TryGetDocument(out var document))
+            value = snippetExpansionClient.ThreadingContext.JoinableTaskFactory.Run(() => TryGetDefaultValueAsync(cancellationToken));
+            if (value is not null)
             {
-                value = null;
+                hasCurrentValue = 1;
+                return VSConstants.S_OK;
+            }
+            else
+            {
                 hasCurrentValue = 0;
                 return VSConstants.E_FAIL;
+            }
+        }
+
+        [SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "Containing method uses JTF https://github.com/dotnet/roslyn-analyzers/issues/4283")]
+        private async Task<string?> TryGetDefaultValueAsync(CancellationToken cancellationToken)
+        {
+            await snippetExpansionClient.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            if (!TryGetDocument(out var document))
+            {
+                // Unable to suggest arguments if a document is not available
+                return null;
             }
 
             var textSpan = new VsTextSpan[1];
             if (snippetExpansionClient.ExpansionSession.GetFieldSpan(_parameterName, textSpan) != VSConstants.S_OK)
             {
-                value = null;
-                hasCurrentValue = 0;
-                return VSConstants.E_FAIL;
+                // Failed to obtain the snippet placeholder for the named parameter.
+                // TODO: Telemetry https://github.com/dotnet/roslyn/issues/50033
+                return null;
             }
 
-            var text = document.GetTextSynchronously(cancellationToken);
-            var position = text.Lines.GetPosition(new LinePosition(textSpan[0].iStartLine, textSpan[0].iStartIndex));
-            var compilation = document.Project.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
-            if (!snippetExpansionClient.Arguments.TryGetValue(_parameterName, out var previousValue))
-                previousValue = null;
-
-            if (_parameter.Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol() is IParameterSymbol parameter)
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken);
+            if (_parameterKey.Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol() is not IParameterSymbol parameter)
             {
-                foreach (var provider in snippetExpansionClient.GetArgumentProviders(document.Project.Solution.Workspace))
+                // Failed to resolve the IParameterSymbol from the SymbolKey.
+                // TODO: Telemetry https://github.com/dotnet/roslyn/issues/50033
+                return null;
+            }
+
+            var text = await document.GetTextAsync(cancellationToken);
+            var position = text.Lines.GetPosition(new LinePosition(textSpan[0].iStartLine, textSpan[0].iStartIndex));
+            var previousValue = snippetExpansionClient.Arguments.GetValueOrDefault(_parameterName);
+            foreach (var provider in snippetExpansionClient.GetArgumentProviders(document.Project.Solution.Workspace))
+            {
+                var context = new ArgumentContext(provider, document, position, parameter, previousValue, cancellationToken);
+                await provider.ProvideArgumentAsync(context);
+                if (context.DefaultValue is not null)
                 {
-                    var context = new ArgumentContext(provider, document, position, parameter, previousValue, cancellationToken);
-                    provider.ProvideArgumentAsync(context).Wait(cancellationToken);
-                    if (context.DefaultValue is not null)
-                    {
-                        value = context.DefaultValue;
-                        hasCurrentValue = 1;
-                        return VSConstants.S_OK;
-                    }
+                    return context.DefaultValue;
                 }
             }
 
-            value = FallbackDefaultLiteral;
-            hasCurrentValue = value is not null ? 1 : 0;
-            return value is not null ? VSConstants.S_OK : VSConstants.E_FAIL;
+            // In this case, none of the argument providers offered a value. Use a language-specific default if
+            // available; otherwise, we simply return null.
+            return FallbackDefaultLiteral;
         }
     }
 }

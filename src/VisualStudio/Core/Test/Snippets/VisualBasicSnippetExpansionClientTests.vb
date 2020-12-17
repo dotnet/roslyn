@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
@@ -358,7 +359,7 @@ End Class</Test>
                     document.GetTextView(),
                     document.GetTextBuffer(),
                     Nothing,
-                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)())
+                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray())
 
                 SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
             End Using
@@ -399,7 +400,7 @@ End Class</Test>
                     workspace.Documents.Single().GetTextView(),
                     workspace.Documents.Single().GetTextBuffer(),
                     Nothing,
-                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)())
+                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray())
 
                 Dim updatedDocument = expansionClient.AddImports(
                     workspace.CurrentSolution.Projects.Single().Documents.Single(),
@@ -429,7 +430,7 @@ End Class</Test>
                     surfaceBufferDocument.GetTextView(),
                     subjectBufferDocument.GetTextBuffer(),
                     Nothing,
-                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)())
+                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray())
 
                 SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, surfaceBufferDocument, expectedSurfaceBuffer)
             End Using

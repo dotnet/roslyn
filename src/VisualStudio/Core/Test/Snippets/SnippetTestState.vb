@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
@@ -126,7 +127,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             Inherits AbstractSnippetExpansionClient
 
             Public Sub New(threadingContext As IThreadingContext, startActiveSession As Boolean, languageServiceGuid As Guid, textView As ITextView, subjectBuffer As ITextBuffer)
-                MyBase.New(threadingContext, languageServiceGuid, textView, subjectBuffer, Nothing, SpecializedCollections.EmptyEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))())
+                MyBase.New(threadingContext, languageServiceGuid, textView, subjectBuffer, Nothing, ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)).Empty)
 
                 If startActiveSession Then
                     TryHandleTabReturnValue = True

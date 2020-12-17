@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -52,18 +53,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly ITextView TextView;
         protected readonly ITextBuffer SubjectBuffer;
 
-        private readonly IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _allArgumentProviders;
+        private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _allArgumentProviders;
         private ImmutableArray<ArgumentProvider> _argumentProviders;
 
         protected bool indentCaretOnCommit;
         protected int indentDepth;
         protected bool earlyEndExpansionHappened;
 
-        internal IVsExpansionSession ExpansionSession;
-        private bool _preserveSymbols;
-        private ImmutableArray<IMethodSymbol> _symbols;
-        private IMethodSymbol _symbol;
-        private ImmutableDictionary<string, string> _arguments = ImmutableDictionary.Create<string, string>();
+        private State _state = new() { _arguments = ImmutableDictionary.Create<string, string>() };
 
         public AbstractSnippetExpansionClient(
             IThreadingContext threadingContext,
@@ -71,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             ITextView textView,
             ITextBuffer subjectBuffer,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders)
+            ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders)
             : base(threadingContext)
         {
             this.LanguageServiceGuid = languageServiceGuid;
@@ -81,10 +78,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             this._allArgumentProviders = argumentProviders;
         }
 
-        internal ImmutableDictionary<string, string> Arguments => _arguments;
+        internal IVsExpansionSession ExpansionSession => _state._expansionSession;
+        internal ImmutableDictionary<string, string> Arguments => _state._arguments;
 
         internal ImmutableArray<ArgumentProvider> GetArgumentProviders(Workspace workspace)
         {
+            AssertIsForeground();
+
             if (_argumentProviders.IsDefault)
             {
                 _argumentProviders = workspace.Services
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             // If this is a manually-constructed snippet for a full method call, avoid formatting the snippet since
             // doing so will disrupt signature help.
-            if (!_symbols.IsDefault)
+            if (!_state._symbols.IsDefault)
             {
                 return VSConstants.S_OK;
             }
@@ -344,16 +344,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             if (ExpansionSession != null)
             {
-                var isFullMethodCallSnippet = !_symbols.IsDefault;
-                var tabbedInsideSnippetField = VSConstants.S_OK == ExpansionSession.GoToNextExpansionField(fCommitIfLast: isFullMethodCallSnippet ? 1 : 0);
+                // When 'Tab' is pressed in the last field of a normal snippet, the session wraps back around to the
+                // first field (this is preservation of historical behavior). When 'Tab' is pressed at the end of an
+                // argument provider snippet, the snippet session is automatically committed (this behavior matches the
+                // design for Insert Full Method Call intended for multiple IDEs).
+                var tabbedInsideSnippetField = VSConstants.S_OK == ExpansionSession.GoToNextExpansionField(fCommitIfLast: _state.IsFullMethodCallSnippet ? 1 : 0);
 
                 if (!tabbedInsideSnippetField)
                 {
                     ExpansionSession.EndCurrentExpansion(fLeaveCaret: 1);
-                    ExpansionSession = null;
-                    _symbols = default;
-                    _symbol = null;
-                    _arguments = _arguments.Clear();
+                    _state.Clear(forceClearSymbolInformation: true);
                 }
 
                 return tabbedInsideSnippetField;
@@ -371,10 +371,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 if (!tabbedInsideSnippetField)
                 {
                     ExpansionSession.EndCurrentExpansion(fLeaveCaret: 1);
-                    ExpansionSession = null;
-                    _symbols = default;
-                    _symbol = null;
-                    _arguments = _arguments.Clear();
+                    _state.Clear(forceClearSymbolInformation: true);
                 }
 
                 return tabbedInsideSnippetField;
@@ -388,10 +385,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             if (ExpansionSession != null)
             {
                 ExpansionSession.EndCurrentExpansion(fLeaveCaret: 1);
-                ExpansionSession = null;
-                _symbols = default;
-                _symbol = null;
-                _arguments = _arguments.Clear();
+                _state.Clear(forceClearSymbolInformation: true);
                 return true;
             }
 
@@ -400,15 +394,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public virtual bool TryHandleReturn()
         {
+            return CommitSnippet();
+        }
+
+        public bool CommitSnippet()
+        {
             if (ExpansionSession != null)
             {
                 // Only move the caret if the enter was hit within the snippet fields.
                 var hitWithinField = VSConstants.S_OK == ExpansionSession.GoToNextExpansionField(fCommitIfLast: 0);
                 ExpansionSession.EndCurrentExpansion(fLeaveCaret: hitWithinField ? 0 : 1);
-                ExpansionSession = null;
-                _symbols = default;
-                _symbol = null;
-                _arguments = _arguments.Clear();
+                _state.Clear(forceClearSymbolInformation: true);
 
                 return hitWithinField;
             }
@@ -426,10 +422,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             // The expansion itself needs to be created in the data buffer, so map everything up
-            if (!TryGetSpanOnHigherBuffer(
-                SubjectBuffer.CurrentSnapshot.GetSpan(startPositionInSubjectBuffer, endPositionInSubjectBuffer - startPositionInSubjectBuffer),
-                textViewModel.DataBuffer,
-                out var dataBufferSpan))
+            var triggerSpan = SubjectBuffer.CurrentSnapshot.GetSpan(startPositionInSubjectBuffer, endPositionInSubjectBuffer - startPositionInSubjectBuffer);
+            if (!TryGetSpanOnHigherBuffer(triggerSpan, textViewModel.DataBuffer, out var dataBufferSpan))
             {
                 return false;
             }
@@ -451,12 +445,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 iEndIndex = endIndex
             };
 
-            if (expansion.InsertExpansion(textSpan, textSpan, this, LanguageServiceGuid, out ExpansionSession) == VSConstants.S_OK)
+            if (expansion.InsertExpansion(textSpan, textSpan, this, LanguageServiceGuid, out _state._expansionSession) == VSConstants.S_OK)
             {
                 // This expansion is not derived from a symbol
-                _symbols = default;
-                _symbol = null;
-                _arguments = _arguments.Clear();
+                _state.ClearSymbolInformation();
                 return true;
             }
 
@@ -466,66 +458,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            var symbols = ThreadingContext.JoinableTaskFactory.Run(() =>
-            {
-                var caretPosition = SubjectBuffer.CurrentSnapshot.GetPoint(endPositionInSubjectBuffer);
-                return GetSymbolsAsync(caretPosition, cancellationToken);
-            });
+            var symbols = ThreadingContext.JoinableTaskFactory.Run(() => GetSymbolsAsync(caretPosition: triggerSpan.End, cancellationToken));
 
-            if (symbols.OfType<IMethodSymbol>().Any())
+            var methodSymbols = symbols.OfType<IMethodSymbol>().ToImmutableArray();
+            if (methodSymbols.Any())
             {
-                XNamespace snippetNamespace = "http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet";
-
                 var methodName = dataBufferSpan.GetText();
-
-                var template = $"{methodName}($placeholder$)$end$";
-
-                var snippet = new XDocument(
-                    new XDeclaration("1.0", "utf-8", null),
-                    new XElement(
-                        snippetNamespace + "CodeSnippets",
-                        new XElement(
-                            snippetNamespace + "CodeSnippet",
-                            new XAttribute(snippetNamespace + "Format", "1.0.0"),
-                            new XElement(
-                                snippetNamespace + "Header",
-                                new XElement(
-                                    snippetNamespace + "SnippetTypes",
-                                    new XElement(snippetNamespace + "SnippetType", new XText("Expansion"))),
-                                new XElement(snippetNamespace + "Title", new XText(methodName)),
-                                new XElement(snippetNamespace + "Author", "Microsoft"),
-                                new XElement(snippetNamespace + "Description"),
-                                new XElement(snippetNamespace + "HelpUrl"),
-                                new XElement(snippetNamespace + "Shortcut", methodName)),
-                            new XElement(
-                                snippetNamespace + "Snippet",
-                                new XElement(
-                                    snippetNamespace + "Declarations",
-                                    new XElement(
-                                        snippetNamespace + "Literal",
-                                        new XAttribute(snippetNamespace + "Editable", "true"),
-                                        new XElement(snippetNamespace + "ID", new XText("placeholder")),
-                                        new XElement(snippetNamespace + "ToolTip", new XText("")),
-                                        new XElement(snippetNamespace + "Default", new XText("")),
-                                        new XElement(snippetNamespace + "Function"))),
-                                new XElement(
-                                    snippetNamespace + "Code",
-                                    new XAttribute(snippetNamespace + "Language", "csharp"),
-                                    new XCData(template))))));
+                var snippet = CreateSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, cancellationToken);
 
                 var doc = new DOMDocumentClass();
                 if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
                 {
-                    var methodSymbols = symbols.OfType<IMethodSymbol>().ToImmutableArray();
-                    _symbols = methodSymbols;
-                    _symbol = null;
+                    _state._symbols = methodSymbols;
+                    _state._symbol = null;
 
-                    if (expansion.InsertSpecificExpansion(doc, textSpan, this, LanguageServiceGuid, pszRelativePath: null, out ExpansionSession) == VSConstants.S_OK)
+                    if (expansion.InsertSpecificExpansion(doc, textSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
                     {
-                        Debug.Assert(_symbols == methodSymbols);
-                        Debug.Assert(_symbol == null);
+                        Debug.Assert(_state._symbols == methodSymbols);
+                        Debug.Assert(_state._symbol == null);
 
                         // Trigger signature help after starting the snippet session
+                        //
+                        // TODO: Figure out why ISignatureHelpBroker.TriggerSignatureHelp doesn't work but this does.
+                        // https://github.com/dotnet/roslyn/issues/50036
                         var workspace = (VisualStudioWorkspace)SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()!.Project.Solution.Workspace;
                         var exportProvider = (IMefHostExportProvider)workspace.Services.HostServices;
                         var editorCommandHandlerServiceFactory = exportProvider.GetExports<IEditorCommandHandlerServiceFactory>().Single().Value;
@@ -537,6 +492,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
                             while (ExpansionSession is not null)
                             {
+                                // Loop until a controller is available.
+                                //
+                                // TODO: Controller.GetInstance has better postcondition semantics, but the
+                                // preconditions make it much more difficult to invoke.
+                                // https://github.com/dotnet/roslyn/issues/50037
                                 var controller = Controller.TryGetInstance(TextView, SubjectBuffer);
                                 if (controller is null)
                                 {
@@ -544,6 +504,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                                     continue;
                                 }
 
+                                // Register a handler for ModelUpdated. To avoid the possibility of more than one
+                                // handler being in the list, remove any current one before adding the new one. This
+                                // handler is only changed on the main thread, and the event is only invoked on the main
+                                // thread, so additional synchronization is not necessary to prevent lost events.
                                 controller.ModelUpdated -= OnModelUpdated;
                                 controller.ModelUpdated += OnModelUpdated;
                                 return;
@@ -554,9 +518,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     }
                     else
                     {
-                        _symbols = default;
-                        _symbol = null;
-                        _arguments = _arguments.Clear();
+                        _state.Clear(forceClearSymbolInformation: true);
                     }
                 }
             }
@@ -564,14 +526,107 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return false;
         }
 
+        /// <summary>
+        /// Creates a snippet for providing arguments to a call.
+        /// </summary>
+        /// <param name="methodName">The name of the method as it should appear in code.</param>
+        /// <param name="includeMethod"><see langword="true"/> to include the method name and invocation parentheses in
+        /// the resulting snippet; otherwise, <see langword="false"/> if the method name and parentheses are assumed to
+        /// already exist and the template will only specify the argument placeholders.</param>
+        /// <param name="parameters">The parameters to the method. If the specific target of the invocation is not
+        /// known, an empty array may be passed to create a template with a placeholder where arguments will eventually
+        /// go.</param>
+        /// <returns></returns>
+        private static XDocument CreateSnippet(string methodName, bool includeMethod, ImmutableArray<IParameterSymbol> parameters, CancellationToken cancellationToken)
+        {
+            XNamespace snippetNamespace = "http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet";
+
+            var template = new StringBuilder();
+
+            if (includeMethod)
+            {
+                template.Append(methodName).Append('(');
+            }
+
+            var declarations = new List<XElement>();
+            foreach (var parameter in parameters)
+            {
+                if (declarations.Any())
+                {
+                    template.Append(", ");
+                }
+
+                // Create a snippet field for the argument. The name of the field matches the parameter name, and the
+                // default value for the field is provided by a call to the internal ArgumentValue snippet function. The
+                // parameter to the snippet function is a serialized SymbolKey which can be mapped back to the
+                // IParameterSymbol.
+                template.Append('$').Append(parameter.Name).Append('$');
+                declarations.Add(new XElement(
+                    snippetNamespace + "Literal",
+                    new XAttribute(snippetNamespace + "Editable", "true"),
+                    new XElement(snippetNamespace + "ID", new XText(parameter.Name)),
+                    new XElement(snippetNamespace + "Function", new XText($"ArgumentValue({SymbolKey.CreateString(parameter, cancellationToken)})"))));
+            }
+
+            if (!declarations.Any())
+            {
+                // If the invocation does not have any parameters, include an empty placeholder in the snippet template
+                // to ensure the caret starts inside the parentheses and can track changes to other overloads (which may
+                // have parameters).
+                template.Append("$placeholder$");
+                declarations.Add(new XElement(
+                    snippetNamespace + "Literal",
+                    new XAttribute(snippetNamespace + "Editable", "true"),
+                    new XElement(snippetNamespace + "ID", new XText("placeholder")),
+                    new XElement(snippetNamespace + "ToolTip", new XText("")),
+                    new XElement(snippetNamespace + "Default", new XText("")),
+                    new XElement(snippetNamespace + "Function")));
+            }
+
+            if (includeMethod)
+            {
+                template.Append(")$end$");
+            }
+
+            // A snippet is manually constructed. Replacement fields are added for each argument, and the field name
+            // matches the parameter name.
+            // https://docs.microsoft.com/en-us/visualstudio/ide/code-snippets-schema-reference?view=vs-2019
+            return new XDocument(
+                new XDeclaration("1.0", "utf-8", null),
+                new XElement(
+                    snippetNamespace + "CodeSnippets",
+                    new XElement(
+                        snippetNamespace + "CodeSnippet",
+                        new XAttribute(snippetNamespace + "Format", "1.0.0"),
+                        new XElement(
+                            snippetNamespace + "Header",
+                            new XElement(
+                                snippetNamespace + "SnippetTypes",
+                                new XElement(snippetNamespace + "SnippetType", new XText("Expansion"))),
+                            new XElement(snippetNamespace + "Title", new XText(methodName)),
+                            new XElement(snippetNamespace + "Author", "Microsoft"),
+                            new XElement(snippetNamespace + "Description"),
+                            new XElement(snippetNamespace + "HelpUrl"),
+                            new XElement(snippetNamespace + "Shortcut", methodName)),
+                        new XElement(
+                            snippetNamespace + "Snippet",
+                            new XElement(snippetNamespace + "Declarations", declarations.ToArray()),
+                            new XElement(
+                                snippetNamespace + "Code",
+                                new XAttribute(snippetNamespace + "Language", "csharp"),
+                                new XCData(template.ToString()))))));
+        }
+
         private void OnModelUpdated(object sender, Model e)
         {
+            AssertIsForeground();
+
             if (e is null)
             {
                 return;
             }
 
-            if (_symbols.IsDefaultOrEmpty)
+            if (!_state.IsFullMethodCallSnippet)
             {
                 return;
             }
@@ -587,7 +642,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             if (newSymbol is not IMethodSymbol method)
                 return;
 
-            MoveToSymbol(_symbols, method, CancellationToken.None);
+            MoveToSymbol(_state._symbols, method, CancellationToken.None);
         }
 
         private async Task<ImmutableArray<ISymbol>> GetSymbolsAsync(
@@ -615,27 +670,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            if (SymbolEqualityComparer.Default.Equals(_symbol, symbol))
+            if (SymbolEqualityComparer.Default.Equals(_state._symbol, symbol))
             {
                 return;
             }
 
-            var symbolName = _symbol?.Name ?? _symbols.FirstOrDefault()?.Name;
+            var symbolName = _state._symbol?.Name ?? _state._symbols.FirstOrDefault()?.Name;
             if (symbolName != symbol.Name)
             {
                 // Can't track this request
-                _symbols = default;
-                _symbol = null;
-                _arguments = _arguments.Clear();
+                _state.ClearSymbolInformation();
                 return;
             }
 
-            if (!_symbols.IsDefaultOrEmpty && _symbols != symbols)
+            if (!_state._symbols.IsDefaultOrEmpty && _state._symbols != symbols)
             {
                 // Can't track this request
-                _symbols = default;
-                _symbol = null;
-                _arguments = _arguments.Clear();
+                _state.ClearSymbolInformation();
                 return;
             }
 
@@ -653,75 +704,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             // Track current argument values
-            if (_symbol is not null)
+            if (_state._symbol is not null)
             {
-                foreach (var previousParameter in _symbol.Parameters)
+                foreach (var previousParameter in _state._symbol.Parameters)
                 {
                     if (ExpansionSession.GetFieldValue(previousParameter.Name, out var previousValue) == VSConstants.S_OK)
                     {
-                        _arguments = _arguments.SetItem(previousParameter.Name, previousValue);
+                        _state._arguments = _state._arguments.SetItem(previousParameter.Name, previousValue);
                     }
                 }
             }
-
-            XNamespace snippetNamespace = "http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet";
-
-            var methodName = symbol.Name;
-
-            var template = new StringBuilder();
-
-            var declarations = new List<XElement>();
-            foreach (var parameter in symbol.Parameters)
-            {
-                if (declarations.Any())
-                {
-                    template.Append(", ");
-                }
-
-                template.Append('$').Append(parameter.Name).Append('$');
-                declarations.Add(new XElement(
-                    snippetNamespace + "Literal",
-                    new XAttribute(snippetNamespace + "Editable", "true"),
-                    new XElement(snippetNamespace + "ID", new XText(parameter.Name)),
-                    new XElement(snippetNamespace + "Function", new XText($"ArgumentValue({SymbolKey.CreateString(parameter, cancellationToken)})"))));
-            }
-
-            if (!declarations.Any())
-            {
-                template.Append("$placeholder$");
-                declarations.Add(new XElement(
-                    snippetNamespace + "Literal",
-                    new XAttribute(snippetNamespace + "Editable", "true"),
-                    new XElement(snippetNamespace + "ID", new XText("placeholder")),
-                    new XElement(snippetNamespace + "ToolTip", new XText("")),
-                    new XElement(snippetNamespace + "Default", new XText("")),
-                    new XElement(snippetNamespace + "Function")));
-            }
-
-            var snippet = new XDocument(
-                new XDeclaration("1.0", "utf-8", null),
-                new XElement(
-                    snippetNamespace + "CodeSnippets",
-                    new XElement(
-                        snippetNamespace + "CodeSnippet",
-                        new XAttribute(snippetNamespace + "Format", "1.0.0"),
-                        new XElement(
-                            snippetNamespace + "Header",
-                            new XElement(
-                                snippetNamespace + "SnippetTypes",
-                                new XElement(snippetNamespace + "SnippetType", new XText("Expansion"))),
-                            new XElement(snippetNamespace + "Title", new XText(methodName)),
-                            new XElement(snippetNamespace + "Author", "Microsoft"),
-                            new XElement(snippetNamespace + "Description"),
-                            new XElement(snippetNamespace + "HelpUrl"),
-                            new XElement(snippetNamespace + "Shortcut", methodName)),
-                        new XElement(
-                            snippetNamespace + "Snippet",
-                            new XElement(snippetNamespace + "Declarations", declarations.ToArray()),
-                            new XElement(
-                                snippetNamespace + "Code",
-                                new XAttribute(snippetNamespace + "Language", "csharp"),
-                                new XCData(template.ToString()))))));
 
             var textSpan = new VsTextSpan[1];
             if (ExpansionSession is null || ExpansionSession.GetSnippetSpan(textSpan) != VSConstants.S_OK)
@@ -730,7 +722,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             var adjustedTextSpan = textSpan[0];
-            var firstField = _symbol?.Parameters.FirstOrDefault()?.Name ?? "placeholder";
+            var firstField = _state._symbol?.Parameters.FirstOrDefault()?.Name ?? "placeholder";
             if (ExpansionSession.GetFieldSpan(firstField, textSpan) != VSConstants.S_OK)
             {
                 return;
@@ -739,7 +731,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             adjustedTextSpan.iStartLine = textSpan[0].iStartLine;
             adjustedTextSpan.iStartIndex = textSpan[0].iStartIndex;
 
-            var lastField = _symbol?.Parameters.LastOrDefault()?.Name ?? "placeholder";
+            var lastField = _state._symbol?.Parameters.LastOrDefault()?.Name ?? "placeholder";
             if (ExpansionSession.GetFieldSpan(lastField, textSpan) != VSConstants.S_OK)
             {
                 return;
@@ -748,23 +740,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             adjustedTextSpan.iEndLine = textSpan[0].iEndLine;
             adjustedTextSpan.iEndIndex = textSpan[0].iEndIndex;
 
-            // Explicitly carry forward arguments, since the field will be cleared when the new snippet session replaces
-            // the current one.
-            var previousArguments = _arguments;
+            var snippet = CreateSnippet(symbol.Name, includeMethod: false, symbol.Parameters, cancellationToken);
             var doc = new DOMDocumentClass();
             if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
             {
-                _preserveSymbols = true;
-                _symbols = symbols;
-                _symbol = symbol;
-                _arguments = previousArguments;
+                // Avoid clearing symbol information when InsertSpecificExpansion ends the current snippet session; the
+                // new session will need the same information to carry argument values forward.
+                _state._preserveSymbols = true;
 
-                if (expansion.InsertSpecificExpansion(doc, adjustedTextSpan, this, LanguageServiceGuid, pszRelativePath: null, out ExpansionSession) == VSConstants.S_OK)
+                Debug.Assert(_state._symbols == symbols);
+                _state._symbol = symbol;
+                var previousArguments = _state._arguments;
+
+                if (expansion.InsertSpecificExpansion(doc, adjustedTextSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
                 {
-                    _preserveSymbols = false;
-                    Debug.Assert(_symbols == symbols);
-                    Debug.Assert(_symbol == symbol);
-                    Debug.Assert(_arguments == previousArguments);
+                    _state._preserveSymbols = false;
+                    Debug.Assert(_state._symbols == symbols);
+                    Debug.Assert(_state._symbol == symbol);
+                    Debug.Assert(_state._arguments == previousArguments);
 
                     // Even though the closing parenthesis is not part of the updated snippet, make sure the $end$
                     // position lies after it.
@@ -777,10 +770,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 }
                 else
                 {
-                    _preserveSymbols = false;
-                    _symbols = default;
-                    _symbol = null;
-                    _arguments = _arguments.Clear();
+                    _state.Clear(forceClearSymbolInformation: true);
                 }
             }
         }
@@ -792,13 +782,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 earlyEndExpansionHappened = true;
             }
 
-            ExpansionSession = null;
-            if (!_preserveSymbols)
-            {
-                _symbols = default;
-                _symbol = null;
-                _arguments = _arguments.Clear();
-            }
+            // This call to EndExpansion may occur within a call to InsertSpecificExpansion (the current snippet session
+            // is terminated before the new one is created to replace it). Since _state may contain symbol information
+            // used by snippet functions during the creation of the new snippet, we only want to clear symbol
+            // information if the state hasn't set the _preserveSymbols flag.
+            _state.Clear(forceClearSymbolInformation: false);
 
             indentCaretOnCommit = false;
 
@@ -828,7 +816,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             Logger.Log(FunctionId.Snippet_OnBeforeInsertion);
 
-            this.ExpansionSession = pSession;
+            _state._expansionSession = pSession;
 
             // Symbol information (when necessary) is set by the caller
 
@@ -855,10 +843,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
                 var expansion = EditorAdaptersFactoryService.GetBufferAdapter(textViewModel.DataBuffer) as IVsExpansion;
                 earlyEndExpansionHappened = false;
-                _symbols = default;
-                _symbol = null;
-                _arguments = _arguments.Clear();
-                hr = expansion.InsertNamedExpansion(pszTitle, pszPath, textSpan, this, LanguageServiceGuid, fShowDisambiguationUI: 0, pSession: out ExpansionSession);
+                _state.ClearSymbolInformation();
+                hr = expansion.InsertNamedExpansion(pszTitle, pszPath, textSpan, this, LanguageServiceGuid, fShowDisambiguationUI: 0, pSession: out _state._expansionSession);
 
                 if (earlyEndExpansionHappened)
                 {
@@ -866,7 +852,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     // expansionSession to null to indicate that there is no active expansion
                     // session. This can occur when the snippet inserted doesn't have any expansion
                     // fields.
-                    ExpansionSession = null;
+                    _state._expansionSession = null;
                     earlyEndExpansionHappened = false;
                 }
             }
@@ -1035,6 +1021,73 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             span = default;
             return false;
+        }
+
+        [NonCopyable]
+        private struct State
+        {
+            /// <summary>
+            /// The current expansion session.
+            /// </summary>
+            public IVsExpansionSession _expansionSession;
+
+            /// <summary>
+            /// The set of symbols initially identified as candidates for providing arguments. When a snippet is
+            /// constructed with parameters for a specific symbol, <see cref="_symbol"/> will identify the specific
+            /// symbol from within this collection matching the current session.
+            /// </summary>
+            public ImmutableArray<IMethodSymbol> _symbols;
+
+            /// <summary>
+            /// The current symbol presented in an Argument Provider snippet session. This may be null if Signature Help
+            /// has not yet provided a symbol to show.
+            /// </summary>
+            public IMethodSymbol _symbol;
+
+            /// <summary>
+            /// Maps from parameter name to current argument value. When this dictionary does not contain a mapping for
+            /// a parameter, it means no argument has been provided yet by an ArgumentProvider or the user for a
+            /// parameter with this name. This map is cleared at the final end of an argument provider snippet session.
+            /// </summary>
+            public ImmutableDictionary<string, string> _arguments;
+
+            /// <summary>
+            /// When moving between Signature Help overloads, the snippet session used for argument providers is cleared
+            /// and recreated. When <see langword="true"/>, this field instructs the snippet client to avoid clearing
+            /// symbol information when a snippet session is cleared, and is used in cases where a new snippet session
+            /// is being created to use the same symbols.
+            /// </summary>
+            public bool _preserveSymbols;
+
+            /// <summary>
+            /// <see langword="true"/> if the current snippet session is a Full Method Call snippet session; otherwise,
+            /// <see langword="false"/> if there is no current snippet session or if the current snippet session is a normal snippet.
+            /// </summary>
+            public bool IsFullMethodCallSnippet => _expansionSession is not null && !_symbols.IsDefaultOrEmpty;
+
+            public void Clear(bool forceClearSymbolInformation = false)
+            {
+                _expansionSession = null;
+                if (forceClearSymbolInformation || !_preserveSymbols)
+                {
+                    ClearSymbolInformation();
+                }
+            }
+
+            /// <summary>
+            /// Clears symbol information from the current snippet state.
+            /// </summary>
+            /// <remarks>
+            /// This method always clears symbol information, including setting <see cref="_preserveSymbols"/> to
+            /// <see langword="false"/>.
+            /// </remarks>
+            public void ClearSymbolInformation()
+            {
+                _preserveSymbols = false;
+                _symbols = default;
+                _symbol = null;
+                _arguments = _arguments.Clear();
+            }
         }
     }
 }

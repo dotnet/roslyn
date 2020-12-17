@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -37,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         ICommandHandler<SurroundWithCommandArgs>,
         IChainedCommandHandler<TypeCharCommandArgs>
     {
-        private readonly IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _argumentProviders;
+        private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _argumentProviders;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -48,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             [ImportMany] IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders)
             : base(threadingContext, editorAdaptersFactoryService, serviceProvider)
         {
-            _argumentProviders = argumentProviders;
+            _argumentProviders = argumentProviders.ToImmutableArray();
         }
 
         public bool ExecuteCommand(SurroundWithCommandArgs args, CommandExecutionContext context)
@@ -97,7 +98,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 && AreSnippetsEnabled(args)
                 && args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient))
             {
-                snippetExpansionClient.TryHandleReturn();
+                // Commit the snippet, and then allow subsequent command handlers to handle the ';' insertion
+                snippetExpansionClient.CommitSnippet();
             }
 
             nextCommandHandler();

@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
@@ -35,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
     internal sealed partial class SnippetExpansionClient : AbstractSnippetExpansionClient
     {
-        public SnippetExpansionClient(IThreadingContext threadingContext, Guid languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders)
+        public SnippetExpansionClient(IThreadingContext threadingContext, Guid languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IVsEditorAdaptersFactoryService editorAdaptersFactoryService, ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders)
             : base(threadingContext, languageServiceGuid, textView, subjectBuffer, editorAdaptersFactoryService, argumentProviders)
         {
         }
@@ -84,7 +85,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                     pFunc = new SnippetFunctionGenerateSwitchCases(this, SubjectBuffer, bstrFieldName, param);
                     return VSConstants.S_OK;
                 case "ArgumentValue":
-                    pFunc = new SnippetFunctionArgumentValue(this, SubjectBuffer, bstrFieldName, param);
+                    // For the internal ArgumentValue function, the snippet field name is expected to match the
+                    // parameter name, and the string passed to the function is a serialized SymbolKey allowing the
+                    // snippet function to resolve the original IParameterSymbol.
+                    pFunc = new SnippetFunctionArgumentValue(this, SubjectBuffer, parameterName: bstrFieldName, parameterKey: new SymbolKey(param));
                     return VSConstants.S_OK;
                 default:
                     pFunc = null;

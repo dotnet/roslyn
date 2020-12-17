@@ -29,14 +29,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
         Private ReadOnly _threadingContext As IThreadingContext
         Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
-        Private ReadOnly _argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))
+        Private ReadOnly _argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata))
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(threadingContext As IThreadingContext, editorAdaptersFactoryService As IVsEditorAdaptersFactoryService, <ImportMany> argumentProviders As IEnumerable(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)))
             _threadingContext = threadingContext
             Me._editorAdaptersFactoryService = editorAdaptersFactoryService
-            _argumentProviders = argumentProviders
+            _argumentProviders = argumentProviders.ToImmutableArray()
         End Sub
 
         Friend Overrides ReadOnly Property IsSnippetProvider As Boolean
