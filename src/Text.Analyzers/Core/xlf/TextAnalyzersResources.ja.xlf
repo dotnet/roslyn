@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesDescription">
         <source>A public enumeration has the System.FlagsAttribute attribute, and its name does not end in ""s"". Types that are marked by using FlagsAttribute have names that are plural because the attribute indicates that more than one value can be specified.</source>
-        <target state="new">A public enumeration has the System.FlagsAttribute attribute, and its name does not end in ""s"". Types that are marked by using FlagsAttribute have names that are plural because the attribute indicates that more than one value can be specified.</target>
+        <target state="translated">パブリック列挙型に System.FlagsAttribute 属性があり、その名前の末尾に ""s"" がありません。FlagsAttribute を使用してマークされた型には複数形の名前が付きます。これは、この属性に複数の値を指定できることを示すためです。</target>
         <note />
       </trans-unit>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesMessage">
         <source>Flags enums should have plural names</source>
-        <target state="new">Flags enums should have plural names</target>
+        <target state="translated">フラグ列挙型は、複数形の名前を含んでいなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesTitle">
         <source>Flags enums should have plural names</source>
-        <target state="new">Flags enums should have plural names</target>
+        <target state="translated">フラグ列挙型は、複数形の名前を含んでいなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyTitle">
@@ -114,17 +114,17 @@
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesDescription">
         <source>Naming conventions dictate that a plural name for an enumeration indicates that more than one value of the enumeration can be specified at the same time.</source>
-        <target state="new">Naming conventions dictate that a plural name for an enumeration indicates that more than one value of the enumeration can be specified at the same time.</target>
+        <target state="translated">名前付け規則では、列挙型の複数形の名前は同時に複数の列挙型を指定できることを意味します。</target>
         <note />
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesMessage">
         <source>Only FlagsAttribute enums should have plural names</source>
-        <target state="new">Only FlagsAttribute enums should have plural names</target>
+        <target state="translated">FlagsAttribute 列挙型のみが複数形の名前を含んでいなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesTitle">
         <source>Only FlagsAttribute enums should have plural names</source>
-        <target state="new">Only FlagsAttribute enums should have plural names</target>
+        <target state="translated">FlagsAttribute 列挙型のみが複数形の名前を含んでいなければなりません</target>
         <note />
       </trans-unit>
     </body>
