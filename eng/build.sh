@@ -293,7 +293,7 @@ function BuildSolution {
     /p:DotNetBuildFromSource=$source_build \
     $test_runtime \
     $mono_tool \
-    $generate_documentation \
+    $generate_documentation_file \
     $properties
 }
 
