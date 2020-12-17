@@ -332,6 +332,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Disable background download UI to avoid toasts
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0")).WaitForExit();
 
+                var lspRegistryValue = string.Equals(Environment.GetEnvironmentVariable("ROSLYN_LSPEDITOR"), "true", StringComparison.OrdinalIgnoreCase) ? "1" : "0";
+                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Roslyn\\LSP\\Editor\" Value dword {lspRegistryValue}")).WaitForExit();
+
                 // Remove legacy experiment setting for controlling async completion to ensure it does not interfere.
                 // We no longer set this value, but it could be in place from an earlier test run on the same machine.
                 var disabledFlights = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\ABExp\LocalTest", "DisabledFlights", Array.Empty<string>()) as string[] ?? Array.Empty<string>();

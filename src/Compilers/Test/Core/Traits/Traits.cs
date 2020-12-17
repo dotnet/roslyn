@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string KeyProcessors = nameof(KeyProcessors);
             public const string KeyProcessorProviders = nameof(KeyProcessorProviders);
             public const string Preview = nameof(Preview);
+            public const string LanguageServerProtocol = nameof(LanguageServerProtocol);
         }
 
         public const string Feature = nameof(Feature);

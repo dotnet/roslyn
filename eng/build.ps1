@@ -44,6 +44,7 @@ param (
   [switch]$warnAsError = $false,
   [switch]$sourceBuild = $false,
   [switch]$oop64bit = $true,
+  [switch]$lspEditor = $false,
 
   # official build settings
   [string]$officialBuildId = "",
@@ -365,6 +366,13 @@ function TestUsingRunTests() {
     $args += " --sequential"
     $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
+
+    if ($lspEditor) {
+      $args += " --testfilter FullyQualifiedName~Roslyn.VisualStudio.IntegrationTests.LanguageServerProtocol|Editor=LanguageServerProtocol"
+    }
+    else {
+      $args += " --testfilter FullyQualifiedName!~Roslyn.VisualStudio.IntegrationTests.LanguageServerProtocol"
+    }
   }
 
   if (-not $ci -and -not $testVsi) {
@@ -538,6 +546,7 @@ function Setup-IntegrationTestRun() {
   }
 
   $env:ROSLYN_OOP64BIT = "$oop64bit"
+  $env:ROSLYN_LSPEDITOR = "$lspEditor"
 }
 
 function Prepare-TempDir() {

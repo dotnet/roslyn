@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public void GoToClassDeclaration()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -44,12 +44,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     SomeClass sc;
 }");
             VisualStudio.Editor.PlaceCaret("SomeClass");
-            VisualStudio.Editor.GoToDefinition();
+            VisualStudio.Editor.GoToDefinition("FileDef.cs");
             VisualStudio.Editor.Verify.TextContains(@"class SomeClass$$", assertCaretPosition: true);
             Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public void GoToDefinitionOpensProvisionalTabIfDocumentNotAlreadyOpen()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -69,7 +69,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     SomeClass sc;
 }");
             VisualStudio.Editor.PlaceCaret("SomeClass");
-            VisualStudio.Editor.GoToDefinition();
+            VisualStudio.Editor.GoToDefinition("FileDef.cs");
             VisualStudio.Editor.Verify.TextContains(@"class SomeClass$$", assertCaretPosition: true);
             Assert.True(VisualStudio.Shell.IsActiveTabProvisional());
         }
@@ -82,7 +82,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
 partial class PartialClass { int i = 0; }");
 
-            VisualStudio.Editor.GoToDefinition();
+            VisualStudio.Editor.GoToDefinition("Class1.cs");
 
             const string programReferencesCaption = "'PartialClass' declarations";
             var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);

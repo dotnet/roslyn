@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public void SimpleGoToImplementation()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -38,7 +38,7 @@ End Class");
 @"Interface IGoo 
 End Interface");
             VisualStudio.Editor.PlaceCaret("Interface IGoo");
-            VisualStudio.Editor.GoToImplementation();
+            VisualStudio.Editor.GoToImplementation("FileImplementation.vb");
             VisualStudio.Editor.Verify.TextContains(@"Class Implementation$$", assertCaretPosition: true);
             Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
         }

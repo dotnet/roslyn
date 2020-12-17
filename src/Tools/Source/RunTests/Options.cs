@@ -34,14 +34,9 @@ namespace RunTests
         public Display Display { get; set; }
 
         /// <summary>
-        /// Trait string to pass to xunit.
+        /// Filter string to pass to xunit.
         /// </summary>
-        public string? Trait { get; set; }
-
-        /// <summary>
-        /// The no-trait string to pass to xunit.
-        /// </summary>
-        public string? NoTrait { get; set; }
+        public string? TestFilter { get; set; }
 
         public string Configuration { get; set; }
 
@@ -125,8 +120,7 @@ namespace RunTests
             var excludeFilter = new List<string>();
             var sequential = false;
             var retry = false;
-            string? traits = null;
-            string? noTraits = null;
+            string? testFilter = null;
             int? timeout = null;
             string? resultFileDirectory = null;
             string? logFileDirectory = null;
@@ -144,8 +138,7 @@ namespace RunTests
                 { "platform=", "Platform to test: x86 or x64", (string s) => platform = s },
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
-                { "traits=", "xUnit traits to include (semicolon delimited)", (string s) => traits = s },
-                { "notraits=", "xUnit traits to exclude (semicolon delimited)", (string s) => noTraits = s },
+                { "testfilter=", "xUnit string to pass to --filter, e.g. FullyQualifiedName~TestClass1|Category=CategoryA", (string s) => testFilter = s },
                 { "timeout=", "Minute timeout to limit the tests to", (int i) => timeout = i },
                 { "out=", "Test result file directory", (string s) => resultFileDirectory = s },
                 { "logs=", "Log file directory", (string s) => logFileDirectory = s },
@@ -225,8 +218,7 @@ namespace RunTests
                 CollectDumps = collectDumps,
                 Sequential = sequential,
                 IncludeHtml = includeHtml,
-                Trait = traits,
-                NoTrait = noTraits,
+                TestFilter = testFilter,
                 Timeout = timeout is { } t ? TimeSpan.FromMinutes(t) : null,
                 Retry = retry,
             };

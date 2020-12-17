@@ -362,11 +362,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             }).ToArray();
         }
 
-        public void GoToDefinition()
-            => _editorInProc.GoToDefinition();
+        public void GoToDefinition(string viewName)
+        {
+            _editorInProc.GoToDefinition();
+            _editorInProc.WaitForActiveView(viewName);
+        }
 
-        public void GoToImplementation()
-            => _editorInProc.GoToImplementation();
+        public void GoToImplementation(string viewName)
+        {
+            _editorInProc.GoToImplementation();
+            _editorInProc.WaitForActiveView(viewName);
+        }
 
         public void SendExplicitFocus()
             => _editorInProc.SendExplicitFocus();
