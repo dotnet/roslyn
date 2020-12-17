@@ -22,6 +22,7 @@ namespace CodeStyleConfigFileGenerator
         private const int ExpectedArguments = 4;
 
         private static readonly string s_neverTag = EnforceOnBuild.Never.ToCustomTag();
+        private static readonly string s_whenExplicitlyEnabledTag = EnforceOnBuild.WhenExplicitlyEnabled.ToCustomTag();
         private static readonly string s_recommendedTag = EnforceOnBuild.Recommended.ToCustomTag();
         private static readonly string s_highlyRecommendedTag = EnforceOnBuild.HighlyRecommended.ToCustomTag();
 
@@ -152,6 +153,9 @@ namespace CodeStyleConfigFileGenerator
 
                         (bool isEnabledByDefault, DiagnosticSeverity effectiveSeverity) GetEnabledByDefaultAndSeverity(DiagnosticDescriptor rule, AnalysisMode analysisMode)
                         {
+                            Debug.Assert(rule.CustomTags.Any(c => c == s_neverTag || c == s_whenExplicitlyEnabledTag || c == s_recommendedTag || c == s_highlyRecommendedTag),
+                                $"DiagnosticDescriptor for '{rule.Id}' must have a {nameof(EnforceOnBuild)} custom tag");
+
                             bool isEnabledInNonDefaultMode;
                             switch (analysisMode)
                             {
