@@ -82,9 +82,9 @@ namespace Analyzer.Utilities.PooledObjects
         /// <summary>
         /// Attempts to remove a value from the set.
         /// </summary>
-        /// <param name="value">The value to remove.</param>
+        /// <param name="item">The value to remove.</param>
         /// <returns>true if the value was removed successfully; otherwise false.</returns>
-        public bool Remove(T value) => _dictionary.TryRemove(value, out _);
+        public bool Remove(T item) => _dictionary.TryRemove(item, out _);
 
         /// <summary>
         /// Clears all the elements from the set.
