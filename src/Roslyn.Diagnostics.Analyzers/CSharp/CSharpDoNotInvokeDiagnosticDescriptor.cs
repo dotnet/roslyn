@@ -25,15 +25,11 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
         protected override bool IsThisOrBaseOrMeOrMyBaseExpression(SyntaxNode node)
         {
-            switch (node.Kind())
+            return node.Kind() switch
             {
-                case SyntaxKind.ThisExpression:
-                case SyntaxKind.BaseExpression:
-                    return true;
-
-                default:
-                    return false;
-            }
+                SyntaxKind.ThisExpression or SyntaxKind.BaseExpression => true,
+                _ => false,
+            };
         }
     }
 }
