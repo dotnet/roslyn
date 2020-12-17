@@ -8,12 +8,12 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
-    Public Class CpsDiagnosticItemTests
+    Public Class DiagnosticItemTests
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub Name()
             Dim descriptor = CreateDescriptor()
 
-            Dim diagnostic = New CpsDiagnosticItem(Nothing, descriptor, ReportDiagnostic.Error, LanguageNames.VisualBasic)
+            Dim diagnostic = New DiagnosticItem(Nothing, Nothing, descriptor, ReportDiagnostic.Error, LanguageNames.VisualBasic, Nothing)
 
             Assert.Equal(expected:="TST0001: A test diagnostic", actual:=diagnostic.Text)
         End Sub
@@ -22,8 +22,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Sub BrowseObject()
             Dim descriptor = CreateDescriptor()
 
-            Dim diagnostic = New CpsDiagnosticItem(Nothing, descriptor, ReportDiagnostic.Info, LanguageNames.VisualBasic)
-            Dim browseObject = DirectCast(diagnostic.GetBrowseObject(), LegacyDiagnosticItem.BrowseObject)
+            Dim diagnostic = New DiagnosticItem(Nothing, Nothing, descriptor, ReportDiagnostic.Info, LanguageNames.VisualBasic, Nothing)
+            Dim browseObject = DirectCast(diagnostic.GetBrowseObject(), DiagnosticItem.BrowseObject)
 
             Assert.Equal(expected:=SolutionExplorerShim.Diagnostic_Properties, actual:=browseObject.GetClassName())
             Assert.Equal(expected:="TST0001", actual:=browseObject.GetComponentName())
