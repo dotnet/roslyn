@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             var model = ModelTask.WaitAndGetResult(CancellationToken.None);
             if (!_notifyControllerTask.IsCompleted)
             {
-                OnModelUpdated(model);
+                OnModelUpdated(model, updateController: true);
 
                 // Reset lastTask so controller.OnModelUpdated is only called once
                 _lastTask = Task.FromResult(model);
@@ -116,12 +116,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             _notifyControllerTask = _lastTask = SpecializedTasks.Null<TModel>();
         }
 
-        public void ChainTaskAndNotifyControllerWhenFinished(Func<TModel, TModel> transformModel)
+        public void ChainTaskAndNotifyControllerWhenFinished(
+                Func<TModel, TModel> transformModel,
+                bool updateController = true)
         {
-            ChainTaskAndNotifyControllerWhenFinished((m, c) => Task.FromResult(transformModel(m)));
+            ChainTaskAndNotifyControllerWhenFinished((m, c) => Task.FromResult(transformModel(m)), updateController);
         }
 
-        public void ChainTaskAndNotifyControllerWhenFinished(Func<TModel, CancellationToken, Task<TModel>> transformModelAsync)
+        public void ChainTaskAndNotifyControllerWhenFinished(
+            Func<TModel, CancellationToken, Task<TModel>> transformModelAsync,
+            bool updateController = true)
         {
             AssertIsForeground();
 
@@ -158,10 +162,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                         // controller. Otherwise there's a pending task that should run.  We
                         // don't need to update the controller (and the presenters) until our
                         // chain is finished.
-                        if (nextTask == _lastTask)
-                        {
-                            OnModelUpdated(nextTask.Result);
-                        }
+                        updateController &= nextTask == _lastTask;
+                        OnModelUpdated(nextTask.Result, updateController);
                     }
                 },
                 _stopCancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default).Unwrap();
@@ -171,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             _notifyControllerTask.CompletesAsyncOperation(asyncToken);
         }
 
-        private void OnModelUpdated(TModel result)
+        private void OnModelUpdated(TModel result, bool updateController)
         {
             this.AssertIsForeground();
 
@@ -181,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                 _initialUnfilteredModel = result;
             }
 
-            _controller.OnModelUpdated(result);
+            _controller.OnModelUpdated(result, updateController);
         }
     }
 }

@@ -103,27 +103,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             return this.TextView.Caret.Position.BufferPosition;
         }
 
-        internal override void OnModelUpdated(Model modelOpt)
+        internal override void OnModelUpdated(Model modelOpt, bool updateController)
         {
             AssertIsForeground();
-            if (modelOpt == null)
+
+            if (updateController)
             {
-                this.StopModelComputation();
-            }
-            else
-            {
-                var triggerSpan = modelOpt.GetCurrentSpanInView(this.TextView.TextSnapshot);
+                if (modelOpt == null)
+                {
+                    this.StopModelComputation();
+                }
+                else
+                {
+                    var triggerSpan = modelOpt.GetCurrentSpanInView(this.TextView.TextSnapshot);
 
-                // We want the span to actually only go up to the caret.  So get the expected span
-                // and then update its end point accordingly.
-                var updatedSpan = new SnapshotSpan(triggerSpan.Snapshot, Span.FromBounds(
-                    triggerSpan.Start,
-                    Math.Max(Math.Min(triggerSpan.End, GetCaretPointInViewBuffer().Position), triggerSpan.Start)));
+                    // We want the span to actually only go up to the caret.  So get the expected span
+                    // and then update its end point accordingly.
+                    var updatedSpan = new SnapshotSpan(triggerSpan.Snapshot, Span.FromBounds(
+                        triggerSpan.Start,
+                        Math.Max(Math.Min(triggerSpan.End, GetCaretPointInViewBuffer().Position), triggerSpan.Start)));
 
-                var trackingSpan = updatedSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
+                    var trackingSpan = updatedSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
-                this.sessionOpt.PresenterSession.PresentItems(
-                     trackingSpan, modelOpt.Items, modelOpt.SelectedItem, modelOpt.SelectedParameter);
+                    this.sessionOpt.PresenterSession.PresentItems(
+                         trackingSpan, modelOpt.Items, modelOpt.SelectedItem, modelOpt.SelectedParameter);
+                }
             }
 
             ModelUpdated?.Invoke(this, modelOpt);
