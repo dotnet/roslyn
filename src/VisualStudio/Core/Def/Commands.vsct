@@ -414,7 +414,7 @@
         <CommandFlag>DefaultInvisible</CommandFlag>
         <CommandFlag>DefaultDisabled</CommandFlag>
         <Strings>
-          <ButtonText>Remove &amp;Unused References</ButtonText>
+          <ButtonText>Remove &amp;Unused References...</ButtonText>
           <CommandName>RemoveUnusedReferences</CommandName>
           <CanonicalName>RemoveUnusedReferences</CanonicalName>
           <LocCanonicalName>RemoveUnusedReferences</LocCanonicalName>

@@ -213,8 +213,8 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidRemoveUnusedReferences|ButtonText">
-        <source>Remove &amp;Unused References</source>
-        <target state="new">Remove &amp;Unused References</target>
+        <source>Remove &amp;Unused References...</source>
+        <target state="new">Remove &amp;Unused References...</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRemoveUnusedReferences|CommandName">
