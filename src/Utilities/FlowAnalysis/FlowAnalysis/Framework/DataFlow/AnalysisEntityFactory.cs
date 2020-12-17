@@ -442,12 +442,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return false;
             }
 
-            // Workaround for https://github.com/dotnet/roslyn-analyzers/issues/1602
-            if (instance != null && instance.Type == null)
-            {
-                return false;
-            }
-
             PointsToAbstractValue? instanceLocation = null;
             AnalysisEntity? parent = null;
             if (instance?.Type != null)
