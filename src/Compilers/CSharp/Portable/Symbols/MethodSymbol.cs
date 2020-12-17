@@ -1166,19 +1166,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract bool AreLocalsZeroed { get; }
 
-        // PROTOTYPE: Cache the result.
-        internal virtual bool? IsNullableEnabled()
+        internal virtual bool IsNullableEnabled() => false;
+
+        /// <summary>
+        /// If this method is a constructor, includes the nullable context for any
+        /// fields from the containing type that are set in this constructor.
+        /// </summary>
+        internal bool IsNullableEnabledCore(bool? isEnabledInBody)
         {
-            bool? result = false;
-            if (this is SourceMemberMethodSymbol sourceMethod)
+            if (isEnabledInBody == true)
             {
-                result = isNullableEnabled(sourceMethod.SyntaxNode);
-                if (result == true)
-                {
-                    return true;
-                }
+                return true;
             }
 
+            bool? result = isEnabledInBody;
             if (this.IncludeFieldInitializersInBody() &&
                 ContainingType is SourceMemberContainerTypeSymbol containingType)
             {
@@ -1197,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     };
                     if (syntax is { })
                     {
-                        switch (isNullableEnabled(syntax))
+                        switch (((CSharpSyntaxTree)syntax.SyntaxTree).IsNullableAnalysisEnabled(syntax.Span))
                         {
                             case true:
                                 return true;
@@ -1208,9 +1209,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
-            return result;
 
-            static bool? isNullableEnabled(SyntaxNode syntax) => ((CSharpSyntaxTree)syntax.SyntaxTree).IsNullableAnalysisEnabled(syntax.Span);
+            if (result.HasValue)
+            {
+                return result.GetValueOrDefault();
+            }
+
+            return (DeclaringCompilation.Options.NullableContextOptions & NullableContextOptions.Warnings) != 0;
         }
 
         #region IMethodSymbolInternal

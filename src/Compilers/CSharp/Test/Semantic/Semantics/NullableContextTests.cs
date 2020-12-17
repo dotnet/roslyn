@@ -175,7 +175,7 @@ class Program
 #if DEBUG
                 new[] { ".cctor", ".ctor", "F1", "F2" };
 #else
-                new[] { ".cctor", ".ctor", "F1" };
+                new[] { ".cctor", "F1" };
 #endif
 
             verify(parseOptions: TestOptions.Regular, expectedAnalyzedKeysDefault);
@@ -229,7 +229,7 @@ class Program
 #if DEBUG
                 new[] { ".cctor", ".ctor", "= C1", "= C2", "F1", "F2" };
 #else
-                new[] { ".cctor", ".ctor", "= C1", "F1" };
+                new[] { ".cctor", "= C1", "F1" };
 #endif
 
             verify(parseOptions: TestOptions.Regular, expectedAnalyzedKeysDefault);
@@ -288,7 +288,7 @@ struct B2
 #if DEBUG
                 new[] { ".cctor", ".cctor", "A(A.C1)", "A(A.C2)" };
 #else
-                new[] { ".cctor", "A(A.C1)" };
+                new[] { "A(A.C1)" };
 #endif
 
             verify(parseOptions: TestOptions.Regular, expectedAnalyzedKeysDefault);
@@ -848,6 +848,43 @@ class Program
                 // (7,20): warning CS8603: Possible null reference return.
                 //     object F2() => null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(7, 20));
+
+            source =
+@"#pragma warning disable 169
+class Program
+{
+#nullable enable
+    object F1;
+#nullable disable
+    Program() { }
+    Program(object obj) : base() { }
+}";
+            verify(source, new[] { ".ctor", ".ctor" });
+
+            source =
+@"#pragma warning disable 169
+class Program
+{
+#nullable enable
+    object F1;
+#nullable disable
+    Program() { }
+    Program(object obj) : this() { }
+}";
+            verify(source, new[] { ".ctor" });
+
+            source =
+@"#pragma warning disable 169
+class Program
+{
+#nullable enable
+    object F1;
+#nullable disable
+    Program() { }
+#nullable enable
+    Program(object obj) : this() { }
+}";
+            verify(source, new[] { ".ctor", ".ctor" });
 
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {

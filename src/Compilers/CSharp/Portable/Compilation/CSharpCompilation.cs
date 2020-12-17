@@ -235,43 +235,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool IsNullableAnalysisEnabledIn(SyntaxNode syntax)
         {
-            return IsNullableAnalysisEnabledIn(syntax, syntax => ((CSharpSyntaxTree)syntax.SyntaxTree).IsNullableAnalysisEnabled(syntax.Span));
+            return GetNullableAnalysisValue() ??
+                ((CSharpSyntaxTree)syntax.SyntaxTree).IsNullableAnalysisEnabled(syntax.Span) ??
+                (Options.NullableContextOptions & NullableContextOptions.Warnings) != 0;
         }
 
         internal bool IsNullableAnalysisEnabledIn(MethodSymbol method)
         {
-            return IsNullableAnalysisEnabledIn(method, method => method.IsNullableEnabled());
-        }
-
-        private bool IsNullableAnalysisEnabledIn<T>(T arg, Func<T, bool?> isEnabledIn)
-        {
             return GetNullableAnalysisValue() ??
-                isEnabledIn(arg) ??
-                (Options.NullableContextOptions & NullableContextOptions.Warnings) != 0;
-        }
-
-        internal bool IsNullableAnalysisEnabledInAny(ImmutableArray<SyntaxNode> syntaxNodes)
-        {
-            return GetNullableAnalysisValue() ??
-                isEnabledInAny(syntaxNodes) ??
-                (Options.NullableContextOptions & NullableContextOptions.Warnings) != 0;
-
-            static bool? isEnabledInAny(ImmutableArray<SyntaxNode> syntaxNodes)
-            {
-                bool? result = false;
-                foreach (var syntax in syntaxNodes)
-                {
-                    switch (((CSharpSyntaxTree)syntax.SyntaxTree).IsNullableAnalysisEnabled(syntax.Span))
-                    {
-                        case true:
-                            return true;
-                        case null:
-                            result = null;
-                            break;
-                    }
-                }
-                return result;
-            }
+                method.IsNullableEnabled();
         }
 
         /// <summary>

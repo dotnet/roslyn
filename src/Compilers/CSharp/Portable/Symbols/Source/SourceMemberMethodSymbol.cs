@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We currently pack everything into a 32 bit int with the following layout:
             //
-            // |                |vvv|yy|s|r|q|z|wwwww|
+            // |             |nn|vvv|yy|s|r|q|z|wwwww|
             // 
             // w = method kind.  5 bits.
             // z = isExtensionMethod. 1 bit.
@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // s = isMetadataVirtualLocked. 1 bit.
             // y = ReturnsVoid. 2 bits.
             // v = NullableContext. 3 bits.
+            // n = IsNullableEnabled. 2 bits.
             private int _flags;
 
             private const int MethodKindOffset = 0;
@@ -57,6 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int NullableContextOffset = ReturnsVoidOffset + ReturnsVoidSize;
             private const int NullableContextSize = 3;
 
+            private const int IsNullableEnabledOffset = NullableContextOffset + NullableContextSize;
+            private const int IsNullableEnabledSize = 2;
+
             private const int MethodKindMask = (1 << MethodKindSize) - 1;
 
             private const int IsExtensionMethodBit = 1 << IsExtensionMethodOffset;
@@ -68,6 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int ReturnsVoidIsSetBit = 1 << ReturnsVoidOffset + 1;
 
             private const int NullableContextMask = (1 << NullableContextSize) - 1;
+
+            private const int IsNullableEnabledBit = 1 << IsNullableEnabledOffset;
+            private const int IsNullableEnabledIsSetBit = 1 << IsNullableEnabledOffset + 1;
 
             public bool TryGetReturnsVoid(out bool value)
             {
@@ -170,6 +177,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public bool SetNullableContext(byte? value)
             {
                 return ThreadSafeFlagOperations.Set(ref _flags, (((int)value.ToNullableContextFlags() & NullableContextMask) << NullableContextOffset));
+            }
+
+            public bool TryGetIsNullableEnabled(out bool value)
+            {
+                int bits = _flags;
+                value = (bits & IsNullableEnabledBit) != 0;
+                return (bits & IsNullableEnabledIsSetBit) != 0;
+            }
+
+            public void SetIsNullableEnabled(bool value)
+            {
+                ThreadSafeFlagOperations.Set(ref _flags, (int)(IsNullableEnabledIsSetBit | (value ? IsNullableEnabledBit : 0)));
             }
         }
 
@@ -857,6 +876,18 @@ done:
                 parameter.GetCommonNullableValues(compilation, ref builder);
             }
             return builder.MostCommonValue;
+        }
+
+        internal sealed override bool IsNullableEnabled()
+        {
+            bool result;
+            if (!flags.TryGetIsNullableEnabled(out result))
+            {
+                var syntax = this.SyntaxNode;
+                result = IsNullableEnabledCore(isEnabledInBody: ((CSharpSyntaxTree)syntax.SyntaxTree).IsNullableAnalysisEnabled(syntax.Span));
+                flags.SetIsNullableEnabled(result);
+            }
+            return result;
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)

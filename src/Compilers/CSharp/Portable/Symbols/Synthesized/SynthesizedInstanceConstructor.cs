@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal class SynthesizedInstanceConstructor : SynthesizedInstanceMethodSymbol
     {
         private readonly NamedTypeSymbol _containingType;
+        private ThreeState _lazyIsNullableEnabled;
 
         internal SynthesizedInstanceConstructor(NamedTypeSymbol containingType)
         {
@@ -274,6 +275,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return ReturnTypeWithAnnotations.Type.GetUseSiteDiagnostic();
         }
+
+        internal sealed override bool IsNullableEnabled()
+        {
+            if (_lazyIsNullableEnabled == ThreeState.Unknown)
+            {
+                _lazyIsNullableEnabled = IsNullableEnabledCore(isEnabledInBody: false).ToThreeState();
+            }
+            return _lazyIsNullableEnabled == ThreeState.True;
+        }
+
         #endregion
 
         protected void GenerateMethodBodyCore(TypeCompilationState compilationState, DiagnosticBag diagnostics)
