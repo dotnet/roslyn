@@ -285,13 +285,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// What kind of comparison to use? 
         /// You can ignore custom modifiers, ignore the distinction between object and dynamic, or ignore tuple element names differences.
         /// </param>
-        /// <param name="isValueTypeOverrideOpt">
-        /// A map from a type parameter symbol to a boolean value that should be used as a replacement for a value returned by
-        /// <see cref="TypeParameterSymbol.IsValueType"/> property. Used when accessing the property for a type parameter symbol
-        /// that has an entry in the map is not safe and can cause a cycle.  
-        /// </param>
         /// <returns>True if the types are equivalent.</returns>
-        internal virtual bool Equals(TypeSymbol t2, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        internal virtual bool Equals(TypeSymbol t2, TypeCompareKind compareKind)
         {
             return ReferenceEquals(this, t2);
         }
@@ -1695,10 +1690,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             if (arg.isExplicit)
                             {
+                                // We use ConstructedFrom symbols here and below to not leak methods with Ignored annotations in type arguments
+                                // into diagnostics
                                 diagnostics.Add(topLevel ?
                                                     ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnExplicitImplementation :
                                                     ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation,
-                                                implementingMethod.Locations[0], new FormattedSymbol(implementedMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                                                implementingMethod.Locations[0], new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                             else
                             {
@@ -1707,7 +1704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                     ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation,
                                                 GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
                                                 new FormattedSymbol(implementingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),
-                                                new FormattedSymbol(implementedMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                                                new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                         };
 
@@ -1721,7 +1718,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                     ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation,
                                                 implementingMethod.Locations[0],
                                                 new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat),
-                                                new FormattedSymbol(implementedMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                                                new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                             else
                             {
@@ -1731,7 +1728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                 GetImplicitImplementationDiagnosticLocation(implementedMethod, arg.implementingType, implementingMethod),
                                                 new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat),
                                                 new FormattedSymbol(implementingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat),
-                                                new FormattedSymbol(implementedMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                                                new FormattedSymbol(implementedMethod.ConstructedFrom, SymbolDisplayFormat.MinimallyQualifiedFormat));
                             }
                         };
 
@@ -1775,7 +1772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (implementedMethod.IsGenericMethod)
                             {
-                                implementedMethod = implementedMethod.Construct(implementingMethod.TypeArgumentsWithAnnotations);
+                                implementedMethod = implementedMethod.Construct(TypeMap.TypeParametersAsTypeSymbolsWithIgnoredAnnotations(implementingMethod.TypeParameters));
                             }
 
                             SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
@@ -2194,14 +2191,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        public static bool Equals(TypeSymbol left, TypeSymbol right, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        public static bool Equals(TypeSymbol left, TypeSymbol right, TypeCompareKind comparison)
         {
             if (left is null)
             {
                 return right is null;
             }
 
-            return left.Equals(right, comparison, isValueTypeOverrideOpt);
+            return left.Equals(right, comparison);
         }
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]

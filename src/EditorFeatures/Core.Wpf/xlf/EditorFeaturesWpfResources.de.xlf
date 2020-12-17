@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Error_performing_rename_0">
         <source>Error performing rename: '{0}'</source>
-        <target state="new">Error performing rename: '{0}'</target>
+        <target state="translated">Fehler beim Umbenennen: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Gathering_Suggestions_0">

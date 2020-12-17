@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         }
 
         internal static LSP.SemanticTokensEdit GenerateEdit(int start, int deleteCount, int[] data)
-            => new LSP.SemanticTokensEdit
+            => new()
             {
                 Start = start,
                 DeleteCount = deleteCount,
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private sealed class LongestCommonSemanticTokensSubsequence : LongestCommonSubsequence<SemanticToken[]>
         {
-            private static readonly LongestCommonSemanticTokensSubsequence s_instance = new LongestCommonSemanticTokensSubsequence();
+            private static readonly LongestCommonSemanticTokensSubsequence s_instance = new();
 
             protected override bool ItemsEqual(
                 SemanticToken[] oldSemanticTokens, int oldIndex,

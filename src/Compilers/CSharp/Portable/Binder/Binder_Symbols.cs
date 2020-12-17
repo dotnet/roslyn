@@ -1154,6 +1154,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType = unconstructedType.AsUnboundGenericType();
                 }
             }
+            else if ((Flags & BinderFlags.SuppressTypeArgumentBinding) != 0)
+            {
+                resultType = unconstructedType.Construct(PlaceholderTypeArgumentSymbol.CreateTypeArguments(unconstructedType.TypeParameters));
+            }
             else
             {
                 // It's not an unbound type expression, so we must have type arguments, and we have a

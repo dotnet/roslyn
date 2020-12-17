@@ -486,11 +486,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
 
+                using var logger = new CompilerServerLogger();
                 using (_sharedCompileCts = new CancellationTokenSource())
                 {
 
-                    CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
-                    CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
+                    logger.Log($"CommandLine = '{commandLineCommands}'");
+                    logger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
                     var clientDir = Path.GetDirectoryName(PathToManagedTool);
                     if (clientDir is null || tempDir is null)
@@ -520,6 +521,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         buildPaths,
                         keepAlive: null,
                         libEnvVariable: LibDirectoryToUse(),
+                        logger: logger,
                         cancellationToken: _sharedCompileCts.Token);
 
                     responseTask.Wait(_sharedCompileCts.Token);
@@ -527,11 +529,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     var response = responseTask.Result;
                     if (response != null)
                     {
-                        ExitCode = HandleResponse(response, pathToTool, responseFileCommands, commandLineCommands);
+                        ExitCode = HandleResponse(response, pathToTool, responseFileCommands, commandLineCommands, logger);
                     }
                     else
                     {
-                        CompilerServerLogger.LogError($"Server compilation failed, falling back to {pathToTool}");
+                        logger.LogError($"Server compilation failed, falling back to {pathToTool}");
                         Log.LogMessage(ErrorString.SharedCompilationFallback, pathToTool);
 
                         ExitCode = base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
@@ -615,7 +617,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Handle a response from the server, reporting messages and returning
         /// the appropriate exit code.
         /// </summary>
-        private int HandleResponse(BuildResponse response, string pathToTool, string responseFileCommands, string commandLineCommands)
+        private int HandleResponse(BuildResponse response, string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
         {
             if (response.Type != BuildResponse.ResponseType.Completed)
             {
@@ -640,28 +642,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     return completedResponse.ReturnCode;
 
                 case BuildResponse.ResponseType.MismatchedVersion:
-                    LogError("Roslyn compiler server reports different protocol version than build task.");
+                    logError("Roslyn compiler server reports different protocol version than build task.");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.IncorrectHash:
-                    LogError("Roslyn compiler server reports different hash version than build task.");
+                    logError("Roslyn compiler server reports different hash version than build task.");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.Rejected:
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
-                    CompilerServerLogger.LogError($"Server rejected request {response.Type}");
+                    logger.LogError($"Server rejected request {response.Type}");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 default:
-                    LogError($"Received an unrecognized response from the server: {response.Type}");
+                    logError($"Received an unrecognized response from the server: {response.Type}");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
-        }
 
-        internal void LogError(string message)
-        {
-            CompilerServerLogger.LogError(message);
-            Log.LogError(message);
+            void logError(string message)
+            {
+                logger.LogError(message);
+                Log.LogError(message);
+            }
         }
 
         private void LogErrorMultiline(string output)

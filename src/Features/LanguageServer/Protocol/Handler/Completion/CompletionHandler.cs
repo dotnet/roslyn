@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
@@ -30,15 +32,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly ImmutableHashSet<char> _csharpTriggerCharacters;
         private readonly ImmutableHashSet<char> _vbTriggerCharacters;
 
+        private readonly CompletionListCache? _completionListCache;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompletionHandler(
-            [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders)
+            [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,
+            CompletionListCache? completionListCache)
         {
             _csharpTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.CSharp).SelectMany(
                 lz => GetTriggerCharacters(lz.Value)).ToImmutableHashSet();
             _vbTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.VisualBasic).SelectMany(
                 lz => GetTriggerCharacters(lz.Value)).ToImmutableHashSet();
+
+            _completionListCache = completionListCache;
         }
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionParams request) => request.TextDocument;
@@ -64,22 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
-
-            // Filter out snippets as they are not supported in the LSP client
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1139740
-            // Filter out unimported types for now as there are two issues with providing them:
-            // 1.  LSP client does not currently provide a way to provide detail text on the completion item to show the namespace.
-            //     https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1076759
-            // 2.  We need to figure out how to provide the text edits along with the completion item or provide them in the resolve request.
-            //     https://devdiv.visualstudio.com/DevDiv/_workitems/edit/985860/
-            // 3.  LSP client should support completion filters / expanders
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var completionOptions = documentOptions
-                .WithChangedOption(CompletionOptions.SnippetsBehavior, SnippetsRule.NeverInclude)
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, false)
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, false)
-                .WithChangedOption(CompletionServiceOptions.DisallowAddingImports, true);
-
+            var completionOptions = await GetCompletionOptionsAsync(document, cancellationToken).ConfigureAwait(false);
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
 
             // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
@@ -95,9 +87,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var lspVSClientCapability = context.ClientCapabilities?.HasVisualStudioLspCapability() == true;
 
             var commitCharactersRuleCache = new Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>>();
+
+            long? resultId = null;
+            if (_completionListCache != null)
+            {
+                // Cache the completion list so we can avoid recomputation in the resolve handler
+                resultId = await _completionListCache.UpdateCacheAsync(list, cancellationToken).ConfigureAwait(false);
+            }
+
             return new LSP.VSCompletionList
             {
-                Items = list.Items.Select(item => CreateLSPCompletionItem(request, item, lspVSClientCapability, completionTrigger, commitCharactersRuleCache)).ToArray(),
+                Items = list.Items.Select(item => CreateLSPCompletionItem(
+                    request, item, resultId, lspVSClientCapability, completionTrigger, commitCharactersRuleCache)).ToArray(),
                 SuggestionMode = list.SuggestionModeItem != null,
             };
 
@@ -121,19 +122,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             static LSP.CompletionItem CreateLSPCompletionItem(
                 LSP.CompletionParams request,
                 CompletionItem item,
+                long? resultId,
                 bool useVSCompletionItem,
                 CompletionTrigger completionTrigger,
                 Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> commitCharacterRulesCache)
             {
                 if (useVSCompletionItem)
                 {
-                    var vsCompletionItem = CreateCompletionItem<LSP.VSCompletionItem>(request, item, completionTrigger, commitCharacterRulesCache);
+                    var vsCompletionItem = CreateCompletionItem<LSP.VSCompletionItem>(request, item, resultId, completionTrigger, commitCharacterRulesCache);
                     vsCompletionItem.Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId());
                     return vsCompletionItem;
                 }
                 else
                 {
-                    var roslynCompletionItem = CreateCompletionItem<LSP.CompletionItem>(request, item, completionTrigger, commitCharacterRulesCache);
+                    var roslynCompletionItem = CreateCompletionItem<LSP.CompletionItem>(request, item, resultId, completionTrigger, commitCharacterRulesCache);
                     return roslynCompletionItem;
                 }
             }
@@ -141,6 +143,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             static TCompletionItem CreateCompletionItem<TCompletionItem>(
                 LSP.CompletionParams request,
                 CompletionItem item,
+                long? resultId,
                 CompletionTrigger completionTrigger,
                 Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> commitCharacterRulesCache) where TCompletionItem : LSP.CompletionItem, new()
             {
@@ -158,6 +161,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         Position = request.Position,
                         DisplayText = item.DisplayText,
                         CompletionTrigger = completionTrigger,
+                        ResultId = resultId,
                     },
                     Preselect = item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection,
                 };
@@ -218,6 +222,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             return ImmutableHashSet<char>.Empty;
+        }
+
+        internal static async Task<OptionSet> GetCompletionOptionsAsync(Document document, CancellationToken cancellationToken)
+        {
+            // Filter out snippets as they are not supported in the LSP client
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1139740
+            // Filter out unimported types for now as there are two issues with providing them:
+            // 1.  LSP client does not currently provide a way to provide detail text on the completion item to show the namespace.
+            //     https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1076759
+            // 2.  We need to figure out how to provide the text edits along with the completion item or provide them in the resolve request.
+            //     https://devdiv.visualstudio.com/DevDiv/_workitems/edit/985860/
+            // 3.  LSP client should support completion filters / expanders
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var completionOptions = documentOptions
+                .WithChangedOption(CompletionOptions.SnippetsBehavior, SnippetsRule.NeverInclude)
+                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, false)
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, false)
+                .WithChangedOption(CompletionServiceOptions.DisallowAddingImports, true);
+            return completionOptions;
         }
 
         private static LSP.CompletionItemKind GetCompletionKind(ImmutableArray<string> tags)

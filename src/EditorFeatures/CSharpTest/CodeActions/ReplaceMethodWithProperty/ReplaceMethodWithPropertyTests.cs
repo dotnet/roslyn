@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -2415,7 +2413,7 @@ index: 1);
 
         private async Task TestWithAllCodeStyleOff(
             string initialMarkup, string expectedMarkup,
-            ParseOptions parseOptions = null, int index = 0)
+            ParseOptions? parseOptions = null, int index = 0)
         {
             await TestAsync(
                 initialMarkup, expectedMarkup, parseOptions,

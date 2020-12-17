@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         protected abstract bool AreObjectInitializersSupported(SyntaxNodeAnalysisContext context);
 
+        protected abstract bool IsValidContainingStatement(TStatementSyntax node);
+
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             if (!AreObjectInitializersSupported(context))
@@ -74,6 +76,11 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
             if (containingStatement == null)
+            {
+                return;
+            }
+
+            if (!IsValidContainingStatement(containingStatement))
             {
                 return;
             }

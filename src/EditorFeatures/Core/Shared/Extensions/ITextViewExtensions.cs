@@ -377,5 +377,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             return span;
         }
+
+        /// <summary>
+        /// Determines if the textbuffer passed in matches the buffer for the textview.
+        /// </summary>
+        public static bool IsNotSurfaceBufferOfTextView(this ITextView textView, ITextBuffer textBuffer)
+            => textBuffer != textView.TextBuffer;
     }
 }

@@ -34,5 +34,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
         Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
             Return VisualBasicSyntaxFacts.Instance
         End Function
+
+        Protected Overrides Function IsValidContainingStatement(node As StatementSyntax) As Boolean
+            Return True
+        End Function
     End Class
 End Namespace
