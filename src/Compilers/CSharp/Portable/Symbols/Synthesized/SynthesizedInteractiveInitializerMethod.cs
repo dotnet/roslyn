@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
-using System;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -238,8 +238,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _resultType; }
         }
 
-        // PROTOTYPE: Check nullable context.
-        internal override bool? IsNullableEnabled() => true;
+        // PROTOTYPE: Cache result.
+        internal override bool? IsNullableEnabled() => DeclaringCompilation.SyntaxTrees.Any(tree => ((CSharpSyntaxTree)tree).HasNullableEnables());
 
         private static void CalculateReturnType(
             SourceMemberContainerTypeSymbol containingType,

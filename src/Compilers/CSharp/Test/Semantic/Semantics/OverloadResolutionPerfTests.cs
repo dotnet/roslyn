@@ -400,7 +400,7 @@ class Program
             comp.VerifyDiagnostics();
 
             int analyzed = comp.NullableAnalysisData.Where(pair => pair.Value.RequiredAnalysis).Count();
-            Assert.Equal(nMethods / 2 + 1, analyzed);
+            Assert.Equal(nMethods / 2, analyzed);
         }
 
         [Fact]
