@@ -46,13 +46,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
 
         private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
-            //TODO: is this needed in Code_Style? if so, GlobalOptions support needs to be added in the package.
             if (!context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(RootNamespaceOption, out var rootNamespace)
                 || rootNamespace is null)
             {
                 return;
             }
-
 
             if (!context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(ProjectDirOption, out var projectDir)
                 || projectDir is null or { Length: 0 })
