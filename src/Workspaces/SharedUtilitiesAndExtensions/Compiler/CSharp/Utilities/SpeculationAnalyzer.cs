@@ -716,18 +716,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 !SymbolInfosAreCompatible(originalClauseInfo.OperationInfo, newClauseInfo.OperationInfo);
         }
 
-        private static bool IsPotentiallyTargetTypedConditionalExpression(ExpressionSyntax expressionSyntax)
-        {
-            return expressionSyntax is ConditionalExpressionSyntax &&
-                   ConditionalExpressionConversionsAreAllowed(expressionSyntax);
-        }
-
         protected override bool ReplacementIntroducesErrorType(ExpressionSyntax originalExpression, ExpressionSyntax newExpression)
         {
             // The base implementation will see that the type of the new expression may potentially change to null,
             // because the expression has no type but can be converted to a conditional expression type. In that case,
             // we don't want to consider the null type to be an error type.
-            if (IsPotentiallyTargetTypedConditionalExpression(newExpression) &&
+            if (newExpression.IsKind(SyntaxKind.ConditionalExpression) &&
+                ConditionalExpressionConversionsAreAllowed(newExpression) &&
                 this.SpeculativeSemanticModel.GetConversion(newExpression).IsConditionalExpression)
             {
                 return false;
