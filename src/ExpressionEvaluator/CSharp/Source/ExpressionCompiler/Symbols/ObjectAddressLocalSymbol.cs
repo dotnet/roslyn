@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 syntax,
                 receiverOpt: null,
                 method: method,
-                arguments: ImmutableArray.Create<BoundExpression>(argument));
+                arguments: ImmutableArray.Create<BoundExpression>(argument),
+                binder: null);
             Debug.Assert(TypeSymbol.Equals(call.Type, this.Type, TypeCompareKind.ConsiderEverything2));
             return call;
         }

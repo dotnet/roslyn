@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 assetMap = await assetStorage.GetAssetsAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
             }
 
-            WriteData(writer, singleAsset, assetMap, serializer, scopeId, checksums, cancellationToken);
+            var replicationContext = assetStorage.GetReplicationContext(scopeId);
+            WriteData(writer, singleAsset, assetMap, serializer, replicationContext, scopeId, checksums, cancellationToken);
         }
 
         public static void WriteData(
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
             SolutionAsset? singleAsset,
             IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap,
             ISerializerService serializer,
+            SolutionReplicationContext context,
             int scopeId,
             Checksum[] checksums,
             CancellationToken cancellationToken)
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (singleAsset != null)
             {
                 writer.WriteInt32(1);
-                WriteAsset(writer, serializer, checksums[0], singleAsset, cancellationToken);
+                WriteAsset(writer, serializer, context, checksums[0], singleAsset, cancellationToken);
                 return;
             }
 
@@ -68,10 +70,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
             foreach (var (checksum, asset) in assetMap)
             {
-                WriteAsset(writer, serializer, checksum, asset, cancellationToken);
+                WriteAsset(writer, serializer, context, checksum, asset, cancellationToken);
             }
 
-            static void WriteAsset(ObjectWriter writer, ISerializerService serializer, Checksum checksum, SolutionAsset asset, CancellationToken cancellationToken)
+            static void WriteAsset(ObjectWriter writer, ISerializerService serializer, SolutionReplicationContext context, Checksum checksum, SolutionAsset asset, CancellationToken cancellationToken)
             {
                 checksum.WriteTo(writer);
                 writer.WriteInt32((int)asset.Kind);
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // null is already indicated by checksum and kind above:
                 if (asset.Value is not null)
                 {
-                    serializer.Serialize(asset.Value, writer, cancellationToken);
+                    serializer.Serialize(asset.Value, writer, context, cancellationToken);
                 }
             }
         }
@@ -114,7 +116,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 finally
                 {
                     await localPipe.Writer.CompleteAsync(exception).ConfigureAwait(false);
-                    await pipeReader.CompleteAsync(exception).ConfigureAwait(false);
                 }
             }, mustNotCancelToken);
 

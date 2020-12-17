@@ -1353,6 +1353,10 @@ public interface IFace
             VerifySyntax<EnumDeclarationSyntax>(
                 Generator.EnumDeclaration("e", members: new[] { Generator.EnumMember("a", Generator.LiteralExpression(0)), Generator.EnumMember("b"), Generator.EnumMember("c", Generator.LiteralExpression(5)) }),
                 "enum e\r\n{\r\n    a = 0,\r\n    b,\r\n    c = 5\r\n}");
+
+            VerifySyntax<EnumDeclarationSyntax>(
+                Generator.EnumDeclaration("e", members: new[] { Generator.FieldDeclaration("a", Generator.IdentifierName("e"), initializer: Generator.LiteralExpression(1)) }),
+                "enum e\r\n{\r\n    a = 1\r\n}");
         }
 
         [Fact]
