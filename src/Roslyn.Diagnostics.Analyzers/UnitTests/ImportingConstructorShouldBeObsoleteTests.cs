@@ -199,7 +199,7 @@ End Namespace
             }.RunAsync();
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
         public async Task NotMarkedObsolete_CSharp(string mefNamespace)
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef {{
             }.RunAsync();
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
         public async Task NotMarkedObsolete_VisualBasic(string mefNamespace)
@@ -311,7 +311,7 @@ End Namespace
             }.RunAsync();
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
         public async Task NotMarkedObsoleteAddImports_CSharp(string mefNamespace)
@@ -360,7 +360,7 @@ class C {{
             }.RunAsync();
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
         public async Task NotMarkedObsoleteAddImports_VisualBasic(string mefNamespace)
@@ -416,7 +416,7 @@ End Namespace
             }.RunAsync();
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
         public async Task MessageArgumentOmitted_CSharp(string mefNamespace)
@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef {{
             }.RunAsync();
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
         public async Task MessageArgumentOmitted_VisualBasic(string mefNamespace)
@@ -646,7 +646,7 @@ End Namespace
             }.RunAsync();
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
         public async Task IncorrectMessage_CSharp(string mefNamespace)
@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef {{
             }.RunAsync();
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("System.Composition")]
         [InlineData("System.ComponentModel.Composition")]
         public async Task IncorrectMessage_VisualBasic(string mefNamespace)
