@@ -16,8 +16,7 @@ namespace Analyzer.Utilities
             return GetOrCreateValue(key, CreateDefaultValue);
 
             // Local functions.
-            static TValue CreateDefaultValue(TKey _)
-                => new TValue();
+            static TValue CreateDefaultValue(TKey _) => new();
         }
     }
 }

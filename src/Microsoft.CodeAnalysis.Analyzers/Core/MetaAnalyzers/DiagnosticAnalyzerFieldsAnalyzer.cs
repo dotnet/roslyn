@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly string s_symbolTypeFullName = typeof(ISymbol).FullName;
         private static readonly string s_operationTypeFullName = typeof(IOperation).FullName;
 
-        public static readonly DiagnosticDescriptor DoNotStorePerCompilationDataOntoFieldsRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DoNotStorePerCompilationDataOntoFieldsRule = new(
             DiagnosticIds.DoNotStorePerCompilationDataOntoFieldsRuleId,
             s_localizableTitle,
             s_localizableMessage,

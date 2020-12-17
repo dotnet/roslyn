@@ -159,9 +159,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             protected override ValueContentAnalysisData GetClonedAnalysisData(ValueContentAnalysisData analysisData)
                 => (ValueContentAnalysisData)analysisData.Clone();
             public override ValueContentAnalysisData GetEmptyAnalysisData()
-                => new ValueContentAnalysisData();
+                => new();
             protected override ValueContentAnalysisData GetExitBlockOutputData(ValueContentAnalysisResult analysisResult)
-                => new ValueContentAnalysisData(analysisResult.ExitBlockOutput.Data);
+                => new(analysisResult.ExitBlockOutput.Data);
             protected override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(ValueContentAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
                 => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData, throwBranchWithExceptionType);
             protected override bool Equals(ValueContentAnalysisData value1, ValueContentAnalysisData value2)
