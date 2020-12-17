@@ -110,7 +110,7 @@ namespace Analyzer.Utilities.PooledObjects
             return new KeyEnumerator(_dictionary);
         }
 
-        private IEnumerator<T> GetEnumeratorImpl()
+        private IEnumerator<T> GetEnumeratorCore()
         {
             // PERF: Do not use dictionary.Keys here because that creates a snapshot
             // of the collection resulting in a List<T> allocation. Instead, use the
@@ -123,12 +123,12 @@ namespace Analyzer.Utilities.PooledObjects
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
-            return GetEnumeratorImpl();
+            return GetEnumeratorCore();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumeratorImpl();
+            return GetEnumeratorCore();
         }
 
         void ICollection<T>.Add(T item)

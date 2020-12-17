@@ -11,8 +11,8 @@ namespace Analyzer.Utilities
     /// <summary>
     /// Copied from https://github.com/dotnet/roslyn/blob/master/src/Compilers/Core/Portable/Collections/SmallDictionary.cs
     /// Dictionary designed to hold small number of items.
-    /// Compared to the regular Dictionary, average overhead per-item is roughly the same, but 
-    /// unlike regular dictionary, this one is based on an AVL tree and as such does not require 
+    /// Compared to the regular Dictionary, average overhead per-item is roughly the same, but
+    /// unlike regular dictionary, this one is based on an AVL tree and as such does not require
     /// rehashing when items are added.
     /// It does require rebalancing, but that is allocation-free.
     ///
@@ -27,11 +27,13 @@ namespace Analyzer.Utilities
     ///
     /// Generally, this dictionary is a win if number of elements is small, not known beforehand or both.
     ///
-    /// If the size of the dictionary is known at creation and it is likely to contain more than 10 elements, 
+    /// If the size of the dictionary is known at creation and it is likely to contain more than 10 elements,
     /// then regular Dictionary is a better choice.
     /// </summary>
 #pragma warning disable CA1051, CA1716 // Do not declare visible instance fields
+#pragma warning disable CA1711 // Identifiers should not have incorrect suffix
     internal sealed class SmallDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
+#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
         where K : notnull
     {
         private AvlNode? _root;
@@ -157,7 +159,7 @@ namespace Analyzer.Utilities
             public override Node Next => next;
         }
 
-        // separate class to ensure that HashCode field 
+        // separate class to ensure that HashCode field
         // is located before other AvlNode fields
         // Balance is also here for better packing of AvlNode on 64bit
         private abstract class HashedNode : Node
@@ -274,7 +276,7 @@ namespace Analyzer.Utilities
             // either way nodes above unbalanced do not change their balance
             for (; ; )
             {
-                // schedule hk read 
+                // schedule hk read
                 var hc = currentNode.HashCode;
 
                 if (currentNode.Balance != 0)
@@ -582,11 +584,11 @@ namespace Analyzer.Utilities
             }
 
 #pragma warning disable CA1063, CA1816 // Implement IDisposable Correctly
-            public class EnumerableImpl : IEnumerator<K>
+            public class EnumerableCore : IEnumerator<K>
             {
                 private Enumerator _e;
 
-                public EnumerableImpl(Enumerator e)
+                public EnumerableCore(Enumerator e)
                 {
                     _e = e;
                 }
@@ -612,7 +614,7 @@ namespace Analyzer.Utilities
 
             IEnumerator<K> IEnumerable<K>.GetEnumerator()
             {
-                return new EnumerableImpl(GetEnumerator());
+                return new EnumerableCore(GetEnumerator());
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -699,11 +701,11 @@ namespace Analyzer.Utilities
                 return new Enumerator(_dict);
             }
 
-            public class EnumerableImpl : IEnumerator<V>
+            public class EnumerableCore : IEnumerator<V>
             {
                 private Enumerator _e;
 
-                public EnumerableImpl(Enumerator e)
+                public EnumerableCore(Enumerator e)
                 {
                     _e = e;
                 }
@@ -729,7 +731,7 @@ namespace Analyzer.Utilities
 
             IEnumerator<V> IEnumerable<V>.GetEnumerator()
             {
-                return new EnumerableImpl(GetEnumerator());
+                return new EnumerableCore(GetEnumerator());
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -805,11 +807,11 @@ namespace Analyzer.Utilities
             return new Enumerator(this);
         }
 
-        public class EnumerableImpl : IEnumerator<KeyValuePair<K, V>>
+        public class EnumerableCore : IEnumerator<KeyValuePair<K, V>>
         {
             private Enumerator _e;
 
-            public EnumerableImpl(Enumerator e)
+            public EnumerableCore(Enumerator e)
             {
                 _e = e;
             }
@@ -837,7 +839,7 @@ namespace Analyzer.Utilities
 
         IEnumerator<KeyValuePair<K, V>> IEnumerable<KeyValuePair<K, V>>.GetEnumerator()
         {
-            return new EnumerableImpl(GetEnumerator());
+            return new EnumerableCore(GetEnumerator());
         }
 
         IEnumerator IEnumerable.GetEnumerator()
