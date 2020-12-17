@@ -18,8 +18,7 @@ namespace Analyzer.Utilities
 {
     internal static partial class AnalyzerOptionsExtensions
     {
-        private static readonly ConditionalWeakTable<AnalyzerOptions, ICategorizedAnalyzerConfigOptions> s_cachedOptions
-            = new ConditionalWeakTable<AnalyzerOptions, ICategorizedAnalyzerConfigOptions>();
+        private static readonly ConditionalWeakTable<AnalyzerOptions, ICategorizedAnalyzerConfigOptions> s_cachedOptions = new();
         private static readonly ImmutableHashSet<OutputKind> s_defaultOutputKinds =
             ImmutableHashSet.CreateRange(Enum.GetValues(typeof(OutputKind)).Cast<OutputKind>());
 

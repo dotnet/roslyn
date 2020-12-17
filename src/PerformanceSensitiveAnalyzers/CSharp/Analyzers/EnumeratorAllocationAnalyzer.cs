@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         private static readonly LocalizableString s_localizableReferenceTypeEnumeratorRuleTitle = new LocalizableResourceString(nameof(AnalyzersResources.ReferenceTypeEnumeratorRuleTitle), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         private static readonly LocalizableString s_localizableReferenceTypeEnumeratorRuleMessage = new LocalizableResourceString(nameof(AnalyzersResources.ReferenceTypeEnumeratorRuleMessage), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
-        internal static DiagnosticDescriptor ReferenceTypeEnumeratorRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor ReferenceTypeEnumeratorRule = new(
             ReferenceTypeEnumeratorRuleId,
             s_localizableReferenceTypeEnumeratorRuleTitle,
             s_localizableReferenceTypeEnumeratorRuleMessage,

@@ -104,12 +104,12 @@
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceDescription">
         <source>Cannot assign a value from a reference to a non-copyable type.</source>
-        <target state="new">Cannot assign a value from a reference to a non-copyable type.</target>
+        <target state="translated">Não é possível atribuir um valor de uma referência a um tipo não copiável.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceMessage">
         <source>Cannot assign a value from a reference to non-copyable type '{0}'</source>
-        <target state="new">Cannot assign a value from a reference to non-copyable type '{0}'</target>
+        <target state="translated">Não é possível atribuir um valor de uma referência ao tipo não copiável '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoBoxingDescription">
@@ -124,12 +124,12 @@
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceDescription">
         <source>Cannot return a value from a reference to a non-copyable type.</source>
-        <target state="new">Cannot return a value from a reference to a non-copyable type.</target>
+        <target state="translated">Não é possível retornar um valor de uma referência a um tipo não copiável.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceMessage">
         <source>Cannot return a value from a reference to non-copyable type '{0}'</source>
-        <target state="new">Cannot return a value from a reference to non-copyable type '{0}'</target>
+        <target state="translated">Não é possível retornar um valor de uma referência ao tipo não copiável '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoUnboxingDescription">
@@ -294,17 +294,17 @@
       </trans-unit>
       <trans-unit id="TemporaryArrayAsRefDescription">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
-        <target state="new">Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</target>
+        <target state="translated">A instância de TemporaryArray&lt;T&gt;.AsRef() precisa ser uma variável 'using'.</target>
         <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TemporaryArrayAsRefMessage">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
-        <target state="new">Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</target>
+        <target state="translated">A instância de TemporaryArray&lt;T&gt;.AsRef() precisa ser uma variável 'using'</target>
         <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TemporaryArrayAsRefTitle">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
-        <target state="new">Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</target>
+        <target state="translated">A instância de TemporaryArray&lt;T&gt;.AsRef() precisa ser uma variável 'using'</target>
         <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
