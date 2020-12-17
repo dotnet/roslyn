@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If errors had been reported in ParseFile, while trying to read files, then we should simply exit.
-            if (ReportDiagnostics(diagnosticBag.ToReadOnlyAndFree(), consoleOutput, errorLogger))
+            if (ReportDiagnostics(diagnosticBag.ToReadOnlyAndFree(), consoleOutput, errorLogger, compilation: null))
             {
                 Debug.Assert(hadErrors);
                 return null;
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MetadataReferenceResolver referenceDirectiveResolver;
             var resolvedReferences = ResolveMetadataReferences(diagnostics, touchedFilesLogger, out referenceDirectiveResolver);
-            if (ReportDiagnostics(diagnostics, consoleOutput, errorLogger))
+            if (ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation: null))
             {
                 return null;
             }

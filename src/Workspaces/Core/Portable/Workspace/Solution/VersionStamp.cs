@@ -168,6 +168,25 @@ namespace Microsoft.CodeAnalysis
         public static bool operator !=(VersionStamp left, VersionStamp right)
             => !left.Equals(right);
 
+        /// <summary>
+        /// Check whether given persisted version is re-usable. Used by VS for Mac
+        /// </summary>
+        internal static bool CanReusePersistedVersion(VersionStamp baseVersion, VersionStamp persistedVersion)
+        {
+            if (baseVersion == persistedVersion)
+            {
+                return true;
+            }
+
+            // there was a collision, we can't use these
+            if (baseVersion._localIncrement != 0 || persistedVersion._localIncrement != 0)
+            {
+                return false;
+            }
+
+            return baseVersion._utcLastModified == persistedVersion._utcLastModified;
+        }
+
         bool IObjectWritable.ShouldReuseInSerialization => true;
 
         void IObjectWritable.WriteTo(ObjectWriter writer)

@@ -1927,6 +1927,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadFieldTypeInRecord = 8908,
         ERR_RecordAmbigCtor = 8909,
 
+        WRN_DoNotCompareFunctionPointers = 8909,
+
         #endregion diagnostics introduced for C# 9.0
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

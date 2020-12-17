@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis
 
             // Trickier case now: it's possible we generated this, but we don't actually have the SourceGeneratedDocument for it, so let's go
             // try to fetch the state.
-            var documentState = _solution.State.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
+            var documentState = _solution.State.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
 
             if (documentState == null)
             {

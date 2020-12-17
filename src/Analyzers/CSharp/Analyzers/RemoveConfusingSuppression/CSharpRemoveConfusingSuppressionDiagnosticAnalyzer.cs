@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
     {
         public CSharpRemoveConfusingSuppressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveConfusingSuppressionForIsExpressionDiagnosticId,
+                   EnforceOnBuildValues.RemoveConfusingSuppressionForIsExpression,
                    option: null,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_suppression_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Suppression_operator_has_no_effect_and_can_be_misinterpreted), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))

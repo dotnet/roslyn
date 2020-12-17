@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
 
         public CSharpInlineDeclarationDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineDeclarationDiagnosticId,
+                   EnforceOnBuildValues.InlineDeclaration,
                    CSharpCodeStyleOptions.PreferInlinedVariableDeclaration,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Inline_variable_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),

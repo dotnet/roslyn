@@ -29,7 +29,7 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""""')
+IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: """") (Syntax: '$""""')
   Parts(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -477,7 +477,7 @@ Block[B1] - Block
               Left: 
                 IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.String) (Syntax: 'p')
               Right: 
-                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""""')
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: """") (Syntax: '$""""')
                   Parts(0)
 
     Next (Regular) Block[B2]

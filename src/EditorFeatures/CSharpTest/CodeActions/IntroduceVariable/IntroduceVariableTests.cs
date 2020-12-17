@@ -4853,6 +4853,44 @@ namespace N
             await TestInRegularAndScriptAsync(code, expected);
         }
 
+        [WorkItem(49720, "https://github.com/dotnet/roslyn/issues/49720")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task HandleIFormattableTargetTyping1()
+        {
+            const string code = @"
+namespace N
+{
+    using System;
+
+    class C
+    {
+        public async Task M()
+        {
+            M([|$""""|]);
+            void M(IFormattable f) {}
+        }
+    }
+}";
+
+            const string expected = @"
+namespace N
+{
+    using System;
+
+    class C
+    {
+        public async Task M()
+        {
+            IFormattable {|Rename:f|} = $"""";
+            M(f);
+            void M(IFormattable f) {}
+        }
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
         [WorkItem(936, "https://github.com/dotnet/roslyn/issues/936")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task InAutoPropertyInitializer()
@@ -7830,10 +7868,11 @@ public class P
 @"
 public class P
 {
+    private const string {|Rename:V|} = $"""";
+
     public void M(string s)
     {
-        string {|Rename:v|} = $"""";
-        s.Bar(v);
+        s.Bar(V);
     }
 }");
         }

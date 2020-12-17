@@ -3893,23 +3893,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 expr = expr.MakeRValue()
             End If
 
-            Dim builder As ArrayBuilder(Of BoundExpression) = Nothing
-            For i = 0 To boundArguments.Length - 1
-                Dim index As BoundExpression = boundArguments(i)
-                If builder Is Nothing AndAlso index.IsLValue Then
-                    builder = ArrayBuilder(Of BoundExpression).GetInstance()
-                    For k = 0 To i - 1
-                        builder.Add(boundArguments(k))
-                    Next
-                End If
+            Dim convertedArguments = ArrayBuilder(Of BoundExpression).GetInstance(boundArguments.Length)
+            Dim int32Type = GetSpecialType(SpecialType.System_Int32, node.ArgumentList, diagnostics)
 
-                If builder IsNot Nothing Then
-                    builder.Add(index.MakeRValue)
-                End If
+            For Each argument In boundArguments
+                convertedArguments.Add(ApplyImplicitConversion(argument.Syntax, int32Type, argument, diagnostics))
             Next
-            If builder IsNot Nothing Then
-                boundArguments = builder.ToImmutableAndFree()
-            End If
+
+            boundArguments = convertedArguments.ToImmutableAndFree()
 
             Dim exprType = expr.Type
             If exprType Is Nothing Then
@@ -3933,13 +3924,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New BoundArrayAccess(node, expr, boundArguments, arrayType.ElementType, hasErrors:=True)
             End If
 
-            Dim convertedArguments As BoundExpression() = New BoundExpression(boundArguments.Length - 1) {}
-            Dim int32Type = GetSpecialType(SpecialType.System_Int32, node.ArgumentList, diagnostics)
-            For i = 0 To boundArguments.Length - 1
-                convertedArguments(i) = ApplyImplicitConversion(boundArguments(i).Syntax, int32Type, boundArguments(i), diagnostics)
-            Next i
-
-            Return New BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), arrayType.ElementType)
+            Return New BoundArrayAccess(node, expr, boundArguments, arrayType.ElementType)
         End Function
 
         ' Get the common return type of a set of symbols, or error type if no common return type. Used

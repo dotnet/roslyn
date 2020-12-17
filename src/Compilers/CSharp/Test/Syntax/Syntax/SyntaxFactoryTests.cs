@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .NormalizeWhitespace();
 
             // no space between int and ?
-            Assert.Equal("class C\r\n{\r\n    int? P\r\n    {\r\n    }\r\n}", syntaxNode.ToFullString());
+            Assert.Equal("class C\r\n{\r\n    int? P { }\r\n}", syntaxNode.ToFullString());
         }
 
         [Fact]
@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .NormalizeWhitespace();
 
             // no space between DateTime and ?
-            Assert.Equal("class C\r\n{\r\n    DateTime? P\r\n    {\r\n    }\r\n}", syntaxNode.ToFullString());
+            Assert.Equal("class C\r\n{\r\n    DateTime? P { }\r\n}", syntaxNode.ToFullString());
         }
 
         [Fact]

@@ -21,15 +21,29 @@
   </PropertyGroup>
 
   <Target Name="_GetFilesToPackage">
+    <PropertyGroup>
+      <CodeStyleAnalyzerArtifactsBinDir>$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)</CodeStyleAnalyzerArtifactsBinDir>
+      <CodeStyleFixesArtifactsBinDir>$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)</CodeStyleFixesArtifactsBinDir>
+      <VisualBasicCodeStyleAnalyzerArtifactsBinDir>$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle\$(Configuration)\$(TargetFramework)</VisualBasicCodeStyleAnalyzerArtifactsBinDir>
+      <VisualBasicCodeStyleFixesArtifactsBinDir>$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)</VisualBasicCodeStyleFixesArtifactsBinDir>
+      <VisualBasicCodeStyleTargetsFileName>Microsoft.CodeAnalysis.VisualBasic.CodeStyle.targets</VisualBasicCodeStyleTargetsFileName>
+      <DotNetExecutable Condition="'$(OS)' == 'Windows_NT'">$(DotNetRoot)dotnet.exe</DotNetExecutable>
+      <DotNetExecutable Condition="'$(DotNetExecutable)' == ''">$(DotNetRoot)dotnet</DotNetExecutable>
+    </PropertyGroup>
+
+    <Exec Command='"$(DotNetExecutable)" "$(ArtifactsBinDir)CodeStyleConfigFileGenerator\$(Configuration)\netcoreapp3.1\CodeStyleConfigFileGenerator.dll" "VisualBasic" "$(VisualBasicCodeStyleFixesArtifactsBinDir)" "$(VisualBasicCodeStyleTargetsFileName)" "$(CodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.CodeStyle.dll;$(VisualBasicCodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll"' />
+
     <ItemGroup>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll" TargetDir="analyzers/dotnet/vb" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.dll" TargetDir="analyzers/dotnet/vb" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CodeStyle.dll" TargetDir="analyzers/dotnet/vb" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll" TargetDir="analyzers/dotnet/vb" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.resources.dll" TargetDir="analyzers/dotnet/vb" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.resources.dll" TargetDir="analyzers/dotnet/vb" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll" TargetDir="analyzers/dotnet/vb" />
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll" TargetDir="analyzers/dotnet/vb" />
+      <_File Include="$(VisualBasicCodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll" TargetDir="analyzers/dotnet/vb" />
+      <_File Include="$(VisualBasicCodeStyleFixesArtifactsBinDir)\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.dll" TargetDir="analyzers/dotnet/vb" />
+      <_File Include="$(CodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.CodeStyle.dll" TargetDir="analyzers/dotnet/vb" />
+      <_File Include="$(CodeStyleFixesArtifactsBinDir)\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll" TargetDir="analyzers/dotnet/vb" />
+      <_File Include="$(VisualBasicCodeStyleAnalyzerArtifactsBinDir)\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.resources.dll" TargetDir="analyzers/dotnet/vb" />
+      <_File Include="$(VisualBasicCodeStyleFixesArtifactsBinDir)\**\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.resources.dll" TargetDir="analyzers/dotnet/vb" />
+      <_File Include="$(CodeStyleAnalyzerArtifactsBinDir)\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll" TargetDir="analyzers/dotnet/vb" />
+      <_File Include="$(CodeStyleFixesArtifactsBinDir)\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll" TargetDir="analyzers/dotnet/vb" />
+      <_File Include="$(VisualBasicCodeStyleFixesArtifactsBinDir)\$(VisualBasicCodeStyleTargetsFileName)" TargetDir="build" />
+      <_File Include="$(VisualBasicCodeStyleFixesArtifactsBinDir)\config\**\*.*" TargetDir="build/config" />
       <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" TargetDir="build" />
 
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
