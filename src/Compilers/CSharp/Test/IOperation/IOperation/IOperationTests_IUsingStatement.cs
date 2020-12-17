@@ -1248,9 +1248,9 @@ IUsingOperation (DisposeMethod: void S.Dispose([System.Int32 a = 1], [System.Boo
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
-             var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-             VerifyOperationTreeAndDiagnosticsForTest<UsingStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<UsingStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
