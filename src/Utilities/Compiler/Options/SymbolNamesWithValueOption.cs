@@ -279,7 +279,9 @@ namespace Analyzer.Utilities
             if (_wildcardMatchResult.TryGetValue(symbol, out var firstMatch))
             {
                 (firstMatchName, firstMatchValue) = firstMatch;
+#pragma warning disable CS8762 // Parameter 'firstMatchValue' must have a non-null value when exiting with 'true'
                 return firstMatchName is not null;
+#pragma warning restore CS8762 // Parameter 'firstMatchValue' must have a non-null value when exiting with 'true'
             }
 
             var symbolDeclarationId = _symbolToDeclarationId.GetOrAdd(symbol, s => GetDeclarationId(s));
