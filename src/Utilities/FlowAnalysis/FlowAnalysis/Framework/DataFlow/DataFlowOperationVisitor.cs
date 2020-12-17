@@ -1489,7 +1489,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     PerformPredicateAnalysisCore(parenthesizedOperation.Operand, targetAnalysisData);
                     return;
 
-                case IFlowCaptureReferenceOperation _:
+                case IFlowCaptureReferenceOperation:
                     var result = AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity? flowCaptureReferenceEntity);
                     Debug.Assert(result);
                     RoslynDebug.Assert(flowCaptureReferenceEntity != null);
