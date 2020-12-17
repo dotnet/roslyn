@@ -67,8 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         }
 
                         // Let LSP handle signature help in the cloud scenario
-                        var workspaceContextService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
-                        if (workspaceContextService.IsCloudEnvironmentClient())
+                        if (Controller.SubjectBuffer.IsInLspEditorContext())
                         {
                             return null;
                         }

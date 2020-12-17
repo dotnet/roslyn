@@ -207,7 +207,7 @@ total dlls opened: " + stats.Total;
         try
         {
             using var stream = File.OpenRead(filePath);
-            var reader = new PEReader(stream);
+            var reader = new PEReader(stream, PEStreamOptions.PrefetchMetadata);
             if (!reader.HasMetadata)
             {
                 stats.Thrown++;
