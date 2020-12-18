@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets whether this editorconfig is a global editorconfig.
         /// </summary>
-        internal bool IsGlobal => IsGlobalFileName(this.PathToFile) || GlobalSection.Properties.ContainsKey(GlobalKey);
+        internal bool IsGlobal => _hasGlobalFileName || GlobalSection.Properties.ContainsKey(GlobalKey);
 
         /// <summary>
         /// Get the global level of this config, used to resolve conflicting keys
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     return level;
                 }
-                else if (IsGlobalFileName(this.PathToFile))
+                else if (_hasGlobalFileName)
                 {
                     return 100;
                 }
@@ -134,6 +134,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal readonly bool _hasGlobalFileName;
+
         private AnalyzerConfig(
             Section globalSection,
             ImmutableArray<Section> namedSections,
@@ -142,6 +144,7 @@ namespace Microsoft.CodeAnalysis
             GlobalSection = globalSection;
             NamedSections = namedSections;
             PathToFile = pathToFile;
+            _hasGlobalFileName = Path.GetFileName(pathToFile).Equals(UserGlobalConfigName, StringComparison.OrdinalIgnoreCase);
 
             // Find the containing directory and normalize the path separators
             string directory = Path.GetDirectoryName(pathToFile) ?? pathToFile;
@@ -263,8 +266,6 @@ namespace Microsoft.CodeAnalysis
 
             return false;
         }
-
-        private static bool IsGlobalFileName(string fileName) => Path.GetFileName(fileName).Equals(UserGlobalConfigName, StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// Represents a named section of the editorconfig file, which consists of a name followed by a set

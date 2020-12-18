@@ -584,41 +584,49 @@ namespace Microsoft.CodeAnalysis
                     bool keyInSection = sectionDict.TryGetValue(key, out var sectionValue);
 
                     (int globalLevel, ArrayBuilder<string> configPaths) duplicateValue = default;
-                    bool keyDuplicated = duplicateDict?.TryGetValue(key, out duplicateValue) == true;
+                    bool keyDuplicated = !keyInSection && duplicateDict?.TryGetValue(key, out duplicateValue) == true;
 
-                    if ((!keyInSection && !keyDuplicated)   // this key is neither present nor a duplicate, we can add it
-                        || (keyInSection && sectionValue.globalLevel < globalLevel) // this key should override the existing section one
-                        || (keyDuplicated && duplicateValue.globalLevel < globalLevel)) // this key should override previous duplicates
+                    // if this key is neither already present, or already duplicate, we can add it	
+                    if (!keyInSection && !keyDuplicated)
                     {
-                        sectionDict[key] = (value, configPath, globalLevel);
-
-                        if (keyDuplicated)
-                        {
-                            duplicateDict!.Remove(key);
-                        }
+                        sectionDict.Add(key, (value, configPath, globalLevel));
                     }
-                    else if ((keyDuplicated && duplicateValue.globalLevel == globalLevel) // this key is another duplicate at the same level
-                            || (keyInSection && sectionValue.globalLevel == globalLevel)) // this key is a duplicate of a current section key
+                    else
                     {
-                        if (duplicateDict is null)
+                        int currentGlobalLevel = keyInSection ? sectionValue.globalLevel : duplicateValue.globalLevel;
+
+                        // if this key overrides one we knew about previously, replace it
+                        if (currentGlobalLevel < globalLevel)
                         {
-                            duplicateDict = ImmutableDictionary.CreateBuilder<string, (int, ArrayBuilder<string>)>(Section.PropertiesKeyComparer);
-                            _duplicates.Add(section.Name, duplicateDict);
+                            sectionDict[key] = (value, configPath, globalLevel);
+                            if (keyDuplicated)
+                            {
+                                duplicateDict!.Remove(key);
+                            }
                         }
-
-                        // record that this key is now a duplicate
-                        ArrayBuilder<string> configList = duplicateValue.configPaths ?? ArrayBuilder<string>.GetInstance();
-                        configList.Add(configPath);
-                        duplicateDict[key] = (globalLevel, configList);
-
-                        // if we'd previously added this key, remove it and remember the extra duplicate location
-                        if (keyInSection)
+                        // this key conflicts with a previous one
+                        else if(currentGlobalLevel == globalLevel)
                         {
-                            var originalEntry = sectionValue;
-                            Debug.Assert(originalEntry.globalLevel == globalLevel);
+                            if (duplicateDict is null)
+                            {
+                                duplicateDict = ImmutableDictionary.CreateBuilder<string, (int, ArrayBuilder<string>)>(Section.PropertiesKeyComparer);
+                                _duplicates.Add(section.Name, duplicateDict);
+                            }
 
-                            sectionDict.Remove(key);
-                            configList.Insert(0, originalEntry.configPath);
+                            // record that this key is now a duplicate
+                            ArrayBuilder<string> configList = duplicateValue.configPaths ?? ArrayBuilder<string>.GetInstance();
+                            configList.Add(configPath);
+                            duplicateDict[key] = (globalLevel, configList);
+
+                            // if we'd previously added this key, remove it and remember the extra duplicate location
+                            if (keyInSection)
+                            {
+                                var originalEntry = sectionValue;
+                                Debug.Assert(originalEntry.globalLevel == globalLevel);
+
+                                sectionDict.Remove(key);
+                                configList.Insert(0, originalEntry.configPath);
+                            }
                         }
                     }
                 }

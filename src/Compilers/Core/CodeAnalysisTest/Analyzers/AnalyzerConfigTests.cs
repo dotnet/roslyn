@@ -2185,6 +2185,7 @@ is_global = true
         [InlineData("/path/to/globalconfig", false)]
         [InlineData("/path/to/my.globalconfig", false)]
         [InlineData("/.editorconfig", false)]
+        [InlineData("/.globalconfİg", false)]
         public void FileNameCausesConfigToBeReportedAsGlobal(string fileName, bool shouldBeTreatedAsGlobal)
         {
             var config = Parse("", fileName);
