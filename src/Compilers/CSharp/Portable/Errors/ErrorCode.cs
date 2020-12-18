@@ -1925,9 +1925,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EqualityContractRequiresGetter = 8906,
         WRN_UnreadRecordParameter = 8907,
         ERR_BadFieldTypeInRecord = 8908,
-        ERR_RecordAmbigCtor = 8909,
 
         WRN_DoNotCompareFunctionPointers = 8909,
+        ERR_RecordAmbigCtor = 8910,
 
         #endregion diagnostics introduced for C# 9.0
 
