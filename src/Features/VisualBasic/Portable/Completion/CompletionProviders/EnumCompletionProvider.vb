@@ -25,6 +25,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
+        Private Shared ReadOnly s_rules As CompletionItemRules = CompletionItemRules.[Default].WithMatchPriority(MatchPriority.Preselect)
+
+        Protected Overrides Function GetCompletionItemRules(ByVal symbols As IReadOnlyList(Of ISymbol)) As CompletionItemRules
+            Return s_rules
+        End Function
+
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return text(characterPosition) = " "c OrElse
                 text(characterPosition) = "("c OrElse
