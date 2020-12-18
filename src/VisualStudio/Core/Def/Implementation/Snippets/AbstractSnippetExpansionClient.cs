@@ -30,9 +30,11 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
@@ -482,9 +484,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                         Debug.Assert(_state._symbols == methodSymbols);
                         Debug.Assert(_state._symbol == null);
 
-                        var workspace = (VisualStudioWorkspace)SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()!.Project.Solution.Workspace;
-                        var exportProvider = (IMefHostExportProvider)workspace.Services.HostServices;
-                        var controllerProvider = exportProvider.GetExports<ControllerProvider>().Single().Value;
+                        var componentModel = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
+                        var controllerProvider = componentModel.DefaultExportProvider.GetExportedValue<ControllerProvider>();
                         if (controllerProvider.GetController(TextView, SubjectBuffer) is { } controller)
                         {
                             // Register a handler for ModelUpdated. To avoid the possibility of more than one
@@ -499,7 +500,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                         //
                         // TODO: Figure out why ISignatureHelpBroker.TriggerSignatureHelp doesn't work but this does.
                         // https://github.com/dotnet/roslyn/issues/50036
-                        var editorCommandHandlerServiceFactory = exportProvider.GetExports<IEditorCommandHandlerServiceFactory>().Single().Value;
+                        var editorCommandHandlerServiceFactory = componentModel.DefaultExportProvider.GetExportedValue<IEditorCommandHandlerServiceFactory>();
                         var editorCommandHandlerService = editorCommandHandlerServiceFactory.GetService(TextView, SubjectBuffer);
                         editorCommandHandlerService.Execute((view, buffer) => new InvokeSignatureHelpCommandArgs(view, buffer), nextCommandHandler: null);
 
