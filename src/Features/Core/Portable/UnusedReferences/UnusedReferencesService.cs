@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -62,10 +62,15 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
 
             // We process the references in order by their type. This means we favor transitive references
             // over direct references where possible.
-            foreach (var referenceType in _processingOrder.Where(referencesByType.ContainsKey))
+            foreach (var referenceType in _processingOrder)
             {
+                if (!referencesByType.TryGetValue(referenceType, out var referencesForReferenceType))
+                {
+                    continue;
+                }
+
                 AddUnusedReferences(
-                    referencesByType[referenceType].ToImmutableArray(),
+                    referencesForReferenceType.ToImmutableArray(),
                     usedAssemblyLookup,
                     unusedReferencesBuilder);
             }
