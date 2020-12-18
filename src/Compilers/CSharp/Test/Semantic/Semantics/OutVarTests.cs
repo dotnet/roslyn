@@ -36183,6 +36183,34 @@ public class C : System.Collections.Generic.List<int>
 ";
             CompileAndVerify(source, expectedOutput: @"1");
         }
+
+        [Fact]
+        [WorkItem(49997, "https://github.com/dotnet/roslyn/issues/49997")]
+        public void Issue49997()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        if ()
+        .Test1().Test2(out var x1).Test3();
+    }
+}
+
+static class Ext
+{
+    public static void Test3(this Cls x) {}
+}
+";
+            var compilation = CreateCompilation(text);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Test3").Last();
+            Assert.True(model.GetSymbolInfo(node).IsEmpty);
+        }
     }
 
     internal static class OutVarTestsExtensions
