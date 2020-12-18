@@ -33,6 +33,7 @@ usage()
   echo "  --docker                   Run in a docker container if applicable"
   echo "  --bootstrap                Build using a bootstrap compilers"
   echo "  --runAnalyzers             Run analyzers during build operations"
+  echo "  --skipDocumentation        Skip generation of XML documentation files"
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
   echo "  --sourceBuild              Simulate building for source-build"
@@ -67,6 +68,7 @@ binary_log=false
 ci=false
 bootstrap=false
 run_analyzers=false
+skip_documentation=false
 prepare_machine=false
 warn_as_error=false
 properties=""
@@ -135,6 +137,9 @@ while [[ $# > 0 ]]; do
       ;;
     --runanalyzers)
       run_analyzers=true
+      ;;
+    --skipdocumentation)
+      skip_documentation=true
       ;;
     --preparemachine)
       prepare_machine=true
@@ -260,6 +265,11 @@ function BuildSolution {
     test_runtime_args="--debug"
   fi
 
+  local generate_documentation_file=""
+  if [[ "$skip_documentation" == true ]]; then
+    generate_documentation_file="/p:GenerateDocumentationFile=false"
+  fi
+
   # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
   # We don't pass /warnaserror to msbuild (warn_as_error is set to false by default above), but set 
   # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
@@ -283,6 +293,7 @@ function BuildSolution {
     /p:DotNetBuildFromSource=$source_build \
     $test_runtime \
     $mono_tool \
+    $generate_documentation_file \
     $properties
 }
 
