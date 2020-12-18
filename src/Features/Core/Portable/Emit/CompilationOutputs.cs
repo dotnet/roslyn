@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.IO;
 using System.Linq;
@@ -21,12 +19,12 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// String describing the assembly to be used in user facing error messages (e.g. file path).
         /// </summary>
-        public abstract string AssemblyDisplayPath { get; }
+        public abstract string? AssemblyDisplayPath { get; }
 
         /// <summary>
         /// String describing the PDB to be used in user facing error messages (e.g. file path).
         /// </summary>
-        public abstract string PdbDisplayPath { get; }
+        public abstract string? PdbDisplayPath { get; }
 
         /// <summary>
         /// Opens metadata section of the assembly file produced by the compiler.
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <exception cref="BadImageFormatException">Invalid format of the assembly data.</exception>
         /// <exception cref="InvalidOperationException">The stream returned by <see cref="OpenAssemblyStreamChecked"/> does not support read and seek operations.</exception>
         /// <exception cref="Exception">Error while reading assembly data.</exception>
-        public virtual MetadataReaderProvider OpenAssemblyMetadata(bool prefetch)
+        public virtual MetadataReaderProvider? OpenAssemblyMetadata(bool prefetch)
         {
             var peStream = OpenAssemblyStreamChecked();
             if (peStream == null)
@@ -94,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <remarks>
         /// If a separate PDB stream is not available (<see cref="OpenPdbStreamChecked"/> returns null) opens the PDB embedded in the assembly, if present.
         /// </remarks>
-        public virtual DebugInformationReaderProvider OpenPdb()
+        public virtual DebugInformationReaderProvider? OpenPdb()
         {
             var pdbStream = OpenPdbStreamChecked();
             if (pdbStream != null)
@@ -117,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return null;
         }
 
-        private static Stream ValidateStream(Stream stream, string methodName)
+        private static Stream? ValidateStream(Stream? stream, string methodName)
         {
             if (stream != null && (!stream.CanRead || !stream.CanSeek))
             {
@@ -127,10 +125,10 @@ namespace Microsoft.CodeAnalysis.Emit
             return stream;
         }
 
-        private Stream OpenPdbStreamChecked()
+        private Stream? OpenPdbStreamChecked()
             => ValidateStream(OpenPdbStream(), nameof(OpenPdbStream));
 
-        private Stream OpenAssemblyStreamChecked()
+        private Stream? OpenAssemblyStreamChecked()
             => ValidateStream(OpenAssemblyStream(), nameof(OpenAssemblyStream));
 
         /// <summary>
@@ -140,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// The stream must be readable and seekable.
         /// </remarks>
         /// <returns>New <see cref="Stream"/> instance or null if the assembly is not available.</returns>
-        protected abstract Stream OpenAssemblyStream();
+        protected abstract Stream? OpenAssemblyStream();
 
         /// <summary>
         /// Opens a PDB file produced by the compiler.
@@ -149,6 +147,6 @@ namespace Microsoft.CodeAnalysis.Emit
         /// The stream must be readable and seekable.
         /// </remarks>
         /// <returns>New <see cref="Stream"/> instance or null if the compiler generated no PDB (the symbols might be embedded in the assembly).</returns>
-        protected abstract Stream OpenPdbStream();
+        protected abstract Stream? OpenPdbStream();
     }
 }
