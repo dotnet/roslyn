@@ -122,7 +122,12 @@ Microsoft.CodeAnalysis.Testing.PackageIdentity
 Microsoft.CodeAnalysis.Testing.PackageIdentity.Id.get -> string
 Microsoft.CodeAnalysis.Testing.PackageIdentity.PackageIdentity(string id, string version) -> void
 Microsoft.CodeAnalysis.Testing.PackageIdentity.Version.get -> string
+Microsoft.CodeAnalysis.Testing.ProjectCollection
+Microsoft.CodeAnalysis.Testing.ProjectCollection.ProjectCollection(string defaultLanguage, string defaultExtension) -> void
+Microsoft.CodeAnalysis.Testing.ProjectCollection.this[string projectName, string language].get -> Microsoft.CodeAnalysis.Testing.ProjectState
+Microsoft.CodeAnalysis.Testing.ProjectCollection.this[string projectName].get -> Microsoft.CodeAnalysis.Testing.ProjectState
 Microsoft.CodeAnalysis.Testing.ProjectState
+Microsoft.CodeAnalysis.Testing.ProjectState.AdditionalProjectReferences.get -> System.Collections.Generic.List<string>
 Microsoft.CodeAnalysis.Testing.ProjectState.AdditionalReferences.get -> Microsoft.CodeAnalysis.Testing.MetadataReferenceCollection
 Microsoft.CodeAnalysis.Testing.ProjectState.AssemblyName.get -> string
 Microsoft.CodeAnalysis.Testing.ProjectState.Language.get -> string
@@ -170,7 +175,7 @@ Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.WithPackages(System.Collectio
 Microsoft.CodeAnalysis.Testing.SolutionState
 Microsoft.CodeAnalysis.Testing.SolutionState.AdditionalFiles.get -> Microsoft.CodeAnalysis.Testing.SourceFileCollection
 Microsoft.CodeAnalysis.Testing.SolutionState.AdditionalFilesFactories.get -> System.Collections.Generic.List<System.Func<System.Collections.Generic.IEnumerable<(string filename, Microsoft.CodeAnalysis.Text.SourceText content)>>>
-Microsoft.CodeAnalysis.Testing.SolutionState.AdditionalProjects.get -> System.Collections.Generic.List<Microsoft.CodeAnalysis.Testing.ProjectState>
+Microsoft.CodeAnalysis.Testing.SolutionState.AdditionalProjects.get -> Microsoft.CodeAnalysis.Testing.ProjectCollection
 Microsoft.CodeAnalysis.Testing.SolutionState.ExpectedDiagnostics.get -> System.Collections.Generic.List<Microsoft.CodeAnalysis.Testing.DiagnosticResult>
 Microsoft.CodeAnalysis.Testing.SolutionState.InheritanceMode.get -> Microsoft.CodeAnalysis.Testing.StateInheritanceMode?
 Microsoft.CodeAnalysis.Testing.SolutionState.InheritanceMode.set -> void

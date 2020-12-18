@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+
 namespace Microsoft.CodeAnalysis.Testing
 {
     public class ProjectState
@@ -27,6 +29,8 @@ namespace Microsoft.CodeAnalysis.Testing
         /// the <see cref="SourceFileList.Add(string)"/> methods.
         /// </summary>
         public SourceFileList Sources { get; }
+
+        public List<string> AdditionalProjectReferences { get; } = new List<string>();
 
         public MetadataReferenceCollection AdditionalReferences { get; } = new MetadataReferenceCollection();
 
