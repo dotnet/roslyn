@@ -97,7 +97,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             AssertIsForeground();
             if (args.TypedChar == ';'
                 && AreSnippetsEnabled(args)
-                && args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient))
+                && args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient)
+                && snippetExpansionClient.IsFullMethodCallSnippet)
             {
                 // Commit the snippet. Leave the caret in place, but clear the selection. Subsequent handlers in the
                 // chain will handle the remaining Complete Statement (';' insertion) operations.

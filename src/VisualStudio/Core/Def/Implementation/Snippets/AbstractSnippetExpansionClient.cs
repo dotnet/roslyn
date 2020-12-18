@@ -78,6 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         }
 
         internal IVsExpansionSession ExpansionSession => _state._expansionSession;
+        internal bool IsFullMethodCallSnippet => _state.IsFullMethodCallSnippet;
         internal ImmutableDictionary<string, string> Arguments => _state._arguments;
 
         internal ImmutableArray<ArgumentProvider> GetArgumentProviders(Workspace workspace)
