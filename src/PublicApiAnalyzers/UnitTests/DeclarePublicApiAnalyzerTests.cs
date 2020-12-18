@@ -2088,7 +2088,7 @@ C2.C2() -> void";
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
-        [Theory]
+        [WindowsOnlyTheory]
         [InlineData("", "")]
         [InlineData("\r\n", "\r\n")]
         [InlineData("\r\n\r\n", "\r\n")]
@@ -2112,7 +2112,11 @@ C.C() -> void
 C.NewField -> int
 C.Property.get -> int{expectedEndOfFile}";
 
-            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+            await VerifyCSharpAdditionalFileFixAsync(
+                source.NormalizeLineEndings(),
+                shippedText,
+                unshippedText.NormalizeLineEndings(),
+                fixedUnshippedText.NormalizeLineEndings());
         }
 
         [Fact]
