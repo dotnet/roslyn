@@ -1,8 +1,9 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -41,56 +42,49 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 return ImmutableArray<ReferenceInfo>.Empty;
             }
 
-            var usedAssemblyLookup = compilation.GetUsedAssemblyReferences(cancellationToken)
+            HashSet<string> usedAssemblyLookup = new(compilation.GetUsedAssemblyReferences(cancellationToken)
                 .Select(reference => reference.Display)
-                .OfType<string>()
-                .ToImmutableHashSet();
+                .OfType<string>());
 
             return GetUnusedReferences(usedAssemblyLookup, references);
         }
 
         internal static ImmutableArray<ReferenceInfo> GetUnusedReferences(
-            ImmutableHashSet<string> usedAssemblyLookup,
+            HashSet<string> usedAssemblyLookup,
             ImmutableArray<ReferenceInfo> references)
         {
-            var unusedReferences = ImmutableArray.CreateBuilder<ReferenceInfo>();
+            var unusedReferencesBuilder = ImmutableArray.CreateBuilder<ReferenceInfo>();
             var referencesByType = references.GroupBy(reference => reference.ReferenceType)
                 .ToImmutableDictionary(group => group.Key);
 
-            var remainingUsedAssemblyLookup = usedAssemblyLookup;
-
             // We process the references in order by their type. This means we favor transitive references
             // over direct references where possible.
-            foreach (var referenceType in _processingOrder)
+            foreach (var referenceType in _processingOrder.Where(referencesByType.ContainsKey))
             {
-                if (!referencesByType.ContainsKey(referenceType))
-                {
-                    continue;
-                }
-
-                remainingUsedAssemblyLookup = AddUnusedReferences(
+                AddUnusedReferences(
                     referencesByType[referenceType].ToImmutableArray(),
-                    remainingUsedAssemblyLookup,
-                    unusedReferences);
+                    usedAssemblyLookup,
+                    unusedReferencesBuilder);
             }
 
-            return unusedReferences.ToImmutableArray();
+            return unusedReferencesBuilder.ToImmutableArray();
         }
 
-        private static ImmutableHashSet<string> AddUnusedReferences(
+        private static void AddUnusedReferences(
             ImmutableArray<ReferenceInfo> references,
-            ImmutableHashSet<string> usedAssemblyLookup,
-            ImmutableArray<ReferenceInfo>.Builder unusedReferences)
+            HashSet<string> usedAssemblyLookup,
+            ImmutableArray<ReferenceInfo>.Builder unusedReferencesBuilder)
         {
-            // Determine which toplevel references have compilation assemblies in set of used assemblies.
-            var toplevelUsedReferences = references.Where(reference =>
-                reference.CompilationAssemblies.Any(usedAssemblyLookup.Contains));
-            var toplevelUsedAssemblyReferences = toplevelUsedReferences.SelectMany(reference => GetAllCompilationAssemblies(reference));
+            // Determine which direct references have compilation assemblies in set of used assemblies.
+            var usedDirectReferences = references.Where(reference
+                => reference.CompilationAssemblies.Any(usedAssemblyLookup.Contains)).ToArray();
+            var usedAssemblyReferences = usedDirectReferences.SelectMany(reference
+                => GetAllCompilationAssemblies(reference)).ToArray();
 
-            // Remove all assemblies that are brought into the compilation from those toplevel used references. When
+            // Remove all assemblies that are brought into the compilation from those direct used references. When
             // determining transtively used references this will reduce false positives.
-            var remainingReferences = references.Except(toplevelUsedReferences);
-            var remainingUsedAssemblyLookup = usedAssemblyLookup.Except(toplevelUsedAssemblyReferences);
+            var remainingReferences = references.Except(usedDirectReferences).ToArray();
+            usedAssemblyLookup.ExceptWith(usedAssemblyReferences);
 
             // Determine which transtive references have compilation assemblies in the set of remaining used assemblies.
             foreach (var reference in remainingReferences)
@@ -103,15 +97,16 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                     continue;
                 }
 
-                if (!allCompilationAssemblies.Any(remainingUsedAssemblyLookup.Contains))
+                if (!allCompilationAssemblies.Any(usedAssemblyLookup.Contains))
                 {
                     // None of the assemblies brought into this compilation are in the remaining
                     // used assemblies list, so we will consider the reference unused.
-                    unusedReferences.Add(reference);
+                    unusedReferencesBuilder.Add(reference);
                     continue;
                 }
 
-                remainingUsedAssemblyLookup = remainingUsedAssemblyLookup.Except(allCompilationAssemblies);
+                // Remove all assemblies that are brought into this compilation by this reference.
+                usedAssemblyLookup.ExceptWith(allCompilationAssemblies);
             }
 
             return;
