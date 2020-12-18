@@ -12,7 +12,7 @@ using Newtonsoft.Json;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.ProjectAssets
 {
     // This class will read the dependency heirarchy from the project.assets.json file. The format of this file
-    // is subject to change and in the future this information will be provided by an API with the ProjectSystem.
+    // is subject to change and in the future this information will be provided by an API.  See https://github.com/dotnet/roslyn/issues/50054
     internal static class ProjectAssetsReader
     {
         public static ImmutableArray<ReferenceInfo> ReadReferences(
