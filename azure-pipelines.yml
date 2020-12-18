@@ -108,7 +108,7 @@ jobs:
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
     testArguments: --testCoreClr
-    queueName: 'BuildPool.Ubuntu.1604.amd64.Open'
+    vmImageName: 'ubuntu-16.04'
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
