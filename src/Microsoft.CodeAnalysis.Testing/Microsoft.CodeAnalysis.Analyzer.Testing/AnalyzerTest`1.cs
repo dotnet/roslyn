@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         protected AnalyzerTest()
         {
-            TestState = new SolutionState(DefaultFilePathPrefix, DefaultFileExt);
+            TestState = new SolutionState(DefaultTestProjectName, Language, DefaultFilePathPrefix, DefaultFileExt);
         }
 
         /// <summary>
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Testing
             var fixableDiagnostics = ImmutableArray<string>.Empty;
             var testState = TestState.WithInheritedValuesApplied(null, fixableDiagnostics).WithProcessedMarkup(MarkupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, DefaultFilePath);
 
-            await VerifyDiagnosticsAsync(testState.Sources.ToArray(), testState.AdditionalFiles.ToArray(), testState.AdditionalProjects.ToArray(), testState.AdditionalReferences.ToArray(), testState.ExpectedDiagnostics.ToArray(), Verify, cancellationToken).ConfigureAwait(false);
+            await VerifyDiagnosticsAsync(testState.Sources.ToArray(), testState.AdditionalFiles.ToArray(), testState.Name, testState.AdditionalProjects.ToArray(), testState.AdditionalReferences.ToArray(), testState.ExpectedDiagnostics.ToArray(), Verify, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -234,6 +234,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         /// <param name="sources">An array of strings to create source documents from to run the analyzers on.</param>
         /// <param name="additionalFiles">Additional documents to include in the project.</param>
+        /// <param name="projectName">The name of the primary project.</param>
         /// <param name="additionalProjects">Additional projects to include in the solution.</param>
         /// <param name="additionalMetadataReferences">Additional metadata references to include in the project.</param>
         /// <param name="expected">A collection of <see cref="DiagnosticResult"/>s that should appear after the analyzer
@@ -241,15 +242,15 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="verifier">The verifier to use for test assertions.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        protected async Task VerifyDiagnosticsAsync((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
+        protected async Task VerifyDiagnosticsAsync((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, string projectName, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
         {
             var analyzers = GetDiagnosticAnalyzers().ToImmutableArray();
-            VerifyDiagnosticResults(await GetSortedDiagnosticsAsync(sources, additionalFiles, additionalProjects, additionalMetadataReferences, analyzers, verifier, cancellationToken).ConfigureAwait(false), analyzers, expected, verifier);
-            await VerifyGeneratedCodeDiagnosticsAsync(analyzers, sources, additionalFiles, additionalProjects, additionalMetadataReferences, expected, verifier, cancellationToken).ConfigureAwait(false);
-            await VerifySuppressionDiagnosticsAsync(analyzers, sources, additionalFiles, additionalProjects, additionalMetadataReferences, expected, verifier, cancellationToken).ConfigureAwait(false);
+            VerifyDiagnosticResults(await GetSortedDiagnosticsAsync(sources, additionalFiles, projectName, additionalProjects, additionalMetadataReferences, analyzers, verifier, cancellationToken).ConfigureAwait(false), analyzers, expected, verifier);
+            await VerifyGeneratedCodeDiagnosticsAsync(analyzers, sources, additionalFiles, projectName, additionalProjects, additionalMetadataReferences, expected, verifier, cancellationToken).ConfigureAwait(false);
+            await VerifySuppressionDiagnosticsAsync(analyzers, sources, additionalFiles, projectName, additionalProjects, additionalMetadataReferences, expected, verifier, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task VerifyGeneratedCodeDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
+        private async Task VerifyGeneratedCodeDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, string projectName, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
         {
             if (TestBehaviors.HasFlag(TestBehaviors.SkipGeneratedCodeCheck)
                 || analyzers.All(analyzer => AnalyzerInfo.HasConfiguredGeneratedCodeAnalysis(analyzer)))
@@ -272,10 +273,10 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var generatedCodeVerifier = verifier.PushContext("Verifying exclusions in <auto-generated> code");
             var commentPrefix = Language == LanguageNames.CSharp ? "//" : "'";
-            VerifyDiagnosticResults(await GetSortedDiagnosticsAsync(sources.Select(x => (x.filename, x.content.Replace(new TextSpan(0, 0), $" {commentPrefix} <auto-generated>\r\n"))).ToArray(), additionalFiles, additionalProjects, additionalMetadataReferences, analyzers, generatedCodeVerifier, cancellationToken).ConfigureAwait(false), analyzers, expectedResults, generatedCodeVerifier);
+            VerifyDiagnosticResults(await GetSortedDiagnosticsAsync(sources.Select(x => (x.filename, x.content.Replace(new TextSpan(0, 0), $" {commentPrefix} <auto-generated>\r\n"))).ToArray(), additionalFiles, projectName, additionalProjects, additionalMetadataReferences, analyzers, generatedCodeVerifier, cancellationToken).ConfigureAwait(false), analyzers, expectedResults, generatedCodeVerifier);
         }
 
-        private async Task VerifySuppressionDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
+        private async Task VerifySuppressionDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, string projectName, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
         {
             if (TestBehaviors.HasFlag(TestBehaviors.SkipSuppressionCheck))
             {
@@ -299,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Testing
             var suppressionVerifier = verifier.PushContext($"Verifying exclusions in '{prefix}' code");
             var suppressedDiagnostics = expected.Where(x => IsSubjectToExclusion(x, sources)).Select(x => x.Id).Distinct();
             var suppression = prefix + " " + string.Join(", ", suppressedDiagnostics);
-            VerifyDiagnosticResults(await GetSortedDiagnosticsAsync(sources.Select(x => (x.filename, x.content.Replace(new TextSpan(0, 0), $"{suppression}\r\n"))).ToArray(), additionalFiles, additionalProjects, additionalMetadataReferences, analyzers, suppressionVerifier, cancellationToken).ConfigureAwait(false), analyzers, expectedResults, suppressionVerifier);
+            VerifyDiagnosticResults(await GetSortedDiagnosticsAsync(sources.Select(x => (x.filename, x.content.Replace(new TextSpan(0, 0), $"{suppression}\r\n"))).ToArray(), additionalFiles, projectName, additionalProjects, additionalMetadataReferences, analyzers, suppressionVerifier, cancellationToken).ConfigureAwait(false), analyzers, expectedResults, suppressionVerifier);
         }
 
         /// <summary>
@@ -954,6 +955,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         /// <param name="sources">Classes in the form of strings.</param>
         /// <param name="additionalFiles">Additional documents to include in the project.</param>
+        /// <param name="projectName">The name of the primary project.</param>
         /// <param name="additionalProjects">Additional projects to include in the solution.</param>
         /// <param name="additionalMetadataReferences">Additional metadata references to include in the project.</param>
         /// <param name="analyzers">The analyzers to be run on the sources.</param>
@@ -961,9 +963,9 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A collection of <see cref="Diagnostic"/>s that surfaced in the source code, sorted by
         /// <see cref="Diagnostic.Location"/>.</returns>
-        private async Task<ImmutableArray<Diagnostic>> GetSortedDiagnosticsAsync((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, ImmutableArray<DiagnosticAnalyzer> analyzers, IVerifier verifier, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<Diagnostic>> GetSortedDiagnosticsAsync((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, string projectName, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, ImmutableArray<DiagnosticAnalyzer> analyzers, IVerifier verifier, CancellationToken cancellationToken)
         {
-            var solution = await GetSolutionAsync(sources, additionalFiles, additionalProjects, additionalMetadataReferences, verifier, cancellationToken);
+            var solution = await GetSolutionAsync(sources, additionalFiles, projectName, additionalProjects, additionalMetadataReferences, verifier, cancellationToken);
             return await GetSortedDiagnosticsAsync(solution, analyzers, CompilerDiagnostics, cancellationToken);
         }
 
@@ -1041,16 +1043,17 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         /// <param name="sources">Classes in the form of strings.</param>
         /// <param name="additionalFiles">Additional documents to include in the project.</param>
+        /// <param name="projectName">The name of the primary project.</param>
         /// <param name="additionalProjects">Additional projects to include in the solution.</param>
         /// <param name="additionalMetadataReferences">Additional metadata references to include in the project.</param>
         /// <param name="verifier">The verifier to use for test assertions.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A solution containing a project with the specified sources and additional files.</returns>
-        private async Task<Solution> GetSolutionAsync((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, IVerifier verifier, CancellationToken cancellationToken)
+        private async Task<Solution> GetSolutionAsync((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, string projectName, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, IVerifier verifier, CancellationToken cancellationToken)
         {
             verifier.LanguageIsSupported(Language);
 
-            var project = await CreateProjectAsync(sources, additionalFiles, additionalProjects, additionalMetadataReferences, Language, cancellationToken);
+            var project = await CreateProjectAsync(sources, additionalFiles, additionalProjects, additionalMetadataReferences, projectName, Language, cancellationToken);
             var documents = project.Documents.ToArray();
 
             verifier.Equal(sources.Length, documents.Length, "Amount of sources did not match amount of Documents created");
@@ -1069,14 +1072,15 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="additionalFiles">Additional documents to include in the project.</param>
         /// <param name="additionalProjects">Additional projects to include in the solution.</param>
         /// <param name="additionalMetadataReferences">Additional metadata references to include in the project.</param>
+        /// <param name="projectName">The name of the primary project.</param>
         /// <param name="language">The language the source classes are in. Values may be taken from the
         /// <see cref="LanguageNames"/> class.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A <see cref="Project"/> created out of the <see cref="Document"/>s created from the source
         /// strings.</returns>
-        protected async Task<Project> CreateProjectAsync((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, string language, CancellationToken cancellationToken)
+        protected async Task<Project> CreateProjectAsync((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, string projectName, string language, CancellationToken cancellationToken)
         {
-            var project = await CreateProjectImplAsync(sources, additionalFiles, additionalProjects, additionalMetadataReferences, language, cancellationToken);
+            var project = await CreateProjectImplAsync(sources, additionalFiles, additionalProjects, additionalMetadataReferences, projectName, language, cancellationToken);
             return ApplyCompilationOptions(project);
         }
 
@@ -1087,18 +1091,19 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="additionalFiles">Additional documents to include in the project.</param>
         /// <param name="additionalProjects">Additional projects to include in the solution.</param>
         /// <param name="additionalMetadataReferences">Additional metadata references to include in the project.</param>
+        /// <param name="projectName">The name of the primary project.</param>
         /// <param name="language">The language the source classes are in. Values may be taken from the
         /// <see cref="LanguageNames"/> class.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A <see cref="Project"/> created out of the <see cref="Document"/>s created from the source
         /// strings.</returns>
-        protected virtual async Task<Project> CreateProjectImplAsync((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, string language, CancellationToken cancellationToken)
+        protected virtual async Task<Project> CreateProjectImplAsync((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, string projectName, string language, CancellationToken cancellationToken)
         {
             var fileNamePrefix = DefaultFilePathPrefix;
             var fileExt = DefaultFileExt;
 
-            var projectId = ProjectId.CreateNewId(debugName: DefaultTestProjectName);
-            var solution = await CreateSolutionAsync(projectId, language, cancellationToken);
+            var projectId = ProjectId.CreateNewId(debugName: projectName);
+            var solution = await CreateSolutionAsync(projectId, projectName, language, cancellationToken);
 
             foreach (var projectState in additionalProjects)
             {
@@ -1143,10 +1148,11 @@ namespace Microsoft.CodeAnalysis.Testing
         /// Creates a solution that will be used as parent for the sources that need to be checked.
         /// </summary>
         /// <param name="projectId">The project identifier to use.</param>
+        /// <param name="projectName">The name of the primary project.</param>
         /// <param name="language">The language for which the solution is being created.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>The created solution.</returns>
-        protected virtual async Task<Solution> CreateSolutionAsync(ProjectId projectId, string language, CancellationToken cancellationToken)
+        protected virtual async Task<Solution> CreateSolutionAsync(ProjectId projectId, string projectName, string language, CancellationToken cancellationToken)
         {
             var compilationOptions = CreateCompilationOptions();
 
@@ -1170,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var solution = workspace
                 .CurrentSolution
-                .AddProject(projectId, DefaultTestProjectName, DefaultTestProjectName, language)
+                .AddProject(projectId, projectName, projectName, language)
                 .WithProjectCompilationOptions(projectId, compilationOptions)
                 .WithProjectParseOptions(projectId, parseOptions);
 
