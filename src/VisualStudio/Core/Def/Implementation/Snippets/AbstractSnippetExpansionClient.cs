@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -482,42 +481,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                         Debug.Assert(_state._symbols == methodSymbols);
                         Debug.Assert(_state._symbol == null);
 
+                        var workspace = (VisualStudioWorkspace)SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()!.Project.Solution.Workspace;
+                        var exportProvider = (IMefHostExportProvider)workspace.Services.HostServices;
+                        var controllerProvider = exportProvider.GetExports<ControllerProvider>().Single().Value;
+                        if (controllerProvider.GetController(TextView, SubjectBuffer) is { } controller)
+                        {
+                            // Register a handler for ModelUpdated. To avoid the possibility of more than one
+                            // handler being in the list, remove any current one before adding the new one. This
+                            // handler is only changed on the main thread, and the event is only invoked on the main
+                            // thread, so additional synchronization is not necessary to prevent lost events.
+                            controller.ModelUpdated -= OnModelUpdated;
+                            controller.ModelUpdated += OnModelUpdated;
+                        }
+
                         // Trigger signature help after starting the snippet session
                         //
                         // TODO: Figure out why ISignatureHelpBroker.TriggerSignatureHelp doesn't work but this does.
                         // https://github.com/dotnet/roslyn/issues/50036
-                        var workspace = (VisualStudioWorkspace)SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()!.Project.Solution.Workspace;
-                        var exportProvider = (IMefHostExportProvider)workspace.Services.HostServices;
                         var editorCommandHandlerServiceFactory = exportProvider.GetExports<IEditorCommandHandlerServiceFactory>().Single().Value;
                         var editorCommandHandlerService = editorCommandHandlerServiceFactory.GetService(TextView, SubjectBuffer);
                         editorCommandHandlerService.Execute((view, buffer) => new InvokeSignatureHelpCommandArgs(view, buffer), nextCommandHandler: null);
-
-                        ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
-                        {
-                            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
-                            while (ExpansionSession is not null)
-                            {
-                                // Loop until a controller is available.
-                                //
-                                // TODO: Controller.GetInstance has better postcondition semantics, but the
-                                // preconditions make it much more difficult to invoke.
-                                // https://github.com/dotnet/roslyn/issues/50037
-                                var controller = Controller.TryGetInstance(TextView, SubjectBuffer);
-                                if (controller is null)
-                                {
-                                    await Task.Yield();
-                                    continue;
-                                }
-
-                                // Register a handler for ModelUpdated. To avoid the possibility of more than one
-                                // handler being in the list, remove any current one before adding the new one. This
-                                // handler is only changed on the main thread, and the event is only invoked on the main
-                                // thread, so additional synchronization is not necessary to prevent lost events.
-                                controller.ModelUpdated -= OnModelUpdated;
-                                controller.ModelUpdated += OnModelUpdated;
-                                return;
-                            }
-                        });
 
                         return true;
                     }

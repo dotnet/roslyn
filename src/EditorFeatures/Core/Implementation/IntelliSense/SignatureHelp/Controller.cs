@@ -18,7 +18,6 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 
@@ -29,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         IChainedCommandHandler<TypeCharCommandArgs>,
         IChainedCommandHandler<InvokeSignatureHelpCommandArgs>
     {
-        private static readonly object s_controllerPropertyKey = new();
         private readonly IAsyncCompletionBroker _completionBroker;
 
         private readonly IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders;
@@ -70,32 +68,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         }
 
         public event EventHandler<Model> ModelUpdated;
-
-        internal static Controller TryGetInstance(ITextView textView, ITextBuffer subjectBuffer)
-        {
-            if (!textView.TryGetPerSubjectBufferProperty(subjectBuffer, s_controllerPropertyKey, out Controller controller))
-                return null;
-
-            return controller;
-        }
-
-        internal static Controller GetInstance(
-            IThreadingContext threadingContext,
-            EditorCommandArgs args,
-            IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> presenter,
-            IAsynchronousOperationListener asyncListener,
-            IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders,
-            IAsyncCompletionBroker completionBroker)
-        {
-            var textView = args.TextView;
-            var subjectBuffer = args.SubjectBuffer;
-            return textView.GetOrCreatePerSubjectBufferProperty(subjectBuffer, s_controllerPropertyKey,
-                (v, b) => new Controller(threadingContext, v, b,
-                    presenter,
-                    asyncListener,
-                    new DocumentProvider(threadingContext),
-                    allProviders, completionBroker));
-        }
 
         private SnapshotPoint GetCaretPointInViewBuffer()
         {
