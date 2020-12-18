@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
             var filePath = namespaceDeclaration.SyntaxTree.FilePath;
             if (!filePath.Contains(projectDir))
             {
-                // The file does not exist withing the project directory
+                // The file does not exist within the project directory
                 targetNamespace = null;
                 return false;
             }
