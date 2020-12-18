@@ -777,6 +777,11 @@
         <target state="translated">{0}: U přístupových objektů se modifikátor readonly může použít jenom v případě, že vlastnost nebo indexer má přístupový objekt get i set.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RecordAmbigCtor">
+        <source>The primary constructor conflicts with the synthesized copy constructor.</source>
+        <target state="new">The primary constructor conflicts with the synthesized copy constructor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">Přiřazení odkazu {1} k {0} nelze provést, protože {1} má užší řídicí obor než {0}.</target>

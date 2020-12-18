@@ -777,6 +777,11 @@
         <target state="translated">{0}: "readonly" kann für Accessoren nur verwendet werden, wenn die Eigenschaft oder der Indexer sowohl einen get- als auch einen set-Accessor aufweist.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RecordAmbigCtor">
+        <source>The primary constructor conflicts with the synthesized copy constructor.</source>
+        <target state="new">The primary constructor conflicts with the synthesized copy constructor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">ref-assign von "{1}" zu "{0}" ist nicht möglich, weil "{1}" einen geringeren Escapebereich als "{0}" aufweist.</target>
