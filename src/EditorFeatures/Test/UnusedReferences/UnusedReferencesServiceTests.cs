@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences
         }
 
         private static ImmutableArray<ReferenceInfo> GetUnusedReferences(string[] usedCompilationAssemblies, params ReferenceInfo[] references)
-            => UnusedReferencesService.GetUnusedReferences(usedCompilationAssemblies, references.ToImmutableArray());
+            => UnusedReferencesService.GetUnusedReferences(usedCompilationAssemblies.ToImmutableHashSet(), references.ToImmutableArray());
 
         private static async Task<ImmutableArray<ReferenceUpdate>> ApplyReferenceUpdatesAsync(params ReferenceUpdate[] referenceUpdates)
         {

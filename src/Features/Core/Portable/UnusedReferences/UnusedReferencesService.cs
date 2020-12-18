@@ -42,19 +42,18 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 return ImmutableArray<ReferenceInfo>.Empty;
             }
 
-            var usedCompilationAssemblies = compilation.GetUsedAssemblyReferences(cancellationToken)
+            var usedAssemblyLookup = compilation.GetUsedAssemblyReferences(cancellationToken)
                 .Select(reference => reference.Display)
-                .OfType<string>();
+                .OfType<string>()
+                .ToImmutableHashSet();
 
-            return GetUnusedReferences(usedCompilationAssemblies, references);
+            return GetUnusedReferences(usedAssemblyLookup, references);
         }
 
         internal static ImmutableArray<ReferenceInfo> GetUnusedReferences(
-            IEnumerable<string> usedCompilationAssemblies,
+            ImmutableHashSet<string> usedAssemblyLookup,
             ImmutableArray<ReferenceInfo> references)
         {
-            var usedAssemblyLookup = usedCompilationAssemblies.ToImmutableHashSet();
-
             var unusedReferences = ImmutableArray.CreateBuilder<ReferenceInfo>();
             var referencesByType = references.GroupBy(reference => reference.ReferenceType)
                 .ToImmutableDictionary(group => group.Key);
@@ -68,22 +67,20 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                     continue;
                 }
 
-                usedCompilationAssemblies = DetermineUnusedReferences(
-                    referencesByType[referenceType],
-                    usedCompilationAssemblies,
+                usedAssemblyLookup = DetermineUnusedReferences(
+                    referencesByType[referenceType].ToImmutableArray(),
+                    usedAssemblyLookup,
                     unusedReferences);
             }
 
             return unusedReferences.ToImmutableArray();
         }
 
-        private static IEnumerable<string> DetermineUnusedReferences(
-            IEnumerable<ReferenceInfo> references,
-            IEnumerable<string> usedCompilationAssemblies,
+        private static ImmutableHashSet<string> DetermineUnusedReferences(
+            ImmutableArray<ReferenceInfo> references,
+            ImmutableHashSet<string> usedAssemblyLookup,
             ImmutableArray<ReferenceInfo>.Builder unusedReferences)
         {
-            var usedAssemblyLookup = usedCompilationAssemblies.ToImmutableHashSet();
-
             // Determine which toplevel references have compilation assemblies in set of used assemblies.
             var toplevelUsedReferences = references.Where(reference =>
                 reference.CompilationAssemblies.Any(usedAssemblyLookup.Contains));
@@ -92,8 +89,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             // Remove all assemblies that are brought into the compilation from those toplevel used references. When
             // determining transtively used references this will reduce false positives.
             var remainingReferences = references.Except(toplevelUsedReferences);
-            var remainingUsedAssemblyReferences = usedCompilationAssemblies.Except(toplevelUsedAssemblyReferences);
-            var remainingUsedAssemblyLookup = remainingUsedAssemblyReferences.ToImmutableHashSet();
+            var remainingUsedAssemblyLookup = usedAssemblyLookup.Except(toplevelUsedAssemblyReferences);
 
             // Determine which transtive references have compilation assemblies in the set of remaining used assemblies.
             foreach (var reference in remainingReferences)
@@ -114,11 +110,10 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                     continue;
                 }
 
-                remainingUsedAssemblyReferences = remainingUsedAssemblyReferences.Except(allCompilationAssemblies);
-                remainingUsedAssemblyLookup = remainingUsedAssemblyReferences.ToImmutableHashSet();
+                remainingUsedAssemblyLookup = remainingUsedAssemblyLookup.Except(allCompilationAssemblies);
             }
 
-            return remainingUsedAssemblyReferences;
+            return remainingUsedAssemblyLookup;
         }
 
         public async Task<Project> UpdateReferencesAsync(
