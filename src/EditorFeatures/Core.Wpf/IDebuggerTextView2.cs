@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface IDebuggerTextView2 : IDebuggerTextView
     {
-        void HACK_StartCompletionSession(IIntellisenseSession editorSessionOpt);
+        void HACK_StartCompletionSession(IIntellisenseSession? editorSession);
     }
 }
