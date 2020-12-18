@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
           nameof(CSharpAnalyzersResources.Namespace_named_incorrectly), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
         private static readonly LocalizableResourceString s_localizableInsideMessage = new LocalizableResourceString(
-            nameof(CSharpAnalyzersResources.Namespace_must_match_folder_structure), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
+            nameof(CSharpAnalyzersResources.Namespace_0_does_not_match_folder_structure_expected_1), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
         public const string RootNamespaceOption = "build_property.RootNamespace";
         public const string ProjectDirOption = "build_property.ProjectDir";
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
             string projectDir,
             [NotNullWhen(returnValue: true)] out string? targetNamespace)
         {
-            var filePath = namespaceDeclaration.SyntaxTree.FilePath;
+            var filePath = Path.Combine(namespaceDeclaration.SyntaxTree.FilePath, ".");
             if (!filePath.Contains(projectDir))
             {
                 // The file does not exist withing the project directory
@@ -172,7 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
                 namespaceDeclaration.Name.GetLocation(),
                 reportDiagnostic,
                 additionalLocations: null,
-                properties: properties));
+                properties: properties,
+                messageArgs: new[] { namespaceDeclaration.Name.ToString(), targetNamespace }));
         }
     }
 }

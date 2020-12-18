@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.NamespaceSync
         private sealed class MyCodeAction : CustomCodeActions.SolutionChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(CSharpAnalyzersResources.Namespace_must_match_folder_structure, createChangedSolution, CSharpAnalyzersResources.Namespace_must_match_folder_structure)
+                : base(CSharpAnalyzersResources.Namespace_named_incorrectly, createChangedSolution)
             {
 
             }
