@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
     [ExportWorkspaceService(typeof(IUnusedReferencesService), ServiceLayer.Default), Shared]
     internal class UnusedReferencesService : IUnusedReferencesService
     {
-        private readonly ReferenceType[] _processingOrder = new[]
+        private static readonly ReferenceType[] _processingOrder = new[]
         {
             ReferenceType.Project,
             ReferenceType.Package,
@@ -42,10 +42,18 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 return ImmutableArray<ReferenceInfo>.Empty;
             }
 
-            var usedAssemblyReferences = compilation.GetUsedAssemblyReferences(cancellationToken)
+            var usedCompilationAssemblies = compilation.GetUsedAssemblyReferences(cancellationToken)
                 .Select(reference => reference.Display)
                 .OfType<string>();
-            var usedAssemblyLookup = usedAssemblyReferences.ToImmutableHashSet();
+
+            return GetUnusedReferences(usedCompilationAssemblies, references);
+        }
+
+        internal static ImmutableArray<ReferenceInfo> GetUnusedReferences(
+            IEnumerable<string> usedCompilationAssemblies,
+            ImmutableArray<ReferenceInfo> references)
+        {
+            var usedAssemblyLookup = usedCompilationAssemblies.ToImmutableHashSet();
 
             var unusedReferences = ImmutableArray.CreateBuilder<ReferenceInfo>();
             var referencesByType = references.GroupBy(reference => reference.ReferenceType)
@@ -60,15 +68,21 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                     continue;
                 }
 
-                usedAssemblyReferences = DetermineUnusedReferences(referencesByType[referenceType], usedAssemblyReferences, unusedReferences);
+                usedCompilationAssemblies = DetermineUnusedReferences(
+                    referencesByType[referenceType],
+                    usedCompilationAssemblies,
+                    unusedReferences);
             }
 
             return unusedReferences.ToImmutableArray();
         }
 
-        private static IEnumerable<string> DetermineUnusedReferences(IEnumerable<ReferenceInfo> references, IEnumerable<string> usedAssemblyReferences, ImmutableArray<ReferenceInfo>.Builder unusedReferences)
+        private static IEnumerable<string> DetermineUnusedReferences(
+            IEnumerable<ReferenceInfo> references,
+            IEnumerable<string> usedCompilationAssemblies,
+            ImmutableArray<ReferenceInfo>.Builder unusedReferences)
         {
-            var usedAssemblyLookup = usedAssemblyReferences.ToImmutableHashSet();
+            var usedAssemblyLookup = usedCompilationAssemblies.ToImmutableHashSet();
 
             // Determine which toplevel references have compilation assemblies in set of used assemblies.
             var toplevelUsedReferences = references.Where(reference =>
@@ -78,7 +92,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             // Remove all assemblies that are brought into the compilation from those toplevel used references. When
             // determining transtively used references this will reduce false positives.
             var remainingReferences = references.Except(toplevelUsedReferences);
-            var remainingUsedAssemblyReferences = usedAssemblyReferences.Except(toplevelUsedAssemblyReferences);
+            var remainingUsedAssemblyReferences = usedCompilationAssemblies.Except(toplevelUsedAssemblyReferences);
             var remainingUsedAssemblyLookup = remainingUsedAssemblyReferences.ToImmutableHashSet();
 
             // Determine which transtive references have compilation assemblies in the set of remaining used assemblies.
@@ -107,37 +121,48 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             return remainingUsedAssemblyReferences;
         }
 
-        public async Task<Project> UpdateReferencesAsync(Project project, ImmutableArray<ReferenceUpdate> referenceUpdates, CancellationToken cancellationToken)
+        public async Task<Project> UpdateReferencesAsync(
+            Project project,
+            ImmutableArray<ReferenceUpdate> referenceUpdates,
+            CancellationToken cancellationToken)
         {
             var referenceCleanupService = project.Solution.Workspace.Services.GetRequiredService<IReferenceCleanupService>();
 
+            await ApplyReferenceUpdatesAsync(referenceCleanupService, project.FilePath!, referenceUpdates, cancellationToken).ConfigureAwait(false);
+
+            return project.Solution.Workspace.CurrentSolution.GetProject(project.Id)!;
+        }
+
+        internal static async Task ApplyReferenceUpdatesAsync(
+            IReferenceCleanupService referenceCleanupService,
+            string projectFilePath,
+            ImmutableArray<ReferenceUpdate> referenceUpdates,
+            CancellationToken cancellationToken)
+        {
             foreach (var referenceUpdate in referenceUpdates)
             {
-                if (referenceUpdate.Action == UpdateAction.None)
+                // If the update action would not change the reference, then
+                // continue to the next update.
+                if (referenceUpdate.Action == UpdateAction.TreatAsUnused &&
+                    !referenceUpdate.ReferenceInfo.TreatAsUsed)
                 {
-                    referenceUpdate.Action = referenceUpdate.ReferenceInfo.TreatAsUsed
-                        ? UpdateAction.TreatAsUnused
-                        : UpdateAction.None;
+                    continue;
                 }
-                else if (referenceUpdate.Action == UpdateAction.TreatAsUsed)
+                else if (referenceUpdate.Action == UpdateAction.TreatAsUsed &&
+                    referenceUpdate.ReferenceInfo.TreatAsUsed)
                 {
-                    referenceUpdate.Action = referenceUpdate.ReferenceInfo.TreatAsUsed
-                        ? UpdateAction.None
-                        : UpdateAction.TreatAsUsed;
+                    continue;
                 }
-
-                if (referenceUpdate.Action == UpdateAction.None)
+                else if (referenceUpdate.Action == UpdateAction.None)
                 {
                     continue;
                 }
 
                 await referenceCleanupService.TryUpdateReferenceAsync(
-                    project.FilePath!,
+                    projectFilePath,
                     referenceUpdate,
                     cancellationToken).ConfigureAwait(false);
             }
-
-            return project;
         }
     }
 }
