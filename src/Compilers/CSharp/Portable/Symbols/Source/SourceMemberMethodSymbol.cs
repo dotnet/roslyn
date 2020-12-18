@@ -884,7 +884,7 @@ done:
             if (!flags.TryGetIsNullableEnabled(out result))
             {
                 var syntax = this.SyntaxNode;
-                result = IsNullableEnabledCore(isEnabledInBody: ((CSharpSyntaxTree)syntax.SyntaxTree).IsNullableAnalysisEnabled(syntax.Span));
+                result = IsNullableEnabledCore(isEnabledInMethod: ((CSharpSyntaxTree)syntax.SyntaxTree).IsNullableAnalysisEnabled(syntax.Span));
                 flags.SetIsNullableEnabled(result);
             }
             return result;

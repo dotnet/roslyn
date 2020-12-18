@@ -1171,15 +1171,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// If this method is a constructor, includes the nullable context for any
         /// fields from the containing type that are set in this constructor.
+        /// <paramref name="isEnabledInMethod"/> should be set to the nullable
+        /// context from the method alone (covering signature and method body).
         /// </summary>
-        internal bool IsNullableEnabledCore(bool? isEnabledInBody)
+        protected bool IsNullableEnabledCore(bool? isEnabledInMethod)
         {
-            if (isEnabledInBody == true)
+            if (isEnabledInMethod == true)
             {
                 return true;
             }
 
-            bool? result = isEnabledInBody;
+            bool? result = isEnabledInMethod;
             if (this.IncludeFieldInitializersInBody() &&
                 ContainingType is SourceMemberContainerTypeSymbol containingType)
             {

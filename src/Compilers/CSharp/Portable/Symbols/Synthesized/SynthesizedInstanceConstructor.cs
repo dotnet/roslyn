@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyIsNullableEnabled == ThreeState.Unknown)
             {
-                _lazyIsNullableEnabled = IsNullableEnabledCore(isEnabledInBody: false).ToThreeState();
+                _lazyIsNullableEnabled = IsNullableEnabledCore(isEnabledInMethod: false).ToThreeState();
             }
             return _lazyIsNullableEnabled == ThreeState.True;
         }

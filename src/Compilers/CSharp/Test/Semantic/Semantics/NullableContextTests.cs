@@ -429,7 +429,7 @@ class Program
             }
         }
 
-        private struct NullableDirectives
+        private readonly struct NullableDirectives
         {
             internal readonly string[] Directives;
             internal readonly NullableContextState.State ExpectedWarningsState;
@@ -1059,6 +1059,80 @@ partial class Program
 
             var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
             AssertEx.Equal(new[] { "= null", "= null", "F2" }, actualAnalyzedKeys);
+        }
+
+        [Fact]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
+        public void AnalyzeMethodsInEnabledContextOnly_07()
+        {
+            var source =
+@"using System.Runtime.InteropServices;
+class Program
+{
+#nullable enable
+    const object? C1 = null;
+    const object? C2 = null;
+    const object? C3 = null;
+    const object? C4 = null;
+#nullable disable
+#nullable enable
+    static void F1(
+        [DefaultParameterValue(C1)]
+        object x)
+#nullable disable
+    {
+    }
+    static void F2(
+#nullable enable
+        [DefaultParameterValue(C2)]
+#nullable disable
+        object x)
+    {
+    }
+    static void F3(
+        [DefaultParameterValue(C3)]
+#nullable enable
+        object x)
+#nullable disable
+    {
+    }
+    static void F4(
+        [DefaultParameterValue(C4)]
+        object x)
+#nullable enable
+#nullable disable
+    {
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.VerifyDiagnostics(
+                // (12,9): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         [DefaultParameterValue(C1)]
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, @"[DefaultParameterValue(C1)]
+        object x").WithLocation(12, 9));
+
+            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
+            var expectedAnalyzedKeys = new[]
+            {
+                ".cctor",
+                @"[DefaultParameterValue(C1)]
+        object x",
+                @"[DefaultParameterValue(C2)]
+#nullable disable
+        object x",
+                @"[DefaultParameterValue(C3)]
+#nullable enable
+        object x",
+                "DefaultParameterValue(C1)",
+                "DefaultParameterValue(C2)",
+                "F1",
+                "F2",
+                "F3",
+                "F4",
+            };
+            AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
         }
 
         [Fact]
