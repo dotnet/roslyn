@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return false;
             }
 
-            return dict1.Keys.All(key => dict2.TryGetValue(key, out TValue value2) &&
+            return dict1.Keys.All(key => dict2.TryGetValue(key, out var value2) &&
                                          EqualityComparer<TValue>.Default.Equals(dict1[key], value2));
         }
 

@@ -8,72 +8,40 @@ namespace Microsoft.CodeAnalysis
     {
         public static DiagnosticSeverity? ToDiagnosticSeverity(this ReportDiagnostic reportDiagnostic)
         {
-            switch (reportDiagnostic)
+            return reportDiagnostic switch
             {
-                case ReportDiagnostic.Error:
-                    return DiagnosticSeverity.Error;
-
-                case ReportDiagnostic.Warn:
-                    return DiagnosticSeverity.Warning;
-
-                case ReportDiagnostic.Info:
-                    return DiagnosticSeverity.Info;
-
-                case ReportDiagnostic.Hidden:
-                    return DiagnosticSeverity.Hidden;
-
-                case ReportDiagnostic.Suppress:
-                case ReportDiagnostic.Default:
-                    return null;
-
-                default:
-                    throw new NotImplementedException();
-            }
+                ReportDiagnostic.Error => DiagnosticSeverity.Error,
+                ReportDiagnostic.Warn => DiagnosticSeverity.Warning,
+                ReportDiagnostic.Info => DiagnosticSeverity.Info,
+                ReportDiagnostic.Hidden => DiagnosticSeverity.Hidden,
+                ReportDiagnostic.Suppress or ReportDiagnostic.Default => null,
+                _ => throw new NotImplementedException(),
+            };
         }
 
         public static bool IsLessSevereThan(this ReportDiagnostic current, ReportDiagnostic other)
         {
-            switch (current)
+            return current switch
             {
-                case ReportDiagnostic.Error:
-                    return false;
-
-                case ReportDiagnostic.Warn:
-                    return other switch
-                    {
-                        ReportDiagnostic.Error => true,
-                        _ => false,
-                    };
-
-                case ReportDiagnostic.Info:
-                    switch (other)
-                    {
-                        case ReportDiagnostic.Error:
-                        case ReportDiagnostic.Warn:
-                            return true;
-
-                        default:
-                            return false;
-                    }
-
-                case ReportDiagnostic.Hidden:
-                    switch (other)
-                    {
-                        case ReportDiagnostic.Error:
-                        case ReportDiagnostic.Warn:
-                        case ReportDiagnostic.Info:
-                            return true;
-
-                        default:
-                            return false;
-                    }
-
-                case ReportDiagnostic.Suppress:
-                    return true;
-
-                default:
-                    return false;
-            }
+                ReportDiagnostic.Error => false,
+                ReportDiagnostic.Warn => other switch
+                {
+                    ReportDiagnostic.Error => true,
+                    _ => false,
+                },
+                ReportDiagnostic.Info => other switch
+                {
+                    ReportDiagnostic.Error or ReportDiagnostic.Warn => true,
+                    _ => false,
+                },
+                ReportDiagnostic.Hidden => other switch
+                {
+                    ReportDiagnostic.Error or ReportDiagnostic.Warn or ReportDiagnostic.Info => true,
+                    _ => false,
+                },
+                ReportDiagnostic.Suppress => true,
+                _ => false,
+            };
         }
     }
 }

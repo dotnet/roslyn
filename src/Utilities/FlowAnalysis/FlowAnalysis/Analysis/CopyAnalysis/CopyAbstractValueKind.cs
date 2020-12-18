@@ -37,15 +37,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
     {
         public static bool IsKnown(this CopyAbstractValueKind kind)
         {
-            switch (kind)
+            return kind switch
             {
-                case CopyAbstractValueKind.KnownValueCopy:
-                case CopyAbstractValueKind.KnownReferenceCopy:
-                    return true;
-
-                default:
-                    return false;
-            }
+                CopyAbstractValueKind.KnownValueCopy
+                or CopyAbstractValueKind.KnownReferenceCopy => true,
+                _ => false,
+            };
         }
 
         public static CopyAbstractValueKind MergeIfBothKnown(this CopyAbstractValueKind kind, CopyAbstractValueKind kindToMerge)
