@@ -125,7 +125,7 @@ End Module
         End Sub
 
         <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestRemoveParameters_DoNotAddUnnecessaryParensToInvocation() As Task
 
             Dim markup = <Text><![CDATA[
