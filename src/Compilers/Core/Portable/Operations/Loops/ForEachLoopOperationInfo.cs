@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public readonly ImmutableArray<IArgumentOperation> GetEnumeratorArguments;
         public readonly ImmutableArray<IArgumentOperation> MoveNextArguments;
         public readonly ImmutableArray<IArgumentOperation> CurrentArguments;
+        public readonly ImmutableArray<IArgumentOperation> DisposeArguments;
 
         public ForEachLoopOperationInfo(
             ITypeSymbol elementType,
@@ -51,7 +52,8 @@ namespace Microsoft.CodeAnalysis.Operations
             IConvertibleConversion elementConversion,
             ImmutableArray<IArgumentOperation> getEnumeratorArguments = default,
             ImmutableArray<IArgumentOperation> moveNextArguments = default,
-            ImmutableArray<IArgumentOperation> currentArguments = default)
+            ImmutableArray<IArgumentOperation> currentArguments = default,
+            ImmutableArray<IArgumentOperation> disposeArguments = default)
         {
             ElementType = elementType;
             GetEnumeratorMethod = getEnumeratorMethod;
@@ -67,6 +69,7 @@ namespace Microsoft.CodeAnalysis.Operations
             GetEnumeratorArguments = getEnumeratorArguments;
             MoveNextArguments = moveNextArguments;
             CurrentArguments = currentArguments;
+            DisposeArguments = disposeArguments;
         }
     }
 }
