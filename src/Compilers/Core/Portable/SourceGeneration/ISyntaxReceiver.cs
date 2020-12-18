@@ -5,6 +5,17 @@
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
+    /// The base interface of <see cref="ISyntaxReceiver"/>
+    /// </summary>
+    /// <remarks>
+    /// This interface is used internally in Roslyn to support backwards compatibility, and should not be implemented directly by consumers.
+    /// </remarks>
+    public interface ISyntaxReceiverBase
+    {
+        // BACK COMPAT - Do not add any members to this interface.
+    }
+
+    /// <summary>
     /// Receives notifications of each syntax node in the compilation before generation runs
     /// </summary>
     /// <remarks>
@@ -23,7 +34,7 @@ namespace Microsoft.CodeAnalysis
     /// A new instance of <see cref="ISyntaxReceiver"/> is created per-generation, meaning the instance
     /// is free to store state without worrying about lifetime or reuse.
     /// </remarks>
-    public interface ISyntaxReceiver
+    public interface ISyntaxReceiver : ISyntaxReceiverBase
     {
         /// <summary>
         /// Called for each <see cref="SyntaxNode"/> in the compilation
@@ -36,5 +47,5 @@ namespace Microsoft.CodeAnalysis
     /// Allows a generator to provide instances of an <see cref="ISyntaxReceiver"/>
     /// </summary>
     /// <returns>An instance of an <see cref="ISyntaxReceiver"/></returns>
-    public delegate ISyntaxReceiver SyntaxReceiverCreator();
+    public delegate ISyntaxReceiverBase SyntaxReceiverCreator();
 }

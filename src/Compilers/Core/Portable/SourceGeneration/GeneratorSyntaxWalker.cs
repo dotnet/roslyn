@@ -6,16 +6,21 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class GeneratorSyntaxWalker : SyntaxWalker
     {
-        private readonly ISyntaxReceiver _syntaxReceiver;
+        private readonly ISyntaxReceiverBase _syntaxReceiver;
 
-        internal GeneratorSyntaxWalker(ISyntaxReceiver syntaxReceiver)
+        internal GeneratorSyntaxWalker(ISyntaxReceiverBase syntaxReceiver)
         {
             _syntaxReceiver = syntaxReceiver;
         }
 
         public override void Visit(SyntaxNode node)
         {
-            _syntaxReceiver.OnVisitSyntaxNode(node);
+            switch (_syntaxReceiver)
+            {
+                case ISyntaxReceiver syntaxReceiver:
+                    syntaxReceiver.OnVisitSyntaxNode(node);
+                    break;
+            }
             base.Visit(node);
         }
     }

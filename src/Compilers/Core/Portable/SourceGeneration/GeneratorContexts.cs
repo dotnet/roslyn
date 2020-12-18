@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis
 
         private readonly AdditionalSourcesCollection _additionalSources;
 
-        internal GeneratorExecutionContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxReceiver? syntaxReceiver, AdditionalSourcesCollection additionalSources, CancellationToken cancellationToken = default)
+        internal GeneratorExecutionContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxReceiverBase? syntaxReceiver, AdditionalSourcesCollection additionalSources, CancellationToken cancellationToken = default)
         {
             Compilation = compilation;
             ParseOptions = parseOptions;
             AdditionalFiles = additionalTexts;
             AnalyzerConfigOptions = optionsProvider;
-            SyntaxReceiver = syntaxReceiver;
+            SyntaxReceiver = syntaxReceiver as ISyntaxReceiver;
             CancellationToken = cancellationToken;
             _additionalSources = additionalSources;
             _diagnostics = new DiagnosticBag();
