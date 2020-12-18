@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Testing
         public SolutionState(string name, string language, string defaultPrefix, string defaultExtension)
             : base(name, language, defaultPrefix, defaultExtension)
         {
+            AdditionalProjects = new ProjectCollection(language, defaultExtension);
         }
 
         /// <summary>
@@ -35,11 +36,9 @@ namespace Microsoft.CodeAnalysis.Testing
         public List<Func<IEnumerable<(string filename, SourceText content)>>> AdditionalFilesFactories { get; } = new List<Func<IEnumerable<(string filename, SourceText content)>>>();
 
         /// <summary>
-        /// Gets a list of additional projects to include in the solution. A <see cref="ProjectReference"/> will be
-        /// added from the primary project to each of the additional projects provided here. Markup, additional files,
-        /// and diagnostics in additional projects are not yet supported.
+        /// Gets a collection of additional projects to include in the solution.
         /// </summary>
-        public List<ProjectState> AdditionalProjects { get; } = new List<ProjectState>();
+        public ProjectCollection AdditionalProjects { get; }
 
         /// <summary>
         /// Gets the list of diagnostics expected in the source(s) and/or additonal files.
