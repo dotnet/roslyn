@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal readonly bool _hasGlobalFileName;
+        private readonly bool _hasGlobalFileName;
 
         private AnalyzerConfig(
             Section globalSection,
