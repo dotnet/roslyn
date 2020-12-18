@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public UnusedReferencesService()
         {
-
         }
 
         public async Task<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(
