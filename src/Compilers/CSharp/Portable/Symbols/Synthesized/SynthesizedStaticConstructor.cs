@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly NamedTypeSymbol _containingType;
         private ThreeState _lazyShouldEmit = ThreeState.Unknown;
-        private ThreeState _lazyIsNullableEnabled;
 
         internal SynthesizedStaticConstructor(NamedTypeSymbol containingType)
         {
@@ -379,14 +378,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: true);
         }
 
-        internal sealed override bool IsNullableEnabled()
-        {
-            if (_lazyIsNullableEnabled == ThreeState.Unknown)
-            {
-                _lazyIsNullableEnabled = IsNullableEnabledCore(isEnabledInMethod: false).ToThreeState();
-            }
-            return _lazyIsNullableEnabled == ThreeState.True;
-        }
+        internal sealed override bool IsNullableEnabled() =>
+            (ContainingType as SourceMemberContainerTypeSymbol)?.IsNullableEnabledForConstructorsAndInitializers(useStatic: true) ?? false;
 
         internal bool ShouldEmit(ImmutableArray<BoundInitializer> boundInitializersOpt = default)
         {

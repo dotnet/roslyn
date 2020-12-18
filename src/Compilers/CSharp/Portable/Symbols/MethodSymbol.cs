@@ -1168,58 +1168,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal virtual bool IsNullableEnabled() => false;
 
-        /// <summary>
-        /// If this method is a constructor, includes the nullable context for any
-        /// fields from the containing type that are set in this constructor.
-        /// <paramref name="isEnabledInMethod"/> should be set to the nullable
-        /// context from the method alone (covering signature and method body).
-        /// </summary>
-        protected bool IsNullableEnabledCore(bool? isEnabledInMethod)
-        {
-            if (isEnabledInMethod == true)
-            {
-                return true;
-            }
-
-            bool? result = isEnabledInMethod;
-            if (this.IncludeFieldInitializersInBody() &&
-                ContainingType is SourceMemberContainerTypeSymbol containingType)
-            {
-                foreach (var member in containingType.GetMembersUnordered())
-                {
-                    if (member.IsStatic != this.IsStatic)
-                    {
-                        continue;
-                    }
-                    var syntax = member switch
-                    {
-                        SourceFieldSymbolWithSyntaxReference field => field.SyntaxNode,
-                        SourcePropertySymbolBase { BackingField: { } } property => property.SyntaxReference.GetSyntax(),
-                        SourceFieldLikeEventSymbol { AssociatedEventField: { } } @event => @event.SyntaxReference.GetSyntax(),
-                        _ => null,
-                    };
-                    if (syntax is { })
-                    {
-                        switch (((CSharpSyntaxTree)syntax.SyntaxTree).IsNullableAnalysisEnabled(syntax.Span))
-                        {
-                            case true:
-                                return true;
-                            case null:
-                                result = null;
-                                break;
-                        }
-                    }
-                }
-            }
-
-            if (result.HasValue)
-            {
-                return result.GetValueOrDefault();
-            }
-
-            return (DeclaringCompilation.Options.NullableContextOptions & NullableContextOptions.Warnings) != 0;
-        }
-
         #region IMethodSymbolInternal
 
         bool IMethodSymbolInternal.IsIterator => IsIterator;

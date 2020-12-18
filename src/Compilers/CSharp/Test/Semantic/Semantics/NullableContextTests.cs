@@ -7,6 +7,7 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -587,7 +588,7 @@ static class Program
 static class Program
 {
 #nullable disable
-    static void M2 ()
+    static void M2()
 #nullable enable
     {
         object obj = null;
@@ -603,7 +604,7 @@ static class Program
 static class Program
 {
 #nullable disable
-    static void M3 ()
+    static void M3()
     {
 #nullable enable
         object obj = null;
@@ -619,7 +620,7 @@ static class Program
 static class Program
 {
 #nullable disable
-    static void M4 ()
+    static void M4()
     {
 #nullable disable
         object obj = null;
@@ -682,8 +683,8 @@ static class Program
                 comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
-                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
-                AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
 
                 var tree = (CSharpSyntaxTree)comp.SyntaxTrees[0];
                 var methodDeclarations = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
@@ -871,7 +872,7 @@ class Program
     Program() { }
     Program(object obj) : this() { }
 }";
-            verify(source, new[] { ".ctor" });
+            verify(source, new[] { ".ctor", ".ctor" });
 
             source =
 @"#pragma warning disable 169
@@ -892,8 +893,8 @@ class Program
                 comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
-                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
-                AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
 
                 var tree = (CSharpSyntaxTree)comp.SyntaxTrees[0];
                 var methodDeclarations = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
@@ -965,7 +966,7 @@ partial class Program
                 //     object F3 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 17));
 
-            verify(new[] { source1, source2, source3, source4 }, TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Enable), new[] { ".ctor" },
+            verify(new[] { source1, source2, source3, source4 }, TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Enable), new[] { ".cctor", ".ctor" },
                 // (4,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     object F1 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 17),
@@ -982,14 +983,207 @@ partial class Program
                 comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
-                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
-                AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
             }
         }
 
         [Fact]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_05()
+        {
+            var source =
+@"#pragma warning disable 414
+class Program
+{
+#nullable enable
+    object F = 1;
+#nullable disable
+    ~Program()
+    {
+        F = null;
+    }
+}";
+            verify(source, new[] { ".ctor" });
+
+            source =
+@"#pragma warning disable 414
+class Program
+{
+#nullable enable
+    object F = 1;
+    ~Program()
+    {
+        F = null;
+    }
+}";
+            verify(source, new[] { ".ctor", "Finalize" },
+                // (8,13): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         F = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 13));
+
+            static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
+            {
+                var comp = CreateCompilation(source);
+                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.VerifyDiagnostics(expectedDiagnostics);
+
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
+            }
+        }
+
+        [Fact]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
+        public void AnalyzeMethodsInEnabledContextOnly_06()
+        {
+            var source =
+@"class Program
+{
+#nullable enable
+    object P
+#nullable disable
+#nullable enable
+        => null;
+    object Q
+#nullable disable
+        => null;
+}";
+            verify(source, new[] { "get_P" },
+                // (7,12): warning CS8603: Possible null reference return.
+                //         => null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(7, 12));
+
+            source =
+@"class Program
+{
+#nullable enable
+    object P
+    {
+        get { return null; }
+#nullable disable
+        set { value = null; }
+    }
+#nullable enable
+    object Q
+    {
+#nullable disable
+        get => null;
+#nullable enable
+        set => value = null;
+    }
+}";
+            verify(source, new[] { "get_P", "set_Q" },
+                // (6,22): warning CS8603: Possible null reference return.
+                //         get { return null; }
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(6, 22),
+                // (16,24): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         set => value = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(16, 24));
+
+            source =
+@"#pragma warning disable 414
+delegate void D();
+class Program
+{
+#nullable enable
+    D _e = null!;
+    D _f = null!;
+#nullable disable
+    event D E
+    {
+#nullable enable
+        add { _e = null; }
+#nullable disable
+        remove { _e = null; }
+    }
+    event D F
+    {
+#nullable disable
+        add => _f = null;
+#nullable enable
+        remove => _f = null;
+    }
+}";
+            verify(source, new[] { ".ctor", "add_E", "remove_F" },
+                // (12,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         add { _e = null; }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 20),
+                // (21,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         remove => _f = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(21, 24));
+
+            static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
+            {
+                var comp = CreateCompilation(source);
+                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.VerifyDiagnostics(expectedDiagnostics);
+
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
+            }
+        }
+
+        [Fact]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
+        public void AnalyzeMethodsInEnabledContextOnly_07()
+        {
+            var source =
+@"class A
+{
+}
+class B
+{
+    public static explicit operator B(A a) => null;
+}";
+            verify(source, new string[0]);
+
+            source =
+@"class A
+{
+}
+class B
+{
+#nullable enable
+    public static explicit operator B(A a) => null;
+}";
+            verify(source, new[] { "op_Explicit" },
+                // (7,47): warning CS8603: Possible null reference return.
+                //     public static explicit operator B(A a) => null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(7, 47));
+
+            source =
+@"class C
+{
+    public static C operator~(C c) => null;
+}";
+            verify(source, new string[0]);
+
+            source =
+@"class C
+{
+#nullable enable
+    public static C operator~(C c) => null;
+}";
+            verify(source, new[] { "op_OnesComplement" },
+                // (4,39): warning CS8603: Possible null reference return.
+                //     public static C operator~(C c) => null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(4, 39));
+
+            static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
+            {
+                var comp = CreateCompilation(source);
+                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.VerifyDiagnostics(expectedDiagnostics);
+
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
+            }
+        }
+
+        [Fact]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
+        public void AnalyzeMethodsInEnabledContextOnly_08()
         {
             var source1 =
 @"partial class Program
@@ -1022,13 +1216,14 @@ partial class Program
                 //     partial void F4(ref object o4) { o4 = null; }
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 43));
 
-            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
-            AssertEx.Equal(new[] { "F1", "F4" }, actualAnalyzedKeys);
+            var expectedAnalyzedKeys = new[] { "F1", "F4" };
+            AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
+            AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
         }
 
         [Fact]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
-        public void AnalyzeMethodsInEnabledContextOnly_06()
+        public void AnalyzeMethodsInEnabledContextOnly_09()
         {
             var source =
 @"partial class Program
@@ -1063,7 +1258,7 @@ partial class Program
 
         [Fact]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
-        public void AnalyzeMethodsInEnabledContextOnly_07()
+        public void AnalyzeMethodsInEnabledContextOnly_10()
         {
             var source =
 @"using System.Runtime.InteropServices;
@@ -1137,7 +1332,7 @@ class Program
 
         [Fact]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
-        public void AnalyzeMethodsInEnabledContextOnly_TopLevelStatements()
+        public void AnalyzeMethodsInEnabledContextOnly_11()
         {
             var sourceA =
 @"object x = A.F();
@@ -1169,8 +1364,8 @@ _ = x.ToString();
                 comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
                 comp.VerifyDiagnostics();
 
-                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
-                AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
             }
         }
 
@@ -1211,8 +1406,9 @@ _ = x.ToString();
             typeInfo = model.GetTypeInfo(syntax.Expression);
             Assert.Equal(Microsoft.CodeAnalysis.NullableFlowState.None, typeInfo.Nullability.FlowState);
 
-            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
-            AssertEx.Equal(new[] { "F1" }, actualAnalyzedKeys);
+            var expectedAnalyzedKeys = new[] { "F1" };
+            AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
+            AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
         }
 
         [Fact]
@@ -1273,8 +1469,8 @@ _ = x.ToString();
                 var typeInfo = model.GetTypeInfo(syntax);
                 Assert.Equal(expectedFlowState, typeInfo.Nullability.FlowState);
 
-                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
-                AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
             }
         }
 
@@ -1390,7 +1586,18 @@ class Program
         }
 
         private static string[] GetNullableDataKeysAsStrings(ConcurrentDictionary<object, NullableWalker.Data> nullableData, bool requiredAnalysis = false) =>
-            nullableData.Where(pair => !requiredAnalysis || pair.Value.RequiredAnalysis).Select(pair => GetNullableDataKeyAsString(pair.Key)).OrderBy(key => key).ToArray();
+            nullableData.
+                Where(pair => !requiredAnalysis || pair.Value.RequiredAnalysis).
+                Select(pair => GetNullableDataKeyAsString(pair.Key)).
+                OrderBy(key => key).
+                ToArray();
+
+        private static string[] GetIsNullableEnabledMethods(ConcurrentDictionary<object, NullableWalker.Data> nullableData) =>
+            nullableData.
+                Where(pair => pair.Value.RequiredAnalysis && pair.Key is MethodSymbol method && method.IsNullableEnabled()).
+                Select(pair => GetNullableDataKeyAsString(pair.Key)).
+                OrderBy(key => key).
+                ToArray();
 
         private static string GetNullableDataKeyAsString(object key) =>
             key is Symbol symbol ? symbol.MetadataName : ((SyntaxNode)key).ToString();

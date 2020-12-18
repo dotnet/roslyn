@@ -236,6 +236,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
+        internal sealed override bool IsNullableEnabled()
+        {
+            return ((SourceMemberContainerTypeSymbol)ContainingType).IsNullableEnabledForConstructorsAndInitializers(IsStatic);
+        }
+
         protected abstract CSharpSyntaxNode GetInitializer();
 
         protected abstract bool IsWithinExpressionOrBlockBody(int position, out int offset);

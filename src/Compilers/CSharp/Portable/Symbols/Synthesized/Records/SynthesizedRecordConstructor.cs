@@ -15,7 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
              DiagnosticBag diagnostics) :
              base(containingType, syntax.Identifier.GetLocation(), syntax, isIterator: false)
         {
-            this.MakeFlags(MethodKind.Constructor, containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public, returnsVoid: true, isExtensionMethod: false);
+            this.MakeFlags(
+                MethodKind.Constructor,
+                containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public,
+                returnsVoid: true,
+                isExtensionMethod: false,
+                isNullableEnabled: false); // IsNullableEnabled uses containing type instead.
         }
 
         internal RecordDeclarationSyntax GetSyntax()
