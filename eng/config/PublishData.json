@@ -209,7 +209,7 @@
       "nugetKind": [ "Shipping", "NonShipping" ],
       "version": "3.9.*",
       "packageFeeds": "default",
-      "channels": [ "dev16.9p2" ],
+      "channels": [ "dev16.9p3" ],
       "vsBranch": "rel/d16.9",
       "vsMajorVersion": 16
     },
