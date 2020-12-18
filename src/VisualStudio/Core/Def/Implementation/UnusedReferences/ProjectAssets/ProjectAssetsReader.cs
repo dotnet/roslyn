@@ -15,6 +15,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
     // is subject to change and in the future this information will be provided by an API.  See https://github.com/dotnet/roslyn/issues/50054
     internal static class ProjectAssetsReader
     {
+        // NuGet will include entries to keep empty folders from being removed. These entries can be ignored.
+        private const string NuGetEmptyFileName = "_._";
+
         public static ImmutableArray<ReferenceInfo> ReadReferences(
             ImmutableArray<ReferenceInfo> projectReferences,
             string projectAssetsFilePath,
@@ -113,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             var packagesPath = projectAssets.Project?.Restore?.PackagesPath ?? string.Empty;
             var compilationAssemblies = targetLibrary.Compile != null
                 ? targetLibrary.Compile.Keys
-                    .Where(assemblyPath => !assemblyPath.EndsWith("_._"))
+                    .Where(assemblyPath => !assemblyPath.EndsWith(NuGetEmptyFileName))
                     .Select(assemblyPath => Path.GetFullPath(Path.Combine(packagesPath, library.Path, assemblyPath)))
                     .ToImmutableArray()
                 : ImmutableArray<string>.Empty;
