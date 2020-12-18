@@ -55,9 +55,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
-            var history = _textUndoHistoryRegistry.GetHistory(args.SubjectBuffer);
-            var operations = _editorOperationsFactoryService.GetEditorOperations(args.TextView);
-
             var willMoveSemicolon = BeforeExecuteCommand(speculative: true, args: args, executionContext: executionContext);
             if (!willMoveSemicolon)
             {
@@ -66,17 +63,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return;
             }
 
-            using var transaction = new HACK_TextUndoTransactionThatRollsBackProperly(history.CreateTransaction(nameof(CompleteStatementCommandHandler)));
-
-            operations.AddBeforeTextBufferChangePrimitive();
+            using var transaction = CaretPreservingEditTransaction.TryCreate(CSharpEditorResources.Complete_statement_on_semicolon, args.TextView, _textUndoHistoryRegistry, _editorOperationsFactoryService);
 
             // Determine where semicolon should be placed and move caret to location
             BeforeExecuteCommand(speculative: false, args: args, executionContext: executionContext);
 
             // Insert the semicolon using next command handler
             nextCommandHandler();
-
-            operations.AddAfterTextBufferChangePrimitive();
 
             transaction.Complete();
         }
