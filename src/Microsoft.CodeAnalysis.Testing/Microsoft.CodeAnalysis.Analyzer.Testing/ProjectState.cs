@@ -4,16 +4,14 @@
 
 namespace Microsoft.CodeAnalysis.Testing
 {
-    public abstract class ProjectState
+    public class ProjectState
     {
-        private readonly string _defaultPrefix;
-        private readonly string _defaultExtension;
-
-        protected ProjectState(string name, string defaultPrefix, string defaultExtension)
+        public ProjectState(string name, string language, string defaultPrefix, string defaultExtension)
         {
             Name = name;
-            _defaultPrefix = defaultPrefix;
-            _defaultExtension = defaultExtension;
+            Language = language;
+            DefaultPrefix = defaultPrefix;
+            DefaultExtension = defaultExtension;
 
             Sources = new SourceFileList(defaultPrefix, defaultExtension);
         }
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         public string AssemblyName => Name;
 
-        public abstract string Language { get; }
+        public string Language { get; }
 
         /// <summary>
         /// Gets the set of source files for analyzer or code fix testing. Files may be added to this list using one of
@@ -31,5 +29,9 @@ namespace Microsoft.CodeAnalysis.Testing
         public SourceFileList Sources { get; }
 
         public MetadataReferenceCollection AdditionalReferences { get; } = new MetadataReferenceCollection();
+
+        private protected string DefaultPrefix { get; }
+
+        private protected string DefaultExtension { get; }
     }
 }

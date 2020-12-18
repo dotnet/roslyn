@@ -12,17 +12,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
-    public class SolutionState
+    public class SolutionState : ProjectState
     {
-        private readonly string _defaultPrefix;
-        private readonly string _defaultExtension;
-
-        public SolutionState(string defaultPrefix, string defaultExtension)
+        public SolutionState(string name, string language, string defaultPrefix, string defaultExtension)
+            : base(name, language, defaultPrefix, defaultExtension)
         {
-            _defaultPrefix = defaultPrefix;
-            _defaultExtension = defaultExtension;
-
-            Sources = new SourceFileList(defaultPrefix, defaultExtension);
         }
 
         /// <summary>
@@ -36,12 +30,6 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         public StateInheritanceMode? InheritanceMode { get; set; }
 
-        /// <summary>
-        /// Gets the set of source files for analyzer or code fix testing. Files may be added to this list using one of
-        /// the <see cref="SourceFileList.Add(string)"/> methods.
-        /// </summary>
-        public SourceFileList Sources { get; }
-
         public SourceFileCollection AdditionalFiles { get; } = new SourceFileCollection();
 
         public List<Func<IEnumerable<(string filename, SourceText content)>>> AdditionalFilesFactories { get; } = new List<Func<IEnumerable<(string filename, SourceText content)>>>();
@@ -52,8 +40,6 @@ namespace Microsoft.CodeAnalysis.Testing
         /// and diagnostics in additional projects are not yet supported.
         /// </summary>
         public List<ProjectState> AdditionalProjects { get; } = new List<ProjectState>();
-
-        public MetadataReferenceCollection AdditionalReferences { get; } = new MetadataReferenceCollection();
 
         /// <summary>
         /// Gets the list of diagnostics expected in the source(s) and/or additonal files.
@@ -138,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 throw new InvalidOperationException("The base state should already have its inheritance state evaluated prior to its use as a base state.");
             }
 
-            var result = new SolutionState(_defaultPrefix, _defaultExtension);
+            var result = new SolutionState(Name, Language, DefaultPrefix, DefaultExtension);
             if (inheritanceMode != StateInheritanceMode.Explicit && baseState != null)
             {
                 if (Sources.Count == 0)
@@ -245,8 +231,9 @@ namespace Microsoft.CodeAnalysis.Testing
 
         /// <summary>
         /// Processes the markup syntax for this <see cref="SolutionState"/> according to the current
-        /// <see cref="MarkupHandling"/>, and returns a new <see cref="SolutionState"/> with the <see cref="Sources"/>,
-        /// <see cref="AdditionalFiles"/>, and <see cref="ExpectedDiagnostics"/> updated accordingly.
+        /// <see cref="MarkupHandling"/>, and returns a new <see cref="SolutionState"/> with the
+        /// <see cref="ProjectState.Sources"/>, <see cref="AdditionalFiles"/>, and <see cref="ExpectedDiagnostics"/>
+        /// updated accordingly.
         /// </summary>
         /// <param name="markupOptions">Additional options to apply during markup processing.</param>
         /// <param name="defaultDiagnostic">The diagnostic descriptor to use for markup spans without an explicit name,
@@ -276,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 additionalExpected[i] = additionalExpected[i].WithAppliedMarkupLocations(markupLocations);
             }
 
-            var result = new SolutionState(_defaultPrefix, _defaultExtension);
+            var result = new SolutionState(Name, Language, DefaultPrefix, DefaultExtension);
             result.MarkupHandling = MarkupMode.None;
             result.InheritanceMode = StateInheritanceMode.Explicit;
             result.Sources.AddRange(testSources);
