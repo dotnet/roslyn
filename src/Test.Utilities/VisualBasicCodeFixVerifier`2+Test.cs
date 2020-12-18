@@ -33,7 +33,7 @@ namespace Test.Utilities
                             DocumentId.CreateNewId(projectId, debugName: ".editorconfig"),
                             ".editorconfig",
                             SourceText.From($"is_global = true" + Environment.NewLine + AnalyzerConfigDocument),
-                            filePath: @"z:\.editorconfig");
+                            filePath: @"/.editorconfig");
                     }
 
                     return solution;
