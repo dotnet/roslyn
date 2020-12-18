@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
             : base(IDEDiagnosticIds.NamespaceSyncAnalyzerDiagnosticId,
                    CSharpCodeStyleOptions.PreferNamespaceMatchFolderStructure,
                    LanguageNames.CSharp,
-                   s_localizableInsideMessage)
+                   title: s_localizableTitle,
+                   messageFormat: s_localizableInsideMessage)
         {
         }
 
