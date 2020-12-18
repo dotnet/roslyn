@@ -345,7 +345,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
                     if (expression.ConstantValue == ConstantValue.Null)
                     {
-                        if (inputType.IsNonNullableValueType())
+                        // Pointers are value types, but they can be assigned null, so they can be matched against null.
+                        if (inputType.IsNonNullableValueType() && !inputType.IsPointerOrFunctionPointer())
                         {
                             // We do not permit matching null against a struct type.
                             diagnostics.Add(ErrorCode.ERR_ValueCantBeNull, expression.Syntax.Location, inputType);

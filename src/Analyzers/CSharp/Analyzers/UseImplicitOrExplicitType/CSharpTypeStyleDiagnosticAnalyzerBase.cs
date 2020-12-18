@@ -25,8 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         protected abstract CSharpTypeStyleHelper Helper { get; }
 
         protected CSharpTypeStyleDiagnosticAnalyzerBase(
-            string diagnosticId, LocalizableString title, LocalizableString message)
+            string diagnosticId, EnforceOnBuild enforceOnBuild, LocalizableString title, LocalizableString message)
             : base(diagnosticId,
+                   enforceOnBuild,
                    ImmutableHashSet.Create<ILanguageSpecificOption>(CSharpCodeStyleOptions.VarForBuiltInTypes, CSharpCodeStyleOptions.VarWhenTypeIsApparent, CSharpCodeStyleOptions.VarElsewhere),
                    LanguageNames.CSharp,
                    title, message)

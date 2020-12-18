@@ -37,6 +37,8 @@ jobs:
   timeoutInMinutes: 135
 
   steps:
+    - template: eng/pipelines/checkout-windows-task.yml
+
     - task: PowerShell@2
       displayName: Build and Test
       inputs:

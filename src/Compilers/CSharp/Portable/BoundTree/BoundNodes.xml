@@ -933,6 +933,7 @@
     <Field Name="DisposeMethodOpt" Type="MethodSymbol?" Null="Allow"/>
     <Field Name="IDisposableConversion" Type="Conversion"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
+    <Field Name="Binder" Type="Binder" />
   </Node>
 
   <!-- 
@@ -1101,6 +1102,7 @@
     <Field Name="Body" Type="BoundStatement"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
     <Field Name="DisposeMethodOpt" Type="MethodSymbol?"/>
+    <Field Name="Binder" Type="Binder" />
   </Node>
 
   <Node Name="BoundFixedStatement" Base="BoundStatement">

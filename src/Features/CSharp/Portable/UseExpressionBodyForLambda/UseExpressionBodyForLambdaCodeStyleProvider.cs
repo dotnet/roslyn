@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             : base(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas,
                    LanguageNames.CSharp,
                    IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId,
+                   EnforceOnBuildValues.UseExpressionBodyForLambdaExpressions,
                    UseExpressionBodyTitle,
                    UseExpressionBodyTitle)
         {

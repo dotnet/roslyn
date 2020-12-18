@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,17 +20,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             /// <summary>
             /// Holds the current object instance being initialized if we're visiting an object initializer.
             /// </summary>
-            public IOperation ImplicitInstance { get; }
+            public IOperation? ImplicitInstance { get; }
 
             /// <summary>
             /// Holds the current anonymous type instance being initialized if we're visiting an anonymous object initializer.
             /// </summary>
-            public INamedTypeSymbol AnonymousType { get; }
+            public INamedTypeSymbol? AnonymousType { get; }
 
             /// <summary>
             /// Holds the captured values for initialized anonymous type properties in an anonymous object initializer.
             /// </summary>
-            public PooledDictionary<IPropertySymbol, IOperation> AnonymousTypePropertyValues { get; }
+            public PooledDictionary<IPropertySymbol, IOperation>? AnonymousTypePropertyValues { get; }
 
             public ImplicitInstanceInfo(IOperation currentImplicitInstance)
             {
