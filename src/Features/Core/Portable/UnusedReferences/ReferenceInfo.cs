@@ -46,21 +46,5 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             CompilationAssemblies = compilationAssemblies;
             Dependencies = dependencies;
         }
-
-        /// <summary>
-        /// Gets the compilation assemblies this reference directly brings into the compilation as well as those
-        /// brought in transitively.
-        /// </summary>
-        public ImmutableArray<string> GetAllCompilationAssemblies()
-        {
-            return CompilationAssemblies
-                .Concat(GetTransitiveCompilationAssemblies())
-                .ToImmutableArray();
-        }
-
-        private IEnumerable<string> GetTransitiveCompilationAssemblies()
-        {
-            return Dependencies.SelectMany(dependency => dependency.GetAllCompilationAssemblies());
-        }
     }
 }

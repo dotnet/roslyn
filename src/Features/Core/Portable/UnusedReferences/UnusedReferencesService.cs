@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             // Determine which toplevel references have compilation assemblies in set of used assemblies.
             var toplevelUsedReferences = references.Where(reference =>
                 reference.CompilationAssemblies.Any(usedAssemblyLookup.Contains));
-            var toplevelUsedAssemblyReferences = toplevelUsedReferences.SelectMany(reference => reference.GetAllCompilationAssemblies());
+            var toplevelUsedAssemblyReferences = toplevelUsedReferences.SelectMany(reference => GetAllCompilationAssemblies(reference));
 
             // Remove all assemblies that are brought into the compilation from those toplevel used references. When
             // determining transtively used references this will reduce false positives.
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             // Determine which transtive references have compilation assemblies in the set of remaining used assemblies.
             foreach (var reference in remainingReferences)
             {
-                var allCompilationAssemblies = reference.GetAllCompilationAssemblies();
+                var allCompilationAssemblies = GetAllCompilationAssemblies(reference);
                 if (allCompilationAssemblies.IsEmpty)
                 {
                     // We will consider References that do not contribute any assemblies to the compilation,
@@ -114,7 +114,16 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 remainingUsedAssemblyLookup = remainingUsedAssemblyLookup.Except(allCompilationAssemblies);
             }
 
-            return remainingUsedAssemblyLookup;
+            return;
+
+            static ImmutableArray<string> GetAllCompilationAssemblies(ReferenceInfo reference)
+            {
+                var transitiveCompilationAssemblies = reference.Dependencies
+                    .SelectMany(dependency => GetAllCompilationAssemblies(dependency));
+                return reference.CompilationAssemblies
+                    .Concat(transitiveCompilationAssemblies)
+                    .ToImmutableArray();
+            }
         }
 
         public async Task<Project> UpdateReferencesAsync(
