@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         public bool TreatAsUsed { get; }
 
         /// <summary>
-        /// The assembly paths that this reference directly adds to the compilation.
+        /// The full assembly paths that this reference directly adds to the compilation.
         /// </summary>
         public ImmutableArray<string> CompilationAssemblies { get; }
 

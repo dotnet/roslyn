@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
     [ExportWorkspaceService(typeof(IUnusedReferencesService), ServiceLayer.Default), Shared]
     internal class UnusedReferencesService : IUnusedReferencesService
     {
+        // We set this processing order because we want to favor transitive references when possible.
+        // For instance we process Projects before Packages, since a particular Package could be brought
+        // in transitively by a Project reference.
         private static readonly ReferenceType[] _processingOrder = new[]
         {
             ReferenceType.Project,
@@ -75,25 +78,48 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
             HashSet<string> usedAssemblyLookup,
             ImmutableArray<ReferenceInfo>.Builder unusedReferencesBuilder)
         {
-            // Determine which direct references have compilation assemblies in set of used assemblies.
+
+            // This method checks for used reference two different ways.
+
+            // #1. We check if a reference directly brings in a used compilation assembly.
+            //
+            //    references: [ PackageReference(compilationAssembly: "/libs/Used.dll") ],
+            //    usedAssemblyLookup: [ "/libs/Used.dll" ]
+            //
+
+            // #2. We check if a reference transitively brings in a used compilation assembly.
+            //
+            //    references: [
+            //      ProjectReference(
+            //        compilationAssembly: "/libs/Unused.dll",
+            //        dependencies: [ PackageReference(compilationAssembly: "/libs/Used.dll") ]
+            //      ) ]
+            //    usedAssemblyLookup: [ "/libs/Used.dll" ]
+
+            // Check #1. we will look at the compilation assemblies brought in directly by the
+            // references to see if they are used.
             var usedDirectReferences = references.Where(reference
                 => reference.CompilationAssemblies.Any(usedAssemblyLookup.Contains)).ToArray();
+
+            // We then want to gather all the assemblies brought in directly or transitively by
+            // these used assemblies so that we can remove them from our lookup.
             var usedAssemblyReferences = usedDirectReferences.SelectMany(reference
                 => GetAllCompilationAssemblies(reference)).ToArray();
-
-            // Remove all assemblies that are brought into the compilation from those direct used references. When
-            // determining transtively used references this will reduce false positives.
-            var remainingReferences = references.Except(usedDirectReferences).ToArray();
             usedAssemblyLookup.ExceptWith(usedAssemblyReferences);
 
-            // Determine which transtive references have compilation assemblies in the set of remaining used assemblies.
+            // Now we want to look at the remaining possibly unused references to see if any of
+            // the assemblies they transitively bring in to the compilation are used.
+            var remainingReferences = references.Except(usedDirectReferences).ToArray();
+
             foreach (var reference in remainingReferences)
             {
+                // Check #2. Get all compilation assemblies brought in by this reference so we
+                // can determine if any of them are used.
                 var allCompilationAssemblies = GetAllCompilationAssemblies(reference);
                 if (allCompilationAssemblies.IsEmpty)
                 {
-                    // We will consider References that do not contribute any assemblies to the compilation,
-                    // such as Analyzer packages, as used.
+                    // We will consider References that do not contribute any assemblies to the
+                    // compilation, such as Analyzer packages, as used.
                     continue;
                 }
 
