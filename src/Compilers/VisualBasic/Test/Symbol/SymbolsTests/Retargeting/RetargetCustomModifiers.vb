@@ -7,7 +7,6 @@ Imports System.[Text]
 Imports System.Collections.Generic
 Imports System.Linq
 Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
