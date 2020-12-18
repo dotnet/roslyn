@@ -2329,7 +2329,43 @@ namespace B
                 Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors" AndAlso i.SortText = "Colors" AndAlso i.FilterText = "Colors")
                 Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors.Green" AndAlso i.SortText = "Colors.Green" AndAlso i.FilterText = "Colors.Green")
                 Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "A.Colors.Red" AndAlso i.SortText = "Colors.Red" AndAlso i.FilterText = "Colors.Red")
-                Await state.AssertSelectedCompletionItem("A.Colors")
+                Await state.AssertSelectedCompletionItem("A.Colors", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WorkItem(49632, "https://github.com/dotnet/roslyn/pull/49632")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionEnumTypeSelectionSequenceTest() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+public enum Colors
+{
+    Red,
+    Green
+}
+
+class Program
+{
+    void M(Colors color) { }
+
+    static void Main()
+    {
+        M$$
+    }
+}                             </Document>)
+                state.SendTypeChars("(")
+                Await state.AssertCompletionSession
+                Await state.AssertCompletionItemsContain("Colors", "")
+                Await state.AssertCompletionItemsContain("Colors.Green", "")
+                Await state.AssertCompletionItemsContain("Colors.Red", "")
+                Await state.AssertSelectedCompletionItem("Colors", isHardSelected:=True)
+
+                state.SendDownKey() 'Select "Colors.Green"
+                state.SendTab() ' Insert "Colors.Green"
+                state.SendUndo() 'Undo insert
+                state.SendInvokeCompletionList()
+
+                Await state.AssertSelectedCompletionItem("Colors.Green", isSoftSelected:=True)
             End Using
         End Function
 
@@ -2352,7 +2388,7 @@ public class Program
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "AT" AndAlso i.SortText = "AT" AndAlso i.FilterText = "AT")
                 Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "AT.All" AndAlso i.SortText = "AT.All" AndAlso i.FilterText = "AT.All")
-                Await state.AssertSelectedCompletionItem("AT")
+                Await state.AssertSelectedCompletionItem("AT", isHardSelected:=True)
             End Using
         End Function
 
