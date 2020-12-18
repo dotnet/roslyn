@@ -10,8 +10,6 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
 {
     internal class ReferenceInfo
     {
-        private ImmutableArray<string>? _allCompilationAssemblies;
-
         /// <summary>
         /// Indicates the type of reference.
         /// </summary>
@@ -55,11 +53,9 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         /// </summary>
         public ImmutableArray<string> GetAllCompilationAssemblies()
         {
-            _allCompilationAssemblies ??= CompilationAssemblies
+            return CompilationAssemblies
                 .Concat(GetTransitiveCompilationAssemblies())
                 .ToImmutableArray();
-
-            return _allCompilationAssemblies.Value;
         }
 
         private IEnumerable<string> GetTransitiveCompilationAssemblies()
