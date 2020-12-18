@@ -1691,7 +1691,7 @@ End Class",
 
         #region RS1031 (DefineDiagnosticTitleCorrectlyRule)
 
-        [Fact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
         public async Task RS1031_TitleStringEndsWithPeriod_Diagnostic()
         {
             await VerifyCSharpCodeFixAsync(@"
@@ -1819,7 +1819,7 @@ End Class
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(6).WithLocation(7));
         }
 
-        [Fact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
         public async Task RS1031_TitleStringEndsWithPeriod_ResxFile_Diagnostic()
         {
             var additionalFileName = "Resources.resx";
@@ -1974,7 +1974,7 @@ End Class
     });
         }
 
-        [Fact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
         public async Task RS1031_TitleIsMultiSentence_Diagnostic()
         {
             await VerifyCSharpCodeFixAsync(@"
@@ -2092,7 +2092,7 @@ End Class
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(3).WithLocation(4));
         }
 
-        [Fact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
         public async Task RS1031_TitleIsMultiSentence_ResxFile_Diagnostic()
         {
             var additionalFileName = "Resources.resx";
@@ -2247,7 +2247,7 @@ End Class
     });
         }
 
-        [Fact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
         public async Task RS1031_TitleIsMultiSentence_MultipleDescriptorsUsingSameTitle_Diagnostic()
         {
             await VerifyCSharpCodeFixAsync(@"
@@ -2362,7 +2362,7 @@ End Class
             VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(3).WithLocation(4));
         }
 
-        [Fact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
         public async Task RS1031_TitleIsMultiSentence_MultipleDescriptorsUsingSameTitle_ResxFile_Diagnostic()
         {
             var additionalFileName = "Resources.resx";
@@ -2507,7 +2507,7 @@ End Class
     });
         }
 
-        [Fact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
         public async Task RS1031_TitleStringContainsLineReturn_Diagnostic()
         {
             await VerifyCSharpCodeFixAsync(@"
@@ -2613,7 +2613,7 @@ End Class
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticTitleCorrectlyRule).WithLocation(5).WithLocation(5));
         }
 
-        [Fact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
         public async Task RS1031_TitleStringContainsLineReturn_ResxFile_Diagnostic()
         {
             var additionalFileName = "Resources.resx";
@@ -2770,7 +2770,7 @@ End Class
     });
         }
 
-        [Fact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
         public async Task RS1031_ValidTitleString_NoDiagnostic()
         {
             await VerifyCSharpAnalyzerAsync(@"
@@ -2838,7 +2838,7 @@ End Class
                 GetRS1007ExpectedDiagnostic(2));
         }
 
-        [Fact, WorkItem(3958, "https://github.com/dotnet/roslyn-analyzers/issues/3958")]
+        [WindowsOnlyFact, WorkItem(3958, "https://github.com/dotnet/roslyn-analyzers/issues/3958")]
         public async Task RS1031_LeadingOrTailingWhitespace_Diagnostic()
         {
             var additionalFileName = "Resources.resx";
@@ -3027,7 +3027,7 @@ End Class
 
         #region RS1032 (DefineDiagnosticMessageCorrectlyRule)
 
-        [Fact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
+        [WindowsOnlyFact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
         public async Task RS1032_MessageStringEndsWithPeriodAndIsNotMultiSentence_Diagnostic()
         {
             await VerifyCSharpCodeFixAsync(@"
@@ -3145,7 +3145,7 @@ End Class
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(3).WithLocation(4));
         }
 
-        [Fact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
         public async Task RS1032_MessageStringEndsWithPeriodAndIsNotMultiSentence_ResxFile_Diagnostic()
         {
             var additionalFileName = "Resources.resx";
@@ -3300,7 +3300,7 @@ End Class
     });
         }
 
-        [Fact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
+        [WindowsOnlyFact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
         public async Task RS1032_MessageStringIsMultiSentenceAndDoesNotEndWithPeriod_Diagnostic()
         {
             await VerifyCSharpCodeFixAsync(@"
@@ -3400,7 +3400,7 @@ End Class
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(1).WithLocation(1));
         }
 
-        [Fact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
+        [WindowsOnlyFact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
         public async Task RS1032_MessageStringContainsLineReturn_Diagnostic()
         {
             await VerifyCSharpCodeFixAsync(@"
@@ -3506,7 +3506,7 @@ End Class
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(5).WithLocation(5));
         }
 
-        [Fact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
         public async Task RS1032_MessageStringContainsLineReturn_ResxFile_Diagnostic()
         {
             var additionalFileName = "Resources.resx";
@@ -3663,7 +3663,7 @@ End Class
     });
         }
 
-        [Fact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
+        [WindowsOnlyFact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
         public async Task RS1032_ValidMessageString_NoDiagnostic()
         {
             await VerifyCSharpAnalyzerAsync(@"
@@ -3738,7 +3738,7 @@ End Class
                 GetRS1007ExpectedDiagnostic(3));
         }
 
-        [Fact, WorkItem(3958, "https://github.com/dotnet/roslyn-analyzers/issues/3958")]
+        [WindowsOnlyFact, WorkItem(3958, "https://github.com/dotnet/roslyn-analyzers/issues/3958")]
         public async Task RS1032_LeadingOrTrailingWhitespaces_Diagnostic()
         {
             var additionalFileName = "Resources.resx";
@@ -3929,7 +3929,7 @@ End Class
 
         #region RS1033 (DefineDiagnosticDescriptionCorrectlyRule)
 
-        [Fact, WorkItem(3577, "https://github.com/dotnet/roslyn-analyzers/issues/3577")]
+        [WindowsOnlyFact, WorkItem(3577, "https://github.com/dotnet/roslyn-analyzers/issues/3577")]
         public async Task RS1033_DescriptionStringDoesNotEndWithPunctuation_Diagnostic()
         {
             await VerifyCSharpCodeFixAsync(@"
@@ -4043,7 +4043,7 @@ End Class
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticDescriptionCorrectlyRule).WithLocation(3).WithLocation(4));
         }
 
-        [Fact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
         public async Task RS1033_DescriptionStringDoesNotEndWithPunctuation_ResxFile_Diagnostic()
         {
             var additionalFileName = "Resources.resx";
@@ -4198,7 +4198,7 @@ End Class
     });
         }
 
-        [Fact, WorkItem(3577, "https://github.com/dotnet/roslyn-analyzers/issues/3577")]
+        [WindowsOnlyFact, WorkItem(3577, "https://github.com/dotnet/roslyn-analyzers/issues/3577")]
         public async Task RS1033_DescriptionEndsWithPunctuation_NoDiagnostic()
         {
             await VerifyCSharpAnalyzerAsync(@"
