@@ -44,9 +44,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly ImmutableDictionary<IOperation, TAbstractAnalysisValue>.Builder _valueCacheBuilder;
         private readonly ImmutableDictionary<IOperation, PredicateValueKind>.Builder _predicateValueKindCacheBuilder;
         private readonly HashSet<IArgumentOperation> _pendingArgumentsToReset;
-#pragma warning disable CA1002 // Do not expose generic lists
         private readonly List<IArgumentOperation> _pendingArgumentsToPostProcess;
-#pragma warning restore CA1002 // Do not expose generic lists
         private readonly HashSet<IOperation> _visitedFlowBranchConditions;
         private readonly HashSet<IFlowAnonymousFunctionOperation> _visitedLambdas;
         private readonly HashSet<IOperation>? _returnValueOperations;

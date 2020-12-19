@@ -31,9 +31,7 @@ namespace Analyzer.Utilities
     /// then regular Dictionary is a better choice.
     /// </summary>
 #pragma warning disable CA1051, CA1716 // Do not declare visible instance fields
-#pragma warning disable CA1711 // Identifiers should not have incorrect suffix
     internal sealed class SmallDictionary<K, V> : IEnumerable<KeyValuePair<K, V>>
-#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
         where K : notnull
     {
         private AvlNode? _root;
