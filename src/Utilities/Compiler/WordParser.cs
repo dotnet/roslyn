@@ -650,40 +650,22 @@ namespace Analyzer.Utilities
 
         private static bool IsHexDigit(char c)
         {
-            switch (c)
+            return c switch
             {
-                case 'A':
-                case 'a':
-                case 'B':
-                case 'b':
-                case 'C':
-                case 'c':
-                case 'D':
-                case 'd':
-                case 'E':
-                case 'e':
-                case 'F':
-                case 'f':
-                    return true;
-            }
-
-            return IsDigit(c);
+                'A' or 'a' or 'B' or 'b' or 'C' or 'c' or 'D' or 'd' or 'E' or 'e' or 'F' or 'f' => true,
+                _ => IsDigit(c),
+            };
         }
 
         private static bool IsIntraWordPunctuation(char c)
         {   // Don't be tempted to add En dash and Em dash to this
             // list, as these should be treated as word delimiters.
 
-            switch (c)
+            return c switch
             {
-                case '-':
-                case '\u00AD': // Soft hyphen
-                case '\'':
-                case '\u2019': // Right Single Quotation Mark
-                    return true;
-            }
-
-            return false;
+                '-' or '\u00AD' or '\'' or '\u2019' => true,
+                _ => false,
+            };
         }
     }
 }

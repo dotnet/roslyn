@@ -735,21 +735,16 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             private bool IsPublicApiCore(ISymbol symbol)
             {
-                switch (symbol.DeclaredAccessibility)
+                return symbol.DeclaredAccessibility switch
                 {
-                    case Accessibility.Public:
-                        return symbol.ContainingType == null || IsPublicApiCore(symbol.ContainingType);
-                    case Accessibility.Protected:
-                    case Accessibility.ProtectedOrInternal:
-                        // Protected symbols must have parent types (that is, top-level protected
-                        // symbols are not allowed.
-                        return
-                            symbol.ContainingType != null &&
-                            IsPublicApiCore(symbol.ContainingType) &&
-                            CanTypeBeExtendedPublicly(symbol.ContainingType);
-                    default:
-                        return false;
-                }
+                    Accessibility.Public => symbol.ContainingType == null || IsPublicApiCore(symbol.ContainingType),
+                    Accessibility.Protected
+                    or Accessibility.ProtectedOrInternal => symbol.ContainingType != null
+                        && IsPublicApiCore(symbol.ContainingType)
+                        && CanTypeBeExtendedPublicly(symbol.ContainingType),// Protected symbols must have parent types (that is, top-level protected
+                                                                            // symbols are not allowed.
+                    _ => false,
+                };
             }
 
             private bool CanTypeBeExtendedPublicly(ITypeSymbol type)

@@ -197,16 +197,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             get
             {
-                switch (InstanceLocation.Kind)
+                return InstanceLocation.Kind switch
                 {
-                    case PointsToAbstractValueKind.Unknown:
-                    case PointsToAbstractValueKind.UnknownNull:
-                    case PointsToAbstractValueKind.UnknownNotNull:
-                        return true;
-
-                    default:
-                        return false;
-                }
+                    PointsToAbstractValueKind.Unknown
+                    or PointsToAbstractValueKind.UnknownNull
+                    or PointsToAbstractValueKind.UnknownNotNull => true,
+                    _ => false,
+                };
             }
         }
 

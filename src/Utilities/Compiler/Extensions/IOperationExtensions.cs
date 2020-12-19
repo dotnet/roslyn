@@ -373,21 +373,18 @@ namespace Analyzer.Utilities.Extensions
         /// <returns></returns>
         public static bool IsComparisonOperator(this IBinaryOperation binaryOperation)
         {
-            switch (binaryOperation.OperatorKind)
+            return binaryOperation.OperatorKind switch
             {
-                case BinaryOperatorKind.Equals:
-                case BinaryOperatorKind.NotEquals:
-                case BinaryOperatorKind.ObjectValueEquals:
-                case BinaryOperatorKind.ObjectValueNotEquals:
-                case BinaryOperatorKind.LessThan:
-                case BinaryOperatorKind.LessThanOrEqual:
-                case BinaryOperatorKind.GreaterThan:
-                case BinaryOperatorKind.GreaterThanOrEqual:
-                    return true;
-
-                default:
-                    return false;
-            }
+                BinaryOperatorKind.Equals
+                or BinaryOperatorKind.NotEquals
+                or BinaryOperatorKind.ObjectValueEquals
+                or BinaryOperatorKind.ObjectValueNotEquals
+                or BinaryOperatorKind.LessThan
+                or BinaryOperatorKind.LessThanOrEqual
+                or BinaryOperatorKind.GreaterThan
+                or BinaryOperatorKind.GreaterThanOrEqual => true,
+                _ => false,
+            };
         }
 
         public static IOperation GetRoot(this IOperation operation)
