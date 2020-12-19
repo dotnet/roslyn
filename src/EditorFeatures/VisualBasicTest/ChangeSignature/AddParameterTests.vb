@@ -775,5 +775,55 @@ End Class]]></Text>.NormalizedValue()
 
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
+
+        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function TestAddParameter_AddToInvocationWithoutParens() As Task
+
+            Dim markup = <Text><![CDATA[
+Class C
+    Sub M()
+        $$M
+        M()
+    End Sub
+End Class]]></Text>.NormalizedValue()
+            Dim permutation = {New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer")}
+            Dim updatedCode = <Text><![CDATA[
+Class C
+    Sub M(newIntegerParameter As Integer)
+        M(12345)
+        M(12345)
+    End Sub
+End Class]]></Text>.NormalizedValue()
+
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+        End Function
+
+        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function TestAddParameter_AddToInvocationWithoutParens_WithOptionalParam() As Task
+
+            Dim markup = <Text><![CDATA[
+Class C
+    Sub M(Optional s As String = "str")
+        $$M
+        M()
+        M("test")
+    End Sub
+End Class]]></Text>.NormalizedValue()
+            Dim permutation = {
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(0)}
+            Dim updatedCode = <Text><![CDATA[
+Class C
+    Sub M(newIntegerParameter As Integer, Optional s As String = "str")
+        M(12345)
+        M(12345)
+        M(12345, "test")
+    End Sub
+End Class]]></Text>.NormalizedValue()
+
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+        End Function
     End Class
 End Namespace
