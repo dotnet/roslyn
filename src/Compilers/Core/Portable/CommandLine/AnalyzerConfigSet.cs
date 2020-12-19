@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
                         // this key conflicts with a previous one
-                        else if(currentGlobalLevel == globalLevel)
+                        else if (currentGlobalLevel == globalLevel)
                         {
                             if (duplicateDict is null)
                             {
