@@ -14,25 +14,23 @@ namespace Analyzer.Utilities.Extensions
     {
         public static bool IsPrimitiveType(this ITypeSymbol type)
         {
-            switch (type.SpecialType)
+            return type.SpecialType switch
             {
-                case SpecialType.System_Boolean:
-                case SpecialType.System_Byte:
-                case SpecialType.System_Char:
-                case SpecialType.System_Double:
-                case SpecialType.System_Int16:
-                case SpecialType.System_Int32:
-                case SpecialType.System_Int64:
-                case SpecialType.System_UInt16:
-                case SpecialType.System_UInt32:
-                case SpecialType.System_UInt64:
-                case SpecialType.System_SByte:
-                case SpecialType.System_Single:
-                case SpecialType.System_String:
-                    return true;
-                default:
-                    return false;
-            }
+                SpecialType.System_Boolean
+                or SpecialType.System_Byte
+                or SpecialType.System_Char
+                or SpecialType.System_Double
+                or SpecialType.System_Int16
+                or SpecialType.System_Int32
+                or SpecialType.System_Int64
+                or SpecialType.System_UInt16
+                or SpecialType.System_UInt32
+                or SpecialType.System_UInt64
+                or SpecialType.System_SByte
+                or SpecialType.System_Single
+                or SpecialType.System_String => true,
+                _ => false,
+            };
         }
 
         public static bool Inherits([NotNullWhen(returnValue: true)] this ITypeSymbol? type, [NotNullWhen(returnValue: true)] ITypeSymbol? possibleBase)

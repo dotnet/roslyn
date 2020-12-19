@@ -563,29 +563,20 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsLambdaOrLocalFunctionOrDelegate(this IMethodSymbol method)
         {
-            switch (method.MethodKind)
+            return method.MethodKind switch
             {
-                case MethodKind.LambdaMethod:
-                case MethodKindEx.LocalFunction:
-                case MethodKind.DelegateInvoke:
-                    return true;
-
-                default:
-                    return false;
-            }
+                MethodKind.LambdaMethod or MethodKindEx.LocalFunction or MethodKind.DelegateInvoke => true,
+                _ => false,
+            };
         }
 
         public static bool IsLambdaOrLocalFunction(this IMethodSymbol method)
         {
-            switch (method.MethodKind)
+            return method.MethodKind switch
             {
-                case MethodKind.LambdaMethod:
-                case MethodKindEx.LocalFunction:
-                    return true;
-
-                default:
-                    return false;
-            }
+                MethodKind.LambdaMethod or MethodKindEx.LocalFunction => true,
+                _ => false,
+            };
         }
 
         public static int GetParameterIndex(this IMethodSymbol methodSymbol, IParameterSymbol parameterSymbol)
