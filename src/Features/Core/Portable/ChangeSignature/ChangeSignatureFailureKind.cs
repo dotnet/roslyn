@@ -6,7 +6,7 @@
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
-    internal enum CannotChangeSignatureReason
+    internal enum ChangeSignatureFailureKind
     {
         None,
         DefinedInMetadata,

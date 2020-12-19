@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
@@ -39,7 +40,8 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             DiagnosticCategory.Compiler,
             DiagnosticSeverity.Info,
             isEnabledByDefault: true,
-            description: Description);
+            description: Description,
+            customTags: EnforceOnBuildValues.ValidateFormatString.ToCustomTag());
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(Rule);

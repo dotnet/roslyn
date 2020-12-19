@@ -28,7 +28,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         private static readonly LocalizableResourceString s_localizableRemoveUnnecessarySuppression = new(
            nameof(AnalyzersResources.Remove_unnecessary_suppression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         internal static readonly DiagnosticDescriptor s_removeUnnecessarySuppressionDescriptor = CreateDescriptor(
-            IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId, s_localizableRemoveUnnecessarySuppression, s_localizableRemoveUnnecessarySuppression, isUnnecessary: true);
+            IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId,
+            EnforceOnBuildValues.RemoveUnnecessarySuppression,
+            s_localizableRemoveUnnecessarySuppression, s_localizableRemoveUnnecessarySuppression, isUnnecessary: true);
 
         private readonly Lazy<ImmutableHashSet<int>> _lazySupportedCompilerErrorCodes;
 
