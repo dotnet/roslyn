@@ -64,7 +64,7 @@ stages:
       artifact: symbols-Windows
       displayName: Download symbols-Windows artifact
     - task: MicroBuildArchiveSymbols@1
-      displayName: Archive $(SymbolsFeatureName) on Symweb
+      displayName: Archive symbols to Symweb
       inputs:
         SymbolsFeatureName: $(SymbolsFeatureName)
         SymbolsSymwebProject: VS
