@@ -67,7 +67,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
                 return (expression.Kind()) switch
                 {
                     SyntaxKind.ArrayCreationExpression
-                    or SyntaxKind.ImplicitArrayCreationExpression => ShouldAnalyzeArrayCreationExpression(expression, semanticModel),
+                    or SyntaxKind.ImplicitArrayCreationExpression => ShouldAnalyzeArrayCreationExpression(expression, semanticModel, cancellationToken),
                     SyntaxKind.SimpleMemberAccessExpression => true,
                     _ => false,
                 };
