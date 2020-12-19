@@ -30,7 +30,7 @@ jobs:
       displayName: Build
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -publish -binaryLog -skipDocumentation
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -publish -binaryLog -skipDocumentation "/p:Features=run-nullable-analysis=never"
 
     - task: PowerShell@2 
       displayName: Prepare Unit Tests
