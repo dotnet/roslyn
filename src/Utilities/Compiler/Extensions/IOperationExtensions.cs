@@ -328,26 +328,6 @@ namespace Analyzer.Utilities.Extensions
             return null;
         }
 
-        /// <summary>
-        /// Workaround for https://github.com/dotnet/roslyn/issues/22736 (IPropertyReferenceExpressions in IAnonymousObjectCreationExpression are missing a receiver).
-        /// Gets the instance for the anonymous object being created that is being referenced by <paramref name="operation"/>.
-        /// Otherwise, returns null
-        /// </summary>
-        public static IAnonymousObjectCreationOperation? GetAnonymousObjectCreation(this IPropertyReferenceOperation operation)
-        {
-            if (operation.Instance == null &&
-                operation.Property.ContainingType.IsAnonymousType)
-            {
-                var declarationSyntax = operation.Property.ContainingType.DeclaringSyntaxReferences[0].GetSyntax();
-                return operation.GetAncestor(OperationKind.AnonymousObjectCreation, (IAnonymousObjectCreationOperation a) => a.Syntax == declarationSyntax);
-            }
-
-            return null;
-        }
-
-        public static bool IsInsideAnonymousFunction(this IOperation operation)
-            => operation.GetAncestor<IAnonymousFunctionOperation>(OperationKind.AnonymousFunction) != null;
-
         public static bool HasAnyOperationDescendant(this ImmutableArray<IOperation> operationBlocks, Func<IOperation, bool> predicate)
         {
             foreach (var operationBlock in operationBlocks)
@@ -426,7 +406,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         /// <remarks>Also see <see cref="IMethodSymbolExtensions.s_methodToTopmostOperationBlockCache"/></remarks>
         private static readonly BoundedCache<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph?>> s_operationToCfgCache
-            = new BoundedCache<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph?>>();
+            = new();
 
         public static bool TryGetEnclosingControlFlowGraph(this IOperation operation, [NotNullWhen(returnValue: true)] out ControlFlowGraph? cfg)
         {
@@ -858,7 +838,7 @@ namespace Analyzer.Utilities.Extensions
             | obj is X x               |      |  ✔️   |             |             |                 |
             | ref var x =              |      |       |     ✔️      |     ✔️      |                 |
             | ref readonly var x =     |      |       |     ✔️      |             |                 |
- 
+
             */
             if (operation is ILocalReferenceOperation localReference &&
                 localReference.IsDeclaration &&

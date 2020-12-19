@@ -51,7 +51,7 @@ namespace Analyzer.Utilities
                         success = true;
                         break;
                     case SpecialType.System_Boolean:
-                        convertedValue = (ulong)((bool)value == true ? 1 : 0);
+                        convertedValue = (ulong)((bool)value ? 1 : 0);
                         success = true;
                         break;
                 }

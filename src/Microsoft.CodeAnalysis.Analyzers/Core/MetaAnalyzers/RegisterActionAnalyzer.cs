@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableMessageMissingOperationKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingOperationKindArgumentToRegisterActionMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableDescriptionMissingKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingKindArgumentToRegisterActionDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        public static readonly DiagnosticDescriptor MissingSymbolKindArgumentRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor MissingSymbolKindArgumentRule = new(
             DiagnosticIds.MissingKindArgumentToRegisterActionRuleId,
             s_localizableTitleMissingKindArgument,
             s_localizableMessageMissingSymbolKindArgument,
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDescriptionMissingKindArgument,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public static readonly DiagnosticDescriptor MissingSyntaxKindArgumentRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor MissingSyntaxKindArgumentRule = new(
             DiagnosticIds.MissingKindArgumentToRegisterActionRuleId,
             s_localizableTitleMissingKindArgument,
             s_localizableMessageMissingSyntaxKindArgument,
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDescriptionMissingKindArgument,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public static readonly DiagnosticDescriptor MissingOperationKindArgumentRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor MissingOperationKindArgumentRule = new(
             DiagnosticIds.MissingKindArgumentToRegisterActionRuleId,
             s_localizableTitleMissingKindArgument,
             s_localizableMessageMissingOperationKindArgument,
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableTitleUnsupportedSymbolKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UnsupportedSymbolKindArgumentToRegisterActionTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableMessageUnsupportedSymbolKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UnsupportedSymbolKindArgumentToRegisterActionMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        public static readonly DiagnosticDescriptor UnsupportedSymbolKindArgumentRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor UnsupportedSymbolKindArgumentRule = new(
             DiagnosticIds.UnsupportedSymbolKindArgumentRuleId,
             s_localizableTitleUnsupportedSymbolKindArgument,
             s_localizableMessageUnsupportedSymbolKindArgument,
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableMessageInvalidSyntaxKindTypeArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidSyntaxKindTypeArgumentMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableDescriptionInvalidSyntaxKindTypeArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidSyntaxKindTypeArgumentDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources), nameof(DiagnosticWellKnownNames.TLanguageKindEnumName));
 
-        public static readonly DiagnosticDescriptor InvalidSyntaxKindTypeArgumentRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor InvalidSyntaxKindTypeArgumentRule = new(
             DiagnosticIds.InvalidSyntaxKindTypeArgumentRuleId,
             s_localizableTitleInvalidSyntaxKindTypeArgument,
             s_localizableMessageInvalidSyntaxKindTypeArgument,
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableTitleStartActionWithNoRegisteredActions = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.StartActionWithNoRegisteredActionsTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableMessageStartActionWithNoRegisteredActions = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.StartActionWithNoRegisteredActionsMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        public static readonly DiagnosticDescriptor StartActionWithNoRegisteredActionsRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor StartActionWithNoRegisteredActionsRule = new(
             DiagnosticIds.StartActionWithNoRegisteredActionsRuleId,
             s_localizableTitleStartActionWithNoRegisteredActions,
             s_localizableMessageStartActionWithNoRegisteredActions,
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableTitleStartActionWithOnlyEndAction = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.StartActionWithOnlyEndActionTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableMessageStartActionWithOnlyEndAction = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.StartActionWithOnlyEndActionMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        public static readonly DiagnosticDescriptor StartActionWithOnlyEndActionRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor StartActionWithOnlyEndActionRule = new(
             DiagnosticIds.StartActionWithOnlyEndActionRuleId,
             s_localizableTitleStartActionWithOnlyEndAction,
             s_localizableMessageStartActionWithOnlyEndAction,
@@ -369,7 +369,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                         {
                                             symbol = semanticModel.GetSymbolInfo(argument, context.CancellationToken).Symbol;
                                             if (symbol != null &&
+#pragma warning disable CA1508 // Avoid dead conditional code - https://github.com/dotnet/roslyn-analyzers/issues/4519
                                                 symbol.Kind == SymbolKind.Field &&
+#pragma warning restore CA1508 // Avoid dead conditional code
                                                 _symbolKind.Equals(symbol.ContainingType) &&
                                                 !s_supportedSymbolKinds.Contains(symbol.Name))
                                             {

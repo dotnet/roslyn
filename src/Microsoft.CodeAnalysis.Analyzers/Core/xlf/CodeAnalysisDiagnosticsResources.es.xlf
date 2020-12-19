@@ -24,12 +24,12 @@
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
         <source>Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.</source>
-        <target state="needs-review-translation">Solo se debe realizar una comparación de igualdad de los símbolos, no de identidad.</target>
+        <target state="translated">Debe compararse la igualdad de los símbolos, no la identidad. Use una sobrecarga que acepte un elemento "IEqualityComparer" y pase "SymbolEqualityComparer".</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescriptionGetHashCode">
         <source>Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</source>
-        <target state="new">Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</target>
+        <target state="translated">Debe compararse la igualdad de los símbolos, no la identidad. Una llamada explícita a "GetHashCode" probablemente producirá un comportamiento incorrecto.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
@@ -64,12 +64,12 @@
       </trans-unit>
       <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseMessage">
         <source>Rule '{0}' is not part of any analyzer release</source>
-        <target state="needs-review-translation">La regla "{0}" no forma parte de ninguna versión del analizador.</target>
+        <target state="translated">La regla "{0}" no forma parte de ninguna versión del analizador.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseTitle">
         <source>Add analyzer diagnostic IDs to analyzer release</source>
-        <target state="needs-review-translation">Agregar identificadores de diagnóstico del analizador a la versión del analizador</target>
+        <target state="translated">Agregar identificadores de diagnóstico del analizador a la versión del analizador</target>
         <note />
       </trans-unit>
       <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
@@ -169,17 +169,17 @@
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleMessage">
         <source>Analyzer release file '{0}' has an invalid entry '{1}'</source>
-        <target state="needs-review-translation">El archivo de versión del analizador "{0}" tiene una entrada "{1}" no válida.</target>
+        <target state="translated">El archivo de versión del analizador "{0}" tiene una entrada "{1}" no válida.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleTitle">
         <source>Invalid entry in analyzer release file</source>
-        <target state="needs-review-translation">Entrada no válida en el archivo de versión del analizador.</target>
+        <target state="translated">Entrada no válida en el archivo de versión del analizador</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidHeaderInAnalyzerReleasesFileRuleMessage">
         <source>Analyzer release file '{0}' has a missing or invalid release header '{1}'</source>
-        <target state="needs-review-translation">El encabezado de versión "{1}" del archivo de versión del analizador "{0}" falta o no es válido.</target>
+        <target state="translated">El encabezado de versión "{1}" del archivo de versión del analizador "{0}" falta o no es válido.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRuleMessageMessage">
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage">
         <source>Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'</source>
-        <target state="needs-review-translation">El archivo de versión del analizador "{0}" tiene una entrada con uno o más campos "No detectado" que deben rellenarse manualmente en "{1}".</target>
+        <target state="translated">El archivo de versión del analizador "{0}" tiene una entrada con uno o más campos "No detectado" que deben rellenarse manualmente en "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingAttributeMessage">
@@ -279,12 +279,12 @@
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage">
         <source>Rule '{0}' has duplicate entry between release '{1}' and release '{2}'</source>
-        <target state="needs-review-translation">La regla "{0}" tiene una entrada duplicada entre la versión "{1}" y la versión "{2}".</target>
+        <target state="translated">La regla "{0}" tiene una entrada duplicada entre la versión "{1}" y la versión "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle">
         <source>Remove duplicate entries for diagnostic ID between analyzer releases</source>
-        <target state="needs-review-translation">Quite las entradas duplicadas del identificador de diagnóstico entre las versiones del analizador.</target>
+        <target state="translated">Quitar las entradas duplicadas del identificador de diagnóstico entre versiones del analizador</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription">
@@ -294,12 +294,12 @@
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage">
         <source>Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'</source>
-        <target state="needs-review-translation">La regla "{0}" tiene más de una entrada para la versión "{1}" en el archivo de versión del analizador "{2}".</target>
+        <target state="translated">La regla "{0}" tiene más de una entrada para la versión "{1}" en el archivo de versión del analizador "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle">
         <source>Remove duplicate entries for diagnostic ID in the same analyzer release</source>
-        <target state="needs-review-translation">Quite las entradas duplicadas del identificador de diagnóstico en la misma versión del analizador.</target>
+        <target state="translated">Quitar las entradas duplicadas del identificador de diagnóstico en la misma versión del analizador</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdDescription">
@@ -314,7 +314,7 @@
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdTitle">
         <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file</source>
-        <target state="needs-review-translation">Debe haber una entrada en la tabla "Removed Rules" del archivo no incluido para los identificadores de diagnóstico incluidos que ya no se notifican.</target>
+        <target state="translated">Debe haber una entrada de los identificadores de diagnóstico incluidos que ya no se notifican en la tabla "Removed Rules" del archivo no incluido</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdDescription">
@@ -324,12 +324,12 @@
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdMessage">
         <source>Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer</source>
-        <target state="needs-review-translation">La regla "{0}" forma parte de la versión del analizador siguiente sin incluir, pero no es un diagnóstico admitido para ningún analizador.</target>
+        <target state="translated">La regla "{0}" forma parte de la versión del analizador siguiente sin incluir, pero no es un diagnóstico admitido para ningún analizador.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdTitle">
         <source>Do not add removed analyzer diagnostic IDs to unshipped analyzer release</source>
-        <target state="needs-review-translation">No agregue identificadores de diagnóstico del analizador eliminados a una versión del analizador no incluida</target>
+        <target state="translated">No agregar identificadores de diagnóstico del analizador eliminados a una versión del analizador no incluida</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdDescription">
@@ -339,12 +339,12 @@
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage">
         <source>Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported</source>
-        <target state="needs-review-translation">La regla "{0}" se ha marcado como quitada en la última versión del analizador, pero aún se notifica.</target>
+        <target state="translated">La regla "{0}" se ha marcado como quitada en la última versión del analizador, pero aún se notifica.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle">
         <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers</source>
-        <target state="needs-review-translation">Los analizadores no deben informar sobre los identificadores de diagnóstico marcados como quitados en el archivo de versión del analizador.</target>
+        <target state="translated">Los analizadores no deben informar sobre los identificadores de diagnóstico marcados como quitados en el archivo de versión del analizador</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">
@@ -432,7 +432,7 @@
       </trans-unit>
       <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseTitle">
         <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release</source>
-        <target state="needs-review-translation">Asegúrese de que se agregue una entrada actualizada de los identificadores de diagnóstico del analizador a la versión del analizador.</target>
+        <target state="translated">Asegúrese de que se agregue una entrada actualizada de los identificadores de diagnóstico del analizador a la versión del analizador</target>
         <note />
       </trans-unit>
       <trans-unit id="UpdateEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
@@ -537,7 +537,7 @@
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
         <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
-        <target state="needs-review-translation">Un valor CodeFixProvider debe proporcionar soporte FixAll para permitir a los usuarios corregir varias instancias del diagnóstico subyacente con una única corrección de código. Vea la documentación en https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md para obtener más información.</target>
+        <target state="translated">Un valor CodeFixProvider debe proporcionar soporte FixAll para permitir a los usuarios corregir varias instancias del diagnóstico subyacente con una única corrección de código. Consulte la documentación en https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md para obtener más detalles.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">

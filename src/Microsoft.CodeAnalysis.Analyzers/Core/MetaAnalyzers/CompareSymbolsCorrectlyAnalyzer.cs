@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private const string s_symbolEqualsName = nameof(ISymbol.Equals);
         public const string SymbolEqualityComparerName = "Microsoft.CodeAnalysis.SymbolEqualityComparer";
 
-        public static readonly DiagnosticDescriptor EqualityRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor EqualityRule = new(
             DiagnosticIds.CompareSymbolsCorrectlyRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public static readonly DiagnosticDescriptor GetHashCodeRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor GetHashCodeRule = new(
             DiagnosticIds.CompareSymbolsCorrectlyRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDescriptionGetHashCode,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public static readonly DiagnosticDescriptor CollectionRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor CollectionRule = new(
             DiagnosticIds.CompareSymbolsCorrectlyRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         if (symbolEqualityComparerType != null &&
                             possibleMethodTypes.Contains(method.ContainingType.OriginalDefinition) &&
                             HasFirstTypeArgumentSymbolType(method, symbolType) &&
-                            !invocationOperation.Arguments.Any(arg => arg.Type != null && arg.Type.Equals(symbolEqualityComparerType)))
+                            !invocationOperation.Arguments.Any(arg => IsSymbolType(arg.Value, symbolEqualityComparerType)))
                         {
                             context.ReportDiagnostic(invocationOperation.CreateDiagnostic(CollectionRule));
                         }
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 collectionTypes.Contains(createdType.OriginalDefinition) &&
                 !createdType.TypeArguments.IsEmpty &&
                 IsSymbolType(createdType.TypeArguments[0], symbolType) &&
-                !objectCreation.Arguments.Any(arg => arg.Type.Equals(symbolEqualityComparerType)))
+                !objectCreation.Arguments.Any(arg => IsSymbolType(arg.Value, symbolEqualityComparerType)))
             {
                 context.ReportDiagnostic(objectCreation.CreateDiagnostic(CollectionRule));
             }

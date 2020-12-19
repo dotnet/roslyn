@@ -14,17 +14,14 @@ using Microsoft.CodeAnalysis;
 namespace Analyzer.Utilities
 {
     internal sealed class SymbolNamesWithValueOption<TValue> : IEquatable<SymbolNamesWithValueOption<TValue>?>
-        where TValue : notnull
     {
         internal const SymbolKind AllKinds = SymbolKind.ErrorType;
         internal const char WildcardChar = '*';
 
         public static readonly SymbolNamesWithValueOption<TValue> Empty = new SymbolNamesWithValueOption<TValue>();
-        internal static KeyValuePair<string, TValue> NoWildcardMatch => default;
 
-#pragma warning disable CA1051 // Do not declare visible instance fields
-        internal /* for testing purposes */ readonly ImmutableDictionary<string, TValue> _names;
-        internal /* for testing purposes */ readonly ImmutableDictionary<ISymbol, TValue> _symbols;
+        private readonly ImmutableDictionary<string, TValue> _names;
+        private readonly ImmutableDictionary<ISymbol, TValue> _symbols;
 
         /// <summary>
         /// Dictionary holding per symbol kind the wildcard entry with its suffix.
@@ -46,15 +43,14 @@ namespace Analyzer.Utilities
         /// Property ->
         ///     Analyzer.Utilities.SymbolNamesWithValueOption.MyProperty -> ""
         /// </example>
-        internal /* for testing purposes */ readonly ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> _wildcardNamesBySymbolKind;
+        private readonly ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> _wildcardNamesBySymbolKind;
 
         /// <summary>
         /// Cache for the wildcard matching algorithm. The current implementation can be slow so we want to make sure that once a match is performed we save its result.
         /// </summary>
-        internal /* for testing purposes */ readonly ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>> _wildcardMatchResult = new ConcurrentDictionary<ISymbol, KeyValuePair<string, TValue>>();
+        private readonly ConcurrentDictionary<ISymbol, KeyValuePair<string?, TValue?>> _wildcardMatchResult = new ConcurrentDictionary<ISymbol, KeyValuePair<string?, TValue?>>();
 
-        internal /* for testing purposes */ readonly ConcurrentDictionary<ISymbol, string> _symbolToDeclarationId = new ConcurrentDictionary<ISymbol, string>();
-#pragma warning restore CA1051 // Do not declare visible instance fields
+        private readonly ConcurrentDictionary<ISymbol, string> _symbolToDeclarationId = new ConcurrentDictionary<ISymbol, string>();
 
         private SymbolNamesWithValueOption(ImmutableDictionary<string, TValue> names, ImmutableDictionary<ISymbol, TValue> symbols,
             ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> wildcardNamesBySymbolKind)
@@ -76,7 +72,7 @@ namespace Analyzer.Utilities
 #pragma warning disable CA1000 // Do not declare static members on generic types
         public static SymbolNamesWithValueOption<TValue> Create(ImmutableArray<string> symbolNames, Compilation compilation, string? optionalPrefix,
 #pragma warning restore CA1000 // Do not declare static members on generic types
-            Func<string, NameParts>? getSymbolNamePartsFunc = null)
+            Func<string, NameParts> getSymbolNamePartsFunc)
         {
             if (symbolNames.IsEmpty)
             {
@@ -89,9 +85,7 @@ namespace Analyzer.Utilities
 
             foreach (var symbolName in symbolNames)
             {
-                var parts = getSymbolNamePartsFunc != null
-                    ? getSymbolNamePartsFunc(symbolName)
-                    : new NameParts(symbolName);
+                var parts = getSymbolNamePartsFunc(symbolName);
 
                 var numberOfWildcards = parts.SymbolName.Count(c => c == WildcardChar);
 
@@ -221,7 +215,7 @@ namespace Analyzer.Utilities
         public bool IsEmpty => ReferenceEquals(this, Empty);
 
         public bool Contains(ISymbol symbol)
-            => _symbols.ContainsKey(symbol) || _names.ContainsKey(symbol.Name) || TryGetFirstWildcardMatch(symbol, out _);
+            => _symbols.ContainsKey(symbol) || _names.ContainsKey(symbol.Name) || TryGetFirstWildcardMatch(symbol, out _, out _);
 
         /// <summary>
         /// Gets the value associated with the specified symbol in the option specification.
@@ -233,9 +227,8 @@ namespace Analyzer.Utilities
                 return true;
             }
 
-            if (TryGetFirstWildcardMatch(symbol, out var match))
+            if (TryGetFirstWildcardMatch(symbol, out _, out value))
             {
-                value = match.Value;
                 return true;
             }
 
@@ -251,7 +244,7 @@ namespace Analyzer.Utilities
         public override int GetHashCode()
             => HashUtilities.Combine(HashUtilities.Combine(_names), HashUtilities.Combine(_symbols), HashUtilities.Combine(_wildcardNamesBySymbolKind));
 
-        private bool TryGetFirstWildcardMatch(ISymbol symbol, out KeyValuePair<string, TValue> firstMatch)
+        private bool TryGetFirstWildcardMatch(ISymbol symbol, [NotNullWhen(true)] out string? firstMatchName, [MaybeNullWhen(false)] out TValue firstMatchValue)
         {
             switch (symbol.Kind)
             {
@@ -266,7 +259,8 @@ namespace Analyzer.Utilities
                 case SymbolKind.Assembly:
                 case SymbolKind.ErrorType:
                 case SymbolKind.NetModule:
-                    firstMatch = default;
+                    firstMatchName = null;
+                    firstMatchValue = default;
                     return false;
 
                 default:
@@ -276,28 +270,30 @@ namespace Analyzer.Utilities
             // No wildcard entry, let's bail-out
             if (_wildcardNamesBySymbolKind.IsEmpty)
             {
-                firstMatch = NoWildcardMatch;
-                _wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, match) => NoWildcardMatch);
+                firstMatchName = null;
+                firstMatchValue = default;
                 return false;
             }
 
             // The matching was already processed, use cached result
-            if (_wildcardMatchResult.ContainsKey(symbol))
+            if (_wildcardMatchResult.TryGetValue(symbol, out var firstMatch))
             {
-                firstMatch = _wildcardMatchResult[symbol];
-                return !firstMatch.Equals(NoWildcardMatch);
+                (firstMatchName, firstMatchValue) = firstMatch;
+#pragma warning disable CS8762 // Parameter 'firstMatchValue' must have a non-null value when exiting with 'true'
+                return firstMatchName is not null;
+#pragma warning restore CS8762 // Parameter 'firstMatchValue' must have a non-null value when exiting with 'true'
             }
 
             var symbolDeclarationId = _symbolToDeclarationId.GetOrAdd(symbol, s => GetDeclarationId(s));
 
             // We start by trying to match with the most precise definition (prefix)...
-            if (_wildcardNamesBySymbolKind.ContainsKey(symbol.Kind))
+            if (_wildcardNamesBySymbolKind.TryGetValue(symbol.Kind, out var names))
             {
-                if (_wildcardNamesBySymbolKind[symbol.Kind].FirstOrDefault(kvp => symbolDeclarationId.StartsWith(kvp.Key, StringComparison.Ordinal)) is var prefixedFirstMatchOrDefault &&
+                if (names.FirstOrDefault(kvp => symbolDeclarationId.StartsWith(kvp.Key, StringComparison.Ordinal)) is var prefixedFirstMatchOrDefault &&
                     !string.IsNullOrWhiteSpace(prefixedFirstMatchOrDefault.Key))
                 {
-                    firstMatch = prefixedFirstMatchOrDefault;
-                    _wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, match) => prefixedFirstMatchOrDefault);
+                    (firstMatchName, firstMatchValue) = prefixedFirstMatchOrDefault;
+                    _wildcardMatchResult.AddOrUpdate(symbol, prefixedFirstMatchOrDefault.AsNullable(), (s, match) => prefixedFirstMatchOrDefault.AsNullable());
                     return true;
                 }
             }
@@ -307,8 +303,8 @@ namespace Analyzer.Utilities
                 _wildcardNamesBySymbolKind[AllKinds].FirstOrDefault(kvp => symbolDeclarationId.StartsWith(kvp.Key, StringComparison.Ordinal)) is var unprefixedFirstMatchOrDefault &&
                 !string.IsNullOrWhiteSpace(unprefixedFirstMatchOrDefault.Key))
             {
-                firstMatch = unprefixedFirstMatchOrDefault;
-                _wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, match) => unprefixedFirstMatchOrDefault);
+                (firstMatchName, firstMatchValue) = unprefixedFirstMatchOrDefault;
+                _wildcardMatchResult.AddOrUpdate(symbol, unprefixedFirstMatchOrDefault.AsNullable(), (s, match) => unprefixedFirstMatchOrDefault.AsNullable());
                 return true;
             }
 
@@ -317,14 +313,15 @@ namespace Analyzer.Utilities
                 _wildcardNamesBySymbolKind[AllKinds].FirstOrDefault(kvp => symbol.Name.StartsWith(kvp.Key, StringComparison.Ordinal)) is var partialFirstMatchOrDefault &&
                 !string.IsNullOrWhiteSpace(partialFirstMatchOrDefault.Key))
             {
-                firstMatch = partialFirstMatchOrDefault;
-                _wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, match) => partialFirstMatchOrDefault);
+                (firstMatchName, firstMatchValue) = partialFirstMatchOrDefault;
+                _wildcardMatchResult.AddOrUpdate(symbol, partialFirstMatchOrDefault.AsNullable(), (s, match) => partialFirstMatchOrDefault.AsNullable());
                 return true;
             }
 
             // Nothing was found
-            firstMatch = NoWildcardMatch;
-            _wildcardMatchResult.AddOrUpdate(symbol, firstMatch, (s, match) => NoWildcardMatch);
+            firstMatchName = null;
+            firstMatchValue = default;
+            _wildcardMatchResult.AddOrUpdate(symbol, new KeyValuePair<string?, TValue?>(null, default), (s, match) => new KeyValuePair<string?, TValue?>(null, default));
             return false;
 
             static string GetDeclarationId(ISymbol symbol)
@@ -340,6 +337,32 @@ namespace Analyzer.Utilities
             }
         }
 
+        internal TestAccessor GetTestAccessor()
+        {
+            return new TestAccessor(this);
+        }
+
+        [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Does not apply to test accessors")]
+        internal readonly struct TestAccessor
+        {
+            private readonly SymbolNamesWithValueOption<TValue> _symbolNamesWithValueOption;
+
+            internal TestAccessor(SymbolNamesWithValueOption<TValue> symbolNamesWithValueOption)
+            {
+                _symbolNamesWithValueOption = symbolNamesWithValueOption;
+            }
+
+            internal ref readonly ImmutableDictionary<string, TValue> Names => ref _symbolNamesWithValueOption._names;
+
+            internal ref readonly ImmutableDictionary<ISymbol, TValue> Symbols => ref _symbolNamesWithValueOption._symbols;
+
+            internal ref readonly ImmutableDictionary<SymbolKind, ImmutableDictionary<string, TValue>> WildcardNamesBySymbolKind => ref _symbolNamesWithValueOption._wildcardNamesBySymbolKind;
+
+            internal ref readonly ConcurrentDictionary<ISymbol, KeyValuePair<string?, TValue?>> WildcardMatchResult => ref _symbolNamesWithValueOption._wildcardMatchResult;
+
+            internal ref readonly ConcurrentDictionary<ISymbol, string> SymbolToDeclarationId => ref _symbolNamesWithValueOption._symbolToDeclarationId;
+        }
+
         /// <summary>
         /// Represents the two parts of a symbol name option when the symbol name is tighted to some specific value.
         /// This allows to link a value to a symbol while following the symbol's documentation ID format.
@@ -350,12 +373,10 @@ namespace Analyzer.Utilities
         /// </example>
         public sealed class NameParts
         {
-            public NameParts(string symbolName, TValue associatedValue = default)
+            public NameParts(string symbolName, TValue associatedValue)
             {
                 SymbolName = symbolName.Trim();
-#pragma warning disable CS8601 // Possible null reference assignment - https://github.com/dotnet/roslyn-analyzers/issues/4350
                 AssociatedValue = associatedValue;
-#pragma warning restore CS8601 // Possible null reference assignment
             }
 
             public string SymbolName { get; }

@@ -56,7 +56,7 @@ class MyAnalyzer : DiagnosticAnalyzer
             await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
-        [Fact]
+        [WindowsOnlyFact]
         public async Task TestCodeFixToEnableAnalyzerReleaseTracking()
         {
             var source = @"

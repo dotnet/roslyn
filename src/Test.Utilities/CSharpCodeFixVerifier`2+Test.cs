@@ -29,7 +29,9 @@ namespace Test.Utilities
 #pragma warning restore CS0618 // Type or member is obsolete
 #pragma warning restore CA5364 // Do Not Use Deprecated Security Protocols
                 {
+#pragma warning disable CA5386 // Avoid hardcoding SecurityProtocolType value
                     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+#pragma warning restore CA5386 // Avoid hardcoding SecurityProtocolType value
                 }
             }
 
@@ -55,7 +57,7 @@ namespace Test.Utilities
                             DocumentId.CreateNewId(projectId, debugName: ".editorconfig"),
                             ".editorconfig",
                             SourceText.From($"is_global = true" + Environment.NewLine + AnalyzerConfigDocument),
-                            filePath: @"z:\.editorconfig");
+                            filePath: @"/.editorconfig");
                     }
 
                     return solution;
