@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
@@ -292,6 +293,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                     IsEditable = false,
                     ItemsSource = new[] { ServicesVSResources.Keep, ServicesVSResources.Remove }
                 };
+
+                combobox.SetValue(AutomationProperties.NameProperty, ServicesVSResources.Action);
 
                 if (entry.TryGetValue(UnusedReferencesTableKeyNames.UpdateAction, out UpdateAction action))
                 {
