@@ -19,7 +19,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers.WrapStatements
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(
             nameof(RoslynDiagnosticsAnalyzersResources.WrapStatementsMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
-        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.WrapStatementsRuleId,
             s_localizableMessage,
             s_localizableMessage,

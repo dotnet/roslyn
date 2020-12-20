@@ -18,7 +18,7 @@ namespace Roslyn.Diagnostics.Analyzers.BlankLines
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(
             nameof(RoslynDiagnosticsAnalyzersResources.BlankLinesMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
-        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.BlankLinesRuleId,
             s_localizableTitle,
             s_localizableMessage,

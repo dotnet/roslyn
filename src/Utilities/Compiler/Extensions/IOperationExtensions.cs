@@ -372,8 +372,7 @@ namespace Analyzer.Utilities.Extensions
         /// <param name="binaryOperation"></param>
         /// <returns></returns>
         public static bool IsComparisonOperator(this IBinaryOperation binaryOperation)
-        {
-            return binaryOperation.OperatorKind switch
+            => binaryOperation.OperatorKind switch
             {
                 BinaryOperatorKind.Equals
                 or BinaryOperatorKind.NotEquals
@@ -385,7 +384,6 @@ namespace Analyzer.Utilities.Extensions
                 or BinaryOperatorKind.GreaterThanOrEqual => true,
                 _ => false,
             };
-        }
 
         public static IOperation GetRoot(this IOperation operation)
         {
@@ -848,7 +846,7 @@ namespace Analyzer.Utilities.Extensions
             {
                 switch (operation.Parent)
                 {
-                    case IPatternCaseClauseOperation _:
+                    case IPatternCaseClauseOperation:
                         // A declaration pattern within a pattern case clause is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
@@ -858,7 +856,7 @@ namespace Analyzer.Utilities.Extensions
                         //
                         return ValueUsageInfo.Write;
 
-                    case IRecursivePatternOperation _:
+                    case IRecursivePatternOperation:
                         // A declaration pattern within a recursive pattern is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
@@ -869,7 +867,7 @@ namespace Analyzer.Utilities.Extensions
                         //
                         return ValueUsageInfo.Write;
 
-                    case ISwitchExpressionArmOperation _:
+                    case ISwitchExpressionArmOperation:
                         // A declaration pattern within a switch expression arm is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
@@ -879,7 +877,7 @@ namespace Analyzer.Utilities.Extensions
                         //
                         return ValueUsageInfo.Write;
 
-                    case IIsPatternOperation _:
+                    case IIsPatternOperation:
                         // A declaration pattern within an is pattern is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
@@ -887,7 +885,7 @@ namespace Analyzer.Utilities.Extensions
                         //
                         return ValueUsageInfo.Write;
 
-                    case IPropertySubpatternOperation _:
+                    case IPropertySubpatternOperation:
                         // A declaration pattern within a property sub-pattern is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj.Property' below:
@@ -930,20 +928,13 @@ namespace Analyzer.Utilities.Extensions
             }
             else if (operation.Parent is IArgumentOperation argumentOperation)
             {
-                switch (argumentOperation.Parameter.RefKind)
+                return argumentOperation.Parameter.RefKind switch
                 {
-                    case RefKind.RefReadOnly:
-                        return ValueUsageInfo.ReadableReference;
-
-                    case RefKind.Out:
-                        return ValueUsageInfo.WritableReference;
-
-                    case RefKind.Ref:
-                        return ValueUsageInfo.ReadableWritableReference;
-
-                    default:
-                        return ValueUsageInfo.Read;
-                }
+                    RefKind.RefReadOnly => ValueUsageInfo.ReadableReference,
+                    RefKind.Out => ValueUsageInfo.WritableReference,
+                    RefKind.Ref => ValueUsageInfo.ReadableWritableReference,
+                    _ => ValueUsageInfo.Read,
+                };
             }
             else if (operation.Parent is IReturnOperation returnOperation)
             {
@@ -1062,17 +1053,11 @@ namespace Analyzer.Utilities.Extensions
         /// such as <code>a ??= b</code>.
         /// </summary>
         public static bool IsAnyCompoundAssignment(this IOperation operation)
-        {
-            switch (operation)
+            => operation switch
             {
-                case ICompoundAssignmentOperation _:
-                case ICoalesceAssignmentOperation _:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
+                ICompoundAssignmentOperation or ICoalesceAssignmentOperation => true,
+                _ => false,
+            };
 #endif
     }
 }
