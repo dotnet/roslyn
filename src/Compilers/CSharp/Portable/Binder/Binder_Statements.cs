@@ -3479,6 +3479,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return PatternLookupResult.NotAMethod;
                 }
 
+                // NOTE: Because we're calling this method with no arguments and we
+                //       explicitly ignore default values for params parameters
+                //       (see ParamterSymbol.IsOptional) we know that no ParameterArray
+                //       containing method can be invoked in normal form which allows
+                //       us to skip some work during the lookup.
+
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 var patternMethodCall = BindMethodGroupInvocation(
                     syntaxNode,

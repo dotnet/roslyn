@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(TypeSymbol.Equals(type, method.ReturnType, TypeCompareKind.ConsiderEverything2));
                 if (!_inExpressionLambda || kind == UnaryOperatorKind.UserDefinedTrue || kind == UnaryOperatorKind.UserDefinedFalse)
                 {
-                    return BoundCall.Synthesized(syntax, null, method, loweredOperand);
+                    return BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredOperand, binder: null);
                 }
             }
             else if (kind.Operator() == UnaryOperatorKind.UnaryPlus)
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(SpecialMember.System_Decimal__op_UnaryNegation);
                 if (!_inExpressionLambda)
                 {
-                    return BoundCall.Synthesized(syntax, null, method, loweredOperand);
+                    return BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredOperand, binder: null);
                 }
             }
 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression condition = MakeNullableHasValue(syntax, boundTemp);
 
             // temp.GetValueOrDefault()
-            BoundExpression call_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, getValueOrDefault);
+            BoundExpression call_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, getValueOrDefault, binder: null);
 
             // new R?(temp.GetValueOrDefault())
             BoundExpression consequence = GetLiftedUnaryOperatorConsequence(kind, syntax, method, type, call_GetValueOrDefault);
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!isLifted)
             {
-                return BoundCall.Synthesized(syntax, null, node.MethodOpt, rewrittenArgument);
+                return BoundCall.Synthesized(syntax, receiverOpt: null, node.MethodOpt, rewrittenArgument, binder: null);
             }
 
             // S? temp = operand;
@@ -637,10 +637,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression condition = MakeNullableHasValue(node.Syntax, boundTemp);
 
             // temp.GetValueOrDefault()
-            BoundExpression call_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, getValueOrDefault);
+            BoundExpression call_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, getValueOrDefault, binder: null);
 
             // op_Increment(temp.GetValueOrDefault())
-            BoundExpression userDefinedCall = BoundCall.Synthesized(syntax, null, node.MethodOpt, call_GetValueOrDefault);
+            BoundExpression userDefinedCall = BoundCall.Synthesized(syntax, receiverOpt: null, node.MethodOpt, call_GetValueOrDefault, binder: null);
 
             // new S?(op_Increment(temp.GetValueOrDefault()))
             BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, null, userDefinedCall);
@@ -791,7 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(operand.Type is { SpecialType: SpecialType.System_Decimal });
             MethodSymbol method = GetDecimalIncDecOperator(oper);
-            return BoundCall.Synthesized(syntax, null, method, operand);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, operand, binder: null);
         }
 
         private BoundExpression MakeLiftedDecimalIncDecOperator(SyntaxNode syntax, BinaryOperatorKind oper, BoundExpression operand)
@@ -806,9 +806,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // x.HasValue
             BoundExpression condition = MakeNullableHasValue(syntax, operand);
             // x.GetValueOrDefault()
-            BoundExpression getValueCall = BoundCall.Synthesized(syntax, operand, getValueOrDefault);
+            BoundExpression getValueCall = BoundCall.Synthesized(syntax, operand, getValueOrDefault, binder: null);
             // op_Inc(x.GetValueOrDefault())
-            BoundExpression methodCall = BoundCall.Synthesized(syntax, null, method, getValueCall);
+            BoundExpression methodCall = BoundCall.Synthesized(syntax, receiverOpt: null, method, getValueCall, binder: null);
             // new decimal?(op_Inc(x.GetValueOrDefault()))
             BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, null, methodCall);
             // default(decimal?)

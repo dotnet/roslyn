@@ -5031,6 +5031,7 @@ unsafe class C
         public void SupportedBinaryOperators()
         {
             var verifier = CompileAndVerifyFunctionPointers(@"
+#pragma warning disable CS8909 // Function pointers should not be compared
 using System;
 unsafe class C
 {
@@ -5140,6 +5141,49 @@ func_1a <= int_2: True");
   IL_0026:  ret
 }
 ");
+        }
+
+        [Theory, WorkItem(48919, "https://github.com/dotnet/roslyn/issues/48919")]
+        [InlineData("==")]
+        [InlineData("!=")]
+        [InlineData(">=")]
+        [InlineData(">")]
+        [InlineData("<=")]
+        [InlineData("<")]
+        public void BinaryComparisonWarnings(string @operator)
+        {
+            var comp = CreateCompilationWithFunctionPointers($@"
+unsafe
+{{
+    delegate*<void> a = null, b = null;
+    _ = a {@operator} b;
+}}", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (5,9): error CS8909: Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.
+                //     _ = a {@operator} b;
+                Diagnostic(ErrorCode.WRN_DoNotCompareFunctionPointers, @operator).WithLocation(5, 11)
+            );
+        }
+
+        [Theory, WorkItem(48919, "https://github.com/dotnet/roslyn/issues/48919")]
+        [InlineData("==")]
+        [InlineData("!=")]
+        [InlineData(">=")]
+        [InlineData(">")]
+        [InlineData("<=")]
+        [InlineData("<")]
+        public void BinaryComparisonCastToVoidStar_NoWarning(string @operator)
+        {
+            var comp = CreateCompilationWithFunctionPointers($@"
+unsafe
+{{
+    delegate*<void> a = null, b = null;
+    _ = (void*)a {@operator} b;
+    _ = a {@operator} (void*)b;
+}}", options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics();
         }
 
         [Theory]
@@ -11174,6 +11218,49 @@ unsafe
                 //     ptr(i) += 1;
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "ptr(i)").WithLocation(6, 5)
             );
+        }
+
+        [Fact, WorkItem(49639, "https://github.com/dotnet/roslyn/issues/49639")]
+        public void CompareToNullWithNestedUnconstrainedTypeParameter()
+        {
+            var verifier = CompileAndVerifyFunctionPointers(@"
+using System;
+unsafe
+{
+    test<int>(null);
+    test<int>(&intTest);
+
+    static void test<T>(delegate*<T, void> f)
+    {
+        Console.WriteLine(f == null);
+        Console.WriteLine(f is null);
+    }
+
+    static void intTest(int i) {}
+}
+", expectedOutput: @"
+True
+True
+False
+False");
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__test|0_0<T>(delegate*<T, void>)", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  conv.u
+  IL_0003:  ceq
+  IL_0005:  call       ""void System.Console.WriteLine(bool)""
+  IL_000a:  ldarg.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  conv.u
+  IL_000d:  ceq
+  IL_000f:  call       ""void System.Console.WriteLine(bool)""
+  IL_0014:  ret
+}
+");
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");

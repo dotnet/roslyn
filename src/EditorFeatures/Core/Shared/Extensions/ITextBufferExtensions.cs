@@ -48,12 +48,32 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             }
         }
 
-        internal static bool IsInCloudEnvironmentClientContext(this ITextBuffer buffer)
+        internal static bool? GetOptionalFeatureOnOffOption(this ITextBuffer buffer, PerLanguageOption2<bool?> option)
+        {
+            // Add a FailFast to help diagnose 984249.  Hopefully this will let us know what the issue is.
+            try
+            {
+                var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+
+                if (document != null)
+                {
+                    return document.Project.Solution.Options.GetOption(option, document.Project.Language);
+                }
+
+                return option.DefaultValue;
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        internal static bool IsInLspEditorContext(this ITextBuffer buffer)
         {
             if (buffer.TryGetWorkspace(out var workspace))
             {
                 var workspaceContextService = workspace.Services.GetRequiredService<IWorkspaceContextService>();
-                return workspaceContextService.IsCloudEnvironmentClient();
+                return workspaceContextService.IsInLspEditorContext();
             }
 
             return false;

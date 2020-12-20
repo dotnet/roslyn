@@ -128,6 +128,8 @@ jobs:
     queue: BuildPool.Windows.10.Amd64.VS2017.Open
   timeoutInMinutes: 90
   steps:
+    - template: eng/pipelines/checkout-windows-task.yml
+
     - script: eng/test-determinism.cmd -configuration Debug
       displayName: Build - Validate determinism
 
@@ -142,6 +144,8 @@ jobs:
     queue: BuildPool.Windows.10.Amd64.VS2017.Open
   timeoutInMinutes: 90
   steps:
+    - template: eng/pipelines/checkout-windows-task.yml
+
     - script: eng/test-build-correctness.cmd -configuration Release
       displayName: Build - Validate correctness
 
@@ -172,6 +176,8 @@ jobs:
    queue: BuildPool.Ubuntu.1604.amd64.Open
   timeoutInMinutes: 90
   steps:
+    - template: eng/pipelines/checkout-unix-task.yml
+
     - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --docker --sourceBuild
       displayName: Build
 

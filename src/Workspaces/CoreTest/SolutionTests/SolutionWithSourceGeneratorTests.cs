@@ -47,7 +47,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.NotSame(originalCompilation, newCompilation);
             var generatedTree = Assert.Single(newCompilation.SyntaxTrees);
-            Assert.Equal("Microsoft.CodeAnalysis.Workspaces.UnitTests\\Microsoft.CodeAnalysis.UnitTests.SolutionWithSourceGeneratorTests+GenerateFileForEachAdditionalFileWithContentsCommented\\Test.generated.cs", generatedTree.FilePath);
+            var generatorType = typeof(GenerateFileForEachAdditionalFileWithContentsCommented);
+
+            Assert.Equal($"{generatorType.Assembly.GetName().Name}\\{generatorType.FullName}\\Test.generated.cs", generatedTree.FilePath);
 
             var generatedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
             Assert.Same(generatedTree, await generatedDocument.GetSyntaxTreeAsync());
@@ -238,37 +240,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var syntaxTree = Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees, t => t.FilePath != "RegularDocument.cs");
             var generatedDocument = Assert.IsType<SourceGeneratedDocument>(project.GetDocument(syntaxTree));
             Assert.Same(syntaxTree, await generatedDocument.GetSyntaxTreeAsync());
-        }
-
-        private sealed class GenerateFileForEachAdditionalFileWithContentsCommented : ISourceGenerator
-        {
-            public void Execute(GeneratorExecutionContext context)
-            {
-                foreach (var file in context.AdditionalFiles)
-                {
-                    AddSourceForAdditionalFile(context, file);
-                }
-            }
-
-            public void Initialize(GeneratorInitializationContext context)
-            {
-                // TODO: context.RegisterForAdditionalFileChanges(UpdateContext);
-            }
-
-            private static void AddSourceForAdditionalFile(GeneratorExecutionContext context, AdditionalText file)
-            {
-                // We're going to "comment" out the contents of the file when generating this
-                var sourceText = file.GetText(context.CancellationToken);
-                Contract.ThrowIfNull(sourceText, "Failed to fetch the text of an additional file.");
-
-                var changes = sourceText.Lines.SelectAsArray(l => new TextChange(new TextSpan(l.Start, length: 0), "// "));
-                var generatedText = sourceText.WithChanges(changes);
-
-                // TODO: remove the generatedText.ToString() when I don't have to specify the encoding
-                context.AddSource(GetGeneratedFileName(file.Path), SourceText.From(generatedText.ToString(), encoding: Encoding.UTF8));
-            }
-
-            private static string GetGeneratedFileName(string path) => $"{Path.GetFileNameWithoutExtension(path)}.generated";
         }
     }
 }

@@ -9708,6 +9708,48 @@ public class Program
             };
         }
 
+        // See also NullableContextTests.NullableAnalysisFlags_01().
+        [Fact]
+        public void NullableAnalysisFlags()
+        {
+            string source =
+@"class Program
+{
+#nullable enable
+    static object F1() => null;
+#nullable disable
+    static object F2() => null;
+}";
+
+            string filePath = Temp.CreateFile().WriteAllText(source).Path;
+            string fileName = Path.GetFileName(filePath);
+
+            string[] expectedWarningsAll = new[] { fileName + "(4,27): warning CS8603: Possible null reference return." };
+            string[] expectedWarningsNone = Array.Empty<string>();
+
+            AssertEx.Equal(expectedWarningsAll, compileAndRun(featureOpt: null));
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis"));
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=always"));
+            AssertEx.Equal(expectedWarningsNone, compileAndRun("/features:run-nullable-analysis=never"));
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=ALWAYS")); // unrecognized value (incorrect case) ignored
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=NEVER")); // unrecognized value (incorrect case) ignored
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=true")); // unrecognized value ignored
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=false")); // unrecognized value ignored
+            AssertEx.Equal(expectedWarningsAll, compileAndRun("/features:run-nullable-analysis=unknown")); // unrecognized value ignored
+
+            CleanupAllGeneratedFiles(filePath);
+
+            string[] compileAndRun(string featureOpt)
+            {
+                var args = new[] { "/target:library", "/preferreduilang:en", "/nologo", filePath };
+                if (featureOpt != null) args = args.Concat(featureOpt).ToArray();
+                var compiler = CreateCSharpCompiler(null, WorkingDirectory, args);
+                var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+                int exitCode = compiler.Run(outWriter);
+                return outWriter.ToString().Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            };
+        }
+
         private static int OccurrenceCount(string source, string word)
         {
             var n = 0;
@@ -12974,11 +13016,13 @@ class C
             var analyzerConfigFile = dir.CreateFile(".globalconfig");
             var analyzerConfig = analyzerConfigFile.WriteAllText(@"
 is_global = true
+global_level = 100
 option1 = abc");
 
             var analyzerConfigFile2 = dir.CreateFile(".globalconfig2");
             var analyzerConfig2 = analyzerConfigFile2.WriteAllText(@"
 is_global = true
+global_level = 100
 option1 = def");
 
             var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path + "," + analyzerConfig2.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
@@ -12991,11 +13035,13 @@ option1 = def");
 
             analyzerConfig = analyzerConfigFile.WriteAllText(@"
 is_global = true
+global_level = 100
 [/file.cs]
 option1 = abc");
 
             analyzerConfig2 = analyzerConfigFile2.WriteAllText(@"
 is_global = true
+global_level = 100
 [/file.cs]
 option1 = def");
 

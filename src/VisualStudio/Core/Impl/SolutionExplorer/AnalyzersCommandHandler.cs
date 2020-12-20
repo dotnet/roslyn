@@ -202,7 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private bool ShouldShowDiagnosticContextMenu(IEnumerable<object> items)
         {
-            return _initialized && items.All(item => item is BaseDiagnosticItem);
+            return _initialized && items.All(item => item is DiagnosticItem);
         }
 
         private void UpdateDiagnosticContextMenu()

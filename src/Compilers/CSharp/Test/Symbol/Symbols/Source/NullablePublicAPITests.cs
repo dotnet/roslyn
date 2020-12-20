@@ -11,7 +11,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1736,9 +1735,20 @@ class C
 }
 ";
 
-            var featureFlagOff = TestOptions.Regular8.WithFeature("run-nullable-analysis", "false");
+            var featureFlagOff = TestOptions.Regular8.WithFeature("run-nullable-analysis", "never");
 
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue(), parseOptions: featureFlagOff);
+            comp.VerifyDiagnostics(
+                // (5,12): warning CS0414: The field 'C.field' is assigned but its value is never used
+                //     object field = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field").WithArguments("C.field").WithLocation(5, 12),
+                // (9,16): warning CS0219: The variable 'o' is assigned but its value is never used
+                //         object o = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(9, 16));
+
+            Assert.False(comp.IsNullableAnalysisEnabled);
+
+            comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,12): warning CS0414: The field 'C.field' is assigned but its value is never used
                 //     object field = null;
@@ -1753,7 +1763,7 @@ class C
                 //         object o = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 20));
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled);
+            Assert.True(comp.IsNullableAnalysisEnabled);
         }
 
         private class CSharp73ProvidesNullableSemanticInfo_Analyzer : DiagnosticAnalyzer
@@ -2557,8 +2567,8 @@ class C
             }
         }
 
-        [InlineData("true")]
-        [InlineData("false")]
+        [InlineData("always")]
+        [InlineData("never")]
         [Theory, WorkItem(37659, "https://github.com/dotnet/roslyn/issues/37659")]
         public void InvalidCodeVar_GetsCorrectSymbol(string flagState)
         {
