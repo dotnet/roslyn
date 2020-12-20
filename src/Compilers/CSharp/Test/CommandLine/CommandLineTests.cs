@@ -13016,11 +13016,13 @@ class C
             var analyzerConfigFile = dir.CreateFile(".globalconfig");
             var analyzerConfig = analyzerConfigFile.WriteAllText(@"
 is_global = true
+global_level = 100
 option1 = abc");
 
             var analyzerConfigFile2 = dir.CreateFile(".globalconfig2");
             var analyzerConfig2 = analyzerConfigFile2.WriteAllText(@"
 is_global = true
+global_level = 100
 option1 = def");
 
             var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path + "," + analyzerConfig2.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
@@ -13033,11 +13035,13 @@ option1 = def");
 
             analyzerConfig = analyzerConfigFile.WriteAllText(@"
 is_global = true
+global_level = 100
 [/file.cs]
 option1 = abc");
 
             analyzerConfig2 = analyzerConfigFile2.WriteAllText(@"
 is_global = true
+global_level = 100
 [/file.cs]
 option1 = def");
 
