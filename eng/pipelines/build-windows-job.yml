@@ -9,6 +9,9 @@ parameters:
 - name: configuration
   type: string
   default: 'Debug'
+- name: useCache
+  type: boolean
+  default: false
 
 jobs:
 - job: ${{ parameters.jobName }}
