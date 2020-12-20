@@ -17,11 +17,6 @@
         <target state="translated">已經有相同索引鍵但不同值的項目。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ArgumentException_OtherNotArrayOfCorrectLength">
-        <source>Object is not a array with the same number of elements as the array to compare it to.</source>
-        <target state="translated">物件不是一個與相比較陣列具有相同元素數目的陣列。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Begins_with_I">
         <source>Begins with I</source>
         <target state="translated">以 I 開頭</target>
@@ -106,11 +101,6 @@
         <source>Non-Field Members</source>
         <target state="translated">非欄位成員</target>
         <note>{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="NotSupported_FixedSizeCollection">
-        <source>Collection was of a fixed size.</source>
-        <target state="translated">集合屬於固定大小。</target>
-        <note />
       </trans-unit>
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>

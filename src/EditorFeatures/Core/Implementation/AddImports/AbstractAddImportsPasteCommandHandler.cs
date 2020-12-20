@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.AddMissingImports;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -40,7 +41,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
         public void ExecuteCommand(PasteCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
             // Check that the feature is enabled before doing any work
-            if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AddImportsOnPaste))
+            var optionValue = args.SubjectBuffer.GetOptionalFeatureOnOffOption(FeatureOnOffOptions.AddImportsOnPaste);
+
+            // If the feature is explicitly disabled we can exit early
+            if (optionValue.HasValue && !optionValue.Value)
             {
                 nextCommandHandler();
                 return;
@@ -83,6 +87,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
 
             var document = sourceTextContainer.GetOpenDocumentInCurrentContext();
             if (document is null)
+            {
+                return;
+            }
+
+            var experimentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
+            var enabled = optionValue.HasValue && optionValue.Value
+                || experimentationService.IsExperimentEnabled(WellKnownExperimentNames.ImportsOnPasteDefaultEnabled);
+
+            if (!enabled)
             {
                 return;
             }
