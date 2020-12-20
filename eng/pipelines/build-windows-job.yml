@@ -24,7 +24,7 @@ jobs:
 
     - task: Cache@2
       inputs:
-        key: 'nuget | "$(Agent.OS)" | **/packages.lock.json,!**/bin/**'
+        key: 'nuget | "$(Agent.OS)" | eng/Versions.props,!**/bin/**'
         restoreKeys: |
           nuget | "$(Agent.OS)"
         path: $(NUGET_PACKAGES)
