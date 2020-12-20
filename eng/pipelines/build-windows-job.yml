@@ -16,8 +16,19 @@ jobs:
     vmImage: 'windows-2019'
   timeoutInMinutes: 40
 
+  variables:
+    NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
+
   steps:
     - template: checkout-windows-task.yml
+
+    - task: Cache@2
+      inputs:
+        key: 'nuget | "$(Agent.OS)" | **/packages.lock.json,!**/bin/**'
+        restoreKeys: |
+          nuget | "$(Agent.OS)"
+        path: $(NUGET_PACKAGES)
+      displayName: Cache NuGet packages
 
     - task: PowerShell@2
       displayName: Restore
