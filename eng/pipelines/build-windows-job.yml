@@ -29,6 +29,7 @@ jobs:
           nuget | "$(Agent.OS)"
         path: $(NUGET_PACKAGES)
       displayName: Cache NuGet packages
+      condition: and(succeeded(), eq('${{ parameters.useCache }}', true))
 
     - task: PowerShell@2
       displayName: Restore
