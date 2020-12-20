@@ -710,21 +710,13 @@ End Class
 
         private static string[] GetExpectedArguments(string parameterName, StartActionKind kind)
         {
-            string arg2;
-            switch (kind)
+            var arg2 = kind switch
             {
-                case StartActionKind.CompilationStartAction:
-                    arg2 = "Initialize";
-                    break;
-
-                case StartActionKind.CodeBlockStartAction:
-                case StartActionKind.OperationBlockStartAction:
-                    arg2 = "Initialize, CompilationStartAction";
-                    break;
-
-                default:
-                    throw new ArgumentException("Unsupported action kind", nameof(kind));
-            }
+                StartActionKind.CompilationStartAction => "Initialize",
+                StartActionKind.CodeBlockStartAction
+                or StartActionKind.OperationBlockStartAction => "Initialize, CompilationStartAction",
+                _ => throw new ArgumentException("Unsupported action kind", nameof(kind)),
+            };
 
             return new[] { parameterName, arg2 };
         }

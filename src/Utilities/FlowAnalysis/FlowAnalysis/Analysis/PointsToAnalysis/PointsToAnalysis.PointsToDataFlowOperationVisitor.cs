@@ -380,15 +380,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             #region Predicate analysis
             private static bool IsValidValueForPredicateAnalysis(NullAbstractValue value)
             {
-                switch (value)
+                return value switch
                 {
-                    case NullAbstractValue.Null:
-                    case NullAbstractValue.NotNull:
-                        return true;
-
-                    default:
-                        return false;
-                }
+                    NullAbstractValue.Null
+                    or NullAbstractValue.NotNull => true,
+                    _ => false,
+                };
             }
 
             protected override PredicateValueKind SetValueForEqualsOrNotEqualsComparisonOperator(
@@ -1016,15 +1013,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 }
 
                 NullAbstractValue referenceOrInstanceValue = referenceOrInstance != null ? GetNullAbstractValue(referenceOrInstance) : NullAbstractValue.NotNull;
-                switch (referenceOrInstanceValue)
+                return referenceOrInstanceValue switch
                 {
-                    case NullAbstractValue.Invalid:
-                    case NullAbstractValue.Null:
-                        return referenceOrInstanceValue;
-
-                    default:
-                        return defaultValue;
-                }
+                    NullAbstractValue.Invalid
+                    or NullAbstractValue.Null => referenceOrInstanceValue,
+                    _ => defaultValue,
+                };
             }
 
             private PointsToAbstractValue GetValueBasedOnInstanceOrReferenceValue(IOperation? referenceOrInstance, IOperation operation, PointsToAbstractValue defaultValue)
