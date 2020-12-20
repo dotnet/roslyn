@@ -270,6 +270,11 @@ function BuildSolution {
     generate_documentation_file="/p:GenerateDocumentationFile=false"
   fi
 
+  local roslyn_use_hard_links=""
+    if [[ "$ci" == true ]]; then
+      roslyn_use_hard_links="/p:ROSLYNUSEHARDLINKS=true"
+    fi
+
   # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
   # We don't pass /warnaserror to msbuild (warn_as_error is set to false by default above), but set 
   # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
@@ -294,6 +299,7 @@ function BuildSolution {
     $test_runtime \
     $mono_tool \
     $generate_documentation_file \
+    $roslyn_use_hard_links \
     $properties
 }
 
