@@ -1841,7 +1841,10 @@ foreach (var (a, b) in e1) { }
 
             edits.VerifyEdits(
                 "Update [a => a]@13 -> [(a) => a]@13",
-                "Update [b => b]@25 -> [b => b + 1]@27");
+                "Update [b => b]@25 -> [b => b + 1]@27",
+                "Insert [(a)]@13",
+                "Insert [a]@14",
+                "Delete [a]@13");
         }
 
         [Fact]
@@ -1894,7 +1897,7 @@ foreach (var (a, b) in e1) { }
 
             // changes were made to the outer lambda signature:
             edits.VerifyEdits(
-                "Update [() => { G(x => y); }]@4 -> [q => { G(() => y); }]@4");
+                "Update [() => { G(x => y); }]@4 -> [q => { G(() => y); }]@4", "Insert [q]@4", "Delete [()]@4");
         }
 
         [Fact]
@@ -1918,7 +1921,7 @@ foreach (var (a, b) in e1) { }
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [(ref int a) => a = 1]@4 -> [(out int a) => a = 1]@4");
+                "Update [ref int a]@5 -> [out int a]@5");
         }
 
         [Fact]
@@ -4745,7 +4748,10 @@ class Program
             edits.VerifyEdits(
                 "Update [a => a]@4 -> [int x(int a) => a + 1;]@2",
                 "Move [a => a]@4 -> @2",
-                "Update [F(a => a, b => b);]@2 -> [F(b => b, x);]@25");
+                "Update [F(a => a, b => b);]@2 -> [F(b => b, x);]@25",
+                "Insert [(int a)]@7",
+                "Insert [int a]@8",
+                "Delete [a]@4");
         }
 
         [Fact]
@@ -4774,7 +4780,10 @@ class Program
                 "Update [int x(int a) => a + 1;]@28 -> [a => a]@11",
                 "Move [int x(int a) => a + 1;]@28 -> @11",
                 "Move [{ /*1*/ }]@5 -> @20",
-                "Delete [do { /*1*/ } while (F(x));]@2");
+                "Insert [a]@11",
+                "Delete [do { /*1*/ } while (F(x));]@2",
+                "Delete [(int a)]@33",
+                "Delete [int a]@34");
         }
 
         [Fact]
@@ -4796,8 +4805,7 @@ class Program
 
             var edits = GetMethodEdits(src1, src2);
             // changes were made to the outer local function signature:
-            edits.VerifyEdits(
-                "Update [int x() { int y(int a) => a; return y(b); }]@2 -> [int x(int z) { int y() => c; return y(); }]@2");
+            edits.VerifyEdits("Insert [int z]@8");
         }
 
         [Fact]
@@ -4809,7 +4817,9 @@ class Program
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [() => { int y(int a) => a; G(y); }]@4 -> [q => { G(() => y); }]@4");
+                "Update [() => { int y(int a) => a; G(y); }]@4 -> [q => { G(() => y); }]@4",
+                "Insert [q]@4",
+                "Delete [()]@4");
         }
 
         [Fact]
@@ -4821,7 +4831,7 @@ class Program
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [void f(ref int a) => a = 1;]@2 -> [void f(out int a) => a = 1;]@2");
+                "Update [ref int a]@9 -> [out int a]@9");
         }
 
         [Fact]
