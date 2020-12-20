@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         private readonly struct ApiData
 #pragma warning restore CA1815 // Override equals and operator equals on value types
         {
-            public static readonly ApiData Empty = new ApiData(ImmutableArray<ApiLine>.Empty, ImmutableArray<RemovedApiLine>.Empty, nullableRank: -1);
+            public static readonly ApiData Empty = new(ImmutableArray<ApiLine>.Empty, ImmutableArray<RemovedApiLine>.Empty, nullableRank: -1);
 
             public ImmutableArray<ApiLine> ApiList { get; }
             public ImmutableArray<RemovedApiLine> RemovedApiList { get; }
@@ -768,9 +768,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             private sealed class ObliviousDetector : SymbolVisitor<bool>
             {
                 // We need to ignore top-level nullability for outer types: `Outer<...>.Inner`
-                private static readonly ObliviousDetector IgnoreTopLevelNullabilityInstance = new ObliviousDetector(ignoreTopLevelNullability: true);
+                private static readonly ObliviousDetector IgnoreTopLevelNullabilityInstance = new(ignoreTopLevelNullability: true);
 
-                public static readonly ObliviousDetector Instance = new ObliviousDetector(ignoreTopLevelNullability: false);
+                public static readonly ObliviousDetector Instance = new(ignoreTopLevelNullability: false);
 
                 private readonly bool _ignoreTopLevelNullability;
 

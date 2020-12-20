@@ -107,7 +107,7 @@ namespace Roslyn.Diagnostics.Analyzers
             return true;
 
             static string removeWhiteSpace(string self)
-                => new string(self.Where(c => !char.IsWhiteSpace(c)).ToArray());
+                => new(self.Where(c => !char.IsWhiteSpace(c)).ToArray());
         }
 
         /// <summary>
