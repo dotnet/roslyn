@@ -1299,12 +1299,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     // Body match of a lambda whose body is an expression has the lambda as a root.
                     // The lambda has already been included when enumerating parent body matches.
-                    Debug.Assert(
-                        !map.ContainsKey(pair.Key) ||
-                        pair.Key == lambdaBodyMatch.OldRoot && pair.Value == lambdaBodyMatch.NewRoot && IsLambda(pair.Key) && IsLambda(pair.Value));
-
-                    map[pair.Key] = pair.Value;
-                    reverseMap[pair.Value] = pair.Key;
+                    if (!map.ContainsKey(pair.Key) ||
+                        pair.Key == lambdaBodyMatch.OldRoot && pair.Value == lambdaBodyMatch.NewRoot && IsLambda(pair.Key) && IsLambda(pair.Value))
+                    {
+                        map[pair.Key] = pair.Value;
+                        reverseMap[pair.Value] = pair.Key;
+                    }
                 }
             }
 
