@@ -515,19 +515,11 @@ namespace Analyzer.Utilities.Extensions
             return containingLambdaOrLocalFunctionOperation != null;
         }
 
-        public static bool IsWithinExpressionTree(this IOperation operation,
-            [NotNullWhen(true)] INamedTypeSymbol? linqExpressionTreeType)
-        {
-            if (operation.GetAncestor(s_LambdaAndLocalFunctionKinds)?.Parent?.Type?.OriginalDefinition
-                is not ITypeSymbol lambdaType)
-            {
-                return false;
-            }
-
-            // Check if we are in a Expression<Func<T...>> context
-            return linqExpressionTreeType != null
+        public static bool IsWithinExpressionTree(this IOperation operation, [NotNullWhen(true)] INamedTypeSymbol? linqExpressionTreeType)
+            => linqExpressionTreeType != null
+                && operation.GetAncestor(s_LambdaAndLocalFunctionKinds)?.Parent?.Type?.OriginalDefinition
+                    is { } lambdaType
                 && linqExpressionTreeType.Equals(lambdaType);
-        }
 
         public static ITypeSymbol? GetPatternType(this IPatternOperation pattern)
         {
