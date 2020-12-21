@@ -508,10 +508,25 @@ namespace Analyzer.Utilities.Extensions
 
         private static readonly ImmutableArray<OperationKind> s_LambdaAndLocalFunctionKinds =
             ImmutableArray.Create(OperationKind.AnonymousFunction, OperationKind.LocalFunction);
+
         public static bool IsWithinLambdaOrLocalFunction(this IOperation operation, [NotNullWhen(true)] out IOperation? containingLambdaOrLocalFunctionOperation)
         {
             containingLambdaOrLocalFunctionOperation = operation.GetAncestor(s_LambdaAndLocalFunctionKinds);
             return containingLambdaOrLocalFunctionOperation != null;
+        }
+
+        public static bool IsWithinExpressionTree(this IOperation operation,
+            [NotNullWhen(true)] INamedTypeSymbol? linqExpressionTreeType)
+        {
+            if (operation.GetAncestor(s_LambdaAndLocalFunctionKinds)?.Parent?.Type?.OriginalDefinition
+                is not ITypeSymbol lambdaType)
+            {
+                return false;
+            }
+
+            // Check if we are in a Expression<Func<T...>> context
+            return linqExpressionTreeType != null
+                && linqExpressionTreeType.Equals(lambdaType);
         }
 
         public static ITypeSymbol? GetPatternType(this IPatternOperation pattern)
