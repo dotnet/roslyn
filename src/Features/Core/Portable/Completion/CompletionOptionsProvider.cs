@@ -32,6 +32,6 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionOptions.SnippetsBehavior,
             CompletionOptions.ShowItemsFromUnimportedNamespaces,
             CompletionOptions.TriggerInArgumentLists,
-            CompletionOptions.EnableCallCompletionOnTabTab);
+            CompletionOptions.EnableArgumentCompletionSnippets);
     }
 }

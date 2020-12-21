@@ -847,6 +847,11 @@
         <target state="translated">當參數名稱只有尾碼不同時，不出現提示</target>
         <note />
       </trans-unit>
+      <trans-unit id="Tab_twice_to_insert_arguments">
+        <source>Tab twice to insert arguments (experimental)</source>
+        <target state="new">Tab twice to insert arguments (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">目標命名空間:</target>

@@ -630,7 +630,4 @@
     <value>Add missing using directives on paste</value>
     <comment>'using' is a C# keyword and should not be localized</comment>
   </data>
-  <data name="Enable_call_completion_on_Tab_Tab" xml:space="preserve">
-    <value>Enable call completion on Tab-Tab (experimental)</value>
-  </data>
 </root>

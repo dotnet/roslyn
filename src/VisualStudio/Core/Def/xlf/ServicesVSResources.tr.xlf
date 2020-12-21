@@ -847,6 +847,11 @@
         <target state="translated">Parametre adlarının yalnızca sonekleri farklı olduğunda ipuçlarını gizle</target>
         <note />
       </trans-unit>
+      <trans-unit id="Tab_twice_to_insert_arguments">
+        <source>Tab twice to insert arguments (experimental)</source>
+        <target state="new">Tab twice to insert arguments (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">Hedef Ad Alanı:</target>

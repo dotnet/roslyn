@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.Completion
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerInArgumentLists"));
 
         // Use tri-value so the default state can be used to turn on the feature with experimentation service.
-        public static readonly PerLanguageOption2<bool?> EnableCallCompletionOnTabTab =
-            new(nameof(CompletionOptions), nameof(EnableCallCompletionOnTabTab), defaultValue: null,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.EnableCallCompletionOnTabTab"));
+        public static readonly PerLanguageOption2<bool?> EnableArgumentCompletionSnippets =
+            new(nameof(CompletionOptions), nameof(EnableArgumentCompletionSnippets), defaultValue: null,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.EnableArgumentCompletionSnippets"));
 
         public static IEnumerable<PerLanguageOption2<bool>> GetDev15CompletionOptions()
         {

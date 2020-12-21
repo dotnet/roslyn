@@ -42,11 +42,6 @@
         <target state="translated">Farbschema bearbeiten</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_call_completion_on_Tab_Tab">
-        <source>Enable call completion on Tab-Tab (experimental)</source>
-        <target state="new">Enable call completion on Tab-Tab (experimental)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_document">
         <source>Format document</source>
         <target state="translated">Dokument formatieren</target>

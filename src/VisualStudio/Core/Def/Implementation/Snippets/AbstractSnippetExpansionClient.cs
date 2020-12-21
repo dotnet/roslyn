@@ -459,9 +459,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return true;
             }
 
-            if (!(SubjectBuffer.GetFeatureOnOffOption(CompletionOptions.EnableCallCompletionOnTabTab) ?? false))
+            if (!(SubjectBuffer.GetFeatureOnOffOption(CompletionOptions.EnableArgumentCompletionSnippets) ?? false))
             {
-                // Full method call completion is not enabled
+                // Argument completion snippets are not enabled
                 return false;
             }
 

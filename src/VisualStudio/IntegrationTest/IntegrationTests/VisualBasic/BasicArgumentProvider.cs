@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
             await base.InitializeAsync().ConfigureAwait(true);
 
-            VisualStudio.Workspace.SetTabTabCompletionOption(true);
+            VisualStudio.Workspace.SetArgumentCompletionSnippetsOption(true);
         }
 
         [WpfFact]

@@ -7,11 +7,6 @@
         <target state="translated">Agregar las importaciones que faltan al pegar</target>
         <note>'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Enable_call_completion_on_Tab_Tab">
-        <source>Enable call completion on Tab-Tab (experimental)</source>
-        <target state="new">Enable call completion on Tab-Tab (experimental)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
         <target state="translated">En los operadores relacionales:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>

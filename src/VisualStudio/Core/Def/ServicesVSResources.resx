@@ -1599,4 +1599,7 @@ I agree to all of the foregoing:</value>
   <data name="New_Type_Name_colon" xml:space="preserve">
     <value>New Type Name:</value>
   </data>
+  <data name="Tab_twice_to_insert_arguments" xml:space="preserve">
+    <value>Tab twice to insert arguments (experimental)</value>
+  </data>
 </root>

@@ -77,17 +77,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 value: value);
         }
 
-        public void SetTabTabCompletionOption(bool value)
+        public void SetArgumentCompletionSnippetsOption(bool value)
         {
             SetPerLanguageOption(
-                optionName: CompletionOptions.EnableCallCompletionOnTabTab.Name,
-                feature: CompletionOptions.EnableCallCompletionOnTabTab.Feature,
+                optionName: CompletionOptions.EnableArgumentCompletionSnippets.Name,
+                feature: CompletionOptions.EnableArgumentCompletionSnippets.Feature,
                 language: LanguageNames.CSharp,
                 value: value);
 
             SetPerLanguageOption(
-                optionName: CompletionOptions.EnableCallCompletionOnTabTab.Name,
-                feature: CompletionOptions.EnableCallCompletionOnTabTab.Feature,
+                optionName: CompletionOptions.EnableArgumentCompletionSnippets.Name,
+                feature: CompletionOptions.EnableArgumentCompletionSnippets.Feature,
                 language: LanguageNames.VisualBasic,
                 value: value);
         }
