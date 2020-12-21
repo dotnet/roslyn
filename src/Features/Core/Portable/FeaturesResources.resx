@@ -2813,4 +2813,19 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="The_assembly_0_containing_type_1_references_NET_Framework" xml:space="preserve">
     <value>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</value>
   </data>
+  <data name="Apply_file_header_preferences" xml:space="preserve">
+    <value>Apply file header preferences</value>
+  </data>
+  <data name="Apply_object_collection_initialization_preferences" xml:space="preserve">
+    <value>Apply object collection initialization preferences</value>
+  </data>
+  <data name="Remove_unnecessary_casts" xml:space="preserve">
+    <value>Remove unnecessary casts</value>
+  </data>
+  <data name="Remove_unused_variables" xml:space="preserve">
+    <value>Remove unused variables</value>
+  </data>
+  <data name="Sort_accessibility_modifiers" xml:space="preserve">
+    <value>Sort accessibility modifiers</value>
+  </data>
 </root>

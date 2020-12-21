@@ -12,10 +12,8 @@ Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
-
     <UseExportProvider>
     Public Class CodeCleanUpTests
-
         ' Format Document tests are handled by Format Document Test
 
         ' TESTS NEEDED but not found in C#

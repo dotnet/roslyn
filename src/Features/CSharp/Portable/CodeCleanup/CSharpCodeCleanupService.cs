@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 new DiagnosticSet(CSharpFeaturesResources.Make_private_field_readonly_when_possible,
                     new[] { IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId }),
 
-                new DiagnosticSet(CSharpFeaturesResources.Remove_unnecessary_casts,
+                new DiagnosticSet(FeaturesResources.Remove_unnecessary_casts,
                     new[] { IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId }),
 
                 new DiagnosticSet(CSharpFeaturesResources.Apply_expression_block_body_preferences,
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 new DiagnosticSet(CSharpFeaturesResources.Apply_inline_out_variable_preferences,
                     new[] { IDEDiagnosticIds.InlineDeclarationDiagnosticId }),
 
-                new DiagnosticSet(CSharpFeaturesResources.Remove_unused_variables,
+                new DiagnosticSet(FeaturesResources.Remove_unused_variables,
                     new[] { CSharpRemoveUnusedVariableCodeFixProvider.CS0168, CSharpRemoveUnusedVariableCodeFixProvider.CS0219 }),
 
                 new DiagnosticSet(CSharpFeaturesResources.Apply_object_collection_initialization_preferences,
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 new DiagnosticSet(CSharpFeaturesResources.Apply_using_directive_placement_preferences,
                     new[] { IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId }),
 
-                new DiagnosticSet(CSharpFeaturesResources.Apply_file_header_preferences,
+                new DiagnosticSet(FeaturesResources.Apply_file_header_preferences,
                     new[] { IDEDiagnosticIds.FileHeaderMismatch }));
 
         public async Task<Document> CleanupAsync(

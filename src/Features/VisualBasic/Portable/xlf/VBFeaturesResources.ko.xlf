@@ -20,7 +20,7 @@
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
         <target state="needs-review-translation">누락된 Imports 추가</target>
-        <note>{Locked="Imports"} "Imports" is a VB keyword and should not be localized.</note>
+        <note>{Locked="Import"}</note>
       </trans-unit>
       <trans-unit id="Add_Shadows">
         <source>Add 'Shadows'</source>
@@ -103,9 +103,9 @@
         <note />
       </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
-        <source>Make private field readonly when possible</source>
-        <target state="new">Make private field readonly when possible</target>
-        <note />
+        <source>Make private field ReadOnly when possible</source>
+        <target state="new">Make private field ReadOnly when possible</target>
+        <note>{Locked="ReadOnly"} "ReadOnly" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
@@ -125,22 +125,7 @@
       <trans-unit id="Organize_Usings">
         <source>Organize Imports</source>
         <target state="new">Organize Imports</target>
-        <note>{Locked="Imports"} "Imports" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_casts">
-        <source>Remove unnecessary casts</source>
-        <target state="new">Remove unnecessary casts</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_variables">
-        <source>Remove unused variables</source>
-        <target state="new">Remove unused variables</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_accessibility_modifiers">
-        <source>Sort accessibility modifiers</source>
-        <target state="new">Sort accessibility modifiers</target>
-        <note />
+        <note>{Locked="Import"}</note>
       </trans-unit>
       <trans-unit id="Remove_shared_keyword_from_module_member">
         <source>Remove 'Shared' keyword from Module member</source>

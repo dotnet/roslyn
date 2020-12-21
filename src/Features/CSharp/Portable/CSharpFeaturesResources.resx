@@ -550,12 +550,6 @@
   <data name="Make_private_field_readonly_when_possible" xml:space="preserve">
     <value>Make private fields readonly when possible</value>
   </data>
-  <data name="Remove_unnecessary_casts" xml:space="preserve">
-    <value>Remove unnecessary casts</value>
-  </data>
-  <data name="Remove_unused_variables" xml:space="preserve">
-    <value>Remove unused variables</value>
-  </data>
   <data name="Use_0" xml:space="preserve">
     <value>Use '{0}'</value>
   </data>
@@ -618,9 +612,6 @@
   <data name="Remove_in_keyword" xml:space="preserve">
     <value>Remove 'in' keyword</value>
     <comment>{Locked="in"} "in" is a C# keyword and should not be localized.</comment>
-  </data>
-  <data name="Apply_file_header_preferences" xml:space="preserve">
-    <value>Apply file header preferences</value>
   </data>
   <data name="Change_to_as_expression" xml:space="preserve">
     <value>Change to 'as' expression</value>
