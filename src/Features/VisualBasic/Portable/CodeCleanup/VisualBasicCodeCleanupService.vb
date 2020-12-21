@@ -24,6 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
     <ExportLanguageService(GetType(ICodeCleanupService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicCodeCleanupService
         Implements ICodeCleanupService
+        
         Private ReadOnly _codeFixServiceOpt As ICodeFixService
 
         <ImportingConstructor>
