@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         public CSharpCodeCleanupService(
             // will remove the AllowDefault once CodeFixService is moved to Features
             // https://github.com/dotnet/roslyn/issues/27369
-            [Import(AllowDefault = true)] ICodeFixService codeFixService)
+            [Import(AllowDefault = true)] ICodeFixService? codeFixService)
             : base(codeFixService)
         {
         }
