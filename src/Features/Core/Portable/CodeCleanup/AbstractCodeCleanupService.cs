@@ -5,23 +5,23 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup
 {
     internal abstract class AbstractCodeCleanupService : ICodeCleanupService
     {
-        private readonly ICodeFixService _codeFixServiceOpt;
+        private readonly ICodeFixService? _codeFixService;
 
-        protected AbstractCodeCleanupService(ICodeFixService codeFixService)
+        protected AbstractCodeCleanupService(ICodeFixService? codeFixService)
         {
-            _codeFixServiceOpt = codeFixService;
+            _codeFixService = codeFixService;
         }
 
         protected abstract string OrganizeImportsDescription { get; }
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 progressTracker.AddItems(1);
             }
 
-            if (_codeFixServiceOpt != null)
+            if (_codeFixService != null)
             {
                 document = await ApplyCodeFixesAsync(
                     document, enabledDiagnostics.Diagnostics, progressTracker, cancellationToken).ConfigureAwait(false);
@@ -126,11 +126,12 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdsAsync(
             Document document, ImmutableArray<string> diagnosticIds, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(_codeFixService);
             foreach (var diagnosticId in diagnosticIds)
             {
                 using (Logger.LogBlock(FunctionId.CodeCleanup_ApplyCodeFixesAsync, diagnosticId, cancellationToken))
                 {
-                    document = await _codeFixServiceOpt.ApplyCodeFixesForSpecificDiagnosticIdAsync(
+                    document = await _codeFixService.ApplyCodeFixesForSpecificDiagnosticIdAsync(
                         document, diagnosticId, progressTracker, cancellationToken).ConfigureAwait(false);
                 }
             }
