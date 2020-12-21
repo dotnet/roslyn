@@ -596,7 +596,8 @@ try {
       Setup-IntegrationTestRun
     }
 
-    InitializeDotNetCli -install:$true
+    $global:_DotNetInstallDir = Join-Path $RepoRoot ".dotnet"
+    InstallDotNetSdk $global:_DotNetInstallDir $GlobalJson.tools.dotnet
   }
 
   if ($restore) {
