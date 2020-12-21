@@ -19,8 +19,8 @@
       </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
-        <target state="translated">Agregar instancias de Import que faltan</target>
-        <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
+        <target state="needs-review-translation">Agregar instancias de Import que faltan</target>
+        <note>{Locked="Imports"} "Imports" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_Shadows">
         <source>Add 'Shadows'</source>
@@ -43,9 +43,9 @@
         <note />
       </trans-unit>
       <trans-unit id="Apply_using_directive_placement_preferences">
-        <source>Apply Imports directive placement preferences</source>
-        <target state="new">Apply Imports directive placement preferences</target>
-        <note>'Imports' is a VB keyword and should not be localized</note>
+        <source>Apply Import directive placement preferences</source>
+        <target state="new">Apply Import directive placement preferences</target>
+        <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Change_to_DirectCast">
         <source>Change to 'DirectCast'</source>
@@ -123,8 +123,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Organize_Usings">
-        <source>Organize_Imports</source>
-        <target state="new">Organize_Imports</target>
+        <source>Organize Imports</source>
+        <target state="new">Organize Imports</target>
         <note>{Locked="Imports"} "Imports" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
@@ -141,6 +141,7 @@
         <source>Sort accessibility modifiers</source>
         <target state="new">Sort accessibility modifiers</target>
         <note />
+      </trans-unit>
       <trans-unit id="Remove_shared_keyword_from_module_member">
         <source>Remove 'Shared' keyword from Module member</source>
         <target state="translated">Quitar la palabra clave "Shared" del miembro del módulo</target>
