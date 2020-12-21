@@ -6,14 +6,14 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Testing
+namespace Microsoft.CodeAnalysis.Testing.TestAnalyzers
 {
     internal class CSharpAnalyzerTest<TAnalyzer> : AnalyzerTest<DefaultVerifier>
         where TAnalyzer : DiagnosticAnalyzer, new()
     {
-        public override string Language => LanguageNames.CSharp;
+        public sealed override string Language => LanguageNames.CSharp;
 
-        protected override string DefaultFileExt => "cs";
+        protected sealed override string DefaultFileExt => "cs";
 
         protected override CompilationOptions CreateCompilationOptions()
             => new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);

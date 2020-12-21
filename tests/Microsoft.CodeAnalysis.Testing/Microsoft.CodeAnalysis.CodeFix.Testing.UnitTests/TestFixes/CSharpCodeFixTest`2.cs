@@ -8,17 +8,17 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Testing
+namespace Microsoft.CodeAnalysis.Testing.TestFixes
 {
     internal class CSharpCodeFixTest<TAnalyzer, TCodeFix> : CodeFixTest<DefaultVerifier>
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodeFix : CodeFixProvider, new()
     {
-        public override string Language => LanguageNames.CSharp;
+        public sealed override string Language => LanguageNames.CSharp;
 
-        public override Type SyntaxKindType => typeof(SyntaxKind);
+        public sealed override Type SyntaxKindType => typeof(SyntaxKind);
 
-        protected override string DefaultFileExt => "cs";
+        protected sealed override string DefaultFileExt => "cs";
 
         protected override CompilationOptions CreateCompilationOptions()
             => new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);

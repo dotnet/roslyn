@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing.TestFixes;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -403,7 +404,7 @@ class TestClass {{
             }
         }
 
-        private class CSharpTest : CodeFixTest<DefaultVerifier>
+        private class CSharpTest : CSharpCodeFixTest<LiteralZeroAnalyzer, EmptyCodeFixProvider>
         {
             private readonly ImmutableArray<ImmutableArray<int>> _replacementGroups;
             private readonly bool _nested;
@@ -414,33 +415,12 @@ class TestClass {{
                 _nested = nested;
             }
 
-            public override string Language => LanguageNames.CSharp;
-
-            public override Type SyntaxKindType => typeof(SyntaxKind);
-
-            protected override string DefaultFileExt => "cs";
-
-            protected override CompilationOptions CreateCompilationOptions()
-            {
-                return new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-            }
-
-            protected override ParseOptions CreateParseOptions()
-            {
-                return new CSharpParseOptions(LanguageVersion.Default, DocumentationMode.Diagnose);
-            }
-
             protected override IEnumerable<CodeFixProvider> GetCodeFixProviders()
             {
                 foreach (var replacementGroup in _replacementGroups)
                 {
                     yield return new ReplaceZeroFix(replacementGroup, _nested);
                 }
-            }
-
-            protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
-            {
-                yield return new LiteralZeroAnalyzer();
             }
         }
     }

@@ -3,15 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using CSharpTest = Microsoft.CodeAnalysis.Testing.TestAnalyzers.CSharpAnalyzerTest<
+    Microsoft.CodeAnalysis.Testing.AdditionalFilesTests.HighlightBracesAnalyzer>;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
@@ -205,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
-        private class HighlightBracesAnalyzer : DiagnosticAnalyzer
+        internal class HighlightBracesAnalyzer : DiagnosticAnalyzer
         {
             internal static readonly DiagnosticDescriptor Descriptor =
                 new DiagnosticDescriptor("Brace", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
@@ -247,24 +246,6 @@ namespace Microsoft.CodeAnalysis.Testing
 
                     context.ReportDiagnostic(Diagnostic.Create(Descriptor, token.GetLocation()));
                 }
-            }
-        }
-
-        private class CSharpTest : AnalyzerTest<DefaultVerifier>
-        {
-            public override string Language => LanguageNames.CSharp;
-
-            protected override string DefaultFileExt => "cs";
-
-            protected override CompilationOptions CreateCompilationOptions()
-                => new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-
-            protected override ParseOptions CreateParseOptions()
-                => new CSharpParseOptions(LanguageVersion.Default, DocumentationMode.Diagnose);
-
-            protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
-            {
-                yield return new HighlightBracesAnalyzer();
             }
         }
     }

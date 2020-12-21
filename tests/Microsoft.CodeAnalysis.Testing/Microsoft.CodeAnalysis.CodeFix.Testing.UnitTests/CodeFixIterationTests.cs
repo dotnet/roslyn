@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing.TestFixes;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -465,14 +466,8 @@ class TestClass2 {
             }
         }
 
-        private class CSharpTest : CodeFixTest<DefaultVerifier>
+        private class CSharpTest : CSharpCodeFixTest<LiteralUnderFiveAnalyzer, IncrementFix>
         {
-            public override string Language => LanguageNames.CSharp;
-
-            public override Type SyntaxKindType => typeof(SyntaxKind);
-
-            protected override string DefaultFileExt => "cs";
-
             public int DiagnosticIndexToFix { get; set; }
 
             public CSharpTest()
@@ -483,26 +478,6 @@ class TestClass2 {
             protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
             {
                 return fixableDiagnostics[DiagnosticIndexToFix];
-            }
-
-            protected override CompilationOptions CreateCompilationOptions()
-            {
-                return new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-            }
-
-            protected override ParseOptions CreateParseOptions()
-            {
-                return new CSharpParseOptions(LanguageVersion.Default, DocumentationMode.Diagnose);
-            }
-
-            protected override IEnumerable<CodeFixProvider> GetCodeFixProviders()
-            {
-                yield return new IncrementFix();
-            }
-
-            protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
-            {
-                yield return new LiteralUnderFiveAnalyzer();
             }
         }
     }

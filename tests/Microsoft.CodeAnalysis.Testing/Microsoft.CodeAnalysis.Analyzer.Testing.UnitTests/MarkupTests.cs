@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing.TestAnalyzers;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Testing
@@ -275,7 +276,7 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
             }
         }
 
-        private class CSharpTest : AnalyzerTest<DefaultVerifier>
+        private class CSharpTest : CSharpAnalyzerTest<EmptyDiagnosticAnalyzer>
         {
             private readonly bool _nestedDiagnostics;
             private readonly bool _hiddenDescriptors;
@@ -287,16 +288,6 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
                 _hiddenDescriptors = hiddenDescriptors;
                 _reportAdditionalLocations = reportAdditionalLocations;
             }
-
-            public override string Language => LanguageNames.CSharp;
-
-            protected override string DefaultFileExt => "cs";
-
-            protected override CompilationOptions CreateCompilationOptions()
-                => new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-
-            protected override ParseOptions CreateParseOptions()
-                => new CSharpParseOptions(LanguageVersion.Default, DocumentationMode.Diagnose);
 
             protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
             {

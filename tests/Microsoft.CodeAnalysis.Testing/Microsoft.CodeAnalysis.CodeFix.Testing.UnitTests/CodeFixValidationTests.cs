@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing.TestFixes;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -431,34 +432,9 @@ Actual and expected values differ. Expected shown in baseline of diff:
             }
         }
 
-        private class ReplaceThisWithBaseTest<TCodeFix> : CodeFixTest<DefaultVerifier>
+        private class ReplaceThisWithBaseTest<TCodeFix> : CSharpCodeFixTest<ReplaceThisWithBaseAnalyzer, TCodeFix>
             where TCodeFix : CodeFixProvider, new()
         {
-            public override string Language => LanguageNames.CSharp;
-
-            public override Type SyntaxKindType => typeof(SyntaxKind);
-
-            protected override string DefaultFileExt => "cs";
-
-            protected override CompilationOptions CreateCompilationOptions()
-            {
-                return new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-            }
-
-            protected override ParseOptions CreateParseOptions()
-            {
-                return new CSharpParseOptions(LanguageVersion.Default, DocumentationMode.Diagnose);
-            }
-
-            protected override IEnumerable<CodeFixProvider> GetCodeFixProviders()
-            {
-                yield return new TCodeFix();
-            }
-
-            protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
-            {
-                yield return new ReplaceThisWithBaseAnalyzer();
-            }
         }
     }
 }
