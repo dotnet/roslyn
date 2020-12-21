@@ -9,9 +9,6 @@ parameters:
 - name: configuration
   type: string
   default: 'Debug'
-- name: useCache
-  type: boolean
-  default: false
 
 jobs:
 - job: ${{ parameters.jobName }}
@@ -24,15 +21,6 @@ jobs:
 
   steps:
     - template: checkout-windows-task.yml
-
-    - task: Cache@2
-      inputs:
-        key: 'nuget | "$(Agent.OS)" | eng/Versions.props,!**/bin/**'
-        restoreKeys: |
-          nuget | "$(Agent.OS)"
-        path: $(NUGET_PACKAGES)
-      displayName: Cache NuGet packages
-      condition: and(succeeded(), eq('${{ parameters.useCache }}', true))
 
     - task: PowerShell@2
       displayName: Restore
