@@ -38,6 +38,7 @@ param (
   [switch]$ci,
   [switch]$collectDumps,
   [switch][Alias('a')]$runAnalyzers,
+  [switch]$skipDocumentation = $false,
   [switch][Alias('d')]$deployExtensions,
   [switch]$prepareMachine,
   [switch]$useGlobalNuGetCache = $true,
@@ -100,6 +101,7 @@ function Print-Usage() {
   Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
   Write-Host "  -collectDumps             Collect dumps from test runs"
   Write-Host "  -runAnalyzers             Run analyzers during build operations (short: -a)"
+  Write-Host "  -skipDocumentation        Skip generation of XML documentation files"
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
@@ -231,6 +233,8 @@ function BuildSolution() {
   # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
 
+  $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
+
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -256,6 +260,7 @@ function BuildSolution() {
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
       $buildFromSource `
+      $generateDocumentationFile `
       @properties
   }
   finally {
@@ -331,7 +336,6 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_IOPERATION = "true"
   }
 
-  $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
   $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "netcoreapp3.1"
 
   if (!(Test-Path $runTests)) {
@@ -341,7 +345,6 @@ function TestUsingRunTests() {
 
   $dotnetExe = Join-Path $dotnet "dotnet.exe"
   $args += " --dotnet `"$dotnetExe`""
-  $args += " --out `"$testResultsDir`""
   $args += " --logs `"$LogDir`""
   $args += " --configuration $configuration"
 

@@ -140,7 +140,7 @@ Automatically format on paste;</source>
         <target state="translated">Automatisch während der Eingabe formatieren;
 Anweisung bei Semikolon automatisch formatieren;
 Block bei schließender geschweifter Klammer automatisch formatieren;
-Bei Verwendung der EINGABETASTE automatisch formatieren
+Bei Verwendung der EINGABETASTE automatisch formatieren;
 Beim Einfügen automatisch formatieren;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>

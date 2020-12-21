@@ -46,18 +46,20 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(workspace)
 
             Dim projectVertex = Assert.Single(lsif.Vertices.OfType(Of Graph.LsifProject))
-            Dim generatedDocumentVertex = Assert.Single(lsif.GetLinkedVertices(Of Graph.LsifDocument)(projectVertex, "contains"))
+            Dim generatedDocumentVertices = lsif.GetLinkedVertices(Of Graph.LsifDocument)(projectVertex, "contains")
 
-            ' Assert the contents were included and does match the tree
-            Dim contentBase64Encoded = generatedDocumentVertex.Contents
-            Assert.NotNull(contentBase64Encoded)
+            For Each generatedDocumentVertex In generatedDocumentVertices
+                ' Assert the contents were included and does match the tree
+                Dim contentBase64Encoded = generatedDocumentVertex.Contents
+                Assert.NotNull(contentBase64Encoded)
 
-            Dim contents = Encoding.UTF8.GetString(Convert.FromBase64String(contentBase64Encoded))
+                Dim contents = Encoding.UTF8.GetString(Convert.FromBase64String(contentBase64Encoded))
 
-            Dim compilation = Await workspace.CurrentSolution.Projects.Single().GetCompilationAsync()
-            Dim tree = Assert.Single(compilation.SyntaxTrees)
+                Dim compilation = Await workspace.CurrentSolution.Projects.Single().GetCompilationAsync()
+                Dim tree = Assert.Single(compilation.SyntaxTrees, Function(t) t.FilePath = generatedDocumentVertex.Uri.OriginalString)
 
-            Assert.Equal(tree.GetText().ToString(), contents)
+                Assert.Equal(tree.GetText().ToString(), contents)
+            Next
         End Function
     End Class
 End Namespace

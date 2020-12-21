@@ -10,7 +10,7 @@
 
     <!-- Workaround dependencies that do not yet support netcoreapp3.1 https://github.com/dotnet/roslyn/issues/45114 -->
     <NoWarn>NU1701;$(NoWarn)</NoWarn>
-    <AssetTargetFallback  Condition="'$(TargetFramework)' == 'netcoreapp3.1'">net472;$(AssetTargetFallback)</AssetTargetFallback>
+    <AssetTargetFallback Condition="'$(TargetFramework)' == 'netcoreapp3.1'">net472;$(AssetTargetFallback)</AssetTargetFallback>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>

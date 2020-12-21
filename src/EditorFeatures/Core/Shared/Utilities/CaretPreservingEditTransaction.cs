@@ -20,9 +20,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             ITextView textView,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
+            : this(description, undoHistoryRegistry.GetHistory(textView.TextBuffer), editorOperationsFactoryService.GetEditorOperations(textView))
         {
-            _editorOperations = editorOperationsFactoryService.GetEditorOperations(textView);
-            _undoHistory = undoHistoryRegistry.GetHistory(textView.TextBuffer);
+        }
+
+        public CaretPreservingEditTransaction(string description, ITextUndoHistory? undoHistory, IEditorOperations editorOperations)
+        {
+            _editorOperations = editorOperations;
+            _undoHistory = undoHistory;
             _active = true;
 
             if (_undoHistory != null)

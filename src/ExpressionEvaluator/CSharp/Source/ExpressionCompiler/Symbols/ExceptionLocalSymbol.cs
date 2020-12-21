@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
             var method = GetIntrinsicMethod(compilation, _getExceptionMethodName);
-            var call = BoundCall.Synthesized(syntax, receiverOpt: null, method: method);
+            var call = BoundCall.Synthesized(syntax, receiverOpt: null, method: method, binder: null);
             return ConvertToLocalType(compilation, call, this.Type, diagnostics);
         }
     }
