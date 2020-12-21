@@ -1253,7 +1253,8 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
     <comment>{Locked="Import"} "Import" is a VB keyword and should not be localized.</comment>
   </data>
   <data name="Make_private_field_readonly_when_possible" xml:space="preserve">
-    <value>Make private field readonly when possible</value>
+    <value>Make private field ReadOnly when possible</value>
+    <comment>{Locked="ReadOnly"} "ReadOnly" is a VB keyword and should not be localized.</comment>
   </data>
   <data name="Organize_Usings" xml:space="preserve">
     <value>Organize Imports</value>

@@ -9,6 +9,7 @@ Option Strict On
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
+
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
