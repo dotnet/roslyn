@@ -1226,7 +1226,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="Add_missing_Imports" xml:space="preserve">
     <value>Add missing Imports</value>
-    <comment>{Locked="Imports"} "Imports" is a VB keyword and should not be localized.</comment>
+    <comment>{Locked="Import"}</comment>
   </data>
   <data name="Add_Shadows" xml:space="preserve">
     <value>Add 'Shadows'</value>
@@ -1257,7 +1257,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="Organize_Usings" xml:space="preserve">
     <value>Organize Imports</value>
-    <comment>{Locked="Imports"} "Imports" is a VB keyword and should not be localized.</comment>
+    <comment>{Locked="Import"}</comment>
   </data>
   <data name="Remove_unnecessary_casts" xml:space="preserve">
     <value>Remove unnecessary casts</value>
