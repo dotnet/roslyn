@@ -37,16 +37,6 @@
         <target state="translated">계속하시겠습니까? 계속하면 손상된 코드가 생성될 수 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
-        <source>Error creating instance of CodeFixProvider</source>
-        <target state="translated">CodeFixProvider 인스턴스를 만드는 동안 오류가 발생했습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
-        <source>Error creating instance of CodeFixProvider '{0}'</source>
-        <target state="translated">CodeFixProvider '{0}' 인스턴스를 만드는 동안 오류가 발생했습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">가져오지 않은 네임스페이스의 항목</target>
@@ -120,11 +110,6 @@
       <trans-unit id="Punctuation">
         <source>Punctuation</source>
         <target state="translated">문장 부호</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removal_of_document_not_supported">
-        <source>Removal of document not supported</source>
-        <target state="translated">지원되지 않는 문서 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
