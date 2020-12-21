@@ -27012,6 +27012,45 @@ namespace System.Runtime.CompilerServices
 
         [Fact]
         [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc_Cref()
+        {
+            var src = @"
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for <see cref=""I1""/></param>
+public record C(int I1)
+{
+    /// <summary>Summary</summary>
+    /// <param name=""x"">Description for <see cref=""x""/></param>
+    public void M(int x) { }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (7,52): warning CS1574: XML comment has cref attribute 'x' that could not be resolved
+                //     /// <param name="x">Description for <see cref="x"/></param>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "x").WithArguments("x").WithLocation(7, 52)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal("I1", cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            Assert.Equal(SymbolKind.Property, model.GetSymbolInfo(cref).Symbol!.Kind);
+        }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Error()
         {
             var src = @"
