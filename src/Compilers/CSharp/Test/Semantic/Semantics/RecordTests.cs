@@ -26996,7 +26996,7 @@ namespace System.Runtime.CompilerServices
     <param name=""I1"">Description for I1</param>
 </member>
 ", cMember.GetDocumentationCommentXml());
-            var constructor = cMember.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
+            var constructor = cMember.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()!.Name == "I1").Single();
             Assert.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -27008,6 +27008,126 @@ namespace System.Runtime.CompilerServices
 
             var property = cMember.GetMembers("I1").Single();
             Assert.Equal("", property.GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc_Error()
+        {
+            var src = @"
+/// <summary>Summary</summary>
+/// <param name=""Error""></param>
+/// <param name=""I1""></param>
+public record C(int I1);
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (3,18): warning CS1572: XML comment has a param tag for 'Error', but there is no parameter by that name
+                // /// <param name="Error"></param>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "Error").WithArguments("Error").WithLocation(3, 18),
+                // (3,18): warning CS1572: XML comment has a param tag for 'Error', but there is no parameter by that name
+                // /// <param name="Error"></param>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamTag, "Error").WithArguments("Error").WithLocation(3, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc_Duplicate()
+        {
+            var src = @"
+/// <summary>Summary</summary>
+/// <param name=""I1""></param>
+/// <param name=""I1""></param>
+public record C(int I1);
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (4,12): warning CS1571: XML comment has a duplicate param tag for 'I1'
+                // /// <param name="I1"></param>
+                Diagnostic(ErrorCode.WRN_DuplicateParamTag, @"name=""I1""").WithArguments("I1").WithLocation(4, 12),
+                // (4,12): warning CS1571: XML comment has a duplicate param tag for 'I1'
+                // /// <param name="I1"></param>
+                Diagnostic(ErrorCode.WRN_DuplicateParamTag, @"name=""I1""").WithArguments("I1").WithLocation(4, 12)
+                );
+        }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc_ParamRef()
+        {
+            var src = @"
+/// <summary>Summary <paramref name=""I1""/></summary>
+/// <param name=""I1"">Description for I1</param>
+public record C(int I1);
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var cMember = comp.GetMember<NamedTypeSymbol>("C");
+            var constructor = cMember.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()!.Name == "I1").Single();
+            Assert.Equal(
+@"<member name=""M:C.#ctor(System.Int32)"">
+    <summary>Summary <paramref name=""I1""/></summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", constructor.GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
+        public void XmlDoc_ParamRef_Error()
+        {
+            var src = @"
+/// <summary>Summary <paramref name=""Error""/></summary>
+/// <param name=""I1"">Description for I1</param>
+public record C(int I1);
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (2,38): warning CS1734: XML comment on 'C' has a paramref tag for 'Error', but there is no parameter by that name
+                // /// <summary>Summary <paramref name="Error"/></summary>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "Error").WithArguments("Error", "C").WithLocation(2, 38),
+                // (2,38): warning CS1734: XML comment on 'C.C(int)' has a paramref tag for 'Error', but there is no parameter by that name
+                // /// <summary>Summary <paramref name="Error"/></summary>
+                Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "Error").WithArguments("Error", "C.C(int)").WithLocation(2, 38)
+                );
         }
 
         [Fact]
@@ -27043,7 +27163,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", cMember.GetDocumentationCommentXml());
 
-            var constructor = cMember.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
+            var constructor = cMember.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()!.Name == "I1").Single();
             Assert.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -27127,7 +27247,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", c.GetDocumentationCommentXml());
 
-            var cConstructor = c.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
+            var cConstructor = c.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()!.Name == "I1").Single();
             Assert.Equal(
 @"<member name=""M:C.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -27170,7 +27290,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", d.GetDocumentationCommentXml());
 
-            var dConstructor = d.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
+            var dConstructor = d.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()!.Name == "I1").Single();
             Assert.Equal(
 @"<member name=""M:D.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -27220,7 +27340,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", e.GetDocumentationCommentXml());
 
-            var eConstructor = e.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
+            var eConstructor = e.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()!.Name == "I1").Single();
             Assert.Equal("", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
             Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
@@ -27264,7 +27384,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", e.GetDocumentationCommentXml());
 
-            var eConstructor = e.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
+            var eConstructor = e.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()!.Name == "I1").Single();
             Assert.Equal("", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
             Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
@@ -27311,7 +27431,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", c.GetDocumentationCommentXml());
 
-            var cConstructor = c.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
+            var cConstructor = c.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()!.Name == "I1").Single();
             Assert.Equal(1, cConstructor.DeclaringSyntaxReferences.Count());
             Assert.Equal("", cConstructor.GetDocumentationCommentXml());
             Assert.Equal("", cConstructor.GetParameters()[0].GetDocumentationCommentXml());
@@ -27353,7 +27473,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", d.GetDocumentationCommentXml());
 
-            var dConstructor = d.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
+            var dConstructor = d.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()!.Name == "I1").Single();
             Assert.Equal(
 @"<member name=""M:D.#ctor(System.Int32)"">
     <summary>Summary</summary>
@@ -27407,7 +27527,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", e.GetDocumentationCommentXml());
 
-            var eConstructor = e.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
+            var eConstructor = e.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()!.Name == "I1").Single();
             Assert.Equal(1, eConstructor.DeclaringSyntaxReferences.Count());
             Assert.Equal(
 @"<member name=""M:E.#ctor(System.Int32)"">
@@ -27460,7 +27580,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", e.GetDocumentationCommentXml());
 
-            var eConstructor = e.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
+            var eConstructor = e.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()!.Name == "I1").Single();
             Assert.Equal(1, eConstructor.DeclaringSyntaxReferences.Count());
             Assert.Equal("", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
@@ -27509,7 +27629,7 @@ namespace System.Runtime.CompilerServices
 </member>
 ", e.GetDocumentationCommentXml());
 
-            var eConstructor = e.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
+            var eConstructor = e.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()!.Name == "I1").Single();
             Assert.Equal(1, eConstructor.DeclaringSyntaxReferences.Count());
             Assert.Equal(
 @"<member name=""M:E.#ctor(System.Int32)"">
@@ -27619,7 +27739,7 @@ namespace System.Runtime.CompilerServices
                 );
 
             var cMember = comp.GetMember<NamedTypeSymbol>("Outer.C");
-            var constructor = cMember.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton().Name == "I1").Single();
+            var constructor = cMember.GetMembers(".ctor").OfType<MethodSymbol>().Where(m => m.Parameters.AsSingleton()!.Name == "I1").Single();
             Assert.Equal(
 @"<member name=""M:Outer.C.#ctor(System.Int32)"">
     <summary>Summary</summary>
