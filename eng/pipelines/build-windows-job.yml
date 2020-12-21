@@ -22,6 +22,11 @@ jobs:
   steps:
     - template: checkout-windows-task.yml
 
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core SDK'
+      inputs:
+        useGlobalJson: true
+
     - task: PowerShell@2
       displayName: Restore
       inputs:
