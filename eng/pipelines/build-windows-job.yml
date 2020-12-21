@@ -16,16 +16,17 @@ jobs:
     vmImage: 'windows-2019'
   timeoutInMinutes: 40
 
-  variables:
-    NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
-
   steps:
     - template: checkout-windows-task.yml
+
+    - powershell: |
+        Write-Host "##vso[task.setvariable variable=DotNetSDKVersion]$((Get-Content global.json | ConvertFrom-Json).sdk.version)"
+      displayName: Read SDK version from global.json
 
     - task: UseDotNet@2
       displayName: 'Use .NET Core SDK'
       inputs:
-        useGlobalJson: true
+        version: $(DotNetSDKVersion)
 
     - task: PowerShell@2
       displayName: Restore
