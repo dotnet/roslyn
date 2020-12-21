@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
+namespace Microsoft.CodeAnalysis.CodeCleanup
 {
     internal abstract class AbstractCodeCleanupService : ICodeCleanupService
     {

@@ -1256,7 +1256,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
     <value>Make private field ReadOnly when possible</value>
     <comment>{Locked="ReadOnly"} "ReadOnly" is a VB keyword and should not be localized.</comment>
   </data>
-  <data name="Organize_Usings" xml:space="preserve">
+  <data name="Organize_Imports" xml:space="preserve">
     <value>Organize Imports</value>
     <comment>{Locked="Import"}</comment>
   </data>

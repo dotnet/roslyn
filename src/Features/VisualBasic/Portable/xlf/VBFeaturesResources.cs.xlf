@@ -20,7 +20,7 @@
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
         <target state="needs-review-translation">Přidat chybějící Importy</target>
-        <note>{Locked="Imports"} "Imports" is a VB keyword and should not be localized.</note>
+        <note>{Locked="Import"}</note>
       </trans-unit>
       <trans-unit id="Add_Shadows">
         <source>Add 'Shadows'</source>
@@ -103,9 +103,9 @@
         <note />
       </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
-        <source>Make private field readonly when possible</source>
-        <target state="new">Make private field readonly when possible</target>
-        <note />
+        <source>Make private field ReadOnly when possible</source>
+        <target state="new">Make private field ReadOnly when possible</target>
+        <note>{Locked="ReadOnly"} "ReadOnly" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
@@ -122,10 +122,10 @@
         <target state="translated">&lt;Víc typů&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Organize_Usings">
+      <trans-unit id="Organize_Imports">
         <source>Organize Imports</source>
         <target state="new">Organize Imports</target>
-        <note>{Locked="Imports"} "Imports" is a VB keyword and should not be localized.</note>
+        <note>{Locked="Import"}</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
