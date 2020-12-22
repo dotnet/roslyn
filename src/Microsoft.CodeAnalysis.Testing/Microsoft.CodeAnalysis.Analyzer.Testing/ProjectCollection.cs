@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Testing
         {
             get
             {
-                var project = this.GetOrAdd(projectName, () => new ProjectState(projectName, _defaultLanguage, "Test", _defaultExtension));
+                var project = this.GetOrAdd(projectName, () => new ProjectState(projectName, _defaultLanguage, $"/{projectName}/Test", _defaultExtension));
                 if (project.Language != language)
                 {
                     throw new InvalidOperationException();

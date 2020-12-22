@@ -234,14 +234,14 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var allowFixAll = (CodeFixTestBehaviors & CodeFixTestBehaviors.SkipFixAllCheck) != CodeFixTestBehaviors.SkipFixAllCheck;
 
-            await VerifyDiagnosticsAsync(testState.Sources.ToArray(), testState.AdditionalFiles.ToArray(), testState.Name, testState.AdditionalProjects.Values.ToArray(), testState.AdditionalReferences.ToArray(), testState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of test state"), cancellationToken).ConfigureAwait(false);
+            await VerifyDiagnosticsAsync(testState.Sources.ToArray(), testState.AdditionalFiles.ToArray(), testState, testState.AdditionalProjects.Values.ToArray(), testState.AdditionalReferences.ToArray(), testState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of test state"), cancellationToken).ConfigureAwait(false);
 
             if (CodeFixExpected())
             {
-                await VerifyDiagnosticsAsync(fixedState.Sources.ToArray(), fixedState.AdditionalFiles.ToArray(), fixedState.Name, fixedState.AdditionalProjects.Values.ToArray(), fixedState.AdditionalReferences.ToArray(), fixedState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of fixed state"), cancellationToken).ConfigureAwait(false);
+                await VerifyDiagnosticsAsync(fixedState.Sources.ToArray(), fixedState.AdditionalFiles.ToArray(), fixedState, fixedState.AdditionalProjects.Values.ToArray(), fixedState.AdditionalReferences.ToArray(), fixedState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of fixed state"), cancellationToken).ConfigureAwait(false);
                 if (allowFixAll && CodeActionExpected(BatchFixedState))
                 {
-                    await VerifyDiagnosticsAsync(batchFixedState.Sources.ToArray(), batchFixedState.AdditionalFiles.ToArray(), batchFixedState.Name, batchFixedState.AdditionalProjects.Values.ToArray(), batchFixedState.AdditionalReferences.ToArray(), batchFixedState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of batch fixed state"), cancellationToken).ConfigureAwait(false);
+                    await VerifyDiagnosticsAsync(batchFixedState.Sources.ToArray(), batchFixedState.AdditionalFiles.ToArray(), batchFixedState, batchFixedState.AdditionalProjects.Values.ToArray(), batchFixedState.AdditionalReferences.ToArray(), batchFixedState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of batch fixed state"), cancellationToken).ConfigureAwait(false);
                 }
 
                 await VerifyFixAsync(testState, fixedState, batchFixedState, Verify, cancellationToken).ConfigureAwait(false);
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Testing
             IVerifier verifier,
             CancellationToken cancellationToken)
         {
-            var project = await CreateProjectAsync(oldState.Sources.ToArray(), oldState.AdditionalFiles.ToArray(), oldState.AdditionalProjects.Values.ToArray(), oldState.AdditionalReferences.ToArray(), oldState.Name, language, cancellationToken);
+            var project = await CreateProjectAsync(oldState.Sources.ToArray(), oldState.AdditionalFiles.ToArray(), oldState, oldState.AdditionalProjects.Values.ToArray(), oldState.AdditionalReferences.ToArray(), cancellationToken);
             var compilerDiagnostics = await GetCompilerDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
 
             ExceptionDispatchInfo? iterationCountFailure;

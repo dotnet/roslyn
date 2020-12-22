@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Testing.TestAnalyzers
             => new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
         protected override ParseOptions CreateParseOptions()
-            => new CSharpParseOptions(LanguageVersion.Default, DocumentationMode.Diagnose);
+            => new CSharpParseOptions(LanguageVersion.Default);
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {

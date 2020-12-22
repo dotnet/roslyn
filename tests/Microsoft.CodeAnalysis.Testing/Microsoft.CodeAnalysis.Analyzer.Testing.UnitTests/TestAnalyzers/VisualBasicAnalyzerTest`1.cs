@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Testing.TestAnalyzers
             => new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
         protected override ParseOptions CreateParseOptions()
-            => new VisualBasicParseOptions(LanguageVersion.Default, DocumentationMode.Diagnose);
+            => new VisualBasicParseOptions(LanguageVersion.Default);
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
         {
