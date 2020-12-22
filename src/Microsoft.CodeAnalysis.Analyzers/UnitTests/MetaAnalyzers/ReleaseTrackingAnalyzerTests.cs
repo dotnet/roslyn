@@ -946,8 +946,10 @@ class MyAnalyzer : DiagnosticAnalyzer
 
         private static DiagnosticResult GetAdditionalFileResultAt(int line, int column, string path, DiagnosticDescriptor descriptor, params object[] arguments)
         {
+#pragma warning disable RS0030 // Do not used banned APIs
             return new DiagnosticResult(descriptor)
                 .WithLocation(path, line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(arguments);
         }
 
