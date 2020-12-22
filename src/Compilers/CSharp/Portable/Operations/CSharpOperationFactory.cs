@@ -1650,7 +1650,6 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     getEnumeratorArguments: enumeratorInfoOpt.GetEnumeratorMethod is { IsExtensionMethod: true } enumeratorMethod
                                                         ? Operation.SetParentOperation(
                                                             DeriveArguments(
-                                                                enumeratorInfoOpt.Binder,
                                                                 enumeratorMethod,
                                                                 ImmutableArray.Create(boundForEachStatement.Expression),
                                                                 argumentsToParametersOpt: default,
@@ -2356,7 +2355,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 new DiagnosticBag());
 
             var args = DeriveArguments(
-                            binder,
                             disposeMethod,
                             argumentsBuilder.ToImmutableAndFree(),
                             argsToParams,

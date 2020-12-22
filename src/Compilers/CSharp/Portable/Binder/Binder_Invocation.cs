@@ -1142,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
                         expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
-                        argsToParamsOpt: argsToParams, defaultArguments, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
+                        argsToParamsOpt: argsToParams, defaultArguments, resultKind: LookupResultKind.Viable, type: returnType, hasErrors: gotError);
         }
 
 #nullable enable
@@ -1274,7 +1274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // new UnknownWrapper(default(object))
                     var unknownArgument = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
-                    defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, null, unknownArgument) { WasCompilerGenerated = true };
+                    defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, unknownArgument) { WasCompilerGenerated = true };
                 }
             }
             else if (parameter.IsIDispatchConstant)
@@ -1283,7 +1283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // new DispatchWrapper(default(object))
                     var dispatchArgument = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
-                    defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, null, dispatchArgument) { WasCompilerGenerated = true };
+                    defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, dispatchArgument) { WasCompilerGenerated = true };
                 }
             }
             else

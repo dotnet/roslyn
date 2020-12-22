@@ -213,7 +213,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     indexerAccess.Expanded,
                     argsToParams,
                     defaultArguments,
-                    indexerAccess.BinderOpt,
                     indexerAccess.Type);
 
                 refKindsBuilderOpt?.Free();
