@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
                     {IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId}),
                 New DiagnosticSet(FeaturesResources.Sort_accessibility_modifiers,
                     {IDEDiagnosticIds.OrderModifiersDiagnosticId}),
-                New DiagnosticSet(VBFeaturesResources.Make_private_field_ReadOnly_when_possible,
+                New DiagnosticSet(VBFeaturesResources.Make_private_field_readonly_when_possible,
                     {IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId}),
                 New DiagnosticSet(FeaturesResources.Remove_unnecessary_casts,
                     {IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId}),
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(
-            <Import()> codeFixService As ICodeFixService)
+            <Import(AllowDefault:=True)> codeFixService As ICodeFixService)
             MyBase.New(codeFixService)
         End Sub
 
