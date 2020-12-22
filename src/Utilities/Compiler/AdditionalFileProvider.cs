@@ -19,12 +19,7 @@ namespace Analyzer.Utilities
     {
         private readonly ImmutableArray<AdditionalText> _additionalFiles;
 
-        internal AdditionalFileProvider(params AdditionalText[] additionalFiles)
-            : this(ImmutableArray.Create(additionalFiles))
-        {
-        }
-
-        private AdditionalFileProvider(ImmutableArray<AdditionalText> additionalFiles)
+        internal AdditionalFileProvider(ImmutableArray<AdditionalText> additionalFiles)
         {
             _additionalFiles = additionalFiles;
         }
