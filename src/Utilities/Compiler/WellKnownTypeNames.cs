@@ -121,6 +121,7 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsGenericIReadOnlyCollection1 = "System.Collections.Generic.IReadOnlyCollection`1";
         public const string SystemCollectionsGenericIReadOnlyDictionary2 = "System.Collections.Generic.IReadOnlyDictionary`2";
         public const string SystemCollectionsGenericIReadOnlyList1 = "System.Collections.Generic.IReadOnlyList`1";
+        public const string SystemCollectionsGenericIReadOnlySet1 = "System.Collections.Generic.IReadOnlySet`1";
         public const string SystemCollectionsGenericISet1 = "System.Collections.Generic.ISet`1";
         public const string SystemCollectionsGenericKeyNotFoundException = "System.Collections.Generic.KeyNotFoundException";
         public const string SystemCollectionsGenericList1 = "System.Collections.Generic.List`1";
