@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
@@ -22,7 +21,7 @@ namespace Text.Analyzers
     {
         internal const string RuleId = "CA1704";
 
-        /*private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(TextAnalyzersResources.IdentifiersShouldBeSpelledCorrectlyTitle), TextAnalyzersResources.ResourceManager, typeof(TextAnalyzersResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(TextAnalyzersResources.IdentifiersShouldBeSpelledCorrectlyTitle), TextAnalyzersResources.ResourceManager, typeof(TextAnalyzersResources));
 
         private static readonly LocalizableString s_localizableMessageFileParse = new LocalizableResourceString(nameof(TextAnalyzersResources.IdentifiersShouldBeSpelledCorrectlyFileParse), TextAnalyzersResources.ResourceManager, typeof(TextAnalyzersResources));
         private static readonly LocalizableString s_localizableMessageAssembly = new LocalizableResourceString(nameof(TextAnalyzersResources.IdentifiersShouldBeSpelledCorrectlyMessageAssembly), TextAnalyzersResources.ResourceManager, typeof(TextAnalyzersResources));
@@ -53,8 +52,8 @@ namespace Text.Analyzers
             s_localizableTitle,
             s_localizableMessageFileParse,
             DiagnosticCategory.Naming,
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: false);
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
 
         internal static DiagnosticDescriptor AssemblyRule = new DiagnosticDescriptor(
             RuleId,
@@ -271,131 +270,10 @@ namespace Text.Analyzers
             analysisContext.RegisterCompilationStartAction(OnCompilationStart);
         }
 
-        private static CodeAnalysisDictionary GetMainDictionary()
-        {
-            var assemblyType = typeof(IdentifiersShouldBeSpelledCorrectlyAnalyzer);
-            var assembly = assemblyType.GetTypeInfo().Assembly;
-            var dictionary = $"{assemblyType.Namespace}.Dictionary.dic";
-
-            using var stream = assembly.GetManifestResourceStream(dictionary);
-            var text = SourceText.From(stream);
-            return ParseDicDictionary(text);
-        }
-
-        private static CodeAnalysisDictionary ParseXmlDictionary(SourceText text)
-            => text.Parse(CodeAnalysisDictionary.CreateFromXml);
-
-        private static CodeAnalysisDictionary ParseDicDictionary(SourceText text)
-            => text.Parse(CodeAnalysisDictionary.CreateFromDic);
-
-        private static string RemovePrefixIfPresent(string prefix, string name)
-            => name.StartsWith(prefix, StringComparison.Ordinal) ? name.Substring(1) : name;
-
-        private static IEnumerable<Diagnostic> GetUnmeaningfulIdentifierDiagnostics(ISymbol symbol, string symbolName)
-        {
-            switch (symbol.Kind)
-            {
-                case SymbolKind.Assembly:
-                    yield return Diagnostic.Create(AssemblyMoreMeaningfulNameRule, Location.None, symbolName);
-                    break;
-
-                case SymbolKind.Namespace:
-                    yield return Diagnostic.Create(NamespaceMoreMeaningfulNameRule, symbol.Locations.First(), symbolName);
-                    break;
-
-                case SymbolKind.NamedType:
-                    foreach (var location in symbol.Locations)
-                    {
-                        yield return Diagnostic.Create(TypeMoreMeaningfulNameRule, location, symbolName);
-                    }
-
-                    break;
-
-                case SymbolKind.Method:
-                case SymbolKind.Property:
-                case SymbolKind.Event:
-                case SymbolKind.Field:
-                    yield return Diagnostic.Create(MemberMoreMeaningfulNameRule, symbol.Locations.First(), symbolName);
-                    break;
-
-                case SymbolKind.Parameter:
-                    yield return symbol.ContainingType.TypeKind == TypeKind.Delegate
-                        ? Diagnostic.Create(DelegateParameterMoreMeaningfulNameRule, symbol.Locations.First(), symbol.ContainingType.ToDisplayString(), symbolName)
-                        : Diagnostic.Create(MemberParameterMoreMeaningfulNameRule, symbol.Locations.First(), symbol.ContainingSymbol.ToDisplayString(), symbolName);
-                    break;
-
-                case SymbolKind.TypeParameter:
-                    yield return symbol.ContainingSymbol.Kind == SymbolKind.Method
-                        ? Diagnostic.Create(MethodTypeParameterMoreMeaningfulNameRule, symbol.Locations.First(), symbol.ContainingSymbol.ToDisplayString(), symbol.Name)
-                        : Diagnostic.Create(TypeTypeParameterMoreMeaningfulNameRule, symbol.Locations.First(), symbol.ContainingSymbol.ToDisplayString(), symbol.Name);
-                    break;
-
-                default:
-                    throw new NotImplementedException($"Unknown SymbolKind: {symbol.Kind}");
-            }
-        }
-
-        private static IEnumerable<Diagnostic> GetMisspelledWordDiagnostics(ISymbol symbol, string misspelledWord)
-        {
-            switch (symbol.Kind)
-            {
-                case SymbolKind.Assembly:
-                    // Do not report spelling rules in assembly names for now. The spelling should be enforced
-                    // at the API level and the name of the assembly on disk isn't relevant
-                    // yield return Diagnostic.Create(AssemblyRule, Location.None, misspelledWord, symbol.Name);
-                    break;
-
-                case SymbolKind.Namespace:
-                    yield return Diagnostic.Create(NamespaceRule, symbol.Locations.First(), misspelledWord, symbol.ToDisplayString());
-                    break;
-
-                case SymbolKind.NamedType:
-                    foreach (var location in symbol.Locations)
-                    {
-                        yield return Diagnostic.Create(TypeRule, location, misspelledWord, symbol.ToDisplayString());
-                    }
-
-                    break;
-
-                case SymbolKind.Method:
-                case SymbolKind.Property:
-                case SymbolKind.Event:
-                case SymbolKind.Field:
-                    yield return Diagnostic.Create(MemberRule, symbol.Locations.First(), misspelledWord, symbol.ToDisplayString());
-                    break;
-
-                case SymbolKind.Parameter:
-                    yield return symbol.ContainingType.TypeKind == TypeKind.Delegate
-                        ? Diagnostic.Create(DelegateParameterRule, symbol.Locations.First(), symbol.ContainingType.ToDisplayString(), misspelledWord, symbol.Name)
-                        : Diagnostic.Create(MemberParameterRule, symbol.Locations.First(), symbol.ContainingSymbol.ToDisplayString(), misspelledWord, symbol.Name);
-
-                    break;
-
-                case SymbolKind.TypeParameter:
-                    yield return symbol.ContainingSymbol.Kind == SymbolKind.Method
-                        ? Diagnostic.Create(MethodTypeParameterRule, symbol.Locations.First(), symbol.ContainingSymbol.ToDisplayString(), misspelledWord, symbol.Name)
-                        : Diagnostic.Create(TypeTypeParameterRule, symbol.Locations.First(), symbol.ContainingSymbol.ToDisplayString(), misspelledWord, symbol.Name);
-
-                    break;
-
-                case SymbolKind.Local:
-                    yield return Diagnostic.Create(VariableRule, symbol.Locations.First(), misspelledWord, symbol.ToDisplayString());
-                    break;
-
-                default:
-                    throw new NotImplementedException($"Unknown SymbolKind: {symbol.Kind}");
-            }
-        }
-
         private void OnCompilationStart(CompilationStartAnalysisContext compilationStartContext)
         {
-            var projectDictionary = _mainDictionary.Clone();
             var dictionaries = ReadDictionaries();
-            if (dictionaries.Any())
-            {
-                var aggregatedDictionary = dictionaries.Aggregate((x, y) => x.CombineWith(y));
-                projectDictionary = projectDictionary.CombineWith(aggregatedDictionary);
-            }
+            var projectDictionary = CodeAnalysisDictionary.CreateFromDictionaries(dictionaries.Concat(_mainDictionary));
 
             compilationStartContext.RegisterOperationAction(AnalyzeVariable, OperationKind.VariableDeclarator);
             compilationStartContext.RegisterCompilationEndAction(AnalyzeAssembly);
@@ -419,7 +297,7 @@ namespace Text.Analyzers
                 CodeAnalysisDictionary CreateDictionaryFromAdditionalText(AdditionalText additionalFile)
                 {
                     var text = additionalFile.GetText(compilationStartContext.CancellationToken);
-                    var isXml = additionalFile.Path.EndsWith("xml", StringComparison.OrdinalIgnoreCase);
+                    var isXml = additionalFile.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase);
                     var provider = isXml ? _xmlDictionaryProvider : _dicDictionaryProvider;
 
                     if (!compilationStartContext.TryGetValue(text, provider, out var dictionary))
@@ -454,22 +332,14 @@ namespace Text.Analyzers
                 var variableOperation = (IVariableDeclaratorOperation)operationContext.Operation;
                 var variable = variableOperation.Symbol;
 
-                var diagnostics = GetDiagnosticsForSymbol(variable, variable.Name, checkForUnmeaningful: false);
-                foreach (var diagnostic in diagnostics)
-                {
-                    operationContext.ReportDiagnostic(diagnostic);
-                }
+                ReportDiagnosticsForSymbol(variable, variable.Name, operationContext.ReportDiagnostic, checkForUnmeaningful: false);
             }
 
             void AnalyzeAssembly(CompilationAnalysisContext context)
             {
                 var assembly = context.Compilation.Assembly;
-                var diagnostics = GetDiagnosticsForSymbol(assembly, assembly.Name);
 
-                foreach (var diagnostic in diagnostics)
-                {
-                    context.ReportDiagnostic(diagnostic);
-                }
+                ReportDiagnosticsForSymbol(assembly, assembly.Name, context.ReportDiagnostic);
             }
 
             void AnalyzeSymbol(SymbolAnalysisContext symbolContext)
@@ -504,7 +374,7 @@ namespace Text.Analyzers
 
                         foreach (var typeParameter in method.TypeParameters)
                         {
-                            typeParameterDiagnostics = GetDiagnosticsForSymbol(typeParameter, RemovePrefixIfPresent("T", typeParameter.Name));
+                            ReportDiagnosticsForSymbol(typeParameter, RemovePrefixIfPresent("T", typeParameter.Name), symbolContext.ReportDiagnostic);
                         }
 
                         break;
@@ -517,36 +387,26 @@ namespace Text.Analyzers
 
                         foreach (var typeParameter in type.TypeParameters)
                         {
-                            typeParameterDiagnostics = GetDiagnosticsForSymbol(typeParameter, RemovePrefixIfPresent("T", typeParameter.Name));
+                            ReportDiagnosticsForSymbol(typeParameter, RemovePrefixIfPresent("T", typeParameter.Name), symbolContext.ReportDiagnostic);
                         }
 
                         break;
                 }
 
-                var diagnostics = GetDiagnosticsForSymbol(symbol, symbolName);
-                var allDiagnostics = typeParameterDiagnostics.Concat(diagnostics);
-                foreach (var diagnostic in allDiagnostics)
-                {
-                    symbolContext.ReportDiagnostic(diagnostic);
-                }
+                ReportDiagnosticsForSymbol(symbol, symbolName, symbolContext.ReportDiagnostic);
             }
 
-            IEnumerable<Diagnostic> GetDiagnosticsForSymbol(ISymbol symbol, string symbolName, bool checkForUnmeaningful = true)
+            void ReportDiagnosticsForSymbol(ISymbol symbol, string symbolName, Action<Diagnostic> reportDiagnostic, bool checkForUnmeaningful = true)
             {
-                var diagnostics = new List<Diagnostic>();
-                if (checkForUnmeaningful && symbolName.Length == 1)
+                foreach (var misspelledWord in GetMisspelledWords(symbolName))
                 {
-                    diagnostics.AddRange(GetUnmeaningfulIdentifierDiagnostics(symbol, symbolName));
-                }
-                else
-                {
-                    foreach (var misspelledWord in GetMisspelledWords(symbolName))
-                    {
-                        diagnostics.AddRange(GetMisspelledWordDiagnostics(symbol, misspelledWord));
-                    }
+                    reportDiagnostic(GetMisspelledWordDiagnostic(symbol, misspelledWord));
                 }
 
-                return diagnostics;
+                if (checkForUnmeaningful && symbolName.Length == 1)
+                {
+                    reportDiagnostic(GetUnmeaningfulIdentifierDiagnostic(symbol, symbolName));
+                }
             }
 
             IEnumerable<string> GetMisspelledWords(string symbolName)
@@ -579,6 +439,68 @@ namespace Text.Analyzers
 
             bool IsWordSpelledCorrectly(string word)
                 => !projectDictionary.UnrecognizedWords.Contains(word) && projectDictionary.RecognizedWords.Contains(word);
+        }
+
+        private static CodeAnalysisDictionary GetMainDictionary()
+        {
+            // The "main" dictionary, Dictionary.dic, was created in WSL Ubuntu with the following commands:
+            //
+            // Install dependencies:
+            // > sudo apt install hunspell-tools hunspell-en-us
+            // 
+            // Create dictionary:
+            // > unmunch /usr/share/hunspell/en_US.dic /usr/share/hunspell/en_US.aff > Dictionary.dic
+            //
+            // Tweak:
+            // Added the words: 'namespace'
+            var text = SourceText.From(TextAnalyzersResources.Dictionary);
+            return ParseDicDictionary(text);
+        }
+
+        private static CodeAnalysisDictionary ParseXmlDictionary(SourceText text)
+            => text.Parse(CodeAnalysisDictionary.CreateFromXml);
+
+        private static CodeAnalysisDictionary ParseDicDictionary(SourceText text)
+            => text.Parse(CodeAnalysisDictionary.CreateFromDic);
+
+        private static string RemovePrefixIfPresent(string prefix, string name)
+            => name.StartsWith(prefix, StringComparison.Ordinal) ? name[1..] : name;
+
+        private static Diagnostic GetMisspelledWordDiagnostic(ISymbol symbol, string misspelledWord)
+        {
+            return symbol.Kind switch
+            {
+                SymbolKind.Assembly => Diagnostic.Create(AssemblyRule, Location.None, misspelledWord, symbol.Name),
+                SymbolKind.Namespace => Diagnostic.Create(NamespaceRule, symbol.Locations.First(), misspelledWord, symbol.ToDisplayString()),
+                SymbolKind.NamedType => Diagnostic.Create(TypeRule, symbol.Locations.First(), misspelledWord, symbol.ToDisplayString()),
+                SymbolKind.Method or SymbolKind.Property or SymbolKind.Event or SymbolKind.Field => Diagnostic.Create(MemberRule, symbol.Locations.First(), misspelledWord, symbol.ToDisplayString()),
+                SymbolKind.Parameter => symbol.ContainingType.TypeKind == TypeKind.Delegate
+                    ? Diagnostic.Create(DelegateParameterRule, symbol.Locations.First(), symbol.ContainingType.ToDisplayString(), misspelledWord, symbol.Name)
+                    : Diagnostic.Create(MemberParameterRule, symbol.Locations.First(), symbol.ContainingSymbol.ToDisplayString(), misspelledWord, symbol.Name),
+                SymbolKind.TypeParameter => symbol.ContainingSymbol.Kind == SymbolKind.Method
+                    ? Diagnostic.Create(MethodTypeParameterRule, symbol.Locations.First(), symbol.ContainingSymbol.ToDisplayString(), misspelledWord, symbol.Name)
+                    : Diagnostic.Create(TypeTypeParameterRule, symbol.Locations.First(), symbol.ContainingSymbol.ToDisplayString(), misspelledWord, symbol.Name),
+                SymbolKind.Local => Diagnostic.Create(VariableRule, symbol.Locations.First(), misspelledWord, symbol.ToDisplayString()),
+                _ => throw new NotImplementedException($"Unknown SymbolKind: {symbol.Kind}"),
+            };
+        }
+
+        private static Diagnostic GetUnmeaningfulIdentifierDiagnostic(ISymbol symbol, string symbolName)
+        {
+            return symbol.Kind switch
+            {
+                SymbolKind.Assembly => Diagnostic.Create(AssemblyMoreMeaningfulNameRule, Location.None, symbolName),
+                SymbolKind.Namespace => Diagnostic.Create(NamespaceMoreMeaningfulNameRule, symbol.Locations.First(), symbolName),
+                SymbolKind.NamedType => Diagnostic.Create(TypeMoreMeaningfulNameRule, symbol.Locations.First(), symbolName),
+                SymbolKind.Method or SymbolKind.Property or SymbolKind.Event or SymbolKind.Field => Diagnostic.Create(MemberMoreMeaningfulNameRule, symbol.Locations.First(), symbolName),
+                SymbolKind.Parameter => symbol.ContainingType.TypeKind == TypeKind.Delegate
+                    ? Diagnostic.Create(DelegateParameterMoreMeaningfulNameRule, symbol.Locations.First(), symbol.ContainingType.ToDisplayString(), symbolName)
+                    : Diagnostic.Create(MemberParameterMoreMeaningfulNameRule, symbol.Locations.First(), symbol.ContainingSymbol.ToDisplayString(), symbolName),
+                SymbolKind.TypeParameter => symbol.ContainingSymbol.Kind == SymbolKind.Method
+                    ? Diagnostic.Create(MethodTypeParameterMoreMeaningfulNameRule, symbol.Locations.First(), symbol.ContainingSymbol.ToDisplayString(), symbol.Name)
+                    : Diagnostic.Create(TypeTypeParameterMoreMeaningfulNameRule, symbol.Locations.First(), symbol.ContainingSymbol.ToDisplayString(), symbol.Name),
+                _ => throw new NotImplementedException($"Unknown SymbolKind: {symbol.Kind}"),
+            };
         }
     }
 }

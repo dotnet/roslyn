@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -16,26 +15,17 @@ namespace Text.Analyzers
     /// <Remarks>
     /// <seealso href="https://docs.microsoft.com/en-us/visualstudio/code-quality/how-to-customize-the-code-analysis-dictionary?view=vs-2019"/>
     /// </Remarks>
-    internal class CodeAnalysisDictionary
+    internal sealed class CodeAnalysisDictionary
     {
-        protected CodeAnalysisDictionary(XDocument document)
-        {
-            LoadWordsFromDocument(document);
-        }
-
-        protected CodeAnalysisDictionary(IEnumerable<string> recognizedWords)
-        {
-            RecognizedWords.UnionWith(recognizedWords);
-        }
-
         /// <summary>
-        /// Copy constructor used to implement <see cref="Clone"/>.
+        /// Initialize a new instance of <see cref="CodeAnalysisDictionary"/>.
         /// </summary>
-        /// <param name="other">The other instance whose values we should copy.</param>
-        protected CodeAnalysisDictionary(CodeAnalysisDictionary other)
+        /// <param name="recognizedWords">Misspelled words that the spell checker will now ignore.</param>
+        /// <param name="unrecognizedWords">Correctly spelled words that the spell checker will now report.</param>
+        private CodeAnalysisDictionary(IEnumerable<string> recognizedWords, IEnumerable<string> unrecognizedWords)
         {
-            RecognizedWords = new HashSet<string>(other.RecognizedWords, StringComparer.OrdinalIgnoreCase);
-            UnrecognizedWords = new HashSet<string>(other.UnrecognizedWords, StringComparer.OrdinalIgnoreCase);
+            RecognizedWords = new HashSet<string>(recognizedWords, StringComparer.OrdinalIgnoreCase);
+            UnrecognizedWords = new HashSet<string>(unrecognizedWords, StringComparer.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -48,7 +38,7 @@ namespace Text.Analyzers
         /// </Recognized>
         /// </code>
         /// </example>
-        public HashSet<string> RecognizedWords { get; protected set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public HashSet<string> RecognizedWords { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// A list of correctly spelled words that the spell checker will now report.
@@ -60,7 +50,7 @@ namespace Text.Analyzers
         /// </Unrecognized>
         /// </code>
         /// </example>
-        public HashSet<string> UnrecognizedWords { get; protected set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public HashSet<string> UnrecognizedWords { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Creates a new instance of this class with recognized and unrecognized words (if specified) loaded
@@ -71,7 +61,12 @@ namespace Text.Analyzers
         public static CodeAnalysisDictionary CreateFromXml(StreamReader streamReader)
         {
             var document = XDocument.Load(streamReader);
-            return new CodeAnalysisDictionary(document);
+            // TODO: Include Deprecated words and acronym CasingExceptions as noted here:
+            // https://docs.microsoft.com/en-us/visualstudio/code-quality/ca1704?view=vs-2019#to-add-words-to-a-custom-dictionary
+            return new CodeAnalysisDictionary(
+                GetSectionWords(document, "Recognized", "Word"),
+                GetSectionWords(document, "Unrecognized", "Word")
+            );
         }
 
         /// <summary>
@@ -81,54 +76,28 @@ namespace Text.Analyzers
         /// <returns>A new instance of this class with recognized words loaded.</returns>
         public static CodeAnalysisDictionary CreateFromDic(StreamReader streamReader)
         {
-            var words = new Collection<string>();
+            var recognizedWords = new List<string>();
 
             string word;
             while ((word = streamReader.ReadLine()) != null)
             {
                 if (!string.IsNullOrWhiteSpace(word.Trim()))
                 {
-                    words.Add(word);
+                    recognizedWords.Add(word);
                 }
             }
 
-            return new CodeAnalysisDictionary(words);
+            return new CodeAnalysisDictionary(recognizedWords, Enumerable.Empty<string>());
         }
 
-        /// <summary>
-        /// Returns a copy of the current instance.
-        /// </summary>
-        /// <returns></returns>
-        public CodeAnalysisDictionary Clone() => new CodeAnalysisDictionary(this);
-
-        /// <summary>
-        /// Replaces this instance's <see cref="RecognizedWords"/> and <see cref="UnrecognizedWords"/> with
-        /// the union of its words and <paramref name="other"/>'s words.
-        /// </summary>
-        /// <param name="other">Another instance of this class.</param>
-        /// <returns>This instance with words added from the other instance.</returns>
-        public CodeAnalysisDictionary CombineWith(CodeAnalysisDictionary other)
+        public static CodeAnalysisDictionary CreateFromDictionaries(IEnumerable<CodeAnalysisDictionary> dictionaries)
         {
-            RecognizedWords.UnionWith(other.RecognizedWords);
-            UnrecognizedWords.UnionWith(other.UnrecognizedWords);
-            return this;
+            var recognizedWords = dictionaries.Select(x => x.RecognizedWords).Aggregate<IEnumerable<string>>((x, y) => x.Union(y));
+            var unrecognizedWords = dictionaries.Select(x => x.UnrecognizedWords).Aggregate<IEnumerable<string>>((x, y) => x.Union(y));
+            return new CodeAnalysisDictionary(recognizedWords, unrecognizedWords);
         }
 
-        private static IEnumerable<T> GetValues<T>(IEnumerable<XElement> elements, Func<XElement, T> extractor)
-            => elements.Select(extractor);
-
-        private static IEnumerable<XElement> GetElements(XDocument document, string section, string name)
-            => document.Descendants(section).SelectMany(x => x.Elements(name));
-
-        private static string ExtractInnerText(XElement element) => element.Value.Trim();
-
-        private void LoadWordsFromDocument(XDocument document)
-        {
-            RecognizedWords.UnionWith(GetWordsOrExceptions("Recognized", "Word"));
-            UnrecognizedWords.UnionWith(GetWordsOrExceptions("Unrecognized", "Word"));
-
-            IEnumerable<string> GetWordsOrExceptions(string section, string property) =>
-                GetValues(GetElements(document, section, property), ExtractInnerText);
-        }
+        private static IEnumerable<string> GetSectionWords(XDocument document, string section, string property)
+            => document.Descendants(section).SelectMany(section => section.Elements(property)).Select(element => element.Value.Trim());
     }
 }
