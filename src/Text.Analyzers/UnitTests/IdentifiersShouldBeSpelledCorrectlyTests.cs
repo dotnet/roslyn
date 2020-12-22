@@ -2,9 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
@@ -462,16 +464,16 @@ namespace Text.Analyzers.UnitTests
     </Words>
 </Dictionary>";
 
-            return new TestAdditionalDocument(filename, contents);
+            return new FakeAdditionalText(filename, contents);
 
             static string CreateXml(IEnumerable<string> words) =>
                 string.Join(Environment.NewLine, words?.Select(x => $"<Word>{x}</Word>") ?? Enumerable.Empty<string>());
         }
 
-        private static TestAdditionalDocument CreateDicDictionary(IEnumerable<string> recognizedWords)
+        private static FakeAdditionalText CreateDicDictionary(IEnumerable<string> recognizedWords)
         {
             var contents = string.Join(Environment.NewLine, recognizedWords);
-            return new TestAdditionalDocument("CustomDictionary.dic", contents);
+            return new FakeAdditionalText("CustomDictionary.dic", contents);
         }
 
         private static string CreateTypeWithConstructor(string typeName, string constructorName = "", string parameter = "", bool isStatic = false)
@@ -507,6 +509,21 @@ class {typeName}
             return $@"using System;
 
 class {typeName} {{ event EventHandler<string> {eventName}; }}";
+        }
+
+        private sealed class FakeAdditionalText : AdditionalText
+        {
+            private readonly SourceText _text;
+
+            public FakeAdditionalText(string path, string text = "")
+            {
+                Path = path;
+                _text = SourceText.From(text);
+            }
+
+            public override string Path { get; }
+
+            public override SourceText GetText(CancellationToken cancellationToken = default) => _text;
         }
     }
 }
