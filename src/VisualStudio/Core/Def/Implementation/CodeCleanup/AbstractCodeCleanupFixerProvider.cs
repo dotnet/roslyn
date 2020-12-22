@@ -5,28 +5,21 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.CodeCleanUp;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
 {
-    [Export(typeof(ICodeCleanUpFixerProvider))]
-    [AppliesToProject(ContentTypeNames.CSharpContentType)]
-    [ContentType(ContentTypeNames.CSharpContentType)]
-    internal class CodeCleanUpFixerProvider : ICodeCleanUpFixerProvider
+    internal abstract class AbstractCodeCleanUpFixerProvider : ICodeCleanUpFixerProvider
     {
         private readonly ImmutableArray<Lazy<AbstractCodeCleanUpFixer, ContentTypeMetadata>> _codeCleanUpFixers;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CodeCleanUpFixerProvider(
-            [ImportMany] IEnumerable<Lazy<AbstractCodeCleanUpFixer, ContentTypeMetadata>> codeCleanUpFixers)
+        protected AbstractCodeCleanUpFixerProvider(
+            IEnumerable<Lazy<AbstractCodeCleanUpFixer, ContentTypeMetadata>> codeCleanUpFixers)
         {
             _codeCleanUpFixers = codeCleanUpFixers.ToImmutableArray();
         }
