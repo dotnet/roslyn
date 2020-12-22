@@ -2048,7 +2048,7 @@ namespace BoundTreeGenerator
                 case "getxmlnamespace":
                 case "global":
                 case "gosub":
-                case "goto":
+                case "goTo":
                 case "handles":
                 case "if":
                 case "implements":
@@ -2071,7 +2071,6 @@ namespace BoundTreeGenerator
                 case "mustoverride":
                 case "mybase":
                 case "myclass":
-                case "nameof":
                 case "namespace":
                 case "narrowing":
                 case "new":
@@ -2091,7 +2090,7 @@ namespace BoundTreeGenerator
                 case "overloads":
                 case "overridable":
                 case "overrides":
-                case "paramarray":
+                case "paramArray":
                 case "partial":
                 case "private":
                 case "property":
