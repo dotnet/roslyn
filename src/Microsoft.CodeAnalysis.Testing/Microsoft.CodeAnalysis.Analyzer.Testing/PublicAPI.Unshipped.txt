@@ -2,7 +2,7 @@ Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.AnalyzerTest() -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CompilerDiagnostics.get -> Microsoft.CodeAnalysis.Testing.CompilerDiagnostics
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CompilerDiagnostics.set -> void
-Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateProjectAsync((string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] sources, Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState primaryProject, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState> additionalProjects, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Project>
+Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateProjectAsync(Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState primaryProject, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState> additionalProjects, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Project>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DiagnosticVerifier.get -> System.Action<Microsoft.CodeAnalysis.Diagnostic, Microsoft.CodeAnalysis.Testing.DiagnosticResult, Microsoft.CodeAnalysis.Testing.IVerifier>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DiagnosticVerifier.set -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DisabledDiagnostics.get -> System.Collections.Generic.List<string>
@@ -130,6 +130,7 @@ Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.Name.get -> string
 Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.OutputKind.get -> Microsoft.CodeAnalysis.OutputKind
 Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.ReferenceAssemblies.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.Sources.get -> System.Collections.Immutable.ImmutableArray<(string filename, Microsoft.CodeAnalysis.Text.SourceText content)>
+Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.WithSources(System.Collections.Immutable.ImmutableArray<(string filename, Microsoft.CodeAnalysis.Text.SourceText content)> sources) -> Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState
 Microsoft.CodeAnalysis.Testing.PackageIdentity
 Microsoft.CodeAnalysis.Testing.PackageIdentity.Id.get -> string
 Microsoft.CodeAnalysis.Testing.PackageIdentity.PackageIdentity(string id, string version) -> void
@@ -308,7 +309,7 @@ static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetSpans(string input
 static Microsoft.CodeAnalysis.Testing.TestFileMarkupParser.GetSpans(string input, out string output, out System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>> spans) -> void
 static readonly Microsoft.CodeAnalysis.Testing.DiagnosticResult.EmptyDiagnosticResults -> Microsoft.CodeAnalysis.Testing.DiagnosticResult[]
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.ApplyCompilationOptions(Microsoft.CodeAnalysis.Project project) -> Microsoft.CodeAnalysis.Project
-virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateProjectImplAsync((string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] sources, Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState primaryProject, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState> additionalProjects, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Project>
+virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateProjectImplAsync(Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState primaryProject, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState> additionalProjects, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Project>
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateSolutionAsync(Microsoft.CodeAnalysis.ProjectId projectId, Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState projectState, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateWorkspace() -> Microsoft.CodeAnalysis.AdhocWorkspace
 virtual Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DefaultFilePath.get -> string
