@@ -42,11 +42,6 @@
         <target state="translated">配色の編集</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">ドキュメントのフォーマット</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
         <target state="translated">ドキュメントのフォーマットの設定 (実験)</target>

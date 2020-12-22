@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 new DiagnosticSet(FeaturesResources.Remove_unused_variables,
                     new[] { CSharpRemoveUnusedVariableCodeFixProvider.CS0168, CSharpRemoveUnusedVariableCodeFixProvider.CS0219 }),
 
-                new DiagnosticSet(CSharpFeaturesResources.Apply_object_collection_initialization_preferences,
+                new DiagnosticSet(FeaturesResources.Apply_object_collection_initialization_preferences,
                     new[] { IDEDiagnosticIds.UseObjectInitializerDiagnosticId, IDEDiagnosticIds.UseCollectionInitializerDiagnosticId }),
 
                 new DiagnosticSet(CSharpFeaturesResources.Apply_using_directive_placement_preferences,

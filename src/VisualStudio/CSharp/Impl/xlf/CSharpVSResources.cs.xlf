@@ -42,11 +42,6 @@
         <target state="translated">Upravit barevné schéma</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">Formátovat dokument</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
         <target state="translated">Nastavení formátování dokumentu (experiment)</target>

@@ -47,11 +47,6 @@
         <target state="translated">Aplicar as preferências de linguagem/tipo de estrutura</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_object_collection_initialization_preferences">
-        <source>Apply object/collection initialization preferences</source>
-        <target state="translated">Aplicar as preferências de inicialização de objeto/coleção</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_this_qualification_preferences">
         <source>Apply 'this.' qualification preferences</source>
         <target state="translated">Aplicar as preferências de qualificação 'this.'</target>

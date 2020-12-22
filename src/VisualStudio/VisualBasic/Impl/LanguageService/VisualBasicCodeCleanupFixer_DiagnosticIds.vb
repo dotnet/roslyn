@@ -81,7 +81,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageService
         <Order(After:=IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)>
         <ConfigurationKey("unused")>
         <HelpLink("https://www.microsoft.com")>
-        <LocalizedName(GetType(VBFeaturesResources), NameOf(VBFeaturesResources.Apply_object_collection_initialization_preferences))>
+        <LocalizedName(GetType(FeaturesResources), NameOf(FeaturesResources.Apply_object_collection_initialization_preferences))>
         Public Shared ReadOnly UseObjectInitializerDiagnosticId As FixIdDefinition
 
         <Export>
@@ -90,7 +90,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageService
         <Order(After:=IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)>
         <ConfigurationKey("unused")>
         <HelpLink("https://www.microsoft.com")>
-        <LocalizedName(GetType(VBFeaturesResources), NameOf(VBFeaturesResources.Apply_object_collection_initialization_preferences))>
+        <LocalizedName(GetType(FeaturesResources), NameOf(FeaturesResources.Apply_object_collection_initialization_preferences))>
         Public Shared ReadOnly UseCollectionInitializerDiagnosticId As FixIdDefinition
 
         <Export>
@@ -99,7 +99,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageService
         <ConfigurationKey("unused")>
         <HelpLink("https://www.microsoft.com")>
         <ExportMetadata("EnableByDefault", True)>
-        <LocalizedName(GetType(BasicVSResources), NameOf(BasicVSResources.Format_document))>
+        <LocalizedName(GetType(ServicesVSResources), NameOf(ServicesVSResources.Format_document))>
         Public Shared ReadOnly FormatDocument As FixIdDefinition
 
         <Export>

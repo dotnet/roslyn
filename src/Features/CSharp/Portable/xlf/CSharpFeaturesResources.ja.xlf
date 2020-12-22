@@ -47,11 +47,6 @@
         <target state="translated">言語/フレームワークの型の基本設定を適用します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_object_collection_initialization_preferences">
-        <source>Apply object/collection initialization preferences</source>
-        <target state="translated">オブジェクト/コレクションの初期化の基本設定を適用します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_this_qualification_preferences">
         <source>Apply 'this.' qualification preferences</source>
         <target state="translated">'this.' 修飾の基本設定を適用します</target>

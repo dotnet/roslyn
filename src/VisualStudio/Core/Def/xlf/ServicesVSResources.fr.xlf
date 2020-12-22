@@ -267,6 +267,11 @@
         <target state="translated">Terminer</target>
         <note />
       </trans-unit>
+      <trans-unit id="Format_document">
+        <source>Format document</source>
+        <target state="new">Format document</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">Générer le fichier .editorconfig à partir des paramètres</target>

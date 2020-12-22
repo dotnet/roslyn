@@ -314,9 +314,6 @@
     <value>Add missing imports on paste</value>
     <comment>'import' is a Visual Basic keyword and should not be localized</comment>
   </data>
-  <data name="Format_document" xml:space="preserve">
-    <value>Format document</value>
-  </data>
   <data name="Remove_unnecessary_Imports" xml:space="preserve">
     <value>Remove unnecessary Imports</value>
     <comment>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</comment>

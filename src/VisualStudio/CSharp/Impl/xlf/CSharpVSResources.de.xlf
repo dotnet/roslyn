@@ -42,11 +42,6 @@
         <target state="translated">Farbschema bearbeiten</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">Dokument formatieren</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
         <target state="translated">Einstellungen zur Dokumentformatierung (experimentell)</target>

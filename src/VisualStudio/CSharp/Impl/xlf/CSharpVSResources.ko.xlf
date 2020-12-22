@@ -42,11 +42,6 @@
         <target state="translated">색 구성표 편집</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">문서 서식</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
         <target state="translated">문서 서식 설정(실험)</target>
