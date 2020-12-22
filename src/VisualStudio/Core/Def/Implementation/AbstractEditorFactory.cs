@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Do we need to create a text buffer?
             if (textBuffer == null)
             {
-                textBuffer = GetDocumentData(grfCreateDoc, pszMkDocument, vsHierarchy, itemid) as IVsTextBuffer;
+                textBuffer = (IVsTextBuffer)GetDocumentData(grfCreateDoc, pszMkDocument, vsHierarchy, itemid);
                 Contract.ThrowIfNull(textBuffer, $"Failed to get document data for {pszMkDocument}");
             }
 
@@ -190,11 +190,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public object GetDocumentView(uint grfCreate, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, uint itemid)
         {
+            // There is no scenario need currently to implement this method.
             throw new NotImplementedException();
         }
 
         public string GetEditorCaption(string pszMkDocument, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, out Guid pguidCmdUI)
         {
+            // It is not possible to get this information without initializing the designer.
+            // There is no other scenario need currently to implement this method.
             throw new NotImplementedException();
         }
 
