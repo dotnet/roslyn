@@ -32,11 +32,6 @@
         <target state="translated">Применять предпочтения для выражения или тела блока</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_file_header_preferences">
-        <source>Apply file header preferences</source>
-        <target state="translated">Применить параметры заголовка файла</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">
         <source>Apply implicit/explicit type preferences</source>
         <target state="translated">Применять предпочтения для неявных или явных типов</target>
@@ -165,16 +160,6 @@
       <trans-unit id="Remove_new_modifier">
         <source>Remove 'new' modifier</source>
         <target state="translated">Удалить модификатор "new"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_casts">
-        <source>Remove unnecessary casts</source>
-        <target state="translated">Удалить ненужные приведения</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_variables">
-        <source>Remove unused variables</source>
-        <target state="translated">Удалить неиспользуемые переменные</target>
         <note />
       </trans-unit>
       <trans-unit id="Reverse_for_statement">

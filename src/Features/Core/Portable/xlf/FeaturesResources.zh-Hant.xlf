@@ -125,6 +125,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">替代條件不會擷取，也無法命名</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
       </trans-unit>
+      <trans-unit id="Apply_file_header_preferences">
+        <source>Apply file header preferences</source>
+        <target state="new">Apply file header preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_object_collection_initialization_preferences">
+        <source>Apply object collection initialization preferences</source>
+        <target state="new">Apply object collection initialization preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
         <target state="translated">等待的工作會傳回 '{0}'</target>
@@ -1835,6 +1845,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">移除 'async' 修飾元</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_casts">
+        <source>Remove unnecessary casts</source>
+        <target state="new">Remove unnecessary casts</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_variables">
+        <source>Remove unused variables</source>
+        <target state="new">Remove unused variables</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">將 ‘{0}’ 取代為 ‘{1}'</target>
@@ -1848,6 +1868,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">粗略編輯</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_accessibility_modifiers">
+        <source>Sort accessibility modifiers</source>
+        <target state="new">Sort accessibility modifiers</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">

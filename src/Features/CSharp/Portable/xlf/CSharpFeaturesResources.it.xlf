@@ -32,11 +32,6 @@
         <target state="translated">Applica le preferenze relative al corpo dell'espressione o del blocco</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_file_header_preferences">
-        <source>Apply file header preferences</source>
-        <target state="translated">Applica le preferenze relative alle intestazioni di file</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_implicit_explicit_type_preferences">
         <source>Apply implicit/explicit type preferences</source>
         <target state="translated">Applica le preferenze relative al tipo implicito/esplicito</target>
@@ -165,16 +160,6 @@
       <trans-unit id="Remove_new_modifier">
         <source>Remove 'new' modifier</source>
         <target state="translated">Rimuovi il modificatore 'new'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unnecessary_casts">
-        <source>Remove unnecessary casts</source>
-        <target state="translated">Rimuovi i cast non necessari</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_variables">
-        <source>Remove unused variables</source>
-        <target state="translated">Rimuovi le variabili non usate</target>
         <note />
       </trans-unit>
       <trans-unit id="Reverse_for_statement">
