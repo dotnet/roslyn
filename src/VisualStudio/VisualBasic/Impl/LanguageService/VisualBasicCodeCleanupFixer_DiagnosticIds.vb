@@ -46,7 +46,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageService
         <Order(After:=IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId)>
         <ConfigurationKey("unused")>
         <HelpLink("https://www.microsoft.com")>
-        <LocalizedName(GetType(VBFeaturesResources), NameOf(FeaturesResources.Sort_accessibility_modifiers))>
+        <LocalizedName(GetType(FeaturesResources), NameOf(FeaturesResources.Sort_accessibility_modifiers))>
         Public Shared ReadOnly OrderModifiersDiagnosticId As FixIdDefinition
 
         <Export>
@@ -64,7 +64,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageService
         <Order(After:=IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId)>
         <ConfigurationKey("unused")>
         <HelpLink("https://www.microsoft.com")>
-        <LocalizedName(GetType(VBFeaturesResources), NameOf(FeaturesResources.Remove_unnecessary_casts))>
+        <LocalizedName(GetType(FeaturesResources), NameOf(FeaturesResources.Remove_unnecessary_casts))>
         Public Shared ReadOnly RemoveUnnecessaryCastDiagnosticId As FixIdDefinition
 
         <Export>
@@ -73,7 +73,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageService
         <Order(After:=IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)>
         <ConfigurationKey("unused")>
         <HelpLink("https://www.microsoft.com")>
-        <LocalizedName(GetType(VBFeaturesResources), NameOf(FeaturesResources.Remove_unused_variables))>
+        <LocalizedName(GetType(FeaturesResources), NameOf(FeaturesResources.Remove_unused_variables))>
         Public Shared ReadOnly BC42024 As FixIdDefinition
 
         <Export>
@@ -130,7 +130,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageService
         <ConfigurationKey("unused")>
         <HelpLink("https://www.microsoft.com")>
         <ExportMetadata("EnableByDefault", True)>
-        <LocalizedName(GetType(VBFeaturesResources), NameOf(FeaturesResources.Apply_file_header_preferences))>
+        <LocalizedName(GetType(FeaturesResources), NameOf(FeaturesResources.Apply_file_header_preferences))>
         Public Shared ReadOnly FileHeaderMismatch As FixIdDefinition
     End Class
 End Namespace
