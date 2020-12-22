@@ -2419,17 +2419,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     isNullableEnabledForStaticConstructorsAndFields: IsNullableEnabledForStaticConstructorsAndFields ?? isNullableEnabledForProject);
             }
 
-            public void UpdateIsNullableEnabled(bool useStatic, CSharpCompilation compilation, CSharpSyntaxNode syntax)
+            public void UpdateIsNullableEnabledForConstructorsAndFields(bool useStatic, CSharpCompilation compilation, CSharpSyntaxNode syntax)
             {
                 ref bool? isNullableEnabled = ref useStatic ? ref IsNullableEnabledForStaticConstructorsAndFields : ref IsNullableEnabledForInstanceConstructorsAndFields;
                 if (isNullableEnabled == true)
                 {
                     return;
                 }
-                bool? value = compilation.IsNullableAnalysisEnabledIn(syntax);
-                if (value != false)
+                if (compilation.IsNullableAnalysisEnabledIn(syntax))
                 {
-                    isNullableEnabled = value;
+                    isNullableEnabled = true;
                 }
             }
 
@@ -3080,6 +3079,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(builder.InstanceInitializersForRecordDeclarationWithParameters is object);
 
                 var ctor = addCtor(builder.RecordDeclarationWithParameters);
+                builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, paramList);
 
                 if (ctor.ParameterCount != 0)
                 {
@@ -3668,7 +3668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 builder.NonTypeNonIndexerMembers.Add(fieldSymbol);
                                 // All fields are included in the nullable context for constructors and initializers, even fields without
                                 // initializers, to ensure warnings are reported for uninitialized non-nullable fields in NullableWalker.
-                                builder.UpdateIsNullableEnabled(useStatic: fieldSymbol.IsStatic, compilation, variable);
+                                builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: fieldSymbol.IsStatic, compilation, variable);
 
                                 if (IsScriptClass)
                                 {
@@ -3718,7 +3718,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             var constructor = SourceConstructorSymbol.CreateConstructorSymbol(this, constructorSyntax, diagnostics);
                             builder.NonTypeNonIndexerMembers.Add(constructor);
-                            builder.UpdateIsNullableEnabled(useStatic: constructor.IsStatic, compilation, constructorSyntax);
+                            builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: constructor.IsStatic, compilation, constructorSyntax);
                         }
                         break;
 
@@ -3763,6 +3763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)backingField != null)
                             {
                                 builder.NonTypeNonIndexerMembers.Add(backingField);
+                                builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: backingField.IsStatic, compilation, propertySyntax);
 
                                 var initializer = propertySyntax.Initializer;
                                 if (initializer != null)
@@ -3819,6 +3820,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 {
                                     // NOTE: specifically don't add the associated field to the members list
                                     // (regard it as an implementation detail).
+
+                                    builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: associatedField.IsStatic, compilation, declarator);
 
                                     if (declarator.Initializer != null)
                                     {

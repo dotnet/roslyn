@@ -993,6 +993,99 @@ partial class Program
         public void AnalyzeMethodsInEnabledContextOnly_05()
         {
             var source =
+@"class Program
+{
+#nullable disable
+    object P1 { get; set; }
+#nullable enable
+    static object P2 { get; set; }
+}";
+            verify(source, new[] { ".cctor" },
+                // (6,19): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     static object P2 { get; set; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P2").WithArguments("property", "P2").WithLocation(6, 19));
+
+            source =
+@"class Program
+{
+#nullable enable
+    object P1 { get; set; }
+#nullable disable
+    static object P2 { get; set; }
+}";
+            verify(source, new[] { ".ctor" },
+                // (4,12): warning CS8618: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     object P1 { get; set; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(4, 12));
+
+            source =
+@"class Program
+{
+#nullable enable
+    object P1 { get; }
+    object P2 { get { return 2; } set { } }
+    object P3 => 3;
+}";
+            verify(source, new[] { ".ctor", "get_P2", "get_P3", "set_P2" },
+                // (4,12): warning CS8618: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     object P1 { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(4, 12));
+
+            source =
+@"#pragma warning disable 67
+delegate void D();
+class Program
+{
+#nullable disable
+    event D E1;
+#nullable enable
+    static event D E2;
+}";
+            verify(source, new[] { ".cctor" },
+                // (8,20): warning CS8618: Non-nullable event 'E2' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                //     static event D E2;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E2").WithArguments("event", "E2").WithLocation(8, 20));
+
+            source =
+@"#pragma warning disable 67
+delegate void D();
+class Program
+{
+#nullable enable
+    event D E1;
+#nullable disable
+    static event D E2;
+}";
+            verify(source, new[] { ".ctor" },
+                // (6,13): warning CS8618: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                //     event D E1;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E1").WithArguments("event", "E1").WithLocation(6, 13));
+
+            static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
+            {
+                var comp = CreateCompilation(source);
+                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.VerifyDiagnostics(expectedDiagnostics);
+
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
+
+                var tree = (CSharpSyntaxTree)comp.SyntaxTrees[0];
+                var methodDeclarations = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
+                foreach (var methodDeclaration in methodDeclarations)
+                {
+                    bool expectedAnalysis = expectedAnalyzedKeys.Contains(methodDeclaration.Identifier.Text);
+                    bool actualAnalysis = tree.IsNullableAnalysisEnabled(methodDeclaration.Span).Value;
+                    Assert.Equal(expectedAnalysis, actualAnalysis);
+                }
+            }
+        }
+
+        [Fact]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
+        public void AnalyzeMethodsInEnabledContextOnly_06()
+        {
+            var source =
 @"#pragma warning disable 414
 class Program
 {
@@ -1035,7 +1128,7 @@ class Program
 
         [Fact]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
-        public void AnalyzeMethodsInEnabledContextOnly_06()
+        public void AnalyzeMethodsInEnabledContextOnly_07()
         {
             var source =
 @"class Program
@@ -1126,7 +1219,7 @@ class Program
 
         [Fact]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
-        public void AnalyzeMethodsInEnabledContextOnly_07()
+        public void AnalyzeMethodsInEnabledContextOnly_08()
         {
             var source =
 @"class A
@@ -1183,7 +1276,41 @@ class B
 
         [Fact]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
-        public void AnalyzeMethodsInEnabledContextOnly_08()
+        public void AnalyzeMethodsInEnabledContextOnly_09()
+        {
+            var source =
+@"#nullable enable
+record R;
+";
+            verify(source, new string[0]);
+
+            source =
+@"#nullable enable
+record R();
+";
+            verify(source, new[] { ".ctor" });
+
+            source =
+@"record R(object P
+#nullable enable
+    );
+";
+            verify(source, new[] { ".ctor" });
+
+            static void verify(string source, string[] expectedAnalyzedKeys)
+            {
+                var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+                comp.VerifyDiagnostics();
+
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
+            }
+        }
+
+        [Fact]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
+        public void AnalyzeMethodsInEnabledContextOnly_10()
         {
             var source1 =
 @"partial class Program
@@ -1223,7 +1350,7 @@ class B
 
         [Fact]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
-        public void AnalyzeMethodsInEnabledContextOnly_09()
+        public void AnalyzeMethodsInEnabledContextOnly_11()
         {
             var source =
 @"partial class Program
@@ -1258,7 +1385,7 @@ class B
 
         [Fact]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
-        public void AnalyzeMethodsInEnabledContextOnly_10()
+        public void AnalyzeMethodsInEnabledContextOnly_12()
         {
             var source =
 @"using System.Runtime.InteropServices;
@@ -1332,7 +1459,7 @@ class Program
 
         [Fact]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
-        public void AnalyzeMethodsInEnabledContextOnly_11()
+        public void AnalyzeMethodsInEnabledContextOnly_13()
         {
             var sourceA =
 @"object x = A.F();
