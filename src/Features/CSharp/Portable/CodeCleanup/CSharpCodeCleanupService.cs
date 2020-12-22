@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
     [ExportLanguageService(typeof(ICodeCleanupService), LanguageNames.CSharp), Shared]
     internal class CSharpCodeCleanupService : AbstractCodeCleanupService
     {
-
         /// <summary>
         /// Maps format document code cleanup options to DiagnosticId[]
         /// </summary>
