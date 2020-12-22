@@ -10,12 +10,11 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Language.CodeCleanUp;
-using Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
-    internal partial class CSharpCodeCleanUpFixer : CodeCleanUpFixer
+    internal partial class CSharpCodeCleanUpFixer
     {
         [Export]
         [FixId(IDEDiagnosticIds.UseImplicitTypeDiagnosticId)]

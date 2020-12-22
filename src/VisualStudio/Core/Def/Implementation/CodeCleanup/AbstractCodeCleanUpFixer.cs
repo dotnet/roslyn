@@ -35,9 +35,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
     /// </summary>
     internal abstract class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
     {
-        private const string FormatDocumentFixId = nameof(FormatDocumentFixId);
-        private const string RemoveUnusedImportsFixId = nameof(RemoveUnusedImportsFixId);
-        private const string SortImportsFixId = nameof(SortImportsFixId);
+        protected const string FormatDocumentFixId = nameof(FormatDocumentFixId);
+        protected const string RemoveUnusedImportsFixId = nameof(RemoveUnusedImportsFixId);
+        protected const string SortImportsFixId = nameof(SortImportsFixId);
 
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;

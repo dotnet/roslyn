@@ -8,43 +8,11 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedVariable
 Imports Microsoft.VisualStudio.Language.CodeCleanUp
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageService
 
     Partial Friend Class VisualBasicCodeCleanUpFixer
-
-        ' REVIEW I will delete the two below if they will never be done for VB
-
-        '<Export>
-        '<FixId(IDEDiagnosticIds.UseImplicitTypeDiagnosticId)>
-        '<Name(IDEDiagnosticIds.UseImplicitTypeDiagnosticId)>
-        '<Order(After:=IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId)>
-        '<ConfigurationKey("unused")>
-        '<HelpLink("https://www.microsoft.com")>
-        '<LocalizedName(GetType(VBFeaturesResources), NameOf(VBFeaturesResources.Apply_implicit_explicit_type_preferences))>
-        'Public Shared ReadOnly UseImplicitTypeDiagnosticId As FixIdDefinition
-
-        '<Export>
-        '<FixId(IDEDiagnosticIds.UseExplicitTypeDiagnosticId)>
-        '<Name(IDEDiagnosticIds.UseExplicitTypeDiagnosticId)>
-        '<Order(After:=IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId)>
-        '<ConfigurationKey("unused")>
-        '<HelpLink("https://www.microsoft.com")>
-        '<LocalizedName(GetType(VBFeaturesResources), NameOf(VBFeaturesResources.Apply_implicit_explicit_type_preferences))>
-        'Public Shared ReadOnly UseExplicitTypeDiagnosticId As FixIdDefinition
-
-        ' REVIEW I don't know if this make sense for VB or has a fix available
-        '<Export>
-        '<FixId(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)>
-        '<Name(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)>
-        '<Order(After:=IDEDiagnosticIds.InlineDeclarationDiagnosticId)>
-        '<ConfigurationKey("unused")>
-        '<HelpLink("https://www.microsoft.com")>
-        '<LocalizedName(GetType(VBFeaturesResources), NameOf(VBFeaturesResources.Apply_language_framework_type_preferences))>
-        'Public Shared ReadOnly PreferBuiltInOrFrameworkTypeDiagnosticId As FixIdDefinition
-
         <Export>
         <FixId(IDEDiagnosticIds.AddQualificationDiagnosticId)>
         <Name(IDEDiagnosticIds.AddQualificationDiagnosticId)>
@@ -164,7 +132,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageService
         <ExportMetadata("EnableByDefault", True)>
         <LocalizedName(GetType(VBFeaturesResources), NameOf(FeaturesResources.Apply_file_header_preferences))>
         Public Shared ReadOnly FileHeaderMismatch As FixIdDefinition
-
     End Class
-
 End Namespace
