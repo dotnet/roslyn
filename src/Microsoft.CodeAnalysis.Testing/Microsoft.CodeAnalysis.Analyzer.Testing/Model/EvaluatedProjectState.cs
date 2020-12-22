@@ -13,17 +13,42 @@ namespace Microsoft.CodeAnalysis.Testing.Model
     public sealed class EvaluatedProjectState
     {
         public EvaluatedProjectState(ProjectState state, ReferenceAssemblies defaultReferenceAssemblies)
+            : this(
+                state.Name,
+                state.AssemblyName,
+                state.Language,
+                state.ReferenceAssemblies ?? defaultReferenceAssemblies,
+                state.OutputKind,
+                state.DocumentationMode,
+                state.Sources.ToImmutableArray(),
+                state.AdditionalFiles.ToImmutableArray(),
+                state.AdditionalProjectReferences.ToImmutableArray(),
+                state.AdditionalReferences.ToImmutableArray())
         {
-            Name = state.Name;
-            AssemblyName = state.AssemblyName;
-            Language = state.Language;
-            ReferenceAssemblies = state.ReferenceAssemblies ?? defaultReferenceAssemblies;
-            OutputKind = state.OutputKind;
-            DocumentationMode = state.DocumentationMode;
-            Sources = state.Sources.ToImmutableArray();
-            AdditionalFiles = state.AdditionalFiles.ToImmutableArray();
-            AdditionalProjectReferences = state.AdditionalProjectReferences.ToImmutableArray();
-            AdditionalReferences = state.AdditionalReferences.ToImmutableArray();
+        }
+
+        private EvaluatedProjectState(
+            string name,
+            string assemblyName,
+            string language,
+            ReferenceAssemblies referenceAssemblies,
+            OutputKind outputKind,
+            DocumentationMode documentationMode,
+            ImmutableArray<(string filename, SourceText content)> sources,
+            ImmutableArray<(string filename, SourceText content)> additionalFiles,
+            ImmutableArray<string> additionalProjectReferences,
+            ImmutableArray<MetadataReference> additionalReferences)
+        {
+            Name = name;
+            AssemblyName = assemblyName;
+            Language = language;
+            ReferenceAssemblies = referenceAssemblies;
+            OutputKind = outputKind;
+            DocumentationMode = documentationMode;
+            Sources = sources;
+            AdditionalFiles = additionalFiles;
+            AdditionalProjectReferences = additionalProjectReferences;
+            AdditionalReferences = additionalReferences;
         }
 
         public string Name { get; }
@@ -45,5 +70,45 @@ namespace Microsoft.CodeAnalysis.Testing.Model
         public ImmutableArray<string> AdditionalProjectReferences { get; }
 
         public ImmutableArray<MetadataReference> AdditionalReferences { get; }
+
+        public EvaluatedProjectState WithSources(ImmutableArray<(string filename, SourceText content)> sources)
+        {
+            if (sources == Sources)
+            {
+                return this;
+            }
+
+            return With(sources: sources);
+        }
+
+        private EvaluatedProjectState With(
+            Optional<string> name = default,
+            Optional<string> assemblyName = default,
+            Optional<string> language = default,
+            Optional<ReferenceAssemblies> referenceAssemblies = default,
+            Optional<OutputKind> outputKind = default,
+            Optional<DocumentationMode> documentationMode = default,
+            Optional<ImmutableArray<(string filename, SourceText content)>> sources = default,
+            Optional<ImmutableArray<(string filename, SourceText content)>> additionalFiles = default,
+            Optional<ImmutableArray<string>> additionalProjectReferences = default,
+            Optional<ImmutableArray<MetadataReference>> additionalReferences = default)
+        {
+            return new EvaluatedProjectState(
+                GetValueOrDefault(name, Name),
+                GetValueOrDefault(assemblyName, AssemblyName),
+                GetValueOrDefault(language, Language),
+                GetValueOrDefault(referenceAssemblies, ReferenceAssemblies),
+                GetValueOrDefault(outputKind, OutputKind),
+                GetValueOrDefault(documentationMode, DocumentationMode),
+                GetValueOrDefault(sources, Sources),
+                GetValueOrDefault(additionalFiles, AdditionalFiles),
+                GetValueOrDefault(additionalProjectReferences, AdditionalProjectReferences),
+                GetValueOrDefault(additionalReferences, AdditionalReferences));
+        }
+
+        private static T GetValueOrDefault<T>(Optional<T> optionalValue, T defaultValue)
+        {
+            return optionalValue.HasValue ? optionalValue.Value : defaultValue;
+        }
     }
 }
