@@ -24,31 +24,31 @@ namespace Text.Analyzers.UnitTests
         public static IEnumerable<object[]> MisspelledMembers
             => new[]
             {
-                new object[] { CreateTypeWithConstructor("<?>Clazz", isStatic: false), "Clazz", "Clazz.Clazz()" },
-                new object[] { CreateTypeWithConstructor("<?>Clazz", isStatic: true), "Clazz", "Clazz.Clazz()" },
-                new object[] { CreateTypeWithField("Program", "<?>_fild"), "fild", "Program._fild" },
-                new object[] { CreateTypeWithEvent("Program", "<?>Evt"), "Evt", "Program.Evt" },
-                new object[] { CreateTypeWithProperty("Program", "<?>Naem"), "Naem", "Program.Naem" },
-                new object[] { CreateTypeWithMethod("Program", "<?>SomeMathod"), "Mathod", "Program.SomeMathod()" },
+                new object[] { CreateTypeWithConstructor("Clazz", constructorName: "{|#0:Clazz|}", isStatic: false), "Clazz", "Clazz.Clazz()" },
+                new object[] { CreateTypeWithConstructor("Clazz", constructorName: "{|#0:Clazz|}", isStatic: true), "Clazz", "Clazz.Clazz()" },
+                new object[] { CreateTypeWithField("Program", "{|#0:_fild|}"), "fild", "Program._fild" },
+                new object[] { CreateTypeWithEvent("Program", "{|#0:Evt|}"), "Evt", "Program.Evt" },
+                new object[] { CreateTypeWithProperty("Program", "{|#0:Naem|}"), "Naem", "Program.Naem" },
+                new object[] { CreateTypeWithMethod("Program", "{|#0:SomeMathod|}"), "Mathod", "Program.SomeMathod()" },
             };
 
         public static IEnumerable<object[]> UnmeaningfulMembers
             => new[]
             {
-                new object[] { CreateTypeWithConstructor("<?>A", isStatic: false), "A" },
-                new object[] { CreateTypeWithConstructor("<?>B", isStatic: false), "B" },
-                new object[] { CreateTypeWithField("Program", "<?>_c"), "c" },
-                new object[] { CreateTypeWithEvent("Program", "<?>D"), "D" },
-                new object[] { CreateTypeWithProperty("Program", "<?>E"), "E" },
-                new object[] { CreateTypeWithMethod("Program", "<?>F"), "F" },
+                new object[] { CreateTypeWithConstructor("A", constructorName: "{|#0:A|}", isStatic: false), "A" },
+                new object[] { CreateTypeWithConstructor("B", constructorName: "{|#0:B|}", isStatic: false), "B" },
+                new object[] { CreateTypeWithField("Program", "{|#0:_c|}"), "c" },
+                new object[] { CreateTypeWithEvent("Program", "{|#0:D|}"), "D" },
+                new object[] { CreateTypeWithProperty("Program", "{|#0:E|}"), "E" },
+                new object[] { CreateTypeWithMethod("Program", "{|#0:F|}"), "F" },
             };
 
         public static IEnumerable<object[]> MisspelledMemberParameters
             => new[]
             {
-                new object[] { CreateTypeWithConstructor("Program", false, "int <?>yourNaem"), "Naem", "yourNaem", "Program.Program(int)" },
-                new object[] { CreateTypeWithMethod("Program", "Method", "int <?>yourNaem"), "Naem", "yourNaem", "Program.Method(int)" },
-                new object[] { CreateTypeWithIndexer("Program", "int <?>yourNaem"), "Naem", "yourNaem", "Program.this[int]" },
+                new object[] { CreateTypeWithConstructor("Program", parameter: "int {|#0:yourNaem|}", isStatic: false), "Naem", "yourNaem", "Program.Program(int)" },
+                new object[] { CreateTypeWithMethod("Program", "Method", "int {|#0:yourNaem|}"), "Naem", "yourNaem", "Program.Method(int)" },
+                new object[] { CreateTypeWithIndexer("Program", "int {|#0:yourNaem|}"), "Naem", "yourNaem", "Program.this[int]" },
             };
 
         [Theory]
@@ -106,147 +106,180 @@ namespace Text.Analyzers.UnitTests
                     .WithArguments("Program", "Program"));
         }
 
-        // [Fact]
-        // public void MisspellingAllowedByProjectDictionary_Verify_NoDiagnostics()
-        // {
-        //     var testFile = new TestFile("AssemblyA", "class Clazz {}");
-        //     var dictionary = CreateDicDictionary(new[] { "clazz" });
+        [Fact]
+        public async Task MisspellingAllowedByProjectDictionary_Verify_NoDiagnostics()
+        {
+            var source = "class Clazz {}";
+            var dictionary = CreateDicDictionary(new[] { "clazz" });
 
-        //     VerifyDiagnostics(testFile, null, GetProjectAdditionalFiles("AssemblyA", dictionary));
-        // }
+            await VerifyCSharpAsync(source, dictionary);
+        }
 
-        // [Fact]
-        // public void MisspellingAllowedByDifferentProjectDictionary_Verify_EmitsDiagnostic()
-        // {
-        //     var testFile = new AutoTestFile("AssemblyA", "class <?>Clazz {}", GetTypeRule("Clazz", "Clazz"));
-        //     var dictionary = CreateDicDictionary(new[] { "clazz" });
+        [Fact(Skip = "Adding additional files to specific projects is not yet supported")]
+        public async Task MisspellingAllowedByDifferentProjectDictionary_Verify_EmitsDiagnostic()
+        {
+            var source = "class Clazz {}";
+            var dictionary = CreateDicDictionary(new[] { "clazz" });
 
-        //     VerifyDiagnostics(testFile, null, GetProjectAdditionalFiles("AssemblyB", dictionary));
-        // }
+            await VerifyCSharpAsync(
+                source,
+                dictionary,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeRule)
+                    .WithLocation(1, 7)
+                    .WithArguments("Clazz", "Clazz"));
+        }
 
-        // [Fact(Skip = "Assembly names are disabled for now")]
-        // public void AssemblyMisspelled_Verify_EmitsDiagnostic()
-        // {
-        //     var testFile = new TestFile("MyAssambly", "class Program { }");
+        [Fact(Skip = "Assembly names are disabled for now")]
+        public async Task AssemblyMisspelled_Verify_EmitsDiagnostic()
+        {
+            var source = "class Program {}";
 
-        //     VerifyDiagnostics(testFile, GetResult(SpellingAnalyzer.AssemblyRule, "Assambly", "MyAssambly"));
-        // }
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.AssemblyRule)
+                    .WithArguments("Assambly", "MyAssambly"));
+        }
 
-        // [Fact(Skip = "Unmeaningful rules disabled for now")]
-        // public void AssemblyUnmeaningful_Verify_EmitsDiagnostic()
-        // {
-        //     var testFile = new TestFile("A", "class Program { }");
+        [Fact(Skip = "Unmeaningful rules disabled for now")]
+        public async Task AssemblyUnmeaningful_Verify_EmitsDiagnostic()
+        {
+            var source = "class Program {}";
 
-        //     VerifyDiagnostics(testFile, GetResult(SpellingAnalyzer.AssemblyMoreMeaningfulNameRule, "A"));
-        // }
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.AssemblyMoreMeaningfulNameRule)
+                    .WithArguments("A"));
+        }
 
-        // [Fact]
-        // public void NamespaceMisspelled_Verify_EmitsDiagnostic()
-        // {
-        //     var testFile = new AutoTestFile("namespace Tests.<?>MyNarmspace { }", GetNamespaceRule("Narmspace", "Tests.MyNarmspace"));
+        [Fact]
+        public async Task NamespaceMisspelled_Verify_EmitsDiagnostic()
+        {
+            var source = "namespace Tests.MyNarmspace {}";
 
-        //     VerifyDiagnostics(testFile);
-        // }
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.NamespaceRule)
+                    .WithLocation(1, 17)
+                    .WithArguments("Narmspace", "Tests.MyNarmspace"));
+        }
 
-        // [Fact(Skip = "Unmeaningful rules disabled for now")]
-        // public void NamespaceUnmeaningful_Verify_EmitsDiagnostic()
-        // {
-        //     var testFile = new AutoTestFile("namespace Tests.<|A|> { }", new Rule(SpellingAnalyzer.NamespaceMoreMeaningfulNameRule));
+        [Fact(Skip = "Unmeaningful rules disabled for now")]
+        public async Task NamespaceUnmeaningful_Verify_EmitsDiagnostic()
+        {
+            var source = "namespace Tests.A {}";
 
-        //     VerifyDiagnostics(testFile);
-        // }
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.NamespaceMoreMeaningfulNameRule)
+                    .WithLocation(1, 17)
+                    .WithArguments("A"));
+        }
 
-        // [Theory]
-        // [InlineData("namespace MyNamespace { class <?>MyClazz { } }", "Clazz", "MyNamespace.MyClazz")]
-        // [InlineData("namespace MyNamespace { struct <?>MyStroct { } }", "Stroct", "MyNamespace.MyStroct")]
-        // [InlineData("namespace MyNamespace { enum <?>MyEnim { } }", "Enim", "MyNamespace.MyEnim")]
-        // [InlineData("namespace MyNamespace { interface <?>IMyFase { } }", "Fase", "MyNamespace.IMyFase")]
-        // [InlineData("namespace MyNamespace { delegate int <?>MyDelegete(); }", "Delegete", "MyNamespace.MyDelegete")]
-        // public void TypeMisspelled_Verify_EmitsDiagnostic(string source, string misspelling, string typeName)
-        // {
-        //     var testFile = new AutoTestFile(source, GetTypeRule(misspelling, typeName));
+        [Theory]
+        [InlineData("namespace MyNamespace { class {|#0:MyClazz|} {} }", "Clazz", "MyNamespace.MyClazz")]
+        [InlineData("namespace MyNamespace { struct {|#0:MyStroct|} {} }", "Stroct", "MyNamespace.MyStroct")]
+        [InlineData("namespace MyNamespace { enum {|#0:MyEnim|} {} }", "Enim", "MyNamespace.MyEnim")]
+        [InlineData("namespace MyNamespace { interface {|#0:IMyFase|} {} }", "Fase", "MyNamespace.IMyFase")]
+        [InlineData("namespace MyNamespace { delegate int {|#0:MyDelegete|}(); }", "Delegete", "MyNamespace.MyDelegete")]
+        public async Task TypeMisspelled_Verify_EmitsDiagnostic(string source, string misspelling, string typeName)
+        {
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeRule)
+                    .WithLocation(0)
+                    .WithArguments(misspelling, typeName));
+        }
 
-        //     VerifyDiagnostics(testFile);
-        // }
+        [Theory]
+        [InlineData("class {|#0:A|} {}", "A")]
+        [InlineData("struct {|#0:B|} {}", "B")]
+        [InlineData("enum {|#0:C|} {}", "C")]
+        [InlineData("interface {|#0:ID|} {}", "D")]
+        [InlineData("delegate int {|#0:E|}();", "E")]
+        public async Task TypeUnmeaningful_Verify_EmitsDiagnostic(string source, string typeName)
+        {
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeMoreMeaningfulNameRule)
+                    .WithLocation(0)
+                    .WithArguments(typeName));
+        }
 
-        // [Theory(Skip = "Unmeaningful rules disabled for now")]
-        // [InlineData("class <?>A { }", "A")]
-        // [InlineData("struct <?>B { }", "B")]
-        // [InlineData("enum <?>C { }", "C")]
-        // [InlineData("interface <?>ID { }", "D")]
-        // [InlineData("delegate int <?>E();", "E")]
-        // public void TypeUnmeaningful_Verify_EmitsDiagnostic(string source, string typeName)
-        // {
-        //     var testFile = new AutoTestFile(source, GetTypeUnmeaningfulRule(typeName));
+        [Theory]
+        [MemberData(nameof(MisspelledMembers))]
+        public async Task MemberMisspelled_Verify_EmitsDiagnostic(string source, string misspelling, string memberName)
+        {
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberRule)
+                    .WithLocation(0)
+                    .WithArguments(misspelling, memberName));
+        }
 
-        //     VerifyDiagnostics(testFile);
-        // }
+        [Fact]
+        public async Task MemberOverrideMisspelled_Verify_EmitsDiagnosticOnlyAtDefinition()
+        {
+            var source = @"
+        abstract class Parent
+        {
+            protected abstract string {|#0:Naem|} { get; }
 
-        // [Theory]
-        // [MemberData(nameof(MisspelledMembers))]
-        // public void MemberMisspelled_Verify_EmitsDiagnostic(string source, string misspelling, string memberName)
-        // {
-        //     var testFile = new AutoTestFile(source, GetMemberRule(misspelling, memberName));
+            public abstract int {|#1:Mathod|}();
+        }
 
-        //     VerifyDiagnostics(testFile);
-        // }
+        class Child : Parent
+        {
+            protected override string Naem => ""child"";
 
-        // [Fact]
-        // public void MemberOverrideMisspelled_Verify_EmitsDiagnosticOnlyAtDefinition()
-        // {
-        //     var source = @"
-        // abstract class Parent
-        // {
-        //     protected abstract string <?>Naem { get; }
+            public override int Mathod() => 0;
+        }
 
-        //     public abstract int <?>Mathod();
-        // }
+        class Grandchild : Child
+        {
+            protected override string Naem => ""grandchild"";
 
-        // class Child : Parent
-        // {
-        //     protected override string Naem => ""child"";
+            public override int Mathod() => 1;
+        }";
 
-        //     public override int Mathod() => 0;
-        // }
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberRule)
+                    .WithLocation(0)
+                    .WithArguments("Naem", "Parent.Naem"),
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberRule)
+                    .WithLocation(1)
+                    .WithArguments("Mathod", "Parent.Mathod()"));
+        }
 
-        // class Grandchild : Child
-        // {
-        //     protected override string Naem => ""grandchild"";
+        [Theory]
+        [MemberData(nameof(UnmeaningfulMembers))]
+        public async Task MemberUnmeaningful_Verify_EmitsDiagnostic(string source, string memberName)
+        {
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberMoreMeaningfulNameRule)
+                    .WithLocation(0)
+                    .WithArguments(memberName));
+        }
 
-        //     public override int Mathod() => 1;
-        // }";
-        //     var testFile = new AutoTestFile(
-        //         source,
-        //         GetMemberRule("Naem", "Parent.Naem"),
-        //         GetMemberRule("Mathod", "Parent.Mathod()"));
+        [Fact]
+        public async Task VariableMisspelled_Verify_EmitsDiagnostic()
+        {
+            var source = @"
+        class Program
+        {
+            public Program()
+            {
+                var {|#0:myVoriable|} = 5;
+            }
+        }";
 
-        //     VerifyDiagnostics(testFile);
-        // }
-
-        // [Theory(Skip = "Unmeaningful rules disabled for now")]
-        // [MemberData(nameof(UnmeaningfulMembers))]
-        // public void MemberUnmeaningful_Verify_EmitsDiagnostic(string source, string memberName)
-        // {
-        //     var testFile = new AutoTestFile(source, GetMemberUnmeaningfulRule(memberName));
-
-        //     VerifyDiagnostics(testFile);
-        // }
-
-        // [Fact]
-        // public void VariableMisspelled_Verify_EmitsDiagnostic()
-        // {
-        //     var source = @"
-        // class Program
-        // {
-        //     public Program()
-        //     {
-        //         var <?>myVoriable = 5;
-        //     }
-        // }";
-        //     var testFile = new AutoTestFile(source, GetVariableRule("Voriable", "myVoriable"));
-
-        //     VerifyDiagnostics(testFile);
-        // }
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.VariableRule)
+                    .WithLocation(0)
+                    .WithArguments("Voriable", "myVoriable"));
+        }
 
         // [Theory]
         // [MemberData(nameof(MisspelledMemberParameters))]
@@ -403,11 +436,12 @@ namespace Text.Analyzers.UnitTests
 
             var csharpTest = new VerifyCS.Test
             {
+                TestCode = source,
                 TestState =
                 {
-                    Sources = { source },
                     AdditionalFilesFactories = { () => additionalTexts.Select(x => (x.Path, x.GetText())) }
-                }
+                },
+                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
             };
 
             csharpTest.ExpectedDiagnostics.AddRange(expected);
@@ -440,14 +474,19 @@ namespace Text.Analyzers.UnitTests
             return new TestAdditionalDocument("CustomDictionary.dic", contents);
         }
 
-        private static string CreateTypeWithConstructor(string typeName, bool isStatic, string parameter = "")
+        private static string CreateTypeWithConstructor(string typeName, string constructorName = "", string parameter = "", bool isStatic = false)
         {
+            if (string.IsNullOrEmpty(constructorName))
+            {
+                constructorName = typeName;
+            }
+
             return $@"
 #pragma warning disable {IdentifiersShouldBeSpelledCorrectlyAnalyzer.RuleId}
-class {typeName.TrimStart(new[] { '<', '?', '>' })}
+class {typeName}
 #pragma warning restore {IdentifiersShouldBeSpelledCorrectlyAnalyzer.RuleId}
 {{
-    {(isStatic ? "static " : string.Empty)}{typeName}({parameter}) {{ }}
+    {(isStatic ? "static " : string.Empty)}{constructorName}({parameter}) {{ }}
 }}";
         }
 
