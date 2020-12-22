@@ -22,53 +22,53 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         private static readonly ImmutableArray<DiagnosticSet> s_diagnosticSets =
             ImmutableArray.Create(
                 new DiagnosticSet(CSharpFeaturesResources.Apply_implicit_explicit_type_preferences,
-                    new[] { IDEDiagnosticIds.UseImplicitTypeDiagnosticId, IDEDiagnosticIds.UseExplicitTypeDiagnosticId }),
+                    IDEDiagnosticIds.UseImplicitTypeDiagnosticId, IDEDiagnosticIds.UseExplicitTypeDiagnosticId),
 
                 new DiagnosticSet(CSharpFeaturesResources.Apply_this_qualification_preferences,
-                    new[] { IDEDiagnosticIds.AddQualificationDiagnosticId, IDEDiagnosticIds.RemoveQualificationDiagnosticId }),
+                    IDEDiagnosticIds.AddQualificationDiagnosticId, IDEDiagnosticIds.RemoveQualificationDiagnosticId),
 
                 new DiagnosticSet(CSharpFeaturesResources.Apply_language_framework_type_preferences,
-                    new[] { IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId }),
+                    IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId),
 
                 new DiagnosticSet(CSharpFeaturesResources.Add_remove_braces_for_single_line_control_statements,
-                    new[] { IDEDiagnosticIds.AddBracesDiagnosticId }),
+                    IDEDiagnosticIds.AddBracesDiagnosticId),
 
                 new DiagnosticSet(AnalyzersResources.Add_accessibility_modifiers,
-                    new[] { IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId }),
+                    IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId),
 
                 new DiagnosticSet(CSharpFeaturesResources.Sort_accessibility_modifiers,
-                    new[] { IDEDiagnosticIds.OrderModifiersDiagnosticId }),
+                    IDEDiagnosticIds.OrderModifiersDiagnosticId),
 
                 new DiagnosticSet(CSharpFeaturesResources.Make_private_field_readonly_when_possible,
-                    new[] { IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId }),
+                    IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId),
 
                 new DiagnosticSet(FeaturesResources.Remove_unnecessary_casts,
-                    new[] { IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId }),
+                    IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId),
 
                 new DiagnosticSet(CSharpFeaturesResources.Apply_expression_block_body_preferences,
-                    new[] {IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId,
-                            IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId,
-                            IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId,
-                            IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId,
-                            IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId,
-                            IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId,
-                            IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId,
-                            IDEDiagnosticIds.UseExpressionBodyForLocalFunctionsDiagnosticId}),
+                    IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId,
+                    IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId,
+                    IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId,
+                    IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId,
+                    IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId,
+                    IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId,
+                    IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId,
+                    IDEDiagnosticIds.UseExpressionBodyForLocalFunctionsDiagnosticId),
 
                 new DiagnosticSet(CSharpFeaturesResources.Apply_inline_out_variable_preferences,
-                    new[] { IDEDiagnosticIds.InlineDeclarationDiagnosticId }),
+                    IDEDiagnosticIds.InlineDeclarationDiagnosticId),
 
                 new DiagnosticSet(FeaturesResources.Remove_unused_variables,
-                    new[] { CSharpRemoveUnusedVariableCodeFixProvider.CS0168, CSharpRemoveUnusedVariableCodeFixProvider.CS0219 }),
+                    CSharpRemoveUnusedVariableCodeFixProvider.CS0168, CSharpRemoveUnusedVariableCodeFixProvider.CS0219),
 
                 new DiagnosticSet(FeaturesResources.Apply_object_collection_initialization_preferences,
-                    new[] { IDEDiagnosticIds.UseObjectInitializerDiagnosticId, IDEDiagnosticIds.UseCollectionInitializerDiagnosticId }),
+                    IDEDiagnosticIds.UseObjectInitializerDiagnosticId, IDEDiagnosticIds.UseCollectionInitializerDiagnosticId),
 
                 new DiagnosticSet(CSharpFeaturesResources.Apply_using_directive_placement_preferences,
-                    new[] { IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId }),
+                    IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId),
 
                 new DiagnosticSet(FeaturesResources.Apply_file_header_preferences,
-                    new[] { IDEDiagnosticIds.FileHeaderMismatch }));
+                    IDEDiagnosticIds.FileHeaderMismatch));
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

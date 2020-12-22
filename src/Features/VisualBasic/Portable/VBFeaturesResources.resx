@@ -1240,9 +1240,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Make_0_inheritable" xml:space="preserve">
     <value>Make '{0}' inheritable</value>
   </data>
-  <data name="Apply_file_header_preferences" xml:space="preserve">
-    <value>Apply file header preferences</value>
-  </data>
   <data name="Apply_Me_qualification_preferences" xml:space="preserve">
     <value>Apply Me qualification preferences</value>
     <comment>{Locked="Me"} "Met" is a VB keyword and should not be localized.</comment>

@@ -20,23 +20,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
         ''' </summary>
         Private Shared ReadOnly s_diagnosticSets As ImmutableArray(Of DiagnosticSet) = ImmutableArray.Create(
                 New DiagnosticSet(VBFeaturesResources.Apply_Me_qualification_preferences,
-                    {IDEDiagnosticIds.AddQualificationDiagnosticId, IDEDiagnosticIds.RemoveQualificationDiagnosticId}),
+                    IDEDiagnosticIds.AddQualificationDiagnosticId, IDEDiagnosticIds.RemoveQualificationDiagnosticId),
                 New DiagnosticSet(AnalyzersResources.Add_accessibility_modifiers,
-                    {IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId}),
+                    IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId),
                 New DiagnosticSet(FeaturesResources.Sort_accessibility_modifiers,
-                    {IDEDiagnosticIds.OrderModifiersDiagnosticId}),
+                    IDEDiagnosticIds.OrderModifiersDiagnosticId),
                 New DiagnosticSet(VBFeaturesResources.Make_private_field_ReadOnly_when_possible,
-                    {IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId}),
+                    IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId),
                 New DiagnosticSet(FeaturesResources.Remove_unnecessary_casts,
-                    {IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId}),
+                    IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId),
                 New DiagnosticSet(FeaturesResources.Remove_unused_variables,
-                    {VisualBasicRemoveUnusedVariableCodeFixProvider.BC42024}),
+                    VisualBasicRemoveUnusedVariableCodeFixProvider.BC42024),
                 New DiagnosticSet(FeaturesResources.Apply_object_collection_initialization_preferences,
-                    {IDEDiagnosticIds.UseObjectInitializerDiagnosticId, IDEDiagnosticIds.UseCollectionInitializerDiagnosticId}),
+                    IDEDiagnosticIds.UseObjectInitializerDiagnosticId, IDEDiagnosticIds.UseCollectionInitializerDiagnosticId),
                 New DiagnosticSet(VBFeaturesResources.Apply_Imports_directive_placement_preferences,
-                    {IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId}),
-                New DiagnosticSet(VBFeaturesResources.Apply_file_header_preferences,
-                    {IDEDiagnosticIds.FileHeaderMismatch}))
+                    IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId),
+                New DiagnosticSet(FeaturesResources.Apply_file_header_preferences,
+                    IDEDiagnosticIds.FileHeaderMismatch))
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -46,6 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
         End Sub
 
         Protected Overrides ReadOnly Property OrganizeImportsDescription As String = VBFeaturesResources.Organize_Imports
+
         Protected Overrides Function GetDiagnosticSets() As ImmutableArray(Of DiagnosticSet)
             Return s_diagnosticSets
         End Function
