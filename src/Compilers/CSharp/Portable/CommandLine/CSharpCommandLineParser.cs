@@ -1482,6 +1482,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                  new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
             }
 
+            pathMap = SortPathMap(pathMap);
+
             return new CSharpCommandLineArguments
             {
                 IsScriptRunner = IsScriptCommandLineParser,

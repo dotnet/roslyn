@@ -14,30 +14,20 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
     public class SolutionWithSourceGeneratorTests : TestBase
     {
-        private static Project AddEmptyProject(Solution solution)
-        {
-            return solution.AddProject(
-                ProjectInfo.Create(
-                    ProjectId.CreateNewId(),
-                    VersionStamp.Default,
-                    name: "TestProject",
-                    assemblyName: "TestProject",
-                    language: LanguageNames.CSharp)).Projects.Single();
-        }
-
         [Theory]
         [CombinatorialData]
         public async Task SourceGeneratorBasedOnAdditionalFileGeneratesSyntaxTreesOnce(
             bool fetchCompilationBeforeAddingGenerator,
             bool useRecoverableTrees)
         {
-            using var workspace = useRecoverableTrees ? AdhocWorkspaceTests.CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations() : new AdhocWorkspace();
+            using var workspace = useRecoverableTrees ? CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations() : CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented() { });
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference);
@@ -57,7 +47,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.NotSame(originalCompilation, newCompilation);
             var generatedTree = Assert.Single(newCompilation.SyntaxTrees);
-            Assert.Equal("Microsoft.CodeAnalysis.Workspaces.UnitTests\\Microsoft.CodeAnalysis.UnitTests.SolutionWithSourceGeneratorTests+GenerateFileForEachAdditionalFileWithContentsCommented\\Test.generated.cs", generatedTree.FilePath);
+            var generatorType = typeof(GenerateFileForEachAdditionalFileWithContentsCommented);
+
+            Assert.Equal($"{generatorType.Assembly.GetName().Name}\\{generatorType.FullName}\\Test.generated.cs", generatedTree.FilePath);
 
             var generatedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
             Assert.Same(generatedTree, await generatedDocument.GetSyntaxTreeAsync());
@@ -66,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task SourceGeneratorContentStillIncludedAfterSourceFileChange()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented() { });
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -98,7 +90,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task SourceGeneratorContentChangesAfterAdditionalFileChanges()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented() { });
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -126,7 +118,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task PartialCompilationsIncludeGeneratedFilesAfterFullGeneration()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -146,7 +138,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task DocumentIdOfGeneratedDocumentsIsStable()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var projectBeforeChange = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -168,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task CompilationsInCompilationReferencesIncludeGeneratedSourceFiles()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var solution = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -192,7 +184,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task RequestingGeneratedDocumentsTwiceGivesSameInstance()
         {
-            using var workspace = AdhocWorkspaceTests.CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
+            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -216,7 +208,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task GetDocumentWithGeneratedTreeReturnsGeneratedDocument()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -230,7 +222,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task GetDocumentWithGeneratedTreeForInProgressReturnsGeneratedDocument()
         {
-            using var workspace = new AdhocWorkspace();
+            using var workspace = CreateWorkspace();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
@@ -248,37 +240,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var syntaxTree = Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees, t => t.FilePath != "RegularDocument.cs");
             var generatedDocument = Assert.IsType<SourceGeneratedDocument>(project.GetDocument(syntaxTree));
             Assert.Same(syntaxTree, await generatedDocument.GetSyntaxTreeAsync());
-        }
-
-        private sealed class GenerateFileForEachAdditionalFileWithContentsCommented : ISourceGenerator
-        {
-            public void Execute(GeneratorExecutionContext context)
-            {
-                foreach (var file in context.AdditionalFiles)
-                {
-                    AddSourceForAdditionalFile(context, file);
-                }
-            }
-
-            public void Initialize(GeneratorInitializationContext context)
-            {
-                // TODO: context.RegisterForAdditionalFileChanges(UpdateContext);
-            }
-
-            private static void AddSourceForAdditionalFile(GeneratorExecutionContext context, AdditionalText file)
-            {
-                // We're going to "comment" out the contents of the file when generating this
-                var sourceText = file.GetText(context.CancellationToken);
-                Contract.ThrowIfNull(sourceText, "Failed to fetch the text of an additional file.");
-
-                var changes = sourceText.Lines.SelectAsArray(l => new TextChange(new TextSpan(l.Start, length: 0), "// "));
-                var generatedText = sourceText.WithChanges(changes);
-
-                // TODO: remove the generatedText.ToString() when I don't have to specify the encoding
-                context.AddSource(GetGeneratedFileName(file.Path), SourceText.From(generatedText.ToString(), encoding: Encoding.UTF8));
-            }
-
-            private static string GetGeneratedFileName(string path) => $"{Path.GetFileNameWithoutExtension(path)}.generated";
         }
     }
 }

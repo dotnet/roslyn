@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // CONSIDER: we might want to reuse this method symbol (as long as the MethodKind and Vararg-ness match).
                             signatureMember = new SignatureOnlyMethodSymbol(
                                 methodKind: candidateMethodKind,
-                                typeParameters: IndexedTypeParameterSymbol.Take(signatureMemberArity),
+                                typeParameters: IndexedTypeParameterSymbol.TakeSymbols(signatureMemberArity),
                                 parameters: parameterSymbols,
                                 // This specific comparer only looks for varargs.
                                 callingConvention: candidateMethodIsVararg ? Microsoft.Cci.CallingConvention.ExtraArguments : Microsoft.Cci.CallingConvention.HasThis,

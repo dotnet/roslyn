@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
             var typeSymbol = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(type, context.CancellationToken);
 
-            if (!IsClassOrStruct(typeSymbol))
+            if (typeSymbol.IsStatic || !IsClassOrStruct(typeSymbol))
                 return;
 
             if (HasDebuggerDisplayAttribute(typeSymbol, compilation))

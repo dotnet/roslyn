@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private UseExpressionBodyForAccessorsHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId,
+                   EnforceOnBuildValues.UseExpressionBodyForAccessors,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_accessors), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_accessors), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedAccessors,

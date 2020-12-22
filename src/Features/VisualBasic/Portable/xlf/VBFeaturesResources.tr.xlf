@@ -122,7 +122,7 @@
         <target state="translated">&lt;Multiple Types&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Organize_Usings">
+      <trans-unit id="Organize_Imports">
         <source>Organize Imports</source>
         <target state="new">Organize Imports</target>
         <note>{Locked="Import"}</note>

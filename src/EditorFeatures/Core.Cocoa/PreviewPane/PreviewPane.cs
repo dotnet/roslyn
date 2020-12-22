@@ -6,13 +6,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using AppKit;
-using CoreGraphics;
 using Foundation;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Differencing;
 
 #pragma warning disable IDE0060 //Remove unused parameter
 
@@ -26,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         public PreviewPane(NSImage severityIcon, string id, string title, string description, Uri helpLink, string helpLinkToolTipText, IReadOnlyList<object> previewContent, bool logIdVerbatimInTelemetry, Guid? optionPageGuid = null)
         {
             _differenceViewerPreview = (DifferenceViewerPreview)previewContent[0];
-            var view = _differenceViewerPreview.Viewer.VisualElement;
+            var view = ((ICocoaDifferenceViewer)_differenceViewerPreview.Viewer).VisualElement;
 
             var originalSize = view.Frame.Size;
 

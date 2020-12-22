@@ -612,7 +612,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BoundCall.Synthesized(
                         syntax: exprSyntax,
                         receiverOpt: collectionExpr,
-                        method: nullableValueGetter);
+                        method: nullableValueGetter,
+                        binder: this);
                 }
                 else
                 {
@@ -936,6 +937,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (disposeMethod is object)
                 {
                     builder.NeedsDisposal = true;
+                    builder.IsPatternDispose = true;
                     builder.DisposeMethod = disposeMethod;
                 }
                 patternDisposeDiags.Free();

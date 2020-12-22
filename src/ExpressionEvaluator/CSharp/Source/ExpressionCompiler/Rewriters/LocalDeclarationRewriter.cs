@@ -116,7 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 syntax,
                 receiverOpt: null,
                 method: method,
-                arguments: ImmutableArray.Create(type, name, customTypeInfoPayloadId, customTypeInfoPayload));
+                arguments: ImmutableArray.Create(type, name, customTypeInfoPayloadId, customTypeInfoPayload),
+                binder: null);
             statements.Add(new BoundExpressionStatement(syntax, call));
         }
 

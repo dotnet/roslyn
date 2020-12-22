@@ -2,40 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 {
     [ExportLanguageService(typeof(ICodeCleanupService), LanguageNames.CSharp), Shared]
-    internal class CSharpCodeCleanupService : ICodeCleanupService
+    internal class CSharpCodeCleanupService : AbstractCodeCleanupService
     {
-        private readonly ICodeFixService _codeFixServiceOpt;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeCleanupService(
-            // will remove the AllowDefault once CodeFixService is moved to Features
-            // https://github.com/dotnet/roslyn/issues/27369
-            [Import(AllowDefault = true)] ICodeFixService codeFixService)
-        {
-            _codeFixServiceOpt = codeFixService;
-        }
 
         /// <summary>
         /// Maps format document code cleanup options to DiagnosticId[]
@@ -91,118 +71,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 new DiagnosticSet(FeaturesResources.Apply_file_header_preferences,
                     new[] { IDEDiagnosticIds.FileHeaderMismatch }));
 
-        public async Task<Document> CleanupAsync(
-            Document document,
-            EnabledDiagnosticOptions enabledDiagnostics,
-            IProgressTracker progressTracker,
-            CancellationToken cancellationToken)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpCodeCleanupService(
+            // will remove the AllowDefault once CodeFixService is moved to Features
+            // https://github.com/dotnet/roslyn/issues/27369
+            [Import(AllowDefault = true)] ICodeFixService? codeFixService)
+            : base(codeFixService)
         {
-            // add one item for the 'format' action we'll do last
-            if (enabledDiagnostics.FormatDocument)
-            {
-                progressTracker.AddItems(1);
-            }
-
-            // and one for 'remove/sort usings' if we're going to run that.
-            var organizeUsings = enabledDiagnostics.OrganizeUsings.IsRemoveUnusedImportEnabled ||
-                enabledDiagnostics.OrganizeUsings.IsSortImportsEnabled;
-            if (organizeUsings)
-            {
-                progressTracker.AddItems(1);
-            }
-
-            if (_codeFixServiceOpt != null)
-            {
-                document = await ApplyCodeFixesAsync(
-                    document, enabledDiagnostics.Diagnostics, progressTracker, cancellationToken).ConfigureAwait(false);
-            }
-
-            // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
-            if (organizeUsings)
-            {
-                progressTracker.Description = CSharpFeaturesResources.Organize_Usings;
-                document = await RemoveSortUsingsAsync(
-                    document, enabledDiagnostics.OrganizeUsings, cancellationToken).ConfigureAwait(false);
-                progressTracker.ItemCompleted();
-            }
-
-            if (enabledDiagnostics.FormatDocument)
-            {
-                progressTracker.Description = FeaturesResources.Formatting_document;
-                using (Logger.LogBlock(FunctionId.CodeCleanup_Format, cancellationToken))
-                {
-                    document = await Formatter.FormatAsync(document, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    progressTracker.ItemCompleted();
-                }
-            }
-
-            return document;
         }
 
-        private static async Task<Document> RemoveSortUsingsAsync(
-            Document document, OrganizeUsingsSet organizeUsingsSet, CancellationToken cancellationToken)
-        {
-            if (organizeUsingsSet.IsRemoveUnusedImportEnabled)
-            {
-                var removeUsingsService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
-                if (removeUsingsService != null)
-                {
-                    using (Logger.LogBlock(FunctionId.CodeCleanup_RemoveUnusedImports, cancellationToken))
-                    {
-                        document = await removeUsingsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
-                    }
-                }
-            }
+        protected override string OrganizeImportsDescription
+            => CSharpFeaturesResources.Organize_Usings;
 
-            if (organizeUsingsSet.IsSortImportsEnabled)
-            {
-                using (Logger.LogBlock(FunctionId.CodeCleanup_SortImports, cancellationToken))
-                {
-                    document = await Formatter.OrganizeImportsAsync(document, cancellationToken).ConfigureAwait(false);
-                }
-            }
-
-            return document;
-        }
-
-        private async Task<Document> ApplyCodeFixesAsync(
-            Document document, ImmutableArray<DiagnosticSet> enabledDiagnosticSets,
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
-        {
-            // Add a progress item for each enabled option we're going to fixup.
-            progressTracker.AddItems(enabledDiagnosticSets.Length);
-
-            foreach (var diagnosticSet in enabledDiagnosticSets)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                progressTracker.Description = diagnosticSet.Description;
-                document = await ApplyCodeFixesForSpecificDiagnosticIdsAsync(
-                    document, diagnosticSet.DiagnosticIds, progressTracker, cancellationToken).ConfigureAwait(false);
-
-                // Mark this option as being completed.
-                progressTracker.ItemCompleted();
-            }
-
-            return document;
-        }
-
-        private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdsAsync(
-            Document document, ImmutableArray<string> diagnosticIds, IProgressTracker progressTracker, CancellationToken cancellationToken)
-        {
-            foreach (var diagnosticId in diagnosticIds)
-            {
-                using (Logger.LogBlock(FunctionId.CodeCleanup_ApplyCodeFixesAsync, diagnosticId, cancellationToken))
-                {
-                    document = await _codeFixServiceOpt.ApplyCodeFixesForSpecificDiagnosticIdAsync(
-                        document, diagnosticId, progressTracker, cancellationToken).ConfigureAwait(false);
-                }
-            }
-
-            return document;
-        }
-
-        public EnabledDiagnosticOptions GetAllDiagnostics()
-            => new EnabledDiagnosticOptions(formatDocument: true, s_diagnosticSets, new OrganizeUsingsSet(isRemoveUnusedImportEnabled: true, isSortImportsEnabled: true));
+        protected override ImmutableArray<DiagnosticSet> GetDiagnosticSets()
+            => s_diagnosticSets;
     }
 }
