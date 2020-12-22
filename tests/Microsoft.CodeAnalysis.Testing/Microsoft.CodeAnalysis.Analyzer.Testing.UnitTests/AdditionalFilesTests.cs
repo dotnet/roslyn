@@ -3,19 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Testing.TestAnalyzers;
 using Xunit;
 using CSharpTest = Microsoft.CodeAnalysis.Testing.TestAnalyzers.CSharpAnalyzerTest<
-    Microsoft.CodeAnalysis.Testing.AdditionalFilesTests.HighlightBracesAnalyzer>;
+    Microsoft.CodeAnalysis.Testing.TestAnalyzers.HighlightBracesAnalyzer>;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
     public class AdditionalFilesTests
     {
+        private static DiagnosticResult Diagnostic()
+            => AnalyzerVerifier<HighlightBracesAnalyzer, CSharpTest, DefaultVerifier>.Diagnostic();
+
         [Fact]
         public async Task TestDiagnosticInNormalFile()
         {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 TestState =
                 {
                     Sources = { "namespace MyNamespace { }" },
-                    ExpectedDiagnostics = { new DiagnosticResult(HighlightBracesAnalyzer.Descriptor).WithLocation(1, 23) },
+                    ExpectedDiagnostics = { Diagnostic().WithLocation(1, 23) },
                     AdditionalFiles =
                     {
                         ("File1.txt", "Content without braces"),
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 TestState =
                 {
                     Sources = { "[assembly: System.Reflection.AssemblyVersion(\"1.0.0.0\")]" },
-                    ExpectedDiagnostics = { new DiagnosticResult(HighlightBracesAnalyzer.Descriptor).WithSpan("File1.txt", 1, 14, 1, 15) },
+                    ExpectedDiagnostics = { Diagnostic().WithSpan("File1.txt", 1, 14, 1, 15) },
                     AdditionalFiles =
                     {
                         ("File1.txt", "Content with { braces }"),
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 TestState =
                 {
                     Sources = { "[assembly: System.Reflection.AssemblyVersion(\"1.0.0.0\")]" },
-                    ExpectedDiagnostics = { new DiagnosticResult(HighlightBracesAnalyzer.Descriptor).WithLocation(0) },
+                    ExpectedDiagnostics = { Diagnostic().WithLocation(0) },
                     AdditionalFiles =
                     {
                         ("File1.txt", "Content with {|#0:{|} braces }"),
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     TestState =
                     {
                         Sources = { "[assembly: System.Reflection.AssemblyVersion{|#0:(|}\"1.0.0.0\")]" },
-                        ExpectedDiagnostics = { new DiagnosticResult(HighlightBracesAnalyzer.Descriptor).WithLocation(0) },
+                        ExpectedDiagnostics = { Diagnostic().WithLocation(0) },
                         AdditionalFiles =
                         {
                             ("File1.txt", "Content with {|#0:{|} braces }"),
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     TestState =
                     {
                         Sources = { "[assembly: System.Reflection.AssemblyVersion(\"1.0.0.0\")]" },
-                        ExpectedDiagnostics = { new DiagnosticResult(HighlightBracesAnalyzer.Descriptor).WithLocation(0) },
+                        ExpectedDiagnostics = { Diagnostic().WithLocation(0) },
                         AdditionalFiles =
                         {
                             ("File1.txt", "Content with {|#1:{|} braces }"),
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 TestState =
                 {
                     Sources = { "[assembly: System.Reflection.AssemblyVersion(\"1.0.0.0\")]" },
-                    ExpectedDiagnostics = { new DiagnosticResult(HighlightBracesAnalyzer.Descriptor).WithSpan("File1.txt", 1, 14, 1, 15) },
+                    ExpectedDiagnostics = { Diagnostic().WithSpan("File1.txt", 1, 14, 1, 15) },
                     AdditionalFiles =
                     {
                         ("File1.txt", "Content with {|Literal:text|}"),
@@ -201,52 +201,6 @@ namespace Microsoft.CodeAnalysis.Testing
                     MarkupHandling = MarkupMode.None,
                 },
             }.RunAsync();
-        }
-
-        [DiagnosticAnalyzer(LanguageNames.CSharp)]
-        internal class HighlightBracesAnalyzer : DiagnosticAnalyzer
-        {
-            internal static readonly DiagnosticDescriptor Descriptor =
-                new DiagnosticDescriptor("Brace", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
-
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
-
-            public override void Initialize(AnalysisContext context)
-            {
-                context.EnableConcurrentExecution();
-                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-
-                context.RegisterSyntaxTreeAction(HandleSyntaxTree);
-                context.RegisterCompilationAction(HandleCompilation);
-            }
-
-            private void HandleCompilation(CompilationAnalysisContext context)
-            {
-                foreach (var file in context.Options.AdditionalFiles)
-                {
-                    var sourceText = file.GetText(context.CancellationToken);
-                    var text = sourceText.ToString();
-                    for (var i = text.IndexOf('{'); i >= 0; i = text.IndexOf('{', i + 1))
-                    {
-                        var textSpan = new TextSpan(i, 1);
-                        var lineSpan = sourceText.Lines.GetLinePositionSpan(textSpan);
-                        context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.Create(file.Path, textSpan, lineSpan)));
-                    }
-                }
-            }
-
-            private void HandleSyntaxTree(SyntaxTreeAnalysisContext context)
-            {
-                foreach (var token in context.Tree.GetRoot(context.CancellationToken).DescendantTokens())
-                {
-                    if (!token.IsKind(SyntaxKind.OpenBraceToken))
-                    {
-                        continue;
-                    }
-
-                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, token.GetLocation()));
-                }
-            }
         }
     }
 }
