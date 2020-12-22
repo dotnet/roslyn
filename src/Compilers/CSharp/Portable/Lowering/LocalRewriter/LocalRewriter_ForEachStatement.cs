@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol? idisposableTypeSymbol = null;
             bool isImplicit = false;
-            MethodSymbol? disposeMethod = enumeratorInfo.DisposeMethod; // pattern-based
+            MethodSymbol? disposeMethod = enumeratorInfo.PatternDisposeInfo?.DisposeMethod; // pattern-based
 
             if (disposeMethod is null)
             {
@@ -269,29 +269,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                location: enumeratorInfo.Location);
 
             BoundBlock finallyBlockOpt;
-            if (isImplicit || !(enumeratorInfo.DisposeMethod is null))
+            if (isImplicit || !(enumeratorInfo.PatternDisposeInfo is null))
             {
                 Conversion receiverConversion = enumeratorType.IsStructType() ?
                     Conversion.Boxing :
                     Conversion.ImplicitReference;
 
                 BoundExpression receiver;
-                if (enumeratorInfo.DisposeMethod is null)
+                BoundExpression disposeCall;
+                if (enumeratorInfo.PatternDisposeInfo is null)
                 {
                     Debug.Assert(idisposableTypeSymbol is { });
                     receiver = ConvertReceiverForInvocation(forEachSyntax, boundEnumeratorVar, disposeMethod, receiverConversion, idisposableTypeSymbol);
+
+                    // ((IDisposable)e).Dispose() or await ((IAsyncDisposable)e).DisposeAsync()
+                    disposeCall = MakeCallWithNoExplicitArgument(
+                        enumeratorInfo.Binder,
+                        forEachSyntax,
+                        receiver,
+                        disposeMethod);
                 }
                 else
                 {
                     receiver = boundEnumeratorVar;
-                }
 
-                // ((IDisposable)e).Dispose() or e.Dispose() or await ((IAsyncDisposable)e).DisposeAsync() or await e.DisposeAsync()
-                BoundExpression disposeCall = MakeCallWithNoExplicitArgument(
-                    enumeratorInfo.Binder,
-                    forEachSyntax,
-                    receiver,
-                    disposeMethod);
+                    // e.Dispose() or await e.DisposeAsync()
+                    disposeCall = MakeCall(
+                        syntax: forEachSyntax,
+                        rewrittenReceiver: receiver,
+                        method: enumeratorInfo.PatternDisposeInfo.DisposeMethod,
+                        rewrittenArguments: enumeratorInfo.PatternDisposeInfo.Arguments,
+                        argumentRefKindsOpt: default,
+                        expanded: enumeratorInfo.PatternDisposeInfo.DisposeMethod.HasParamsParameter(),
+                        invokedAsExtensionMethod: false,
+                        argsToParamsOpt: enumeratorInfo.PatternDisposeInfo.ArgsToParamsOpt,
+                        resultKind: LookupResultKind.Viable,
+                        type: enumeratorInfo.PatternDisposeInfo.DisposeMethod.ReturnType);
+                }
 
                 BoundStatement disposeCallStatement;
                 var disposeAwaitableInfoOpt = enumeratorInfo.DisposeAwaitableInfo;

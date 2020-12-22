@@ -1643,8 +1643,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                                                             iDisposable,
                                                                                                                             ref useSiteDiagnostics).IsImplicit :
                                                                                      false,
-                                                    enumeratorInfoOpt.DisposeMethod.GetPublicSymbol(),
-                                                    enumeratorInfoOpt.IsPatternDispose,
+                                                    enumeratorInfoOpt.PatternDisposeInfo?.DisposeMethod.GetPublicSymbol(),
                                                     enumeratorInfoOpt.CurrentConversion,
                                                     boundForEachStatement.ElementConversion,
                                                     getEnumeratorArguments: enumeratorInfoOpt.GetEnumeratorMethod is { IsExtensionMethod: true } enumeratorMethod
@@ -1659,8 +1658,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                 invokedAsExtensionMethod: true),
                                                             null)
                                                         : default,
-                                                    disposeArguments: enumeratorInfoOpt.DisposeMethod is object
-                                                        ? CreateDisposeArguments(enumeratorInfoOpt.DisposeMethod, boundForEachStatement.Syntax, enumeratorInfoOpt.Binder)
+                                                    disposeArguments: enumeratorInfoOpt.PatternDisposeInfo is object
+                                                        ? CreateDisposeArguments(enumeratorInfoOpt.PatternDisposeInfo, boundForEachStatement.Syntax)
                                                         : default);
             }
             else
@@ -1751,10 +1750,10 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation body = Create(boundUsingStatement.Body);
             ImmutableArray<ILocalSymbol> locals = boundUsingStatement.Locals.GetPublicSymbols();
             bool isAsynchronous = boundUsingStatement.AwaitOpt != null;
-            DisposeOperationInfo disposeOperationInfo = boundUsingStatement.DisposeMethodOpt is object
+            DisposeOperationInfo disposeOperationInfo = boundUsingStatement.PatternDisposeInfoOpt is object
                                                          ? new DisposeOperationInfo(
-                                                                 disposeMethod: boundUsingStatement.DisposeMethodOpt.GetPublicSymbol(),
-                                                                 disposeArguments: CreateDisposeArguments(boundUsingStatement.DisposeMethodOpt, boundUsingStatement.Syntax, boundUsingStatement.Binder))
+                                                                 disposeMethod: boundUsingStatement.PatternDisposeInfoOpt.DisposeMethod.GetPublicSymbol(),
+                                                                 disposeArguments: CreateDisposeArguments(boundUsingStatement.PatternDisposeInfoOpt, boundUsingStatement.Syntax))
                                                          : default;
             SyntaxNode syntax = boundUsingStatement.Syntax;
             bool isImplicit = boundUsingStatement.WasCompilerGenerated;
@@ -1890,10 +1889,10 @@ namespace Microsoft.CodeAnalysis.Operations
                 return new UsingDeclarationOperation(
                     variableDeclaration,
                     isAsynchronous: usingDecl.AwaitOpt is object,
-                    disposeInfo: usingDecl.DisposeMethodOpt is object
+                    disposeInfo: usingDecl.PatternDisposeInfoOpt is object
                                    ? new DisposeOperationInfo(
-                                           disposeMethod: usingDecl.DisposeMethodOpt.GetPublicSymbol(),
-                                           disposeArguments: CreateDisposeArguments(usingDecl.DisposeMethodOpt, usingDecl.Syntax, usingDecl.Binder))
+                                           disposeMethod: usingDecl.PatternDisposeInfoOpt.DisposeMethod.GetPublicSymbol(),
+                                           disposeArguments: CreateDisposeArguments(usingDecl.PatternDisposeInfoOpt, usingDecl.Syntax))
                                    : default,
                      _semanticModel,
                     declarationGroupSyntax,
@@ -2327,38 +2326,24 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InstanceReferenceOperation(referenceKind, _semanticModel, syntax, type, isImplicit);
         }
 
-        private ImmutableArray<IArgumentOperation> CreateDisposeArguments(MethodSymbol disposeMethod, SyntaxNode syntax, Binder binder)
+        private ImmutableArray<IArgumentOperation> CreateDisposeArguments(PatternDisposeInfo patternDisposeInfo, SyntaxNode syntax)
         {
             // can't be an extension method for dispose
-            Debug.Assert(!disposeMethod.IsStatic);
+            Debug.Assert(!patternDisposeInfo.DisposeMethod.IsStatic);
 
-            if (disposeMethod.ParameterCount == 0)
+            if (patternDisposeInfo.DisposeMethod.ParameterCount == 0)
             {
                 return ImmutableArray<IArgumentOperation>.Empty;
             }
 
-            var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
-            ImmutableArray<int> argsToParams = default;
-            var expanded = disposeMethod.HasParamsParameter();
-
-            Debug.Assert(!expanded || disposeMethod.GetParameters().Last().OriginalDefinition.Type.IsSZArray());
-
-            binder.BindDefaultArguments(
-                syntax,
-                disposeMethod.Parameters,
-                argumentsBuilder,
-                argumentRefKindsBuilder: null,
-                ref argsToParams,
-                out BitVector defaultArguments,
-                expanded,
-                enableCallerInfo: true,
-                new DiagnosticBag());
+            var expanded = patternDisposeInfo.DisposeMethod.HasParamsParameter();
+            Debug.Assert(!expanded || patternDisposeInfo.DisposeMethod.GetParameters().Last().OriginalDefinition.Type.IsSZArray());
 
             var args = DeriveArguments(
-                            disposeMethod,
-                            argumentsBuilder.ToImmutableAndFree(),
-                            argsToParams,
-                            defaultArguments,
+                            patternDisposeInfo.DisposeMethod,
+                            patternDisposeInfo.Arguments,
+                            patternDisposeInfo.ArgsToParamsOpt,
+                            patternDisposeInfo.DefaultArguments,
                             expanded,
                             syntax,
                             invokedAsExtensionMethod: false);

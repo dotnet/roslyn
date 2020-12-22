@@ -3103,7 +3103,7 @@ ref struct DisposableEnumerator
             var boundNode = GetBoundForEachStatement(text);
             var enumeratorInfo = boundNode.EnumeratorInfoOpt;
 
-            Assert.Equal("void DisposableEnumerator.Dispose()", enumeratorInfo.DisposeMethod.ToTestDisplayString());
+            Assert.Equal("void DisposableEnumerator.Dispose()", enumeratorInfo.PatternDisposeInfo.DisposeMethod.ToTestDisplayString());
         }
 
         [Fact]
@@ -3137,7 +3137,7 @@ ref struct DisposableEnumerator
             var boundNode = GetBoundForEachStatement(text, TestOptions.Regular7_3);
             var enumeratorInfo = boundNode.EnumeratorInfoOpt;
 
-            Assert.Null(enumeratorInfo.DisposeMethod);
+            Assert.Null(enumeratorInfo.PatternDisposeInfo);
         }
 
         [Fact]
@@ -3215,9 +3215,9 @@ public static class Extensions
 
                 if (enumeratorInfo.NeedsDisposal)
                 {
-                    if (enumeratorInfo.DisposeMethod is object)
+                    if (enumeratorInfo.PatternDisposeInfo is object)
                     {
-                        Assert.Equal(enumeratorInfo.DisposeMethod.GetPublicSymbol(), statementInfo.DisposeMethod);
+                        Assert.Equal(enumeratorInfo.PatternDisposeInfo.DisposeMethod.GetPublicSymbol(), statementInfo.DisposeMethod);
                     }
                     else if (enumeratorInfo.IsAsync)
                     {

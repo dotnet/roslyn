@@ -541,9 +541,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool GetAwaitDisposeAsyncInfo(ref ForEachEnumeratorInfo.Builder builder, DiagnosticBag diagnostics)
         {
-            var awaitableType = builder.DisposeMethod is null
+            var awaitableType = builder.PatternDisposeInfo is null
                 ? this.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask, diagnostics, this._syntax)
-                : builder.DisposeMethod.ReturnType;
+                : builder.PatternDisposeInfo.DisposeMethod.ReturnType;
 
             bool hasErrors = false;
             var expr = _syntax.Expression;
@@ -935,9 +935,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol disposeMethod = TryFindDisposePatternMethod(receiver, _syntax, isAsync, patternDisposeDiags);
                 if (disposeMethod is object)
                 {
+                    Debug.Assert(!disposeMethod.IsExtensionMethod);
+                    Debug.Assert(disposeMethod.ParameterRefKinds.IsDefaultOrEmpty);
+
+                    var argsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
+                    var argsToParams = default(ImmutableArray<int>);
+
+                    BindDefaultArguments(
+                        _syntax,
+                        disposeMethod.Parameters,
+                        argsBuilder,
+                        argumentRefKindsBuilder: null,
+                        ref argsToParams,
+                        out BitVector defaultArguments,
+                        expanded: disposeMethod.HasParamsParameter(),
+                        enableCallerInfo: false,
+                        diagnostics);
+
                     builder.NeedsDisposal = true;
-                    builder.IsPatternDispose = true;
-                    builder.DisposeMethod = disposeMethod;
+                    builder.PatternDisposeInfo = new PatternDisposeInfo(disposeMethod, argsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments);
                 }
                 patternDisposeDiags.Free();
             }

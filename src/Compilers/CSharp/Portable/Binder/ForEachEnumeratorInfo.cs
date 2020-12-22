@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
@@ -34,13 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly bool IsAsync;
 
         // When async and needs disposal, this stores the information to await the DisposeAsync() invocation
-        public readonly BoundAwaitableInfo DisposeAwaitableInfo;
+        public readonly BoundAwaitableInfo? DisposeAwaitableInfo;
 
         // When using pattern-based Dispose, this stores the method to invoke to Dispose
-        public readonly MethodSymbol DisposeMethod;
-
-        // When enumerator needs disposing, this records if the dispose is pattern based or not
-        public readonly bool IsPatternDispose;
+        public readonly PatternDisposeInfo? PatternDisposeInfo;
 
         // Conversions that will be required when the foreach is lowered.
         public readonly Conversion CollectionConversion; //collection expression to collection type
@@ -60,9 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol moveNextMethod,
             bool isAsync,
             bool needsDisposal,
-            BoundAwaitableInfo disposeAwaitableInfo,
-            MethodSymbol disposeMethod,
-            bool isPatternDispose,
+            BoundAwaitableInfo? disposeAwaitableInfo,
+            PatternDisposeInfo? patternDisposeInfo,
             Conversion collectionConversion,
             Conversion currentConversion,
             Conversion enumeratorConversion,
@@ -75,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)currentPropertyGetter != null, "Field 'currentPropertyGetter' cannot be null");
             Debug.Assert((object)moveNextMethod != null, "Field 'moveNextMethod' cannot be null");
             Debug.Assert(binder != null, "Field 'binder' cannot be null");
-            Debug.Assert(!isPatternDispose || needsDisposal);
+            Debug.Assert(patternDisposeInfo == null || needsDisposal);
 
             this.CollectionType = collectionType;
             this.ElementTypeWithAnnotations = elementType;
@@ -85,8 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.IsAsync = isAsync;
             this.NeedsDisposal = needsDisposal;
             this.DisposeAwaitableInfo = disposeAwaitableInfo;
-            this.DisposeMethod = disposeMethod;
-            this.IsPatternDispose = isPatternDispose;
+            this.PatternDisposeInfo = patternDisposeInfo;
             this.CollectionConversion = collectionConversion;
             this.CurrentConversion = currentConversion;
             this.EnumeratorConversion = enumeratorConversion;
@@ -107,9 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool IsAsync;
             public bool NeedsDisposal;
-            public BoundAwaitableInfo DisposeAwaitableInfo;
-            public MethodSymbol DisposeMethod;
-            public bool IsPatternDispose;
+            public BoundAwaitableInfo? DisposeAwaitableInfo;
+            public PatternDisposeInfo? PatternDisposeInfo;
 
             public Conversion CollectionConversion;
             public Conversion CurrentConversion;
@@ -136,8 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     IsAsync,
                     NeedsDisposal,
                     DisposeAwaitableInfo,
-                    DisposeMethod,
-                    IsPatternDispose,
+                    PatternDisposeInfo,
                     CollectionConversion,
                     CurrentConversion,
                     EnumeratorConversion,
