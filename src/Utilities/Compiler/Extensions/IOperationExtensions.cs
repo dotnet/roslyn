@@ -517,8 +517,7 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsWithinExpressionTree(this IOperation operation, [NotNullWhen(true)] INamedTypeSymbol? linqExpressionTreeType)
             => linqExpressionTreeType != null
-                && operation.GetAncestor(s_LambdaAndLocalFunctionKinds)?.Parent?.Type?.OriginalDefinition
-                    is { } lambdaType
+                && operation.GetAncestor(s_LambdaAndLocalFunctionKinds)?.Parent?.Type?.OriginalDefinition is { } lambdaType
                 && linqExpressionTreeType.Equals(lambdaType);
 
         public static ITypeSymbol? GetPatternType(this IPatternOperation pattern)
