@@ -390,6 +390,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">修正錯字 '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Format_document">
+        <source>Format document</source>
+        <target state="new">Format document</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">正在將文件格式化</target>

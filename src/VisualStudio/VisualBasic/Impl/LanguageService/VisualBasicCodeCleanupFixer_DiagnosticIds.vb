@@ -99,7 +99,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageService
         <ConfigurationKey("unused")>
         <HelpLink("https://www.microsoft.com")>
         <ExportMetadata("EnableByDefault", True)>
-        <LocalizedName(GetType(ServicesVSResources), NameOf(ServicesVSResources.Format_document))>
+        <LocalizedName(GetType(FeaturesResources), NameOf(FeaturesResources.Format_document))>
         Public Shared ReadOnly FormatDocument As FixIdDefinition
 
         <Export>

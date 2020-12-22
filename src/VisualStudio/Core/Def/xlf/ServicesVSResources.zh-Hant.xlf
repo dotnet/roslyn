@@ -267,11 +267,6 @@
         <target state="translated">完成</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="new">Format document</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">從設定產生 .editorconfig 檔案</target>

@@ -2828,4 +2828,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Sort_accessibility_modifiers" xml:space="preserve">
     <value>Sort accessibility modifiers</value>
   </data>
+  <data name="Format_document" xml:space="preserve">
+    <value>Format document</value>
+  </data>
 </root>

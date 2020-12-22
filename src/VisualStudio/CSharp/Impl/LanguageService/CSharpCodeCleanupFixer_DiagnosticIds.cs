@@ -218,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [ExportMetadata("EnableByDefault", true)]
-        [LocalizedName(typeof(ServicesVSResources), nameof(ServicesVSResources.Format_document))]
+        [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.Format_document))]
         public static readonly FixIdDefinition? FormatDocument;
 
         [Export]
