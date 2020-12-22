@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,6 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.CodeCleanUp;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
 {
@@ -22,12 +21,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
     [ContentType(ContentTypeNames.CSharpContentType)]
     internal class CodeCleanUpFixerProvider : ICodeCleanUpFixerProvider
     {
-        private readonly ImmutableArray<Lazy<CodeCleanUpFixer, ContentTypeMetadata>> _codeCleanUpFixers;
+        private readonly ImmutableArray<Lazy<AbstractCodeCleanUpFixer, ContentTypeMetadata>> _codeCleanUpFixers;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeCleanUpFixerProvider(
-            [ImportMany] IEnumerable<Lazy<CodeCleanUpFixer, ContentTypeMetadata>> codeCleanUpFixers)
+            [ImportMany] IEnumerable<Lazy<AbstractCodeCleanUpFixer, ContentTypeMetadata>> codeCleanUpFixers)
         {
             _codeCleanUpFixers = codeCleanUpFixers.ToImmutableArray();
         }
@@ -36,11 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             => _codeCleanUpFixers.SelectAsArray(lazyFixer => lazyFixer.Value);
 
         public IReadOnlyCollection<ICodeCleanUpFixer> GetFixers(IContentType contentType)
-        {
-            var fixers = _codeCleanUpFixers
-               .Where(handler => handler.Metadata.ContentTypes.Any(contentType.IsOfType)).ToList();
-
-            return fixers.ConvertAll(l => l.Value);
-        }
+            => _codeCleanUpFixers.WhereAsArray(handler => handler.Metadata.ContentTypes.Any(contentType.IsOfType))
+                                 .SelectAsArray(l => l.Value);
     }
 }
