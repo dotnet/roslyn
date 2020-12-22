@@ -9,12 +9,6 @@
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Dictionary.dic" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Dictionary.dic" />
-  </ItemGroup>
-  <ItemGroup>
     <InternalsVisibleTo Include="Text.CSharp.Analyzers" />
     <InternalsVisibleTo Include="Text.VisualBasic.Analyzers" />
     <InternalsVisibleTo Include="Text.Analyzers.UnitTests" />
