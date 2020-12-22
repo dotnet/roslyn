@@ -104,12 +104,12 @@
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceDescription">
         <source>Cannot assign a value from a reference to a non-copyable type.</source>
-        <target state="new">Cannot assign a value from a reference to a non-copyable type.</target>
+        <target state="translated">参照からコピー不可の型に値を割り当てることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceMessage">
         <source>Cannot assign a value from a reference to non-copyable type '{0}'</source>
-        <target state="new">Cannot assign a value from a reference to non-copyable type '{0}'</target>
+        <target state="translated">参照からコピー不可の型 '{0}' に値を割り当てることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoBoxingDescription">
@@ -124,17 +124,17 @@
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceDescription">
         <source>Cannot return a value from a reference to a non-copyable type.</source>
-        <target state="new">Cannot return a value from a reference to a non-copyable type.</target>
+        <target state="translated">参照からコピー不可の型に値を返すことはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceMessage">
         <source>Cannot return a value from a reference to non-copyable type '{0}'</source>
-        <target state="new">Cannot return a value from a reference to non-copyable type '{0}'</target>
+        <target state="translated">参照からコピー不可の型 '{0}' に値を返すことはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoUnboxingDescription">
         <source>Do not unbox non-copyable value types.</source>
-        <target state="translated">コピー不可の値の型をボックス化解除しません。</target>
+        <target state="translated">コピー不可の値の型をボックス化解除しないでください。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoUnboxingMessage">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="PreferNullLiteralDescription">
         <source>Use 'null' instead of 'default' for nullable types.</source>
-        <target state="translated">Null 許容型には、'default' の代わりに 'null' を使用します。</target>
+        <target state="translated">Null 許容型には、'default' の代わりに 'null' を使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralMessage">
@@ -294,17 +294,17 @@
       </trans-unit>
       <trans-unit id="TemporaryArrayAsRefDescription">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
-        <target state="new">Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</target>
+        <target state="translated">TemporaryArray&lt;T&gt;.AsRef() のインスタンスは 'using' 変数でなければなりません。</target>
         <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TemporaryArrayAsRefMessage">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
-        <target state="new">Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</target>
+        <target state="translated">TemporaryArray&lt;T&gt;.AsRef() のインスタンスは 'using' 変数でなければなりません</target>
         <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TemporaryArrayAsRefTitle">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
-        <target state="new">Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</target>
+        <target state="translated">TemporaryArray&lt;T&gt;.AsRef() のインスタンスは 'using' 変数でなければなりません</target>
         <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
@@ -359,7 +359,7 @@
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle">
         <source>Invoke the correct property to ensure correct use site diagnostics</source>
-        <target state="translated">正しいサイト診断が使用されるように、正しいプロパティを呼び出します</target>
+        <target state="translated">正しいサイト診断が使用されるように、正しいプロパティを呼び出してください</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsDescription">
@@ -369,7 +369,7 @@
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsMessage">
         <source>Invoke the correct property to ensure correct use site diagnostics</source>
-        <target state="translated">正しいサイト診断が使用されるように、正しいプロパティを呼び出します</target>
+        <target state="translated">正しいサイト診断が使用されるように、正しいプロパティを呼び出してください</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionTitle">
@@ -389,7 +389,7 @@
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableTitle">
         <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
-        <target state="translated">'IEquatable' を実装するときに 'Object.Equals(object)' をオーバーライドします</target>
+        <target state="translated">IEquatable' を実装するときに 'Object.Equals(object)' をオーバーライドしてください</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableDescription">
@@ -399,7 +399,7 @@
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableMessage">
         <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
-        <target state="translated">'IEquatable' を実装するときに 'Object.Equals(object)' をオーバーライドします</target>
+        <target state="translated">IEquatable' を実装するときに 'Object.Equals(object)' をオーバーライドしてください</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">

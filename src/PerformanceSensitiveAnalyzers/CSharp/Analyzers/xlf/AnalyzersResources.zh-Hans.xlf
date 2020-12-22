@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleMessage">
         <source>Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.</source>
-        <target state="translated">引用类型转换的值类型将导致在调用站点处(此处)装箱和在被调用方站点处取消装箱。如果适用，请考虑使用泛型</target>
+        <target state="translated">值类型到引用类型的转换将导致在调用站点处(此处)装箱和在被调用方站点处取消装箱。如果适用，请考虑使用泛型</target>
         <note />
       </trans-unit>
       <trans-unit id="ValueTypeToReferenceTypeConversionRuleTitle">

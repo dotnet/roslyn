@@ -123,6 +123,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 operationVisitor.TrackedEntitiesBuilder);
         }
         protected override PointsToBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, PointsToAnalysisData blockAnalysisData)
-            => new PointsToBlockAnalysisResult(basicBlock, blockAnalysisData);
+            => new(basicBlock, blockAnalysisData);
     }
 }

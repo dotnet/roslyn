@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesDescription">
         <source>A public enumeration has the System.FlagsAttribute attribute, and its name does not end in ""s"". Types that are marked by using FlagsAttribute have names that are plural because the attribute indicates that more than one value can be specified.</source>
-        <target state="new">A public enumeration has the System.FlagsAttribute attribute, and its name does not end in ""s"". Types that are marked by using FlagsAttribute have names that are plural because the attribute indicates that more than one value can be specified.</target>
+        <target state="translated">Veřejný výčet obsahuje atribut System.FlagsAttribute, ale jeho název nekončí na s. Typy, které jsou označené atributem FlagsAttribute, mají názvy v množném čísle, protože tento atribut označuje, že se dá zadat více než jedna hodnota.</target>
         <note />
       </trans-unit>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesMessage">
         <source>Flags enums should have plural names</source>
-        <target state="new">Flags enums should have plural names</target>
+        <target state="translated">Výčty příznaků mají mít názvy v množném čísle.</target>
         <note />
       </trans-unit>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesTitle">
         <source>Flags enums should have plural names</source>
-        <target state="new">Flags enums should have plural names</target>
+        <target state="translated">Výčty příznaků mají mít názvy v množném čísle.</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyFileParse">
@@ -124,17 +124,17 @@
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesDescription">
         <source>Naming conventions dictate that a plural name for an enumeration indicates that more than one value of the enumeration can be specified at the same time.</source>
-        <target state="new">Naming conventions dictate that a plural name for an enumeration indicates that more than one value of the enumeration can be specified at the same time.</target>
+        <target state="translated">Názvy v množném čísle podle zásad vytváření názvů označují, že lze současně zadat více než jednu hodnotu výčtu.</target>
         <note />
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesMessage">
         <source>Only FlagsAttribute enums should have plural names</source>
-        <target state="new">Only FlagsAttribute enums should have plural names</target>
+        <target state="translated">Názvy v množném čísle mají mít jenom výčty FlagsAttribute.</target>
         <note />
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesTitle">
         <source>Only FlagsAttribute enums should have plural names</source>
-        <target state="new">Only FlagsAttribute enums should have plural names</target>
+        <target state="translated">Názvy v množném čísle mají mít jenom výčty FlagsAttribute.</target>
         <note />
       </trans-unit>
     </body>

@@ -95,12 +95,12 @@ if (fileList.Length > 0 || assemblyList.Length > 0 || libraryList.Length > 0 || 
     const string agnosticTarget = @"analyzers\dotnet";
 
     var allTargets = new List<string>();
-    if (assemblyList.Any(assembly => assembly.Contains(csName)))
+    if (assemblyList.Any(assembly => assembly.Contains(csName, StringComparison.Ordinal)))
     {
         allTargets.Add(csTarget);
     }
 
-    if (assemblyList.Any(assembly => assembly.Contains(vbName)))
+    if (assemblyList.Any(assembly => assembly.Contains(vbName, StringComparison.Ordinal)))
     {
         allTargets.Add(vbTarget);
     }
@@ -114,11 +114,11 @@ if (fileList.Length > 0 || assemblyList.Length > 0 || libraryList.Length > 0 || 
     {
         IEnumerable<string> targets;
 
-        if (assembly.Contains(csName))
+        if (assembly.Contains(csName, StringComparison.Ordinal))
         {
             targets = new[] { csTarget };
         }
-        else if (assembly.Contains(vbName))
+        else if (assembly.Contains(vbName, StringComparison.Ordinal))
         {
             targets = new[] { vbTarget };
         }

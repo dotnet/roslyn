@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="AnnotatePublicApiMessage">
         <source>Symbol '{0}' is missing nullability annotations in the declared API</source>
-        <target state="needs-review-translation">선언된 API에서 '{0}' 기호에 Null 허용 여부 주석이 없습니다.</target>
+        <target state="translated">선언된 API에서 '{0}' 기호에 Null 허용 여부 주석이 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiTitle">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="DeclarePublicApiMessage">
         <source>Symbol '{0}' is not part of the declared API</source>
-        <target state="needs-review-translation">'{0}' 기호가 선언된 API의 일부가 아닙니다.</target>
+        <target state="translated">'{0}' 기호가 선언된 API에 포함되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiTitle">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
         <source>The symbol '{0}' appears more than once in the public API files</source>
-        <target state="needs-review-translation">'{0}' 기호가 공용 API 파일에 두 번 이상 나타납니다.</target>
+        <target state="translated">'{0}' 기호가 퍼블릭 API 파일에 두 번 이상 나타납니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesTitle">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
         <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</source>
-        <target state="needs-review-translation">생성자는 해당 상속할 수 없는 기본 클래스를 상속할 수 있도록 만들어 보호된 멤버가 공개됩니다.</target>
+        <target state="translated">생성자는 상속할 수 없는 기본 클래스를 상속할 수 있도록 만들어 보호된 멤버를 공개합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeTitle">
@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="ObliviousPublicApiMessage">
         <source>Symbol '{0}' uses some oblivious reference types</source>
-        <target state="needs-review-translation">'{0}' 기호는 일부 인식 불가능한 참조 형식을 사용합니다.</target>
+        <target state="translated">'{0}' 기호는 일부 인식 불가능한 참조 형식을 사용합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiTitle">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
         <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads</source>
-        <target state="needs-review-translation">선택적 매개 변수가 있는 공용 API에는 공용 오버로드 중 대부분의 매개 변수가 포함되어야 합니다.</target>
+        <target state="translated">선택적 매개 변수가 있는 퍼블릭 API에는 퍼블릭 오버로드 중 대부분의 매개 변수가 포함되어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFileMissingMessage">

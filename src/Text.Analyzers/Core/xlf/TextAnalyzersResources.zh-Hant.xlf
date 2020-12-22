@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesDescription">
         <source>A public enumeration has the System.FlagsAttribute attribute, and its name does not end in ""s"". Types that are marked by using FlagsAttribute have names that are plural because the attribute indicates that more than one value can be specified.</source>
-        <target state="new">A public enumeration has the System.FlagsAttribute attribute, and its name does not end in ""s"". Types that are marked by using FlagsAttribute have names that are plural because the attribute indicates that more than one value can be specified.</target>
+        <target state="translated">公用列舉具有 System.FlagsAttribute 屬性，且其名稱不會以 ""s"" 結尾。因為 FlagsAttribute 屬性表示可指定一個以上的值，所以使用該屬性所標記的類型，具有複數名稱。</target>
         <note />
       </trans-unit>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesMessage">
         <source>Flags enums should have plural names</source>
-        <target state="new">Flags enums should have plural names</target>
+        <target state="translated">旗標列舉應使用複數名稱</target>
         <note />
       </trans-unit>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesTitle">
         <source>Flags enums should have plural names</source>
-        <target state="new">Flags enums should have plural names</target>
+        <target state="translated">旗標列舉應使用複數名稱</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyFileParse">
@@ -124,17 +124,17 @@
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesDescription">
         <source>Naming conventions dictate that a plural name for an enumeration indicates that more than one value of the enumeration can be specified at the same time.</source>
-        <target state="new">Naming conventions dictate that a plural name for an enumeration indicates that more than one value of the enumeration can be specified at the same time.</target>
+        <target state="translated">依照命名慣例的要求，列舉若是複數的名稱，表示可以同時指定多個列舉值。</target>
         <note />
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesMessage">
         <source>Only FlagsAttribute enums should have plural names</source>
-        <target state="new">Only FlagsAttribute enums should have plural names</target>
+        <target state="translated">只有 FlagsAttribute 列舉應使用複數名稱</target>
         <note />
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesTitle">
         <source>Only FlagsAttribute enums should have plural names</source>
-        <target state="new">Only FlagsAttribute enums should have plural names</target>
+        <target state="translated">只有 FlagsAttribute 列舉應使用複數名稱</target>
         <note />
       </trans-unit>
     </body>

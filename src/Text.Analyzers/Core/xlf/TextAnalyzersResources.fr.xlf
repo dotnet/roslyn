@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesDescription">
         <source>A public enumeration has the System.FlagsAttribute attribute, and its name does not end in ""s"". Types that are marked by using FlagsAttribute have names that are plural because the attribute indicates that more than one value can be specified.</source>
-        <target state="new">A public enumeration has the System.FlagsAttribute attribute, and its name does not end in ""s"". Types that are marked by using FlagsAttribute have names that are plural because the attribute indicates that more than one value can be specified.</target>
+        <target state="translated">Une énumération publique a l'attribut System.FlagsAttribute, et son nom finit par ""s"". Les types marqués à l'aide de FlagsAttribute ont des noms au pluriel, car l'attribut indique que plusieurs valeurs peuvent être spécifiées.</target>
         <note />
       </trans-unit>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesMessage">
         <source>Flags enums should have plural names</source>
-        <target state="new">Flags enums should have plural names</target>
+        <target state="translated">Les noms des enums Flags doivent être au pluriel</target>
         <note />
       </trans-unit>
       <trans-unit id="FlagsEnumsShouldHavePluralNamesTitle">
         <source>Flags enums should have plural names</source>
-        <target state="new">Flags enums should have plural names</target>
+        <target state="translated">Les noms des enums Flags doivent être au pluriel</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyFileParse">
@@ -124,17 +124,17 @@
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesDescription">
         <source>Naming conventions dictate that a plural name for an enumeration indicates that more than one value of the enumeration can be specified at the same time.</source>
-        <target state="new">Naming conventions dictate that a plural name for an enumeration indicates that more than one value of the enumeration can be specified at the same time.</target>
+        <target state="translated">Conformément aux conventions de nommage, l'utilisation d'un nom pluriel pour une énumération indique que plusieurs valeurs de l'énumération peuvent être spécifiées en même temps.</target>
         <note />
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesMessage">
         <source>Only FlagsAttribute enums should have plural names</source>
-        <target state="new">Only FlagsAttribute enums should have plural names</target>
+        <target state="translated">Seuls les noms des enums FlagsAttribute doivent être au pluriel</target>
         <note />
       </trans-unit>
       <trans-unit id="OnlyFlagsEnumsShouldHavePluralNamesTitle">
         <source>Only FlagsAttribute enums should have plural names</source>
-        <target state="new">Only FlagsAttribute enums should have plural names</target>
+        <target state="translated">Seuls les noms des enums FlagsAttribute doivent être au pluriel</target>
         <note />
       </trans-unit>
     </body>

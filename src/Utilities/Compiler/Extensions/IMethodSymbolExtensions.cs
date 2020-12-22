@@ -516,7 +516,7 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         /// <remarks>Also see <see cref="IOperationExtensions.s_operationToCfgCache"/></remarks>
         private static readonly BoundedCache<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation?>> s_methodToTopmostOperationBlockCache
-            = new BoundedCache<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation?>>();
+            = new();
 
         /// <summary>
         /// Returns the topmost <see cref="IBlockOperation"/> for given <paramref name="method"/>.
@@ -563,29 +563,20 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsLambdaOrLocalFunctionOrDelegate(this IMethodSymbol method)
         {
-            switch (method.MethodKind)
+            return method.MethodKind switch
             {
-                case MethodKind.LambdaMethod:
-                case MethodKindEx.LocalFunction:
-                case MethodKind.DelegateInvoke:
-                    return true;
-
-                default:
-                    return false;
-            }
+                MethodKind.LambdaMethod or MethodKindEx.LocalFunction or MethodKind.DelegateInvoke => true,
+                _ => false,
+            };
         }
 
         public static bool IsLambdaOrLocalFunction(this IMethodSymbol method)
         {
-            switch (method.MethodKind)
+            return method.MethodKind switch
             {
-                case MethodKind.LambdaMethod:
-                case MethodKindEx.LocalFunction:
-                    return true;
-
-                default:
-                    return false;
-            }
+                MethodKind.LambdaMethod or MethodKindEx.LocalFunction => true,
+                _ => false,
+            };
         }
 
         public static int GetParameterIndex(this IMethodSymbol methodSymbol, IParameterSymbol parameterSymbol)

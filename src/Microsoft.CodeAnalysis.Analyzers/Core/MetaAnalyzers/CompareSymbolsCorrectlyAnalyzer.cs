@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private const string s_symbolEqualsName = nameof(ISymbol.Equals);
         public const string SymbolEqualityComparerName = "Microsoft.CodeAnalysis.SymbolEqualityComparer";
 
-        public static readonly DiagnosticDescriptor EqualityRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor EqualityRule = new(
             DiagnosticIds.CompareSymbolsCorrectlyRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public static readonly DiagnosticDescriptor GetHashCodeRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor GetHashCodeRule = new(
             DiagnosticIds.CompareSymbolsCorrectlyRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDescriptionGetHashCode,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public static readonly DiagnosticDescriptor CollectionRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor CollectionRule = new(
             DiagnosticIds.CompareSymbolsCorrectlyRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 collectionTypes.Contains(createdType.OriginalDefinition) &&
                 !createdType.TypeArguments.IsEmpty &&
                 IsSymbolType(createdType.TypeArguments[0], symbolType) &&
-                !objectCreation.Arguments.Any(arg => IsSymbolType(arg.Type, symbolEqualityComparerType)))
+                !objectCreation.Arguments.Any(arg => IsSymbolType(arg.Value, symbolEqualityComparerType)))
             {
                 context.ReportDiagnostic(objectCreation.CreateDiagnostic(CollectionRule));
             }
