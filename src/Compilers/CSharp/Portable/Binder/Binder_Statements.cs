@@ -1628,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var propertyIsStatic = propertySymbol.IsStatic;
 
             return (object)sourceProperty != null &&
-                    sourceProperty.IsAutoProperty &&
+                    sourceProperty.IsAutoPropertyWithGetAccessor &&
                     TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything2) &&
                     IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
                     (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
@@ -3478,6 +3478,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // the thing is not a method
                     return PatternLookupResult.NotAMethod;
                 }
+
+                // NOTE: Because we're calling this method with no arguments and we
+                //       explicitly ignore default values for params parameters
+                //       (see ParamterSymbol.IsOptional) we know that no ParameterArray
+                //       containing method can be invoked in normal form which allows
+                //       us to skip some work during the lookup.
 
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 var patternMethodCall = BindMethodGroupInvocation(

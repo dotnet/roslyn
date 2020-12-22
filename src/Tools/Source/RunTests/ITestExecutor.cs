@@ -16,10 +16,9 @@ namespace RunTests
         internal string? Trait { get; }
         internal string? NoTrait { get; }
         internal bool IncludeHtml { get; }
-        internal bool TestVsi { get; }
         internal bool Retry { get; }
 
-        internal TestExecutionOptions(string dotnetFilePath, ProcDumpInfo? procDumpInfo, string testResultsDirectory, string? trait, string? noTrait, bool includeHtml, bool testVsi, bool retry)
+        internal TestExecutionOptions(string dotnetFilePath, ProcDumpInfo? procDumpInfo, string testResultsDirectory, string? trait, string? noTrait, bool includeHtml, bool retry)
         {
             DotnetFilePath = dotnetFilePath;
             ProcDumpInfo = procDumpInfo;
@@ -27,7 +26,6 @@ namespace RunTests
             Trait = trait;
             NoTrait = noTrait;
             IncludeHtml = includeHtml;
-            TestVsi = testVsi;
             Retry = retry;
         }
     }
@@ -50,14 +48,14 @@ namespace RunTests
         /// <summary>
         /// Path to the XML results file.
         /// </summary>
-        internal string ResultsFilePath { get; }
+        internal string? ResultsFilePath { get; }
 
         /// <summary>
         /// Path to the HTML results file if HTML output is enabled, otherwise, <see langword="null"/>.
         /// </summary>
         internal string? HtmlResultsFilePath { get; }
 
-        internal TestResultInfo(int exitCode, string resultsFilePath, string? htmlResultsFilePath, TimeSpan elapsed, string standardOutput, string errorOutput)
+        internal TestResultInfo(int exitCode, string? resultsFilePath, string? htmlResultsFilePath, TimeSpan elapsed, string standardOutput, string errorOutput)
         {
             ExitCode = exitCode;
             ResultsFilePath = resultsFilePath;
@@ -88,7 +86,7 @@ namespace RunTests
         internal TimeSpan Elapsed => TestResultInfo.Elapsed;
         internal string StandardOutput => TestResultInfo.StandardOutput;
         internal string ErrorOutput => TestResultInfo.ErrorOutput;
-        internal string ResultsDisplayFilePath => TestResultInfo.HtmlResultsFilePath ?? TestResultInfo.ResultsFilePath;
+        internal string? ResultsDisplayFilePath => TestResultInfo.HtmlResultsFilePath ?? TestResultInfo.ResultsFilePath;
 
         internal TestResult(AssemblyInfo assemblyInfo, TestResultInfo testResultInfo, string commandLine, ImmutableArray<ProcessResult> processResults = default, string? diagnostics = null)
         {

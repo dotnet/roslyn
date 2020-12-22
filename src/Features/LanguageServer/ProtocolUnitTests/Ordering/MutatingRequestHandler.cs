@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             var response = new TestResponse
             {
                 Solution = context.Solution,
-                RequestOrder = request.RequestOrder,
                 StartTime = DateTime.UtcNow
             };
 

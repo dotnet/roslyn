@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <DebugType>none</DebugType>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <IsSourcePackage>true</IsSourcePackage>
+    <PackageId>Microsoft.CodeAnalysis.Collections</PackageId>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <PackageDescription>
+      Package containing sources of Microsoft .NET Compiler Platform ("Roslyn") collections.
+    </PackageDescription>
+    <!-- Remove once https://github.com/NuGet/Home/issues/8583 is fixed -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- ⚠ Consuming projects outside dotnet/roslyn will be required to manually reproduce the APIs for any linked files added here -->
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="NullableAttributes.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Strings.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.Collections.SR" />
+  </ItemGroup>
+
+  <!--
+    Source packaging helpers.
+  -->
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddResourceFilesToSourcePackage</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <Target Name="_AddResourceFilesToSourcePackage">
+    <PropertyGroup>
+      <!-- TODO: language to dir name mapping (https://github.com/Microsoft/msbuild/issues/2101) -->
+      <_LanguageDirName>$(DefaultLanguageSourceExtension.TrimStart('.'))</_LanguageDirName>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_File Remove="@(_File)"/>
+      <_File Include="$(MSBuildProjectDirectory)\**\*.resx" TargetDir="contentFiles/$(_LanguageDirName)/$(TargetFramework)" BuildAction="EmbeddedResource" />
+      <_File Include="$(MSBuildProjectDirectory)\**\*.xlf" TargetDir="contentFiles/$(_LanguageDirName)/$(TargetFramework)" BuildAction="None" />
+
+      <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)"/>
+    </ItemGroup>
+  </Target>
+</Project>

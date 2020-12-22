@@ -59,6 +59,9 @@
                     <CheckBox x:Name="SuggestForTypesInNuGetPackages"
                               x:Uid="AddImport_SuggestForTypesInNuGetPackages"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Suggest_usings_for_types_in_NuGet_packages}" />
+                    <CheckBox x:Name="AddUsingsOnPaste"
+                              x:Uid="AddMissingUsingDirectivesOnPaste"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Add_missing_using_directives_on_paste}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="HighlightingGroupBox"

@@ -59,9 +59,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
         protected internal override VSServerCapabilities GetCapabilities()
         {
             var capabilities = _defaultCapabilitiesProvider.GetCapabilities();
-            capabilities.SupportsDiagnosticRequests = _globalOptionService.GetOption(InternalDiagnosticsOptions.RazorDiagnosticMode) == DiagnosticMode.Pull;
+
+            capabilities.SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode);
+
             // Razor doesn't use workspace symbols, so disable to prevent duplicate results (with LiveshareLanguageClient) in liveshare.
             capabilities.WorkspaceSymbolProvider = false;
+
             return capabilities;
         }
     }

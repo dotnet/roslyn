@@ -48,7 +48,8 @@ Options:
   /r:&lt;file list&gt;                 지정된 어셈블리 파일에서 메타데이터를 참조합니다(대체 형식: /reference).
   /lib:&lt;path list&gt;               #r 지시문으로 지정된 라이브러리를 찾을 디렉터리의 목록입니다. 
                                  (대체 형식: /libPath /libPaths)
-  /u:&lt;namespace&gt;                 전역 네임스페이스 using을 정의합니다(대체 형식: /using, /usings, /import, /imports).  /langversion:?                 언어 버전의 허용된 값을 표시하고 종료합니다.
+  /u:&lt;namespace&gt;                 전역 네임스페이스 using을 정의합니다(대체 형식: /using, /usings, /import, /imports).
+  /langversion:?                 언어 버전의 허용된 값을 표시하고 종료합니다.
   /langversion:&lt;string&gt;          
                                  `latest`(최신 버전, 부 버전 포함),
                                  `default`(`latest`와 같음),

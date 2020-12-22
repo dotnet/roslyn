@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -38,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
         {
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpGenerateVariableCodeFixProvider());
 
         private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
@@ -3511,6 +3509,36 @@ class Bar
     void goo()
     {
         var c = new Goo { Gibberish = 24 };
+    }
+}");
+        }
+
+        [WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPropertyInWithInitializer()
+        {
+            await TestInRegularAndScriptAsync(
+@"record Goo
+{
+}
+
+class Bar
+{
+    void goo(Goo g)
+    {
+        var c = g with { [|Gibberish|] = 24 };
+    }
+}",
+@"record Goo
+{
+    public int Gibberish { get; internal set; }
+}
+
+class Bar
+{
+    void goo(Goo g)
+    {
+        var c = g with { Gibberish = 24 };
     }
 }");
         }

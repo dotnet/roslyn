@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.SnippetFunctions
@@ -20,15 +20,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
         protected abstract string CaseFormat { get; }
         protected abstract string DefaultCase { get; }
 
-        public AbstractSnippetFunctionGenerateSwitchCases(AbstractSnippetExpansionClient snippetExpansionClient, ITextView textView, ITextBuffer subjectBuffer, string caseGenerationLocationField, string switchExpressionField)
-            : base(snippetExpansionClient, textView, subjectBuffer)
+        public AbstractSnippetFunctionGenerateSwitchCases(AbstractSnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer, string caseGenerationLocationField, string switchExpressionField)
+            : base(snippetExpansionClient, subjectBuffer)
         {
             this.CaseGenerationLocationField = caseGenerationLocationField;
-            this.SwitchExpressionField = (switchExpressionField.Length >= 2 && switchExpressionField[0] == '$' && switchExpressionField[switchExpressionField.Length - 1] == '$')
-                ? switchExpressionField.Substring(1, switchExpressionField.Length - 2) : switchExpressionField;
+            this.SwitchExpressionField = (switchExpressionField.Length >= 2 && switchExpressionField[0] == '$' && switchExpressionField[^1] == '$')
+                ? switchExpressionField[1..^1] : switchExpressionField;
         }
 
-        protected abstract bool TryGetEnumTypeSymbol(CancellationToken cancellationToken, out ITypeSymbol typeSymbol);
+        protected abstract bool TryGetEnumTypeSymbol(CancellationToken cancellationToken, [NotNullWhen(returnValue: true)] out ITypeSymbol? typeSymbol);
         protected abstract bool TryGetSimplifiedTypeNameInCaseContext(Document document, string fullyQualifiedTypeName, string firstEnumMemberName, int startPosition, int endPosition, CancellationToken cancellationToken, out string simplifiedTypeName);
 
         protected override bool FieldChanged(string field)
@@ -78,9 +78,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
                 return false;
             }
 
-            var surfaceBufferFieldSpan = snippetExpansionClient.ExpansionSession.GetFieldSpan(CaseGenerationLocationField);
+            Contract.ThrowIfNull(_snippetExpansionClient.ExpansionSession);
 
-            if (!snippetExpansionClient.TryGetSubjectBufferSpan(surfaceBufferFieldSpan, out var subjectBufferFieldSpan))
+            var surfaceBufferFieldSpan = _snippetExpansionClient.ExpansionSession.GetFieldSpan(CaseGenerationLocationField);
+
+            if (!_snippetExpansionClient.TryGetSubjectBufferSpan(surfaceBufferFieldSpan, out var subjectBufferFieldSpan))
             {
                 return false;
             }

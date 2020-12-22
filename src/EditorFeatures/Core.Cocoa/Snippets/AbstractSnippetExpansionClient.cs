@@ -2,16 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
@@ -34,11 +30,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly ITextView TextView;
         protected readonly ITextBuffer SubjectBuffer;
 
-        protected bool indentCaretOnCommit;
-        protected int indentDepth;
-        protected bool earlyEndExpansionHappened;
+        protected bool _indentCaretOnCommit;
+        protected int _indentDepth;
+        protected bool _earlyEndExpansionHappened;
 
-        internal IExpansionSession ExpansionSession;
+        public IExpansionSession? ExpansionSession { get; private set; }
 
         public AbstractSnippetExpansionClient(IThreadingContext threadingContext, IContentType languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IExpansionServiceProvider expansionServiceProvider)
             : base(threadingContext)
@@ -49,14 +45,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             this.ExpansionServiceProvider = expansionServiceProvider;
         }
 
-        public abstract IExpansionFunction GetExpansionFunction(XElement xmlFunctionNode, string fieldName);
-        protected abstract ITrackingSpan InsertEmptyCommentAndGetEndPositionTrackingSpan();
-        internal abstract Document AddImports(Document document, int position, XElement snippetNode, bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken);
+        public abstract IExpansionFunction? GetExpansionFunction(XElement xmlFunctionNode, string fieldName);
+        protected abstract ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan();
 
         public void FormatSpan(SnapshotSpan span)
         {
-            // Formatting a snippet isn't cancellable.
-            var cancellationToken = CancellationToken.None;
             // At this point, the $selection$ token has been replaced with the selected text and
             // declarations have been replaced with their default text. We need to format the 
             // inserted snippet text while carefully handling $end$ position (where the caret goes
@@ -85,6 +78,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
+            Contract.ThrowIfNull(ExpansionSession);
+
             // Insert empty comment and track end position
             var snippetTrackingSpan = snippetSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
@@ -101,20 +96,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             {
                 CleanUpEndLocation(endPositionTrackingSpan);
 
-                // Unfortunately, this is the only place we can safely add references and imports
-                // specified in the snippet xml. In OnBeforeInsertion we have no guarantee that the
-                // snippet xml will be available, and changing the buffer during OnAfterInsertion can
-                // cause the underlying tracking spans to get out of sync.
-                var currentStartPosition = snippetTrackingSpan.GetStartPoint(SubjectBuffer.CurrentSnapshot).Position;
-                AddReferencesAndImports(
-                    ExpansionSession, currentStartPosition, cancellationToken);
-
                 SetNewEndPosition(endPositionTrackingSpan);
             }
         }
 
-        private void SetNewEndPosition(ITrackingSpan endTrackingSpan)
+        private void SetNewEndPosition(ITrackingSpan? endTrackingSpan)
         {
+            Contract.ThrowIfNull(ExpansionSession);
+
             if (SetEndPositionIfNoneSpecified(ExpansionSession))
             {
                 return;
@@ -134,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
         }
 
-        private void CleanUpEndLocation(ITrackingSpan endTrackingSpan)
+        private void CleanUpEndLocation(ITrackingSpan? endTrackingSpan)
         {
             if (endTrackingSpan != null)
             {
@@ -150,18 +139,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
                 if (lineText.Trim() == string.Empty)
                 {
-                    indentCaretOnCommit = true;
+                    _indentCaretOnCommit = true;
 
                     var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document != null)
                     {
                         var documentOptions = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                        indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, documentOptions.GetOption(FormattingOptions.TabSize));
+                        _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, documentOptions.GetOption(FormattingOptions.TabSize));
                     }
                     else
                     {
                         // If we don't have a document, then just guess the typical default TabSize value.
-                        indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, tabSize: 4);
+                        _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, tabSize: 4);
                     }
 
                     SubjectBuffer.Delete(new Span(line.Start.Position, line.Length));
@@ -176,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// </summary>
         private static bool SetEndPositionIfNoneSpecified(IExpansionSession pSession)
         {
-            if (!(pSession.GetSnippetNode() is XElement snippetNode))
+            if (pSession.GetSnippetNode() is not XElement snippetNode)
             {
                 return false;
             }
@@ -223,9 +212,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// <param name="point"></param>
         internal void PositionCaretForEditingInternal(string endLineText, SnapshotPoint point)
         {
-            if (indentCaretOnCommit && endLineText == string.Empty)
+            if (_indentCaretOnCommit && endLineText == string.Empty)
             {
-                ITextViewExtensions.TryMoveCaretToAndEnsureVisible(TextView, new VirtualSnapshotPoint(point, indentDepth));
+                ITextViewExtensions.TryMoveCaretToAndEnsureVisible(TextView, new VirtualSnapshotPoint(point, _indentDepth));
             }
         }
 
@@ -323,11 +312,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             if (ExpansionSession == null)
             {
-                earlyEndExpansionHappened = true;
+                _earlyEndExpansionHappened = true;
             }
 
             ExpansionSession = null;
-            indentCaretOnCommit = false;
+            _indentCaretOnCommit = false;
         }
 
         public void OnAfterInsertion(IExpansionSession pSession)
@@ -353,122 +342,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var textSpan = TextView.Caret.Position.BufferPosition;
 
             var expansion = ExpansionServiceProvider.GetExpansionService(TextView);
-            earlyEndExpansionHappened = false;
+            _earlyEndExpansionHappened = false;
             ExpansionSession = expansion.InsertNamedExpansion(title, pszPath, new SnapshotSpan(textSpan, 0), this, LanguageServiceGuid, false);
 
-            if (earlyEndExpansionHappened)
+            if (_earlyEndExpansionHappened)
             {
                 // EndExpansion was called before InsertNamedExpansion returned, so set
                 // expansionSession to null to indicate that there is no active expansion
                 // session. This can occur when the snippet inserted doesn't have any expansion
                 // fields.
                 ExpansionSession = null;
-                earlyEndExpansionHappened = false;
+                _earlyEndExpansionHappened = false;
             }
         }
 
-        private void AddReferencesAndImports(
-            IExpansionSession pSession,
-            int position,
-            CancellationToken cancellationToken)
-        {
-            if (!(pSession.GetSnippetNode() is XElement snippetNode))
-            {
-                return;
-            }
-
-            var documentWithImports = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (documentWithImports == null)
-            {
-                return;
-            }
-
-            var documentOptions = documentWithImports.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
-            var allowInHiddenRegions = documentWithImports.CanAddImportsInHiddenRegions();
-
-            documentWithImports = AddImports(documentWithImports, position, snippetNode, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
-            AddReferences(documentWithImports.Project, snippetNode);
-        }
-
-#pragma warning disable IDE0060 // Remove unused parameter
-        private static void AddReferences(Project originalProject, XElement snippetNode)
-#pragma warning restore IDE0060 // Remove unused parameter
-        {
-            var referencesNode = snippetNode.Element(XName.Get("References", snippetNode.Name.NamespaceName));
-            if (referencesNode == null)
-            {
-                return;
-            }
-            throw new NotImplementedException();
-            //var existingReferenceNames = originalProject.MetadataReferences.Select(r => Path.GetFileNameWithoutExtension(r.Display));
-            //var workspace = originalProject.Solution.Workspace;
-            //var projectId = originalProject.Id;
-
-            //var assemblyXmlName = XName.Get("Assembly", snippetNode.Name.NamespaceName);
-            //var failedReferenceAdditions = new List<string>();
-            //var visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
-
-            //foreach (var reference in referencesNode.Elements(XName.Get("Reference", snippetNode.Name.NamespaceName)))
-            //{
-            //    // Note: URL references are not supported
-            //    var assemblyElement = reference.Element(assemblyXmlName);
-
-            //    var assemblyName = assemblyElement != null ? assemblyElement.Value.Trim() : null;
-
-            //    if (string.IsNullOrEmpty(assemblyName))
-            //    {
-            //        continue;
-            //    }
-
-            //    if (visualStudioWorkspace == null ||
-            //        !visualStudioWorkspace.TryAddReferenceToProject(projectId, assemblyName))
-            //    {
-            //        failedReferenceAdditions.Add(assemblyName);
-            //    }
-            //}
-
-            //if (failedReferenceAdditions.Any())
-            //{
-            //    var notificationService = workspace.Services.GetService<INotificationService>();
-            //    notificationService.SendNotification(
-            //        string.Format(ServicesVSResources.The_following_references_were_not_found_0_Please_locate_and_add_them_manually, Environment.NewLine)
-            //        + Environment.NewLine + Environment.NewLine
-            //        + string.Join(Environment.NewLine, failedReferenceAdditions),
-            //        severity: NotificationSeverity.Warning);
-            //}
-        }
-
-        protected static bool TryAddImportsToContainedDocument(Document document, IEnumerable<string> memberImportsNamespaces)
-        {
-            throw new NotImplementedException();
-            //var vsWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            //if (vsWorkspace == null)
-            //{
-            //    return false;
-            //}
-
-            //var containedDocument = vsWorkspace.TryGetContainedDocument(document.Id);
-            //if (containedDocument == null)
-            //{
-            //    return false;
-            //}
-
-            //if (containedDocument.ContainedLanguageHost is IVsContainedLanguageHostInternal containedLanguageHost)
-            //{
-            //    foreach (var importClause in memberImportsNamespaces)
-            //    {
-            //        if (containedLanguageHost.InsertImportsDirective(importClause) != VSConstants.S_OK)
-            //        {
-            //            return false;
-            //        }
-            //    }
-            //}
-
-            //return true;
-        }
-
-        protected static bool TryGetSnippetFunctionInfo(XElement xmlFunctionNode, out string snippetFunctionName, out string param)
+        protected static bool TryGetSnippetFunctionInfo(XElement xmlFunctionNode, [NotNullWhen(returnValue: true)] out string? snippetFunctionName, [NotNullWhen(returnValue: true)] out string? param)
         {
             if (xmlFunctionNode.Value.IndexOf('(') == -1 ||
                 xmlFunctionNode.Value.IndexOf(')') == -1 ||

@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
 
             if (useDefaultIfMissing)
             {
-                value = (T)option.DefaultValue;
+                value = (T?)option.DefaultValue;
                 return hasEditorConfigStorage;
             }
             else

@@ -45,7 +45,7 @@ namespace RunTests
             // Use 1.5 times the number of processors for unit tests, but only 1 processor for the open integration tests
             // since they perform actual UI operations (such as mouse clicks and sending keystrokes) and we don't want two
             // tests to conflict with one-another.
-            var max = (_options.TestVsi || _options.Sequential) ? 1 : (int)(Environment.ProcessorCount * 1.5);
+            var max = _options.Sequential ? 1 : (int)(Environment.ProcessorCount * 1.5);
             var waiting = new Stack<AssemblyInfo>(assemblyInfoList);
             var running = new List<Task<TestResult>>();
             var completed = new List<TestResult>();
@@ -67,7 +67,20 @@ namespace RunTests
                             if (!testResult.Succeeded)
                             {
                                 failures++;
-                                ConsoleUtil.WriteLine(ConsoleColor.Red, "Test failure log: " + testResult.ResultsDisplayFilePath);
+                                if (testResult.ResultsDisplayFilePath is string resultsPath)
+                                {
+                                    ConsoleUtil.WriteLine(ConsoleColor.Red, resultsPath);
+                                }
+                                else
+                                {
+                                    foreach (var result in testResult.ProcessResults)
+                                    {
+                                        foreach (var line in result.ErrorLines)
+                                        {
+                                            ConsoleUtil.WriteLine(ConsoleColor.Red, line);
+                                        }
+                                    }
+                                }
                             }
 
                             completed.Add(testResult);
@@ -178,7 +191,8 @@ namespace RunTests
             var htmlResultsFilePath = testResult.TestResultInfo.HtmlResultsFilePath;
             if (!string.IsNullOrEmpty(htmlResultsFilePath))
             {
-                Process.Start(htmlResultsFilePath);
+                var startInfo = new ProcessStartInfo() { FileName = htmlResultsFilePath, UseShellExecute = true };
+                Process.Start(startInfo);
             }
         }
     }

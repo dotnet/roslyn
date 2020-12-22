@@ -43,19 +43,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IVsRunningDocumentTable4 _runningDocumentTable;
         private readonly IThreadingContext _threadingContext;
+        private readonly Lazy<SourceGeneratedFileManager> _sourceGeneratedFileManager;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDocumentNavigationService(
             IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
+            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+            Lazy<SourceGeneratedFileManager> sourceGeneratedFileManager /* lazy to avoid circularities */)
             : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _threadingContext = threadingContext;
+            _sourceGeneratedFileManager = sourceGeneratedFileManager;
         }
 
         public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan)
@@ -236,6 +239,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             using (OpenNewDocumentStateScope(options ?? workspace.Options))
             {
+                if (workspace.CurrentSolution.GetDocument(documentId) == null)
+                {
+                    // We unfortunately don't have a cancellation token to pass here right now; we don't expect this to be expensive though,
+                    // because if a feature is asking to navigate to this file, it's because they already know this file contains something interesting;
+                    // that probably means generators have already ran so this should be a no-op. If this proves to be wrong, we may want to refactor
+                    // this further to have the SourceGeneratedFileManager instead open the file asynchronously.
+                    var generatedDocument = workspace.CurrentSolution.GetProject(documentId.ProjectId)
+                                                                     .GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None)
+                                                                     .GetAwaiter().GetResult();
+
+                    if (generatedDocument != null)
+                    {
+                        _sourceGeneratedFileManager.Value.NavigateToSourceGeneratedFile(generatedDocument, getTextSpanForMapping(generatedDocument));
+                        return true;
+                    }
+                }
+
                 // Before attempting to open the document, check if the location maps to a different file that should be opened instead.
                 var document = workspace.CurrentSolution.GetDocument(documentId);
                 var spanMappingService = document?.Services.GetService<ISpanMappingService>();

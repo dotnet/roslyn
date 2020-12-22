@@ -276,10 +276,4 @@
   <data name="Segment_size_must_be_power_of_2_greater_than_1" xml:space="preserve">
     <value>Segment size must be power of 2 greater than 1</value>
   </data>
-  <data name="ArgumentException_OtherNotArrayOfCorrectLength" xml:space="preserve">
-    <value>Object is not a array with the same number of elements as the array to compare it to.</value>
-  </data>
-  <data name="NotSupported_FixedSizeCollection" xml:space="preserve">
-    <value>Collection was of a fixed size.</value>
-  </data>
 </root>

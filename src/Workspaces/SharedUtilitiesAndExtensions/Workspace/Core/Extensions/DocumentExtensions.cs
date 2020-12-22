@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsOpen(this TextDocument document)
         {
-            var workspace = document.Project.Solution.Workspace as Workspace;
+            var workspace = document.Project.Solution.Workspace;
             return workspace != null && workspace.IsDocumentOpen(document.Id);
         }
 

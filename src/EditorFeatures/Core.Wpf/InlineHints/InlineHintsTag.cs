@@ -50,13 +50,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             InlineHintsTaggerProvider taggerProvider)
             : base(adornment,
                    removalCallback: null,
-                   topSpace: null,
-                   baseline: null,
-                   // Make the adornment take up the entire line height.  This will cause it to overlap the line
-                   // highlighting box on both the top and bottom.  Below, when we create the border object, we will
-                   // actually give it a margin so that places itself within the highlight lines properly.
-                   textHeight: textView.LineHeight,
-                   bottomSpace: null,
                    PositionAffinity.Predecessor)
         {
             _textView = textView;
@@ -128,9 +121,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 FontStyle = FontStyles.Normal,
                 Foreground = format.ForegroundBrush,
 
-                // Adds a little bit of padding to the left of the text relative to the border
-                // to make the text seem more balanced in the border
-                Padding = new Thickness(left: 1, top: 0, right: 1, bottom: 0),
+                // Adds a little bit of padding to the left of the text relative to the border to make the text seem
+                // more balanced in the border
+                Padding = new Thickness(left: 2, top: 0, right: 2, bottom: 0),
                 VerticalAlignment = VerticalAlignment.Center,
             };
 
@@ -163,10 +156,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 Child = block,
                 CornerRadius = new CornerRadius(2),
 
-                // Place 3 pixels above/below the border object.  This works well as the highlighting lines are 2px
-                // each, giving us 1 px of space on both side of the inline tag and them.  This gives the inline tag
-                // an appropriate floating-halfway feeling on the line.
-                Margin = new Thickness(left, top: 3, right, bottom: 3),
+                // Highlighting lines are 2px buffer.  So shift us up by one from the bottom so we feel centered between them.
+                Margin = new Thickness(left, top: 0, right, bottom: 1),
             };
 
             // Need to set these properties to avoid unnecessary reformatting because some dependancy properties

@@ -359,22 +359,39 @@ namespace Microsoft.CodeAnalysis
             return state;
         }
 
-        private DocumentState? GetDocumentState(SyntaxTree? syntaxTree, ProjectId? projectId)
+        internal DocumentState? GetDocumentState(SyntaxTree? syntaxTree, ProjectId? projectId)
         {
             if (syntaxTree != null)
             {
                 // is this tree known to be associated with a document?
-                var docId = DocumentState.GetDocumentIdForTree(syntaxTree);
-                if (docId != null && (projectId == null || docId.ProjectId == projectId))
+                var documentId = DocumentState.GetDocumentIdForTree(syntaxTree);
+                if (documentId != null && (projectId == null || documentId.ProjectId == projectId))
                 {
                     // does this solution even have the document?
-                    var document = GetProjectState(docId.ProjectId)?.GetDocumentState(docId);
-                    if (document != null)
+                    var projectState = GetProjectState(documentId.ProjectId);
+                    if (projectState != null)
                     {
-                        // does this document really have the syntax tree?
-                        if (document.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
+                        var document = projectState.GetDocumentState(documentId);
+                        if (document != null)
                         {
-                            return document;
+                            // does this document really have the syntax tree?
+                            if (document.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
+                            {
+                                return document;
+                            }
+                        }
+                        else
+                        {
+                            var generatedDocument = TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
+
+                            if (generatedDocument != null)
+                            {
+                                // does this document really have the syntax tree?
+                                if (generatedDocument.TryGetSyntaxTree(out var documentTree) && documentTree == syntaxTree)
+                                {
+                                    return generatedDocument;
+                                }
+                            }
                         }
                     }
                 }
@@ -981,7 +998,7 @@ namespace Microsoft.CodeAnalysis
 
             return ForkProject(
                 oldProject.WithAnalyzerReferences(newReferences),
-                new CompilationAndGeneratorDriverTranslationAction.AddAnalyzerReferencesAction(analyzerReferences));
+                new CompilationAndGeneratorDriverTranslationAction.AddAnalyzerReferencesAction(analyzerReferences, oldProject.Language));
         }
 
         /// <summary>
@@ -1000,7 +1017,7 @@ namespace Microsoft.CodeAnalysis
 
             return ForkProject(
                 oldProject.WithAnalyzerReferences(newReferences),
-                new CompilationAndGeneratorDriverTranslationAction.RemoveAnalyzerReferencesAction(ImmutableArray.Create(analyzerReference)));
+                new CompilationAndGeneratorDriverTranslationAction.RemoveAnalyzerReferencesAction(ImmutableArray.Create(analyzerReference), oldProject.Language));
         }
 
         /// <summary>
@@ -1738,9 +1755,6 @@ namespace Microsoft.CodeAnalysis
                 : SpecializedTasks.Null<Compilation>();
         }
 
-        internal Task<GeneratorDriverRunResult?> GetGeneratorDriverRunResultAsync(ProjectState projectState, CancellationToken cancellationToken)
-            => GetCompilationTracker(projectState.Id).GetGeneratorDriverRunResultAsync(this, cancellationToken);
-
         /// <summary>
         /// Return reference completeness for the given project and all projects this references.
         /// </summary>
@@ -1751,6 +1765,29 @@ namespace Microsoft.CodeAnalysis
             return project.SupportsCompilation
                 ? this.GetCompilationTracker(project.Id).HasSuccessfullyLoadedAsync(this, cancellationToken)
                 : project.HasAllInformation ? SpecializedTasks.True : SpecializedTasks.False;
+        }
+
+        /// <summary>
+        /// Returns the generated document states for source generated documents.
+        /// </summary>
+        public Task<ImmutableArray<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(ProjectState project, CancellationToken cancellationToken)
+        {
+            return project.SupportsCompilation
+                ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, cancellationToken)
+                : SpecializedTasks.EmptyImmutableArray<SourceGeneratedDocumentState>();
+        }
+
+        /// <summary>
+        /// Returns the <see cref="SourceGeneratedDocumentState"/> for a source generated document that has already been generated and observed.
+        /// </summary>
+        /// <remarks>
+        /// This is only safe to call if you already have seen the SyntaxTree or equivalent that indicates the document state has already been
+        /// generated. This method exists to implement <see cref="Solution.GetDocument(SyntaxTree?)"/> and is best avoided unless you're doing something
+        /// similarly tricky like that.
+        /// </remarks>
+        public SourceGeneratedDocumentState? TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(DocumentId documentId)
+        {
+            return GetCompilationTracker(documentId.ProjectId).TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
         }
 
         /// <summary>

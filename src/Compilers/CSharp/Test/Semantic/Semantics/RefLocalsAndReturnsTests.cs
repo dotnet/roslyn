@@ -2672,7 +2672,7 @@ class TestClass
         }
 
         [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
-        public void CannotCallExpressionThatReturnsByRefInExpressionTree()
+        public void CannotCallExpressionThatReturnsByRefInExpressionTree_01()
         {
             var code = @"
 using System;
@@ -2712,7 +2712,7 @@ namespace TestRefReturns
     }
 }";
 
-            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyEmitDiagnostics(
                 // (32,71): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
                 //             Expression<Func<int>> lambda1 = () => TakeRefFunction(ref RefReturnFunction());
                 Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "RefReturnFunction()").WithLocation(32, 71),
@@ -3724,7 +3724,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyEmitDiagnostics(
                 // (16,32): error CS8091: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
                 //         Expression<D> e = c => c.P;
                 Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "c.P").WithLocation(16, 32),
@@ -4344,6 +4344,109 @@ ref struct S
                 // (19,18): error CS8157: Cannot return 'z' by reference because it was initialized to a value that cannot be returned by reference
                 //       return ref z;
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "z").WithArguments("z").WithLocation(19, 18));
+        }
+
+        [Fact, WorkItem(49617, "https://github.com/dotnet/roslyn/issues/49617")]
+        public void CannotCallExpressionThatReturnsByRefInExpressionTree_02()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        Test2(c => c.P = true);
+    }
+    
+    ref bool P => throw null;
+
+    static void Test2(System.Linq.Expressions.Expression<System.Action<C>> y){}
+}
+";
+
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyEmitDiagnostics(
+                // (6,20): error CS0832: An expression tree may not contain an assignment operator
+                //         Test2(c => c.P = true);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "c.P = true").WithLocation(6, 20),
+                // (6,20): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //         Test2(c => c.P = true);
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "c.P").WithLocation(6, 20)
+                );
+        }
+
+        [Fact, WorkItem(49617, "https://github.com/dotnet/roslyn/issues/49617")]
+        public void CannotCallExpressionThatReturnsByRefInExpressionTree_03()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+namespace RefPropCrash
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            TestExpression(() => new Model { Value = 1 });
+        }
+
+        static void TestExpression(Expression<Func<Model>> expression)
+        {
+        }
+    }
+
+    class Model
+    {
+        int value;
+        public ref int Value => ref value;
+    }
+}";
+
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyEmitDiagnostics(
+                // (11,46): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //             TestExpression(() => new Model { Value = 1 });
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "Value").WithLocation(11, 46)
+                );
+        }
+
+        [Fact, WorkItem(49617, "https://github.com/dotnet/roslyn/issues/49617")]
+        public void CannotCallExpressionThatReturnsByRefInExpressionTree_04()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+namespace RefPropCrash
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            TestExpression(() => new Model { 1, 2, 3 });
+        }
+
+        static void TestExpression(Expression<Func<Model>> expression)
+        {
+        }
+    }
+
+    class Model : System.Collections.IEnumerable
+    {
+        public System.Collections.IEnumerator GetEnumerator() => throw null;
+        public ref bool Add(int x) => throw null;
+    }
+}";
+
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyEmitDiagnostics(
+                // (11,46): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //             TestExpression(() => new Model { 1, 2, 3 });
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "1").WithLocation(11, 46),
+                // (11,49): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //             TestExpression(() => new Model { 1, 2, 3 });
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "2").WithLocation(11, 49),
+                // (11,52): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //             TestExpression(() => new Model { 1, 2, 3 });
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "3").WithLocation(11, 52)
+                );
         }
     }
 }

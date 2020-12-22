@@ -6,12 +6,13 @@
 
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace CSharpSyntaxGenerator
 {
     internal class TestWriter : AbstractFileWriter
     {
-        private TestWriter(TextWriter writer, Tree tree) : base(writer, tree)
+        private TestWriter(TextWriter writer, Tree tree, CancellationToken cancellationToken = default) : base(writer, tree, cancellationToken)
         {
         }
 
