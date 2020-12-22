@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [Order(After = IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId)]
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(FeaturesResources.Remove_unnecessary_casts))]
+        [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.Remove_unnecessary_casts))]
         public static readonly FixIdDefinition RemoveUnnecessaryCastDiagnosticId;
 
         [Export]
@@ -184,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(FeaturesResources.Remove_unused_variables))]
+        [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.Remove_unused_variables))]
         public static readonly FixIdDefinition CS0168;
 
         [Export]
@@ -193,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(FeaturesResources.Remove_unused_variables))]
+        [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.Remove_unused_variables))]
         public static readonly FixIdDefinition CS0219;
 
         [Export]
@@ -250,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [ExportMetadata("EnableByDefault", true)]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(FeaturesResources.Apply_file_header_preferences))]
+        [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.Apply_file_header_preferences))]
         public static readonly FixIdDefinition FileHeaderMismatch;
     }
 }
