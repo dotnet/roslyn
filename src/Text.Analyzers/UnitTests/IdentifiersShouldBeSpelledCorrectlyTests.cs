@@ -2,12 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Text.Analyzers.IdentifiersShouldBeSpelledCorrectlyAnalyzer,
@@ -428,12 +425,12 @@ namespace Text.Analyzers.UnitTests
         // }
 
         private Task VerifyCSharpAsync(string source, params DiagnosticResult[] expected)
-            => VerifyCSharpAsync(source, Array.Empty<AdditionalText>(), expected);
+            => VerifyCSharpAsync(source, Array.Empty<(string Path, string Text)>(), expected);
 
-        private Task VerifyCSharpAsync(string source, AdditionalText additionalText, params DiagnosticResult[] expected)
+        private Task VerifyCSharpAsync(string source, (string Path, string Text) additionalText, params DiagnosticResult[] expected)
             => VerifyCSharpAsync(source, new[] { additionalText }, expected);
 
-        private async Task VerifyCSharpAsync(string source, AdditionalText[] additionalTexts, params DiagnosticResult[] expected)
+        private async Task VerifyCSharpAsync(string source, (string Path, string Text)[] additionalTexts, params DiagnosticResult[] expected)
         {
 
             var csharpTest = new VerifyCS.Test
@@ -441,7 +438,7 @@ namespace Text.Analyzers.UnitTests
                 TestCode = source,
                 TestState =
                 {
-                    AdditionalFilesFactories = { () => additionalTexts.Select(x => (x.Path, x.GetText())) }
+                    AdditionalFilesFactories = { () => additionalTexts.Select(x => (x.Path, SourceText.From(x.Text))) }
                 },
                 TestBehaviors = TestBehaviors.SkipSuppressionCheck,
             };
@@ -451,10 +448,10 @@ namespace Text.Analyzers.UnitTests
             await csharpTest.RunAsync();
         }
 
-        private static AdditionalText CreateXmlDictionary(IEnumerable<string> recognizedWords, IEnumerable<string> unrecognizedWords = null) =>
+        private static (string Path, string Text) CreateXmlDictionary(IEnumerable<string> recognizedWords, IEnumerable<string> unrecognizedWords = null) =>
             CreateXmlDictionary("CodeAnalysisDictionary.xml", recognizedWords, unrecognizedWords);
 
-        private static AdditionalText CreateXmlDictionary(string filename, IEnumerable<string> recognizedWords, IEnumerable<string> unrecognizedWords = null)
+        private static (string Path, string Text) CreateXmlDictionary(string filename, IEnumerable<string> recognizedWords, IEnumerable<string> unrecognizedWords = null)
         {
             var contents = $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Dictionary>
@@ -464,16 +461,16 @@ namespace Text.Analyzers.UnitTests
     </Words>
 </Dictionary>";
 
-            return new FakeAdditionalText(filename, contents);
+            return (filename, contents);
 
             static string CreateXml(IEnumerable<string> words) =>
                 string.Join(Environment.NewLine, words?.Select(x => $"<Word>{x}</Word>") ?? Enumerable.Empty<string>());
         }
 
-        private static FakeAdditionalText CreateDicDictionary(IEnumerable<string> recognizedWords)
+        private static (string Path, string Text) CreateDicDictionary(IEnumerable<string> recognizedWords)
         {
             var contents = string.Join(Environment.NewLine, recognizedWords);
-            return new FakeAdditionalText("CustomDictionary.dic", contents);
+            return ("CustomDictionary.dic", contents);
         }
 
         private static string CreateTypeWithConstructor(string typeName, string constructorName = "", string parameter = "", bool isStatic = false)
@@ -509,21 +506,6 @@ class {typeName}
             return $@"using System;
 
 class {typeName} {{ event EventHandler<string> {eventName}; }}";
-        }
-
-        private sealed class FakeAdditionalText : AdditionalText
-        {
-            private readonly SourceText _text;
-
-            public FakeAdditionalText(string path, string text = "")
-            {
-                Path = path;
-                _text = SourceText.From(text);
-            }
-
-            public override string Path { get; }
-
-            public override SourceText GetText(CancellationToken cancellationToken = default) => _text;
         }
     }
 }
