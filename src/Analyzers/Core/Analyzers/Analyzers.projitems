@@ -29,6 +29,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\AnalyzerHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DeserializationConstructorCheck.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DiagnosticHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EnforceOnBuildValues.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EnforceOnBuild.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIdToOptionMappingHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\AbstractRemoveRedundantEqualityDiagnosticAnalyzer.cs" />

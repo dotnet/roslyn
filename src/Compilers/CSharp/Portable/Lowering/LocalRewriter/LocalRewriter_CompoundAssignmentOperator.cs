@@ -632,6 +632,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(((BoundCall)originalLHS).Method.RefKind != RefKind.None);
                     break;
 
+                case BoundKind.FunctionPointerInvocation:
+                    Debug.Assert(((BoundFunctionPointerInvocation)originalLHS).FunctionPointer.Signature.RefKind != RefKind.None);
+                    break;
+
                 case BoundKind.ConditionalOperator:
                     Debug.Assert(((BoundConditionalOperator)originalLHS).IsRef);
                     break;

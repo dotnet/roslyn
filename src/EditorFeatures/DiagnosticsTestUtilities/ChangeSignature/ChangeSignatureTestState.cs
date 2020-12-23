@@ -30,8 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         public TestWorkspace Workspace { get; }
         public Document InvocationDocument { get; }
         public AbstractChangeSignatureService ChangeSignatureService { get; }
-        public string ErrorMessage { get; private set; }
-        public NotificationSeverity ErrorSeverity { get; private set; }
 
         public static ChangeSignatureTestState Create(string markup, string languageName, ParseOptions parseOptions = null, OptionsCollection options = null)
         {
@@ -79,26 +77,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             }
         }
 
-        public ChangeSignatureResult ChangeSignature()
+        public async Task<ChangeSignatureResult> ChangeSignatureAsync()
         {
-            WpfTestRunner.RequireWpfFact($"{nameof(AbstractChangeSignatureService.ChangeSignature)} currently needs to run on a WPF Fact because it's factored in a way that tries popping up UI in some cases.");
-
-            return ChangeSignatureService.ChangeSignature(
-                InvocationDocument,
-                _testDocument.CursorPosition.Value,
-                (errorMessage, severity) =>
-                {
-                    this.ErrorMessage = errorMessage;
-                    this.ErrorSeverity = severity;
-                },
-                CancellationToken.None);
+            var context = await ChangeSignatureService.GetChangeSignatureContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, CancellationToken.None).ConfigureAwait(false);
+            var options = AbstractChangeSignatureService.GetChangeSignatureOptions(context);
+            return await ChangeSignatureService.ChangeSignatureWithContextAsync(context, options, CancellationToken.None);
         }
 
         public async Task<ParameterConfiguration> GetParameterConfigurationAsync()
         {
-            WpfTestRunner.RequireWpfFact($"{nameof(AbstractChangeSignatureService.ChangeSignature)} currently needs to run on a WPF Fact because it's factored in a way that tries popping up UI in some cases.");
-
-            var context = await ChangeSignatureService.GetContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, CancellationToken.None);
+            var context = await ChangeSignatureService.GetChangeSignatureContextAsync(InvocationDocument, _testDocument.CursorPosition.Value, restrictToDeclarations: false, CancellationToken.None);
             if (context is ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext)
             {
                 return changeSignatureAnalyzedSucceedContext.ParameterConfiguration;

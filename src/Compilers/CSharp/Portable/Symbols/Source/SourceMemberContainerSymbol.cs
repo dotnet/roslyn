@@ -3034,6 +3034,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var members = ArrayBuilder<Symbol>.GetInstance(builder.NonTypeNonIndexerMembers.Count + 1);
             foreach (var member in builder.NonTypeNonIndexerMembers)
             {
+                switch (member)
+                {
+                    case FieldSymbol:
+                    case EventSymbol:
+                    case MethodSymbol { MethodKind: not (MethodKind.Ordinary or MethodKind.Constructor) }:
+                        continue;
+                }
+
                 if (!memberSignatures.ContainsKey(member))
                 {
                     memberSignatures.Add(member, member);
@@ -3043,6 +3051,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation = this.DeclaringCompilation;
 
             // Positional record
+            bool primaryAndCopyCtorAmbiguity = false;
             if (!(paramList is null))
             {
                 Debug.Assert(builder.RecordDeclarationWithParameters is object);
@@ -3055,9 +3064,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var existingOrAddedMembers = addProperties(ctor.Parameters);
                     addDeconstruct(ctor, existingOrAddedMembers);
                 }
+
+                primaryAndCopyCtorAmbiguity = ctor.ParameterCount == 1 && ctor.Parameters[0].Type.Equals(this, TypeCompareKind.AllIgnoreOptions);
             }
 
-            addCopyCtor();
+            addCopyCtor(primaryAndCopyCtorAmbiguity);
             addCloneMethod();
 
             PropertySymbol equalityContract = addEqualityContract();
@@ -3089,7 +3100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SynthesizedRecordConstructor addCtor(RecordDeclarationSyntax declWithParameters)
             {
                 Debug.Assert(declWithParameters.ParameterList is object);
-                var ctor = new SynthesizedRecordConstructor(this, declWithParameters, diagnostics);
+                var ctor = new SynthesizedRecordConstructor(this, declWithParameters);
                 members.Add(ctor);
                 return ctor;
             }
@@ -3138,7 +3149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            void addCopyCtor()
+            void addCopyCtor(bool primaryAndCopyCtorAmbiguity)
             {
                 var targetMethod = new SignatureOnlyMethodSymbol(
                     WellKnownMemberNames.InstanceConstructorName,
@@ -3160,7 +3171,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingConstructor))
                 {
-                    members.Add(new SynthesizedRecordCopyCtor(this, memberOffset: members.Count));
+                    var copyCtor = new SynthesizedRecordCopyCtor(this, memberOffset: members.Count);
+                    members.Add(copyCtor);
+
+                    if (primaryAndCopyCtorAmbiguity)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RecordAmbigCtor, copyCtor.Locations[0]);
+                    }
                 }
                 else
                 {
@@ -3291,7 +3308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     if (existingMember is null)
                     {
-                        addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false, diagnostics));
+                        addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: false));
                     }
                     else if (existingMember is PropertySymbol { IsStatic: false, GetMethod: { } } prop
                         && prop.TypeWithAnnotations.Equals(param.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
@@ -3299,7 +3316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // There already exists a member corresponding to the candidate synthesized property.
                         if (isInherited && prop.IsAbstract)
                         {
-                            addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: true, diagnostics));
+                            addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: true));
                         }
                         else
                         {
@@ -3320,6 +3337,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         existingOrAddedMembers.Add(property);
                         members.Add(property);
+                        Debug.Assert(property.GetMethod is object);
+                        Debug.Assert(property.SetMethod is object);
                         members.Add(property.GetMethod);
                         members.Add(property.SetMethod);
                         members.Add(property.BackingField);
@@ -3393,7 +3412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!memberSignatures.TryGetValue(targetProperty, out Symbol? existingEqualityContractProperty))
                 {
-                    equalityContract = new SynthesizedRecordEqualityContractProperty(this, diagnostics);
+                    equalityContract = new SynthesizedRecordEqualityContractProperty(this);
                     members.Add(equalityContract);
                     members.Add(equalityContract.GetMethod);
                 }
@@ -3530,7 +3549,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         case MethodKind.Constructor:
                             // Ignore the record copy constructor
-                            if (!IsRecord || !SynthesizedRecordCopyCtor.HasCopyConstructorSignature(method))
+                            if (!IsRecord ||
+                                !(SynthesizedRecordCopyCtor.HasCopyConstructorSignature(method) && method is not SynthesizedRecordConstructor))
                             {
                                 hasInstanceConstructor = true;
                                 hasParameterlessInstanceConstructor = hasParameterlessInstanceConstructor || method.ParameterCount == 0;

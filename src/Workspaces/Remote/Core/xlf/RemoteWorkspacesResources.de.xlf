@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="FeatureName_AssetSynchronization">
         <source>Asset synchronization</source>
-        <target state="new">Asset synchronization</target>
+        <target state="translated">Objektsynchronisierung</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_AsynchronousOperationListener">
         <source>Asynchronous operation listener</source>
-        <target state="new">Asynchronous operation listener</target>
+        <target state="translated">Listener für asynchrone Vorgänge</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_CodeLensReferences">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
-        <target state="new">Asset provider</target>
+        <target state="translated">Objektanbieter</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">

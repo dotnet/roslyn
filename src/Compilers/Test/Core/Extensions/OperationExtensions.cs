@@ -4,9 +4,9 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Test.Extensions
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    internal static class OperationExtensions
+    internal static class OperationTestExtensions
     {
         public static bool MustHaveNullType(this IOperation operation)
         {

@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="count"></param>
         /// <returns></returns>
-        internal static ImmutableArray<TypeParameterSymbol> Take(int count)
+        internal static ImmutableArray<TypeParameterSymbol> TakeSymbols(int count)
         {
             if (count > s_parameterPool.Length)
             {
@@ -94,6 +94,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0; i < count; i++)
             {
                 builder.Add(GetTypeParameter(i));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        internal static ImmutableArray<TypeWithAnnotations> Take(int count)
+        {
+            if (count > s_parameterPool.Length)
+            {
+                GrowPool(count);
+            }
+
+            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+
+            for (int i = 0; i < count; i++)
+            {
+                builder.Add(TypeWithAnnotations.Create(GetTypeParameter(i), NullableAnnotation.Ignored));
             }
 
             return builder.ToImmutableAndFree();

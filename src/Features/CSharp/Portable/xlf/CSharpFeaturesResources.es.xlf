@@ -89,12 +89,12 @@
       </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
-        <target state="new">Change to 'as' expression</target>
+        <target state="translated">Cambiar a la expresión "as"</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_to_cast">
         <source>Change to cast</source>
-        <target state="new">Change to cast</target>
+        <target state="translated">Cambiar a cast</target>
         <note />
       </trans-unit>
       <trans-unit id="Compare_to_0">

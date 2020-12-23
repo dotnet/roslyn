@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundTemp = _factory.StoreToTemp(loweredLeft, out tempAssignment);
 
             // T.false(temp)
-            var falseOperatorCall = BoundCall.Synthesized(syntax, null, operatorKind.Operator() == BinaryOperatorKind.And ? node.FalseOperator : node.TrueOperator, boundTemp);
+            var falseOperatorCall = BoundCall.Synthesized(syntax, receiverOpt: null, operatorKind.Operator() == BinaryOperatorKind.And ? node.FalseOperator : node.TrueOperator, boundTemp, binder: null);
 
             // T.&(temp, y)
             var andOperatorCall = LowerUserDefinedBinaryOperator(syntax, operatorKind & ~BinaryOperatorKind.Logical, boundTemp, loweredRight, type, node.LogicalOperator);
@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(leftTruthOperator != null);
-            return BoundCall.Synthesized(syntax, null, leftTruthOperator, loweredLeft);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, leftTruthOperator, loweredLeft, binder: null);
         }
 
         private BoundExpression LowerUserDefinedBinaryOperator(
@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Otherwise, nothing special here.
             Debug.Assert(method is { });
             Debug.Assert(TypeSymbol.Equals(method.ReturnType, type, TypeCompareKind.ConsiderEverything2));
-            return BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredLeft, loweredRight, binder: null);
         }
 
         private BoundExpression? TrivialLiftedComparisonOperatorOptimizations(
@@ -824,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expression.Type.IsNullableType())
             {
-                return BoundCall.Synthesized(syntax, expression, UnsafeGetNullableMethod(syntax, expression.Type, SpecialMember.System_Nullable_T_GetValueOrDefault));
+                return BoundCall.Synthesized(syntax, expression, UnsafeGetNullableMethod(syntax, expression.Type, SpecialMember.System_Nullable_T_GetValueOrDefault), binder: null);
             }
 
             return expression;
@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression MakeNullableHasValue(SyntaxNode syntax, BoundExpression expression)
         {
             Debug.Assert(expression.Type is { });
-            return BoundCall.Synthesized(syntax, expression, UnsafeGetNullableMethod(syntax, expression.Type, SpecialMember.System_Nullable_T_get_HasValue));
+            return BoundCall.Synthesized(syntax, expression, UnsafeGetNullableMethod(syntax, expression.Type, SpecialMember.System_Nullable_T_get_HasValue), binder: null);
         }
 
         private BoundExpression LowerLiftedBuiltInComparisonOperator(
@@ -1692,9 +1692,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol getValueOrDefaultY = UnsafeGetNullableMethod(syntax, boundTempY.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
 
             // tempx.GetValueOrDefault()
-            BoundExpression callX_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTempX, getValueOrDefaultX);
+            BoundExpression callX_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTempX, getValueOrDefaultX, binder: null);
             // tempy.GetValueOrDefault()
-            BoundExpression callY_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTempY, getValueOrDefaultY);
+            BoundExpression callY_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTempY, getValueOrDefaultY, binder: null);
             // tempx.HasValue
             BoundExpression callX_HasValue = MakeNullableHasValue(syntax, boundTempX);
 
@@ -1855,7 +1855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredLeft, loweredRight, binder: null);
         }
 
         private BoundExpression RewriteDelegateOperation(SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, SpecialMember member)
@@ -1881,7 +1881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)method != null);
             BoundExpression call = _inExpressionLambda
                 ? new BoundBinaryOperator(syntax, operatorKind, null, method, default(LookupResultKind), loweredLeft, loweredRight, method.ReturnType)
-                : (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
+                : (BoundExpression)BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredLeft, loweredRight, binder: null);
             BoundExpression result = method.ReturnType.SpecialType == SpecialType.System_Delegate ?
                 MakeConversionNode(syntax, call, Conversion.ExplicitReference, type, @checked: false) :
                 call;
@@ -1916,7 +1916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredLeft, loweredRight, binder: null);
         }
 
         private BoundExpression MakeNullCheck(SyntaxNode syntax, BoundExpression rewrittenExpr, BinaryOperatorKind operatorKind)

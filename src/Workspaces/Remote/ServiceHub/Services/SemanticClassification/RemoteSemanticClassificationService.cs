@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +9,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.ServiceHub.Framework;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -36,7 +35,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (UserOperationBooster.Boost())
                 {
                     var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                    var document = solution.GetDocument(documentId);
+                    var document = solution.GetDocument(documentId) ?? await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(document);
 
                     using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
                     await AbstractClassificationService.AddSemanticClassificationsInCurrentProcessAsync(

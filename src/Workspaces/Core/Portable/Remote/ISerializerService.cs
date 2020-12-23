@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.Serialization
 {
     internal interface ISerializerService : IWorkspaceService
     {
-        void Serialize(object value, ObjectWriter writer, CancellationToken cancellationToken);
+        void Serialize(object value, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken);
 
-        void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, CancellationToken cancellationToken);
+        void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken);
 
         void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken);
 
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         void SerializeProjectReference(ProjectReference reference, ObjectWriter writer, CancellationToken cancellationToken);
 
-        void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken);
+        void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken);
 
         void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken);
 

@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(syntax, local.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
                 // local.GetValueOrDefault()
-                disposedExpression = BoundCall.Synthesized(syntax, local, getValueOrDefault);
+                disposedExpression = BoundCall.Synthesized(syntax, local, getValueOrDefault, binder: null);
             }
             else
             {
@@ -480,12 +480,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expanded = method.HasParamsParameter();
 
             var argsToParams = default(ImmutableArray<int>);
-            var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance();
             binder.BindDefaultArguments(
                 syntax,
                 method.Parameters,
                 argsBuilder,
-                refKindsBuilder,
+                argumentRefKindsBuilder: null,
                 ref argsToParams,
                 out var defaultArguments,
                 expanded,
@@ -496,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenReceiver: receiver,
                 method: method,
                 rewrittenArguments: argsBuilder.ToImmutableAndFree(),
-                argumentRefKindsOpt: refKindsBuilder.ToImmutableOrNull(),
+                argumentRefKindsOpt: default,
                 expanded,
                 invokedAsExtensionMethod: method.IsExtensionMethod,
                 argsToParamsOpt: argsToParams,

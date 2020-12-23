@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
 
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var d = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.ActiveStatementUpdate);
             Assert.Equal("ENC0001", d.Id);
             Assert.Equal(DiagnosticCategory.EditAndContinue, d.Category);
-            Assert.Equal(new[] { "EditAndContinue", "Telemetry", "NotConfigurable" }, d.CustomTags);
+            Assert.Equal(new[] { "EditAndContinue", "Telemetry", "NotConfigurable", EnforceOnBuild.Never.ToCustomTag() }, d.CustomTags);
             Assert.Equal("", d.Description);
             Assert.Equal("", d.HelpLinkUri);
             Assert.Equal(new LocalizableResourceString(nameof(FeaturesResources.RudeEdit), FeaturesResources.ResourceManager, typeof(FeaturesResources)), d.Title);
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             d = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
             Assert.Equal("ENC1001", d.Id);
             Assert.Equal(DiagnosticCategory.EditAndContinue, d.Category);
-            Assert.Equal(new[] { "EditAndContinue", "Telemetry", "NotConfigurable" }, d.CustomTags);
+            Assert.Equal(new[] { "EditAndContinue", "Telemetry", "NotConfigurable", EnforceOnBuild.Never.ToCustomTag() }, d.CustomTags);
             Assert.Equal("", d.Description);
             Assert.Equal("", d.HelpLinkUri);
             Assert.Equal(new LocalizableResourceString(nameof(FeaturesResources.EditAndContinue), FeaturesResources.ResourceManager, typeof(FeaturesResources)), d.Title);
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             d = EditAndContinueDiagnosticDescriptors.GetModuleDiagnosticDescriptor(12);
             Assert.Equal("ENC2012", d.Id);
             Assert.Equal(DiagnosticCategory.EditAndContinue, d.Category);
-            Assert.Equal(new[] { "EditAndContinue", "Telemetry", "NotConfigurable" }, d.CustomTags);
+            Assert.Equal(new[] { "EditAndContinue", "Telemetry", "NotConfigurable", EnforceOnBuild.Never.ToCustomTag() }, d.CustomTags);
             Assert.Equal("", d.Description);
             Assert.Equal("", d.HelpLinkUri);
             Assert.Equal(new LocalizableResourceString(nameof(FeaturesResources.EditAndContinue), FeaturesResources.ResourceManager, typeof(FeaturesResources)), d.Title);
