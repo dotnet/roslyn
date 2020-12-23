@@ -375,5 +375,23 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.True(spans.TryGetValue(string.Empty, out var unnamed));
             Assert.Equal(new[] { new TextSpan(0, 9), new TextSpan(13, 3) }, unnamed);
         }
+
+        [Fact]
+        [WorkItem(637, "https://github.com/dotnet/roslyn-sdk/issues/637")]
+        public void MarkupSpanSplitsEndOfLine()
+        {
+            var markup = "class C { }\r{|b:\n|}";
+            var expected = "class C { }\r\n";
+            TestFileMarkupParser.GetPositionsAndSpans(markup, out var result, out var positions, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            Assert.Equal(expected, result);
+
+            Assert.Empty(positions);
+            Assert.Single(spans);
+
+            Assert.True(spans.TryGetValue("b", out var named));
+            Assert.Equal(new[] { new TextSpan(12, 1) }, named);
+
+            Assert.False(spans.TryGetValue(string.Empty, out _));
+        }
     }
 }
