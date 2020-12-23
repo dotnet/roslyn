@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing.TestFixes;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Testing
@@ -353,10 +354,10 @@ namespace Microsoft.CodeAnalysis.Testing
 
             private class FixAll : FixAllProvider
             {
-                public override Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
+                public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
                 {
                     var hasAdditionalFiles = fixAllContext.Solution.Projects.Single().AdditionalDocumentIds.Count > 0;
-                    return Task.FromResult(CodeAction.Create(
+                    return Task.FromResult<CodeAction?>(CodeAction.Create(
                         "ToggleFile",
                         ct => CreateChangedSolution(fixAllContext.Solution.Projects.Single().Documents.First(), remove: hasAdditionalFiles, ct),
                         nameof(ToggleAdditionalFileFix)));
@@ -364,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        private class CSharpTest : CodeFixTest<DefaultVerifier>
+        private class CSharpTest : CSharpCodeFixTest<EmptyDiagnosticAnalyzer, ToggleAdditionalFileFix>
         {
             private readonly SuppressDiagnosticIf _suppressDiagnosticIf;
 
@@ -373,26 +374,9 @@ namespace Microsoft.CodeAnalysis.Testing
                 _suppressDiagnosticIf = suppressDiagnosticIf;
             }
 
-            public override string Language => LanguageNames.CSharp;
-
-            public override Type SyntaxKindType => typeof(SyntaxKind);
-
-            protected override string DefaultFileExt => "cs";
-
-            protected override CompilationOptions CreateCompilationOptions()
-                => new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-
-            protected override ParseOptions CreateParseOptions()
-                => new CSharpParseOptions(LanguageVersion.Default, DocumentationMode.Diagnose);
-
             protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
             {
                 yield return new HighlightBracesAnalyzer(_suppressDiagnosticIf);
-            }
-
-            protected override IEnumerable<CodeFixProvider> GetCodeFixProviders()
-            {
-                yield return new ToggleAdditionalFileFix();
             }
         }
     }
