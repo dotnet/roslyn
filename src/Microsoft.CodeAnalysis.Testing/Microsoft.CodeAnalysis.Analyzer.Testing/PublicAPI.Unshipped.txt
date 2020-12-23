@@ -145,11 +145,11 @@ Microsoft.CodeAnalysis.Testing.ProjectState.AdditionalFilesFactories.get -> Syst
 Microsoft.CodeAnalysis.Testing.ProjectState.AdditionalProjectReferences.get -> System.Collections.Generic.List<string>
 Microsoft.CodeAnalysis.Testing.ProjectState.AdditionalReferences.get -> Microsoft.CodeAnalysis.Testing.MetadataReferenceCollection
 Microsoft.CodeAnalysis.Testing.ProjectState.AssemblyName.get -> string
-Microsoft.CodeAnalysis.Testing.ProjectState.DocumentationMode.get -> Microsoft.CodeAnalysis.DocumentationMode
+Microsoft.CodeAnalysis.Testing.ProjectState.DocumentationMode.get -> Microsoft.CodeAnalysis.DocumentationMode?
 Microsoft.CodeAnalysis.Testing.ProjectState.DocumentationMode.set -> void
 Microsoft.CodeAnalysis.Testing.ProjectState.Language.get -> string
 Microsoft.CodeAnalysis.Testing.ProjectState.Name.get -> string
-Microsoft.CodeAnalysis.Testing.ProjectState.OutputKind.get -> Microsoft.CodeAnalysis.OutputKind
+Microsoft.CodeAnalysis.Testing.ProjectState.OutputKind.get -> Microsoft.CodeAnalysis.OutputKind?
 Microsoft.CodeAnalysis.Testing.ProjectState.OutputKind.set -> void
 Microsoft.CodeAnalysis.Testing.ProjectState.ProjectState(string name, string language, string defaultPrefix, string defaultExtension) -> void
 Microsoft.CodeAnalysis.Testing.ProjectState.ReferenceAssemblies.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies

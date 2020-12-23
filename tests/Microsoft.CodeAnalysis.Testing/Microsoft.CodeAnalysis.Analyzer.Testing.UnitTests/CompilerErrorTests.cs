@@ -457,5 +457,23 @@ class TestClass {
                     .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "3.3.1"))),
             }.RunAsync();
         }
+
+#if !(NETCOREAPP1_1 || NET46)
+        [Fact]
+        public async Task TestTopLevelStatements()
+        {
+            await new CSharpTest
+            {
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                    Sources =
+                    {
+                        @"return 0;",
+                    },
+                },
+            }.RunAsync();
+        }
+#endif
     }
 }

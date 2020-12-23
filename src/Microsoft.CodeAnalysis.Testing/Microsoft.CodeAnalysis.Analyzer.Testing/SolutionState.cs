@@ -119,8 +119,17 @@ namespace Microsoft.CodeAnalysis.Testing
             }
 
             var result = new SolutionState(Name, Language, DefaultPrefix, DefaultExtension);
+
+            result.ReferenceAssemblies = ReferenceAssemblies;
+            result.OutputKind = OutputKind;
+            result.DocumentationMode = DocumentationMode;
+
             if (inheritanceMode != StateInheritanceMode.Explicit && baseState != null)
             {
+                result.ReferenceAssemblies ??= baseState.ReferenceAssemblies;
+                result.OutputKind ??= baseState.OutputKind;
+                result.DocumentationMode ??= baseState.DocumentationMode;
+
                 if (Sources.Count == 0)
                 {
                     result.Sources.AddRange(baseState.Sources);
@@ -261,6 +270,9 @@ namespace Microsoft.CodeAnalysis.Testing
             var result = new SolutionState(Name, Language, DefaultPrefix, DefaultExtension);
             result.MarkupHandling = MarkupMode.None;
             result.InheritanceMode = StateInheritanceMode.Explicit;
+            result.ReferenceAssemblies = ReferenceAssemblies;
+            result.OutputKind = OutputKind;
+            result.DocumentationMode = DocumentationMode;
             result.Sources.AddRange(testSources);
             result.AdditionalFiles.AddRange(additionalFiles);
 

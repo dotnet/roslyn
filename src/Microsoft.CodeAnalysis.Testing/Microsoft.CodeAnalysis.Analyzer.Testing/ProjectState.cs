@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </value>
         public ReferenceAssemblies? ReferenceAssemblies { get; set; }
 
-        public OutputKind OutputKind { get; set; } = OutputKind.DynamicallyLinkedLibrary;
+        public OutputKind? OutputKind { get; set; }
 
-        public DocumentationMode DocumentationMode { get; set; } = DocumentationMode.Diagnose;
+        public DocumentationMode? DocumentationMode { get; set; }
 
         /// <summary>
         /// Gets the set of source files for analyzer or code fix testing. Files may be added to this list using one of
