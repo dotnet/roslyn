@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
             }
 
-            return hasUnknownOrExplicitlyRestored ? (bool?)null : false;
+            return hasUnknownOrExplicitlyRestored ? null : false;
         }
 
         private static ImmutableArray<NullableContextState> GetContexts(SyntaxTree tree)
