@@ -32,11 +32,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
                     {IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId}),
                 New DiagnosticSet(FeaturesResources.Remove_unused_variables,
                     {VisualBasicRemoveUnusedVariableCodeFixProvider.BC42024}),
-                New DiagnosticSet(VBFeaturesResources.Apply_object_collection_initialization_preferences,
+                New DiagnosticSet(FeaturesResources.Apply_object_collection_initialization_preferences,
                     {IDEDiagnosticIds.UseObjectInitializerDiagnosticId, IDEDiagnosticIds.UseCollectionInitializerDiagnosticId}),
                 New DiagnosticSet(VBFeaturesResources.Apply_Imports_directive_placement_preferences,
                     {IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId}),
-                New DiagnosticSet(VBFeaturesResources.Apply_file_header_preferences,
+                New DiagnosticSet(FeaturesResources.Apply_file_header_preferences,
                     {IDEDiagnosticIds.FileHeaderMismatch}))
 
         <ImportingConstructor>
