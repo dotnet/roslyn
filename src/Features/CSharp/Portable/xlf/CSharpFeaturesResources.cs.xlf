@@ -47,11 +47,6 @@
         <target state="translated">Použít předvolby typu jazyka/architektury</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_object_collection_initialization_preferences">
-        <source>Apply object/collection initialization preferences</source>
-        <target state="translated">Použít předvolby inicializace objektu/kolekce</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_this_qualification_preferences">
         <source>Apply 'this.' qualification preferences</source>
         <target state="translated">Použít předvolby kvalifikace this.</target>

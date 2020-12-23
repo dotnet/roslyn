@@ -47,11 +47,6 @@
         <target state="translated">应用语言/框架类型首选项</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_object_collection_initialization_preferences">
-        <source>Apply object/collection initialization preferences</source>
-        <target state="translated">应用对象/集合初始化首选项</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_this_qualification_preferences">
         <source>Apply 'this.' qualification preferences</source>
         <target state="translated">应用 “this.” 资格首选项</target>

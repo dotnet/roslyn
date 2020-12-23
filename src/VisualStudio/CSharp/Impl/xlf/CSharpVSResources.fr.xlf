@@ -42,11 +42,6 @@
         <target state="translated">Modifier le modèle de couleurs</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">Mettre en forme le document</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
         <target state="translated">Paramètres de mise en forme du document (essai)</target>

@@ -42,11 +42,6 @@
         <target state="translated">編輯色彩配置</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">格式化文件</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
         <target state="translated">格式化文件設定 (實驗)</target>

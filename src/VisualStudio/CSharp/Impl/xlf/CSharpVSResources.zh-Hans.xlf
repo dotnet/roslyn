@@ -42,11 +42,6 @@
         <target state="translated">编辑配色方案</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">设置文档的格式</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
         <target state="translated">设定文档设置的格式(试验)</target>

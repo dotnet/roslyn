@@ -42,11 +42,6 @@
         <target state="translated">Изменить цветовую схему</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">Форматировать документ</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
         <target state="translated">Параметры форматирования документа (эксперимент) </target>

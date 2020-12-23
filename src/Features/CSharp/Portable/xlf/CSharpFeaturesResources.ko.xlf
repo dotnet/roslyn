@@ -47,11 +47,6 @@
         <target state="translated">언어/프레임워크 형식 기본 설정 적용</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_object_collection_initialization_preferences">
-        <source>Apply object/collection initialization preferences</source>
-        <target state="translated">개체/컬렉션 초기화 기본 설정 적용</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply_this_qualification_preferences">
         <source>Apply 'this.' qualification preferences</source>
         <target state="translated">'this.' 한정자 기본 설정 적용</target>

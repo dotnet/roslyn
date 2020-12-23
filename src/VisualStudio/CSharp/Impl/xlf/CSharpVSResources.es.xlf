@@ -42,11 +42,6 @@
         <target state="translated">Editar esquema de color</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">Dar formato al documento</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_document_settings">
         <source>Format Document Settings (Experiment) </source>
         <target state="translated">Configuración de “Dar formato al documento” (experimento)</target>
