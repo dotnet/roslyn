@@ -53,11 +53,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 TextSpan sourceSpan,
                 CancellationToken cancellationToken)
             {
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken);
-                var root = await tree.GetRootAsync(cancellationToken);
+                var tree = (await document.GetSyntaxTreeAsync(cancellationToken))!;
+                var root = (await tree.GetRootAsync(cancellationToken))!;
                 var node = root.FindNode(sourceSpan);
-                var targetNode = node.AncestorsAndSelf().OfType<FieldDeclarationSyntax>().FirstOrDefault();
-                return document.WithSyntaxRoot(root.RemoveNode(targetNode, SyntaxRemoveOptions.AddElasticMarker));
+                var targetNode = node.AncestorsAndSelf().OfType<FieldDeclarationSyntax>().First();
+                return document.WithSyntaxRoot(root.RemoveNode(targetNode, SyntaxRemoveOptions.AddElasticMarker)!);
             }
 
             public override ImmutableArray<string> FixableDiagnosticIds => new[] { "CS0169" }.ToImmutableArray();

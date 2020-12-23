@@ -343,7 +343,7 @@ Actual and expected values differ. Expected shown in baseline of diff:
             private async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
             {
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken);
-                var root = await tree.GetRootAsync(cancellationToken);
+                var root = await tree!.GetRootAsync(cancellationToken);
                 var token = root.FindToken(sourceSpan.Start);
                 var newToken = SyntaxFactory.Token(token.LeadingTrivia, token.Kind(), "base", "base", token.TrailingTrivia);
                 return document.WithSyntaxRoot(root.ReplaceToken(token, newToken));
@@ -375,10 +375,10 @@ Actual and expected values differ. Expected shown in baseline of diff:
 
             private async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
             {
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken);
+                var tree = (await document.GetSyntaxTreeAsync(cancellationToken))!;
                 var root = await tree.GetRootAsync(cancellationToken);
                 var token = root.FindToken(sourceSpan.Start);
-                var node = token.Parent;
+                var node = token.Parent!;
                 var newToken = SyntaxFactory.Token(token.LeadingTrivia, SyntaxKind.BaseKeyword, "base", "base", token.TrailingTrivia);
 
                 // Intentionally relocate a whitespace trivia node so the text is the same but the tree shape changes
@@ -422,10 +422,10 @@ Actual and expected values differ. Expected shown in baseline of diff:
 
             private async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
             {
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken);
+                var tree = (await document.GetSyntaxTreeAsync(cancellationToken))!;
                 var root = await tree.GetRootAsync(cancellationToken);
                 var token = root.FindToken(sourceSpan.Start);
-                var node = token.Parent;
+                var node = token.Parent!;
                 var newToken = SyntaxFactory.Token(token.LeadingTrivia, SyntaxKind.BaseKeyword, "base", "base", token.TrailingTrivia);
                 var newNode = SyntaxFactory.BaseExpression(newToken);
                 return document.WithSyntaxRoot(root.ReplaceNode(node, newNode));

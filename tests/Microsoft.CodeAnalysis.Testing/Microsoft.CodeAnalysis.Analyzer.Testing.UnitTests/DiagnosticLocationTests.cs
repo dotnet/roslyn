@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Testing
             protected override Diagnostic CreateDiagnostic(SyntaxToken token)
             {
                 var location = token.GetLocation();
-                return CodeAnalysis.Diagnostic.Create(Descriptor, Location.Create(location.SourceTree, new TextSpan(location.SourceSpan.Start, 0)));
+                return CodeAnalysis.Diagnostic.Create(Descriptor, Location.Create(location.SourceTree!, new TextSpan(location.SourceSpan.Start, 0)));
             }
         }
 

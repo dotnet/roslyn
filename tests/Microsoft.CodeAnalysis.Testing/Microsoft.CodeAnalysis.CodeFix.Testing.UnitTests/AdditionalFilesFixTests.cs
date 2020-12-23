@@ -354,10 +354,10 @@ namespace Microsoft.CodeAnalysis.Testing
 
             private class FixAll : FixAllProvider
             {
-                public override Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
+                public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
                 {
                     var hasAdditionalFiles = fixAllContext.Solution.Projects.Single().AdditionalDocumentIds.Count > 0;
-                    return Task.FromResult(CodeAction.Create(
+                    return Task.FromResult<CodeAction?>(CodeAction.Create(
                         "ToggleFile",
                         ct => CreateChangedSolution(fixAllContext.Solution.Projects.Single().Documents.First(), remove: hasAdditionalFiles, ct),
                         nameof(ToggleAdditionalFileFix)));

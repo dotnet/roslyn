@@ -271,7 +271,7 @@ class TestClass {|BraceOuter:{|Brace:{|}|}
             {
                 if (_reportAdditionalLocations)
                 {
-                    yield return token.Parent.ChildTokens().Single(t => t.IsKind(SyntaxKind.CloseBraceToken)).GetLocation();
+                    yield return token.Parent!.ChildTokens().Single(t => t.IsKind(SyntaxKind.CloseBraceToken)).GetLocation();
                 }
             }
         }

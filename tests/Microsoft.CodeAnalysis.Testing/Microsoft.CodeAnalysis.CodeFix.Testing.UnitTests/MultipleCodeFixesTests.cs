@@ -91,10 +91,6 @@ class TestClass {{
 }}
 ";
 
-            // The batch code fix provider does not support nested code actions.
-            // https://github.com/dotnet/roslyn/issues/43044
-            var batchFixedCode = testCode;
-
             // Three CodeFixProviders provide three actions
             var codeFixes = ImmutableArray.Create(
                 ImmutableArray.Create(1),
@@ -104,11 +100,6 @@ class TestClass {{
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                BatchFixedState =
-                {
-                    Sources = { batchFixedCode },
-                    MarkupHandling = MarkupMode.Allow,
-                },
             }.RunAsync();
         }
 #endif
@@ -396,7 +387,7 @@ class TestClass {{
 
             private async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, int replacement, CancellationToken cancellationToken)
             {
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken);
+                var tree = (await document.GetSyntaxTreeAsync(cancellationToken))!;
                 var root = await tree.GetRootAsync(cancellationToken);
                 var token = root.FindToken(sourceSpan.Start);
                 var newToken = SyntaxFactory.Literal(token.LeadingTrivia, replacement.ToString(), replacement, token.TrailingTrivia);

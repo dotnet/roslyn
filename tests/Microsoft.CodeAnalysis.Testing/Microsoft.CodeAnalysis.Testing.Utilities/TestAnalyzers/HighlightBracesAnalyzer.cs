@@ -30,6 +30,11 @@ namespace Microsoft.CodeAnalysis.Testing.TestAnalyzers
             foreach (var file in context.Options.AdditionalFiles)
             {
                 var sourceText = file.GetText(context.CancellationToken);
+                if (sourceText is null)
+                {
+                    continue;
+                }
+
                 var text = sourceText.ToString();
                 for (var i = text.IndexOf('{'); i >= 0; i = text.IndexOf('{', i + 1))
                 {
