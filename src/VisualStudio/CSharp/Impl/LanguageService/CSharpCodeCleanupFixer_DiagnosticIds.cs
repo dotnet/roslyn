@@ -10,13 +10,17 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Language.CodeCleanUp;
+using Microsoft.VisualStudio.LanguageServices.CSharp;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
+namespace Microsoft.VisualStudio.LanguageServices.Common.LanguageService
 {
-    internal partial class CSharpCodeCleanUpFixer : CodeCleanUpFixer
+    internal partial class CSharpCodeCleanUpFixer
     {
+        private const string SortUsingsFixId = nameof(SortUsingsFixId);
+        private const string RemoveUnusedUsingsFixId = nameof(RemoveUnusedUsingsFixId);
+
         [Export]
         [FixId(IDEDiagnosticIds.UseImplicitTypeDiagnosticId)]
         [Name(IDEDiagnosticIds.UseImplicitTypeDiagnosticId)]
@@ -65,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [Export]
         [FixId(IDEDiagnosticIds.AddBracesDiagnosticId)]
         [Name(IDEDiagnosticIds.AddBracesDiagnosticId)]
-        [Order(After = SortImportsFixId)]
+        [Order(After = SortUsingsFixId)]
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Add_remove_braces_for_single_line_control_statements))]
@@ -97,15 +101,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Make_private_field_readonly_when_possible))]
         public static readonly FixIdDefinition MakeFieldReadonlyDiagnosticId;
-
-        [Export]
-        [FixId(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
-        [Name(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
-        [Order(After = IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId)]
-        [ConfigurationKey("unused")]
-        [HelpLink("https://www.microsoft.com")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(FeaturesResources.Remove_unnecessary_casts))]
-        public static readonly FixIdDefinition RemoveUnnecessaryCastDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId)]
@@ -198,36 +193,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         public static readonly FixIdDefinition CS0219;
 
         [Export]
-        [FixId(IDEDiagnosticIds.UseObjectInitializerDiagnosticId)]
-        [Name(IDEDiagnosticIds.UseObjectInitializerDiagnosticId)]
-        [Order(After = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)]
-        [ConfigurationKey("unused")]
-        [HelpLink("https://www.microsoft.com")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_object_collection_initialization_preferences))]
-        public static readonly FixIdDefinition UseObjectInitializerDiagnosticId;
-
-        [Export]
-        [FixId(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId)]
-        [Name(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId)]
-        [Order(After = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)]
-        [ConfigurationKey("unused")]
-        [HelpLink("https://www.microsoft.com")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_object_collection_initialization_preferences))]
-        public static readonly FixIdDefinition UseCollectionInitializerDiagnosticId;
-
-        [Export]
-        [FixId(FormatDocumentFixId)]
-        [Name(FormatDocumentFixId)]
-        [ConfigurationKey("unused")]
-        [HelpLink("https://www.microsoft.com")]
-        [ExportMetadata("EnableByDefault", true)]
-        [LocalizedName(typeof(CSharpVSResources), nameof(CSharpVSResources.Format_document))]
-        public static readonly FixIdDefinition FormatDocument;
-
-        [Export]
-        [FixId(RemoveUnusedImportsFixId)]
-        [Name(RemoveUnusedImportsFixId)]
-        [Order(After = FormatDocumentFixId)]
+        [FixId(RemoveUnusedUsingsFixId)]
+        [Name(RemoveUnusedUsingsFixId)]
+        [Order(After = CommonCodeCleanUpFixer.FormatDocumentFixId)]
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [ExportMetadata("EnableByDefault", true)]
@@ -235,19 +203,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         public static readonly FixIdDefinition RemoveUnusedImports;
 
         [Export]
-        [FixId(SortImportsFixId)]
-        [Name(SortImportsFixId)]
-        [Order(After = RemoveUnusedImportsFixId)]
+        [FixId(SortUsingsFixId)]
+        [Name(SortUsingsFixId)]
+        [Order(After = RemoveUnusedUsingsFixId)]
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [ExportMetadata("EnableByDefault", true)]
         [LocalizedName(typeof(CSharpVSResources), nameof(CSharpVSResources.Sort_usings))]
-        public static readonly FixIdDefinition SortImports;
+        public static readonly FixIdDefinition SortUsingss;
 
         [Export]
         [FixId(IDEDiagnosticIds.FileHeaderMismatch)]
         [Name(IDEDiagnosticIds.FileHeaderMismatch)]
-        [Order(After = SortImportsFixId)]
+        [Order(After = SortUsingsFixId)]
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [ExportMetadata("EnableByDefault", true)]

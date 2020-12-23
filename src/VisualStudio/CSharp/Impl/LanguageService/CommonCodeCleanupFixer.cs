@@ -32,23 +32,24 @@ using Roslyn.Utilities;
 using __VSHPROPID8 = Microsoft.VisualStudio.Shell.Interop.__VSHPROPID8;
 using IVsHierarchyItemManager = Microsoft.VisualStudio.Shell.IVsHierarchyItemManager;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
+namespace Microsoft.VisualStudio.LanguageServices.Common.LanguageService
 {
     [Export(typeof(CodeCleanUpFixer))]
     [VisualStudio.Utilities.ContentType(ContentTypeNames.CSharpContentType)]
-    internal partial class CSharpCodeCleanUpFixer : CodeCleanUpFixer
+    [VisualStudio.Utilities.ContentType(ContentTypeNames.VisualBasicContentType)]
+    internal partial class CommonCodeCleanUpFixer : CodeCleanUpFixer
     {
-        private const string FormatDocumentFixId = nameof(FormatDocumentFixId);
-        private const string RemoveUnusedImportsFixId = nameof(RemoveUnusedImportsFixId);
-        private const string SortImportsFixId = nameof(SortImportsFixId);
-
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
 
+        public const string FormatDocumentFixId = nameof(FormatDocumentFixId);
+        public const string RemoveUnusedImportsFixId = nameof(RemoveUnusedImportsFixId);
+        internal const string SortImportsFixId = nameof(SortImportsFixId);
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeCleanUpFixer(IThreadingContext threadingContext, VisualStudioWorkspaceImpl workspace, IVsHierarchyItemManager vsHierarchyItemManager)
+        public CommonCodeCleanUpFixer(IThreadingContext threadingContext, VisualStudioWorkspaceImpl workspace, IVsHierarchyItemManager vsHierarchyItemManager)
         {
             _threadingContext = threadingContext;
             _workspace = workspace;
