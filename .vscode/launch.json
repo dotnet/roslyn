@@ -5,6 +5,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "report-ci-times.ps1",
+      "type": "PowerShell",
+      "request": "launch",
+      "script": "${workspaceFolder}/eng/report-ci-times.ps1",
+      "cwd": "${workspaceFolder}"
+    },
+    {
       "name": "Launch RunTests.dll",
       "type": "coreclr",
       "request": "launch",
