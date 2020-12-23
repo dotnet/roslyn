@@ -128,7 +128,7 @@ namespace Text.Analyzers.UnitTests
                     .WithArguments("Clazz", "Clazz"));
         }
 
-        [Fact(Skip = "Assembly names are disabled for now")]
+        [Fact(Skip = "Specifying assembly names is not yet supported")]
         public async Task AssemblyMisspelled_Verify_EmitsDiagnostic()
         {
             var source = "class Program {}";
@@ -139,7 +139,7 @@ namespace Text.Analyzers.UnitTests
                     .WithArguments("Assambly", "MyAssambly"));
         }
 
-        [Fact(Skip = "Unmeaningful rules disabled for now")]
+        [Fact]
         public async Task AssemblyUnmeaningful_Verify_EmitsDiagnostic()
         {
             var source = "class Program {}";
@@ -162,7 +162,7 @@ namespace Text.Analyzers.UnitTests
                     .WithArguments("Narmspace", "Tests.MyNarmspace"));
         }
 
-        [Fact(Skip = "Unmeaningful rules disabled for now")]
+        [Fact]
         public async Task NamespaceUnmeaningful_Verify_EmitsDiagnostic()
         {
             var source = "namespace Tests.A {}";
@@ -280,149 +280,169 @@ namespace Text.Analyzers.UnitTests
                     .WithArguments("Voriable", "myVoriable"));
         }
 
-        // [Theory]
-        // [MemberData(nameof(MisspelledMemberParameters))]
-        // public void MemberParameterMisspelled_Verify_EmitsDiagnostic(string source, string misspelling, string parameterName, string memberName)
-        // {
-        //     var testFile = new AutoTestFile(source, GetMemberParameterRule(memberName, misspelling, parameterName));
+        [Theory]
+        [MemberData(nameof(MisspelledMemberParameters))]
+        public async Task MemberParameterMisspelled_Verify_EmitsDiagnostic(string source, string misspelling, string parameterName, string memberName)
+        {
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
+                    .WithLocation(0)
+                    .WithArguments(memberName, misspelling, parameterName));
+        }
 
-        //     VerifyDiagnostics(testFile);
-        // }
+        [Fact]
+        public async Task MemberParameterUnmeaningful_Verify_EmitsDiagnostic()
+        {
+            var source = @"
+        class Program
+        {
+            public void Method(string {|#0:a|})
+            {
+            }
 
-        // [Fact(Skip = "Unmeaningful rules disabled for now")]
-        // public void MemberParameterUnmeaningful_Verify_EmitsDiagnostic()
-        // {
-        //     var source = @"
-        // class Program
-        // {
-        //     public void Method(string <?>a)
-        //     {
-        //     }
+            public string this[int {|#1:i|}] => null;
+        }";
 
-        //     public string this[int <?>i] => null;
-        // }";
-        //     var testFile = new AutoTestFile(
-        //         source,
-        //         GetMemberParameterUnmeaningfulRule("Program.Method(string)", "a"),
-        //         GetMemberParameterUnmeaningfulRule("Program.this[int]", "i"));
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterMoreMeaningfulNameRule)
+                    .WithLocation(0)
+                    .WithArguments("Program.Method(string)", "a"),
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterMoreMeaningfulNameRule)
+                    .WithLocation(1)
+                    .WithArguments("Program.this[int]", "i"));
+        }
 
-        //     VerifyDiagnostics(testFile);
-        // }
+        [Fact]
+        public async Task DelegateParameterMisspelled_Verify_EmitsDiagnostic()
+        {
+            var source = "delegate void MyDelegate(string {|#0:firstNaem|});";
 
-        // [Fact]
-        // public void DelegateParameterMisspelled_Verify_EmitsDiagnostic()
-        // {
-        //     var testFile = new AutoTestFile(
-        //         "delegate void MyDelegate(string <?>firstNaem);",
-        //         GetDelegateParameterRule("MyDelegate", "Naem", "firstNaem"));
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.DelegateParameterRule)
+                    .WithLocation(0)
+                    .WithArguments("MyDelegate", "Naem", "firstNaem"));
+        }
 
-        //     VerifyDiagnostics(testFile);
-        // }
+        [Fact]
+        public async Task DelegateParameterUnmeaningful_Verify_EmitsDiagnostic()
+        {
+            var source = "delegate void MyDelegate(string {|#0:a|});";
 
-        // [Fact(Skip = "Unmeaningful rules disabled for now")]
-        // public void DelegateParameterUnmeaningful_Verify_EmitsDiagnostic()
-        // {
-        //     var testFile = new AutoTestFile(
-        //         "delegate void MyDelegate(string <?>a);",
-        //         GetDelegateParameterUnmeaningfulRule("MyDelegate", "a"));
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.DelegateParameterMoreMeaningfulNameRule)
+                    .WithLocation(0)
+                    .WithArguments("MyDelegate", "a"));
+        }
 
-        //     VerifyDiagnostics(testFile);
-        // }
+        [Theory]
+        [InlineData("class MyClass<TCorrect, {|#0:TWroong|}> { }", "MyClass<TCorrect, TWroong>", "Wroong", "TWroong")]
+        [InlineData("struct MyStructure<{|#0:TWroong|}> { }", "MyStructure<TWroong>", "Wroong", "TWroong")]
+        [InlineData("interface IInterface<{|#0:TWroong|}> { }", "IInterface<TWroong>", "Wroong", "TWroong")]
+        [InlineData("delegate int MyDelegate<{|#0:TWroong|}>();", "MyDelegate<TWroong>", "Wroong", "TWroong")]
 
-        // [Theory]
-        // [InlineData("class MyClass<TCorrect, <?>TWroong> { }", "MyClass<TCorrect, TWroong>", "Wroong", "TWroong")]
-        // [InlineData("struct MyStructure<<?>TWroong> { }", "MyStructure<TWroong>", "Wroong", "TWroong")]
-        // [InlineData("interface IInterface<<?>TWroong> { }", "IInterface<TWroong>", "Wroong", "TWroong")]
-        // [InlineData("delegate int MyDelegate<<?>TWroong>();", "MyDelegate<TWroong>", "Wroong", "TWroong")]
+        public async Task TypeTypeParameterMisspelled_Verify_EmitsDiagnostic(string source, string typeName, string misspelling, string typeParameterName)
+        {
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeTypeParameterRule)
+                    .WithLocation(0)
+                    .WithArguments(typeName, misspelling, typeParameterName));
+        }
 
-        // public void TypeTypeParameterMisspelled_Verify_EmitsDiagnostic(string source, string typeName, string misspelling, string typeParameterName)
-        // {
-        //     var testFile = new AutoTestFile(source, GetTypeTypeParameterRule(typeName, misspelling, typeParameterName));
+        [Theory]
+        [InlineData("class MyClass<{|#0:A|}> { }", "MyClass<A>", "A")]
+        [InlineData("struct MyStructure<{|#0:B|}> { }", "MyStructure<B>", "B")]
+        [InlineData("interface IInterface<{|#0:C|}> { }", "IInterface<C>", "C")]
+        [InlineData("delegate int MyDelegate<{|#0:D|}>();", "MyDelegate<D>", "D")]
+        public async Task TypeTypeParameterUnmeaningful_Verify_EmitsDiagnostic(string source, string typeName, string typeParameterName)
+        {
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeTypeParameterMoreMeaningfulNameRule)
+                    .WithLocation(0)
+                    .WithArguments(typeName, typeParameterName));
+        }
 
-        //     VerifyDiagnostics(testFile);
-        // }
+        [Fact]
+        public async Task MethodTypeParameterMisspelled_Verify_EmitsDiagnostic()
+        {
+            var source = @"
+        class Program
+        {
+            void Method<{|#0:TTipe|}>(TTipe item)
+            {
+            }
+        }";
 
-        // [Theory(Skip = "Unmeaningful rules disabled for now")]
-        // [InlineData("class MyClass<<?>A> { }", "MyClass<A>", "A")]
-        // [InlineData("struct MyStructure<<?>B> { }", "MyStructure<B>", "B")]
-        // [InlineData("interface IInterface<<?>C> { }", "IInterface<C>", "C")]
-        // [InlineData("delegate int MyDelegate<<?>D>();", "MyDelegate<D>", "D")]
-        // public void TypeTypeParameterUnmeaningful_Verify_EmitsDiagnostic(string source, string typeName, string typeParameterName)
-        // {
-        //     var testFile = new AutoTestFile(source, GetTypeTypeParameterUnmeaningfulRule(typeName, typeParameterName));
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MethodTypeParameterRule)
+                    .WithLocation(0)
+                    .WithArguments("Program.Method<TTipe>(TTipe)", "Tipe", "TTipe"));
+        }
 
-        //     VerifyDiagnostics(testFile);
-        // }
+        [Fact]
+        public async Task MethodTypeParameterUnmeaningful_Verify_EmitsDiagnostic()
+        {
+            var source = @"
+        class Program
+        {
+            void Method<{|#0:TA|}>(TA parameter)
+            {
+            }
+        }";
 
-        // [Fact]
-        // public void MethodTypeParameterMisspelled_Verify_EmitsDiagnostic()
-        // {
-        //     var source = @"
-        // class Program
-        // {
-        //     void Method<<?>TTipe>(TTipe item)
-        //     {
-        //     }
-        // }";
-        //     var testFile = new AutoTestFile(source, GetMethodTypeParameterRule("Program.Method<TTipe>(TTipe)", "Tipe", "TTipe"));
+            await VerifyCSharpAsync(
+                source,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MethodTypeParameterMoreMeaningfulNameRule)
+                    .WithLocation(0)
+                    .WithArguments("Program.Method<TA>(TA)", "TA"));
+        }
 
-        //     VerifyDiagnostics(testFile);
-        // }
+        [Fact]
+        public async Task MisspellingContainsOnlyCapitalizedLetters_Verify_NoDiagnostics()
+        {
+            var source = "class FCCA { }";
 
-        // [Fact(Skip = "Unmeaningful rules disabled for now")]
-        // public void MethodTypeParameterUnmeaningful_Verify_EmitsDiagnostic()
-        // {
-        //     var source = @"
-        // class Program
-        // {
-        //     void Method<<?>TA>(TA parameter)
-        //     {
-        //     }
-        // }";
-        //     var testFile = new AutoTestFile(source, GetMethodTypeParameterUnmeaningfulRule("Program.Method<TA>(TA)", "TA"));
+            await VerifyCSharpAsync(source);
+        }
 
-        //     VerifyDiagnostics(testFile);
-        // }
+        [Theory]
+        [InlineData("0x0")]
+        [InlineData("0xDEADBEEF")]
+        public async Task MisspellingStartsWithADigit_Verify_NoDiagnostics(string misspelling)
+        {
+            var source = $"enum Name {{ My{misspelling} }}";
 
-        // [Fact]
-        // public void MisspellingContainsOnlyCapitalizedLetters_Verify_NoDiagnostics()
-        // {
-        //     var testFile = new TestFile("class FCCA { }");
+            await VerifyCSharpAsync(source);
+        }
 
-        //     VerifyDiagnostics(testFile);
-        // }
+        [Fact]
+        public async Task MalformedXmlDictionary_Verify_EmitsDiagnostic()
+        {
+            var contents = @"<?xml version=""1.0"" encoding=""utf-8""?>
+        <Dictionary>
+            <Words>
+                <Recognized>
+                    <Word>okay</Word>
+                    <word>bad</Word> <!-- xml tags are case-sensitive -->
+                </Recognized>
+            </Words>
+        </Dictionary>";
+            var dictionary = ("CodeAnalysisDictionary.xml", contents);
 
-        // [Theory]
-        // [InlineData("0x0")]
-        // [InlineData("0xDEADBEEF")]
-        // public void MisspellingStartsWithADigit_Verify_NoDiagnostics(string misspelling)
-        // {
-        //     var testFile = new TestFile($"enum Name {{ My{misspelling} }}");
-
-        //     VerifyDiagnostics(testFile);
-        // }
-
-        // [Fact]
-        // public void MalformedXmlDictionary_Verify_EmitsDiagnostic()
-        // {
-        //     var contents = @"<?xml version=""1.0"" encoding=""utf-8""?>
-        // <Dictionary>
-        //     <Words>
-        //         <Recognized>
-        //             <Word>okay</Word>
-        //             <word>bad</Word> <!-- xml tags are case-sensitive -->
-        //         </Recognized>
-        //     </Words>
-        // </Dictionary>";
-        //     var dictionary = new TestAdditionalDocument("CodeAnalysisDictionary.xml", contents);
-
-        //     VerifyDiagnostics(
-        //         new TestFile("class Program { }"),
-        //         dictionary,
-        //         GetFileParseResult(
-        //             "CodeAnalysisDictionary.xml",
-        //             "The 'word' start tag on line 6 position 14 does not match the end tag of 'Word'. Line 6, position 24."));
-        // }
+            await VerifyCSharpAsync(
+                "class Program {}",
+                dictionary,
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.FileParseRule)
+                .WithArguments(
+                    "CodeAnalysisDictionary.xml",
+                    "The 'word' start tag on line 6 position 22 does not match the end tag of 'Word'. Line 6, position 32."));
+        }
 
         private Task VerifyCSharpAsync(string source, params DiagnosticResult[] expected)
             => VerifyCSharpAsync(source, Array.Empty<(string Path, string Text)>(), expected);

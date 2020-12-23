@@ -292,7 +292,8 @@ namespace Text.Analyzers
                 var fileProvider = AdditionalFileProvider.FromOptions(compilationStartContext.Options);
                 return fileProvider.GetMatchingFiles(@"(?:dictionary|custom).*?\.(?:xml|dic)$")
                     .Select(CreateDictionaryFromAdditionalText)
-                    .Where(x => x != null);
+                    .Where(x => x != null)
+                    .ToList();
 
                 CodeAnalysisDictionary CreateDictionaryFromAdditionalText(AdditionalText additionalFile)
                 {
