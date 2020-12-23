@@ -37,16 +37,6 @@
         <target state="translated">Voulez-vous continuer ? Le code sera interrompu.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
-        <source>Error creating instance of CodeFixProvider</source>
-        <target state="translated">Erreur lors de la création de l'instance de CodeFixProvider</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
-        <source>Error creating instance of CodeFixProvider '{0}'</source>
-        <target state="translated">Erreur lors de la création de l'instance de CodeFixProvider '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">éléments provenant d'espaces de noms non importés</target>
@@ -120,11 +110,6 @@
       <trans-unit id="Punctuation">
         <source>Punctuation</source>
         <target state="translated">Ponctuation</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removal_of_document_not_supported">
-        <source>Removal of document not supported</source>
-        <target state="translated">Suppression du document non prise en charge</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">

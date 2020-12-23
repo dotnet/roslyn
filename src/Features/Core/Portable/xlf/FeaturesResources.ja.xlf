@@ -335,6 +335,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">ファイル {0}' の読み取り中にエラーが発生しました: {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
+        <source>Error creating instance of CodeFixProvider</source>
+        <target state="new">Error creating instance of CodeFixProvider</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
+        <source>Error creating instance of CodeFixProvider '{0}'</source>
+        <target state="new">Error creating instance of CodeFixProvider '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Example">
         <source>Example:</source>
         <target state="translated">例:</target>
@@ -1828,6 +1838,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">
         <source>Related method signatures found in metadata will not be updated.</source>
         <target state="translated">メタデータ内に検出される関連するメソッド シグネチャは更新されません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removal_of_document_not_supported">
+        <source>Removal of document not supported</source>
+        <target state="new">Removal of document not supported</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_async_modifier">

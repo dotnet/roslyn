@@ -37,16 +37,6 @@
         <target state="translated">Ainda quer continuar? Isso pode produzir código desfeito.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
-        <source>Error creating instance of CodeFixProvider</source>
-        <target state="translated">Erro ao criar a instância de CodeFixProvider</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
-        <source>Error creating instance of CodeFixProvider '{0}'</source>
-        <target state="translated">Erro ao criar instância de CodeFixProvider '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">itens de namespaces não importados</target>
@@ -120,11 +110,6 @@
       <trans-unit id="Punctuation">
         <source>Punctuation</source>
         <target state="translated">Pontuação</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removal_of_document_not_supported">
-        <source>Removal of document not supported</source>
-        <target state="translated">Não há suporte para a remoção do documento</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
