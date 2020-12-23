@@ -544,9 +544,6 @@
   <data name="Apply_inline_out_variable_preferences" xml:space="preserve">
     <value>Apply inline 'out' variables preferences</value>
   </data>
-  <data name="Apply_object_collection_initialization_preferences" xml:space="preserve">
-    <value>Apply object/collection initialization preferences</value>
-  </data>
   <data name="Make_private_field_readonly_when_possible" xml:space="preserve">
     <value>Make private fields readonly when possible</value>
   </data>
