@@ -1245,7 +1245,7 @@ class C
             var source =
 @"class MyClass
 {
-    private int P { get; set; }
+    private int {|#0:P|} { get; set; }
     public void M()
     {
         P = 0;
@@ -1261,7 +1261,7 @@ class C
                 ExpectedDiagnostics =
                 {
                     // Test0.cs(3,17): info IDE0052: Private property 'MyClass.P' can be converted to a method as its get accessor is never invoked.
-                    VerifyCS.Diagnostic(descriptor).WithMessage(expectedMessage).WithSpan(3, 17, 3, 18),
+                    VerifyCS.Diagnostic(descriptor).WithMessage(expectedMessage).WithLocation(0),
                 },
                 FixedCode = source,
             }.RunAsync();
