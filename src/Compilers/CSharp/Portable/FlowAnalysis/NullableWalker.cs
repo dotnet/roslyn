@@ -5064,7 +5064,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (HasImplicitTypeArguments(node))
                 {
-                    method = InferMethodTypeArguments(method, (CSharpSyntaxNode)node.Syntax, GetArgumentsForMethodTypeInference(results, argumentsNoConversions), refKindsOpt, argsToParamsOpt, expanded);
+                    method = InferMethodTypeArguments(method, GetArgumentsForMethodTypeInference(results, argumentsNoConversions), refKindsOpt, argsToParamsOpt, expanded);
                     parametersOpt = method.Parameters;
                 }
                 if (ConstraintsHelper.RequiresChecking(method))
@@ -5825,7 +5825,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private MethodSymbol InferMethodTypeArguments(
             MethodSymbol method,
-            CSharpSyntaxNode callSyntax,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
@@ -7451,7 +7450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         arguments.Add(new BoundExpressionWithNullability(syntax, new BoundParameter(syntax, parameter), parameterType.NullableAnnotation, parameterType.Type));
                     }
                     Debug.Assert(_binder is object);
-                    method = InferMethodTypeArguments(method, (CSharpSyntaxNode)group.Syntax, arguments.ToImmutableAndFree(), argumentRefKindsOpt: default, argsToParamsOpt: default, expanded: false);
+                    method = InferMethodTypeArguments(method, arguments.ToImmutableAndFree(), argumentRefKindsOpt: default, argsToParamsOpt: default, expanded: false);
                 }
                 if (invokedAsExtensionMethod)
                 {
@@ -7791,7 +7790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             placeholderArgs.Add(new BoundExpressionWithNullability(variables[i].Expression.Syntax, variables[i].Expression, NullableAnnotation.Oblivious, conversion.DeconstructionInfo.OutputPlaceholders[i].Type));
                         }
-                        deconstructMethod = InferMethodTypeArguments(deconstructMethod, (CSharpSyntaxNode)invocation.Syntax, placeholderArgs.ToImmutableAndFree(), invocation.ArgumentRefKindsOpt, invocation.ArgsToParamsOpt, invocation.Expanded);
+                        deconstructMethod = InferMethodTypeArguments(deconstructMethod, placeholderArgs.ToImmutableAndFree(), invocation.ArgumentRefKindsOpt, invocation.ArgsToParamsOpt, invocation.Expanded);
 
                         // check the constraints remain valid with the re-inferred parameter types
                         if (ConstraintsHelper.RequiresChecking(deconstructMethod))
