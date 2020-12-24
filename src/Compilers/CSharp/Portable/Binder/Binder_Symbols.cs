@@ -2457,7 +2457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
-        internal static bool IsFeatureAvalable(SyntaxNode syntax, MessageID feature)
+        internal static bool IsFeatureAvailable(SyntaxNode syntax, MessageID feature)
         {
             return ((CSharpParseOptions)syntax.SyntaxTree.Options).IsFeatureEnabled(feature);
         }

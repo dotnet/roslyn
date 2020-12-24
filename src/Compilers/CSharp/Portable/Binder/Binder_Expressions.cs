@@ -1891,7 +1891,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (currentType.IsInterface && (declaringType.IsObjectType() || currentType.AllInterfacesNoUseSiteDiagnostics.Contains(declaringType))))
             {
                 bool hasErrors = false;
-                if (!IsInsideNameof || (EnclosingNameofArgument != node && !IsFeatureEnabled(node, MessageID.IDS_FeatureReducedMemberAccessChecksInNameof)))
+                if (!IsInsideNameof || (EnclosingNameofArgument != node && !IsFeatureAvailable(node, MessageID.IDS_FeatureReducedMemberAccessChecksInNameof)))
                 {
                     var diagnosticsTemp = IsInsideNameof ? new DiagnosticBag() : diagnostics;
                     if (InFieldInitializer && !currentType.IsScriptClass)
@@ -7027,7 +7027,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!symbol.RequiresInstanceReceiver())
             {
-                if (instanceReceiver == true && !(IsInsideNameof && IsFeatureAvalable(node, MessageID.IDS_FeatureReducedMemberAccessChecksInNameof)))
+                if (instanceReceiver == true && !(IsInsideNameof && IsFeatureAvailable(node, MessageID.IDS_FeatureReducedMemberAccessChecksInNameof)))
                 {
                     if (!IsInsideNameof)
                     {
