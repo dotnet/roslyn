@@ -1726,42 +1726,30 @@ class C
 }";
             await new VerifyCS.Test
             {
-                TestCode = code,
-                SolutionTransforms =
+                TestState =
                 {
-                    (solution, projectId) =>
-                    {
-                        var parseOptions = solution.GetProject(projectId).ParseOptions;
-                        return solution.WithProjectParseOptions(projectId, parseOptions.WithDocumentationMode(DocumentationMode.None));
-                    },
+                    Sources = { code },
+                    DocumentationMode = DocumentationMode.None,
                 },
             }.RunAsync();
 
             // fully parsing doc comments; System is necessary
             await new VerifyCS.Test
             {
-                TestCode = code,
-                SolutionTransforms =
+                TestState =
                 {
-                    (solution, projectId) =>
-                    {
-                        var parseOptions = solution.GetProject(projectId).ParseOptions;
-                        return solution.WithProjectParseOptions(projectId, parseOptions.WithDocumentationMode(DocumentationMode.Parse));
-                    },
+                    Sources = { code },
+                    DocumentationMode = DocumentationMode.Parse,
                 },
             }.RunAsync();
 
             // fully parsing and diagnosing doc comments; System is necessary
             await new VerifyCS.Test
             {
-                TestCode = code,
-                SolutionTransforms =
+                TestState =
                 {
-                    (solution, projectId) =>
-                    {
-                        var parseOptions = solution.GetProject(projectId).ParseOptions;
-                        return solution.WithProjectParseOptions(projectId, parseOptions.WithDocumentationMode(DocumentationMode.Diagnose));
-                    },
+                    Sources = { code },
+                    DocumentationMode = DocumentationMode.Diagnose,
                 },
             }.RunAsync();
         }
