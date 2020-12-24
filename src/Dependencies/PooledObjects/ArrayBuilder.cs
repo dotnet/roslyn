@@ -486,6 +486,15 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             _builder.AddRange(items, length);
         }
 
+        public void AddRange(ImmutableArray<T> items, int start, int length)
+        {
+            Debug.Assert(start + length <= items.Length);
+            for (int i = start, end = start + length; i < end; i++)
+            {
+                Add(items[i]);
+            }
+        }
+
         public void AddRange<S>(ImmutableArray<S> items) where S : class, T
         {
             AddRange(ImmutableArray<T>.CastUp(items));
@@ -493,6 +502,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void AddRange(T[] items, int start, int length)
         {
+            Debug.Assert(start + length <= items.Length);
             for (int i = start, end = start + length; i < end; i++)
             {
                 Add(items[i]);

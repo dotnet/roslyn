@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundMultipleLocalDeclarations? multipleDeclarationsOpt = null;
             BoundExpression? expressionOpt = null;
             TypeSymbol? declarationTypeOpt = null;
-            PatternDisposeInfo? patternDisposeInfo;
+            MethodArgumentInfo? patternDisposeInfo;
             TypeSymbol? awaitableTypeOpt;
 
             if (isExpression)
@@ -175,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors);
             }
 
-            bool populateDisposableConversionOrDisposeMethod(bool fromExpression, out Conversion iDisposableConversion, out PatternDisposeInfo? patternDisposeInfo, out TypeSymbol? awaitableType)
+            bool populateDisposableConversionOrDisposeMethod(bool fromExpression, out Conversion iDisposableConversion, out MethodArgumentInfo? patternDisposeInfo, out TypeSymbol? awaitableType)
             {
                 HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
                 iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteDiagnostics);
@@ -228,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             enableCallerInfo: true,
                             patternDiagnostics);
 
-                        patternDisposeInfo = new PatternDisposeInfo(disposeMethod, argumentsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments);
+                        patternDisposeInfo = new MethodArgumentInfo(disposeMethod, argumentsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments);
                         if (hasAwait)
                         {
                             awaitableType = disposeMethod.ReturnType;

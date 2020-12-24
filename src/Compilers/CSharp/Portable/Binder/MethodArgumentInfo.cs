@@ -8,11 +8,11 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// Information to be deduced while binding a foreach loop so that the loop can be lowered
-    /// to a while over an enumerator.  Not applicable to the array or string forms.
+    /// Information about the arguments of a call that can turned into a BoundCall later without recalculating
+    /// default arguments.
     /// </summary>
-    internal sealed record PatternDisposeInfo(
-        MethodSymbol DisposeMethod,
+    internal sealed record MethodArgumentInfo(
+        MethodSymbol Method,
         ImmutableArray<BoundExpression> Arguments,
         ImmutableArray<int> ArgsToParamsOpt,
         BitVector DefaultArguments);
