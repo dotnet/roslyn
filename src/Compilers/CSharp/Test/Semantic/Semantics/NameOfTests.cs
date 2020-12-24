@@ -1513,23 +1513,55 @@ public class C
         public void TestCanReferenceInstanceMembersFromStaticMemberInNameof()
         {
             var source = @"
+System.Console.Write(C.M());
 public class C
 {
-    public string S { get; }
-    public static string M() => nameof(S.Length);
+    public C1 Property { get; }
+    public C1 Field { get; }
+    public event System.Action Event;
+    public static string M() => nameof(Property.Property) 
+        + "","" + nameof(Property.Field)
+        + "","" + nameof(Property.Method)
+        + "","" + nameof(Property.Event)
+        + "","" + nameof(Property.Event)
+        + "","" + nameof(Field.Property) 
+        + "","" + nameof(Field.Field)
+        + "","" + nameof(Field.Method)
+        + "","" + nameof(Field.Event)
+        + "","" + nameof(Field.Event)
+        + "","" + nameof(Event.Invoke)
+        ;
+}
+
+public class C1
+{
+    public int Property { get; }
+    public int Field;
+    public void Method(){}
+    public event System.Action Event;
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugExe,
+                parseOptions: TestOptions.RegularPreview,
+                expectedOutput: "Property,Field,Method,Event,Event,Property,Field,Method,Event,Event,Invoke").VerifyDiagnostics();
+            
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
         public void TestCanReferenceInstanceMembersFromFieldInitializerInNameof()
         {
             var source = @"
+System.Console.Write(new C().S);
 public class C
 {
     public string S { get; } = nameof(S.Length);
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CompileAndVerify(
+                 source,
+                 options: TestOptions.DebugExe,
+                 parseOptions: TestOptions.RegularPreview,
+                 expectedOutput: "Length").VerifyDiagnostics();
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1576,6 +1608,57 @@ public struct S
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceStaticMembersFromInstanceMemberInNameof1()
+        {
+            var source = @"
+public class C
+{
+    public C Prop { get; }
+    public static int StaticProp { get; }
+    public string M() => nameof(Prop.StaticProp);
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceStaticMembersFromInstanceMemberInNameof2()
+        {
+            var source = @"
+public class C
+{
+    public C Prop { get; }
+    public static int StaticProp { get; }
+    public static string M() => nameof(Prop.StaticProp);
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceStaticMembersFromInstanceMemberInNameof3()
+        {
+            var source = @"
+public class C
+{
+    public C Prop { get; }
+    public static string M() => nameof(Prop.M);
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceStaticMembersFromInstanceMemberInNameof4()
+        {
+            var source = @"
+public class C
+{
+    public C Prop { get; }
+    public static void StaticMethod(){}
+    public string M() => nameof(Prop.StaticMethod);
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
         public void TestCannotReferenceInstanceMembersFromStaticMemberInNameofInCSharp9()
         {
             var source = @"
@@ -1585,9 +1668,9 @@ public class C
     public static string M() => nameof(S.Length);
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (5,40): error CS8652: The feature 'nameof can access instance members in all contexts' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,40): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public static string M() => nameof(S.Length);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("nameof can access instance members in all contexts").WithLocation(5, 40));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("reduced member access checks in 'nameof'").WithLocation(5, 40));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1599,9 +1682,9 @@ public class C
     public string S { get; } = nameof(S.Length);
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (4,39): error CS8652: The feature 'nameof can access instance members in all contexts' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,39): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public string S { get; } = nameof(S.Length);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("nameof can access instance members in all contexts").WithLocation(4, 39));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("reduced member access checks in 'nameof'").WithLocation(4, 39));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1615,9 +1698,9 @@ public class C
     public string S { get; }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (4,29): error CS8652: The feature 'nameof can access instance members in all contexts' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,29): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     [System.Obsolete(nameof(S.Length))]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("nameof can access instance members in all contexts").WithLocation(4, 29));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("reduced member access checks in 'nameof'").WithLocation(4, 29));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1631,9 +1714,9 @@ public class C
     public string S { get; }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (5,30): error CS8652: The feature 'nameof can access instance members in all contexts' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,30): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public C() : this(nameof(S.Length)){}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("nameof can access instance members in all contexts").WithLocation(5, 30));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("reduced member access checks in 'nameof'").WithLocation(5, 30));
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1651,9 +1734,38 @@ public struct S
     }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (9,42): error CS8652: The feature 'nameof can access instance members in all contexts' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,42): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Func<string> func = () => nameof(P.Length);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("nameof can access instance members in all contexts").WithLocation(9, 42));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("reduced member access checks in 'nameof'").WithLocation(9, 42));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCannotReferenceStaticPropertyFromInstanceMemberInNameofInCSharp9()
+        {
+            var source = @"
+public class C
+{
+    public C Prop { get; }
+    public static int StaticProp { get; }
+    public string M() => nameof(Prop.StaticProp);
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (6,33): error CS8652: The feature 'reduced member access checks in 'nameof'' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public string M() => nameof(Prop.StaticProp);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop.StaticProp").WithArguments("reduced member access checks in 'nameof'").WithLocation(6, 33));
+        }
+
+        [Fact]
+        public void TestCanReferenceStaticMethodFromInstanceMemberInNameofInCSharp9()
+        {
+            var source = @"
+public class C
+{
+    public C Prop { get; }
+    public static void StaticMethod(){}
+    public string M() => nameof(Prop.StaticMethod);
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics();
         }
 
         [Fact]

@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Return = MessageBase + 12790,
         IDS_FeatureVarianceSafetyForStaticInterfaceMembers = MessageBase + 12791,
         IDS_FeatureConstantInterpolatedStrings = MessageBase + 12792,
-        IDS_FeatureNameofAccessInstanceMembersInAllContexts = MessageBase + 12793,
+        IDS_FeatureReducedMemberAccessChecksInNameof = MessageBase + 12793,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (feature)
             {
                 // preview features.
-                case MessageID.IDS_FeatureNameofAccessInstanceMembersInAllContexts:
+                case MessageID.IDS_FeatureReducedMemberAccessChecksInNameof:
                     return LanguageVersion.Preview;
 
                 // C# 9.0 features.

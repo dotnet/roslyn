@@ -2456,6 +2456,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+
+        internal static bool IsFeatureAvalable(SyntaxNode syntax, MessageID feature)
+        {
+            return ((CSharpParseOptions)syntax.SyntaxTree.Options).IsFeatureEnabled(feature);
+        }
+
         internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag diagnostics, Location? location = null)
         {
             return CheckFeatureAvailability(syntax.SyntaxTree, feature, diagnostics, location ?? syntax.GetLocation());

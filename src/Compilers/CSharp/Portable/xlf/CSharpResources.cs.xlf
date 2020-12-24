@@ -962,9 +962,9 @@
         <target state="translated">Vytvoření objektu s cílovým typem</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureNameofAccessInstanceMembersInAllContexts">
-        <source>nameof can access instance members in all contexts</source>
-        <target state="new">nameof can access instance members in all contexts</target>
+      <trans-unit id="IDS_FeatureReducedMemberAccessChecksInNameof">
+        <source>reduced member access checks in 'nameof'</source>
+        <target state="new">reduced member access checks in 'nameof'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">

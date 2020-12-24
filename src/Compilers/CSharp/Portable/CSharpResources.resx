@@ -6591,8 +6591,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_UnreadRecordParameter_Title" xml:space="preserve">
     <value>Parameter is unread. Did you forget to use it to initialize the property with that name?</value>
   </data>
-  <data name="IDS_FeatureNameofAccessInstanceMembersInAllContexts" xml:space="preserve">
-    <value>nameof can access instance members in all contexts</value>
+  <data name="IDS_FeatureReducedMemberAccessChecksInNameof" xml:space="preserve">
+    <value>reduced member access checks in 'nameof'</value>
   </data>
   <data name="ERR_RecordAmbigCtor" xml:space="preserve">
     <value>The primary constructor conflicts with the synthesized copy constructor.</value>
