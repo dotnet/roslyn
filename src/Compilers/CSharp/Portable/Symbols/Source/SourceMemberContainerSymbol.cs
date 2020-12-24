@@ -2403,10 +2403,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly ArrayBuilder<SyntaxReference> IndexerDeclarations = ArrayBuilder<SyntaxReference>.GetInstance();
             public RecordDeclarationSyntax? RecordDeclarationWithParameters;
             public ArrayBuilder<FieldOrPropertyInitializer.Builder>? InstanceInitializersForRecordDeclarationWithParameters;
-            public bool? IsNullableEnabledForInstanceConstructorsAndFields;
-            public bool? IsNullableEnabledForStaticConstructorsAndFields;
+            public bool IsNullableEnabledForInstanceConstructorsAndFields;
+            public bool IsNullableEnabledForStaticConstructorsAndFields;
 
-            public MembersAndInitializers ToReadOnlyAndFree(bool isNullableEnabledForProject)
+            public MembersAndInitializers ToReadOnlyAndFree()
             {
                 return new MembersAndInitializers(
                     NonTypeNonIndexerMembers.ToImmutableAndFree(),
@@ -2415,21 +2415,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     IndexerDeclarations.ToImmutableAndFree(),
                     staticInitializersSyntaxLength,
                     instanceInitializersSyntaxLength,
-                    isNullableEnabledForInstanceConstructorsAndFields: IsNullableEnabledForInstanceConstructorsAndFields ?? isNullableEnabledForProject,
-                    isNullableEnabledForStaticConstructorsAndFields: IsNullableEnabledForStaticConstructorsAndFields ?? isNullableEnabledForProject);
+                    isNullableEnabledForInstanceConstructorsAndFields: IsNullableEnabledForInstanceConstructorsAndFields,
+                    isNullableEnabledForStaticConstructorsAndFields: IsNullableEnabledForStaticConstructorsAndFields);
             }
 
             public void UpdateIsNullableEnabledForConstructorsAndFields(bool useStatic, CSharpCompilation compilation, CSharpSyntaxNode syntax)
             {
-                ref bool? isNullableEnabled = ref useStatic ? ref IsNullableEnabledForStaticConstructorsAndFields : ref IsNullableEnabledForInstanceConstructorsAndFields;
-                if (isNullableEnabled == true)
-                {
-                    return;
-                }
-                if (compilation.IsNullableAnalysisEnabledIn(syntax))
-                {
-                    isNullableEnabled = true;
-                }
+                ref bool isNullableEnabled = ref GetIsNullableEnabledForConstructorsAndFields(useStatic);
+                isNullableEnabled = isNullableEnabled || compilation.IsNullableAnalysisEnabledIn(syntax);
+            }
+
+            public void UpdateIsNullableEnabledForConstructorsAndFields(bool useStatic, bool value)
+            {
+                ref bool isNullableEnabled = ref GetIsNullableEnabledForConstructorsAndFields(useStatic);
+                isNullableEnabled = isNullableEnabled || value;
+            }
+
+            private ref bool GetIsNullableEnabledForConstructorsAndFields(bool useStatic)
+            {
+                return ref useStatic ? ref IsNullableEnabledForStaticConstructorsAndFields : ref IsNullableEnabledForInstanceConstructorsAndFields;
             }
 
             private static ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> ToReadonlyAndFree(ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer.Builder>> initializers, out int syntaxLength)
@@ -2540,7 +2544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            return builder.ToReadOnlyAndFree(isNullableEnabledForProject: (DeclaringCompilation.Options.NullableContextOptions & NullableContextOptions.Warnings) != 0);
+            return builder.ToReadOnlyAndFree();
         }
 
         private void AddDeclaredNontypeMembers(MembersAndInitializersBuilder builder, DiagnosticBag diagnostics)
@@ -3716,9 +3720,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     new SourceLocation(constructorSyntax.Identifier));
                             }
 
-                            var constructor = SourceConstructorSymbol.CreateConstructorSymbol(this, constructorSyntax, diagnostics);
+                            bool isNullableEnabled = compilation.IsNullableAnalysisEnabledIn(constructorSyntax);
+                            var constructor = SourceConstructorSymbol.CreateConstructorSymbol(this, constructorSyntax, isNullableEnabled, diagnostics);
                             builder.NonTypeNonIndexerMembers.Add(constructor);
-                            builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: constructor.IsStatic, compilation, constructorSyntax);
+                            if (constructorSyntax.Initializer?.Kind() != SyntaxKind.ThisConstructorInitializer)
+                            {
+                                builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: constructor.IsStatic, isNullableEnabled);
+                            }
                         }
                         break;
 

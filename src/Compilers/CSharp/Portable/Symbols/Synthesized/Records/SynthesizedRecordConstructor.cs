@@ -40,6 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsExpressionBodied => false;
 
+        internal override bool IsNullableEnabled()
+        {
+            return ((SourceMemberContainerTypeSymbol)ContainingType).IsNullableEnabledForConstructorsAndInitializers(IsStatic);
+        }
+
         protected override bool IsWithinExpressionOrBlockBody(int position, out int offset)
         {
             offset = -1;

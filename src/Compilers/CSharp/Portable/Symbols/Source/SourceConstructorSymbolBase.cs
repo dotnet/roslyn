@@ -236,10 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal sealed override bool IsNullableEnabled()
-        {
-            return ((SourceMemberContainerTypeSymbol)ContainingType).IsNullableEnabledForConstructorsAndInitializers(IsStatic);
-        }
+        internal abstract override bool IsNullableEnabled();
 
         protected abstract CSharpSyntaxNode GetInitializer();
 

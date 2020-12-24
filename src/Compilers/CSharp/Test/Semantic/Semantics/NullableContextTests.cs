@@ -873,7 +873,7 @@ class Program
     Program() { }
     Program(object obj) : this() { }
 }";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor", ".ctor" });
+            verify(source, expectedAnalyzedKeys: new[] { ".ctor" });
 
             source =
 @"#pragma warning disable 169
@@ -888,6 +888,31 @@ class Program
 }";
             verify(source, expectedAnalyzedKeys: new[] { ".ctor", ".ctor" });
 
+            source =
+@"#pragma warning disable 169
+class Program
+{
+#nullable disable
+    object F1;
+    Program() { }
+#nullable enable
+    Program(object obj) : this() { }
+}";
+            verify(source, expectedAnalyzedKeys: new[] { ".ctor" });
+
+            source =
+@"#pragma warning disable 169
+class Program
+{
+#nullable disable
+    object F1;
+#nullable enable
+    Program() { }
+#nullable disable
+    Program(object obj) : this() { }
+}";
+            verify(source, expectedAnalyzedKeys: new[] { ".ctor" });
+
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
@@ -896,15 +921,6 @@ class Program
 
                 AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
                 AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
-
-                var tree = (CSharpSyntaxTree)comp.SyntaxTrees[0];
-                var methodDeclarations = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
-                foreach (var methodDeclaration in methodDeclarations)
-                {
-                    bool expectedAnalysis = expectedAnalyzedKeys.Contains(methodDeclaration.Identifier.Text);
-                    bool actualAnalysis = tree.IsNullableAnalysisEnabled(methodDeclaration.Span).Value;
-                    Assert.Equal(expectedAnalysis, actualAnalysis);
-                }
             }
         }
 
@@ -967,7 +983,7 @@ partial class Program
                 //     object F3 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 17));
 
-            verify(new[] { source1, source2, source3, source4 }, TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Enable), new[] { ".cctor", ".ctor" },
+            verify(new[] { source1, source2, source3, source4 }, TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Enable), new[] { ".ctor" },
                 // (4,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     object F1 = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 17),
@@ -1070,15 +1086,6 @@ class Program
 
                 AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
                 AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
-
-                var tree = (CSharpSyntaxTree)comp.SyntaxTrees[0];
-                var methodDeclarations = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
-                foreach (var methodDeclaration in methodDeclarations)
-                {
-                    bool expectedAnalysis = expectedAnalyzedKeys.Contains(methodDeclaration.Identifier.Text);
-                    bool actualAnalysis = tree.IsNullableAnalysisEnabled(methodDeclaration.Span).Value;
-                    Assert.Equal(expectedAnalysis, actualAnalysis);
-                }
             }
         }
 
