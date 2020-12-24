@@ -1782,11 +1782,12 @@ class Program
         }
 
         [Theory]
-        [InlineData(0, Skip = "https://github.com/dotnet/roslyn/issues/41784")]
-        [InlineData(1, Skip = "https://github.com/dotnet/roslyn/issues/41784")]
-        [InlineData(2, Skip = "https://github.com/dotnet/roslyn/issues/41784")]
-        [InlineData(3, Skip = "https://github.com/dotnet/roslyn/issues/41784")]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
         [InlineData(4)]
+        [InlineData(5)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         [WorkItem(20377, "https://github.com/dotnet/roslyn/issues/20377")]
         public async Task TestWarningLevel(int warningLevel)
@@ -1801,15 +1802,33 @@ class Program
     {
     }
 }";
-            var fixedCode = @"class Program
+            var fixedCode = warningLevel switch
+            {
+                0 => code,
+                _ => @"class Program
 {
     static void Main(string[] args)
     {
     }
-}";
+}",
+            };
+
+            var markupMode = warningLevel switch
+            {
+                // Hidden diagnostics are not reported for warning level 0
+                0 => MarkupMode.Ignore,
+
+                // But are reported for all other warning levels
+                _ => MarkupMode.Allow,
+            };
+
             await new VerifyCS.Test
             {
-                TestCode = code,
+                TestState =
+                {
+                    Sources = { code },
+                    MarkupHandling = markupMode,
+                },
                 FixedCode = fixedCode,
                 SolutionTransforms =
                 {
