@@ -267,6 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUsingTypeAlias = MessageBase + 12834,
 
         IDS_FeatureNameofAccessInstanceMembersInAllContexts = MessageBase + 12792,
+        IDS_FeatureReducedMemberAccessChecksInNameof = MessageBase + 12793,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -389,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (feature)
             {
                 // preview features.
-                case MessageID.IDS_FeatureNameofAccessInstanceMembersInAllContexts:
+                case MessageID.IDS_FeatureReducedMemberAccessChecksInNameof:
                     return LanguageVersion.Preview;
 
                 // PREFER reporting diagnostics in binding when diagnostics do not affect the shape of the syntax tree

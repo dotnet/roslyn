@@ -2075,7 +2075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (currentType.IsInterface && (declaringType.IsObjectType() || currentType.AllInterfacesNoUseSiteDiagnostics.Contains(declaringType))))
             {
                 bool hasErrors = false;
-                if (!IsInsideNameof || EnclosingNameofArgument != node && !((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeatureNameofAccessInstanceMembersInAllContexts))
+                if (!IsInsideNameof || (EnclosingNameofArgument != node && !IsFeatureEnabled(node, MessageID.IDS_FeatureReducedMemberAccessChecksInNameof)))
                 {
                     var diagnosticsTemp = IsInsideNameof ? new DiagnosticBag() : diagnostics;
                     if (InFieldInitializer && !currentType.IsScriptClass)
@@ -2109,7 +2109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (hasErrors && IsInsideNameof)
                     {
-                        CheckFeatureAvailability(node, MessageID.IDS_FeatureNameofAccessInstanceMembersInAllContexts, diagnostics);
+                        CheckFeatureAvailability(node, MessageID.IDS_FeatureReducedMemberAccessChecksInNameof, diagnostics);
                     }
                 }
 
@@ -7718,12 +7718,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!symbol.RequiresInstanceReceiver())
             {
-                if (instanceReceiver == true)
+                if (instanceReceiver == true && !(IsInsideNameof && IsFeatureAvalable(node, MessageID.IDS_FeatureReducedMemberAccessChecksInNameof)))
                 {
-                    ErrorCode errorCode = this.Flags.Includes(BinderFlags.ObjectInitializerMember) ?
-                        ErrorCode.ERR_StaticMemberInObjectInitializer :
-                        ErrorCode.ERR_ObjectProhibited;
-                    Error(diagnostics, errorCode, node, symbol);
+                    if (!IsInsideNameof)
+                    {
+                        ErrorCode errorCode = this.Flags.Includes(BinderFlags.ObjectInitializerMember) ?
+                            ErrorCode.ERR_StaticMemberInObjectInitializer :
+                            ErrorCode.ERR_ObjectProhibited;
+                        Error(diagnostics, errorCode, node, symbol);
+                    }
+                    else
+                    {
+                        CheckFeatureAvailability(node, MessageID.IDS_FeatureReducedMemberAccessChecksInNameof, diagnostics);
+                    }
                     resultKind = LookupResultKind.StaticInstanceMismatch;
                     return true;
                 }
