@@ -213,6 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
                         ImmutableArray<int> argsToParams = default;
+                        bool expanded = disposeMethod.HasParamsParameter();
                         originalBinder.BindDefaultArguments(
                             // If this is a using statement, then we want to use the whole `using (expr) { }` as the argument location. These arguments
                             // will be represented in the IOperation tree and the "correct" node for them, given that they are an implicit invocation
@@ -223,11 +224,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             argumentRefKindsBuilder: null,
                             ref argsToParams,
                             out BitVector defaultArguments,
-                            expanded: disposeMethod.HasParamsParameter(),
+                            expanded,
                             enableCallerInfo: true,
                             patternDiagnostics);
 
-                        patternDisposeInfo = new MethodArgumentInfo(disposeMethod, argumentsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments);
+                        patternDisposeInfo = new MethodArgumentInfo(disposeMethod, argumentsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments, expanded);
                         if (hasAwait)
                         {
                             awaitableType = disposeMethod.ReturnType;

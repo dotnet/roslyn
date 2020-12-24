@@ -804,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(specificGetEnumeratorMethod.Parameters[0].IsOptional);
 
                             // IAsyncEnumerable<T>.GetAsyncEnumerator has a default param, so let's fill it in
-                            builder.GetEnumeratorInfo = BindDefaultArguments(specificGetEnumeratorMethod, extensionReceiverOpt: null, allowExtensionMethods: false, expanded: false, diagnostics);
+                            builder.GetEnumeratorInfo = BindDefaultArguments(specificGetEnumeratorMethod, extensionReceiverOpt: null, allowExtensionMethods: false, expanded: false, collectionExpr.Syntax, diagnostics);
 
                             MethodSymbol moveNextAsync = (MethodSymbol)GetWellKnownTypeMember(Compilation, WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync,
                                 diagnostics, errorLocationSyntax.Location, isOptional: false);
@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             // We know that IEnumerable<T>.GetEnumerator has no parameters
-                            builder.GetEnumeratorInfo = new MethodArgumentInfo(specificGetEnumeratorMethod, Arguments: ImmutableArray<BoundExpression>.Empty, ArgsToParamsOpt: default, DefaultArguments: default);
+                            builder.GetEnumeratorInfo = MethodArgumentInfo.ParameterlessMethod(specificGetEnumeratorMethod);
                         }
 
                         MethodSymbol currentPropertyGetter = isAsync ?
@@ -839,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We're operating with well-known members: we know MoveNext/MoveNextAsync have no parameters
                     if (moveNextMethod is not null)
                     {
-                        builder.MoveNextInfo = new MethodArgumentInfo(moveNextMethod, Arguments: ImmutableArray<BoundExpression>.Empty, ArgsToParamsOpt: default, DefaultArguments: default);
+                        builder.MoveNextInfo = MethodArgumentInfo.ParameterlessMethod(moveNextMethod);
                     }
                 }
                 else
@@ -953,6 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var argsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
                     var argsToParams = default(ImmutableArray<int>);
+                    bool expanded = disposeMethod.HasParamsParameter();
 
                     BindDefaultArguments(
                         _syntax,
@@ -961,12 +962,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argumentRefKindsBuilder: null,
                         ref argsToParams,
                         out BitVector defaultArguments,
-                        expanded: disposeMethod.HasParamsParameter(),
+                        expanded,
                         enableCallerInfo: true,
                         diagnostics);
 
                     builder.NeedsDisposal = true;
-                    builder.PatternDisposeInfo = new MethodArgumentInfo(disposeMethod, argsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments);
+                    builder.PatternDisposeInfo = new MethodArgumentInfo(disposeMethod, argsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments, expanded);
                 }
                 patternDisposeDiags.Free();
             }
@@ -1177,6 +1178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var argsToParams = overloadResolutionResult.ValidResult.Result.ArgsToParamsOpt;
+                    var expanded = overloadResolutionResult.ValidResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
                     BindDefaultArguments(
                         _syntax,
                         result.Parameters,
@@ -1184,11 +1186,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedArguments.RefKinds,
                         ref argsToParams,
                         out BitVector defaultArguments,
-                        expanded: overloadResolutionResult.ValidResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
+                        expanded,
                         enableCallerInfo: true,
                         diagnostics);
 
-                    info = new MethodArgumentInfo(result, analyzedArguments.Arguments.ToImmutable(), argsToParams, defaultArguments);
+                    info = new MethodArgumentInfo(result, analyzedArguments.Arguments.ToImmutable(), argsToParams, defaultArguments, expanded);
                 }
             }
             else if (overloadResolutionResult.GetAllApplicableMembers() is var applicableMembers && applicableMembers.Length > 1)
@@ -1237,11 +1239,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var collectionConversion = this.Conversions.ClassifyConversionFromExpression(collectionExpr, result.Parameters[0].Type, ref useSiteDiagnostics);
+                diagnostics.Add(_syntax, useSiteDiagnostics);
+
+                // Unconditionally convert here, to match what we set the ConvertedExpression to in the main BoundForEachStatement node.
+                collectionExpr = new BoundConversion(
+                    collectionExpr.Syntax,
+                    collectionExpr,
+                    collectionConversion,
+                    @checked: CheckOverflowAtRuntime,
+                    explicitCastInCode: false,
+                    conversionGroupOpt: null,
+                    ConstantValue.NotAvailable,
+                    result.Parameters[0].Type);
+
                 var info = BindDefaultArguments(
                     result,
                     collectionExpr,
                     allowExtensionMethods: true,
                     expanded: overloadResolutionResult.ValidResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
+                    collectionExpr.Syntax,
                     diagnostics);
                 methodGroupResolutionResult.Free();
                 analyzedArguments.Free();
@@ -1608,12 +1626,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodArgumentInfo GetSpecialTypeMemberInfo(SpecialMember member, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
             return (MethodSymbol)GetSpecialTypeMember(member, diagnostics, syntax) is { } resolvedMember
-                    ? new MethodArgumentInfo(resolvedMember, Arguments: ImmutableArray<BoundExpression>.Empty, ArgsToParamsOpt: default, DefaultArguments: default)
+                    ? MethodArgumentInfo.ParameterlessMethod(resolvedMember)
                     : null;
         }
 
         /// <param name="extensionReceiverOpt">If extension methods are allowed, this must be non-null.</param>
-        private MethodArgumentInfo BindDefaultArguments(MethodSymbol method, BoundExpression extensionReceiverOpt, bool allowExtensionMethods, bool expanded, DiagnosticBag diagnostics)
+        private MethodArgumentInfo BindDefaultArguments(MethodSymbol method, BoundExpression extensionReceiverOpt, bool allowExtensionMethods, bool expanded, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(!method.IsExtensionMethod || allowExtensionMethods);
             Debug.Assert(extensionReceiverOpt != null || !allowExtensionMethods);
@@ -1627,17 +1645,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<int> argsToParams = default;
             BindDefaultArguments(
-                _syntax,
+                syntax,
                 method.Parameters,
                 argsBuilder,
-                argumentRefKindsBuilder: default,
+                argumentRefKindsBuilder: null,
                 ref argsToParams,
                 defaultArguments: out BitVector defaultArguments,
                 expanded,
                 enableCallerInfo: true,
                 diagnostics);
 
-            return new MethodArgumentInfo(method, argsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments);
+            return new MethodArgumentInfo(method, argsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments, expanded);
         }
     }
 }

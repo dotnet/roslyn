@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (disposeInfo is null)
                 {
                     // Generate the info for IDisposable.Dispose(). We know it has no arguments.
-                    disposeInfo = new MethodArgumentInfo(disposeMethod, Arguments: ImmutableArray<BoundExpression>.Empty, ArgsToParamsOpt: default, DefaultArguments: default);
+                    disposeInfo = MethodArgumentInfo.ParameterlessMethod(disposeMethod);
                 }
 
                 disposeCall = MakeCallWithNoExplicitArgument(disposeInfo, syntax, disposedExpression);
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method,
                 methodArgumentInfo.Arguments,
                 argumentRefKindsOpt: default,
-                expanded: method.HasParamsParameter(),
+                expanded: methodArgumentInfo.Expanded,
                 invokedAsExtensionMethod: method.IsExtensionMethod,
                 methodArgumentInfo.ArgsToParamsOpt,
                 resultKind: LookupResultKind.Viable,

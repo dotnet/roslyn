@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -15,5 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         MethodSymbol Method,
         ImmutableArray<BoundExpression> Arguments,
         ImmutableArray<int> ArgsToParamsOpt,
-        BitVector DefaultArguments);
+        BitVector DefaultArguments,
+        bool Expanded)
+    {
+        public static MethodArgumentInfo ParameterlessMethod(MethodSymbol method)
+        {
+            Debug.Assert(method.ParameterCount == 0);
+            return new MethodArgumentInfo(method, Arguments: ImmutableArray<BoundExpression>.Empty, ArgsToParamsOpt: default, DefaultArguments: default, Expanded: false);
+        }
+    }
 }

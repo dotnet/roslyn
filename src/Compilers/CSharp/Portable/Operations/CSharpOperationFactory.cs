@@ -1646,14 +1646,14 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
                                                     enumeratorInfoOpt.CurrentConversion,
                                                     boundForEachStatement.ElementConversion,
-                                                    getEnumeratorArguments: enumeratorInfoOpt.GetEnumeratorInfo.Method is { IsExtensionMethod: true } enumeratorMethod
+                                                    getEnumeratorArguments: enumeratorInfoOpt.GetEnumeratorInfo is { Method: { IsExtensionMethod: true } } getEnumeratorInfo
                                                         ? Operation.SetParentOperation(
                                                             DeriveArguments(
-                                                                enumeratorMethod,
-                                                                enumeratorInfoOpt.GetEnumeratorInfo.Arguments,
+                                                                getEnumeratorInfo.Method,
+                                                                getEnumeratorInfo.Arguments,
                                                                 argumentsToParametersOpt: default,
-                                                                defaultArguments: default,
-                                                                expanded: false,
+                                                                getEnumeratorInfo.DefaultArguments,
+                                                                getEnumeratorInfo.Expanded,
                                                                 boundForEachStatement.Expression.Syntax,
                                                                 invokedAsExtensionMethod: true),
                                                             null)
@@ -2336,15 +2336,14 @@ namespace Microsoft.CodeAnalysis.Operations
                 return ImmutableArray<IArgumentOperation>.Empty;
             }
 
-            var expanded = patternDisposeInfo.Method.HasParamsParameter();
-            Debug.Assert(!expanded || patternDisposeInfo.Method.GetParameters().Last().OriginalDefinition.Type.IsSZArray());
+            Debug.Assert(!patternDisposeInfo.Expanded || patternDisposeInfo.Method.GetParameters().Last().OriginalDefinition.Type.IsSZArray());
 
             var args = DeriveArguments(
                             patternDisposeInfo.Method,
                             patternDisposeInfo.Arguments,
                             patternDisposeInfo.ArgsToParamsOpt,
                             patternDisposeInfo.DefaultArguments,
-                            expanded,
+                            patternDisposeInfo.Expanded,
                             syntax,
                             invokedAsExtensionMethod: false);
 

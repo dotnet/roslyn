@@ -127,18 +127,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var receiver = ConvertReceiverForInvocation(forEachSyntax, rewrittenExpression, getEnumeratorInfo.Method, enumeratorInfo.CollectionConversion, enumeratorInfo.CollectionType);
 
-            // If the GetEnumerator call is an extension method, then the first argument was left unconverted by initial binding. We want to replace
+            // If the GetEnumerator call is an extension method, then the first argument is the receiver. We want to replace
             // the first argument with our converted receiver and pass null as the receiver instead.
             if (getEnumeratorInfo.Method.IsExtensionMethod)
             {
-                Debug.Assert(getEnumeratorInfo.Arguments[0] is not BoundConversion { ExplicitCastInCode: false });
-                if (getEnumeratorInfo.Arguments[0] != receiver)
-                {
-                    var builder = ArrayBuilder<BoundExpression>.GetInstance(getEnumeratorInfo.Arguments.Length);
-                    builder.Add(receiver);
-                    builder.AddRange(getEnumeratorInfo.Arguments, 1, getEnumeratorInfo.Arguments.Length - 1);
-                    getEnumeratorInfo = getEnumeratorInfo with { Arguments = builder.ToImmutableAndFree() };
-                }
+                var builder = ArrayBuilder<BoundExpression>.GetInstance(getEnumeratorInfo.Arguments.Length);
+                builder.Add(receiver);
+                builder.AddRange(getEnumeratorInfo.Arguments, 1, getEnumeratorInfo.Arguments.Length - 1);
+                getEnumeratorInfo = getEnumeratorInfo with { Arguments = builder.ToImmutableAndFree() };
 
                 receiver = null;
             }
@@ -295,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (disposeInfo is null)
                 {
                     Debug.Assert(idisposableTypeSymbol is { });
-                    disposeInfo = new MethodArgumentInfo(disposeMethod, Arguments: ImmutableArray<BoundExpression>.Empty, ArgsToParamsOpt: default, DefaultArguments: default);
+                    disposeInfo = MethodArgumentInfo.ParameterlessMethod(disposeMethod);
                     receiver = ConvertReceiverForInvocation(forEachSyntax, boundEnumeratorVar, disposeMethod, receiverConversion, idisposableTypeSymbol);
                 }
                 else
