@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,13 +71,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 // order.  That way we provide results for the documents the user is working
                 // on faster than the rest of the solution.
                 var docTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
+
+                var seenItems = new HashSet<INavigateToSearchResult>(NavigateToSearchResultComparer.Instance);
                 if (docTrackingService != null)
                 {
-                    await SearchProjectsInPriorityOrderAsync(docTrackingService).ConfigureAwait(false);
+                    await SearchProjectsInPriorityOrderAsync(docTrackingService, seenItems).ConfigureAwait(false);
                 }
                 else
                 {
-                    await SearchAllProjectsAsync().ConfigureAwait(false);
+                    await SearchAllProjectsAsync(seenItems).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)
@@ -92,7 +95,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
-        private async Task SearchProjectsInPriorityOrderAsync(IDocumentTrackingService docTrackingService)
+        private async Task SearchProjectsInPriorityOrderAsync(
+            IDocumentTrackingService docTrackingService,
+            HashSet<INavigateToSearchResult> seenItems)
         {
             var processedProjects = new HashSet<Project>();
 
@@ -113,7 +118,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 // Search the active project first.  That way we can deliver results that are
                 // closer in scope to the user quicker without forcing them to do something like
                 // NavToInCurrentDoc
-                await Task.Run(() => SearchAsync(activeProject, priorityDocs), _cancellationToken).ConfigureAwait(false);
+                await Task.Run(() => SearchAsync(activeProject, priorityDocs, seenItems), _cancellationToken).ConfigureAwait(false);
             }
 
             // Now, process all visible docs that were not from the active project.
@@ -122,7 +127,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 // make sure we only process this project if we didn't already process it above.
                 if (processedProjects.Add(currentProject))
-                    tasks.Add(Task.Run(() => SearchAsync(currentProject, priorityDocs.ToImmutableArray()), _cancellationToken));
+                    tasks.Add(Task.Run(() => SearchAsync(currentProject, priorityDocs.ToImmutableArray(), seenItems), _cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -133,26 +138,29 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 // make sure we only process this project if we didn't already process it above.
                 if (processedProjects.Add(currentProject))
-                    tasks.Add(Task.Run(() => SearchAsync(currentProject, ImmutableArray<Document>.Empty), _cancellationToken));
+                    tasks.Add(Task.Run(() => SearchAsync(currentProject, ImmutableArray<Document>.Empty, seenItems), _cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        private async Task SearchAllProjectsAsync()
+        private async Task SearchAllProjectsAsync(HashSet<INavigateToSearchResult> seenItems)
         {
             // Search each project with an independent threadpool task.
             var searchTasks = _solution.Projects.Select(
-                p => Task.Run(() => SearchAsync(p, priorityDocuments: ImmutableArray<Document>.Empty), _cancellationToken)).ToArray();
+                p => Task.Run(() => SearchAsync(p, priorityDocuments: ImmutableArray<Document>.Empty, seenItems), _cancellationToken)).ToArray();
 
             await Task.WhenAll(searchTasks).ConfigureAwait(false);
         }
 
-        private async Task SearchAsync(Project project, ImmutableArray<Document> priorityDocuments)
+        private async Task SearchAsync(
+            Project project,
+            ImmutableArray<Document> priorityDocuments,
+            HashSet<INavigateToSearchResult> seenItems)
         {
             try
             {
-                await SearchCoreAsync(project, priorityDocuments).ConfigureAwait(false);
+                await SearchCoreAsync(project, priorityDocuments, seenItems).ConfigureAwait(false);
             }
             finally
             {
@@ -160,7 +168,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
-        private async Task SearchCoreAsync(Project project, ImmutableArray<Document> priorityDocuments)
+        private async Task SearchCoreAsync(
+            Project project,
+            ImmutableArray<Document> priorityDocuments,
+            HashSet<INavigateToSearchResult> seenItems)
         {
             if (_searchCurrentDocument && _currentDocument?.Project != project)
                 return;
@@ -182,6 +193,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         {
                             foreach (var result in results)
                             {
+                                lock (seenItems)
+                                {
+                                    if (!seenItems.Add(result))
+                                        continue;
+                                }
+
                                 await _callback.AddItemAsync(project, result, _cancellationToken).ConfigureAwait(false);
                             }
                         }
