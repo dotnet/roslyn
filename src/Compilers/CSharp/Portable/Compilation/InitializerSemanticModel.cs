@@ -278,7 +278,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool IsNullableAnalysisEnabled()
         {
-            return Compilation.IsNullableAnalysisEnabledIn(Root);
+            switch (MemberSymbol.Kind)
+            {
+                case SymbolKind.Field:
+                case SymbolKind.Property:
+                    return MemberSymbol.ContainingType is SourceMemberContainerTypeSymbol type && type.IsNullableEnabledForConstructorsAndInitializers(useStatic: MemberSymbol.IsStatic);
+                case SymbolKind.Parameter:
+                    return Root is ParameterSyntax { Default: { } equalsValue } && Compilation.IsNullableAnalysisEnabledIn(equalsValue);
+                default:
+                    Debug.Assert(false);
+                    return false;
+            }
         }
     }
 }

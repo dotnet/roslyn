@@ -214,6 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (binder is not null && parameterEqualsValue is not null && !_lazyDefaultSyntaxValue.IsBad)
                     {
                         var valueSyntax = parameterEqualsValue.Value.Syntax;
+                        Debug.Assert(valueSyntax.Parent.Kind() == SyntaxKind.EqualsValueClause);
                         NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, valueSyntax, diagnostics);
                         VerifyParamDefaultValueMatchesAttributeIfAny(_lazyDefaultSyntaxValue, valueSyntax, diagnostics);
                     }
@@ -258,7 +259,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (!NullableWalker.NeedsAnalysis(DeclaringCompilation, parameterSyntax))
+            // The syntax span used to determine whether the attribute value is in a nullable-enabled
+            // context is larger than necessary - it includes the entire attribute list rather than the specific
+            // default value attribute which is used in AttributeSemanticModel.IsNullableAnalysisEnabled().
+            var attributes = parameterSyntax.AttributeLists.Node;
+            if (attributes is null || !NullableWalker.NeedsAnalysis(DeclaringCompilation, attributes))
             {
                 return;
             }
