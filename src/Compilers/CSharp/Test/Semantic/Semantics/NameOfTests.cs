@@ -1545,7 +1545,6 @@ public class C1
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.RegularPreview,
                 expectedOutput: "Property,Field,Method,Event,Event,Property,Field,Method,Event,Event,Invoke").VerifyDiagnostics();
-            
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
