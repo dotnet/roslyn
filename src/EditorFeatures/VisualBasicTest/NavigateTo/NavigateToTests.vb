@@ -409,7 +409,7 @@ Partial Private Sub Bar()
 End Sub
 End Class", Async Function(w)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Bar")).Single()
-                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, String.Format(FeaturesResources.in_0_1_2, "Goo", "test1.vb", "Test"))
             End Function)
         End Function
 
