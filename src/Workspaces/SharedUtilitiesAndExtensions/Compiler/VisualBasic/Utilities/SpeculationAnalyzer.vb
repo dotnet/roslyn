@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         ''' </param>
         ''' <param name="failOnOverloadResolutionFailuresInOriginalCode">
         ''' True if semantic analysis should fail when any of the invocation expression ancestors of <paramref name="expression"/> in original code has overload resolution failures.
-        ''' </param>        
+        ''' </param>
         Public Sub New(expression As ExpressionSyntax, newExpression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken, Optional skipVerificationForReplacedNode As Boolean = False, Optional failOnOverloadResolutionFailuresInOriginalCode As Boolean = False)
             MyBase.New(expression, newExpression, semanticModel, cancellationToken, skipVerificationForReplacedNode, failOnOverloadResolutionFailuresInOriginalCode)
         End Sub
@@ -536,8 +536,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Protected Overrides Function ConversionsAreCompatible(originalExpression As ExpressionSyntax, originalTargetType As ITypeSymbol, newExpression As ExpressionSyntax, newTargetType As ITypeSymbol) As Boolean
-            Dim originalConversion As Conversion?
-            Dim newConversion As Conversion?
+            Dim originalConversion As Conversion? = Nothing
+            Dim newConversion As Conversion? = Nothing
 
             Me.GetConversions(originalExpression, originalTargetType, newExpression, newTargetType, originalConversion, newConversion)
 
