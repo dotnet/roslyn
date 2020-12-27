@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         Private Class AddMissingTokensRewriter
             Inherits AbstractTokensCodeCleanupProvider.Rewriter
 
-            Private ReadOnly _model As SemanticModel = Nothing
+            Private ReadOnly _model As SemanticModel
 
             Private Sub New(semanticModel As SemanticModel, spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken)
                 MyBase.New(spans, cancellationToken)
