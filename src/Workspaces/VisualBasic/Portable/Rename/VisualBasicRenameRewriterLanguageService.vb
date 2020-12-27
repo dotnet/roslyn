@@ -86,9 +86,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 End Get
             End Property
 
-            Private _skipRenameForComplexification As Integer = 0
+            Private _skipRenameForComplexification As Integer
             Private _isProcessingComplexifiedSpans As Boolean
-            Private _modifiedSubSpans As List(Of ValueTuple(Of TextSpan, TextSpan)) = Nothing
+            Private _modifiedSubSpans As List(Of ValueTuple(Of TextSpan, TextSpan))
             Private _speculativeModel As SemanticModel
             Private _isProcessingStructuredTrivia As Integer
             Private ReadOnly _complexifiedSpans As HashSet(Of TextSpan) = New HashSet(Of TextSpan)

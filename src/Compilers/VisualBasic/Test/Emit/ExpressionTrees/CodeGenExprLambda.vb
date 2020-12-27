@@ -1234,9 +1234,9 @@ Lambda(
 
         Private Class OperatorDescriptor
             Public TypeFrom As String
-            Public TypeFromLifted As Boolean = False
+            Public TypeFromLifted As Boolean
             Public TypeTo As String
-            Public TypeToLifted As Boolean = False
+            Public TypeToLifted As Boolean
             Public IsWidenning As Boolean
 
             Public ReadOnly Property Keyword As String

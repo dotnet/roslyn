@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CodeGen
     Public Class WinRTCollectionTests
         Inherits BasicTestBase
 
-        Private _legacyRefs As MetadataReference() = Nothing
+        Private _legacyRefs As MetadataReference()
 
         Public ReadOnly Property LegacyRefs As MetadataReference()
             Get

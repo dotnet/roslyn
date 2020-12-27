@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(ItemList.Item((ItemList.Count - 1)), children.Last.ToString)
             Assert.Equal(ItemList.Item(0), Enumerable.First(Of SyntaxNodeOrToken)(DirectCast(children, IEnumerable(Of SyntaxNodeOrToken))).ToString)
 
-            'Comparison operators = and <>   
+            'Comparison operators = and <>
             Dim xc As ChildSyntaxList = children
             Assert.Equal(xc, children)
             Assert.NotEqual(xc, New ChildSyntaxList)
@@ -1112,10 +1112,10 @@ End Class
             Inherits VisualBasicSyntaxRewriter
 
             ' Optional to control which rewritings we do
-            Public IncrementInts As Boolean = False
-            Public CapitalizeKeywords As Boolean = False
-            Public CapitalizeIdentifiers As Boolean = False
-            Public SwapParameters As Boolean = False
+            Public IncrementInts As Boolean
+            Public CapitalizeKeywords As Boolean
+            Public CapitalizeIdentifiers As Boolean
+            Public SwapParameters As Boolean
 
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
                 Select Case token.Kind
@@ -2127,7 +2127,7 @@ End Class
         Public Sub TestNodeTokenConversion02()
 
             Dim node As VisualBasicSyntaxNode = Nothing
-            ' This should not throw - it should convert to a 'null' (default) struct 
+            ' This should not throw - it should convert to a 'null' (default) struct
             Dim sn As SyntaxNodeOrToken = node
             Assert.True(sn.IsToken)
 
@@ -2591,7 +2591,7 @@ End Class
 ]]>.Value.Replace(vbLf, vbCrLf)
 
             Dim expected = <![CDATA[
-<A> <B> 
+<A> <B>
 Class Goo
 End Class
 ]]>.Value.Replace(vbLf, vbCrLf)
@@ -2846,7 +2846,7 @@ End Module
 
         <Fact>
         Public Sub TestSyntaxList_Failures()
-            'Validate the exceptions being generated when Invalid arguments are used for a TextSpan Constructor           
+            'Validate the exceptions being generated when Invalid arguments are used for a TextSpan Constructor
 
             Dim SourceText = <String>
 Imports System
@@ -2877,7 +2877,7 @@ End Module
 
         <Fact>
         Public Sub Test_CConst_CreateWithTypeCharacters()
-            'Added for Code Coverage 
+            'Added for Code Coverage
             Dim compilationDef =
 <compilation name="CConst.vb">
     <file name="a.vb">
@@ -3089,7 +3089,7 @@ End Module
         <WorkItem(111538, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=111538")>
         <WorkItem(658398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=658398")>
         Public Sub Test_UnaryOperatorsInvalid()
-            'Added for Code Coverage 
+            'Added for Code Coverage
             Dim compilationDef =
 <compilation name="CConst.vb">
     <file name="a.vb">
@@ -3502,7 +3502,7 @@ Module Module1
                              Select FirstLetter = Key, WordGroup = Group
 
     End Sub
-End Module            
+End Module
     </file>
 </compilation>)
 
@@ -3519,13 +3519,13 @@ End Module
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
 Module Module1
-    Sub Main()        
+    Sub Main()
         Try
         Catch ex As Exception When TypeOf (ex) Is ArgumentException
         Catch ex As Exception
         End Try
     End Sub
-End Module          
+End Module
     </file>
 </compilation>)
 
@@ -3542,11 +3542,11 @@ End Module
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
 Module Module1
-    Sub Main()        
+    Sub Main()
        Dim q = From c In {1, 2, 3, 4, 5, 3, 2}
        Select c Distinct
     End Sub
-End Module          
+End Module
     </file>
 </compilation>)
 
@@ -3566,8 +3566,8 @@ Module Module1
     Sub Main()
         Dim number As Integer = 8
         Select Case number
-            Case 1 To 5                
-            Case Else                
+            Case 1 To 5
+            Case Else
         End Select
     End Sub
 End Module
@@ -3589,24 +3589,24 @@ End Module
             Imports System
 
         Public Class ContainerClass
-            ' Module or class level declaration. 
+            ' Module or class level declaration.
             WithEvents Obj As New Class1
 
             Public Class Class1
-                ' Declare an event. 
+                ' Declare an event.
                 Public Event Ev_Event()
                 Sub CauseSomeEvent()
-                    ' Raise an event. 
+                    ' Raise an event.
                     RaiseEvent Ev_Event()
                 End Sub
             End Class
 
             Sub EventHandler() Handles Obj.Ev_Event
-                ' Handle the event.                
+                ' Handle the event.
             End Sub
 
-            ' Call the TestEvents procedure from an instance of the ContainerClass  
-            ' class to test the Ev_Event event and the event handler. 
+            ' Call the TestEvents procedure from an instance of the ContainerClass
+            ' class to test the Ev_Event event and the event handler.
             Public Sub TestEvents()
                 Obj.CauseSomeEvent()
             End Sub
@@ -3718,7 +3718,7 @@ End Module
                               where w = "cherry"
                               into count
                 End Sub
-                End Module            
+                End Module
     </file>
 </compilation>)
 
@@ -3782,12 +3782,12 @@ End Module
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
         Module Module1
-            Sub Main()        
+            Sub Main()
               Dim numbers() = {5, 4, 1, 3, 9, 8, 6, 7, 2, 0}
               Dim first3Numbers = from w in numbers
                                   Take(3)
             End Sub
-        End Module          
+        End Module
             </file>
 </compilation>)
 
@@ -3804,13 +3804,13 @@ End Module
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
                 Module Module1
-                    Sub Main()        
+                    Sub Main()
                    Dim numbers() = {5, 4, 1, 3, 9, 8, 6, 7, 2, 0}
                     Dim laterNumbers = from n in numbers
                                        Take While(3)
                                        Select i
                     End Sub
-                End Module          
+                End Module
     </file>
 </compilation>)
 
@@ -3889,7 +3889,7 @@ End Module
         Public Sub SyntaxWalkerMethod_VerifySkippedTokenTrivia()
             Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-    <file name="Test.vb">                
+    <file name="Test.vb">
                     OptImports System
                     Module Module1
                     Sub main
@@ -3909,7 +3909,7 @@ End Module
         Public Sub SyntaxWalkerMethod_VerifyInferredFieldName()
             Dim Compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-    <file name="Test.vb">                
+    <file name="Test.vb">
 Imports System
 Module Module1
     Sub Main()

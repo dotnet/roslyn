@@ -73,7 +73,7 @@ Public Module SyntaxTreeExtensions
         Inherits VisualBasicSyntaxWalker
 
         ReadOnly Dim builder As PooledStringBuilder
-        Dim indent As Integer = 0
+        Dim indent As Integer
 
         Sub New()
             builder = PooledStringBuilder.GetInstance()

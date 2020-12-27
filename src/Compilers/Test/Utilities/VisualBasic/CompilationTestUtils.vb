@@ -465,16 +465,16 @@ Friend Module CompilationUtils
     End Function
 
     Friend Class SemanticInfoSummary
-        Public Symbol As Symbol = Nothing
+        Public Symbol As Symbol
         Public CandidateReason As CandidateReason = CandidateReason.None
         Public CandidateSymbols As ImmutableArray(Of ISymbol) = ImmutableArray.Create(Of ISymbol)()
         Public AllSymbols As ImmutableArray(Of ISymbol) = ImmutableArray.Create(Of ISymbol)()
-        Public [Type] As ITypeSymbol = Nothing
-        Public ConvertedType As ITypeSymbol = Nothing
-        Public ImplicitConversion As Conversion = Nothing
+        Public [Type] As ITypeSymbol
+        Public ConvertedType As ITypeSymbol
+        Public ImplicitConversion As Conversion
         Public MemberGroup As ImmutableArray(Of ISymbol) = ImmutableArray.Create(Of ISymbol)()
-        Public [Alias] As IAliasSymbol = Nothing
-        Public ConstantValue As [Optional](Of Object) = Nothing
+        Public [Alias] As IAliasSymbol
+        Public ConstantValue As [Optional](Of Object)
     End Class
 
     <Extension()>
