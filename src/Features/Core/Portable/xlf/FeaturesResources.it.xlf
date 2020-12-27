@@ -2487,6 +2487,11 @@ L'identificatore di formato standard "f" rappresenta una combinazione degli sche
         <target state="translated">overload generici</target>
         <note />
       </trans-unit>
+      <trans-unit id="in_0_1_2">
+        <source>in {0} ({1} - {2})</source>
+        <target state="new">in {0} ({1} - {2})</target>
+        <note />
+      </trans-unit>
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">nell'origine (attributo)</target>

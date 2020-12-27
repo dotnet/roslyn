@@ -2487,6 +2487,11 @@ O especificador de formato padrão "f" representa uma combinação de padrões d
         <target state="translated">sobrecargas genéricas</target>
         <note />
       </trans-unit>
+      <trans-unit id="in_0_1_2">
+        <source>in {0} ({1} - {2})</source>
+        <target state="new">in {0} ({1} - {2})</target>
+        <note />
+      </trans-unit>
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">na Origem (atributo)</target>

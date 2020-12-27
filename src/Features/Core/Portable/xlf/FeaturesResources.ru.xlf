@@ -2487,6 +2487,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
         <target state="translated">универсальные перегрузки</target>
         <note />
       </trans-unit>
+      <trans-unit id="in_0_1_2">
+        <source>in {0} ({1} - {2})</source>
+        <target state="new">in {0} ({1} - {2})</target>
+        <note />
+      </trans-unit>
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">в источнике (атрибут)</target>
