@@ -17,8 +17,10 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.Loader;
 using System.Text;
+using System.Threading;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Roslyn.Test.Utilities.CoreClr
 {
@@ -85,7 +87,16 @@ namespace Roslyn.Test.Utilities.CoreClr
                     throw new Exception("Unrecognized entry point");
                 }
 
-                exitCode = entryPoint.Invoke(null, args) is int exit ? exit : 0;
+                var synchronizationContext = SynchronizationContext.Current;
+                try
+                {
+                    SynchronizationContext.SetSynchronizationContext(null);
+                    exitCode = entryPoint.Invoke(null, args) is int exit ? exit : 0;
+                }
+                finally
+                {
+                    SynchronizationContext.SetSynchronizationContext(synchronizationContext);
+                }
             }, expectedOutputLength ?? 0, out var stdOut, out var stdErr);
 
             var output = stdOut + stdErr;

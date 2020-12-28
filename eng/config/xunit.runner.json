@@ -1,5 +1,5 @@
 {
   "shadowCopy": false,
-  "parallelizeTestCollections": false,
+  "parallelizeTestCollections": true,
   "diagnosticMessages": false
 }

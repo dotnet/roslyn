@@ -444,25 +444,28 @@ public class C
                 => new StringBuilder(string.Format(ClassFmt,
                     string.Join("\r\n", fields.Select(f => $"public int {f} = 0;"))));
 
-            Parallel.ForEach(Partitioner.Create(0, methods.Count, PartitionSize), (range, state) =>
-            {
-                var methodsText = GetClassStart();
-
-                for (int methodIndex = range.Item1; methodIndex < range.Item2; methodIndex++)
+            Parallel.ForEach(
+                Partitioner.Create(0, methods.Count, PartitionSize),
+                new ParallelOptions() { TaskScheduler = TaskScheduler.Default },
+                (range, state) =>
                 {
-                    var methodInfo = methods[methodIndex];
+                    var methodsText = GetClassStart();
 
-                    if (methodInfo.TotalLocalFuncs == 0)
+                    for (int methodIndex = range.Item1; methodIndex < range.Item2; methodIndex++)
                     {
-                        continue;
+                        var methodInfo = methods[methodIndex];
+
+                        if (methodInfo.TotalLocalFuncs == 0)
+                        {
+                            continue;
+                        }
+
+                        SerializeMethod(methodInfo, methodsText, methodIndex);
                     }
 
-                    SerializeMethod(methodInfo, methodsText, methodIndex);
-                }
-
-                methodsText.AppendLine("\r\n}");
-                CreateCompilation(methodsText.ToString()).VerifyEmitDiagnostics();
-            });
+                    methodsText.AppendLine("\r\n}");
+                    CreateCompilation(methodsText.ToString()).VerifyEmitDiagnostics();
+                });
         }
     }
 }
