@@ -2831,4 +2831,13 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Format_document" xml:space="preserve">
     <value>Format document</value>
   </data>
+  <data name="Error_creating_instance_of_CodeFixProvider" xml:space="preserve">
+    <value>Error creating instance of CodeFixProvider</value>
+  </data>
+  <data name="Error_creating_instance_of_CodeFixProvider_0" xml:space="preserve">
+    <value>Error creating instance of CodeFixProvider '{0}'</value>
+  </data>
+  <data name="Removal_of_document_not_supported" xml:space="preserve">
+    <value>Removal of document not supported</value>
+  </data>
 </root>

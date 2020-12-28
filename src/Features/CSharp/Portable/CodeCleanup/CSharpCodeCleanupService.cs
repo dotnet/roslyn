@@ -72,10 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeCleanupService(
-            // will remove the AllowDefault once CodeFixService is moved to Features
-            // https://github.com/dotnet/roslyn/issues/27369
-            [Import(AllowDefault = true)] ICodeFixService? codeFixService)
+        public CSharpCodeCleanupService(ICodeFixService codeFixService)
             : base(codeFixService)
         {
         }
