@@ -417,17 +417,12 @@ return 0;
 
             await new VerifyCS.Test
             {
-                TestCode = code,
-                FixedCode = code,
-                SolutionTransforms =
+                TestState =
                 {
-                    (solution, projectId) =>
-                    {
-                        var project = solution.GetRequiredProject(projectId);
-                        var compilationOptions = project.CompilationOptions;
-                        return solution.WithProjectCompilationOptions(projectId, compilationOptions.WithOutputKind(OutputKind.ConsoleApplication));
-                    },
+                    Sources = { code },
+                    OutputKind = OutputKind.ConsoleApplication,
                 },
+                FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
@@ -444,6 +439,7 @@ return 0;
                 TestState =
                 {
                     Sources = { code, code },
+                    OutputKind = OutputKind.ConsoleApplication,
                 },
                 FixedState =
                 {
@@ -453,15 +449,6 @@ return 0;
                 {
                     // /0/Test1.cs(2,1): error CS8802: Only one compilation unit can have top-level statements.
                     DiagnosticResult.CompilerError("CS8802").WithSpan("/0/Test1.cs", 2, 1, 2, 7),
-                },
-                SolutionTransforms =
-                {
-                    (solution, projectId) =>
-                    {
-                        var project = solution.GetRequiredProject(projectId);
-                        var compilationOptions = project.CompilationOptions;
-                        return solution.WithProjectCompilationOptions(projectId, compilationOptions.WithOutputKind(OutputKind.ConsoleApplication));
-                    },
                 },
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
@@ -1258,7 +1245,7 @@ class C
             var source =
 @"class MyClass
 {
-    private int P { get; set; }
+    private int {|#0:P|} { get; set; }
     public void M()
     {
         P = 0;
@@ -1274,7 +1261,7 @@ class C
                 ExpectedDiagnostics =
                 {
                     // Test0.cs(3,17): info IDE0052: Private property 'MyClass.P' can be converted to a method as its get accessor is never invoked.
-                    VerifyCS.Diagnostic(descriptor).WithMessage(expectedMessage).WithSpan(3, 17, 3, 18),
+                    VerifyCS.Diagnostic(descriptor).WithMessage(expectedMessage).WithLocation(0),
                 },
                 FixedCode = source,
             }.RunAsync();
