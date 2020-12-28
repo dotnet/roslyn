@@ -1150,8 +1150,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return new WithParametersBinder(primaryConstructor.Parameters, nextBinder);
                     }
-
-                    return nextBinder;
                 }
 
                 // As in Dev11, we do not allow <param name="value"> on events.
