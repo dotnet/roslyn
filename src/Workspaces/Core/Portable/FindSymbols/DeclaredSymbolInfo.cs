@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         Struct,
     }
 
-    internal readonly struct DeclaredSymbolInfo
+    internal readonly struct DeclaredSymbolInfo : IEquatable<DeclaredSymbolInfo>
     {
         /// <summary>
         /// The name to pattern match against, and to show in a final presentation layer.
