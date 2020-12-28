@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 try
                 {
                     var declaredSymbolCount = reader.ReadInt32();
-                    using var _ = ArrayBuilder<DeclaredSymbolInfo>.GetInstance(out var result);
+                    using var _ = ArrayBuilder<DeclaredSymbolInfo>.GetInstance(declaredSymbolCount, out var result);
                     for (var i = 0; i < declaredSymbolCount; i++)
                         result.Add(DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(stringTable, reader));
 
