@@ -60,8 +60,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Private Shared Function GetIndexerPostambleParts(symbol As IPropertySymbol,
                                                   semanticModel As SemanticModel,
                                                   position As Integer) As IList(Of SymbolDisplayPart)
-            Dim parts = New List(Of SymbolDisplayPart)
-            parts.Add(Punctuation(SyntaxKind.CloseParenToken))
+            Dim parts = New List(Of SymbolDisplayPart) From {
+                Punctuation(SyntaxKind.CloseParenToken)
+            }
 
             Dim [property] = DirectCast(symbol, IPropertySymbol)
 

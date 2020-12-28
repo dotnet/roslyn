@@ -66,9 +66,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Private Shared Function GetDelegateInvokePostambleParts(invokeMethod As IMethodSymbol,
                                                          semanticModel As SemanticModel,
                                                          position As Integer) As IList(Of SymbolDisplayPart)
-            Dim parts = New List(Of SymbolDisplayPart)
-
-            parts.Add(Punctuation(SyntaxKind.CloseParenToken))
+            Dim parts = New List(Of SymbolDisplayPart) From {
+                Punctuation(SyntaxKind.CloseParenToken)
+            }
 
             If Not invokeMethod.ReturnsVoid Then
                 parts.Add(Space())

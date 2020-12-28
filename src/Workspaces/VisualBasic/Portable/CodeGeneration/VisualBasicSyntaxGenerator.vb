@@ -1255,8 +1255,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             If prop IsNot Nothing Then
                 prop = prop.WithModifiers(WithIsDefault(prop.Modifiers, GetIsDefault(prop.Modifiers) And allowDefault, GetDeclarationKind(declaration)))
 
-                Dim accessors = New List(Of AccessorBlockSyntax)
-                accessors.Add(CreateGetAccessorBlock(Nothing))
+                Dim accessors = New List(Of AccessorBlockSyntax) From {
+                    CreateGetAccessorBlock(Nothing)
+                }
 
                 If (Not prop.Modifiers.Any(SyntaxKind.ReadOnlyKeyword)) Then
                     accessors.Add(CreateSetAccessorBlock(prop.AsClause.Type, Nothing))
@@ -3533,8 +3534,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Function SplitAndInsert(multiPartDeclaration As SyntaxNode, subDeclarations As IReadOnlyList(Of SyntaxNode), index As Integer, newDeclarations As IEnumerable(Of SyntaxNode)) As IEnumerable(Of SyntaxNode)
             Dim count = subDeclarations.Count
-            Dim newNodes = New List(Of SyntaxNode)()
-            newNodes.Add(Me.WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace))
+            Dim newNodes = New List(Of SyntaxNode) From {
+                Me.WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace)
+            }
             newNodes.AddRange(newDeclarations)
             newNodes.Add(Me.WithSubDeclarationsRemoved(multiPartDeclaration, 0, index).WithLeadingTrivia(SyntaxFactory.ElasticSpace))
             Return newNodes

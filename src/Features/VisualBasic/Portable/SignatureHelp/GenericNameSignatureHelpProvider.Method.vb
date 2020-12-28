@@ -36,9 +36,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         End Function
 
         Private Shared Function GetPostambleParts(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
-            Dim result = New List(Of SymbolDisplayPart)()
-            result.Add(Punctuation(SyntaxKind.CloseParenToken))
-            result.Add(Punctuation(SyntaxKind.OpenParenToken))
+            Dim result = New List(Of SymbolDisplayPart) From {
+                Punctuation(SyntaxKind.CloseParenToken),
+                Punctuation(SyntaxKind.OpenParenToken)
+            }
 
             Dim first = True
             For Each parameter In method.Parameters

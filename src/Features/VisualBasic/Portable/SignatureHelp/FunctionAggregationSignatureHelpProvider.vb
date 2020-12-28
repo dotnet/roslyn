@@ -121,8 +121,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Private Shared Function GetPostambleParts(method As IMethodSymbol,
                                            semanticModel As SemanticModel,
                                            position As Integer) As IList(Of SymbolDisplayPart)
-            Dim parts = New List(Of SymbolDisplayPart)
-            parts.Add(Punctuation(SyntaxKind.CloseParenToken))
+            Dim parts = New List(Of SymbolDisplayPart) From {
+                Punctuation(SyntaxKind.CloseParenToken)
+            }
 
             If Not method.ReturnsVoid Then
                 parts.Add(Space())
@@ -150,11 +151,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                    delegateInvokeMethod.Parameters.Length = 1 AndAlso
                    Not delegateInvokeMethod.ReturnsVoid Then
 
-                    Dim parts = New List(Of SymbolDisplayPart)
-                    parts.Add(Text(VBWorkspaceResources.expression))
-                    parts.Add(Space())
-                    parts.Add(Keyword(SyntaxKind.AsKeyword))
-                    parts.Add(Space())
+                    Dim parts = New List(Of SymbolDisplayPart) From {
+                        Text(VBWorkspaceResources.expression),
+                        Space(),
+                        Keyword(SyntaxKind.AsKeyword),
+                        Space()
+                    }
                     parts.AddRange(delegateInvokeMethod.ReturnType.ToMinimalDisplayParts(semanticModel, position))
 
                     Dim sigHelpParameter = New SignatureHelpSymbolParameter(

@@ -312,9 +312,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     ' add whatever group we've built up to now. And reset the 
                     ' next group to empty.
                     result.Add(currentGroup)
-                    currentGroup = New List(Of TSyntaxNode)()
-
-                    currentGroup.Add(node)
+                    currentGroup = New List(Of TSyntaxNode) From {
+                        node
+                    }
                 Else
                     ' simple case.  just add ourselves to the current group
                     currentGroup.Add(node)

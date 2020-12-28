@@ -147,12 +147,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                DirectCast(namedParameter, IFieldSymbol).Type,
                                DirectCast(namedParameter, IPropertySymbol).Type)
 
-                Dim displayParts = New List(Of SymbolDisplayPart)
-
-                displayParts.Add(New SymbolDisplayPart(
+                Dim displayParts = New List(Of SymbolDisplayPart) From {
+                    New SymbolDisplayPart(
                     If(TypeOf namedParameter Is IFieldSymbol, SymbolDisplayPartKind.FieldName, SymbolDisplayPartKind.PropertyName),
-                    namedParameter, namedParameter.Name.ToIdentifierToken.ToString()))
-                displayParts.Add(Punctuation(SyntaxKind.ColonEqualsToken))
+                    namedParameter, namedParameter.Name.ToIdentifierToken.ToString()),
+                    Punctuation(SyntaxKind.ColonEqualsToken)
+                }
                 displayParts.AddRange(type.ToMinimalDisplayParts(semanticModel, position))
 
                 result.Add(New SignatureHelpSymbolParameter(

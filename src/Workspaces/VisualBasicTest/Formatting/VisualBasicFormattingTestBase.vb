@@ -32,9 +32,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
         End Function
 
         Protected Shared Function CreateMethod(ParamArray lines() As String) As String
-            Dim adjustedLines = New List(Of String)()
-            adjustedLines.Add("Class C")
-            adjustedLines.Add("    Sub Method()")
+            Dim adjustedLines = New List(Of String) From {
+                "Class C",
+                "    Sub Method()"
+            }
             adjustedLines.AddRange(lines)
             adjustedLines.Add("    End Sub")
             adjustedLines.Add("End Class")
@@ -58,8 +59,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
 
                 ' Test various entry points into the formatter
 
-                Dim spans = New List(Of TextSpan)()
-                spans.Add(syntaxTree.GetRoot().FullSpan)
+                Dim spans = New List(Of TextSpan) From {
+                    syntaxTree.GetRoot().FullSpan
+                }
 
                 Dim changes = Formatter.GetFormattedTextChanges(Await syntaxTree.GetRootAsync(), workspace, cancellationToken:=CancellationToken.None)
                 AssertResult(expected, Await document.GetTextAsync(), changes)
@@ -67,8 +69,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
                 changes = Formatter.GetFormattedTextChanges(Await syntaxTree.GetRootAsync(), (Await syntaxTree.GetRootAsync()).FullSpan, workspace, cancellationToken:=CancellationToken.None)
                 AssertResult(expected, Await document.GetTextAsync(), changes)
 
-                spans = New List(Of TextSpan)()
-                spans.Add(syntaxTree.GetRoot().FullSpan)
+                spans = New List(Of TextSpan) From {
+                    syntaxTree.GetRoot().FullSpan
+                }
 
                 changes = Formatter.GetFormattedTextChanges(Await syntaxTree.GetRootAsync(), spans, workspace, cancellationToken:=CancellationToken.None)
                 AssertResult(expected, Await document.GetTextAsync(), changes)

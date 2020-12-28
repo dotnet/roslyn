@@ -43,8 +43,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                                                methodDeclaration.Kind <> SyntaxKind.OperatorStatement
 
             ' Compute a simple list of the "standard" recommendations assuming nothing special is going on
-            Dim defaultRecommendations As New List(Of RecommendedKeyword)
-            defaultRecommendations.Add(New RecommendedKeyword("ByVal", VBFeaturesResources.Specifies_that_an_argument_is_passed_in_such_a_way_that_the_called_procedure_or_property_cannot_change_the_underlying_value_of_the_argument_in_the_calling_code))
+            Dim defaultRecommendations As New List(Of RecommendedKeyword) From {
+                New RecommendedKeyword("ByVal", VBFeaturesResources.Specifies_that_an_argument_is_passed_in_such_a_way_that_the_called_procedure_or_property_cannot_change_the_underlying_value_of_the_argument_in_the_calling_code)
+            }
 
             If byRefAllowed Then
                 defaultRecommendations.Add(New RecommendedKeyword("ByRef", VBFeaturesResources.Specifies_that_an_argument_is_passed_in_such_a_way_that_the_called_procedure_can_change_the_underlying_value_of_the_argument_in_the_calling_code))
