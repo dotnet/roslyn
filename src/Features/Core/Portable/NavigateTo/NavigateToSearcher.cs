@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -65,22 +64,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 using var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search");
                 _progress.AddItems(_solution.Projects.Count());
 
-                var workspace = _solution.Workspace;
-
-                // If the workspace is tracking documents, use that to prioritize our search
-                // order.  That way we provide results for the documents the user is working
-                // on faster than the rest of the solution.
-                var docTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
-
-                var seenItems = new HashSet<INavigateToSearchResult>(NavigateToSearchResultComparer.Instance);
-                if (docTrackingService != null)
-                {
-                    await SearchProjectsInPriorityOrderAsync(docTrackingService, seenItems).ConfigureAwait(false);
-                }
-                else
-                {
-                    await SearchAllProjectsAsync(seenItems).ConfigureAwait(false);
-                }
+                await SearchAllProjectsAsync().ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -95,11 +79,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
-        private async Task SearchProjectsInPriorityOrderAsync(
-            IDocumentTrackingService docTrackingService,
-            HashSet<INavigateToSearchResult> seenItems)
+        private async Task SearchAllProjectsAsync()
         {
+            var seenItems = new HashSet<INavigateToSearchResult>(NavigateToSearchResultComparer.Instance);
             var processedProjects = new HashSet<Project>();
+
+            // If the workspace is tracking documents, use that to prioritize our search
+            // order.  That way we provide results for the documents the user is working
+            // on faster than the rest of the solution.
+            var docTrackingService = _solution.Workspace.Services.GetService<IDocumentTrackingService>() ?? NoOpDocumentTrackingService.Instance;
 
             var activeDocument = docTrackingService.GetActiveDocument(_solution);
             var visibleDocs = docTrackingService.GetVisibleDocuments(_solution)
@@ -142,15 +130,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
-        }
-
-        private async Task SearchAllProjectsAsync(HashSet<INavigateToSearchResult> seenItems)
-        {
-            // Search each project with an independent threadpool task.
-            var searchTasks = _solution.Projects.Select(
-                p => Task.Run(() => SearchAsync(p, priorityDocuments: ImmutableArray<Document>.Empty, seenItems), _cancellationToken)).ToArray();
-
-            await Task.WhenAll(searchTasks).ConfigureAwait(false);
         }
 
         private async Task SearchAsync(
