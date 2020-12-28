@@ -2115,6 +2115,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">“{0}”不能为 null 或空白。</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_dash_1">
+        <source>{0} - {1}</source>
+        <target state="new">{0} - {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">“{0}”在此处不为 null。</target>
