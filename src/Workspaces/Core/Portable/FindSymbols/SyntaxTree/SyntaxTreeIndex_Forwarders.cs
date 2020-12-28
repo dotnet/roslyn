@@ -43,6 +43,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ContainsGlobalAttributes => _contextInfo.ContainsGlobalAttributes;
 
         private HashSet<DeclaredSymbolInfo> _declaredSymbolInfoSet;
+
+        /// <summary>
+        /// Same as <see cref="DeclaredSymbolInfos"/>, just stored as a set for easy containment checks.
+        /// </summary>
         public HashSet<DeclaredSymbolInfo> DeclaredSymbolInfoSet => _declaredSymbolInfoSet ??= new HashSet<DeclaredSymbolInfo>(DeclaredSymbolInfos);
     }
 }
