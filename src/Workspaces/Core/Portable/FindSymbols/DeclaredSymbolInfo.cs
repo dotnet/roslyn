@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -155,9 +154,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             writer.WriteInt32(InheritanceNames.Length);
 
             foreach (var name in InheritanceNames)
-            {
                 writer.WriteString(name);
-            }
         }
 
         internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(StringTable stringTable, ObjectReader reader)
@@ -173,9 +170,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var inheritanceNamesLength = reader.ReadInt32();
             var builder = ArrayBuilder<string>.GetInstance(inheritanceNamesLength);
             for (var i = 0; i < inheritanceNamesLength; i++)
-            {
                 builder.Add(reader.ReadString());
-            }
 
             var span = new TextSpan(spanStart, spanLength);
             return new DeclaredSymbolInfo(
@@ -213,5 +208,26 @@ $@"Invalid span in {nameof(DeclaredSymbolInfo)}.
                 return null;
             }
         }
+
+        public override bool Equals(object? obj)
+            => obj is DeclaredSymbolInfo info && Equals(info);
+
+        public bool Equals(DeclaredSymbolInfo other)
+            => Name == other.Name
+               && NameSuffix == other.NameSuffix
+               && ContainerDisplayName == other.ContainerDisplayName
+               && FullyQualifiedContainerName == other.FullyQualifiedContainerName
+               && Span.Equals(other.Span)
+               && _flags == other._flags
+               && InheritanceNames.SequenceEqual(other.InheritanceNames, arg: true, (s1, s2, _) => s1 == s2);
+
+        public override int GetHashCode()
+            => Hash.Combine(Name,
+               Hash.Combine(NameSuffix,
+               Hash.Combine(ContainerDisplayName,
+               Hash.Combine(FullyQualifiedContainerName,
+               Hash.Combine(Span.GetHashCode(),
+               Hash.Combine((int)_flags,
+               Hash.CombineValues(InheritanceNames)))))));
     }
 }

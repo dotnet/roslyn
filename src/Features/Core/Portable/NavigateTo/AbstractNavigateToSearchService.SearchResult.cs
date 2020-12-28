@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -17,16 +19,16 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             private static readonly char[] s_dotArray = { '.' };
 
-            public string Name { get; }
             public string AdditionalInformation { get; }
             public string Kind { get; }
             public NavigateToMatchKind MatchKind { get; }
-            public INavigableItem NavigableItem { get; }
             public bool IsCaseSensitive { get; }
+            public string Name { get; }
             public ImmutableArray<TextSpan> NameMatchSpans { get; }
             public string SecondarySort { get; }
-
             public string? Summary => null;
+
+            public INavigableItem NavigableItem { get; }
 
             public SearchResult(
                 Document document,
@@ -35,7 +37,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 NavigateToMatchKind matchKind,
                 bool isCaseSensitive,
                 INavigableItem navigableItem,
-                ImmutableArray<TextSpan> nameMatchSpans)
+                ImmutableArray<TextSpan> nameMatchSpans,
+                ImmutableArray<Project> additionalMatchingProjects)
             {
                 Name = declaredSymbolInfo.Name;
                 Kind = kind;
@@ -43,25 +46,63 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 IsCaseSensitive = isCaseSensitive;
                 NavigableItem = navigableItem;
                 NameMatchSpans = nameMatchSpans;
-                AdditionalInformation = ComputeAdditionalInfo(document, declaredSymbolInfo);
+                AdditionalInformation = ComputeAdditionalInfo(document, declaredSymbolInfo, additionalMatchingProjects);
                 SecondarySort = ConstructSecondarySortString(document, declaredSymbolInfo);
             }
 
-            private static string ComputeAdditionalInfo(Document document, DeclaredSymbolInfo info)
+            private static string ComputeAdditionalInfo(Document document, DeclaredSymbolInfo info, ImmutableArray<Project> additionalMatchingProjects)
             {
+                var projectName = ComputeProjectName(document, additionalMatchingProjects);
+
                 // For partial types, state what file they're in so the user can disambiguate the results.
                 if (info.IsPartial)
                 {
                     return IsNonNestedNamedType(info)
                         ? string.Format(FeaturesResources._0_1, document.Name, document.Project.Name)
-                        : string.Format(FeaturesResources.in_0_1_2, info.ContainerDisplayName, document.Name, document.Project.Name);
+                        : string.Format(FeaturesResources.in_0_1_2, info.ContainerDisplayName, document.Name, projectName);
                 }
                 else
                 {
                     return IsNonNestedNamedType(info)
-                        ? string.Format(FeaturesResources.project_0, document.Project.Name)
-                        : string.Format(FeaturesResources.in_0_project_1, info.ContainerDisplayName, document.Project.Name);
+                        ? string.Format(FeaturesResources.project_0, projectName)
+                        : string.Format(FeaturesResources.in_0_project_1, info.ContainerDisplayName, projectName);
                 }
+            }
+
+            private static string ComputeProjectName(Document document, ImmutableArray<Project> additionalMatchingProjects)
+            {
+                // If there aren't any additional matches in other projects, we don't need to merge anything.
+                if (additionalMatchingProjects.Length > 0)
+                {
+                    // First get the simple project name and flavor for the actual project we got a hit in.  If we can't
+                    // figure this out, we can't create a merged name.
+                    var firstProject = document.Project;
+                    var (firstProjectName, firstProjectFlavor) = firstProject.State.NameAndFlavor;
+                    if (firstProjectName != null)
+                    {
+
+                        using var _ = ArrayBuilder<string>.GetInstance(out var flavors);
+                        flavors.Add(firstProjectFlavor!);
+
+                        // Now, do the same for the other projects where we had a match. As above, if we can't figure out the
+                        // simple name/flavor, or if the simple project name doesn't match the simple project name we started
+                        // with then we can't merge these.
+                        foreach (var additionalProject in additionalMatchingProjects)
+                        {
+                            var (projectName, projectFlavor) = additionalProject.State.NameAndFlavor;
+                            if (projectName == firstProjectName)
+                                flavors.Add(projectFlavor!);
+                        }
+
+                        flavors.RemoveDuplicates();
+                        flavors.Sort();
+
+                        return $"{firstProjectName} ({string.Join(", ", flavors)})";
+                    }
+                }
+
+                // Couldn't compute a merged project name (or only had one project).  Just return the name of hte project itself.
+                return document.Project.Name;
             }
 
             private static bool IsNonNestedNamedType(DeclaredSymbolInfo info)
