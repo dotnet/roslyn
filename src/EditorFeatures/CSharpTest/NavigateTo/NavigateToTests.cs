@@ -1202,6 +1202,70 @@ testHost, @"class C
         }
 
         [Fact]
+        public async Task DoNotIncludeTrivialPartialContainerWithMultipleNestedTypes()
+        {
+            using var workspace = TestWorkspace.Create(@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"">
+            public partial class Outer
+            {
+                public void VisibleMethod() { }
+            }
+        </Document>
+        <Document FilePath=""File2.cs"">
+            public partial class Outer
+            {
+                public partial class Inner1 { }
+                public partial class Inner2 { }
+            }
+        </Document>
+    </Project>
+</Workspace>
+", composition: EditorTestCompositions.EditorFeatures);
+
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+            _aggregator = new NavigateToTestAggregator(_provider);
+
+            VerifyNavigateToResultItems(
+                new()
+                {
+                    new NavigateToItem("Outer", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
+                },
+                await _aggregator.GetItemsAsync("Outer"));
+        }
+
+        [Fact]
+        public async Task DoNotIncludeWhenAllAreTrivialPartialContainer()
+        {
+            using var workspace = TestWorkspace.Create(@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"">
+            public partial class Outer
+            {
+                public partial class Inner1 { }
+            }
+        </Document>
+        <Document FilePath=""File2.cs"">
+            public partial class Outer
+            {
+                public partial class Inner2 { }
+            }
+        </Document>
+    </Project>
+</Workspace>
+", composition: EditorTestCompositions.EditorFeatures);
+
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+            _aggregator = new NavigateToTestAggregator(_provider);
+
+            VerifyNavigateToResultItems(
+                new() { },
+                await _aggregator.GetItemsAsync("Outer"));
+        }
+
+        [Fact]
         public async Task DoIncludeNonTrivialPartialContainer()
         {
             using var workspace = TestWorkspace.Create(@"
@@ -1230,6 +1294,67 @@ testHost, @"class C
                 new()
                 {
                     new NavigateToItem("Outer", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
+                    new NavigateToItem("Outer", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
+                },
+                await _aggregator.GetItemsAsync("Outer"));
+        }
+
+        [Fact]
+        public async Task DoIncludeNonTrivialPartialContainerWithNestedType()
+        {
+            using var workspace = TestWorkspace.Create(@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"">
+            public partial class Outer
+            {
+                public void VisibleMethod() { }
+            }
+        </Document>
+        <Document FilePath=""File2.cs"">
+            public partial class Outer
+            {
+                public void VisibleMethod2() { }
+                public class Inner { }
+            }
+        </Document>
+    </Project>
+</Workspace>
+", composition: EditorTestCompositions.EditorFeatures);
+
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+            _aggregator = new NavigateToTestAggregator(_provider);
+
+            VerifyNavigateToResultItems(
+                new()
+                {
+                    new NavigateToItem("Outer", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
+                    new NavigateToItem("Outer", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
+                },
+                await _aggregator.GetItemsAsync("Outer"));
+        }
+
+        [Fact]
+        public async Task DoIncludePartialWithNoContents()
+        {
+            using var workspace = TestWorkspace.Create(@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"">
+            public partial class Outer
+            {
+            }
+        </Document>
+    </Project>
+</Workspace>
+", composition: EditorTestCompositions.EditorFeatures);
+
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+            _aggregator = new NavigateToTestAggregator(_provider);
+
+            VerifyNavigateToResultItems(
+                new()
+                {
                     new NavigateToItem("Outer", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
                 },
                 await _aggregator.GetItemsAsync("Outer"));
