@@ -930,7 +930,7 @@
     [async] using var x = ..., y = ...;
   -->
   <Node Name="BoundUsingLocalDeclarations" Base="BoundMultipleLocalDeclarationsBase">
-    <Field Name="PatternDisposeInfoOpt" Type="PatternDisposeInfo?"/>
+    <Field Name="PatternDisposeInfoOpt" Type="MethodArgumentInfo?"/>
     <Field Name="IDisposableConversion" Type="Conversion"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
   </Node>
@@ -1100,7 +1100,7 @@
     <Field Name="IDisposableConversion" Type="Conversion" />
     <Field Name="Body" Type="BoundStatement"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
-    <Field Name="PatternDisposeInfoOpt" Type="PatternDisposeInfo?"/>
+    <Field Name="PatternDisposeInfoOpt" Type="MethodArgumentInfo?"/>
   </Node>
 
   <Node Name="BoundFixedStatement" Base="BoundStatement">

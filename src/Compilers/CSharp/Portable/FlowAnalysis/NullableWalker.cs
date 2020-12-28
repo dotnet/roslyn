@@ -8487,19 +8487,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol? reinferredGetEnumeratorMethod = null;
 
-            if (node.EnumeratorInfoOpt?.GetEnumeratorInfo.Method is { IsExtensionMethod: true, Parameters: var parameters } enumeratorMethod)
+            if (node.EnumeratorInfoOpt?.GetEnumeratorInfo is { Method: { IsExtensionMethod: true, Parameters: var parameters } } enumeratorMethodInfo)
             {
                 // this is case 7
+                // We do not need to do this same analysis for non-extension methods because they do not have generic parameters that
+                // can be inferred from usage like extension methods can. We don't warn about default arguments at the call site, so
+                // there's nothing that can be learned from the non-extension case.
                 var (method, results, _) = VisitArguments(
                     node,
-                    ImmutableArray.Create(node.Expression),
+                    enumeratorMethodInfo.Arguments,
                     refKindsOpt: default,
                     parameters,
-                    argsToParamsOpt: default,
-                    defaultArguments: default,
+                    argsToParamsOpt: enumeratorMethodInfo.ArgsToParamsOpt,
+                    defaultArguments: enumeratorMethodInfo.DefaultArguments,
                     expanded: false,
                     invokedAsExtensionMethod: true,
-                    enumeratorMethod);
+                    enumeratorMethodInfo.Method);
 
                 targetTypeWithAnnotations = results[0].LValueType;
                 reinferredGetEnumeratorMethod = method;
