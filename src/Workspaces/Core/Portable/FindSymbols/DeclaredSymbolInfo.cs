@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -119,7 +117,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ((isNestedType ? 1u : 0u) << 16);
         }
 
-        public static string Intern(StringTable stringTable, string name)
+        [return: NotNullIfNotNull("name")]
+        public static string? Intern(StringTable stringTable, string? name)
             => name == null ? null : stringTable.Add(name);
 
         private static DeclaredSymbolInfoKind GetKind(uint flags)
@@ -149,9 +148,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             writer.WriteInt32(InheritanceNames.Length);
 
             foreach (var name in InheritanceNames)
-            {
                 writer.WriteString(name);
-            }
         }
 
         internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(StringTable stringTable, ObjectReader reader)
@@ -167,9 +164,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var inheritanceNamesLength = reader.ReadInt32();
             var builder = ArrayBuilder<string>.GetInstance(inheritanceNamesLength);
             for (var i = 0; i < inheritanceNamesLength; i++)
-            {
                 builder.Add(reader.ReadString());
-            }
 
             var span = new TextSpan(spanStart, spanLength);
             return new DeclaredSymbolInfo(
@@ -186,7 +181,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 typeParameterCount: GetTypeParameterCount(flags));
         }
 
-        public ISymbol TryResolve(SemanticModel semanticModel, CancellationToken cancellationToken)
+        public ISymbol? TryResolve(SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
             if (root.FullSpan.Contains(this.Span))
@@ -207,33 +202,23 @@ $@"Invalid span in {nameof(DeclaredSymbolInfo)}.
             }
         }
 
-        public override bool Equals(object obj)
-        {
-            return obj is DeclaredSymbolInfo info && Equals(info);
-        }
+        public override bool Equals(object? obj)
+            => obj is DeclaredSymbolInfo info && Equals(info);
 
         public bool Equals(DeclaredSymbolInfo other)
-        {
-            return Name == other.Name
-                && NameSuffix == other.NameSuffix
-                && ContainerDisplayName == other.ContainerDisplayName
-                && FullyQualifiedContainerName == other.FullyQualifiedContainerName
-                && Span.Equals(other.Span)
-                && _flags == other._flags
-                && InheritanceNames.Equals(other.InheritanceNames);
-        }
+            => Name == other.Name
+               && NameSuffix == other.NameSuffix
+               && ContainerDisplayName == other.ContainerDisplayName
+               && FullyQualifiedContainerName == other.FullyQualifiedContainerName
+               && Span.Equals(other.Span)
+               && _flags == other._flags
+               && InheritanceNames.SequenceEqual(other.InheritanceNames, arg: true, (s1, s2, _) => s1 == s2);
 
         public override int GetHashCode()
-        {
-            var hashCode = 767621558;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(NameSuffix);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(ContainerDisplayName);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(FullyQualifiedContainerName);
-            hashCode = hashCode * -1521134295 + Span.GetHashCode();
-            hashCode = hashCode * -1521134295 + _flags.GetHashCode();
-            hashCode = hashCode * -1521134295 + InheritanceNames.GetHashCode();
-            return hashCode;
-        }
+            => Hash.Combine(Name,
+               Hash.Combine(NameSuffix,
+               Hash.Combine(ContainerDisplayName,
+               Hash.Combine(FullyQualifiedContainerName,
+               Hash.Combine(Span.GetHashCode(), (int)_flags)))));
     }
 }
