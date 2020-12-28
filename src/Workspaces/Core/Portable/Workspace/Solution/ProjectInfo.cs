@@ -370,7 +370,6 @@ namespace Microsoft.CodeAnalysis
             private static readonly Regex s_projectNameAndFlavor = new Regex(@"^(?<name>.*?)\s*\((?<flavor>.*?)\)$", RegexOptions.Compiled);
 
             private Checksum? _lazyChecksum;
-            private (string? name, string? flavor)? _lazyFlavorInfo;
 
             /// <summary>
             /// The unique Id of the project.
@@ -393,16 +392,7 @@ namespace Microsoft.CodeAnalysis
             /// <c>Microsoft.CodeAnalysis.Workspace</c> and the flavor <c>netcoreapp3.1</c>.  Values may be null <see
             /// langword="null"/> if the name does not contain a flavor.
             /// </summary>
-            public (string? name, string? flavor) NameAndFlavor => _lazyFlavorInfo ??= ComputeFlavorInfo();
-
-            private (string? name, string? flavor) ComputeFlavorInfo()
-            {
-                var match = s_projectNameAndFlavor.Match(Name);
-                if (match?.Success != true)
-                    return default;
-
-                return (match.Groups["name"].Value, match.Groups["flavor"].Value);
-            }
+            public (string? name, string? flavor) NameAndFlavor { get; }
 
             /// <summary>
             /// The name of the assembly that this project will create, without file extension.
@@ -492,6 +482,10 @@ namespace Microsoft.CodeAnalysis
                 HasAllInformation = hasAllInformation;
                 RunAnalyzers = runAnalyzers;
                 TelemetryId = telemetryId;
+
+                var match = s_projectNameAndFlavor.Match(Name);
+                if (match?.Success == true)
+                    NameAndFlavor = (match.Groups["name"].Value, match.Groups["flavor"].Value);
             }
 
             public ProjectAttributes With(
