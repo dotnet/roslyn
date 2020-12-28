@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -35,6 +37,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 expectedInterfaceCode);
         }
 
+        public static async Task TestExtractInterfaceCodeActionCSharpAsync(
+            string markup,
+            string expectedMarkup)
+        {
+            await TestExtractInterfaceCodeActionAsync(
+                markup,
+                LanguageNames.CSharp,
+                expectedMarkup);
+        }
+
         public static async Task TestExtractInterfaceCommandVisualBasicAsync(
             string markup,
             bool expectedSuccess,
@@ -57,6 +69,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 expectedUpdatedOriginalDocumentCode,
                 expectedInterfaceCode,
                 new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace: rootNamespace));
+        }
+
+        public static async Task TestExtractInterfaceCodeActionVisualBasicAsync(
+            string markup,
+            string expectedMarkup)
+        {
+            await TestExtractInterfaceCodeActionAsync(
+                markup,
+                LanguageNames.VisualBasic,
+                expectedMarkup);
         }
 
         private static async Task TestExtractInterfaceCommandAsync(
@@ -120,6 +142,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 {
                     Assert.False(result.Succeeded);
                 }
+            }
+        }
+
+        private static async Task TestExtractInterfaceCodeActionAsync(
+            string markup,
+            string languageName,
+            string expectedMarkup,
+            CompilationOptions compilationOptions = null)
+        {
+            using (var testState = ExtractInterfaceTestState.Create(markup, languageName, compilationOptions))
+            {
+                var updatedSolution = await testState.ExtractViaCodeAction();
+                var updatedDocument = updatedSolution.GetDocument(testState.ExtractFromDocument.Id);
+                var updatedCode = (await updatedDocument.GetTextAsync()).ToString();
+                Assert.Equal(expectedMarkup, updatedCode);
             }
         }
     }

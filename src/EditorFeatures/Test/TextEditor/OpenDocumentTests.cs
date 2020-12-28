@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -23,10 +26,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
             // We want to assert that if the open document is linked into multiple projects, we
             // update all documents at the same time with the changed text. Otherwise things will get
             // out of sync.
-            var exportProvider = TestExportProvider.MinimumExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider();
+            var hostServices = EditorTestCompositions.EditorFeatures.GetHostServices();
 
-            using var workspace = new AdhocWorkspace();
-            var textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
+            using var workspace = new AdhocWorkspace(hostServices);
+            var textBufferFactoryService = ((IMefHostExportProvider)hostServices).GetExports<ITextBufferFactoryService>().Single().Value;
             var buffer = textBufferFactoryService.CreateTextBuffer("Hello", textBufferFactoryService.TextContentType);
             var sourceTextContainer = buffer.AsTextContainer();
 

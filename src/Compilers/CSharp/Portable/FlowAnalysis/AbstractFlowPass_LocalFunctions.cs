@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-
-#nullable enable
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -51,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _localFuncVarUsages ??= new SmallDictionary<LocalFunctionSymbol, TLocalFunctionState>();
 
-            if (!_localFuncVarUsages.TryGetValue(localFunc, out TLocalFunctionState usages))
+            if (!_localFuncVarUsages.TryGetValue(localFunc, out TLocalFunctionState? usages))
             {
                 usages = CreateLocalFunctionState();
                 _localFuncVarUsages[localFunc] = usages;
@@ -61,6 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement localFunc)
         {
+            if (localFunc.Symbol.IsExtern)
+            {
+                // an extern local function is not permitted to have a body and thus shouldn't be flow analyzed
+                return null;
+            }
+
             var oldSymbol = this.CurrentSymbol;
             var localFuncSymbol = localFunc.Symbol;
             this.CurrentSymbol = localFuncSymbol;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -170,7 +172,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool IsEarlyDecodedWellKnownAttributeDataComputed
         {
-            get { return IsPartComplete(CustomAttributeBagCompletionPart.EarlyDecodedWellKnownAttributeData); }
+            get
+            {
+                bool earlyComplete = IsPartComplete(CustomAttributeBagCompletionPart.EarlyDecodedWellKnownAttributeData);
+                // If late attributes are complete, early attributes must also be complete
+                Debug.Assert(!IsPartComplete(CustomAttributeBagCompletionPart.DecodedWellKnownAttributeData) || earlyComplete);
+                return earlyComplete;
+            }
         }
 
         /// <summary>
@@ -179,7 +187,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool IsDecodedWellKnownAttributeDataComputed
         {
-            get { return IsPartComplete(CustomAttributeBagCompletionPart.DecodedWellKnownAttributeData); }
+            get
+            {
+                bool attributesComplete = IsPartComplete(CustomAttributeBagCompletionPart.DecodedWellKnownAttributeData);
+                // If late attributes are complete, early attributes must also be complete
+                Debug.Assert(!attributesComplete || IsPartComplete(CustomAttributeBagCompletionPart.EarlyDecodedWellKnownAttributeData));
+                return attributesComplete;
+            }
         }
 
         /// <summary>

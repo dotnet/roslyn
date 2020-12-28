@@ -12,9 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     /// <summary>
@@ -23,13 +20,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal sealed class DebuggingSession : IDisposable
     {
         private readonly Func<Project, CompilationOutputs> _compilationOutputsProvider;
-        private readonly CancellationTokenSource _cancellationSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancellationSource = new();
 
         /// <summary>
         /// MVIDs read from the assembly built for given project id.
         /// </summary>
         private readonly Dictionary<ProjectId, (Guid Mvid, Diagnostic Error)> _projectModuleIds;
-        private readonly object _projectModuleIdsGuard = new object();
+        private readonly object _projectModuleIdsGuard = new();
 
         /// <summary>
         /// The current baseline for given project id.
@@ -39,7 +36,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         private readonly Dictionary<ProjectId, EmitBaseline> _projectEmitBaselines;
         private List<IDisposable>? _lazyBaselineModuleReaders;
-        private readonly object _projectEmitBaselinesGuard = new object();
+        private readonly object _projectEmitBaselinesGuard = new();
 
         // Maps active statement instructions to their latest spans.
         // Consumed by the next edit session and updated when changes are committed at the end of the edit session.
@@ -72,7 +69,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> NonRemappableRegions { get; private set; }
 
         private readonly HashSet<Guid> _modulesPreparedForUpdate;
-        private readonly object _modulesPreparedForUpdateGuard = new object();
+        private readonly object _modulesPreparedForUpdateGuard = new();
 
         /// <summary>
         /// The solution captured when the debugging session entered run mode (application debugging started),
@@ -282,6 +279,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private static ImmutableDictionary<K, ImmutableArray<V>> GroupToImmutableDictionary<K, V>(IEnumerable<IGrouping<K, V>> items)
+            where K : notnull
         {
             var builder = ImmutableDictionary.CreateBuilder<K, ImmutableArray<V>>();
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -51,6 +53,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     switch (declaredSymbolInfo.Kind)
                     {
                         case DeclaredSymbolInfoKind.Class:
+                        case DeclaredSymbolInfoKind.Record:
                         case DeclaredSymbolInfoKind.Enum:
                         case DeclaredSymbolInfoKind.Interface:
                         case DeclaredSymbolInfoKind.Module:

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -37,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
             }
 
-            protected override async Task OnDefinitionFoundWorkerAsync(DefinitionItem definition)
+            protected override async ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition)
             {
                 // If this is a definition we always want to show, then create entries
                 // for all the declaration locations immediately.  Otherwise, we'll 
@@ -103,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            protected override Task OnReferenceFoundWorkerAsync(SourceReferenceItem reference)
+            protected override ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference)
             {
                 // Normal references go into both sets of entries.  We ensure an entry for the definition, and an entry
                 // for the reference itself.
@@ -118,18 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     addToEntriesWhenNotGroupingByDefinition: true);
             }
 
-            protected override Task OnExternalReferenceFoundWorkerAsync(ExternalReferenceItem reference)
-            {
-                // External references go into both sets of entries.  We ensure an entry for the definition, and an
-                // entry for the reference itself.
-                return OnEntryFoundAsync(
-                    reference.Definition,
-                    bucket => Task.FromResult<Entry>(new ExternalReferenceItemEntry(bucket, reference)),
-                    addToEntriesWhenGroupingByDefinition: true,
-                    addToEntriesWhenNotGroupingByDefinition: true);
-            }
-
-            protected async Task OnEntryFoundAsync(
+            protected async ValueTask OnEntryFoundAsync(
                 DefinitionItem definition,
                 Func<RoslynDefinitionBucket, Task<Entry>> createEntryAsync,
                 bool addToEntriesWhenGroupingByDefinition,

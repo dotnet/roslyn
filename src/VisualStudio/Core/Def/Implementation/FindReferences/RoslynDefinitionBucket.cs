@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Documents;
@@ -54,8 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public bool TryNavigateTo(bool isPreview)
                 => DefinitionItem.TryNavigateTo(
-                    _presenter._workspace,
-                    isPreview ? NavigationBehavior.PreviewWithoutFocus : NavigationBehavior.Normal);
+                    _presenter._workspace, showInPreviewTab: isPreview, activateTab: !isPreview); // Only activate the tab if not opening in preview
 
             public override bool TryGetValue(string key, out object content)
             {

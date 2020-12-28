@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -191,12 +189,12 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         {
             var document = context.Document;
 
-            var topText = startLine.ToString().Substring(s_mergeConflictLength).Trim();
+            var topText = startLine.ToString()[s_mergeConflictLength..].Trim();
             var takeTopText = string.IsNullOrWhiteSpace(topText)
                 ? FeaturesResources.Take_top
                 : string.Format(FeaturesResources.Take_0, topText);
 
-            var bottomText = endLine.ToString().Substring(s_mergeConflictLength).Trim();
+            var bottomText = endLine.ToString()[s_mergeConflictLength..].Trim();
             var takeBottomText = string.IsNullOrWhiteSpace(bottomText)
                 ? FeaturesResources.Take_bottom
                 : string.Format(FeaturesResources.Take_0, bottomText);
@@ -293,7 +291,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
         private async Task<SyntaxNode> FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            string equivalenceKey, CancellationToken cancellationToken)
+            string? equivalenceKey, CancellationToken cancellationToken)
         {
             Debug.Assert(
                 equivalenceKey == TakeTopEquivalenceKey ||

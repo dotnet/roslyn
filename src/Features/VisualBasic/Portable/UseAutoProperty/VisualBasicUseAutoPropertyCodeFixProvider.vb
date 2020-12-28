@@ -21,6 +21,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
         Public Sub New()
         End Sub
 
+        Protected Overrides Function GetPropertyDeclaration(node As SyntaxNode) As PropertyBlockSyntax
+            If TypeOf node Is PropertyStatementSyntax Then
+                node = node.Parent
+            End If
+
+            Return DirectCast(node, PropertyBlockSyntax)
+        End Function
+
         Protected Overrides Function GetNodeToRemove(identifier As ModifiedIdentifierSyntax) As SyntaxNode
             Return Utilities.GetNodeToRemove(identifier)
         End Function
@@ -43,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 
             statement = DirectCast(generator.WithModifiers(statement, generator.GetModifiers(propertyDeclaration).WithIsReadOnly(canBeReadOnly)), PropertyStatementSyntax)
 
-            Dim initializer = Await GetFieldInitializer(fieldSymbol, cancellationToken).ConfigureAwait(False)
+            Dim initializer = Await GetFieldInitializerAsync(fieldSymbol, cancellationToken).ConfigureAwait(False)
             If initializer.equalsValue IsNot Nothing Then
                 statement = statement.WithTrailingTrivia(SyntaxFactory.Space) _
                     .WithInitializer(initializer.equalsValue) _
@@ -55,19 +63,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
                 statement = statement.WithAsClause(initializer.asNewClause)
             End If
 
+            If initializer.arrayBounds IsNot Nothing Then
+                Dim semanticsModel = Await propertyDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                Dim arrayType = TryCast(semanticsModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken).Type, IArrayTypeSymbol)
+                If arrayType IsNot Nothing Then
+                    Dim arrayCreation = SyntaxFactory.ArrayCreationExpression(
+                    Nothing,
+                    arrayType.ElementType.GenerateTypeSyntax(),
+                    initializer.arrayBounds,
+                    If(TryCast(initializer.equalsValue?.Value, CollectionInitializerSyntax), SyntaxFactory.CollectionInitializer()))
+                    statement = statement.WithTrailingTrivia(SyntaxFactory.Space).
+                                      WithInitializer(SyntaxFactory.EqualsValue(arrayCreation))
+                End If
+            End If
+
             Return statement
         End Function
 
-        Private Shared Async Function GetFieldInitializer(fieldSymbol As IFieldSymbol, cancellationToken As CancellationToken) As Task(Of (equalsValue As EqualsValueSyntax, asNewClause As AsNewClauseSyntax))
+        Private Shared Async Function GetFieldInitializerAsync(fieldSymbol As IFieldSymbol, cancellationToken As CancellationToken) As Task(Of (equalsValue As EqualsValueSyntax, asNewClause As AsNewClauseSyntax, arrayBounds As ArgumentListSyntax))
             Dim identifier = TryCast(Await fieldSymbol.DeclaringSyntaxReferences(0).GetSyntaxAsync(cancellationToken).ConfigureAwait(False), ModifiedIdentifierSyntax)
             Dim declarator = TryCast(identifier?.Parent, VariableDeclaratorSyntax)
             Dim initializer = declarator?.Initializer
+            Dim arrayBounds = identifier?.ArrayBounds
 
             ' We are only interested in the AsClause if it's being used as an initializer:
             '  Dim x As String -- no need to preserve the clause since it will already be the same on the property
             '  Dim x As New Guid("...") -- need to preserve the clause since it's being used as an initializer
             Dim asNewClause = TryCast(declarator.AsClause, AsNewClauseSyntax)
-            Return (initializer, asNewClause)
+            Return (initializer, asNewClause, arrayBounds)
         End Function
     End Class
 End Namespace

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -158,7 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         syntax,
                         receiverOpt: null,
                         method: conversionMethod,
-                        arg0: temp);
+                        arg0: temp,
+                        binder: null);
                 }
                 else
                 {

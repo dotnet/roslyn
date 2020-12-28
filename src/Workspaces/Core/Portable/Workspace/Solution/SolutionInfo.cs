@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
-using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -89,11 +87,22 @@ namespace Microsoft.CodeAnalysis
                 PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences)));
         }
 
-        internal ImmutableHashSet<string> GetProjectLanguages()
-            => Projects.Select(p => p.Language).ToImmutableHashSet();
+        internal ImmutableHashSet<string> GetRemoteSupportedProjectLanguages()
+        {
+            var builder = ImmutableHashSet.CreateBuilder<string>();
+            foreach (var project in Projects)
+            {
+                if (RemoteSupportedLanguages.IsSupported(project.Language))
+                {
+                    builder.Add(project.Language);
+                }
+            }
+
+            return builder.ToImmutable();
+        }
 
         internal SolutionInfo WithTelemetryId(Guid telemetryId)
-            => new SolutionInfo(Attributes.With(telemetryId: telemetryId), Projects, AnalyzerReferences);
+            => new(Attributes.With(telemetryId: telemetryId), Projects, AnalyzerReferences);
 
         /// <summary>
         /// type that contains information regarding this solution itself but

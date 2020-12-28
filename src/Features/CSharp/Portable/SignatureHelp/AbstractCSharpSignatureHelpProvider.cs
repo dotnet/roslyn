@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -13,12 +15,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal abstract class AbstractCSharpSignatureHelpProvider : AbstractSignatureHelpProvider
     {
+        private static readonly SymbolDisplayFormat s_allowDefaultLiteralFormat = SymbolDisplayFormat.MinimallyQualifiedFormat
+            .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
+
         protected AbstractCSharpSignatureHelpProvider()
         {
         }
 
         protected static SymbolDisplayPart Keyword(SyntaxKind kind)
             => new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, SyntaxFacts.GetText(kind));
+
+        protected static SymbolDisplayPart Operator(SyntaxKind kind)
+            => new SymbolDisplayPart(SymbolDisplayPartKind.Operator, null, SyntaxFacts.GetText(kind));
 
         protected static SymbolDisplayPart Punctuation(SyntaxKind kind)
             => new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, SyntaxFacts.GetText(kind));
@@ -50,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 parameter.Name,
                 parameter.IsOptional,
                 parameter.GetDocumentationPartsFactory(semanticModel, position, formatter),
-                parameter.ToMinimalDisplayParts(semanticModel, position));
+                parameter.ToMinimalDisplayParts(semanticModel, position, s_allowDefaultLiteralFormat));
         }
 
         /// <summary>

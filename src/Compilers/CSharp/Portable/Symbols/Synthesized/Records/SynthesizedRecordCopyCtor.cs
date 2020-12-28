@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,12 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     isNullableEnabled: true,
                     ContainingType),
                 ordinal: 0,
-                RefKind.None));
+                RefKind.None,
+                "original"));
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters { get; }
 
-        public override Accessibility DeclaredAccessibility => Accessibility.Protected;
+        public override Accessibility DeclaredAccessibility => ContainingType.IsSealed ? Accessibility.Private : Accessibility.Protected;
 
         internal override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.GetSynthesizedMemberKey(_memberOffset);
 

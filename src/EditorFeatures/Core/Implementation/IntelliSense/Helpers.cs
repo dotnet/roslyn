@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 
@@ -33,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             ImmutableArray<TaggedText> taggedTexts,
             ref int index,
             Document document,
-            IThreadingContext threadingContext,
-            Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
+            IThreadingContext? threadingContext,
+            Lazy<IStreamingFindUsagesPresenter>? streamingPresenter)
         {
             // This method produces a sequence of zero or more paragraphs
             var paragraphs = new List<object>();
@@ -127,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                 {
                     // This is tagged text getting added to the current line we are building.
                     var style = GetClassifiedTextRunStyle(part.Style);
-                    if (part.NavigationTarget is object)
+                    if (part.NavigationTarget is object && streamingPresenter != null && threadingContext != null)
                     {
                         if (Uri.TryCreate(part.NavigationTarget, UriKind.Absolute, out var absoluteUri))
                         {
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             SymbolKeyResolution resolvedSymbolKey;
             try
             {
-                resolvedSymbolKey = SymbolKey.ResolveString(navigationTarget, document.Project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None), cancellationToken: CancellationToken.None);
+                resolvedSymbolKey = SymbolKey.ResolveString(navigationTarget, document.Project.GetRequiredCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None), cancellationToken: CancellationToken.None);
             }
             catch
             {

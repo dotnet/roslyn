@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -136,10 +138,10 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null) 
           Clauses:
               IPatternCaseClauseOperation (Label Id: 1) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case int x:')
                 Pattern: 
-                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Object, DeclaredSymbol: System.Int32 x, MatchesNull: False)
+                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Object, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 x, MatchesNull: False)
               IPatternCaseClauseOperation (Label Id: 2) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case long y:')
                 Pattern: 
-                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'long y') (InputType: System.Object, DeclaredSymbol: System.Int64 y, MatchesNull: False)
+                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'long y') (InputType: System.Object, NarrowedType: System.Int64, DeclaredSymbol: System.Int64 y, MatchesNull: False)
           Body:
               IBranchOperation (BranchKind.Break, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'break;')
 ";
@@ -180,7 +182,7 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null) 
           Clauses:
               IPatternCaseClauseOperation (Label Id: 1) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case int y:')
                 Pattern: 
-                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y') (InputType: System.Object, DeclaredSymbol: System.Int32 y, MatchesNull: False)
+                  IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int y') (InputType: System.Object, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 y, MatchesNull: False)
           Body:
               IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var x = 3;')
                 IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var x = 3')
@@ -1330,7 +1332,7 @@ Block[B0] - Entry
               Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'other') (InputType: MyClass)
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'other') (InputType: MyClass, NarrowedType: MyClass)
                   Value: 
                     IParameterReferenceOperation: other (OperationKind.ParameterReference, Type: MyClass, IsInvalid) (Syntax: 'other')
             Leaving: {R1}
@@ -1414,7 +1416,7 @@ Block[B0] - Entry
               Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: '1') (InputType: MyClass)
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: '1') (InputType: MyClass, NarrowedType: MyClass)
                   Value: 
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyClass, IsInvalid, IsImplicit) (Syntax: '1')
                       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1493,7 +1495,7 @@ Block[B0] - Entry
               Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: '1') (InputType: MyClass)
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: '1') (InputType: MyClass, NarrowedType: MyClass)
                   Value: 
                     IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: MyClass MyClass.op_Implicit(System.Int64 x)) (OperationKind.Conversion, Type: MyClass, IsInvalid, IsImplicit) (Syntax: '1')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: MyClass MyClass.op_Implicit(System.Int64 x))
@@ -1968,7 +1970,7 @@ Block[B0] - Entry
               Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: '1') (InputType: dynamic)
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: '1') (InputType: dynamic, NarrowedType: System.Int32)
                   Value: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             Leaving: {R1}
@@ -2025,7 +2027,7 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null) 
           Clauses:
               IPatternCaseClauseOperation (Label Id: 1) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case 1:')
                 Pattern: 
-                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: '1') (InputType: dynamic)
+                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: '1') (InputType: dynamic, NarrowedType: System.Int32)
                     Value: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           Body:
@@ -2086,7 +2088,7 @@ Block[B0] - Entry
               Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'other') (InputType: dynamic)
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'other') (InputType: dynamic, NarrowedType: dynamic)
                   Value: 
                     IParameterReferenceOperation: other (OperationKind.ParameterReference, Type: dynamic, IsInvalid) (Syntax: 'other')
             Leaving: {R1}
@@ -2465,7 +2467,7 @@ Block[B0] - Entry
               Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: '1') (InputType: System.Object)
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: '1') (InputType: System.Object, NarrowedType: System.Int32)
                   Value: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             Leaving: {R1}
@@ -2586,7 +2588,7 @@ Block[B0] - Entry
                   Value: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
                   Pattern: 
-                    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'other ?? 1') (InputType: System.Object)
+                    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'other ?? 1') (InputType: System.Object, NarrowedType: System.Object)
                       Value: 
                         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'other ?? 1')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2671,7 +2673,7 @@ Block[B0] - Entry
                   Value: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
                   Pattern: 
-                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Object, DeclaredSymbol: System.Int32 x, MatchesNull: False)
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Object, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 x, MatchesNull: False)
                 Leaving: {R2} {R1}
 
             Next (Regular) Block[B3]
@@ -2748,7 +2750,7 @@ Block[B0] - Entry
                   Value: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input1')
                   Pattern: 
-                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Object, DeclaredSymbol: System.Int32 x, MatchesNull: False)
+                    IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'int x') (InputType: System.Object, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 x, MatchesNull: False)
                 Leaving: {R2} {R1}
 
             Next (Regular) Block[B3]
@@ -2842,7 +2844,7 @@ Block[B0] - Entry
               Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: '1') (InputType: System.Object)
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: '1') (InputType: System.Object, NarrowedType: System.Int32)
                   Value: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
@@ -2868,7 +2870,7 @@ Block[B0] - Entry
               Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: '2') (InputType: System.Object)
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: '2') (InputType: System.Object, NarrowedType: System.Int32)
                   Value: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
             Leaving: {R1}
@@ -2935,7 +2937,7 @@ public sealed class MyClass
                   Value: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
                   Pattern: 
-                    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Object)
+                    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Object, NarrowedType: System.Int32)
                       Value: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                 Leaving: {R1}
@@ -3042,7 +3044,7 @@ Block[B0] - Entry
               Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Object)
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1') (InputType: System.Object, NarrowedType: System.Int32)
                   Value: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             Leaving: {R1}
@@ -3246,7 +3248,7 @@ Block[B0] - Entry
                       Value: 
                         IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?, IsInvalid) (Syntax: 'input')
                       Pattern: 
-                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int x1') (InputType: System.Int32?, DeclaredSymbol: System.Int32 x1, MatchesNull: False)
+                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int x1') (InputType: System.Int32?, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 x1, MatchesNull: False)
 
                 Next (Regular) Block[B3]
             Block[B3] - Block
@@ -3420,7 +3422,7 @@ public sealed class MyClass
                   Value: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
                   Pattern: 
-                    IRelationalPatternOperation (BinaryOperatorKind.LessThan) (OperationKind.RelationalPattern, Type: null) (Syntax: '< 1') (InputType: System.Int32)
+                    IRelationalPatternOperation (BinaryOperatorKind.LessThan) (OperationKind.RelationalPattern, Type: null) (Syntax: '< 1') (InputType: System.Int32, NarrowedType: System.Int32)
                       Value: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                 Leaving: {R1}
@@ -3488,7 +3490,7 @@ public sealed class MyClass
                   Value: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
                   Pattern: 
-                    IRelationalPatternOperation (BinaryOperatorKind.LessThan) (OperationKind.RelationalPattern, Type: null, IsInvalid) (Syntax: '< other') (InputType: System.Int32)
+                    IRelationalPatternOperation (BinaryOperatorKind.LessThan) (OperationKind.RelationalPattern, Type: null, IsInvalid) (Syntax: '< other') (InputType: System.Int32, NarrowedType: System.Int32)
                       Value: 
                         IParameterReferenceOperation: other (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'other')
                 Leaving: {R1}
@@ -3581,7 +3583,7 @@ public sealed class MyClass
                       Value: 
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
                       Pattern: 
-                        IRelationalPatternOperation (BinaryOperatorKind.LessThan) (OperationKind.RelationalPattern, Type: null) (Syntax: '< (true ? 10 : 11)') (InputType: System.Int32)
+                        IRelationalPatternOperation (BinaryOperatorKind.LessThan) (OperationKind.RelationalPattern, Type: null) (Syntax: '< (true ? 10 : 11)') (InputType: System.Int32, NarrowedType: System.Int32)
                           Value: 
                             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 10, IsImplicit) (Syntax: 'true ? 10 : 11')
                     Leaving: {R2} {R1}
@@ -3676,9 +3678,9 @@ public sealed class MyClass
                       Value: 
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
                       Pattern: 
-                        INegatedPatternOperation (OperationKind.NegatedPattern, Type: null) (Syntax: 'not < (true ? 10 : 11)') (InputType: System.Int32)
+                        INegatedPatternOperation (OperationKind.NegatedPattern, Type: null) (Syntax: 'not < (true ? 10 : 11)') (InputType: System.Int32, NarrowedType: System.Int32)
                           Pattern: 
-                            IRelationalPatternOperation (BinaryOperatorKind.LessThan) (OperationKind.RelationalPattern, Type: null) (Syntax: '< (true ? 10 : 11)') (InputType: System.Int32)
+                            IRelationalPatternOperation (BinaryOperatorKind.LessThan) (OperationKind.RelationalPattern, Type: null) (Syntax: '< (true ? 10 : 11)') (InputType: System.Int32, NarrowedType: System.Int32)
                               Value: 
                                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 10, IsImplicit) (Syntax: 'true ? 10 : 11')
                          
@@ -3746,31 +3748,31 @@ public sealed class MyClass
                   Value: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Char, IsImplicit) (Syntax: 'input')
                   Pattern: 
-                    IBinaryPatternOperation (BinaryOperatorKind.Or) (OperationKind.BinaryPattern, Type: null) (Syntax: '(>= 'A' and ... 'z') or '_'') (InputType: System.Char)
+                    IBinaryPatternOperation (BinaryOperatorKind.Or) (OperationKind.BinaryPattern, Type: null) (Syntax: '(>= 'A' and ... 'z') or '_'') (InputType: System.Char, NarrowedType: System.Char)
                       LeftPattern: 
-                        IBinaryPatternOperation (BinaryOperatorKind.Or) (OperationKind.BinaryPattern, Type: null) (Syntax: '(>= 'A' and ... and <= 'z')') (InputType: System.Char)
+                        IBinaryPatternOperation (BinaryOperatorKind.Or) (OperationKind.BinaryPattern, Type: null) (Syntax: '(>= 'A' and ... and <= 'z')') (InputType: System.Char, NarrowedType: System.Char)
                           LeftPattern: 
-                            IBinaryPatternOperation (BinaryOperatorKind.And) (OperationKind.BinaryPattern, Type: null) (Syntax: '>= 'A' and <= 'Z'') (InputType: System.Char)
+                            IBinaryPatternOperation (BinaryOperatorKind.And) (OperationKind.BinaryPattern, Type: null) (Syntax: '>= 'A' and <= 'Z'') (InputType: System.Char, NarrowedType: System.Char)
                               LeftPattern: 
-                                IRelationalPatternOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '>= 'A'') (InputType: System.Char)
+                                IRelationalPatternOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '>= 'A'') (InputType: System.Char, NarrowedType: System.Char)
                                   Value: 
                                     ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: A) (Syntax: ''A'')
                               RightPattern: 
-                                IRelationalPatternOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '<= 'Z'') (InputType: System.Char)
+                                IRelationalPatternOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '<= 'Z'') (InputType: System.Char, NarrowedType: System.Char)
                                   Value: 
                                     ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: Z) (Syntax: ''Z'')
                           RightPattern: 
-                            IBinaryPatternOperation (BinaryOperatorKind.And) (OperationKind.BinaryPattern, Type: null) (Syntax: '>= 'a' and <= 'z'') (InputType: System.Char)
+                            IBinaryPatternOperation (BinaryOperatorKind.And) (OperationKind.BinaryPattern, Type: null) (Syntax: '>= 'a' and <= 'z'') (InputType: System.Char, NarrowedType: System.Char)
                               LeftPattern: 
-                                IRelationalPatternOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '>= 'a'') (InputType: System.Char)
+                                IRelationalPatternOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '>= 'a'') (InputType: System.Char, NarrowedType: System.Char)
                                   Value: 
                                     ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: a) (Syntax: ''a'')
                               RightPattern: 
-                                IRelationalPatternOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '<= 'z'') (InputType: System.Char)
+                                IRelationalPatternOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.RelationalPattern, Type: null) (Syntax: '<= 'z'') (InputType: System.Char, NarrowedType: System.Char)
                                   Value: 
                                     ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: z) (Syntax: ''z'')
                       RightPattern: 
-                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: ''_'') (InputType: System.Char)
+                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: ''_'') (InputType: System.Char, NarrowedType: System.Char)
                           Value: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: _) (Syntax: ''_'')
                 Leaving: {R1}
@@ -3835,15 +3837,15 @@ public sealed class MyClass
                   Value: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
                   Pattern: 
-                    IBinaryPatternOperation (BinaryOperatorKind.Or) (OperationKind.BinaryPattern, Type: null) (Syntax: 'int or long or ulong') (InputType: System.Object)
+                    IBinaryPatternOperation (BinaryOperatorKind.Or) (OperationKind.BinaryPattern, Type: null) (Syntax: 'int or long or ulong') (InputType: System.Object, NarrowedType: System.Object)
                       LeftPattern: 
-                        IBinaryPatternOperation (BinaryOperatorKind.Or) (OperationKind.BinaryPattern, Type: null) (Syntax: 'int or long') (InputType: System.Object)
+                        IBinaryPatternOperation (BinaryOperatorKind.Or) (OperationKind.BinaryPattern, Type: null) (Syntax: 'int or long') (InputType: System.Object, NarrowedType: System.Object)
                           LeftPattern: 
-                            ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'int') (InputType: System.Object, MatchedType: System.Int32)
+                            ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'int') (InputType: System.Object, NarrowedType: System.Int32, MatchedType: System.Int32)
                           RightPattern: 
-                            ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'long') (InputType: System.Object, MatchedType: System.Int64)
+                            ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'long') (InputType: System.Object, NarrowedType: System.Int64, MatchedType: System.Int64)
                       RightPattern: 
-                        ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'ulong') (InputType: System.Object, MatchedType: System.UInt64)
+                        ITypePatternOperation (OperationKind.TypePattern, Type: null) (Syntax: 'ulong') (InputType: System.Object, NarrowedType: System.UInt64, MatchedType: System.UInt64)
             Next (Regular) Block[B2]
         Block[B2] - Block
             Predecessors: [B1]

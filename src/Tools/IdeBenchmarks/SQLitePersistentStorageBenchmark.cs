@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.SQLite.v2;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -31,6 +32,15 @@ namespace IdeBenchmarks
         private IChecksummedPersistentStorage _storage;
         private Document _document;
         private Random _random;
+
+        public SQLitePersistentStorageBenchmarks()
+        {
+            _document = null!;
+            _storage = null!;
+            _storageService = null!;
+            _workspace = null!;
+            _random = null!;
+        }
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -55,9 +65,11 @@ namespace IdeBenchmarks
             _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
                 .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
 
-            _storageService = new SQLitePersistentStorageService(new LocationService());
+            var connectionPoolService = _workspace.ExportProvider.GetExportedValue<SQLiteConnectionPoolService>();
+            _storageService = new SQLitePersistentStorageService(connectionPoolService, new LocationService());
 
-            _storage = _storageService.GetStorageWorker(_workspace.CurrentSolution);
+            var solution = _workspace.CurrentSolution;
+            _storage = _storageService.GetStorageWorker(_workspace, (SolutionKey)solution, solution);
             if (_storage == NoOpPersistentStorage.Instance)
             {
                 throw new InvalidOperationException("We didn't properly get the sqlite storage instance.");
@@ -76,12 +88,12 @@ namespace IdeBenchmarks
                 throw new InvalidOperationException();
             }
 
-            _document = null;
+            _document = null!;
             _storage.Dispose();
-            _storage = null;
-            _storageService = null;
+            _storage = null!;
+            _storageService = null!;
             _workspace.Dispose();
-            _workspace = null;
+            _workspace = null!;
 
             _useExportProviderAttribute.After(null);
         }

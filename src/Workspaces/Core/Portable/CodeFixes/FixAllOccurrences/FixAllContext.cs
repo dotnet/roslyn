@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         internal FixAllState State { get; }
 
-        internal FixAllProvider FixAllProvider => State.FixAllProvider;
+        internal FixAllProvider? FixAllProvider => State.FixAllProvider;
 
         /// <summary>
         /// Solution to fix all occurrences.
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// Document within which fix all occurrences was triggered.
         /// Can be null if the context was created using <see cref="FixAllContext.FixAllContext(Project, CodeFixProvider, FixAllScope, string, IEnumerable{string}, DiagnosticProvider, CancellationToken)"/>.
         /// </summary>
-        public Document Document => State.Document;
+        public Document? Document => State.Document;
 
         /// <summary>
         /// Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.
         /// </summary>
-        public string CodeActionEquivalenceKey => State.CodeActionEquivalenceKey;
+        public string? CodeActionEquivalenceKey => State.CodeActionEquivalenceKey;
 
         /// <summary>
         /// CancellationToken for fix all session.

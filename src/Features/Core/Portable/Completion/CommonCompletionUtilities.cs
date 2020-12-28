@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -168,7 +170,11 @@ namespace Microsoft.CodeAnalysis.Completion
         public static Task<CompletionDescription> CreateDescriptionAsync(
             Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
         {
-            return CreateDescriptionAsync(workspace, semanticModel, position, symbols[0], overloadCount: symbols.Count - 1, supportedPlatforms, cancellationToken);
+            // Lets try to find the first non-obsolete symbol (overload) and fall-back
+            // to the first symbol if all are obsolete.
+            var symbol = symbols.FirstOrDefault(s => !s.IsObsolete()) ?? symbols[0];
+
+            return CreateDescriptionAsync(workspace, semanticModel, position, symbol, overloadCount: symbols.Count - 1, supportedPlatforms, cancellationToken);
         }
 
         private static void AddOverloadPart(List<TaggedText> textContentBuilder, int overloadCount, bool isGeneric)

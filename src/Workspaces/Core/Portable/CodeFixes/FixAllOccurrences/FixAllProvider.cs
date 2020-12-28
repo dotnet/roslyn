@@ -36,6 +36,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Gets fix all occurrences fix for the given fixAllContext.
         /// </summary>
-        public abstract Task<CodeAction> GetFixAsync(FixAllContext fixAllContext);
+        public abstract Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext);
     }
 }

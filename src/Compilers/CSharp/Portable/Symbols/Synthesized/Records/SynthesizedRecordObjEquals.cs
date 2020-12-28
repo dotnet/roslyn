@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
@@ -54,6 +52,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
+                    if (_typedRecordEquals.ReturnType.SpecialType != SpecialType.System_Boolean)
+                    {
+                        // There is a signature mismatch, an error was reported elsewhere
+                        F.CloseMethod(F.ThrowNull());
+                        return;
+                    }
+
                     // For classes:
                     //      return this.Equals(param as ContainingType);
                     expression = F.Call(F.This(), _typedRecordEquals, F.As(paramAccess, ContainingType));

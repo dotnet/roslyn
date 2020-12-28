@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -420,12 +418,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return returnType;
         }
 
-        internal static FlowAnalysisAnnotations GetFlowAnalysisAnnotations(this Symbol symbol)
+        internal static FlowAnalysisAnnotations GetFlowAnalysisAnnotations(this PropertySymbol property)
+        {
+            var annotations = property.GetOwnOrInheritedGetMethod()?.ReturnTypeFlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None;
+            if (property.GetOwnOrInheritedSetMethod()?.Parameters.Last().FlowAnalysisAnnotations is { } setterAnnotations)
+            {
+                annotations |= setterAnnotations;
+            }
+            else if (property is SourcePropertySymbolBase sourceProperty)
+            {
+                // When an auto-property without a setter has an AllowNull annotation,
+                // we need to search for its flow analysis annotations in a more roundabout way
+                // in order to properly handle assignment to the property (e.g. in a constructor).
+                if (sourceProperty.HasAllowNull)
+                {
+                    annotations |= FlowAnalysisAnnotations.AllowNull;
+                }
+                if (sourceProperty.HasDisallowNull)
+                {
+                    annotations |= FlowAnalysisAnnotations.DisallowNull;
+                }
+            }
+
+            return annotations;
+        }
+
+        internal static FlowAnalysisAnnotations GetFlowAnalysisAnnotations(this Symbol? symbol)
         {
             return symbol switch
             {
                 MethodSymbol method => method.ReturnTypeFlowAnalysisAnnotations,
-                PropertySymbol property => property.GetOwnOrInheritedGetMethod()?.ReturnTypeFlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None,
+                PropertySymbol property => property.GetFlowAnalysisAnnotations(),
                 ParameterSymbol parameter => parameter.FlowAnalysisAnnotations,
                 FieldSymbol field => field.FlowAnalysisAnnotations,
                 _ => FlowAnalysisAnnotations.None

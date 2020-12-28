@@ -15,7 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportCompletionProvider(NameOf(ObjectInitializerCompletionProvider), LanguageNames.VisualBasic)>
-    <ExtensionOrder(After:=NameOf(SymbolCompletionProvider))>
+    <ExtensionOrder(After:=NameOf(PreprocessorCompletionProvider))>
     <[Shared]>
     Friend Class ObjectInitializerCompletionProvider
         Inherits AbstractObjectInitializerCompletionProvider
@@ -87,11 +87,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim initializerLocation As Location = token.GetLocation()
             Dim symbolInfo = semanticModel.GetSymbolInfo(objectCreationExpression.Type, cancellationToken)
             Dim symbol = TryCast(symbolInfo.Symbol, ITypeSymbol)
-            If TypeOf symbol Is ITypeParameterSymbol Then
-                Dim typeParameterSymbol = TryCast(symbolInfo.Symbol, ITypeParameterSymbol)
-                Return Tuple.Create(Of ITypeSymbol, Location)(typeParameterSymbol.GetNamedTypeSymbolConstraint(), initializerLocation)
-            End If
-
             Return Tuple.Create(symbol, initializerLocation)
         End Function
 

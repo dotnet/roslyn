@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
-using Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -15,22 +15,24 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue
+namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     internal sealed class CSharpEditAndContinueTestHelpers : EditAndContinueTestHelpers
     {
-        private readonly CSharpEditAndContinueAnalyzer _analyzer = new CSharpEditAndContinueAnalyzer(new TestActiveStatementSpanTracker());
-
         private readonly ImmutableArray<MetadataReference> _fxReferences;
+        private readonly CSharpEditAndContinueAnalyzer _analyzer;
 
-        internal static CSharpEditAndContinueTestHelpers CreateInstance()
-            => new CSharpEditAndContinueTestHelpers(TargetFramework.Mscorlib46Extended);
+        public CSharpEditAndContinueTestHelpers(TargetFramework targetFramework, Action<SyntaxNode> faultInjector = null)
+        {
+            _fxReferences = TargetFrameworkUtil.GetReferences(targetFramework);
+            _analyzer = new CSharpEditAndContinueAnalyzer(faultInjector);
+        }
 
-        internal static CSharpEditAndContinueTestHelpers CreateInstance40()
-            => new CSharpEditAndContinueTestHelpers(TargetFramework.Mscorlib40AndSystemCore);
+        internal static CSharpEditAndContinueTestHelpers CreateInstance(Action<SyntaxNode> faultInjector = null)
+            => new CSharpEditAndContinueTestHelpers(TargetFramework.Mscorlib46Extended, faultInjector);
 
-        public CSharpEditAndContinueTestHelpers(TargetFramework targetFramework)
-            => _fxReferences = TargetFrameworkUtil.GetReferences(targetFramework);
+        internal static CSharpEditAndContinueTestHelpers CreateInstance40(Action<SyntaxNode> faultInjector = null)
+            => new CSharpEditAndContinueTestHelpers(TargetFramework.Mscorlib40AndSystemCore, faultInjector);
 
         public override AbstractEditAndContinueAnalyzer Analyzer => _analyzer;
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -22,8 +24,10 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             public INamedTypeSymbol ContainingType { get; private set; }
             public ImmutableArray<ISymbol> SelectedMembers { get; private set; }
             public ImmutableArray<IParameterSymbol> Parameters { get; private set; }
+            public bool IsContainedInUnsafeType { get; private set; }
 
             public static async Task<State> TryGenerateAsync(
+                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
@@ -31,7 +35,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 CancellationToken cancellationToken)
             {
                 var state = new State();
-                if (!await state.TryInitializeAsync(document, textSpan, containingType, selectedMembers, cancellationToken).ConfigureAwait(false))
+                if (!await state.TryInitializeAsync(service, document, textSpan, containingType, selectedMembers, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -40,6 +44,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
 
             private async Task<bool> TryInitializeAsync(
+                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
@@ -58,6 +63,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 {
                     return false;
                 }
+
+                IsContainedInUnsafeType = service.ContainingTypesOrSelfHasUnsafeKeyword(containingType);
 
                 var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
                 Parameters = DetermineParameters(selectedMembers, rules);

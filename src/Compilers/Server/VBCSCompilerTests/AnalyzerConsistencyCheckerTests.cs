@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,14 +12,23 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class AnalyzerConsistencyCheckerTests : TestBase
     {
+        private ICompilerServerLogger Logger { get; }
+
+        public AnalyzerConsistencyCheckerTests(ITestOutputHelper testOutputHelper)
+        {
+            Logger = new XunitCompilerServerLogger(testOutputHelper);
+        }
+
         [Fact]
         public void MissingReference()
         {
@@ -25,9 +36,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
 
             var analyzerReferences = ImmutableArray.Create(new CommandLineAnalyzerReference("Alpha.dll"));
-            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new InMemoryAssemblyLoader());
+            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new InMemoryAssemblyLoader(), Logger);
 
-            Assert.False(result);
+            Assert.True(result);
         }
 
         [Fact]
@@ -45,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 new CommandLineAnalyzerReference("Gamma.dll"),
                 new CommandLineAnalyzerReference("Delta.dll"));
 
-            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new InMemoryAssemblyLoader());
+            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new InMemoryAssemblyLoader(), Logger);
 
             Assert.True(result);
         }
@@ -70,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 new CommandLineAnalyzerReference("Gamma.dll"),
                 new CommandLineAnalyzerReference("Delta.dll"));
 
-            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, assemblyLoader);
+            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, assemblyLoader, Logger);
 
             Assert.False(result);
         }
@@ -84,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var analyzerReferences = ImmutableArray.Create(
                 new CommandLineAnalyzerReference("Delta.dll"));
 
-            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, TestAnalyzerAssemblyLoader.LoadNotImplemented);
+            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, TestAnalyzerAssemblyLoader.LoadNotImplemented, Logger);
 
             Assert.False(result);
         }
@@ -97,15 +108,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var comp = CSharpCompilation.Create(
                 name,
                 new[] { SyntaxFactory.ParseSyntaxTree(@"class C {}") },
-                references: new MetadataReference[] { MetadataReference.CreateFromImage(TestResources.NetFX.netstandard20.netstandard) },
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                references: new MetadataReference[] { MetadataReference.CreateFromImage(TestMetadata.ResourcesNetStandard20.netstandard) },
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: Diagnostic.MaxWarningLevel));
             var compFile = directory.CreateFile(name);
             comp.Emit(compFile.Path);
 
 
             var analyzerReferences = ImmutableArray.Create(new CommandLineAnalyzerReference(name));
 
-            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new InMemoryAssemblyLoader());
+            var result = AnalyzerConsistencyChecker.Check(directory.Path, analyzerReferences, new InMemoryAssemblyLoader(), Logger);
 
             Assert.True(result);
         }

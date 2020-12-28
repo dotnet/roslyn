@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -201,6 +203,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
+
         internal override Cci.CallingConvention CallingConvention
         {
             get { return 0; }
@@ -306,6 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 expanded: false,
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
+                defaultArguments: default(BitVector),
                 resultKind: LookupResultKind.Viable,
                 binderOpt: null,
                 type: method.ReturnType)
@@ -351,6 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         expanded: false,
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: default(ImmutableArray<int>),
+                        defaultArguments: default(BitVector),
                         resultKind: LookupResultKind.Viable,
                         binderOpt: binder,
                         type: userMain.ReturnType)
@@ -579,6 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             default(ImmutableArray<RefKind>),
                             false,
                             default(ImmutableArray<int>),
+                            default(BitVector),
                             null,
                             null,
                             null,

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -10,19 +12,13 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.EncapsulateField;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.EncapsulateField
 {
-    public enum TestHost
-    {
-        InProcess,
-        OutOfProcess,
-    }
-
     public class EncapsulateFieldTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -36,17 +32,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Encaps
             };
 
         internal Task TestAllOptionsOffAsync(
-            TestHost host, string initialMarkup, string expectedMarkup,
+            TestHost host,
+            string initialMarkup,
+            string expectedMarkup,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
-            int index = 0, OptionsCollection options = null)
+            int index = 0,
+            OptionsCollection options = null)
         {
-            options = options ?? new OptionsCollection(GetLanguage());
+            options ??= new OptionsCollection(GetLanguage());
             options.AddRange(AllOptionsOff);
-            options.Add(RemoteHostOptions.RemoteHostTest, host != TestHost.InProcess);
 
-            return TestAsync(initialMarkup, expectedMarkup,
-                parseOptions, compilationOptions, index, options);
+            return TestAsync(initialMarkup, expectedMarkup, parseOptions, compilationOptions, index, options, testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -218,9 +215,9 @@ class goo
                 options: new OptionsCollection(GetLanguage())
                 {
                     { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent },
-                    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent },
-                    { RemoteHostOptions.RemoteHostTest, host != TestHost.InProcess }
-                });
+                    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption2.Silent }
+                },
+                testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -255,8 +252,8 @@ class goo
                 options: new OptionsCollection(GetLanguage())
                 {
                     {  CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
-                    { RemoteHostOptions.RemoteHostTest, host != TestHost.InProcess }
-                });
+                },
+                testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
@@ -789,12 +786,7 @@ class Program
 }
 ";
 
-            await TestActionCountAsync(text, 2, GetRemoteHostOptions(host));
-        }
-
-        private TestParameters GetRemoteHostOptions(TestHost host)
-        {
-            return new TestParameters(options: Option(RemoteHostOptions.RemoteHostTest, host != TestHost.InProcess));
+            await TestActionCountAsync(text, 2, new TestParameters(testHost: host));
         }
 
         [WorkItem(705898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705898")]
@@ -1084,7 +1076,7 @@ partial class Program {
     a b c [|b|]
 }";
 
-            await TestActionCountAsync(text, count: 2, GetRemoteHostOptions(host));
+            await TestActionCountAsync(text, count: 2, new TestParameters(testHost: host));
         }
 
         [WorkItem(834072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834072")]
@@ -1099,7 +1091,7 @@ class Program
 }
 ";
 
-            await TestActionCountAsync(text, count: 2, GetRemoteHostOptions(host));
+            await TestActionCountAsync(text, count: 2, new TestParameters(testHost: host));
         }
 
         [WorkItem(862517, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862517")]
@@ -1149,19 +1141,19 @@ namespace ConsoleApplication1
         public async Task DoNotEncapsulateOutsideTypeDeclaration(TestHost host)
         {
             await TestMissingInRegularAndScriptAsync(
-@"var [|x|] = 1;", GetRemoteHostOptions(host));
+@"var [|x|] = 1;", new TestParameters(testHost: host));
 
             await TestMissingInRegularAndScriptAsync(
 @"namespace N
 {
     var [|x|] = 1;
-}", GetRemoteHostOptions(host));
+}", new TestParameters(testHost: host));
 
             await TestMissingInRegularAndScriptAsync(
 @"enum E
 {
     [|x|] = 1;
-}", GetRemoteHostOptions(host));
+}", new TestParameters(testHost: host));
         }
 
         [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
@@ -1405,7 +1397,7 @@ class C
 }", options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TestTuple(TestHost host)
         {
             var text = @"
@@ -1447,7 +1439,7 @@ class C
             await TestAllOptionsOffAsync(host, text, expected, index: 1);
         }
 
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNames(TestHost host)
         {
             var text = @"
@@ -1483,6 +1475,136 @@ class C
     void M()
     {
         var q = bob.b;
+    }
+}
+";
+            await TestAllOptionsOffAsync(host, text, expected, index: 1);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), CompilerTrait(CompilerFeature.FunctionPointers)]
+        public async Task FunctionPointer(TestHost host)
+        {
+            var text = @"
+unsafe class C
+{
+    private delegate*<int, string> f[|i|]eld;
+
+    void M()
+    {
+        var q = field;
+    }
+}
+";
+
+            var expected = @"
+unsafe class C
+{
+    private delegate*<int, string> f[|i|]eld;
+
+    public unsafe delegate*<int, string> Field
+    {
+        get
+        {
+            return field;
+        }
+
+        set
+        {
+            field = value;
+        }
+    }
+
+    void M()
+    {
+        var q = field;
+    }
+}
+";
+            await TestAllOptionsOffAsync(host, text, expected, index: 1);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), CompilerTrait(CompilerFeature.FunctionPointers)]
+        public async Task FunctionPointerWithPrivateTypeParameter(TestHost host)
+        {
+            var text = @"
+unsafe class C
+{
+    private struct S { }
+    private delegate*<S, string> f[|i|]eld;
+
+    void M()
+    {
+        var q = field;
+    }
+}
+";
+
+            var expected = @"
+unsafe class C
+{
+    private struct S { }
+    private delegate*<S, string> f[|i|]eld;
+
+    private unsafe delegate*<S, string> Field
+    {
+        get
+        {
+            return field;
+        }
+
+        set
+        {
+            field = value;
+        }
+    }
+
+    void M()
+    {
+        var q = field;
+    }
+}
+";
+            await TestAllOptionsOffAsync(host, text, expected, index: 1);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.EncapsulateField), CompilerTrait(CompilerFeature.FunctionPointers)]
+        public async Task FunctionPointerWithPrivateTypeReturnValue(TestHost host)
+        {
+            var text = @"
+unsafe class C
+{
+    private struct S { }
+    private delegate*<string, S> f[|i|]eld;
+
+    void M()
+    {
+        var q = field;
+    }
+}
+";
+
+            var expected = @"
+unsafe class C
+{
+    private struct S { }
+    private delegate*<string, S> f[|i|]eld;
+
+    private unsafe delegate*<string, S> Field
+    {
+        get
+        {
+            return field;
+        }
+
+        set
+        {
+            field = value;
+        }
+    }
+
+    void M()
+    {
+        var q = field;
     }
 }
 ";

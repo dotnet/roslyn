@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -132,6 +133,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    diagnosticInfo.Category,
                                                                    options.GeneralDiagnosticOption,
                                                                    options.SpecificDiagnosticOptions,
+                                                                   options.SyntaxTreeOptionsProvider,
+                                                                   CancellationToken.None, ' We don't have a tree so there's no need to pass cancellation to the SyntaxTreeOptionsProvider
                                                                    hasSourceSuppression)
         End Function
 
@@ -224,6 +227,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property WRN_UnableToLoadAnalyzer As Integer
             Get
                 Return ERRID.WRN_UnableToLoadAnalyzer
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property WRN_AnalyzerReferencesFramework As Integer
+            Get
+                Return ERRID.WRN_AnalyzerReferencesFramework
             End Get
         End Property
 
@@ -575,13 +584,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Generators
         Public Overrides ReadOnly Property WRN_GeneratorFailedDuringInitialization As Integer
             Get
-                Throw ExceptionUtilities.Unreachable
+                Return ERRID.WRN_GeneratorFailedDuringInitialization
             End Get
         End Property
 
         Public Overrides ReadOnly Property WRN_GeneratorFailedDuringGeneration As Integer
             Get
-                Throw ExceptionUtilities.Unreachable
+                Return ERRID.WRN_GeneratorFailedDuringGeneration
             End Get
         End Property
 

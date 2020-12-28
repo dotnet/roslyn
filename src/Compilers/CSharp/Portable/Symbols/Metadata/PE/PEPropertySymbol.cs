@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -132,8 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool isBad;
 
             _parameters = setMethodParams is null
-                ? GetParameters(moduleSymbol, this, propertyParams, getMethodParams, getMethod.IsMetadataVirtual(), out isBad)
-                : GetParameters(moduleSymbol, this, propertyParams, setMethodParams, setMethod.IsMetadataVirtual(), out isBad);
+                ? GetParameters(moduleSymbol, this, getMethod, propertyParams, getMethodParams, out isBad)
+                : GetParameters(moduleSymbol, this, setMethod, propertyParams, setMethodParams, out isBad);
 
             if (getEx != null || setEx != null || mrEx != null || isBad)
             {
@@ -670,9 +672,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private static ImmutableArray<ParameterSymbol> GetParameters(
             PEModuleSymbol moduleSymbol,
             PEPropertySymbol property,
+            PEMethodSymbol accessor,
             ParamInfo<TypeSymbol>[] propertyParams,
             ParamInfo<TypeSymbol>[] accessorParams,
-            bool isPropertyVirtual,
             out bool anyParameterIsBad)
         {
             anyParameterIsBad = false;
@@ -691,11 +693,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // NOTE: this is a best guess at the Dev10 behavior.  The actual behavior is
                 // in the unmanaged helper code that Dev10 uses to load the metadata.
                 var propertyParam = propertyParams[i];
-                var paramHandle = i < numAccessorParams ? accessorParams[i].Handle : propertyParam.Handle;
+                ParameterHandle paramHandle;
+                Symbol nullableContext;
+                if (i < numAccessorParams)
+                {
+                    paramHandle = accessorParams[i].Handle;
+                    nullableContext = accessor;
+                }
+                else
+                {
+                    paramHandle = propertyParam.Handle;
+                    nullableContext = property;
+                }
                 var ordinal = i - 1;
                 bool isBad;
 
-                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, isPropertyVirtual, ordinal, paramHandle, propertyParam, nullableContext: property, out isBad);
+                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, accessor.IsMetadataVirtual(), ordinal, paramHandle, propertyParam, nullableContext, out isBad);
 
                 if (isBad)
                 {

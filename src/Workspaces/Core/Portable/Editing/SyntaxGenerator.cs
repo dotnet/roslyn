@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -279,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// langword="false"/>.
         /// </summary>
         /// <remarks>
-        /// In C# there is a distinction betwene passing in <see langword="null"/> for <paramref
+        /// In C# there is a distinction between passing in <see langword="null"/> for <paramref
         /// name="getAccessorStatements"/> or <paramref name="setAccessorStatements"/> versus
         /// passing in an empty list. <see langword="null"/> will produce an auto-property-accessor
         /// (i.e. <c>get;</c>) whereas an empty list will produce an accessor with an empty block
@@ -2181,21 +2183,6 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, SyntaxTrivia lastWhitespaceTrivia, string endOfLineString);
 
         internal abstract SyntaxNode DocumentationCommentTriviaWithUpdatedContent(SyntaxTrivia trivia, IEnumerable<SyntaxNode> content);
-
-        #endregion
-
-        #region Patterns
-
-        internal abstract bool SupportsPatterns(ParseOptions options);
-        internal abstract SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxToken isToken, SyntaxNode pattern);
-
-        internal abstract SyntaxNode AndPattern(SyntaxNode left, SyntaxNode right);
-        internal abstract SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name);
-        internal abstract SyntaxNode ConstantPattern(SyntaxNode expression);
-        internal abstract SyntaxNode NotPattern(SyntaxNode pattern);
-        internal abstract SyntaxNode OrPattern(SyntaxNode left, SyntaxNode right);
-        internal abstract SyntaxNode ParenthesizedPattern(SyntaxNode pattern);
-        internal abstract SyntaxNode TypePattern(SyntaxNode type);
 
         #endregion
     }

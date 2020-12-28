@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
@@ -13,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.TopLevelStatements)]
     public class TopLevelStatementsTests : CompilingTestBase
     {
-        private static CSharpParseOptions DefaultParseOptions => TestOptions.RegularPreview;
+        private static CSharpParseOptions DefaultParseOptions => TestOptions.Regular9;
 
         [Fact]
         public void Simple_01()
@@ -39,6 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(entryPoint, comp.GetEntryPoint(default));
             Assert.False(entryPoint.CanBeReferencedByName);
             Assert.False(entryPoint.ContainingType.CanBeReferencedByName);
+            Assert.Equal("<Main>$", entryPoint.Name);
+            Assert.Equal("<Program>$", entryPoint.ContainingType.Name);
         }
 
         private static void AssertEntryPointParameter(SynthesizedSimpleProgramEntryPointSymbol entryPoint)
@@ -173,7 +176,7 @@ void local() => System.Console.WriteLine(2);
 
             static void verifyModel(CSharpCompilation comp, SyntaxTree tree1, bool nullableEnabled = false)
             {
-                Assert.Equal(nullableEnabled, comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+                Assert.Equal(nullableEnabled, comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
                 var model1 = comp.GetSemanticModel(tree1);
 
                 verifyModelForGlobalStatements(tree1, model1);
@@ -298,7 +301,7 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'local(); .
 
             static void verifyModel(CSharpCompilation comp, SyntaxTree tree1, SyntaxTree tree2, bool nullableEnabled = false)
             {
-                Assert.Equal(nullableEnabled, comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+                Assert.Equal(nullableEnabled, comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
                 var model1 = comp.GetSemanticModel(tree1);
 
                 verifyModelForGlobalStatements(tree1, model1);
@@ -463,7 +466,7 @@ void local() => System.Console.WriteLine(i);
 
             static void verifyModel(CSharpCompilation comp, SyntaxTree tree1, SyntaxTree tree2)
             {
-                Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+                Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
                 var model1 = comp.GetSemanticModel(tree1);
                 var localDecl = tree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
@@ -515,7 +518,7 @@ System.Console.Write(i);
 
             var tree1 = comp.SyntaxTrees[0];
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var model1 = comp.GetSemanticModel(tree1);
             var localDecl = tree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
@@ -555,7 +558,7 @@ void local() => System.Console.WriteLine(i);
 
             static void verifyModel(CSharpCompilation comp, SyntaxTree tree1)
             {
-                Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+                Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
                 var model1 = comp.GetSemanticModel(tree1);
                 var localDecl = tree1.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
@@ -599,9 +602,9 @@ void local() => System.Console.WriteLine(i);
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular8);
 
             comp.VerifyDiagnostics(
-                // (1,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // System.Console.WriteLine("Hi!");
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"System.Console.WriteLine(""Hi!"");").WithArguments("top-level statements").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, @"System.Console.WriteLine(""Hi!"");").WithArguments("top-level statements", "9.0").WithLocation(1, 1)
                 );
         }
 
@@ -618,7 +621,7 @@ class Test
             var comp = CreateCompilation(text, parseOptions: DefaultParseOptions);
 
             var expected = new[] {
-                // (4,29): error CS1519: Invalid token '(' in class, struct, or interface member declaration
+                // (4,29): error CS1519: Invalid token '(' in class, record, struct, or interface member declaration
                 //     System.Console.WriteLine("Hi!");
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "(").WithArguments("(").WithLocation(4, 29),
                 // (4,30): error CS1031: Type expected
@@ -630,7 +633,7 @@ class Test
                 // (4,30): error CS1026: ) expected
                 //     System.Console.WriteLine("Hi!");
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, @"""Hi!""").WithLocation(4, 30),
-                // (4,30): error CS1519: Invalid token '"Hi!"' in class, struct, or interface member declaration
+                // (4,30): error CS1519: Invalid token '"Hi!"' in class, record, struct, or interface member declaration
                 //     System.Console.WriteLine("Hi!");
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, @"""Hi!""").WithArguments(@"""Hi!""").WithLocation(4, 30)
                 };
@@ -679,7 +682,7 @@ System.Console.WriteLine(s);
 
             CompileAndVerify(comp, expectedOutput: "Hi!");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -851,7 +854,7 @@ System.Console.Write(x);
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "int").WithLocation(2, 1)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -965,7 +968,7 @@ System.Console.Write(x);
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(4, 5)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -1020,7 +1023,7 @@ System.Console.Write(args);
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "args").WithArguments("args").WithLocation(2, 8)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -1375,7 +1378,7 @@ class C1
                 Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "x").WithArguments("x").WithLocation(6, 30)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree2 = comp.SyntaxTrees[1];
             var model2 = comp.GetSemanticModel(tree2);
@@ -1393,7 +1396,7 @@ class C1
                 Diagnostic(ErrorCode.ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement, "x").WithArguments("x").WithLocation(6, 30)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             tree2 = comp.SyntaxTrees[0];
             model2 = comp.GetSemanticModel(tree2);
@@ -1653,7 +1656,7 @@ namespace N1
             var getHashCode = ((Compilation)comp).GetMember("System.Object." + nameof(GetHashCode));
             var testType = ((Compilation)comp).GetTypeByMetadataName("Test");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -1676,7 +1679,7 @@ namespace N1
             Assert.DoesNotContain(declSymbol, symbols);
             Assert.Same(testType, model1.LookupNamespacesAndTypes(localDecl.SpanStart, name: "Test").Single());
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var nameRefs = tree1.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Test").ToArray();
 
@@ -1826,7 +1829,7 @@ namespace N1
             var getHashCode = ((Compilation)comp).GetMember("System.Object." + nameof(GetHashCode));
             var testType = ((Compilation)comp).GetTypeByMetadataName("Test");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -1849,7 +1852,7 @@ namespace N1
             Assert.DoesNotContain(declSymbol, symbols);
             Assert.Same(testType, model1.LookupNamespacesAndTypes(localDecl.SpanStart, name: "Test").Single());
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree2 = comp.SyntaxTrees[1];
             var model2 = comp.GetSemanticModel(tree2);
@@ -1960,9 +1963,9 @@ namespace N1
 
             comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
-                // (2,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,1): error CS8107: Feature 'top-level statements' is not available in C# 7.0. Please use language version 9.0 or greater.
                 // string Test = "1";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"string Test = ""1"";").WithArguments("top-level statements").WithLocation(2, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"string Test = ""1"";").WithArguments("top-level statements", "9.0").WithLocation(2, 1)
                 );
         }
 
@@ -2052,7 +2055,7 @@ namespace N1
 
             var testType = ((Compilation)comp).GetTypeByMetadataName("Test");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -2216,7 +2219,7 @@ namespace N1
 
             var testType = ((Compilation)comp).GetTypeByMetadataName("Test");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -2337,9 +2340,9 @@ namespace N1
 
             comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
-                // (2,1): error CS8652: The feature 'top-level statements' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,1): error CS8107: Feature 'top-level statements' is not available in C# 7.0. Please use language version 9.0 or greater.
                 // string Test() => "1";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"string Test() => ""1"";").WithArguments("top-level statements").WithLocation(2, 1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, @"string Test() => ""1"";").WithArguments("top-level statements", "9.0").WithLocation(2, 1)
                 );
         }
 
@@ -2394,7 +2397,7 @@ namespace N1
 
             var testType = ((Compilation)comp).GetTypeByMetadataName("Test");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -2886,7 +2889,7 @@ void local()
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(7, 1)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -3909,7 +3912,7 @@ namespace N1
 
             var testType = ((Compilation)comp).GetTypeByMetadataName("args");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -4058,7 +4061,7 @@ namespace N1
 
             var testType = ((Compilation)comp).GetTypeByMetadataName("args");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree = comp.SyntaxTrees[1];
             var model = comp.GetSemanticModel(tree);
@@ -4183,7 +4186,7 @@ void local()
 
             CompileAndVerify(comp, expectedOutput: "15");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -4386,7 +4389,7 @@ localI();
                 // (14,14): error CS0759: No defining declaration found for implementing declaration of partial method '<invalid-global-code>.localG()'
                 // partial void localG() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "localG").WithArguments("<invalid-global-code>.localG()").WithLocation(14, 14),
-                // (14,14): error CS0751: A partial method must be declared within a partial class, partial struct, or partial interface
+                // (14,14): error CS0751: A partial method must be declared within a partial type
                 // partial void localG() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "localG").WithLocation(14, 14),
                 // (15,1): error CS0103: The name 'localG' does not exist in the current context
@@ -4466,7 +4469,7 @@ void local2()
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local2").WithArguments("local2").WithLocation(5, 6)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -4530,7 +4533,7 @@ void local2()
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local1").WithArguments("local1").WithLocation(7, 6)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -4579,7 +4582,7 @@ void args(int x)
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "args").WithArguments("args").WithLocation(3, 6)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -4849,7 +4852,7 @@ label1: System.Console.WriteLine(""Hi!"");
 
             CompileAndVerify(comp, expectedOutput: "Hi!");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -4906,7 +4909,7 @@ goto label1;
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "label1").WithLocation(2, 1)
                 );
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(tree1);
@@ -4934,7 +4937,7 @@ args: System.Console.WriteLine(""Hi!"");
 
             CompileAndVerify(comp, expectedOutput: "Hi!");
 
-            Assert.False(comp.NullableSemanticAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
+            Assert.False(comp.IsNullableAnalysisEnabled); // To make sure we test incremental binding for SemanticModel
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -5281,7 +5284,10 @@ class Program2
 
             comp.VerifyEmitDiagnostics(
                 // error CS8804: Cannot specify /main if there is a compilation unit with top-level statements.
-                Diagnostic(ErrorCode.ERR_SimpleProgramDisallowsMainType).WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_SimpleProgramDisallowsMainType).WithLocation(1, 1),
+                // (12,23): warning CS8892: Method 'Program.Main(string[])' will not be used as an entry point because a synchronous entry point 'Program.Main()' was found.
+                //     static async Task Main(string[] args)
+                Diagnostic(ErrorCode.WRN_SyncAndAsyncEntryPoints, "Main").WithArguments("Program.Main(string[])", "Program.Main()").WithLocation(12, 23)
                 );
         }
 
@@ -6053,13 +6059,13 @@ extern static void internalCallStatic();
                     var methodName = peReader.GetString(methodDef.Name);
                     var expectedFlags = methodName switch
                     {
-                        "<$Main>g__forwardRef|0_0" => MethodImplAttributes.ForwardRef,
-                        "<$Main>g__noInlining|0_1" => MethodImplAttributes.NoInlining,
-                        "<$Main>g__noOptimization|0_2" => MethodImplAttributes.NoOptimization,
-                        "<$Main>g__synchronized|0_3" => MethodImplAttributes.Synchronized,
-                        "<$Main>g__internalCallStatic|0_4" => MethodImplAttributes.InternalCall,
+                        "<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">g__forwardRef|0_0" => MethodImplAttributes.ForwardRef,
+                        "<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">g__noInlining|0_1" => MethodImplAttributes.NoInlining,
+                        "<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">g__noOptimization|0_2" => MethodImplAttributes.NoOptimization,
+                        "<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">g__synchronized|0_3" => MethodImplAttributes.Synchronized,
+                        "<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">g__internalCallStatic|0_4" => MethodImplAttributes.InternalCall,
                         ".ctor" => MethodImplAttributes.IL,
-                        "$Main" => MethodImplAttributes.IL,
+                        WellKnownMemberNames.TopLevelStatementsEntryPointMethodName => MethodImplAttributes.IL,
                         _ => throw TestExceptionUtilities.UnexpectedValue(methodName)
                     };
 
@@ -6108,12 +6114,12 @@ static extern void local1();
 
             void validate(ModuleSymbol module)
             {
-                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>(SimpleProgramNamedTypeSymbol.UnspeakableName);
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName);
                 Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(cClass.GetAttributes().As<CSharpAttributeData>()));
 
-                Assert.Empty(cClass.GetMethod(SynthesizedSimpleProgramEntryPointSymbol.UnspeakableName).GetAttributes());
+                Assert.Empty(cClass.GetMethod(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).GetAttributes());
 
-                var localFn1 = cClass.GetMethod("<$Main>g__local1|0_0");
+                var localFn1 = cClass.GetMethod("<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">g__local1|0_0");
 
                 Assert.Empty(localFn1.GetAttributes());
                 validateLocalFunction(localFn1);
@@ -6572,7 +6578,7 @@ class B : A
 
             private void Handle2(SymbolStartAnalysisContext context)
             {
-                Assert.Equal(SimpleProgramNamedTypeSymbol.UnspeakableName, context.Symbol.ToTestDisplayString());
+                Assert.Equal(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, context.Symbol.ToTestDisplayString());
                 Interlocked.Increment(ref FireCount3);
                 context.RegisterSymbolEndAction(Handle5);
 
@@ -6609,7 +6615,7 @@ class B : A
 
             private void Handle5(SymbolAnalysisContext context)
             {
-                Assert.Equal(SimpleProgramNamedTypeSymbol.UnspeakableName, context.Symbol.ToTestDisplayString());
+                Assert.Equal(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, context.Symbol.ToTestDisplayString());
                 Interlocked.Increment(ref FireCount8);
             }
         }
@@ -7256,7 +7262,7 @@ class C1
                     case "C1":
                         Interlocked.Increment(ref FireCount3);
                         break;
-                    case SimpleProgramNamedTypeSymbol.UnspeakableName:
+                    case WellKnownMemberNames.TopLevelStatementsEntryPointTypeName:
                         Interlocked.Increment(ref FireCount4);
                         break;
                     default:
@@ -7593,14 +7599,14 @@ return;
             {
                 _ = ConditionalSkipReason.NativePdbRequiresDesktop;
 
-                comp.VerifyPdb("$Program.$Main",
-@"<symbols>
+                comp.VerifyPdb(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "." + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName,
+@$"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
-  <entryPoint declaringType=""$Program"" methodName=""$Main"" parameterNames=""args"" />
+  <entryPoint declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />
   <methods>
-    <method containingType=""$Program"" name=""$Main"" parameterNames=""args"">
+    <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" name=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -7614,6 +7620,11 @@ return;
   </methods>
 </symbols>", options: PdbValidationOptions.SkipConversionValidation);
             }
+        }
+
+        private static string EscapeForXML(string toEscape)
+        {
+            return toEscape.Replace("<", "&lt;").Replace(">", "&gt;");
         }
 
         [Fact]
@@ -7635,14 +7646,14 @@ return 10;
             {
                 _ = ConditionalSkipReason.NativePdbRequiresDesktop;
 
-                comp.VerifyPdb("$Program.$Main",
-@"<symbols>
+                comp.VerifyPdb(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "." + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName,
+@$"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
-  <entryPoint declaringType=""$Program"" methodName=""$Main"" parameterNames=""args"" />
+  <entryPoint declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />
   <methods>
-    <method containingType=""$Program"" name=""$Main"" parameterNames=""args"">
+    <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" name=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -7682,16 +7693,16 @@ return;
             {
                 _ = ConditionalSkipReason.NativePdbRequiresDesktop;
 
-                comp.VerifyPdb("$Program+<$Main>d__0.MoveNext",
-@"<symbols>
+                comp.VerifyPdb(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "+<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">d__0.MoveNext",
+@$"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
-  <entryPoint declaringType=""$Program"" methodName=""&lt;Main&gt;"" parameterNames=""args"" />
+  <entryPoint declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""&lt;Main&gt;"" parameterNames=""args"" />
   <methods>
-    <method containingType=""$Program+&lt;$Main&gt;d__0"" name=""MoveNext"">
+    <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""$Program+&lt;&gt;c"" methodName=""&lt;$Main&gt;b__0_0"" />
+        <forward declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;&gt;c"" methodName=""&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;b__0_0"" />
         <encLocalSlotMap>
           <slot kind=""27"" offset=""2"" />
           <slot kind=""33"" offset=""76"" />
@@ -7712,8 +7723,8 @@ return;
       </sequencePoints>
       <asyncInfo>
         <catchHandler offset=""0xa9"" />
-        <kickoffMethod declaringType=""$Program"" methodName=""$Main"" parameterNames=""args"" />
-        <await yield=""0x5a"" resume=""0x75"" declaringType=""$Program+&lt;$Main&gt;d__0"" methodName=""MoveNext"" />
+        <kickoffMethod declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />
+        <await yield=""0x5a"" resume=""0x75"" declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
@@ -7745,16 +7756,16 @@ return 11;
             {
                 _ = ConditionalSkipReason.NativePdbRequiresDesktop;
 
-                comp.VerifyPdb("$Program+<$Main>d__0.MoveNext",
-@"<symbols>
+                comp.VerifyPdb(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "+<" + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName + ">d__0.MoveNext",
+@$"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
-  <entryPoint declaringType=""$Program"" methodName=""&lt;Main&gt;"" parameterNames=""args"" />
+  <entryPoint declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""&lt;Main&gt;"" parameterNames=""args"" />
   <methods>
-    <method containingType=""$Program+&lt;$Main&gt;d__0"" name=""MoveNext"">
+    <method containingType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""$Program+&lt;&gt;c"" methodName=""&lt;$Main&gt;b__0_0"" />
+        <forward declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;&gt;c"" methodName=""&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;b__0_0"" />
         <encLocalSlotMap>
           <slot kind=""27"" offset=""2"" />
           <slot kind=""20"" offset=""2"" />
@@ -7776,8 +7787,8 @@ return 11;
       </sequencePoints>
       <asyncInfo>
         <catchHandler offset=""0xac"" />
-        <kickoffMethod declaringType=""$Program"" methodName=""$Main"" parameterNames=""args"" />
-        <await yield=""0x5a"" resume=""0x75"" declaringType=""$Program+&lt;$Main&gt;d__0"" methodName=""MoveNext"" />
+        <kickoffMethod declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }"" methodName=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }"" parameterNames=""args"" />
+        <await yield=""0x5a"" resume=""0x75"" declaringType=""{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName) }+&lt;{ EscapeForXML(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName) }&gt;d__0"" methodName=""MoveNext"" />
       </asyncInfo>
     </method>
   </methods>
@@ -8214,7 +8225,7 @@ System.Console.WriteLine(""Hi!"");
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp).VerifyIL("<top-level-statements-entry-point>", sequencePoints: "$Program.$Main", source: text, expectedIL:
+            CompileAndVerify(comp).VerifyIL("<top-level-statements-entry-point>", sequencePoints: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "." + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName, source: text, expectedIL:
 @"
 {
   // Code size        2 (0x2)
@@ -8292,7 +8303,7 @@ System.Console.WriteLine(i);
 ";
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<top-level-statements-entry-point>", sequencePoints: "$Program.$Main", source: text, expectedIL:
+            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<top-level-statements-entry-point>", sequencePoints: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "." + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName, source: text, expectedIL:
 @"
 {
   // Code size       20 (0x14)
@@ -8339,7 +8350,7 @@ System.Console.WriteLine(i);
 ";
             var comp = CreateCompilation(text, options: TestOptions.DebugExe.WithOverflowChecks(true), parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<top-level-statements-entry-point>", sequencePoints: "$Program.$Main", source: text, expectedIL:
+            CompileAndVerify(comp, expectedOutput: "3").VerifyIL("<top-level-statements-entry-point>", sequencePoints: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName + "." + WellKnownMemberNames.TopLevelStatementsEntryPointMethodName, source: text, expectedIL:
 @"
 {
   // Code size       20 (0x14)
@@ -8594,6 +8605,79 @@ for (Span<int> inner = stackalloc int[10];; inner = outer)
                 //     outer = inner;
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "inner").WithArguments("inner").WithLocation(7, 13)
                 );
+        }
+
+        [Fact]
+        [WorkItem(1179569, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1179569")]
+        public void Issue1179569()
+        {
+            var text1 =
+@"Task v0123456789012345678901234567()
+{
+    Console.Write(""start v0123456789012345678901234567"");
+    await Task.Delay(2 * 1000);
+    Console.Write(""end v0123456789012345678901234567"");
+}
+
+Task On01234567890123456()
+{
+    return v0123456789012345678901234567();
+}
+
+string
+
+return Task.WhenAll(
+    Task.WhenAll(this.c01234567890123456789012345678.Select(v01234567 => On01234567890123456(v01234567))),
+    Task.WhenAll(this.c01234567890123456789.Select(v01234567 => v01234567.U0123456789012345678901234())));
+";
+
+            var oldTree = Parse(text: text1, options: TestOptions.RegularDefault);
+
+            var text2 =
+@"Task v0123456789012345678901234567()
+{
+    Console.Write(""start v0123456789012345678901234567"");
+    await Task.Delay(2 * 1000);
+    Console.Write(""end v0123456789012345678901234567"");
+}
+
+Task On01234567890123456()
+{
+    return v0123456789012345678901234567();
+}
+
+string[
+
+return Task.WhenAll(
+    Task.WhenAll(this.c01234567890123456789012345678.Select(v01234567 => On01234567890123456(v01234567))),
+    Task.WhenAll(this.c01234567890123456789.Select(v01234567 => v01234567.U0123456789012345678901234())));
+";
+
+            var newText = Microsoft.CodeAnalysis.Text.StringText.From(text2, System.Text.Encoding.UTF8);
+            using var lexer = new Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.Lexer(newText, TestOptions.RegularDefault);
+            using var parser = new Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LanguageParser(lexer,
+                                       (CSharpSyntaxNode)oldTree.GetRoot(), new[] { new Microsoft.CodeAnalysis.Text.TextChangeRange(new Microsoft.CodeAnalysis.Text.TextSpan(282, 0), 1) });
+
+            var compilationUnit = (CompilationUnitSyntax)parser.ParseCompilationUnit().CreateRed();
+            var tree = CSharpSyntaxTree.Create(compilationUnit, TestOptions.RegularDefault, encoding: System.Text.Encoding.UTF8);
+            Assert.Equal(text2, tree.GetText().ToString());
+            tree.VerifySource();
+
+            var fullParseTree = Parse(text: text2, options: TestOptions.RegularDefault);
+            var nodes1 = tree.GetRoot().DescendantNodesAndTokensAndSelf(descendIntoTrivia: true).ToArray();
+            var nodes2 = fullParseTree.GetRoot().DescendantNodesAndTokensAndSelf(descendIntoTrivia: true).ToArray();
+            Assert.Equal(nodes1.Length, nodes2.Length);
+
+            for (int i = 0; i < nodes1.Length; i++)
+            {
+                var node1 = nodes1[i];
+                var node2 = nodes2[i];
+                Assert.Equal(node1.RawKind, node2.RawKind);
+                Assert.Equal(node1.Span, node2.Span);
+                Assert.Equal(node1.FullSpan, node2.FullSpan);
+                Assert.Equal(node1.ToString(), node2.ToString());
+                Assert.Equal(node1.ToFullString(), node2.ToFullString());
+            }
         }
     }
 }

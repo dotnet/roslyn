@@ -2,6 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using Microsoft.CodeAnalysis.PersistentStorage;
+
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
@@ -15,5 +19,6 @@ namespace Microsoft.CodeAnalysis.Host
     internal interface IPersistentStorageService2 : IPersistentStorageService
     {
         IPersistentStorage GetStorage(Solution solution, bool checkBranchId);
+        IPersistentStorage GetStorage(Workspace workspace, SolutionKey solutionKey, bool checkBranchId);
     }
 }

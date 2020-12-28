@@ -163,6 +163,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' A class to represent an empty statement. This can occur when a colon is on a
     ''' line without anything else.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.EmptyStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class EmptyStatementSyntax
         Inherits StatementSyntax
 
@@ -239,6 +245,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an "End XXX" statement, where XXX is a single keyword.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.EndIfStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndUsingStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndWithStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndSelectStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndStructureStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndEnumStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndInterfaceStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndClassStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndModuleStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndNamespaceStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndSubStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndFunctionStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndGetStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndSetStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndPropertyStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndOperatorStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndEventStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndAddHandlerStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndRemoveHandlerStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndRaiseEventStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndWhileStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndTryStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndSyncLockStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class EndBlockStatementSyntax
         Inherits DeclarationStatementSyntax
 
@@ -345,6 +379,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an entire source file of VB code.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.CompilationUnit"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Partial Public NotInheritable Class CompilationUnitSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -564,6 +604,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an Option statement, such as "Option Strict On".
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.OptionStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class OptionStatementSyntax
         Inherits DeclarationStatementSyntax
 
@@ -694,6 +740,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an Imports statement, which has one or more imports clauses.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ImportsStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ImportsStatementSyntax
         Inherits DeclarationStatementSyntax
 
@@ -827,6 +879,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents the clause of an Imports statement that imports all members of a
     ''' type or namespace or aliases a type or namespace.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SimpleImportsClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class SimpleImportsClauseSyntax
         Inherits ImportsClauseSyntax
 
@@ -939,6 +997,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an alias identifier followed by an "=" token in an Imports clause.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ImportAliasClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ImportAliasClauseSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -1039,6 +1103,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Defines a XML namespace for XML expressions.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlNamespaceImportsClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlNamespaceImportsClauseSyntax
         Inherits ImportsClauseSyntax
 
@@ -1159,6 +1229,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a Namespace statement, its contents and the End Namespace statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.NamespaceBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class NamespaceBlockSyntax
         Inherits DeclarationStatementSyntax
 
@@ -1304,6 +1380,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents the beginning statement of a namespace declaration. This node always
     ''' appears as the Begin of a BlockStatement with Kind=NamespaceBlock.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.NamespaceStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class NamespaceStatementSyntax
         Inherits DeclarationStatementSyntax
 
@@ -1521,6 +1603,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a declaration of Module, its contents and the End statement that
     ''' ends it.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ModuleBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ModuleBlockSyntax
         Inherits TypeBlockSyntax
 
@@ -1767,6 +1855,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a declaration of a Structure, its contents and the End statement
     ''' that ends it.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.StructureBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class StructureBlockSyntax
         Inherits TypeBlockSyntax
 
@@ -2013,6 +2107,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a declaration of a Interface, its contents and the End statement
     ''' that ends it.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.InterfaceBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class InterfaceBlockSyntax
         Inherits TypeBlockSyntax
 
@@ -2259,6 +2359,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a declaration of a Class its contents and the End statement that
     ''' ends it.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ClassBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ClassBlockSyntax
         Inherits TypeBlockSyntax
 
@@ -2505,6 +2611,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a declaration of an Enum, its contents and the End Enum statement
     ''' that ends it.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.EnumBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class EnumBlockSyntax
         Inherits DeclarationStatementSyntax
 
@@ -2665,6 +2777,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an Inherits statement in a Class, Structure or Interface.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.InheritsStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class InheritsStatementSyntax
         Inherits InheritsOrImplementsStatementSyntax
 
@@ -2777,6 +2895,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an Implements statement in a Class or Structure.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ImplementsStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ImplementsStatementSyntax
         Inherits InheritsOrImplementsStatementSyntax
 
@@ -3032,6 +3156,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents the beginning statement of a Module declaration. This node always
     ''' appears as the Begin of a TypeBlock with Kind=ModuleDeclarationBlock.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ModuleStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ModuleStatementSyntax
         Inherits TypeStatementSyntax
 
@@ -3278,6 +3408,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents the beginning statement of a Structure declaration. This node always
     ''' appears as the Begin of a TypeBlock with Kind=StructureDeclarationBlock.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.StructureStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class StructureStatementSyntax
         Inherits TypeStatementSyntax
 
@@ -3524,6 +3660,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents the beginning statement of a Interface declaration. This node always
     ''' appears as the Begin of a TypeBlock with Kind=InterfaceDeclarationBlock.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.InterfaceStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class InterfaceStatementSyntax
         Inherits TypeStatementSyntax
 
@@ -3770,6 +3912,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents the beginning statement of a Class declaration. This node always
     ''' appears as the Begin of a TypeBlock with Kind=ClassDeclarationBlock.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ClassStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ClassStatementSyntax
         Inherits TypeStatementSyntax
 
@@ -4016,6 +4164,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents the beginning statement of an Enum declaration. This node always
     ''' appears as the Begin of an EnumBlock with Kind=EnumDeclarationBlock.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.EnumStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class EnumStatementSyntax
         Inherits DeclarationStatementSyntax
 
@@ -4214,6 +4368,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the type parameter list in a declaration.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.TypeParameterList"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class TypeParameterListSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -4370,6 +4530,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a type parameter on a generic type declaration.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.TypeParameter"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class TypeParameterSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -4525,6 +4691,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' One of the type parameter constraints clauses. This represents a constraint
     ''' clause in the form of "As Constraint".
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.TypeParameterSingleConstraintClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class TypeParameterSingleConstraintClauseSyntax
         Inherits TypeParameterConstraintClauseSyntax
 
@@ -4633,6 +4805,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' One of the type parameter constraints clauses. This represents a constraint
     ''' clause in the form of "As { Constraints }".
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.TypeParameterMultipleConstraintClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class TypeParameterMultipleConstraintClauseSyntax
         Inherits TypeParameterConstraintClauseSyntax
 
@@ -4807,6 +4985,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' kind of special constraint it is can be obtained from the Kind property and is
     ''' one of: NewConstraint, ReferenceConstraint or ValueConstraint.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.NewConstraint"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ClassConstraint"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.StructureConstraint"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class SpecialConstraintSyntax
         Inherits ConstraintSyntax
 
@@ -4888,6 +5074,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a type parameter constraint that is a type.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.TypeConstraint"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class TypeConstraintSyntax
         Inherits ConstraintSyntax
 
@@ -4969,6 +5161,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a name and value in an EnumDeclarationBlock.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.EnumMemberDeclaration"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class EnumMemberDeclarationSyntax
         Inherits DeclarationStatementSyntax
 
@@ -5156,6 +5354,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a Function or Sub block declaration: A declaration that has a
     ''' beginning declaration, a body of executable statements and an end statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SubBlock"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.FunctionBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class MethodBlockSyntax
         Inherits MethodBlockBaseSyntax
 
@@ -5315,6 +5520,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a constructor block declaration: A declaration that has a beginning
     ''' declaration, a body of executable statements and an end statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ConstructorBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ConstructorBlockSyntax
         Inherits MethodBlockBaseSyntax
 
@@ -5471,6 +5682,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents an Operator block member declaration: A declaration that has a
     ''' beginning declaration, a body of executable statements and an end statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.OperatorBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class OperatorBlockSyntax
         Inherits MethodBlockBaseSyntax
 
@@ -5628,6 +5845,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' beginning declaration, a body of executable statements and an end statement.
     ''' Examples include property accessors and custom event accessors.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.GetAccessorBlock"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.SetAccessorBlock"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.AddHandlerAccessorBlock"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.RemoveHandlerAccessorBlock"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.RaiseEventAccessorBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class AccessorBlockSyntax
         Inherits MethodBlockBaseSyntax
 
@@ -5789,6 +6016,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a block property declaration: A declaration that has a beginning
     ''' declaration, some get or set accessor blocks and an end statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.PropertyBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class PropertyBlockSyntax
         Inherits DeclarationStatementSyntax
 
@@ -5932,6 +6165,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a custom event declaration: A declaration that has a beginning event
     ''' declaration, some accessor blocks and an end statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.EventBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class EventBlockSyntax
         Inherits DeclarationStatementSyntax
 
@@ -6195,6 +6434,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the parameter list in a method declaration.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ParameterList"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ParameterListSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -6337,6 +6582,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Kind=MethodDeclarationBlock, and the body of the method will be the Body of
     ''' that BlockStatement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SubStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.FunctionStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class MethodStatementSyntax
         Inherits MethodBaseSyntax
 
@@ -6715,6 +6967,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' BlockStatement with Kind=MethodDeclarationBlock, and the body of the method
     ''' will be the Body of that BlockStatement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SubNewStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class SubNewStatementSyntax
         Inherits MethodBaseSyntax
 
@@ -6954,6 +7212,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' A Declare statement that declares an external DLL method.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.DeclareSubStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.DeclareFunctionStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class DeclareStatementSyntax
         Inherits MethodBaseSyntax
 
@@ -7380,6 +7645,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' A statement that declares a delegate type.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.DelegateSubStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.DelegateFunctionStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class DelegateStatementSyntax
         Inherits MethodBaseSyntax
 
@@ -7710,6 +7982,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' event, this statement will be the Begin of a PropertyOrEventBlock, and the
     ''' accessors will be part of the Accessors of that node.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.EventStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class EventStatementSyntax
         Inherits MethodBaseSyntax
 
@@ -8045,6 +8323,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Kind=MethodDeclarationBlock, and the body of the method will be the Body of
     ''' that BlockStatement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.OperatorStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class OperatorStatementSyntax
         Inherits MethodBaseSyntax
 
@@ -8317,6 +8601,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Body of that node. Auto properties are property declarations without a
     ''' PropertyBlock.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.PropertyStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class PropertyStatementSyntax
         Inherits MethodBaseSyntax
 
@@ -8654,6 +8944,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' the node determines what kind of accessor this is. This statement is always the
     ''' Begin of a BlockNode, and the body of the accessor is the Body of that node.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.GetAccessorStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.SetAccessorStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.AddHandlerAccessorStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.RemoveHandlerAccessorStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.RaiseEventAccessorStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class AccessorStatementSyntax
         Inherits MethodBaseSyntax
 
@@ -8877,6 +9177,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents the "Implements ..." clause on a type member, which describes which
     ''' interface members this member implements.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ImplementsClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ImplementsClauseSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -8991,6 +9297,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents the "Handles ..." clause on a method declaration that describes
     ''' which events this method handles.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.HandlesClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class HandlesClauseSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -9119,6 +9431,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents event container specified through special keywords "Me", "MyBase" or
     ''' "MyClass"..
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.KeywordEventContainer"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class KeywordEventContainerSyntax
         Inherits EventContainerSyntax
 
@@ -9197,6 +9515,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents event container that refers to a WithEvents member.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.WithEventsEventContainer"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class WithEventsEventContainerSyntax
         Inherits EventContainerSyntax
 
@@ -9275,6 +9599,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents event container that refers to a WithEvents member's property.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.WithEventsPropertyEventContainer"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class WithEventsPropertyEventContainerSyntax
         Inherits EventContainerSyntax
 
@@ -9407,6 +9737,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a single handled event in a "Handles ..." clause.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.HandlesClauseItem"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class HandlesClauseItemSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -9542,6 +9878,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' detected to classify this as a field, method, property or event. This is node
     ''' always represents a syntax error.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.IncompleteMember"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class IncompleteMemberSyntax
         Inherits DeclarationStatementSyntax
 
@@ -9700,6 +10042,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' represented by having "Const" in the Modifiers (although technically "Const" is
     ''' not a modifier, it is represented as one in the parse trees.)
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.FieldDeclaration"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class FieldDeclarationSyntax
         Inherits DeclarationStatementSyntax
 
@@ -9862,6 +10210,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents the part of a variable or constant declaration statement that
     ''' associated one or more variable names with a type.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.VariableDeclarator"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class VariableDeclaratorSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -10057,6 +10411,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' "New". The type has optional attributes associated with it, although attributes
     ''' are not permitted in all possible places where this node occurs.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SimpleAsClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class SimpleAsClauseSyntax
         Inherits AsClauseSyntax
 
@@ -10207,6 +10567,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' attributes are not permitted in many places where this node occurs (they are
     ''' permitted, for example, on automatically implemented properties.)
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.AsNewClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class AsNewClauseSyntax
         Inherits AsClauseSyntax
 
@@ -10336,6 +10702,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a "With {...} clause used to initialize a new object's members.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ObjectMemberInitializer"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ObjectMemberInitializerSyntax
         Inherits ObjectCreationInitializerSyntax
 
@@ -10492,6 +10864,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a "From {...} clause used to initialize a new collection object's
     ''' elements.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ObjectCollectionInitializer"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ObjectCollectionInitializerSyntax
         Inherits ObjectCreationInitializerSyntax
 
@@ -10649,6 +11027,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represent a field initializer in a With {...} initializer where the field name
     ''' is inferred from the initializer expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.InferredFieldInitializer"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class InferredFieldInitializerSyntax
         Inherits FieldInitializerSyntax
 
@@ -10770,6 +11154,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represent a named field initializer in a With {...} initializer, such as ".x =
     ''' expr".
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.NamedFieldInitializer"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class NamedFieldInitializerSyntax
         Inherits FieldInitializerSyntax
 
@@ -10958,6 +11348,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents an "= initializer" clause in a declaration for a variable, parameter
     ''' or automatic property.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.EqualsValue"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class EqualsValueSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -11062,6 +11458,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represent a parameter to a method, property, constructor, etc.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.Parameter"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ParameterSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -11275,6 +11677,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents an identifier with optional "?" or "()" or "(,,,)" modifiers, as
     ''' used in parameter declarations and variable declarations.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ModifiedIdentifier"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ModifiedIdentifierSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -11452,6 +11860,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a modifier that describes an array type, without bounds, such as
     ''' "()" or "(,)".
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ArrayRankSpecifier"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ArrayRankSpecifierSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -11584,6 +11998,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a group of attributes within "&lt;" and "&gt;" brackets.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.AttributeList"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class AttributeListSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -11721,6 +12141,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a single attribute declaration within an attribute list.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.Attribute"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class AttributeSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -11867,6 +12293,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a single attribute declaration within an attribute list.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.AttributeTarget"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class AttributeTargetSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -11970,6 +12402,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a file-level attribute, in which the attributes have no other
     ''' syntactic element they are attached to.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.AttributesStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class AttributesStatementSyntax
         Inherits DeclarationStatementSyntax
 
@@ -12062,6 +12500,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' or await expression in standard code but may be any expression in VB
     ''' Interactive code.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ExpressionStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ExpressionStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -12144,6 +12588,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represent a "? expression" "Print" statement in VB Interactive code.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.PrintStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class PrintStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -12250,6 +12700,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a While...End While statement, including the While, body and End
     ''' While.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.WhileBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class WhileBlockSyntax
         Inherits ExecutableStatementSyntax
 
@@ -12395,6 +12851,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents an entire Using...End Using statement, including the Using, body and
     ''' End Using statements.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.UsingBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class UsingBlockSyntax
         Inherits ExecutableStatementSyntax
 
@@ -12541,6 +13003,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a entire SyncLock...End SyncLock block, including the SyncLock
     ''' statement, the enclosed statements, and the End SyncLock statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SyncLockBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class SyncLockBlockSyntax
         Inherits ExecutableStatementSyntax
 
@@ -12687,6 +13155,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a With...End With block, include the With statement, the body of the
     ''' block and the End With statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.WithBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class WithBlockSyntax
         Inherits ExecutableStatementSyntax
 
@@ -12832,6 +13306,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the declaration of one or more local variables or constants.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.LocalDeclarationStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class LocalDeclarationStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -12955,6 +13435,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a label statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.LabelStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class LabelStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -13056,6 +13542,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a "GoTo" statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.GoToStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class GoToStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -13162,6 +13654,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' A label for a GoTo, Resume, or On Error statement. An identifier, line number,
     ''' or next keyword.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.IdentifierLabel"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.NumericLabel"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.NextLabel"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class LabelSyntax
         Inherits ExpressionSyntax
 
@@ -13244,6 +13744,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a "Stop" or "End" statement. The Kind can be used to determine which
     ''' kind of statement this is.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.StopStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EndStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class StopOrEndStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -13325,6 +13832,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' An exit statement. The kind of block being exited can be found by examining the
     ''' Kind.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ExitDoStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ExitForStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ExitSubStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ExitFunctionStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ExitOperatorStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ExitPropertyStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ExitTryStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ExitSelectStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ExitWhileStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ExitStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -13429,6 +13950,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a "Continue (block)" statement. THe kind of block referenced can be
     ''' determined by examining the Kind.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ContinueWhileStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ContinueDoStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ContinueForStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ContinueStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -13533,6 +14062,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a "Return" statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ReturnStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ReturnStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -13641,6 +14176,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a single-line "If ... Then ... Else ..." statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SingleLineIfStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class SingleLineIfStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -13836,6 +14377,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the "Else ..." clause of a single-line "If" statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SingleLineElseClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class SingleLineElseClauseSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -13951,6 +14498,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a multi-line "If ... Then ... ElseIf ... Then ... Else ... End If"
     ''' block.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.MultiLineIfBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class MultiLineIfBlockSyntax
         Inherits ExecutableStatementSyntax
 
@@ -14166,6 +14719,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the "If ... Then" statement that begins a multi-line "If" block.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.IfStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class IfStatementSyntax
         Inherits StatementSyntax
 
@@ -14299,6 +14858,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an "ElseIf ... Then ..." block.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ElseIfBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ElseIfBlockSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -14418,6 +14983,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the "ElseIf ... Then" statement that begins an "ElseIf" block.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ElseIfStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ElseIfStatementSyntax
         Inherits StatementSyntax
 
@@ -14551,6 +15122,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an "Else ..." block.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ElseBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ElseBlockSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -14669,6 +15246,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the "Else" statement that begins an "Else" block.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ElseStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ElseStatementSyntax
         Inherits StatementSyntax
 
@@ -14746,6 +15329,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a "Try ... Catch ... Finally ... End Try" block.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.TryBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class TryBlockSyntax
         Inherits ExecutableStatementSyntax
 
@@ -14959,6 +15548,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the "Try" statement that begins a "Try" block.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.TryStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class TryStatementSyntax
         Inherits StatementSyntax
 
@@ -15036,6 +15631,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a "Catch ..." block.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.CatchBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class CatchBlockSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -15155,6 +15756,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the "Catch ... When ..." statement that begins a "Catch" block.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.CatchStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class CatchStatementSyntax
         Inherits StatementSyntax
 
@@ -15322,6 +15929,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the "When ..." clause of a "Catch" statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.CatchFilterClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class CatchFilterClauseSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -15426,6 +16039,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a "Finally ..." block of a "Try" block.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.FinallyBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class FinallyBlockSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -15544,6 +16163,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the "Finally" statement that begins a "Finally" block.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.FinallyStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class FinallyStatementSyntax
         Inherits StatementSyntax
 
@@ -15621,6 +16246,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the "Error" statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ErrorStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ErrorStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -15726,6 +16357,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an OnError Goto statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.OnErrorGoToZeroStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.OnErrorGoToMinusOneStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.OnErrorGoToLabelStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class OnErrorGoToStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -15903,6 +16542,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an OnError Resume Next statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.OnErrorResumeNextStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class OnErrorResumeNextStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -16046,6 +16691,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a "Resume" statement. The Kind property can be used to determine if
     ''' this is a "Resume", "Resume Next" or "Resume label" statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ResumeStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ResumeLabelStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ResumeNextStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ResumeStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -16159,6 +16812,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a Select Case block, including the Select Case that begins it, the
     ''' contains Case blocks and the End Select.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SelectBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class SelectBlockSyntax
         Inherits ExecutableStatementSyntax
 
@@ -16304,6 +16963,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a Select Case statement. This statement always occurs as the Begin
     ''' of a SelectBlock.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SelectStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class SelectStatementSyntax
         Inherits StatementSyntax
 
@@ -16437,6 +17102,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a case statement and its subsequent block.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.CaseBlock"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.CaseElseBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class CaseBlockSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -16565,6 +17237,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' a CaseBlock. If this is a Case Else statement, the Kind=CaseElse, otherwise the
     ''' Kind=Case.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.CaseStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.CaseElseStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class CaseStatementSyntax
         Inherits StatementSyntax
 
@@ -16697,6 +17376,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' The "Else" part in a Case Else statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ElseCaseClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ElseCaseClauseSyntax
         Inherits CaseClauseSyntax
 
@@ -16774,6 +17459,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a single value in a Case.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SimpleCaseClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class SimpleCaseClauseSyntax
         Inherits CaseClauseSyntax
 
@@ -16855,6 +17546,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a range "expression To expression" in a Case.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.RangeCaseClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class RangeCaseClauseSyntax
         Inherits CaseClauseSyntax
 
@@ -16986,6 +17683,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a relation clause in a Case statement, such as "Is &gt; expression".
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.CaseEqualsClause"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.CaseNotEqualsClause"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.CaseLessThanClause"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.CaseLessThanOrEqualClause"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.CaseGreaterThanOrEqualClause"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.CaseGreaterThanClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class RelationalCaseClauseSyntax
         Inherits CaseClauseSyntax
 
@@ -17123,6 +17831,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents the "SyncLock" statement. This statement always occurs as the Begin
     ''' of a SyncLockBlock.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SyncLockStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class SyncLockStatementSyntax
         Inherits StatementSyntax
 
@@ -17229,6 +17943,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a Do-Loop block. The Kind property can be used to determine if this
     ''' is a Do While, Do Until, Do Loop While, Do Loop Until, or infinite Do Loop.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SimpleDoLoopBlock"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.DoWhileLoopBlock"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.DoUntilLoopBlock"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.DoLoopWhileBlock"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.DoLoopUntilBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class DoLoopBlockSyntax
         Inherits ExecutableStatementSyntax
 
@@ -17376,6 +18100,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' The Do statement that begins a Do-Loop block.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SimpleDoStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.DoWhileStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.DoUntilStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class DoStatementSyntax
         Inherits StatementSyntax
 
@@ -17488,6 +18220,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' The Loop statement that begins a Do-Loop block.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SimpleLoopStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.LoopWhileStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.LoopUntilStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class LoopStatementSyntax
         Inherits StatementSyntax
 
@@ -17602,6 +18342,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' statement. The Kind of the clause can be "WhileClause" or "UntilClause" to
     ''' indicate which kind of clause.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.WhileClause"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.UntilClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class WhileOrUntilClauseSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -17711,6 +18458,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' The While statement that begins a While...End While block. This statement
     ''' always occurs as the Begin of a WhileBlock.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.WhileStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class WhileStatementSyntax
         Inherits StatementSyntax
 
@@ -17899,6 +18652,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' "Next" (which can be omitted if a containing For has a Next with multiple
     ''' variables).
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ForBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ForBlockSyntax
         Inherits ForOrForEachBlockSyntax
 
@@ -18077,6 +18836,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' the "Next" (which can be omitted if a containing For has a Next with multiple
     ''' variables).
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ForEachBlock"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ForEachBlockSyntax
         Inherits ForOrForEachBlockSyntax
 
@@ -18323,6 +19088,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' statements will have End set to Nothing, and the Next statement is the End of
     ''' the outermost For statement that is being ended.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ForStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ForStatementSyntax
         Inherits ForOrForEachStatementSyntax
 
@@ -18569,6 +19340,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' The Step clause in a For Statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ForStepClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ForStepClauseSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -18680,6 +19457,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' statements will have End set to Nothing, and the Next statement is the End of
     ''' the outermost For statement that is being ended.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ForEachStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ForEachStatementSyntax
         Inherits ForOrForEachStatementSyntax
 
@@ -18874,6 +19657,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' and the body of the For-Next is the Body of that ForBlock. The Begin of that
     ''' ForBlock has the corresponding For or For Each statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.NextStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class NextStatementSyntax
         Inherits StatementSyntax
 
@@ -18992,6 +19781,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' the Begin of a UsingBlock, and the body of the Using is the Body of that
     ''' UsingBlock.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.UsingStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class UsingStatementSyntax
         Inherits StatementSyntax
 
@@ -19139,6 +19934,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a Throw statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ThrowStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ThrowStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -19248,6 +20049,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a simple, compound, or Mid assignment statement. Which one can be
     ''' determined by checking the Kind.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SimpleAssignmentStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.MidAssignmentStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.AddAssignmentStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.SubtractAssignmentStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.MultiplyAssignmentStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.DivideAssignmentStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.IntegerDivideAssignmentStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ExponentiateAssignmentStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.LeftShiftAssignmentStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.RightShiftAssignmentStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ConcatenateAssignmentStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class AssignmentStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -19381,6 +20198,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a left-hand side of a MidAssignment statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.MidExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class MidExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -19490,6 +20313,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represent a call statement (also known as a invocation statement).
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.CallStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class CallStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -19597,6 +20426,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents an AddHandler or RemoveHandler statement. The Kind property
     ''' determines which one.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.AddHandlerStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.RemoveHandlerStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class AddRemoveHandlerStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -19752,6 +20588,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represent a RaiseEvent statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.RaiseEventStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class RaiseEventStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -19892,6 +20734,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' BeginStatement of a WithBlock, and the body of the With is the Body of that
     ''' WithBlock.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.WithStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class WithStatementSyntax
         Inherits StatementSyntax
 
@@ -19997,6 +20845,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a ReDim statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ReDimStatement"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ReDimPreserveStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ReDimStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -20142,6 +20997,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a ReDim statement clause.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.RedimClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class RedimClauseSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -20257,6 +21118,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an "Erase" statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.EraseStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class EraseStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -20389,6 +21256,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' determined by casting the associated Token to the correct type and getting the
     ''' value from the token.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.CharacterLiteralExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.TrueLiteralExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.FalseLiteralExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.NumericLiteralExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.DateLiteralExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.StringLiteralExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.NothingLiteralExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class LiteralExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -20476,6 +21355,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a parenthesized expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ParenthesizedExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ParenthesizedExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -20602,6 +21487,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a tuple literal expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.TupleExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class TupleExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -20736,6 +21627,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a tuple type expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.TupleType"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class TupleTypeSyntax
         Inherits TypeSyntax
 
@@ -20885,6 +21782,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a single declaration of a tuple element supplying only the type.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.TypedTupleElement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class TypedTupleElementSyntax
         Inherits TupleElementSyntax
 
@@ -20967,6 +21870,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a single declaration of a tuple element supplying element name and
     ''' optionally a type.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.NamedTupleElement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class NamedTupleElementSyntax
         Inherits TupleElementSyntax
 
@@ -21114,6 +22023,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Identifies the special instance "Me"
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.MeExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class MeExpressionSyntax
         Inherits InstanceExpressionSyntax
 
@@ -21199,6 +22114,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Identifies the special instance "MyBase"
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.MyBaseExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class MyBaseExpressionSyntax
         Inherits InstanceExpressionSyntax
 
@@ -21284,6 +22205,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Identifies the special instance "MyClass"
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.MyClassExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class MyClassExpressionSyntax
         Inherits InstanceExpressionSyntax
 
@@ -21369,6 +22296,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a GetType expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.GetTypeExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class GetTypeExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -21515,6 +22448,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a TypeOf...Is or IsNot expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.TypeOfIsExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.TypeOfIsNotExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class TypeOfExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -21669,6 +22609,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a GetXmlNamespace expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.GetXmlNamespaceExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class GetXmlNamespaceExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -21819,6 +22765,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents member access (.name) or dictionary access (!name). The Kind
     ''' property determines which kind of access.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SimpleMemberAccessExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.DictionaryAccessExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class MemberAccessExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -21957,6 +22910,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' access (node.@Attribute) or descendants access (node...&lt;Descendant&gt;). The
     ''' Kind property determines which kind of access.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlElementAccessExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.XmlDescendantAccessExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.XmlAttributeAccessExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlMemberAccessExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -22147,6 +23108,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' optional argument list or an array, parameterized property or object default
     ''' property index.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.InvocationExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class InvocationExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -22340,6 +23307,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a New expression that creates a new non-array object, possibly with
     ''' a "With" or "From" clause.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ObjectCreationExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ObjectCreationExpressionSyntax
         Inherits NewExpressionSyntax
 
@@ -22562,6 +23535,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a New expression that create an object of anonymous type.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.AnonymousObjectCreationExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class AnonymousObjectCreationExpressionSyntax
         Inherits NewExpressionSyntax
 
@@ -22726,6 +23705,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an expression that creates a new array.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ArrayCreationExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ArrayCreationExpressionSyntax
         Inherits NewExpressionSyntax
 
@@ -22985,6 +23970,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents an expression that creates a new array without naming the element
     ''' type.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.CollectionInitializer"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class CollectionInitializerSyntax
         Inherits ExpressionSyntax
 
@@ -23274,6 +24265,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     End Class
 
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.CTypeExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class CTypeExpressionSyntax
         Inherits CastExpressionSyntax
 
@@ -23510,6 +24507,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     End Class
 
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.DirectCastExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class DirectCastExpressionSyntax
         Inherits CastExpressionSyntax
 
@@ -23746,6 +24749,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     End Class
 
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.TryCastExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class TryCastExpressionSyntax
         Inherits CastExpressionSyntax
 
@@ -23986,6 +24995,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a cast to a pre-defined type using a pre-defined cast expression,
     ''' such as CInt or CLng.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.PredefinedCastExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class PredefinedCastExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -24135,6 +25150,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' similar kind of operators (arithmetic, relational, logical or string); the
     ''' exact operation being performed is determined by the Operator property.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.AddExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.SubtractExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.MultiplyExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.DivideExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.IntegerDivideExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ExponentiateExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.LeftShiftExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.RightShiftExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ConcatenateExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ModuloExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.EqualsExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.NotEqualsExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.LessThanExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.LessThanOrEqualExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.GreaterThanOrEqualExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.GreaterThanExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.IsExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.IsNotExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.LikeExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.OrExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ExclusiveOrExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.AndExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.OrElseExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.AndAlsoExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class BinaryExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -24264,6 +25308,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Describes a unary operator: Plus, Negate, Not or AddressOf.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.UnaryPlusExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.UnaryMinusExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.NotExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.AddressOfExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class UnaryExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -24373,6 +25426,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a conditional expression, If(condition, true-expr, false-expr) or
     ''' If(expr, nothing-expr).
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.BinaryConditionalExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class BinaryConditionalExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -24568,6 +25627,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a conditional expression, If(condition, true-expr, false-expr) or
     ''' If(expr, nothing-expr).
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.TernaryConditionalExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class TernaryConditionalExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -24849,6 +25914,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a single line lambda expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SingleLineFunctionLambdaExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.SingleLineSubLambdaExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class SingleLineLambdaExpressionSyntax
         Inherits LambdaExpressionSyntax
 
@@ -24970,6 +26042,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a multi-line lambda expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.MultiLineFunctionLambdaExpression"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.MultiLineSubLambdaExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class MultiLineLambdaExpressionSyntax
         Inherits LambdaExpressionSyntax
 
@@ -25128,6 +26207,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the header part of a lambda expression
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SubLambdaHeader"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.FunctionLambdaHeader"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class LambdaHeaderSyntax
         Inherits MethodBaseSyntax
 
@@ -25379,6 +26465,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a parenthesized argument list.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ArgumentList"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ArgumentListSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -25534,6 +26626,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents an omitted argument in an argument list. An omitted argument is not
     ''' considered a syntax error but a valid case when no argument is required.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.OmittedArgument"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class OmittedArgumentSyntax
         Inherits ArgumentSyntax
 
@@ -25611,6 +26709,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents an argument that is just an optional argument name and an
     ''' expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SimpleArgument"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class SimpleArgumentSyntax
         Inherits ArgumentSyntax
 
@@ -25724,6 +26828,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an identifier name followed by a ":=" token in a named argument.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.NameColonEquals"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class NameColonEqualsSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -25829,6 +26939,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a range argument, such as "0 to 5", used in array bounds. The
     ''' "Value" property represents the upper bound of the range.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.RangeArgument"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class RangeArgumentSyntax
         Inherits ArgumentSyntax
 
@@ -25962,6 +27078,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' or more query operators in a row. The first query operator must be a From or
     ''' Aggregate.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.QueryExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class QueryExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -26066,6 +27188,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Describes a single variable of the form "x [As Type] In expression" for use in
     ''' query expressions.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.CollectionRangeVariable"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class CollectionRangeVariableSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -26227,6 +27355,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Describes a single variable of the form "[x [As Type] =] expression" for use in
     ''' query expressions.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ExpressionRangeVariable"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ExpressionRangeVariableSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -26343,6 +27477,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' for use in the Into clause of Aggregate or Group By or Group Join query
     ''' operators.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.AggregationRangeVariable"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class AggregationRangeVariableSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -26459,6 +27599,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the name and optional type of an expression range variable.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.VariableNameEquals"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class VariableNameEqualsSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -26610,6 +27756,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents an invocation of an Aggregation function in the aggregation range
     ''' variable declaration of a Group By, Group Join or Aggregate query operator.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.FunctionAggregation"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class FunctionAggregationSyntax
         Inherits AggregationSyntax
 
@@ -26776,6 +27928,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' aggregation range variable declaration of a Group By or Group Join query
     ''' operator.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.GroupAggregation"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class GroupAggregationSyntax
         Inherits AggregationSyntax
 
@@ -26855,6 +28013,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Source will be Nothing. Otherwise, the Source will be the part of the query to
     ''' the left of the From.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.FromClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class FromClauseSyntax
         Inherits QueryClauseSyntax
 
@@ -26968,6 +28132,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a "Let" query operator.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.LetClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class LetClauseSyntax
         Inherits QueryClauseSyntax
 
@@ -27081,6 +28251,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an Aggregate query operator.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.AggregateClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class AggregateClauseSyntax
         Inherits QueryClauseSyntax
 
@@ -27283,6 +28459,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the "Distinct" query operator.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.DistinctClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class DistinctClauseSyntax
         Inherits QueryClauseSyntax
 
@@ -27360,6 +28542,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a "Where" query operator.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.WhereClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class WhereClauseSyntax
         Inherits QueryClauseSyntax
 
@@ -27466,6 +28654,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a "Skip While" or "Take While" query operator. The Kind property
     ''' tells which.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SkipWhileClause"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.TakeWhileClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class PartitionWhileClauseSyntax
         Inherits QueryClauseSyntax
 
@@ -27595,6 +28790,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a "Skip" or "Take" query operator. The Kind property tells which.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SkipClause"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.TakeClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class PartitionClauseSyntax
         Inherits QueryClauseSyntax
 
@@ -27702,6 +28904,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the "Group By" query operator.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.GroupByClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class GroupByClauseSyntax
         Inherits QueryClauseSyntax
 
@@ -28074,6 +29282,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the "expression Equals expression" condition in a Join.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.JoinCondition"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class JoinConditionSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -28203,6 +29417,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a Join query operator.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SimpleJoinClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class SimpleJoinClauseSyntax
         Inherits JoinClauseSyntax
 
@@ -28447,6 +29667,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the "Group Join" query operator.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.GroupJoinClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class GroupJoinClauseSyntax
         Inherits JoinClauseSyntax
 
@@ -28767,6 +29993,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the "Order By" query operator.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.OrderByClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class OrderByClauseSyntax
         Inherits QueryClauseSyntax
 
@@ -28902,6 +30134,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' An expression to order by, plus an optional ordering. The Kind indicates
     ''' whether to order in ascending or descending order.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.AscendingOrdering"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.DescendingOrdering"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class OrderingSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -29018,6 +30257,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the "Select" query operator.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SelectClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class SelectClauseSyntax
         Inherits QueryClauseSyntax
 
@@ -29148,6 +30393,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an XML Document literal expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlDocument"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlDocumentSyntax
         Inherits XmlNodeSyntax
 
@@ -29313,6 +30564,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the XML declaration prologue in an XML literal expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlDeclaration"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlDeclarationSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -29501,6 +30758,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents an XML document prologue option - version, encoding, standalone or
     ''' whitespace in an XML literal expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlDeclarationOption"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlDeclarationOptionSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -29615,6 +30878,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an XML element with content in an XML literal expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlElement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlElementSyntax
         Inherits XmlNodeSyntax
 
@@ -29749,6 +31018,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents Xml text.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlText"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlTextSyntax
         Inherits XmlNodeSyntax
 
@@ -29835,6 +31110,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the start tag of an XML element of the form &lt;element&gt;.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlElementStartTag"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlElementStartTagSyntax
         Inherits XmlNodeSyntax
 
@@ -29982,6 +31263,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the end tag of an XML element of the form &lt;/element&gt;.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlElementEndTag"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlElementEndTagSyntax
         Inherits XmlNodeSyntax
 
@@ -30101,6 +31388,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an empty XML element of the form &lt;element /&gt;
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlEmptyElement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlEmptyElementSyntax
         Inherits XmlNodeSyntax
 
@@ -30248,6 +31541,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an XML attribute in an XML literal expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlAttribute"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlAttributeSyntax
         Inherits BaseXmlAttributeSyntax
 
@@ -30384,6 +31683,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a string of XML characters embedded as the content of an XML
     ''' element.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlString"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlStringSyntax
         Inherits XmlNodeSyntax
 
@@ -30507,6 +31812,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an XML name of the form 'name' appearing in GetXmlNamespace().
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlPrefixName"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlPrefixNameSyntax
         Inherits XmlNodeSyntax
 
@@ -30582,6 +31893,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' source as part of an XML literal or member access expression or an XML
     ''' namespace import clause.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlName"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlNameSyntax
         Inherits XmlNodeSyntax
 
@@ -30685,6 +32002,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' of an XML literal or member access expression or an XML namespace import
     ''' clause.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlBracketedName"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlBracketedNameSyntax
         Inherits XmlNodeSyntax
 
@@ -30801,6 +32124,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an XML namespace prefix of the form 'prefix:' as in xml:ns="".
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlPrefix"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlPrefixSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -30895,6 +32224,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents an XML comment of the form &lt;!-- Comment --&gt; appearing in an
     ''' XML literal expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlComment"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlCommentSyntax
         Inherits XmlNodeSyntax
 
@@ -31016,6 +32351,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents an XML processing instruction of the form '&lt;? XMLProcessingTarget
     ''' XMLProcessingValue ?&gt;'.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlProcessingInstruction"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlProcessingInstructionSyntax
         Inherits XmlNodeSyntax
 
@@ -31153,6 +32494,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an XML CDATA section in an XML literal expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlCDataSection"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlCDataSectionSyntax
         Inherits XmlNodeSyntax
 
@@ -31274,6 +32621,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents an embedded expression in an XML literal e.g. '&lt;name&gt;&lt;%=
     ''' obj.Name =%&gt;&lt;/name&gt;'.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlEmbeddedExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlEmbeddedExpressionSyntax
         Inherits XmlNodeSyntax
 
@@ -31409,6 +32762,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents an array type, such as "A() or "A(,)", without bounds specified for
     ''' the array.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ArrayType"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ArrayTypeSyntax
         Inherits TypeSyntax
 
@@ -31524,6 +32883,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' A type name that represents a nullable type, such as "Integer?".
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.NullableType"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class NullableTypeSyntax
         Inherits TypeSyntax
 
@@ -31631,6 +32996,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents an occurrence of a Visual Basic built-in type such as Integer or
     ''' String in source code.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.PredefinedType"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class PredefinedTypeSyntax
         Inherits TypeSyntax
 
@@ -31763,6 +33134,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a type name consisting of a single identifier (which might include
     ''' brackets or a type character).
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.IdentifierName"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class IdentifierNameSyntax
         Inherits SimpleNameSyntax
 
@@ -31849,6 +33226,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a simple type name with one or more generic arguments, such as "X(Of
     ''' Y, Z).
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.GenericName"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class GenericNameSyntax
         Inherits SimpleNameSyntax
 
@@ -31967,6 +33350,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a qualified type name, for example X.Y or X(Of Z).Y.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.QualifiedName"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class QualifiedNameSyntax
         Inherits NameSyntax
 
@@ -32098,6 +33487,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a name in the global namespace.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.GlobalName"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class GlobalNameSyntax
         Inherits NameSyntax
 
@@ -32175,6 +33570,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a parenthesized list of generic type arguments.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.TypeArgumentList"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class TypeArgumentListSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -32331,6 +33732,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Syntax node class that represents a value of 'cref' attribute inside
     ''' documentation comment trivia.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.CrefReference"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class CrefReferenceSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -32469,6 +33876,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a parenthesized list of argument types for a signature inside
     ''' CrefReferenceSyntax syntax.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.CrefSignature"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class CrefSignatureSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -32591,6 +34004,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     End Class
 
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.CrefSignaturePart"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class CrefSignaturePartSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -32696,6 +34115,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     End Class
 
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.CrefOperatorReference"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class CrefOperatorReferenceSyntax
         Inherits NameSyntax
 
@@ -32787,6 +34212,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     End Class
 
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.QualifiedCrefOperatorReference"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class QualifiedCrefOperatorReferenceSyntax
         Inherits NameSyntax
 
@@ -32907,6 +34338,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represent a Yield statement.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.YieldStatement"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class YieldStatementSyntax
         Inherits ExecutableStatementSyntax
 
@@ -33012,6 +34449,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an Await expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.AwaitExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class AwaitExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -33127,6 +34570,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents tokens that were skipped by the parser as part of error recovery,
     ''' and thus are not part of any syntactic structure.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.SkippedTokensTrivia"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class SkippedTokensTriviaSyntax
         Inherits StructuredTriviaSyntax
 
@@ -33215,6 +34664,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a documentation comment e.g. ''' &lt;Summary&gt; appearing in
     ''' source.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.DocumentationCommentTrivia"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class DocumentationCommentTriviaSyntax
         Inherits StructuredTriviaSyntax
 
@@ -33304,6 +34759,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' &lt;seealso&gt; documentation comment tag). For example, the M in &lt;see
     ''' cref="M" /&gt;.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlCrefAttribute"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlCrefAttributeSyntax
         Inherits BaseXmlAttributeSyntax
 
@@ -33463,6 +34924,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' &lt;param&gt; or &lt;typeparam&gt; documentation comment tag). For example, the
     ''' M in &lt;param name="M" /&gt;.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.XmlNameAttribute"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class XmlNameAttributeSyntax
         Inherits BaseXmlAttributeSyntax
 
@@ -33620,6 +35087,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' ExpressionSyntax node representing the object conditionally accessed.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ConditionalAccessExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ConditionalAccessExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -33755,6 +35228,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a NameOf expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.NameOfExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class NameOfExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -33902,6 +35381,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an interpolated string expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.InterpolatedStringExpression"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class InterpolatedStringExpressionSyntax
         Inherits ExpressionSyntax
 
@@ -34048,6 +35533,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents literal text content in an interpolated string.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.InterpolatedStringText"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class InterpolatedStringTextSyntax
         Inherits InterpolatedStringContentSyntax
 
@@ -34126,6 +35617,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents an interpolation of an expression in an interpolated string
     ''' expression e.g. '{expression[,alignment][:formatString]}'.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.Interpolation"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class InterpolationSyntax
         Inherits InterpolatedStringContentSyntax
 
@@ -34312,6 +35809,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents an alignment clause ',alignment' of an interpolated string embedded
     ''' expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.InterpolationAlignmentClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class InterpolationAlignmentClauseSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -34417,6 +35920,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents a format string clause ':formatString' of an interpolated string
     ''' embedded expression.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.InterpolationFormatClause"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class InterpolationFormatClauseSyntax
         Inherits VisualBasicSyntaxNode
 
@@ -34556,6 +36065,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents a #Const pre-processing constant declaration appearing in source.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ConstDirectiveTrivia"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ConstDirectiveTriviaSyntax
         Inherits DirectiveTriviaSyntax
 
@@ -34732,6 +36247,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents the beginning of an #If pre-processing directive appearing in
     ''' source.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.IfDirectiveTrivia"/></description></item>
+    ''' <item><description><see cref="SyntaxKind.ElseIfDirectiveTrivia"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class IfDirectiveTriviaSyntax
         Inherits DirectiveTriviaSyntax
 
@@ -34913,6 +36435,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an #Else pre-processing directive appearing in source.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ElseDirectiveTrivia"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ElseDirectiveTriviaSyntax
         Inherits DirectiveTriviaSyntax
 
@@ -35018,6 +36546,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an #End If pre-processing directive appearing in source.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.EndIfDirectiveTrivia"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class EndIfDirectiveTriviaSyntax
         Inherits DirectiveTriviaSyntax
 
@@ -35141,6 +36675,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents the beginning of a #Region directive appearing in source.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.RegionDirectiveTrivia"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class RegionDirectiveTriviaSyntax
         Inherits DirectiveTriviaSyntax
 
@@ -35269,6 +36809,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an #End Region directive appearing in source.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.EndRegionDirectiveTrivia"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class EndRegionDirectiveTriviaSyntax
         Inherits DirectiveTriviaSyntax
 
@@ -35399,6 +36945,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' Represents the beginning of a #ExternalSource pre-processing directive
     ''' appearing in source.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ExternalSourceDirectiveTrivia"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ExternalSourceDirectiveTriviaSyntax
         Inherits DirectiveTriviaSyntax
 
@@ -35594,6 +37146,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an #End ExternalSource pre-processing directive appearing in source.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.EndExternalSourceDirectiveTrivia"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class EndExternalSourceDirectiveTriviaSyntax
         Inherits DirectiveTriviaSyntax
 
@@ -35717,6 +37275,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an #ExternalChecksum pre-processing directive appearing in source.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ExternalChecksumDirectiveTrivia"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ExternalChecksumDirectiveTriviaSyntax
         Inherits DirectiveTriviaSyntax
 
@@ -35947,6 +37511,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents #Enable Warning pre-processing directive appearing in source.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.EnableWarningDirectiveTrivia"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class EnableWarningDirectiveTriviaSyntax
         Inherits DirectiveTriviaSyntax
 
@@ -36101,6 +37671,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents #Disable Warning pre-processing directive appearing in source.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.DisableWarningDirectiveTrivia"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class DisableWarningDirectiveTriviaSyntax
         Inherits DirectiveTriviaSyntax
 
@@ -36255,6 +37831,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' <summary>
     ''' Represents an #r directive appearing in scripts.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.ReferenceDirectiveTrivia"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class ReferenceDirectiveTriviaSyntax
         Inherits DirectiveTriviaSyntax
 
@@ -36380,6 +37962,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     ''' recognize the text that follows as a valid Visual Basic pre-processing
     ''' directive.
     ''' </summary>
+    ''' <remarks>
+    ''' <para>This node is associated with the following syntax kinds:</para>
+    ''' <list type="bullet">
+    ''' <item><description><see cref="SyntaxKind.BadDirectiveTrivia"/></description></item>
+    ''' </list>
+    ''' </remarks>
     Public NotInheritable Class BadDirectiveTriviaSyntax
         Inherits DirectiveTriviaSyntax
 

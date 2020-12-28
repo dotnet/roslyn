@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -145,6 +147,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static void CheckMethodVarianceSafety(this MethodSymbol method, LocationProvider<MethodSymbol> returnTypeLocationProvider, DiagnosticBag diagnostics)
         {
+            if (SkipVarianceSafetyChecks(method))
+            {
+                return;
+            }
+
             // Spec 13.2.1: "Furthermore, each class type constraint, interface type constraint and
             // type parameter constraint on any type parameter of the method must be input-safe."
             CheckTypeParametersVarianceSafety(method.TypeParameters, method, diagnostics);
@@ -162,11 +169,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckParametersVarianceSafety(method.Parameters, method, diagnostics);
         }
 
+        private static bool SkipVarianceSafetyChecks(Symbol member)
+        {
+            if (member.IsStatic)
+            {
+                return MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers.RequiredVersion() <= member.DeclaringCompilation.LanguageVersion;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Accumulate diagnostics related to the variance safety of an interface property.
         /// </summary>
         private static void CheckPropertyVarianceSafety(PropertySymbol property, DiagnosticBag diagnostics)
         {
+            if (SkipVarianceSafetyChecks(property))
+            {
+                return;
+            }
+
             bool hasGetter = (object)property.GetMethod != null;
             bool hasSetter = (object)property.SetMethod != null;
             if (hasGetter || hasSetter)
@@ -193,6 +215,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private static void CheckEventVarianceSafety(EventSymbol @event, DiagnosticBag diagnostics)
         {
+            if (SkipVarianceSafetyChecks(@event))
+            {
+                return;
+            }
+
             IsVarianceUnsafe(
                 @event.Type,
                 requireOutputSafety: false,
@@ -442,7 +469,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // "requires output-safe", and "requires input-safe and output-safe".  This would make the error codes much easier to document and
             // much more actionable.
             // UNDONE: related location for use is much more useful
-            diagnostics.Add(ErrorCode.ERR_UnexpectedVariance, location, context, unsafeTypeParameter, actualVariance.Localize(), expectedVariance.Localize());
+            if (!(context is TypeSymbol) && context.IsStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_UnexpectedVarianceStaticMember, location, context, unsafeTypeParameter, actualVariance.Localize(), expectedVariance.Localize(),
+                                new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers.RequiredVersion()));
+            }
+            else
+            {
+                diagnostics.Add(ErrorCode.ERR_UnexpectedVariance, location, context, unsafeTypeParameter, actualVariance.Localize(), expectedVariance.Localize());
+            }
         }
 
         private static T GetDeclaringSyntax<T>(this Symbol symbol) where T : SyntaxNode

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,6 +18,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class SyntaxNodeExtensions
     {
+        public static SyntaxNode GetRequiredParent(this SyntaxNode node)
+            => node.Parent ?? throw new InvalidOperationException("Node's parent was null");
+
         public static IEnumerable<SyntaxNodeOrToken> DepthFirstTraversal(this SyntaxNode node)
             => SyntaxNodeOrTokenExtensions.DepthFirstTraversal(node);
 
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <typeparam name="TParent">The type of the parent node.</typeparam>
         /// <param name="node">The node that we are testing.</param>
         /// <param name="childGetter">A function that, when given the parent node, returns the child token we are interested in.</param>
-        public static bool IsChildNode<TParent>(this SyntaxNode node, Func<TParent, SyntaxNode> childGetter)
+        public static bool IsChildNode<TParent>(this SyntaxNode node, Func<TParent, SyntaxNode?> childGetter)
             where TParent : SyntaxNode
         {
             var ancestor = node.GetAncestor<TParent>();
@@ -825,6 +826,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return node.WithLeadingTrivia(leadingTrivia).WithTrailingTrivia(trailingTrivia);
         }
 
+        /// <summary>
+        /// Creates a new token with the leading trivia removed.
+        /// </summary>
+        public static SyntaxToken WithoutLeadingTrivia(this SyntaxToken token)
+        {
+            return token.WithLeadingTrivia(default(SyntaxTriviaList));
+        }
+
+        /// <summary>
+        /// Creates a new token with the trailing trivia removed.
+        /// </summary>
+        public static SyntaxToken WithoutTrailingTrivia(this SyntaxToken token)
+        {
+            return token.WithTrailingTrivia(default(SyntaxTriviaList));
+        }
+
         // Copy of the same function in SyntaxNode.cs
         public static SyntaxNode? GetParent(this SyntaxNode node, bool ascendOutOfTrivia)
         {
@@ -863,7 +880,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// Gets a list of ancestor nodes (including this node) 
         /// </summary>
         public static ValueAncestorsAndSelfEnumerable ValueAncestorsAndSelf(this SyntaxNode syntaxNode, bool ascendOutOfTrivia = true)
-            => new ValueAncestorsAndSelfEnumerable(syntaxNode, ascendOutOfTrivia);
+            => new(syntaxNode, ascendOutOfTrivia);
 
         public struct ValueAncestorsAndSelfEnumerable
         {
@@ -877,7 +894,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             public Enumerator GetEnumerator()
-                => new Enumerator(_syntaxNode, _ascendOutOfTrivia);
+                => new(_syntaxNode, _ascendOutOfTrivia);
 
             public struct Enumerator
             {

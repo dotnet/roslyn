@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal partial class NavigableSymbolService : INavigableSymbolSourceProvider
     {
-        private static readonly object s_key = new object();
+        private static readonly object s_key = new();
         private readonly IWaitIndicator _waitIndicator;
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;

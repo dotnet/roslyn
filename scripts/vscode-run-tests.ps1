@@ -30,7 +30,7 @@ if ($projectFileInfo) {
   # Remove old run logs with the same prefix
   Remove-Item (Join-Path $resultsPath "$logFilePrefix*.html") -ErrorAction SilentlyContinue
 
-  $invocation = "$dotnetPath test $projectDir" + $filterArg + $frameworkArg + " --logger `"html;LogFilePrefix=$logfilePrefix`" --results-directory $resultsPath --no-build"
+  $invocation = "& `"$dotnetPath`" test $projectDir" + $filterArg + $frameworkArg + " --logger `"html;LogFilePrefix=$logfilePrefix`" --results-directory $resultsPath --no-build"
   Write-Output "> $invocation"
   Invoke-Expression $invocation
 

@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -31,11 +34,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         // ruleset editor or solution explorer. Setting messageFormat to empty string ensures that we won't display
         // this diagnostic in the preview pane header.
         private static readonly DiagnosticDescriptor s_fixableIdDescriptor =
-            new DiagnosticDescriptor(DiagnosticFixableId,
+            new(DiagnosticFixableId,
                                      title: "", messageFormat: "", category: "",
                                      defaultSeverity: DiagnosticSeverity.Hidden,
                                      isEnabledByDefault: true,
-                                     customTags: WellKnownDiagnosticTags.NotConfigurable);
+                                     customTags: DiagnosticCustomTags.NotConfigurable);
 
         protected abstract LocalizableString GetTitleAndMessageFormatForClassificationIdDescriptor();
         protected abstract ImmutableArray<SyntaxNode> MergeImports(ImmutableArray<SyntaxNode> unnecessaryImports);
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                              DiagnosticCategory.Style,
                                              DiagnosticSeverity.Hidden,
                                              isEnabledByDefault: true,
-                                             customTags: DiagnosticCustomTags.Unnecessary);
+                                             customTags: DiagnosticCustomTags.Unnecessary.Concat(EnforceOnBuildValues.RemoveUnnecessaryImports.ToCustomTag()).ToArray());
 
                 _classificationIdDescriptor =
                     new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId,
@@ -68,7 +71,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                              titleAndMessageFormat,
                                              DiagnosticCategory.Style,
                                              DiagnosticSeverity.Hidden,
-                                             isEnabledByDefault: true);
+                                             isEnabledByDefault: true,
+                                             customTags: EnforceOnBuildValues.RemoveUnnecessaryImports.ToCustomTag());
 
                 _unnecessaryGeneratedCodeClassificationIdDescriptor =
                     new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId + "_gen",
@@ -77,7 +81,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                              DiagnosticCategory.Style,
                                              DiagnosticSeverity.Hidden,
                                              isEnabledByDefault: true,
-                                             customTags: new[] { WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable });
+                                             customTags: DiagnosticCustomTags.UnnecessaryAndNotConfigurable);
 
                 _generatedCodeClassificationIdDescriptor =
                     new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId + "_gen",
@@ -86,7 +90,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                              DiagnosticCategory.Style,
                                              DiagnosticSeverity.Hidden,
                                              isEnabledByDefault: true,
-                                             customTags: new[] { WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable });
+                                             customTags: DiagnosticCustomTags.NotConfigurable);
             }
         }
 

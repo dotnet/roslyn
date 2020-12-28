@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -30,10 +30,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return true;
         }
 
-        private static bool OriginalSymbolsMatch(
+        internal static async Task<bool> OriginalSymbolsMatchAsync(
+            Solution solution,
             ISymbol searchSymbol,
-            ISymbol symbolToMatch,
-            Solution solution)
+            ISymbol? symbolToMatch,
+            CancellationToken cancellationToken)
         {
             if (ReferenceEquals(searchSymbol, symbolToMatch))
                 return true;
@@ -41,23 +42,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (searchSymbol == null || symbolToMatch == null)
                 return false;
 
-            return OriginalSymbolsMatch(
-                searchSymbol, symbolToMatch, solution,
-                searchSymbolCompilation: null,
-                symbolToMatchCompilation: null);
-        }
-
-        internal static bool OriginalSymbolsMatch(
-            ISymbol searchSymbol,
-            ISymbol? symbolToMatch,
-            Solution solution,
-            Compilation? searchSymbolCompilation,
-            Compilation? symbolToMatchCompilation)
-        {
-            if (symbolToMatch == null)
-                return false;
-
-            if (OriginalSymbolsMatchCore(searchSymbol, symbolToMatch, solution, searchSymbolCompilation, symbolToMatchCompilation))
+            if (await OriginalSymbolsMatchCoreAsync(solution, searchSymbol, symbolToMatch, cancellationToken).ConfigureAwait(false))
                 return true;
 
             if (searchSymbol.Kind == SymbolKind.Namespace && symbolToMatch.Kind == SymbolKind.Namespace)
@@ -69,10 +54,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var namespace2Count = namespace2.ConstituentNamespaces.Length;
                 if (namespace1Count != namespace2Count)
                 {
-                    if ((namespace1Count > 1 &&
-                         namespace1.ConstituentNamespaces.Any(n => NamespaceSymbolsMatch(n, namespace2, solution))) ||
-                        (namespace2Count > 1 &&
-                         namespace2.ConstituentNamespaces.Any(n2 => NamespaceSymbolsMatch(namespace1, n2, solution))))
+                    if ((namespace1Count > 1 && await namespace1.ConstituentNamespaces.AnyAsync(n => NamespaceSymbolsMatchAsync(solution, n, namespace2, cancellationToken)).ConfigureAwait(false)) ||
+                        (namespace2Count > 1 && await namespace2.ConstituentNamespaces.AnyAsync(n2 => NamespaceSymbolsMatchAsync(solution, namespace1, n2, cancellationToken)).ConfigureAwait(false)))
                     {
                         return true;
                     }
@@ -82,12 +65,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        private static bool OriginalSymbolsMatchCore(
+        private static async Task<bool> OriginalSymbolsMatchCoreAsync(
+            Solution solution,
             ISymbol searchSymbol,
             ISymbol symbolToMatch,
-            Solution solution,
-            Compilation? searchSymbolCompilation,
-            Compilation? symbolToMatchCompilation)
+            CancellationToken cancellationToken)
         {
             if (searchSymbol == null || symbolToMatch == null)
             {
@@ -129,63 +111,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (equivalentTypesWithDifferingAssemblies.Count > 0)
             {
                 // Step 3a) Ensure that all pairs of named types in equivalentTypesWithDifferingAssemblies are indeed equivalent types.
-                return VerifyForwardedTypes(
-                    equivalentTypesWithDifferingAssemblies, searchSymbol, symbolToMatch,
-                    solution, searchSymbolCompilation, symbolToMatchCompilation);
+                return await VerifyForwardedTypesAsync(solution, equivalentTypesWithDifferingAssemblies, cancellationToken).ConfigureAwait(false);
             }
 
             // 3b) If no such named type pairs were encountered, symbols ARE equivalent.
             return true;
         }
 
-        private static bool NamespaceSymbolsMatch(
+        private static Task<bool> NamespaceSymbolsMatchAsync(
+            Solution solution,
             INamespaceSymbol namespace1,
             INamespaceSymbol namespace2,
-            Solution solution)
+            CancellationToken cancellationToken)
         {
-            return OriginalSymbolsMatch(namespace1, namespace2, solution);
+            return OriginalSymbolsMatchAsync(solution, namespace1, namespace2, cancellationToken);
         }
 
-        // Verifies that all pairs of named types in equivalentTypesWithDifferingAssemblies are equivalent forwarded types.
-        private static bool VerifyForwardedTypes(
-            Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies,
-            ISymbol searchSymbol,
-            ISymbol symbolToMatch,
+        /// <summary>
+        /// Verifies that all pairs of named types in equivalentTypesWithDifferingAssemblies are equivalent forwarded types.
+        /// </summary>
+        private static async Task<bool> VerifyForwardedTypesAsync(
             Solution solution,
-            Compilation? searchSymbolCompilation,
-            Compilation? symbolToMatchCompilation)
-        {
-            using var _ = PooledHashSet<INamedTypeSymbol>.GetInstance(out var verifiedKeys);
-            var count = equivalentTypesWithDifferingAssemblies.Count;
-            var verifiedCount = 0;
-
-            // First check forwarded types in searchSymbolCompilation.
-            if (searchSymbolCompilation != null || TryGetCompilation(searchSymbol, solution, out searchSymbolCompilation))
-            {
-                verifiedCount = VerifyForwardedTypes(equivalentTypesWithDifferingAssemblies, searchSymbolCompilation, verifiedKeys, isSearchSymbolCompilation: true);
-                if (verifiedCount == count)
-                {
-                    // All equivalent types verified.
-                    return true;
-                }
-            }
-
-            if (symbolToMatchCompilation != null || TryGetCompilation(symbolToMatch, solution, out symbolToMatchCompilation))
-            {
-                // Now check forwarded types in symbolToMatchCompilation.
-                verifiedCount += VerifyForwardedTypes(equivalentTypesWithDifferingAssemblies, symbolToMatchCompilation, verifiedKeys, isSearchSymbolCompilation: false);
-            }
-
-            return verifiedCount == count;
-        }
-
-        private static int VerifyForwardedTypes(
             Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies,
-            Compilation compilation,
-            HashSet<INamedTypeSymbol> verifiedKeys,
-            bool isSearchSymbolCompilation)
+            CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(compilation);
             Contract.ThrowIfNull(equivalentTypesWithDifferingAssemblies);
             Contract.ThrowIfTrue(!equivalentTypesWithDifferingAssemblies.Any());
 
@@ -196,72 +145,73 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Contract.ThrowIfFalse(equivalentTypesWithDifferingAssemblies.All(kvp => kvp.Key.ContainingType == null));
             Contract.ThrowIfFalse(equivalentTypesWithDifferingAssemblies.All(kvp => kvp.Value.ContainingType == null));
 
-            var referencedAssemblies = new MultiDictionary<string, IAssemblySymbol>();
-            foreach (var assembly in compilation.GetReferencedAssemblySymbols())
-            {
-                referencedAssemblies.Add(assembly.Name, assembly);
-            }
+            // Cache compilations so we avoid recreating any as we walk the pairs of types.
+            using var _ = PooledHashSet<Compilation>.GetInstance(out var compilationSet);
 
-            var verifiedCount = 0;
-            foreach (var kvp in equivalentTypesWithDifferingAssemblies)
+            foreach (var (type1, type2) in equivalentTypesWithDifferingAssemblies)
             {
-                if (!verifiedKeys.Contains(kvp.Key))
+                // Check if type1 was forwarded to type2 in type2's compilation, or if type2 was forwarded to type1 in
+                // type1's compilation.  We check both direction as this API is called from higher level comparison APIs
+                // that are unordered.
+                if (!await VerifyForwardedTypeAsync(solution, candidate: type1, forwardedTo: type2, compilationSet, cancellationToken).ConfigureAwait(false) &&
+                    !await VerifyForwardedTypeAsync(solution, candidate: type2, forwardedTo: type1, compilationSet, cancellationToken).ConfigureAwait(false))
                 {
-                    INamedTypeSymbol originalType, expectedForwardedType;
-                    if (isSearchSymbolCompilation)
-                    {
-                        originalType = kvp.Value.OriginalDefinition;
-                        expectedForwardedType = kvp.Key.OriginalDefinition;
-                    }
-                    else
-                    {
-                        originalType = kvp.Key.OriginalDefinition;
-                        expectedForwardedType = kvp.Value.OriginalDefinition;
-                    }
-
-                    foreach (var referencedAssembly in referencedAssemblies[originalType.ContainingAssembly.Name])
-                    {
-                        var fullyQualifiedTypeName = originalType.MetadataName;
-                        if (originalType.ContainingNamespace != null)
-                        {
-                            fullyQualifiedTypeName = originalType.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.SignatureFormat) +
-                                "." + fullyQualifiedTypeName;
-                        }
-
-                        // Resolve forwarded type and verify that the types from different assembly are indeed equivalent.
-                        var forwardedType = referencedAssembly.ResolveForwardedType(fullyQualifiedTypeName);
-                        if (Equals(forwardedType, expectedForwardedType))
-                        {
-                            verifiedKeys.Add(kvp.Key);
-                            verifiedCount++;
-                        }
-                    }
+                    return false;
                 }
-            }
-
-            return verifiedCount;
-        }
-
-        internal static bool TryGetCompilation(
-            ISymbol symbol,
-            Solution solution,
-            [NotNullWhen(true)] out Compilation? definingCompilation)
-        {
-            var definitionProject = solution.GetProject(symbol.ContainingAssembly);
-            if (definitionProject == null)
-            {
-                definingCompilation = null;
-                return false;
-            }
-
-            // compilation from definition project must already exist.
-            if (!definitionProject.TryGetCompilation(out definingCompilation))
-            {
-                Debug.Assert(false, "How can compilation not exist?");
-                return false;
             }
 
             return true;
         }
+
+        /// <summary>
+        /// Returns <see langword="true"/> if <paramref name="candidate"/> was forwarded to <paramref name="forwardedTo"/> in
+        /// <paramref name="forwardedTo"/>'s <see cref="Compilation"/>.
+        /// </summary>
+        private static async Task<bool> VerifyForwardedTypeAsync(
+            Solution solution,
+            INamedTypeSymbol candidate,
+            INamedTypeSymbol forwardedTo,
+            HashSet<Compilation> compilationSet,
+            CancellationToken cancellationToken)
+        {
+            // Only need to operate on original definitions.  i.e. List<T> is the type that is forwarded,
+            // not List<string>.
+            candidate = GetOridinalUnderlyingType(candidate);
+            forwardedTo = GetOridinalUnderlyingType(forwardedTo);
+
+            var forwardedToOriginatingProject = solution.GetOriginatingProject(forwardedTo);
+            if (forwardedToOriginatingProject == null)
+                return false;
+
+            var forwardedToCompilation = await forwardedToOriginatingProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            if (forwardedToCompilation == null)
+                return false;
+
+            // Cache the compilation so that if we need it while checking another set of forwarded types, we don't
+            // expensively throw it away and recreate it.
+            compilationSet.Add(forwardedToCompilation);
+
+            var candidateFullMetadataName = candidate.ContainingNamespace?.IsGlobalNamespace != false
+                ? candidate.MetadataName
+                : $"{candidate.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.SignatureFormat)}.{candidate.MetadataName}";
+
+            // Now, find the corresponding reference to type1's assembly in type2's compilation and see if that assembly
+            // contains a forward that matches type2.  If so, type1 was forwarded to type2.
+            var candidateAssemblyName = candidate.ContainingAssembly.Name;
+            foreach (var assembly in forwardedToCompilation.GetReferencedAssemblySymbols())
+            {
+                if (assembly.Name == candidateAssemblyName)
+                {
+                    var resolvedType = assembly.ResolveForwardedType(candidateFullMetadataName);
+                    if (Equals(resolvedType, forwardedTo))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static INamedTypeSymbol GetOridinalUnderlyingType(INamedTypeSymbol type)
+            => (type.NativeIntegerUnderlyingType ?? type).OriginalDefinition;
     }
 }

@@ -90,7 +90,7 @@ Class C
 End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-        diagnosticSeverity:=DiagnosticSeverity.Warning,
+        diagnosticSeverity:=DiagnosticSeverity.Info,
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
@@ -104,7 +104,7 @@ Class C
 End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-        diagnosticSeverity:=DiagnosticSeverity.Warning,
+        diagnosticSeverity:=DiagnosticSeverity.Info,
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
@@ -120,7 +120,7 @@ Class C
 End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-        diagnosticSeverity:=DiagnosticSeverity.Warning,
+        diagnosticSeverity:=DiagnosticSeverity.Info,
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
@@ -144,7 +144,7 @@ Class C
 End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-        diagnosticSeverity:=DiagnosticSeverity.Warning,
+        diagnosticSeverity:=DiagnosticSeverity.Info,
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
@@ -325,7 +325,7 @@ End Class"
                 Await TestDiagnosticInfoAsync(source,
                     options,
                     diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                    diagnosticSeverity:=DiagnosticSeverity.Warning,
+                    diagnosticSeverity:=DiagnosticSeverity.Info,
                     diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
             End If
         End Function

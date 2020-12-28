@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -17,7 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
-    using SymbolsMatch = Func<SyntaxNode, SemanticModel, (bool matched, CandidateReason reason)>;
+    using SymbolsMatchAsync = Func<SyntaxNode, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>>;
 
     internal class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IPropertySymbol>
     {
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IPropertySymbol symbol,
             Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -57,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IPropertySymbol symbol,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -83,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private static bool IsForEachProperty(IPropertySymbol symbol)
             => symbol.Name == WellKnownMemberNames.CurrentPropertyName;
 
-        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IPropertySymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
@@ -95,8 +93,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 // We want to associate property references to a specific accessor (if an accessor
                 // is being referenced).  Check if this reference would match an accessor. If so, do
                 // not add it.  It will be added by PropertyAccessorSymbolReferenceFinder.
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
 
                 nameReferences = nameReferences.WhereAsArray(loc =>
                 {
@@ -119,13 +117,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static Task<ImmutableArray<Document>> FindDocumentWithElementAccessExpressionsAsync(
-            Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+            Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
         {
             return FindDocumentsWithPredicateAsync(project, documents, info => info.ContainsElementAccessExpression, cancellationToken);
         }
 
         private static Task<ImmutableArray<Document>> FindDocumentWithIndexerMemberCrefAsync(
-            Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+            Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
         {
             return FindDocumentsWithPredicateAsync(project, documents, info => info.ContainsIndexerMemberCref, cancellationToken);
         }
@@ -158,8 +156,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                (var matched, var candidateReason, var indexerReference) = ComputeIndexerInformation(
-                    symbol, document, semanticModel, node, cancellationToken);
+                (var matched, var candidateReason, var indexerReference) = await ComputeIndexerInformationAsync(
+                    symbol, document, semanticModel, node, cancellationToken).ConfigureAwait(false);
                 if (!matched)
                     continue;
 
@@ -177,44 +175,45 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return locations.ToImmutable();
         }
 
-        private static (bool matched, CandidateReason reason, SyntaxNode indexerReference) ComputeIndexerInformation(
+        private static ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeIndexerInformationAsync(
             IPropertySymbol symbol, Document document, SemanticModel semanticModel,
             SyntaxNode node, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var symbolsMatch = GetStandardSymbolsNodeMatchFunction(symbol, document.Project.Solution, cancellationToken);
+            var symbolsMatchAsync = GetStandardSymbolsNodeMatchFunction(symbol, document.Project.Solution, cancellationToken);
 
             if (syntaxFacts.IsElementAccessExpression(node))
             {
-                return ComputeElementAccessInformation(
-                    semanticModel, node, syntaxFacts, symbolsMatch);
+                // The indexerReference for an element access expression will not be null
+                return ComputeElementAccessInformationAsync(
+                    semanticModel, node, syntaxFacts, symbolsMatchAsync)!;
             }
             else if (syntaxFacts.IsConditionalAccessExpression(node))
             {
-                return ComputeConditionalAccessInformation(
-                    semanticModel, node, syntaxFacts, symbolsMatch);
+                return ComputeConditionalAccessInformationAsync(
+                    semanticModel, node, syntaxFacts, symbolsMatchAsync);
             }
             else
             {
                 Debug.Assert(syntaxFacts.IsIndexerMemberCRef(node));
 
-                return ComputeIndexerMemberCRefInformation(
-                    semanticModel, node, symbolsMatch);
+                return ComputeIndexerMemberCRefInformationAsync(
+                    semanticModel, node, symbolsMatchAsync);
             }
         }
 
-        private static (bool matched, CandidateReason reason, SyntaxNode indexerReference) ComputeIndexerMemberCRefInformation(
-            SemanticModel semanticModel, SyntaxNode node, SymbolsMatch symbolsMatch)
+        private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeIndexerMemberCRefInformationAsync(
+            SemanticModel semanticModel, SyntaxNode node, SymbolsMatchAsync symbolsMatchAsync)
         {
-            var (matched, reason) = symbolsMatch(node, semanticModel);
+            var (matched, reason) = await symbolsMatchAsync(node, semanticModel).ConfigureAwait(false);
 
             // For an IndexerMemberCRef the node itself is the indexer we are looking for.
             return (matched, reason, node);
         }
 
-        private static (bool matched, CandidateReason reason, SyntaxNode indexerReference) ComputeConditionalAccessInformation(
+        private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeConditionalAccessInformationAsync(
             SemanticModel semanticModel, SyntaxNode node,
-            ISyntaxFactsService syntaxFacts, Func<SyntaxNode, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch)
+            ISyntaxFactsService syntaxFacts, Func<SyntaxNode, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> symbolsMatchAsync)
         {
             // For a ConditionalAccessExpression the whenNotNull component is the indexer reference we are looking for
             syntaxFacts.GetPartsOfConditionalAccessExpression(node, out _, out var indexerReference);
@@ -227,17 +226,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return default;
             }
 
-            var (matched, reason) = symbolsMatch(indexerReference, semanticModel);
+            var (matched, reason) = await symbolsMatchAsync(indexerReference, semanticModel).ConfigureAwait(false);
             return (matched, reason, indexerReference);
         }
 
-        private static (bool matched, CandidateReason reason, SyntaxNode indexerReference) ComputeElementAccessInformation(
+        private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode? indexerReference)> ComputeElementAccessInformationAsync(
             SemanticModel semanticModel, SyntaxNode node,
-            ISyntaxFactsService syntaxFacts, SymbolsMatch symbolsMatch)
+            ISyntaxFactsService syntaxFacts, SymbolsMatchAsync symbolsMatchAsync)
         {
             // For an ElementAccessExpression the indexer we are looking for is the argumentList component.
             syntaxFacts.GetPartsOfElementAccessExpression(node, out var expression, out var indexerReference);
-            if (expression != null && symbolsMatch(expression, semanticModel).matched)
+            if (expression != null && (await symbolsMatchAsync(expression, semanticModel).ConfigureAwait(false)).matched)
             {
                 // Element access with explicit member name (allowed in VB). We will have
                 // already added a reference location for the member name identifier, so skip
@@ -245,7 +244,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return default;
             }
 
-            var (matched, reason) = symbolsMatch(node, semanticModel);
+            var (matched, reason) = await symbolsMatchAsync(node, semanticModel).ConfigureAwait(false);
             return (matched, reason, indexerReference);
         }
     }

@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 #if CODE_STYLE
@@ -44,19 +47,20 @@ namespace Microsoft.CodeAnalysis.CodeQuality
 
         protected static DiagnosticDescriptor CreateDescriptor(
             string id,
+            EnforceOnBuild enforceOnBuild,
             LocalizableString title,
             LocalizableString messageFormat,
             bool isUnnecessary,
             bool isEnabledByDefault = true,
             bool isConfigurable = true,
-            LocalizableString description = null,
-            params string[] customTags)
-            => new DiagnosticDescriptor(
+            LocalizableString description = null)
+            => new(
                     id, title, messageFormat,
                     DiagnosticCategory.CodeQuality,
                     DiagnosticSeverity.Info,
                     isEnabledByDefault,
                     description,
-                    customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, customTags));
+                    helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(id),
+                    customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, enforceOnBuild));
     }
 }

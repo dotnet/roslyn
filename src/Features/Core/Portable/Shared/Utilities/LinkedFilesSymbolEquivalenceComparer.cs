@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// </summary>
     internal sealed class LinkedFilesSymbolEquivalenceComparer : IEqualityComparer<ISymbol>
     {
-        public static readonly LinkedFilesSymbolEquivalenceComparer Instance = new LinkedFilesSymbolEquivalenceComparer();
+        public static readonly LinkedFilesSymbolEquivalenceComparer Instance = new();
 
         bool IEqualityComparer<ISymbol>.Equals(ISymbol x, ISymbol y)
             => x.Name == y.Name;

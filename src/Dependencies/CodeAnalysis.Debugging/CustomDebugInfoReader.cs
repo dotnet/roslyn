@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             }
 
             var offset = 0;
-            ReadGlobalHeader(customDebugInfo, ref offset, out var globalVersion, out var globalCount);
+            ReadGlobalHeader(customDebugInfo, ref offset, out var globalVersion, out _);
 
             if (globalVersion != CustomDebugInfoConstants.Version)
             {

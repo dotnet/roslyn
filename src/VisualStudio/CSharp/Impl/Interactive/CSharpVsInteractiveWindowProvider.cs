@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using Microsoft.VisualStudio.LanguageServices.Interactive;
@@ -24,12 +27,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
     internal sealed class CSharpVsInteractiveWindowProvider : VsInteractiveWindowProvider
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpVsInteractiveWindowProvider(
             IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
+            IAsynchronousOperationListenerProvider listenerProvider,
             IVsInteractiveWindowFactory interactiveWindowFactory,
             IViewClassifierAggregatorService classifierAggregator,
             IContentTypeRegistryService contentTypeRegistry,
@@ -39,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
             : base(serviceProvider, interactiveWindowFactory, classifierAggregator, contentTypeRegistry, commandsFactory, commands, workspace)
         {
             _threadingContext = threadingContext;
+            _listener = listenerProvider.GetListener(FeatureAttribute.InteractiveEvaluator);
         }
 
         protected override Guid LanguageServiceGuid
@@ -65,6 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
         {
             return new CSharpInteractiveEvaluator(
                 _threadingContext,
+                _listener,
                 workspace.Services.HostServices,
                 classifierAggregator,
                 CommandsFactory,

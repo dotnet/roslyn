@@ -296,9 +296,22 @@
     <value>Unused local</value>
   </data>
   <data name="Show_items_from_unimported_namespaces" xml:space="preserve">
-    <value>Show items from unimported namespaces (experimental)</value>
+    <value>Show items from unimported namespaces</value>
   </data>
   <data name="Show_remarks_in_Quick_Info" xml:space="preserve">
     <value>Show remarks in Quick Info</value>
+  </data>
+  <data name="Prefer_IsNot_expression" xml:space="preserve">
+    <value>Prefer 'IsNot' expression</value>
+  </data>
+  <data name="Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments" xml:space="preserve">
+    <value>Insert ' at the start of new lines when writing ' comments</value>
+  </data>
+  <data name="Show_hints_for_New_expressions" xml:space="preserve">
+    <value>Show hints for 'New' expressions</value>
+  </data>
+  <data name="Add_missing_imports_on_paste" xml:space="preserve">
+    <value>Add missing imports on paste</value>
+    <comment>'import' is a Visual Basic keyword and should not be localized</comment>
   </data>
 </root>

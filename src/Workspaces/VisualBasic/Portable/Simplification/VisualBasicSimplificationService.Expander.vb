@@ -224,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 reducedExtensionMethod As IMethodSymbol) As InvocationExpressionSyntax
 
                 Dim originalMemberAccess = DirectCast(originalNode.Expression, MemberAccessExpressionSyntax)
-                If originalMemberAccess.GetCorrespondingConditionalAccessExpression IsNot Nothing Then
+                If originalMemberAccess.GetRootConditionalAccessExpression() IsNot Nothing Then
                     ' Bail out on extension method invocations in conditional access expression.
                     ' Note that this is a temporary workaround for https://github.com/dotnet/roslyn/issues/2593.
                     ' Issue https//github.com/dotnet/roslyn/issues/3260 tracks fixing this workaround.

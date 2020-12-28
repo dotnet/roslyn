@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -111,6 +113,20 @@ class C
 }");
         }
 
+        [WorkItem(47030, "https://github.com/dotnet/roslyn/issues/47030")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNotOnOutParameter()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public C([||]out string s)
+    {
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestNotOnValueType()
         {
@@ -183,6 +199,23 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNotOnExtendedPartialMethodDefinition1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    public partial void M([||]string s);
+
+    public partial void M(string s)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestNotOnPartialMethodDefinition2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -196,6 +229,23 @@ class C
     }
 
     partial void M([||]string s);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNotOnExtendedPartialMethodDefinition2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    public partial void M(string s)
+    {
+    }
+
+    public partial void M([||]string s);
 }");
         }
 
@@ -222,6 +272,38 @@ class C
     partial void M(string s);
 
     partial void M(string s)
+    {
+        if (s is null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnExtendedPartialMethodImplementation1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public partial void M(string s);
+
+    public partial void M([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public partial void M(string s);
+
+    public partial void M(string s)
     {
         if (s is null)
         {
@@ -260,6 +342,38 @@ class C
     }
 
     partial void M(string s);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnExtendedPartialMethodImplementation2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public partial void M([||]string s)
+    {
+    }
+
+    public partial void M(string s);
+}",
+@"
+using System;
+
+class C
+{
+    public partial void M(string s)
+    {
+        if (s is null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+
+    public partial void M(string s);
 }");
         }
 

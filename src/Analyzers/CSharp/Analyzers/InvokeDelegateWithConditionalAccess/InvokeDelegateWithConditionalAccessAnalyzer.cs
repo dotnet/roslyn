@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
     {
         public InvokeDelegateWithConditionalAccessAnalyzer()
             : base(IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
+                   EnforceOnBuildValues.InvokeDelegateWithConditionalAccess,
                    CSharpCodeStyleOptions.PreferConditionalDelegateCall,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Delegate_invocation_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
@@ -133,11 +135,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
                     // Looks good!
                     var tree = syntaxContext.SemanticModel.SyntaxTree;
-                    var additionalLocations = new List<Location>
-                    {
+                    var additionalLocations = ImmutableArray.Create<Location>(
                         Location.Create(tree, ifStatement.Span),
-                        Location.Create(tree, expressionStatement.Span)
-                    };
+                        Location.Create(tree, expressionStatement.Span));
 
                     ReportDiagnostics(
                         syntaxContext, ifStatement, ifStatement,
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             IfStatementSyntax ifStatement,
             ExpressionStatementSyntax expressionStatement,
             ReportDiagnostic severity,
-            List<Location> additionalLocations,
+            ImmutableArray<Location> additionalLocations,
             string kind)
         {
             var tree = syntaxContext.Node.SyntaxTree;
@@ -169,9 +169,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             var nextToken = expressionStatement.GetLastToken().GetNextToken();
 
             // Fade out the code up to the expression statement.
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(UnnecessaryWithSuggestionDescriptor,
-                Location.Create(tree, TextSpan.FromBounds(firstStatement.SpanStart, previousToken.Span.End)),
-                additionalLocations, properties));
+            var fadeLocation = Location.Create(tree, TextSpan.FromBounds(firstStatement.SpanStart, previousToken.Span.End));
+            syntaxContext.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                Descriptor,
+                fadeLocation,
+                ReportDiagnostic.Default,
+                additionalLocations,
+                additionalUnnecessaryLocations: ImmutableArray.Create(fadeLocation),
+                properties));
 
             // Put a diagnostic with the appropriate severity on the expression-statement itself.
             syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
@@ -183,9 +188,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             // If the if-statement extends past the expression statement, then fade out the rest.
             if (nextToken.Span.Start < ifStatement.Span.End)
             {
-                syntaxContext.ReportDiagnostic(Diagnostic.Create(UnnecessaryWithSuggestionDescriptor,
-                    Location.Create(tree, TextSpan.FromBounds(nextToken.Span.Start, ifStatement.Span.End)),
-                    additionalLocations, properties));
+                fadeLocation = Location.Create(tree, TextSpan.FromBounds(nextToken.Span.Start, ifStatement.Span.End));
+                syntaxContext.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                    Descriptor,
+                    fadeLocation,
+                    ReportDiagnostic.Default,
+                    additionalLocations,
+                    additionalUnnecessaryLocations: ImmutableArray.Create(fadeLocation),
+                    properties));
             }
         }
 
@@ -291,12 +301,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
             // Looks good!
             var tree = semanticModel.SyntaxTree;
-            var additionalLocations = new List<Location>
-            {
+            var additionalLocations = ImmutableArray.Create<Location>(
                 Location.Create(tree, localDeclarationStatement.Span),
                 Location.Create(tree, ifStatement.Span),
-                Location.Create(tree, expressionStatement.Span)
-            };
+                Location.Create(tree, expressionStatement.Span));
 
             ReportDiagnostics(syntaxContext,
                 localDeclarationStatement, ifStatement, expressionStatement,

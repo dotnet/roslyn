@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
 {
     public class CSharpCompleteStatementCommandHandlerTests : AbstractCompleteStatementTests
     {
-        private string CreateTestWithMethodCall(string code)
+        private static string CreateTestWithMethodCall(string code)
         {
             return
 @"class C

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         // PERF: Many CompletionProviders derive AbstractSymbolCompletionProvider and therefore
         // compute identical contexts. This actually shows up on the 2-core typing test.
         // Cache the most recent document/position/computed SyntaxContext to reduce repeat computation.
-        private static readonly ConditionalWeakTable<Document, AsyncLazy<SyntaxContext>> s_cachedDocuments = new ConditionalWeakTable<Document, AsyncLazy<SyntaxContext>>();
+        private static readonly ConditionalWeakTable<Document, AsyncLazy<SyntaxContext>> s_cachedDocuments = new();
         private static int s_cachedPosition;
-        private static readonly object s_cacheGate = new object();
+        private static readonly object s_cacheGate = new();
 
         private bool? _isTargetTypeCompletionFilterExperimentEnabled = null;
 
@@ -132,8 +134,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Lazy<ImmutableArray<ITypeSymbol>> inferredTypes,
             TelemetryCounter telemetryCounter)
         {
+            // We might get symbol w/o name but CanBeReferencedByName is still set to true, 
+            // need to filter them out.
+            // https://github.com/dotnet/roslyn/issues/47690
             var symbolGroups = from symbol in symbols
                                let texts = GetDisplayAndSuffixAndInsertionText(symbol, contextLookup(symbol))
+                               where !string.IsNullOrWhiteSpace(texts.displayText)
                                group symbol by texts into g
                                select g;
 
@@ -287,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // nop
             }
@@ -359,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     ? GetPreselectedSymbolsAsync(context, position, options, cancellationToken)
                     : GetSymbolsAsync(context, position, options, cancellationToken);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }

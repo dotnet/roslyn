@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
+extern alias Scripting;
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.IO.Pipes;
 using System.Text;
 using System.Threading;
@@ -14,6 +16,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 using StreamJsonRpc;
+using Scripting::Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
@@ -62,17 +65,28 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 try
                 {
-                    Host.ProcessStarting?.Invoke(Options.InitializationFile != null);
-
-                    var remoteService = await TryStartProcessAsync(Options.GetHostPath(), Options.Culture, cancellationToken).ConfigureAwait(false);
+                    var remoteService = await TryStartProcessAsync(Options.HostPath, Options.Culture, cancellationToken).ConfigureAwait(false);
                     if (remoteService == null)
                     {
                         return default;
                     }
 
+                    RemoteExecutionResult result;
+
                     if (SkipInitialization)
                     {
-                        return new InitializedRemoteService(remoteService, new RemoteExecutionResult(success: true));
+                        result = new RemoteExecutionResult(
+                            success: true,
+                            sourcePaths: ImmutableArray<string>.Empty,
+                            referencePaths: ImmutableArray<string>.Empty,
+                            workingDirectory: Host._initialWorkingDirectory,
+                            initializationResult: new RemoteInitializationResult(
+                                initializationScript: null,
+                                metadataReferencePaths: ImmutableArray.Create(typeof(object).Assembly.Location, typeof(InteractiveScriptGlobals).Assembly.Location),
+                                imports: ImmutableArray<string>.Empty));
+
+                        Host.ProcessInitialized?.Invoke(remoteService.PlatformInfo, Options, result);
+                        return new InitializedRemoteService(remoteService, result);
                     }
 
                     bool initializing = true;
@@ -87,9 +101,10 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     // try to execute initialization script:
                     var isRestarting = InstanceId > 1;
-                    var initializationResult = await InvokeRemoteAsync<RemoteExecutionResult>(remoteService, nameof(Service.InitializeContextAsync), Options.InitializationFile, isRestarting).ConfigureAwait(false);
+                    result = await ExecuteRemoteAsync(remoteService, nameof(Service.InitializeContextAsync), Options.InitializationFilePath, isRestarting).ConfigureAwait(false);
+
                     initializing = false;
-                    if (!initializationResult.Success)
+                    if (!result.Success)
                     {
                         Host.ReportProcessExited(remoteService.Process);
                         remoteService.Dispose();
@@ -97,14 +112,18 @@ namespace Microsoft.CodeAnalysis.Interactive
                         return default;
                     }
 
+                    Contract.ThrowIfNull(result.InitializationResult);
+
                     // Hook up a handler that initiates restart when the process exits.
                     // Note that this is just so that we restart the process as soon as we see it dying and it doesn't need to be 100% bullet-proof.
                     // If we don't receive the "process exited" event we will restart the process upon the next remote operation.
                     remoteService.HookAutoRestartEvent();
 
-                    return new InitializedRemoteService(remoteService, initializationResult);
+                    Host.ProcessInitialized?.Invoke(remoteService.PlatformInfo, Options, result);
+
+                    return new InitializedRemoteService(remoteService, result);
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -125,15 +144,28 @@ namespace Microsoft.CodeAnalysis.Interactive
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
-                        StandardErrorEncoding = Encoding.UTF8,
-                        StandardOutputEncoding = Encoding.UTF8
+                        StandardErrorEncoding = OutputEncoding,
+                        StandardOutputEncoding = OutputEncoding
                     },
 
                     // enables Process.Exited event to be raised:
                     EnableRaisingEvents = true
                 };
 
-                newProcess.Start();
+                try
+                {
+                    newProcess.Start();
+                }
+                catch (Exception e)
+                {
+                    Host.WriteOutputInBackground(
+                        isError: true,
+                        string.Format(InteractiveHostResources.Failed_to_create_a_remote_process_for_interactive_code_execution, hostPath),
+                        e.Message);
+
+                    Host.InteractiveHostProcessCreationFailed?.Invoke(e, TryGetExitCode(newProcess));
+                    return null;
+                }
 
                 Host.InteractiveHostProcessCreated?.Invoke(newProcess);
 
@@ -148,38 +180,45 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
 
                 var clientStream = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
-                JsonRpc jsonRpc;
+                JsonRpc? jsonRpc = null;
 
                 void ProcessExitedBeforeEstablishingConnection(object sender, EventArgs e)
-                    => _cancellationSource.Cancel();
+                {
+                    Host.InteractiveHostProcessCreationFailed?.Invoke(null, TryGetExitCode(newProcess));
+                    _cancellationSource.Cancel();
+                }
 
-                // Connecting the named pipe client would hang if the process exits before the connection is established,
+                // Connecting the named pipe client would block if the process exits before the connection is established,
                 // as the client waits for the server to become available. We signal the cancellation token to abort.
                 newProcess.Exited += ProcessExitedBeforeEstablishingConnection;
 
+                InteractiveHostPlatformInfo platformInfo;
                 try
                 {
                     if (!CheckAlive(newProcess, hostPath))
                     {
+                        Host.InteractiveHostProcessCreationFailed?.Invoke(null, TryGetExitCode(newProcess));
                         return null;
                     }
 
                     await clientStream.ConnectAsync(cancellationToken).ConfigureAwait(false);
+                    jsonRpc = CreateRpc(clientStream, incomingCallTarget: null);
 
-                    jsonRpc = JsonRpc.Attach(clientStream);
-
-                    await jsonRpc.InvokeWithCancellationAsync(
+                    platformInfo = (await jsonRpc.InvokeWithCancellationAsync<InteractiveHostPlatformInfo.Data>(
                         nameof(Service.InitializeAsync),
                         new object[] { Host._replServiceProviderType.AssemblyQualifiedName, culture.Name },
-                        cancellationToken).ConfigureAwait(false);
+                        cancellationToken).ConfigureAwait(false)).Deserialize();
                 }
-                catch
+                catch (Exception e)
                 {
                     if (CheckAlive(newProcess, hostPath))
                     {
                         RemoteService.InitiateTermination(newProcess, newProcessId);
                     }
 
+                    jsonRpc?.Dispose();
+
+                    Host.InteractiveHostProcessCreationFailed?.Invoke(e, TryGetExitCode(newProcess));
                     return null;
                 }
                 finally
@@ -187,8 +226,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                     newProcess.Exited -= ProcessExitedBeforeEstablishingConnection;
                 }
 
-                return new RemoteService(Host, newProcess, newProcessId, jsonRpc);
+                return new RemoteService(Host, newProcess, newProcessId, jsonRpc, platformInfo, Options);
             }
+
             private bool CheckAlive(Process process, string hostPath)
             {
                 bool alive = process.IsAlive();
@@ -203,6 +243,18 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
 
                 return alive;
+            }
+
+            private static int? TryGetExitCode(Process process)
+            {
+                try
+                {
+                    return process.ExitCode;
+                }
+                catch
+                {
+                    return null;
+                }
             }
         }
     }

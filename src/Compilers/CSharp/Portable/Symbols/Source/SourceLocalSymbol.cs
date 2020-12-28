@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -668,8 +670,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SyntaxNode deconstruction)
             : base(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, declarationKind)
             {
-                Debug.Assert(deconstruction.Kind() == SyntaxKind.SimpleAssignmentExpression || deconstruction.Kind() == SyntaxKind.ForEachVariableStatement);
-
                 _deconstruction = deconstruction;
                 _nodeBinder = nodeBinder;
             }
@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(_deconstruction.Kind());
+                        return TypeWithAnnotations.Create(_nodeBinder.CreateErrorType());
                 }
 
                 return _type.Value;
@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             return null;
 
                         default:
-                            throw ExceptionUtilities.UnexpectedValue(_deconstruction.Kind());
+                            return null;
                     }
                 }
             }

@@ -208,6 +208,7 @@ type_parameter_constraint_clause
 type_parameter_constraint
   : class_or_struct_constraint
   | constructor_constraint
+  | default_constraint
   | type_constraint
   ;
 
@@ -218,6 +219,10 @@ class_or_struct_constraint
 
 constructor_constraint
   : 'new' '(' ')'
+  ;
+
+default_constraint
+  : 'default'
   ;
 
 type_constraint
@@ -348,7 +353,28 @@ array_rank_specifier
   ;
 
 function_pointer_type
-  : 'delegate' '*' syntax_token? '<' parameter (',' parameter)* '>'
+  : 'delegate' '*' function_pointer_calling_convention? function_pointer_parameter_list
+  ;
+
+function_pointer_calling_convention
+  : 'managed' function_pointer_unmanaged_calling_convention_list?
+  | 'unmanaged' function_pointer_unmanaged_calling_convention_list?
+  ;
+
+function_pointer_unmanaged_calling_convention_list
+  : '[' function_pointer_unmanaged_calling_convention (',' function_pointer_unmanaged_calling_convention)* ']'
+  ;
+
+function_pointer_unmanaged_calling_convention
+  : identifier_token
+  ;
+
+function_pointer_parameter_list
+  : '<' function_pointer_parameter (',' function_pointer_parameter)* '>'
+  ;
+
+function_pointer_parameter
+  : attribute_list* modifier* type
   ;
 
 nullable_type
@@ -709,7 +735,7 @@ anonymous_function_expression
   ;
 
 anonymous_method_expression
-  : 'async'? 'delegate' parameter_list? block expression?
+  : modifier* 'delegate' parameter_list? block expression?
   ;
 
 lambda_expression
@@ -718,11 +744,11 @@ lambda_expression
   ;
 
 parenthesized_lambda_expression
-  : 'async'? parameter_list '=>' (block | expression)
+  : modifier* parameter_list '=>' (block | expression)
   ;
 
 simple_lambda_expression
-  : 'async'? parameter '=>' (block | expression)
+  : modifier* parameter '=>' (block | expression)
   ;
 
 anonymous_object_creation_expression
@@ -1261,6 +1287,11 @@ base_cref_parameter_list
 base_parameter_list
   : bracketed_parameter_list
   | parameter_list
+  ;
+
+base_parameter
+  : function_pointer_parameter
+  | parameter
   ;
 
 character_literal_token

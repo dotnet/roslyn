@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -10,29 +12,33 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [Shared]
-    [ExportLspMethod(Methods.TextDocumentDocumentSymbolName)]
-    internal class DocumentSymbolsHandler : AbstractRequestHandler<DocumentSymbolParams, object[]>
+    [ExportLspMethod(Methods.TextDocumentDocumentSymbolName, mutatesSolutionState: false)]
+    internal class DocumentSymbolsHandler : IRequestHandler<DocumentSymbolParams, object[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DocumentSymbolsHandler(ILspSolutionProvider solutionProvider) : base(solutionProvider)
+        public DocumentSymbolsHandler()
         {
         }
 
-        public override async Task<object[]> HandleRequestAsync(DocumentSymbolParams request, ClientCapabilities clientCapabilities,
-            string clientName, CancellationToken cancellationToken)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentSymbolParams request) => request.TextDocument;
+
+        public async Task<object[]> HandleRequestAsync(DocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = SolutionProvider.GetDocument(request.TextDocument, clientName);
+            var document = context.Document;
             if (document == null)
             {
                 return Array.Empty<SymbolInformation>();
@@ -53,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // TODO - Return more than 2 levels of symbols.
             // https://github.com/dotnet/roslyn/projects/45#card-20033869
-            if (clientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true)
+            if (context.ClientCapabilities?.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true)
             {
                 foreach (var item in navBarItems)
                 {
@@ -99,9 +105,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return Create(item, location.SourceSpan, containerName, document, text);
 
-            static SymbolInformation Create(NavigationBarItem item, TextSpan span, string containerName, Document document, SourceText text)
+            static VSSymbolInformation Create(NavigationBarItem item, TextSpan span, string containerName, Document document, SourceText text)
             {
-                return new SymbolInformation
+                return new VSSymbolInformation
                 {
                     Name = item.Text,
                     Location = new LSP.Location
@@ -111,6 +117,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     },
                     Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph),
                     ContainerName = containerName,
+                    Icon = new ImageElement(item.Glyph.GetImageId()),
                 };
             }
         }
@@ -139,7 +146,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Name = symbol.Name,
                 Detail = item.Text,
                 Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph),
-                Deprecated = symbol.GetAttributes().Any(x => x.AttributeClass.MetadataName == "ObsoleteAttribute"),
+                Deprecated = symbol.IsObsolete(),
                 Range = ProtocolConversions.TextSpanToRange(item.Spans.First(), text),
                 SelectionRange = ProtocolConversions.TextSpanToRange(location.SourceSpan, text),
                 Children = await GetChildrenAsync(item.ChildItems, compilation, tree, text, cancellationToken).ConfigureAwait(false),

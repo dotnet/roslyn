@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -39,58 +41,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _listener = listenerProvider.GetListener(FeatureAttribute.InfoBar);
         }
 
-        public void ShowInfoBarInActiveView(string message, params InfoBarUI[] items)
+        public void ShowInfoBar(string message, params InfoBarUI[] items)
         {
             ThisCanBeCalledOnAnyThread();
-            ShowInfoBar(activeView: true, message: message, items: items);
-        }
 
-        public void ShowInfoBarInGlobalView(string message, params InfoBarUI[] items)
-        {
-            ThisCanBeCalledOnAnyThread();
-            ShowInfoBar(activeView: false, message: message, items: items);
-        }
-
-        private void ShowInfoBar(bool activeView, string message, params InfoBarUI[] items)
-        {
             // We can be called from any thread since errors can occur anywhere, however we can only construct and InfoBar from the UI thread.
             _foregroundNotificationService.RegisterNotification(() =>
             {
-                if (TryGetInfoBarData(activeView, out var infoBarHost))
+                if (TryGetInfoBarData(out var infoBarHost))
                 {
                     CreateInfoBar(infoBarHost, message, items);
                 }
-            }, _listener.BeginAsyncOperation(nameof(ShowInfoBar)));
+            }, _listener.BeginAsyncOperation(nameof(ShowInfoBar)), ThreadingContext.DisposalToken);
         }
 
-        private bool TryGetInfoBarData(bool activeView, out IVsInfoBarHost infoBarHost)
+        private bool TryGetInfoBarData(out IVsInfoBarHost infoBarHost)
         {
             AssertIsForeground();
 
             infoBarHost = null;
 
-            if (activeView)
-            {
-                // We want to get whichever window is currently in focus (including toolbars) as we could have had an exception thrown from the error list
-                // or interactive window
-                if (!(_serviceProvider.GetService(typeof(SVsShellMonitorSelection)) is IVsMonitorSelection monitorSelectionService) ||
-                    ErrorHandler.Failed(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, out var value)))
-                {
-                    return false;
-                }
-
-                var frame = value as IVsWindowFrame;
-                if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, out var activeViewInfoBar)))
-                {
-                    return false;
-                }
-
-                infoBarHost = activeViewInfoBar as IVsInfoBarHost;
-                return infoBarHost != null;
-            }
-
             // global error info, show it on main window info bar
-            if (!(_serviceProvider.GetService(typeof(SVsShell)) is IVsShell shell) ||
+            if (_serviceProvider.GetService(typeof(SVsShell)) is not IVsShell shell ||
                 ErrorHandler.Failed(shell.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out var globalInfoBar)))
             {
                 return false;

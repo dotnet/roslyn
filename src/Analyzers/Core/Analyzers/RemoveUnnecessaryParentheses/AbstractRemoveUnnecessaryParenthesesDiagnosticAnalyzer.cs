@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -24,26 +21,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         where TLanguageKindEnum : struct
         where TParenthesizedExpressionSyntax : SyntaxNode
     {
-
-        /// <summary>
-        /// A diagnostic descriptor used to squiggle and message the span.
-        /// </summary>
-        private static readonly DiagnosticDescriptor s_diagnosticDescriptor = CreateDescriptorWithId(
-                IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
-                new LocalizableResourceString(nameof(AnalyzersResources.Remove_unnecessary_parentheses), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                new LocalizableResourceString(nameof(AnalyzersResources.Parentheses_can_be_removed), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                isUnnecessary: true);
-
-        /// <summary>
-        /// This analyzer inserts the fade locations into indices 1 and 2 inside additional locations.
-        /// </summary>
-        private static readonly ImmutableDictionary<string, IEnumerable<int>> s_fadeLocations = new Dictionary<string, IEnumerable<int>>
-        {
-            { nameof(WellKnownDiagnosticTags.Unnecessary), new int[] { 1, 2 } },
-        }.ToImmutableDictionary();
-
         protected AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_diagnosticDescriptor))
+            : base(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
+                  EnforceOnBuildValues.RemoveUnnecessaryParentheses,
+                  new LocalizableResourceString(nameof(AnalyzersResources.Remove_unnecessary_parentheses), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                  new LocalizableResourceString(nameof(AnalyzersResources.Parentheses_can_be_removed), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                  isUnnecessary: true)
         {
         }
 
@@ -122,16 +105,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             var severity = preference.Notification.Severity;
 
             var additionalLocations = ImmutableArray.Create(
-                parenthesizedExpression.GetLocation(),
+                parenthesizedExpression.GetLocation());
+            var additionalUnnecessaryLocations = ImmutableArray.Create(
                 parenthesizedExpression.GetFirstToken().GetLocation(),
                 parenthesizedExpression.GetLastToken().GetLocation());
 
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                s_diagnosticDescriptor,
+                Descriptor,
                 GetDiagnosticSquiggleLocation(parenthesizedExpression, context.CancellationToken),
                 severity,
                 additionalLocations,
-                s_fadeLocations));
+                additionalUnnecessaryLocations));
         }
 
         /// <summary>

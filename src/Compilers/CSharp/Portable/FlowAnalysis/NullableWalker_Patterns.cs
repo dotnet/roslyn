@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -260,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int originalInputSlot = MakeSlot(expression);
             if (originalInputSlot <= 0)
             {
-                originalInputSlot = makeDagTempSlot(expressionType.ToTypeWithAnnotations(), rootTemp);
+                originalInputSlot = makeDagTempSlot(expressionType.ToTypeWithAnnotations(compilation), rootTemp);
                 initialState[originalInputSlot] = expressionType.State;
             }
 
@@ -456,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol local } boundLocal)
                                 {
                                     var value = TypeWithState.Create(tempType, tempState);
-                                    var inferredType = boundLocal.DeclarationKind == BoundLocalDeclarationKind.WithInferredType ? value.ToAnnotatedTypeWithAnnotations() : value.ToTypeWithAnnotations();
+                                    var inferredType = value.ToTypeWithAnnotations(compilation, asAnnotatedType: boundLocal.DeclarationKind == BoundLocalDeclarationKind.WithInferredType);
                                     if (_variableTypes.TryGetValue(local, out var existingType))
                                     {
                                         // merge inferred nullable annotation from different branches of the decision tree
@@ -468,7 +470,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     }
 
                                     int localSlot = GetOrCreateSlot(local, forceSlotEvenIfEmpty: true);
-                                    this.State[localSlot] = tempState;
+                                    if (localSlot > 0)
+                                    {
+                                        this.State[localSlot] = tempState;
+                                    }
                                 }
                                 else
                                 {
@@ -566,6 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node)
         {
+            // This method is only involved in method inference with unbound lambdas.
             VisitSwitchExpressionCore(node, inferType: true);
             return null;
         }
@@ -593,11 +599,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetState(defaultLabelState.state);
                 var nodes = node.DecisionDag.TopologicallySortedNodes;
                 var leaf = nodes.Where(n => n is BoundLeafDecisionDagNode leaf && leaf.Label == node.DefaultLabel).First();
+                var samplePattern = PatternExplainer.SamplePatternForPathToDagNode(
+                    BoundDagTemp.ForOriginalInput(node.Expression), nodes, leaf, nullPaths: true, out bool requiresFalseWhenClause, out _);
+                ErrorCode warningCode = requiresFalseWhenClause ? ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen : ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull;
                 ReportDiagnostic(
-                    ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull,
+                    warningCode,
                     ((SwitchExpressionSyntax)node.Syntax).SwitchKeyword.GetLocation(),
-                    PatternExplainer.SamplePatternForPathToDagNode(BoundDagTemp.ForOriginalInput(node.Expression), nodes, leaf, nullPaths: true)
-                    );
+                    samplePattern);
             }
 
             // collect expressions, conversions and result types
@@ -622,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Join(ref endState, ref this.State);
 
                 // Build placeholders for inference in order to preserve annotations.
-                placeholderBuilder.Add(CreatePlaceholderIfNecessary(expression, armType.ToTypeWithAnnotations()));
+                placeholderBuilder.Add(CreatePlaceholderIfNecessary(expression, armType.ToTypeWithAnnotations(compilation)));
             }
 
             var placeholders = placeholderBuilder.ToImmutableAndFree();
@@ -630,34 +638,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol inferredType =
                 (inferType ? BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics) : null)
-                    ?? node.Type?.SetUnknownNullabilityForReferenceTypes()
-                    ?? new ExtendedErrorTypeSymbol(this.compilation, "", arity: 0, errorInfo: null, unreported: false);
+                    ?? node.Type?.SetUnknownNullabilityForReferenceTypes();
 
             var inferredTypeWithAnnotations = TypeWithAnnotations.Create(inferredType);
 
             // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
-            for (int i = 0; i < numSwitchArms; i++)
+            if (inferredType is not null)
             {
-                var expression = expressions[i];
-                resultTypes[i] = VisitConversion(conversionOpt: null, expression, conversions[i], inferredTypeWithAnnotations, resultTypes[i], checkConversion: true,
-                    fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
+                for (int i = 0; i < numSwitchArms; i++)
+                {
+                    var expression = expressions[i];
+                    resultTypes[i] = VisitConversion(conversionOpt: null, expression, conversions[i], inferredTypeWithAnnotations, resultTypes[i], checkConversion: true,
+                        fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
+                }
             }
 
             var inferredState = BestTypeInferrer.GetNullableState(resultTypes);
             var resultType = TypeWithState.Create(inferredType, inferredState);
-            inferredTypeWithAnnotations = resultType.ToTypeWithAnnotations();
-            if (resultType.State == NullableFlowState.MaybeDefault)
-            {
-                inferredTypeWithAnnotations = inferredTypeWithAnnotations.AsAnnotated();
-            }
 
-            for (int i = 0; i < numSwitchArms; i++)
+            if (inferredType is not null)
             {
-                var nodeForSyntax = expressions[i];
-                var conversionOpt = node.SwitchArms[i].Value switch { BoundConversion c when c != nodeForSyntax => c, _ => null };
-                // Report top-level warnings
-                _ = VisitConversion(conversionOpt, conversionOperand: nodeForSyntax, conversions[i], targetTypeWithNullability: inferredTypeWithAnnotations, operandType: resultTypes[i],
-                    checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false, reportTopLevelWarnings: true);
+                inferredTypeWithAnnotations = resultType.ToTypeWithAnnotations(compilation);
+                if (resultType.State == NullableFlowState.MaybeDefault)
+                {
+                    inferredTypeWithAnnotations = inferredTypeWithAnnotations.AsAnnotated();
+                }
+
+                for (int i = 0; i < numSwitchArms; i++)
+                {
+                    var nodeForSyntax = expressions[i];
+                    var conversionOpt = node.SwitchArms[i].Value switch { BoundConversion c when c != nodeForSyntax => c, _ => null };
+                    // Report top-level warnings
+                    _ = VisitConversion(conversionOpt, conversionOperand: nodeForSyntax, conversions[i], targetTypeWithNullability: inferredTypeWithAnnotations, operandType: resultTypes[i],
+                        checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false, reportTopLevelWarnings: true);
+                }
             }
 
             conversions.Free();
@@ -675,8 +689,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitPatternForRewriting(node.Pattern);
             var expressionState = VisitRvalueWithState(node.Expression);
             var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, ref this.State);
-            var trueState = labelStateMap.TryGetValue(node.WhenTrueLabel, out var s1) ? s1.state : UnreachableState();
-            var falseState = labelStateMap.TryGetValue(node.WhenFalseLabel, out var s2) ? s2.state : UnreachableState();
+            var trueState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenFalseLabel : node.WhenTrueLabel, out var s1) ? s1.state : UnreachableState();
+            var falseState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenTrueLabel : node.WhenFalseLabel, out var s2) ? s2.state : UnreachableState();
             labelStateMap.Free();
             SetConditionalState(trueState, falseState);
             SetNotNullResult(node);

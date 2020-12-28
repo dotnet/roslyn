@@ -7,14 +7,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal interface IEditAndContinueAnalyzer : ILanguageService
     {
-        Task<DocumentAnalysisResults> AnalyzeDocumentAsync(Document? oldDocument, ImmutableArray<ActiveStatement> activeStatements, Document document, CancellationToken cancellationToken);
+        Task<DocumentAnalysisResults> AnalyzeDocumentAsync(Document? oldDocument, ImmutableArray<ActiveStatement> activeStatements, Document document, ImmutableArray<TextSpan> newActiveStatementSpans, CancellationToken cancellationToken);
         ImmutableArray<LinePositionSpan> GetExceptionRegions(SourceText text, SyntaxNode syntaxRoot, LinePositionSpan activeStatementSpan, bool isLeaf, out bool isCovered);
     }
 }

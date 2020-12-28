@@ -11,10 +11,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
 
         ' We want to skip script testing in all VB stuff for now.
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
         Protected Overrides Function TestAsync(markupWithPositionAndOptSpan As String, Optional expectedOrderedItemsOrNull As IEnumerable(Of SignatureHelpTestItem) = Nothing, Optional usePreviousCharAsTrigger As Boolean = False, Optional sourceCodeKind As Microsoft.CodeAnalysis.SourceCodeKind? = Nothing, Optional experimental As Boolean = False) As Threading.Tasks.Task
             If (sourceCodeKind.HasValue) Then
                 Return MyBase.TestAsync(markupWithPositionAndOptSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger, sourceCodeKind, experimental)
@@ -30,14 +26,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
                 Return MyBase.VerifyCurrentParameterNameAsync(markupWithPosition, expectedParameterName, Microsoft.CodeAnalysis.SourceCodeKind.Regular)
             End If
         End Function
-
-        Protected Overrides Sub VerifyTriggerCharacters(expectedTriggerCharacters() As Char, unexpectedTriggerCharacters() As Char, Optional sourceCodeKind As Microsoft.CodeAnalysis.SourceCodeKind? = Nothing)
-            If (sourceCodeKind.HasValue) Then
-                MyBase.VerifyTriggerCharacters(expectedTriggerCharacters, unexpectedTriggerCharacters, sourceCodeKind)
-            Else
-                MyBase.VerifyTriggerCharacters(expectedTriggerCharacters, unexpectedTriggerCharacters, Microsoft.CodeAnalysis.SourceCodeKind.Regular)
-            End If
-        End Sub
 
         Protected Overrides Function CreateExperimentalParseOptions() As ParseOptions
             ' There are no experimental features at this time.

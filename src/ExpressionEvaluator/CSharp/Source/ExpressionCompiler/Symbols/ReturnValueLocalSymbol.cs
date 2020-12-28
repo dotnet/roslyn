@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using System.Collections.Immutable;
@@ -34,7 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 syntax,
                 receiverOpt: null,
                 method: method,
-                arguments: ImmutableArray.Create<BoundExpression>(argument));
+                arguments: ImmutableArray.Create<BoundExpression>(argument),
+                binder: null);
             return ConvertToLocalType(compilation, call, this.Type, diagnostics);
         }
     }

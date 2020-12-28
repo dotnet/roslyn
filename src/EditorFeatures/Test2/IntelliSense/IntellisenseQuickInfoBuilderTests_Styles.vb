@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <InlineData({"em", "strong"}, ClassifiedTextRunStyle.Italic Or ClassifiedTextRunStyle.Bold)>
         <InlineData({"b", "i"}, ClassifiedTextRunStyle.Italic Or ClassifiedTextRunStyle.Bold)>
         <InlineData({"i", "strong", "c", "u"}, ClassifiedTextRunStyle.Bold Or ClassifiedTextRunStyle.Italic Or ClassifiedTextRunStyle.Underline Or ClassifiedTextRunStyle.UseClassificationFont)>
-        Public Async Sub QuickInfoForStylizedText(styleTags As String(), style As ClassifiedTextRunStyle)
+        Public Async Function QuickInfoForStylizedText(styleTags As String(), style As ClassifiedTextRunStyle) As Task
             Dim openStyleTag = String.Join("", styleTags.Select(Function(tag) $"<{tag}>"))
             Dim closeStyleTag = String.Join("", styleTags.Reverse().Select(Function(tag) $"</{tag}>"))
             Dim workspace =
@@ -67,6 +67,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
             ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
-        End Sub
+        End Function
     End Class
 End Namespace

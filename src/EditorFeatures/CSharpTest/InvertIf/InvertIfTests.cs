@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.InvertIf;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpInvertIfCodeRefactoringProvider();
 
-        private string CreateTreeText(string initial)
+        private static string CreateTreeText(string initial)
         {
             return
 @"class A
@@ -158,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
         {
             await TestFixOneAsync(
 @"[||]if (a is Goo) { a(); } else { b(); }",
-@"if (!(a is Goo)) { b(); } else { a(); }");
+@"if (a is not Goo) { b(); } else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -1033,7 +1035,7 @@ class C
         {
             await TestInRegularAndScriptAsync(
 @"class C { void M(object o) { [||]if (o is C) { a(); } else { } } }",
-@"class C { void M(object o) { if (!(o is C)) { } else { a(); } } }");
+@"class C { void M(object o) { if (o is not C) { } else { a(); } } }");
         }
     }
 }

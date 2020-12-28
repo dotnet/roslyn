@@ -3,9 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -24,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             public SyntaxEditorBasedFixAllProvider(SyntaxEditorBasedCodeFixProvider codeFixProvider)
                 => _codeFixProvider = codeFixProvider;
 
-            public sealed override async Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
+            public sealed override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             {
                 var documentsAndDiagnosticsToFixMap = await GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
                 return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
@@ -32,17 +35,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllContext fixAllContext)
             {
-                var result = await GetDocumentDiagnosticsToFixWorkerAsync(fixAllContext).ConfigureAwait(false);
+                var result = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
 
                 // Filter out any documents that we don't have any diagnostics for.
                 return result.Where(kvp => !kvp.Value.IsDefaultOrEmpty).ToImmutableDictionary();
-
-                static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixWorkerAsync(FixAllContext fixAllContext)
-                {
-                    return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(
-                        fixAllContext,
-                        progressTrackerOpt: null).ConfigureAwait(false);
-                }
             }
 
             private async Task<CodeAction> GetFixAsync(
@@ -50,8 +46,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 FixAllContext fixAllContext)
             {
                 // Process all documents in parallel.
+                var progressTracker = fixAllContext.GetProgressTracker();
+
+                progressTracker.Description = WorkspaceExtensionsResources.Applying_fix_all;
+                progressTracker.AddItems(documentsAndDiagnosticsToFixMap.Count);
+
                 var updatedDocumentTasks = documentsAndDiagnosticsToFixMap.Select(
-                    kvp => FixDocumentAsync(kvp.Key, kvp.Value, fixAllContext));
+                    kvp => FixDocumentAsync(kvp.Key, kvp.Value, fixAllContext, progressTracker));
 
                 await Task.WhenAll(updatedDocumentTasks).ConfigureAwait(false);
 
@@ -64,17 +65,29 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     var updatedDocument = await task.ConfigureAwait(false);
                     currentSolution = currentSolution.WithDocumentSyntaxRoot(
                         updatedDocument.Id,
-                        await updatedDocument.GetSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false));
+                        await updatedDocument.GetRequiredSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false));
                 }
 
                 var title = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
                 return new CustomCodeActions.SolutionChangeAction(title, _ => Task.FromResult(currentSolution));
             }
 
+            private async Task<Document> FixDocumentAsync(Document key, ImmutableArray<Diagnostic> value, FixAllContext fixAllContext, IProgressTracker progressTracker)
+            {
+                try
+                {
+                    return await FixDocumentAsync(key, value, fixAllContext).ConfigureAwait(false);
+                }
+                finally
+                {
+                    progressTracker.ItemCompleted();
+                }
+            }
+
             private async Task<Document> FixDocumentAsync(
                 Document document, ImmutableArray<Diagnostic> diagnostics, FixAllContext fixAllContext)
             {
-                var model = await document.GetSemanticModelAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
+                var model = await document.GetRequiredSemanticModelAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
 
                 // Ensure that diagnostics for this document are always in document location
                 // order.  This provides a consistent and deterministic order for fixers
@@ -82,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 // Also ensure that we do not pass in duplicates by invoking Distinct.
                 // See https://github.com/dotnet/roslyn/issues/31381, that seems to be causing duplicate diagnostics.
                 var filteredDiagnostics = diagnostics.Distinct()
-                                                     .WhereAsArray(d => _codeFixProvider.IncludeDiagnosticDuringFixAll(d, fixAllContext.Document, model, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken))
+                                                     .WhereAsArray(d => _codeFixProvider.IncludeDiagnosticDuringFixAll(d, document, model, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken))
                                                      .Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
 
                 // PERF: Do not invoke FixAllAsync on the code fix provider if there are no diagnostics to be fixed.

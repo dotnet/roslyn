@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
@@ -1456,7 +1458,7 @@ class C
                 expectedIndentation);
         }
 
-        private async Task AssertIndentUsingSmartTokenFormatterAsync(
+        private static async Task AssertIndentUsingSmartTokenFormatterAsync(
             string code,
             char ch,
             int indentationLine,
@@ -1466,7 +1468,7 @@ class C
             await AssertIndentUsingSmartTokenFormatterAsync(code.Replace("    ", "\t"), ch, indentationLine, expectedIndentation, useTabs: true).ConfigureAwait(false);
         }
 
-        private async Task AssertIndentUsingSmartTokenFormatterAsync(
+        private static async Task AssertIndentUsingSmartTokenFormatterAsync(
             string code,
             char ch,
             int indentationLine,
@@ -1501,7 +1503,7 @@ class C
             Assert.Equal(expectedIndentation.Value, actualIndentation);
         }
 
-        private async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+        private static async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
             string code,
             int indentationLine,
             int? expectedIndentation,
@@ -1511,7 +1513,7 @@ class C
             await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(code.Replace("    ", "\t"), indentationLine, expectedIndentation, useTabs: true, indentStyle).ConfigureAwait(false);
         }
 
-        private async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+        private static async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
             string code,
             int indentationLine,
             int? expectedIndentation,

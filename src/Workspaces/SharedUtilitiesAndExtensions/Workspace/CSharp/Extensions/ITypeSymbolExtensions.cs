@@ -2,23 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Shared.Lightup;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
-
-#if !CODE_STYLE
-using Microsoft.CodeAnalysis.CodeGeneration;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -27,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static ExpressionSyntax GenerateExpressionSyntax(
             this ITypeSymbol typeSymbol)
         {
-            return typeSymbol.Accept(ExpressionSyntaxGeneratorVisitor.Instance).WithAdditionalAnnotations(Simplifier.Annotation);
+            return typeSymbol.Accept(ExpressionSyntaxGeneratorVisitor.Instance)!.WithAdditionalAnnotations(Simplifier.Annotation);
         }
 
         public static NameSyntax GenerateNameSyntax(
@@ -53,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return SyntaxFactory.IdentifierName("var");
             }
 
-            var syntax = symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))
+            var syntax = symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))!
                                .WithAdditionalAnnotations(Simplifier.Annotation);
 
             if (!allowVar)
@@ -61,21 +56,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 syntax = syntax.WithAdditionalAnnotations(DoNotAllowVarAnnotation.Annotation);
             }
 
-#if !CODE_STYLE
-
             if (type != null && type.IsReferenceType)
             {
-                syntax = syntax.WithAdditionalAnnotations(
-                    type.NullableAnnotation switch
-                    {
-                        NullableAnnotation.None => NullableSyntaxAnnotation.Oblivious,
-                        NullableAnnotation.Annotated => NullableSyntaxAnnotation.AnnotatedOrNotAnnotated,
-                        NullableAnnotation.NotAnnotated => NullableSyntaxAnnotation.AnnotatedOrNotAnnotated,
-                        _ => throw ExceptionUtilities.UnexpectedValue(type.NullableAnnotation),
-                    });
-            }
+                var additionalAnnotation = type.NullableAnnotation switch
+                {
+                    NullableAnnotation.None => NullableSyntaxAnnotationEx.Oblivious,
+                    NullableAnnotation.Annotated => NullableSyntaxAnnotationEx.AnnotatedOrNotAnnotated,
+                    NullableAnnotation.NotAnnotated => NullableSyntaxAnnotationEx.AnnotatedOrNotAnnotated,
+                    _ => throw ExceptionUtilities.UnexpectedValue(type.NullableAnnotation),
+                };
 
-#endif
+                if (additionalAnnotation is object)
+                {
+                    syntax = syntax.WithAdditionalAnnotations(additionalAnnotation);
+                }
+            }
 
             return syntax;
         }
@@ -143,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 return null;
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -137,7 +135,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                     static bool IsSingleThrowNotImplementedOperation(IOperation firstBlock)
                     {
-                        var compilation = firstBlock.SemanticModel.Compilation;
+                        var compilation = firstBlock.SemanticModel!.Compilation;
                         var notImplementedExceptionType = compilation.NotImplementedExceptionType();
                         if (notImplementedExceptionType == null)
                             return false;
@@ -184,7 +182,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                            UnwrapImplicitConversion(throwOperation.Exception) is IObjectCreationOperation objectCreation &&
                            notImplementedExceptionType.Equals(objectCreation.Type);
 
-                    static IOperation UnwrapImplicitConversion(IOperation value)
+                    static IOperation? UnwrapImplicitConversion(IOperation? value)
                         => value is IConversionOperation conversion && conversion.IsImplicit
                             ? conversion.Operand
                             : value;
@@ -624,7 +622,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         if (_options.UnusedValueAssignmentSeverity == ReportDiagnostic.Suppress ||
                             symbol.GetSymbolType().IsErrorType() ||
                             (symbol.IsStatic && symbol.Kind == SymbolKind.Local) ||
-                            IsSymbolWithSpecialDiscardName(symbol))
+                            symbol.IsSymbolWithSpecialDiscardName())
                         {
                             return false;
                         }

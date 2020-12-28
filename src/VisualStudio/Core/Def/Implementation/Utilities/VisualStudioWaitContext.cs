@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -113,14 +115,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
         private void UpdateDialog()
         {
-            _dialog.UpdateProgress(
+            ((IVsThreadedWaitDialog2)_dialog).UpdateProgress(
                 this.ProgressTracker.Description ?? _message,
                 szProgressText: null,
                 szStatusBarText: null,
                 iCurrentStep: this.ProgressTracker.CompletedItems,
                 iTotalSteps: this.ProgressTracker.TotalItems,
                 fDisableCancel: !_allowCancel,
-                pfCanceled: out var hasCancelled);
+                pfCanceled: out _);
         }
 
         public void Dispose()

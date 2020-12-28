@@ -7,6 +7,11 @@
         <target state="translated">Dodaj „mnie”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_GetType_to_NameOf">
+        <source>Convert 'GetType' to 'NameOf'</source>
+        <target state="translated">Konwertuj element „GetType” na element „NameOf”</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">
         <source>Remove Unnecessary Imports</source>
         <target state="translated">Usuń niepotrzebne importy</target>

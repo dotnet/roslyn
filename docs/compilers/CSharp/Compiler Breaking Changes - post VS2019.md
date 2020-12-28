@@ -120,14 +120,3 @@ public class Derived : Base<string?>
     public override string? M() { ... } // Derived.M doesn't honor the nullability declaration made by Base.M with its [NotNull] attribute
 }
 ```
-
-19. https://github.com/dotnet/roslyn/pull/44841 In *C# 9* and onwards the language views ambiguities between the `record` identifier as being
-    either a type syntax or a record declaration as choosing the record declaration. The following examples will now be record declarations:
-
-    ```C#
-    abstract class C
-    {
-        record R2() { }
-        abstract record R3();
-    }
-    ```

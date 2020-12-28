@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System;
@@ -276,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Turn a (parsed) interpolated string nonterminal into an interpolated string token.
         /// </summary>
         /// <param name="interpolatedString"></param>
-        static internal SyntaxToken RescanInterpolatedString(InterpolatedStringExpressionSyntax interpolatedString)
+        internal static SyntaxToken RescanInterpolatedString(InterpolatedStringExpressionSyntax interpolatedString)
         {
             var text = interpolatedString.ToString();
             var kind = SyntaxKind.InterpolatedStringToken;
@@ -610,6 +612,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             {
                                 // check for verbatim string inside an expression hole.
                                 ScanInterpolatedStringLiteralNestedVerbatimString();
+                                continue;
+                            }
+                            else if (lexer.TextWindow.PeekChar(1) == '$' && lexer.TextWindow.PeekChar(2) == '"')
+                            {
+                                lexer.CheckFeatureAvailability(MessageID.IDS_FeatureAltInterpolatedVerbatimStrings);
+                                var interpolations = (ArrayBuilder<Interpolation>)null;
+                                var info = default(TokenInfo);
+                                bool wasVerbatim = this.isVerbatim;
+                                bool wasAllowNewlines = this.allowNewlines;
+                                try
+                                {
+                                    this.isVerbatim = true;
+                                    this.allowNewlines = true;
+                                    bool closeQuoteMissing;
+                                    ScanInterpolatedStringLiteralTop(interpolations, ref info, out closeQuoteMissing);
+                                }
+                                finally
+                                {
+                                    this.isVerbatim = wasVerbatim;
+                                    this.allowNewlines = wasAllowNewlines;
+                                }
                                 continue;
                             }
 

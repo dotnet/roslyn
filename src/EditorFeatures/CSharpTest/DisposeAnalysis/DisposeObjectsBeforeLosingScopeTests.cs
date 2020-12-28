@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DisposeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -12,12 +14,18 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using static Roslyn.Test.Utilities.TestHelpers;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DisposeAnalysis
 {
     [Trait(Traits.Feature, Traits.Features.DisposeAnalysis)]
     public sealed class DisposeObjectsBeforeLosingScopeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public DisposeObjectsBeforeLosingScopeTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new DisposeObjectsBeforeLosingScopeDiagnosticAnalyzer(isEnabledByDefault: true), null);
 
@@ -5037,7 +5045,7 @@ class C : IDisposable
     {
         [|using var c = new C()|];
     }
-}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
         [Fact, WorkItem(32100, "https://github.com/dotnet/roslyn/issues/32100")]
@@ -5053,7 +5061,7 @@ class C : IDisposable
     {
         [|using var c = new C() { P = 1 }|];
     }
-}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
         [Fact]

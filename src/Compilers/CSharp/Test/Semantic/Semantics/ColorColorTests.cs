@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -9,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -1835,7 +1836,7 @@ public class Example
         {
             var tree = Parse(text);
 
-            var comp = CreateCompilationWithMscorlib40(new[] { tree }, new[] { TestReferences.NetFx.v4_0_30319.System_Core });
+            var comp = CreateCompilationWithMscorlib40(new[] { tree }, new[] { TestMetadata.Net40.SystemCore });
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var model = comp.GetSemanticModel(tree);
@@ -2081,7 +2082,7 @@ public enum Color { Red }
             var refLib = CreateEmptyCompilation(
                 sourceRefLib,
                 assemblyName: "RefLib",
-                references: new[] { TestReferences.NetFx.v2_0_50727.mscorlib });
+                references: new[] { TestMetadata.Net20.mscorlib });
 
             refLib.VerifyEmitDiagnostics();
 
@@ -2102,7 +2103,7 @@ class M
                 references: new MetadataReference[]
                 {
                     new CSharpCompilationReference(refLib),
-                    TestReferences.NetFx.v4_0_30319.mscorlib
+                    TestMetadata.Net451.mscorlib
                 });
 
             var unifyReferenceWarning =

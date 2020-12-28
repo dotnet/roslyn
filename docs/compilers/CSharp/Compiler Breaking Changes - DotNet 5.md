@@ -1,4 +1,4 @@
-﻿## This document lists known breaking changes in Roslyn in C# 9.0 which will be introduced with .NET 5.
+﻿## This document lists known breaking changes in Roslyn in C# 9.0 which will be introduced with .NET 5 (Visual Studio 2019 version 16.8).
 
 1. Beginning with C# 9.0, when you switch on a value of type `byte` or `sbyte`, the compiler tracks which values have been handled and which have not.  Technically, we do so for all numeric types, but in practice it is only a breaking change for the types `byte` and `sbyte`.  For example, the following program contains a switch statement that explicitly handles *all* of the possible values of the switch's controlling expression
     ```csharp
@@ -58,3 +58,22 @@
             o is sbyte or short or int or long;
     ```
     Because the `and` and `or` combinators can follow a type pattern, the compiler interprets them as part of the pattern combinator rather than an identifier for the declaration pattern. Consequently, it is an error to use `or` or `and` as pattern variable identifiers starting with C# 9.0.
+    
+4. https://github.com/dotnet/roslyn/pull/44841 In *C# 9* and onwards the language views ambiguities between the `record` identifier as being
+    either a type syntax or a record declaration as choosing the record declaration. The following examples will now be record declarations:
+
+    ```C#
+    abstract class C
+    {
+        record R2() { }
+        abstract record R3();
+    }
+    ```
+
+5. The fix for https://github.com/dotnet/roslyn/issues/44067 generates correct (different) code.
+   In certain cases the compiler used to generate code whose behavior was ambiguous according
+   to the CLR's specification. The compiler used to produce the warning CS1957 in those cases.
+   The compiler now generates correct unambiguous code rather than reporting CS1957. Because
+   it is possible that the runtime behavior of a program will change due to the change in our code
+   generation strategy, this could be a breaking change. If your program did not elicit the warning
+   CS1957 before then this does not affect your code.

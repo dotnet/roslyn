@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
@@ -17,14 +16,16 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         public static DiagnosticAnalysisResultMap<TKey, TValue> Create<TKey, TValue>(
             ImmutableDictionary<TKey, TValue> analysisResult,
             ImmutableDictionary<TKey, AnalyzerTelemetryInfo> telemetryInfo)
+            where TKey : notnull
         {
             return new DiagnosticAnalysisResultMap<TKey, TValue>(analysisResult, telemetryInfo);
         }
     }
 
     internal struct DiagnosticAnalysisResultMap<TKey, TValue>
+        where TKey : notnull
     {
-        public static readonly DiagnosticAnalysisResultMap<TKey, TValue> Empty = new DiagnosticAnalysisResultMap<TKey, TValue>(
+        public static readonly DiagnosticAnalysisResultMap<TKey, TValue> Empty = new(
             ImmutableDictionary<TKey, TValue>.Empty,
             ImmutableDictionary<TKey, AnalyzerTelemetryInfo>.Empty);
 
@@ -35,6 +36,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             ImmutableDictionary<TKey, TValue> analysisResult,
             ImmutableDictionary<TKey, AnalyzerTelemetryInfo> telemetryInfo)
         {
+            Debug.Assert(telemetryInfo.IsEmpty || telemetryInfo.Count == analysisResult.Count);
+
             AnalysisResult = analysisResult;
             TelemetryInfo = telemetryInfo;
         }

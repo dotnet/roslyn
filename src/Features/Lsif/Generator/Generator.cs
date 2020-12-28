@@ -3,16 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
-using System.Collections.Concurrent;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
@@ -26,13 +30,13 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             _lsifJsonWriter = lsifJsonWriter;
         }
 
-        public void GenerateForCompilation(Compilation compilation, string projectPath, HostLanguageServices languageServices)
+        public void GenerateForCompilation(Compilation compilation, string projectPath, HostLanguageServices languageServices, OptionSet options)
         {
-            var projectVertex = new Graph.Project(kind: GetLanguageKind(compilation.Language), new Uri(projectPath), _idFactory);
+            var projectVertex = new Graph.LsifProject(kind: GetLanguageKind(compilation.Language), new Uri(projectPath), _idFactory);
             _lsifJsonWriter.Write(projectVertex);
             _lsifJsonWriter.Write(new Event(Event.EventKind.Begin, projectVertex.GetId(), _idFactory));
 
-            var documentIds = new ConcurrentBag<Id<Graph.Document>>();
+            var documentIds = new ConcurrentBag<Id<Graph.LsifDocument>>();
 
             // We create a ResultSetTracker to track all top-level symbols in the project. We don't want all writes to immediately go to
             // the JSON file -- we support parallel processing, so we'll accumulate them and then apply at once to avoid a lot
@@ -51,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 // are allowed and might flush other unrelated stuff at the same time, but there's no harm -- the "causality" ordering
                 // is preserved.
                 var documentWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
-                var documentId = GenerateForDocument(semanticModel, languageServices, topLevelSymbolsResultSetTracker, documentWriter, _idFactory);
+                var documentId = GenerateForDocument(semanticModel, languageServices, options, topLevelSymbolsResultSetTracker, documentWriter, _idFactory);
                 topLevelSymbolsWriter.FlushToUnderlyingAndEmpty();
                 documentWriter.FlushToUnderlyingAndEmpty();
 
@@ -74,9 +78,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         /// lets us link symbols across files, and will only talk about "top level" symbols that aren't things like locals that can't
         /// leak outside a file.
         /// </remarks>
-        private static Id<Graph.Document> GenerateForDocument(
+        private static Id<Graph.LsifDocument> GenerateForDocument(
             SemanticModel semanticModel,
             HostLanguageServices languageServices,
+            OptionSet options,
             IResultSetTracker topLevelSymbolsResultSetTracker,
             ILsifJsonWriter lsifJsonWriter,
             IdFactory idFactory)
@@ -86,7 +91,21 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var syntaxFactsService = languageServices.GetRequiredService<ISyntaxFactsService>();
             var semanticFactsService = languageServices.GetRequiredService<ISemanticFactsService>();
 
-            var documentVertex = new Graph.Document(new Uri(syntaxTree.FilePath), GetLanguageKind(semanticModel.Language), idFactory);
+            string? contentBase64Encoded = null;
+
+            // TODO: move to checking the enum member mentioned in https://github.com/dotnet/roslyn/issues/49326 when that
+            // is implemented. In the mean time, we'll use a heuristic of the path being a relative path as a way to indicate
+            // this is a source generated file.
+            if (!PathUtilities.IsAbsolute(syntaxTree.FilePath))
+            {
+                var text = semanticModel.SyntaxTree.GetText();
+
+                // We always use UTF-8 encoding when writing out file contents, as that's expected by LSIF implementations.
+                // TODO: when we move to .NET Core, is there a way to reduce allocatios here?
+                contentBase64Encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(text.ToString()));
+            }
+
+            var documentVertex = new Graph.LsifDocument(new Uri(syntaxTree.FilePath, UriKind.RelativeOrAbsolute), GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
 
             lsifJsonWriter.Write(documentVertex);
             lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));
@@ -155,7 +174,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     // For now, we will link the range to the original definition, preferring the definition, as this is the symbol
                     // that would be used if we invoke a feature on this range. This is analogous to the logic in
                     // SymbolFinder.FindSymbolAtPositionAsync where if a token is both a reference and definition we'll prefer the
-                    // definition. Once we start supporting hover we'll hae to remove the "original defintion" part of this, since
+                    // definition. Once we start supporting hover we'll have to remove the "original definition" part of this, since
                     // since we show different contents for different constructed types there.
                     var symbolForLinkedResultSet = (declaredSymbol ?? referencedSymbol)!.OriginalDefinition;
                     var symbolForLinkedResultSetId = symbolResultsTracker.GetResultSetIdForSymbol(symbolForLinkedResultSet);
@@ -180,8 +199,14 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             }
 
             lsifJsonWriter.Write(Edge.Create("contains", documentVertex.GetId(), rangeVertices, idFactory));
-            lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId(), idFactory));
 
+            // Write the folding ranges for the document.
+            var foldingRanges = FoldingRangesHandler.GetFoldingRanges(syntaxTree, languageServices, options, isMetadataAsSource: false, CancellationToken.None);
+            var foldingRangeResult = new FoldingRangeResult(foldingRanges, idFactory);
+            lsifJsonWriter.Write(foldingRangeResult);
+            lsifJsonWriter.Write(Edge.Create(Methods.TextDocumentFoldingRangeName, documentVertex.GetId(), foldingRangeResult.GetId(), idFactory));
+
+            lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId(), idFactory));
             return documentVertex.GetId();
         }
 

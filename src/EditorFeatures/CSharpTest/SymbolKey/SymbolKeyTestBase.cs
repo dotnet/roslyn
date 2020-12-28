@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -337,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                 }
             }
 
-            private void GetLocalAndType(DataFlowAnalysis df, List<ISymbol> list)
+            private static void GetLocalAndType(DataFlowAnalysis df, List<ISymbol> list)
             {
                 foreach (var v in df.VariablesDeclared)
                 {
@@ -349,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                 }
             }
 
-            private void GetLabelSymbols(BlockSyntax body, SemanticModel model, List<ISymbol> list)
+            private static void GetLabelSymbols(BlockSyntax body, SemanticModel model, List<ISymbol> list)
             {
                 var labels = body.DescendantNodes().OfType<LabeledStatementSyntax>();
                 foreach (var n in labels)
@@ -371,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                 }
             }
 
-            private void GetAnonymousTypeOrFuncSymbols(BlockSyntax body, SemanticModel model, List<ISymbol> list)
+            private static void GetAnonymousTypeOrFuncSymbols(BlockSyntax body, SemanticModel model, List<ISymbol> list)
             {
                 IEnumerable<ExpressionSyntax> exprs = body.DescendantNodes().OfType<SimpleLambdaExpressionSyntax>();
                 IEnumerable<ExpressionSyntax> tmp = body.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>();
@@ -388,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                 }
             }
 
-            private void GetAnonymousExprSymbols(ExpressionSyntax expr, SemanticModel model, List<ISymbol> list)
+            private static void GetAnonymousExprSymbols(ExpressionSyntax expr, SemanticModel model, List<ISymbol> list)
             {
                 var kind = expr.Kind();
                 if (kind != SyntaxKind.AnonymousObjectCreationExpression &&

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -95,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             Debug.Assert(anonymousType != null);
 
             var position = span.Start;
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -139,14 +142,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             editor.ReplaceNode(container, (currentContainer, _) =>
             {
                 var codeGenService = document.GetLanguageService<ICodeGenerationService>();
-                var options = new CodeGenerationOptions(
+                var codeGenOptions = new CodeGenerationOptions(
                     generateMembers: true,
                     sortMembers: false,
                     autoInsertionLocation: false,
+                    options: options,
                     parseOptions: root.SyntaxTree.Options);
 
                 return codeGenService.AddNamedType(
-                    currentContainer, namedTypeSymbol, options, cancellationToken);
+                    currentContainer, namedTypeSymbol, codeGenOptions, cancellationToken);
             });
 
             var updatedDocument = document.WithSyntaxRoot(editor.GetChangedRoot());
@@ -168,7 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
 
             foreach (var identifier in identifiers)
             {
-                if (!syntaxFacts.IsNameOfMemberAccessExpression(identifier))
+                if (!syntaxFacts.IsNameOfSimpleMemberAccessExpression(identifier) &&
+                    !syntaxFacts.IsNameOfMemberBindingExpression(identifier))
                 {
                     continue;
                 }

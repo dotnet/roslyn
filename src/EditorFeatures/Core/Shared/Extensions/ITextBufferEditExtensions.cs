@@ -3,17 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class ITextBufferEditExtensions
     {
-        private static Exception s_lastException = null;
+#pragma warning disable IDE0052 // Remove unread private members - Used for debugging.
+        private static Exception? s_lastException = null;
+#pragma warning restore IDE0052 // Remove unread private members
 
         /// <summary>
         /// Logs exceptions thrown during <see cref="ITextBufferEdit.Apply"/> as we look for issues.
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             {
                 return edit.Apply();
             }
-            catch (Exception e) when (ErrorReporting.FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (ErrorReporting.FatalError.ReportAndCatch(e))
             {
                 s_lastException = e;
 

@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -353,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(syntax, local.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
                 // local.GetValueOrDefault()
-                disposedExpression = BoundCall.Synthesized(syntax, local, getValueOrDefault);
+                disposedExpression = BoundCall.Synthesized(syntax, local, getValueOrDefault, binder: null);
             }
             else
             {
@@ -448,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                disposeCall = MakeCallWithNoExplicitArgument(syntax, disposedExpression, methodOpt);
+                disposeCall = MakeCallWithNoExplicitArgument(_compilation.GetBinder((CSharpSyntaxNode)syntax), syntax, disposedExpression, methodOpt);
 
                 if (awaitOpt is object)
                 {
@@ -466,26 +465,40 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Synthesize a call `expression.Method()`, but with some extra smarts to handle extension methods, and to fill-in optional and params parameters.
         /// </summary>
-        private BoundExpression MakeCallWithNoExplicitArgument(SyntaxNode syntax, BoundExpression expression, MethodSymbol method)
+        private BoundExpression MakeCallWithNoExplicitArgument(Binder binder, SyntaxNode syntax, BoundExpression expression, MethodSymbol method)
         {
             var receiver = method.IsExtensionMethod ? null : expression;
 
-            var args = method.IsExtensionMethod
-                ? ImmutableArray.Create(expression)
-                : ImmutableArray<BoundExpression>.Empty;
+            var argsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+            if (method.IsExtensionMethod)
+            {
+                argsBuilder.Add(expression);
+            }
 
-            var refKinds = method.IsExtensionMethod && !method.ParameterRefKinds.IsDefaultOrEmpty
-                ? ImmutableArray.Create(method.ParameterRefKinds[0])
-                : default;
+            Debug.Assert(!method.IsExtensionMethod || method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds[0] != RefKind.Ref);
+
+            var expanded = method.HasParamsParameter();
+
+            var argsToParams = default(ImmutableArray<int>);
+            binder.BindDefaultArguments(
+                syntax,
+                method.Parameters,
+                argsBuilder,
+                argumentRefKindsBuilder: null,
+                ref argsToParams,
+                out var defaultArguments,
+                expanded,
+                enableCallerInfo: false,
+                _diagnostics);
 
             BoundExpression disposeCall = MakeCall(syntax: syntax,
                 rewrittenReceiver: receiver,
                 method: method,
-                rewrittenArguments: args,
-                argumentRefKindsOpt: refKinds,
-                expanded: method.HasParamsParameter(),
+                rewrittenArguments: argsBuilder.ToImmutableAndFree(),
+                argumentRefKindsOpt: default,
+                expanded,
                 invokedAsExtensionMethod: method.IsExtensionMethod,
-                argsToParamsOpt: default,
+                argsToParamsOpt: argsToParams,
                 resultKind: LookupResultKind.Viable,
                 type: method.ReturnType);
 

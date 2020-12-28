@@ -36,7 +36,7 @@ Options:
   @&lt;file&gt;                        Read response file for more options
   --                             Indicates that the remaining arguments should not be treated as options.
 </source>
-        <target state="needs-review-translation">Sintassi: csi [opzione] ... [file-script.csx] [argomento-script] ...
+        <target state="translated">Sintassi: csi [opzione] ... [file-script.csx] [argomento-script] ...
 
 Esegue il file-script.csx se specificato; in caso contrario, avvia un REPL (Read Eval Print Loop) interattivo.
 
@@ -49,6 +49,13 @@ Opzioni:
   /lib:&lt;elenco percorsi&gt;               Elenco di directory in cui cercare le librerie specificate dalla direttiva #r. 
                                  Forme alternative: /libPath /libPaths
   /u:&lt;spazio dei nomi&gt;                 Definisce l'istruzione using per lo spazio dei nomi globale. Forme alternative: /using, /usings, /import, /imports
+  /langversion:?                 Visualizza i valori consentiti per la versione del linguaggio ed esce
+  /langversion:&lt;stringa&gt;          Specifica la versione del linguaggio come
+                                 `latest` (ultima versione, include le versioni secondarie),
+                                 `default` (uguale a `latest`),
+                                 `latestmajor` (ultima versione, escluse le versioni secondarie),
+                                 `preview` (ultima versione, incluse le funzionalità dell'anteprima non supportata),
+                                 o versioni specifiche, come `6` o `7.1`
   @&lt;file&gt;                        Legge il file di risposta per altre opzioni
   --                             Indica che gli argomenti rimanenti non devono essere considerati come opzioni.
 </target>

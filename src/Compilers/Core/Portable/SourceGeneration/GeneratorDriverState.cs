@@ -8,8 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
-
-#nullable enable
 namespace Microsoft.CodeAnalysis
 {
     internal readonly struct GeneratorDriverState

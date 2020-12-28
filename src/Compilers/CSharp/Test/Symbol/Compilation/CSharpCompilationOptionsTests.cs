@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -189,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var defaultWarnings = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
             Assert.Equal(ReportDiagnostic.Default, defaultWarnings.GeneralDiagnosticOption);
-            Assert.Equal(4, defaultWarnings.WarningLevel);
+            Assert.Equal(CodeAnalysis.Diagnostic.DefaultWarningLevel, defaultWarnings.WarningLevel);
 
             Assert.Equal(ReportDiagnostic.Error, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithGeneralDiagnosticOption(ReportDiagnostic.Error).GeneralDiagnosticOption);
             Assert.Equal(ReportDiagnostic.Default, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithGeneralDiagnosticOption(ReportDiagnostic.Default).GeneralDiagnosticOption);
@@ -239,9 +241,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // error CS7088: Invalid 'WarningLevel' value: '-1'.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("WarningLevel", "-1"));
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithWarningLevel(5).VerifyErrors(
-                // error CS7088: Invalid 'WarningLevel' value: '5'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("WarningLevel", "5"));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithWarningLevel(5).VerifyErrors();
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithWarningLevel(int.MaxValue).VerifyErrors();
         }
 
         [Fact]
@@ -338,9 +339,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // error CS7088: Invalid 'WarningLevel' value: '-1'.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("WarningLevel", "-1"));
 
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication, warningLevel: 5).VerifyErrors(
-                // error CS7088: Invalid 'WarningLevel' value: '5'.
-                Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("WarningLevel", "5"));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication, warningLevel: 5).VerifyErrors();
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication, warningLevel: int.MaxValue).VerifyErrors();
 
             new CSharpCompilationOptions(OutputKind.ConsoleApplication, platform: Platform.AnyCpu32BitPreferred).VerifyErrors();
 
@@ -403,6 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             bool debugPlusMode = false;
             XmlReferenceResolver xmlReferenceResolver = new XmlFileResolver(null);
             SourceReferenceResolver sourceReferenceResolver = new SourceFileResolver(ImmutableArray<string>.Empty, null);
+            SyntaxTreeOptionsProvider syntaxTreeOptionsProvider = null;
             MetadataReferenceResolver metadataReferenceResolver = new MetadataReferenceResolverWithEquality();
             AssemblyIdentityComparer assemblyIdentityComparer = AssemblyIdentityComparer.Default;           // Currently uses reference equality
             StrongNameProvider strongNameProvider = new DesktopStrongNameProvider();
@@ -413,11 +414,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var publicSign = false;
             NullableContextOptions nullableContextOptions = NullableContextOptions.Disable;
 
-            return new CSharpCompilationOptions(OutputKind.ConsoleApplication, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings,
-                optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
-                platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
-                concurrentBuild, deterministic, currentLocalTime, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
-                assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags, nullableContextOptions);
+            return new CSharpCompilationOptions(OutputKind.ConsoleApplication,
+                reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings,
+                optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile,
+                cryptoPublicKey, delaySign, platform, generalDiagnosticOption, warningLevel,
+                specificDiagnosticOptions, concurrentBuild, deterministic, currentLocalTime,
+                debugPlusMode, xmlReferenceResolver, sourceReferenceResolver,
+                syntaxTreeOptionsProvider, metadataReferenceResolver, assemblyIdentityComparer,
+                strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions,
+                publicSign, topLevelBinderFlags, nullableContextOptions);
         }
 
         private sealed class MetadataReferenceResolverWithEquality : MetadataReferenceResolver

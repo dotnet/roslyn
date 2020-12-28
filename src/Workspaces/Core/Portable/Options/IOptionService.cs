@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -26,26 +24,22 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Gets the current value of the specific option.
         /// </summary>
-        [return: MaybeNull]
-        T GetOption<T>(Option<T> option);
+        T? GetOption<T>(Option<T> option);
 
         /// <summary>
         /// Gets the current value of the specific option.
         /// </summary>
-        [return: MaybeNull]
-        T GetOption<T>(Option2<T> option);
+        T? GetOption<T>(Option2<T> option);
 
         /// <summary>
         /// Gets the current value of the specific option.
         /// </summary>
-        [return: MaybeNull]
-        T GetOption<T>(PerLanguageOption<T> option, string? languageName);
+        T? GetOption<T>(PerLanguageOption<T> option, string? languageName);
 
         /// <summary>
         /// Gets the current value of the specific option.
         /// </summary>
-        [return: MaybeNull]
-        T GetOption<T>(PerLanguageOption2<T> option, string? languageName);
+        T? GetOption<T>(PerLanguageOption2<T> option, string? languageName);
 
         /// <summary>
         /// Gets the current value of the specific option.

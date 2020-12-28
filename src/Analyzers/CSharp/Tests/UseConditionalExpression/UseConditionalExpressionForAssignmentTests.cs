@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -14,11 +16,17 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpression
 {
     public partial class UseConditionalExpressionForAssignmentTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public UseConditionalExpressionForAssignmentTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseConditionalExpressionForAssignmentDiagnosticAnalyzer(),
                 new CSharpUseConditionalExpressionForAssignmentCodeFixProvider());
@@ -891,7 +899,7 @@ class C
 {
     void M()
     {
-        object o = true ? throw new System.Exception() : ""b"";
+        var o = true ? throw new System.Exception() : (object)""b"";
     }
 }", new TestParameters(options: PreferImplicitTypeAlways));
         }
@@ -921,7 +929,7 @@ class C
 {
     void M()
     {
-        object o = true ? ""a"" : throw new System.Exception();
+        var o = true ? (object)""a"" : throw new System.Exception();
     }
 }", new TestParameters(options: PreferImplicitTypeAlways));
         }
@@ -982,7 +990,7 @@ class C
 {
     void M()
     {
-        string s = true ? throw new System.Exception() : (string)null;
+        var s = true ? throw new System.Exception() : (string)null;
     }
 }", new TestParameters(options: PreferImplicitTypeAlways));
         }
@@ -1013,7 +1021,7 @@ class C
 {
     void M()
     {
-        string s = true ? ""a"" : throw new System.Exception();
+        var s = true ? ""a"" : throw new System.Exception();
     }
 }", new TestParameters(options: PreferImplicitTypeAlways));
         }

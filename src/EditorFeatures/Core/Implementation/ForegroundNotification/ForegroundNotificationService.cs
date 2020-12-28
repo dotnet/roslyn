@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -47,13 +49,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             }
         }
 
-        public void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
+        public void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken)
             => RegisterNotification(action, DefaultTimeSliceInMS, asyncToken, cancellationToken);
 
-        public void RegisterNotification(Func<bool> action, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
+        public void RegisterNotification(Func<bool> action, IAsyncToken asyncToken, CancellationToken cancellationToken)
             => RegisterNotification(action, DefaultTimeSliceInMS, asyncToken, cancellationToken);
 
-        public void RegisterNotification(Action action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
+        public void RegisterNotification(Action action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken)
         {
             Debug.Assert(delay >= 0);
 
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             _workQueue.Enqueue(new PendingWork(current + delay, action, asyncToken, cancellationToken));
         }
 
-        public void RegisterNotification(Func<bool> action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
+        public void RegisterNotification(Func<bool> action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken)
         {
             Debug.Assert(delay >= 0);
 
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                     // run them in UI thread
                     await InvokeBelowInputPriorityAsync(NotifyOnForeground).ConfigureAwait(continueOnCapturedContext: false);
                 }
-                catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                 {
                     // This is an error condition but we must continue to drain the work queue.  If we
                     // do not then IAsyncToken values will remain uncomplete and the unit test code
@@ -163,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                         {
                             // eat up cancellation
                         }
-                        catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+                        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                         {
                             // The PendingWork callbacks should never throw.  In the case they do we
                             // must ensure the IAsyncToken implementation is completed.  If it is not
@@ -250,18 +252,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             }
 
             public PendingWork UpdateToCurrentTime()
-                => new PendingWork(Environment.TickCount, DoWorkAction, DoWorkFunc, AsyncToken, CancellationToken);
+                => new(Environment.TickCount, DoWorkAction, DoWorkFunc, AsyncToken, CancellationToken);
         }
 
         private class PriorityQueue
         {
             // use pool to share linked list nodes rather than re-create them every time
             private static readonly ObjectPool<LinkedListNode<PendingWork>> s_pool =
-                new ObjectPool<LinkedListNode<PendingWork>>(() => new LinkedListNode<PendingWork>(default), 100);
+                new(() => new LinkedListNode<PendingWork>(default), 100);
 
-            private readonly object _gate = new object();
-            private readonly LinkedList<PendingWork> _list = new LinkedList<PendingWork>();
-            private readonly SemaphoreSlim _hasItemsGate = new SemaphoreSlim(initialCount: 0);
+            private readonly object _gate = new();
+            private readonly LinkedList<PendingWork> _list = new();
+            private readonly SemaphoreSlim _hasItemsGate = new(initialCount: 0);
 
             public Task WaitForItemsAsync()
             {

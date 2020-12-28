@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
@@ -30,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         {
         }
 
-        protected sealed internal override bool IsEnabled => true;
+        protected internal sealed override bool IsEnabled => true;
 
-        protected sealed internal override ITagSpan<TTag>? CreateTagSpan(
+        protected internal sealed override ITagSpan<TTag>? CreateTagSpan(
             Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
         {
             var errorTag = CreateTag(workspace, data);
@@ -52,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             return new TagSpan<TTag>(adjustedSpan, errorTag);
         }
 
-        protected object CreateToolTipContent(Workspace workspace, DiagnosticData diagnostic)
+        protected static object CreateToolTipContent(Workspace workspace, DiagnosticData diagnostic)
         {
             Action? navigationAction = null;
             string? tooltip = null;
@@ -80,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected virtual SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength)
             => AdjustSnapshotSpan(span, minimumLength, int.MaxValue);
 
-        protected SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength, int maximumLength)
+        protected static SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength, int maximumLength)
         {
             var snapshot = span.Snapshot;
 

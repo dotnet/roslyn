@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -30,32 +32,33 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         #region "AbstractFixAllProvider methods"
 
-        public override async Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
+        public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         {
             if (fixAllContext.Document != null)
             {
                 var documentsAndDiagnosticsToFixMap = await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false);
-                return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
+                return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
             }
             else
             {
                 var projectsAndDiagnosticsToFixMap = await fixAllContext.GetProjectDiagnosticsToFixAsync().ConfigureAwait(false);
-                return await GetFixAsync(projectsAndDiagnosticsToFixMap, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
+                return await GetFixAsync(projectsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
             }
         }
 
         #endregion
 
-        private async Task<CodeAction> GetFixAsync(
+        private async Task<CodeAction?> GetFixAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
-            FixAllState fixAllState, CancellationToken cancellationToken)
+            FixAllContext fixAllContext)
         {
+            var cancellationToken = fixAllContext.CancellationToken;
             if (documentsAndDiagnosticsToFixMap?.Any() == true)
             {
+                var fixAllState = fixAllContext.State;
                 FixAllLogger.LogDiagnosticsStats(fixAllState.CorrelationId, documentsAndDiagnosticsToFixMap);
 
-                var diagnosticsAndCodeActions = await GetDiagnosticsAndCodeActionsAsync(
-                    documentsAndDiagnosticsToFixMap, fixAllState, cancellationToken).ConfigureAwait(false);
+                var diagnosticsAndCodeActions = await GetDiagnosticsAndCodeActionsAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
 
                 if (diagnosticsAndCodeActions.Length > 0)
                 {
@@ -74,9 +77,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private async Task<ImmutableArray<(Diagnostic diagnostic, CodeAction action)>> GetDiagnosticsAndCodeActionsAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
-            FixAllState fixAllState, CancellationToken cancellationToken)
+            FixAllContext fixAllContext)
         {
+            var cancellationToken = fixAllContext.CancellationToken;
+            var fixAllState = fixAllContext.State;
             var fixesBag = new ConcurrentBag<(Diagnostic diagnostic, CodeAction action)>();
+
             using (Logger.LogBlock(
                 FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Fixes,
                 FixAllLogger.CreateCorrelationLogMessage(fixAllState.CorrelationId),
@@ -84,24 +90,49 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var tasks = new List<Task>();
+                var progressTracker = fixAllContext.GetProgressTracker();
+                progressTracker.Description = WorkspaceExtensionsResources.Applying_fix_all;
 
-                foreach (var kvp in documentsAndDiagnosticsToFixMap)
+                using var _1 = ArrayBuilder<Task>.GetInstance(out var tasks);
+                using var _2 = ArrayBuilder<Document>.GetInstance(out var documentsToFix);
+
+                // Determine the set of documents to actually fix.  We can also use this to update the progress bar with
+                // the amount of remaining work to perform.  We'll update the progress bar as we compute each fix in
+                // AddDocumentFixesAsync.
+                foreach (var (document, diagnosticsToFix) in documentsAndDiagnosticsToFixMap)
                 {
-                    var document = kvp.Key;
-                    var diagnosticsToFix = kvp.Value;
-                    Debug.Assert(!diagnosticsToFix.IsDefaultOrEmpty);
                     if (!diagnosticsToFix.IsDefaultOrEmpty)
-                    {
-                        tasks.Add(AddDocumentFixesAsync(
-                            document, diagnosticsToFix, fixesBag, fixAllState, cancellationToken));
-                    }
+                        documentsToFix.Add(document);
+                }
+
+                progressTracker.AddItems(documentsToFix.Count);
+
+                foreach (var document in documentsToFix)
+                {
+                    var diagnosticsToFix = documentsAndDiagnosticsToFixMap[document];
+                    tasks.Add(AddDocumentFixesAsync(
+                        document, diagnosticsToFix, fixesBag, fixAllState, progressTracker, cancellationToken));
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
             return fixesBag.ToImmutableArray();
+        }
+
+        private async Task AddDocumentFixesAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
+            FixAllState fixAllState, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await this.AddDocumentFixesAsync(document, diagnostics, fixes, fixAllState, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                progressTracker.ItemCompleted();
+            }
         }
 
         protected virtual async Task AddDocumentFixesAsync(
@@ -131,10 +162,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             await Task.WhenAll(fixerTasks).ConfigureAwait(false);
         }
 
-        private async Task<CodeAction> GetFixAsync(
+        private async Task<CodeAction?> GetFixAsync(
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectsAndDiagnosticsToFixMap,
-            FixAllState fixAllState, CancellationToken cancellationToken)
+            FixAllContext fixAllContext)
         {
+            var cancellationToken = fixAllContext.CancellationToken;
+            var fixAllState = fixAllContext.State;
+
             if (projectsAndDiagnosticsToFixMap != null && projectsAndDiagnosticsToFixMap.Any())
             {
                 FixAllLogger.LogDiagnosticsStats(fixAllState.CorrelationId, projectsAndDiagnosticsToFixMap);
@@ -198,19 +232,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
-            Debug.Assert(!diagnostics.IsDefault);
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var registerCodeFix = GetRegisterCodeFixAction(fixAllState, fixes);
-            var context = new CodeFixContext(
-                project, diagnostics, registerCodeFix, cancellationToken);
-
-            // TODO: Wrap call to ComputeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
-            // a buggy extension that throws can't bring down the host?
-            return fixAllState.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
+            return Task.CompletedTask;
         }
 
-        public virtual async Task<CodeAction> TryGetMergedFixAsync(
+        public virtual async Task<CodeAction?> TryGetMergedFixAsync(
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> batchOfFixes,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -337,8 +362,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var totalChangesIntervalTree = SimpleIntervalTree.Create(new TextChangeIntervalIntrospector(), Array.Empty<TextChange>());
 
-            var oldDocument = oldSolution.GetDocument(orderedDocuments[0].document.Id);
-            var differenceService = oldSolution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
+            var oldDocument = oldSolution.GetRequiredDocument(orderedDocuments[0].document.Id);
+            var differenceService = oldSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
 
             foreach (var (_, currentDocument) in orderedDocuments)
             {
@@ -381,6 +406,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var changedSolution = await codeAction.GetChangedSolutionInternalAsync(
                 cancellationToken: cancellationToken).ConfigureAwait(false);
+            if (changedSolution is null)
+            {
+                // No changed documents
+                return;
+            }
 
             var solutionChanges = new SolutionChanges(changedSolution, oldSolution);
 
@@ -393,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             foreach (var documentId in documentIdsWithChanges)
             {
-                var changedDocument = changedSolution.GetDocument(documentId);
+                var changedDocument = changedSolution.GetRequiredDocument(documentId);
 
                 documentIdToChangedDocuments.GetOrAdd(documentId, s_getValue).Add(
                     (codeAction, changedDocument));
@@ -429,20 +459,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             SimpleIntervalTree<TextChange, TextChangeIntervalIntrospector> cumulativeChanges,
             ImmutableArray<TextChange> currentChanges)
         {
-            using var _1 = ArrayBuilder<TextChange>.GetInstance(out var overlappingSpans);
-            using var _2 = ArrayBuilder<TextChange>.GetInstance(out var intersectingSpans);
+            using var overlappingSpans = TemporaryArray<TextChange>.Empty;
+            using var intersectingSpans = TemporaryArray<TextChange>.Empty;
 
             return AllChangesCanBeApplied(
                 cumulativeChanges, currentChanges,
-                overlappingSpans: overlappingSpans,
-                intersectingSpans: intersectingSpans);
+                overlappingSpans: ref overlappingSpans.AsRef(),
+                intersectingSpans: ref intersectingSpans.AsRef());
         }
 
         private static bool AllChangesCanBeApplied(
             SimpleIntervalTree<TextChange, TextChangeIntervalIntrospector> cumulativeChanges,
             ImmutableArray<TextChange> currentChanges,
-            ArrayBuilder<TextChange> overlappingSpans,
-            ArrayBuilder<TextChange> intersectingSpans)
+            ref TemporaryArray<TextChange> overlappingSpans,
+            ref TemporaryArray<TextChange> intersectingSpans)
         {
             foreach (var change in currentChanges)
             {
@@ -450,14 +480,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 intersectingSpans.Clear();
 
                 cumulativeChanges.FillWithIntervalsThatOverlapWith(
-                    change.Span.Start, change.Span.Length, overlappingSpans);
+                    change.Span.Start, change.Span.Length, ref overlappingSpans);
 
                 cumulativeChanges.FillWithIntervalsThatIntersectWith(
-                   change.Span.Start, change.Span.Length, intersectingSpans);
+                   change.Span.Start, change.Span.Length, ref intersectingSpans);
 
                 var value = ChangeCanBeApplied(change,
-                    overlappingSpans: overlappingSpans,
-                    intersectingSpans: intersectingSpans);
+                    overlappingSpans: in overlappingSpans,
+                    intersectingSpans: in intersectingSpans);
                 if (!value)
                 {
                     return false;
@@ -470,8 +500,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private static bool ChangeCanBeApplied(
             TextChange change,
-            ArrayBuilder<TextChange> overlappingSpans,
-            ArrayBuilder<TextChange> intersectingSpans)
+            in TemporaryArray<TextChange> overlappingSpans,
+            in TemporaryArray<TextChange> intersectingSpans)
         {
             // We distinguish two types of changes that can happen.  'Pure Insertions' 
             // and 'Overwrites'.  Pure-Insertions are those that are just inserting 
@@ -488,8 +518,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // we conservatively disallow cases like this.
 
             return IsPureInsertion(change)
-                ? PureInsertionChangeCanBeApplied(change, overlappingSpans, intersectingSpans)
-                : OverwriteChangeCanBeApplied(change, overlappingSpans, intersectingSpans);
+                ? PureInsertionChangeCanBeApplied(change, in overlappingSpans, in intersectingSpans)
+                : OverwriteChangeCanBeApplied(change, in overlappingSpans, in intersectingSpans);
         }
 
         private static bool IsPureInsertion(TextChange change)
@@ -497,8 +527,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private static bool PureInsertionChangeCanBeApplied(
             TextChange change,
-            ArrayBuilder<TextChange> overlappingSpans,
-            ArrayBuilder<TextChange> intersectingSpans)
+            in TemporaryArray<TextChange> overlappingSpans,
+            in TemporaryArray<TextChange> intersectingSpans)
         {
             // Pure insertions can't ever overlap anything.  (They're just an insertion at a 
             // single position, and overlaps can't occur with single-positions).
@@ -544,18 +574,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private static bool OverwriteChangeCanBeApplied(
             TextChange change,
-            ArrayBuilder<TextChange> overlappingSpans,
-            ArrayBuilder<TextChange> intersectingSpans)
+            in TemporaryArray<TextChange> overlappingSpans,
+            in TemporaryArray<TextChange> intersectingSpans)
         {
             Debug.Assert(!IsPureInsertion(change));
 
-            return !OverwriteChangeConflictsWithOverlappingSpans(change, overlappingSpans) &&
-                   !OverwriteChangeConflictsWithIntersectingSpans(change, intersectingSpans);
+            return !OverwriteChangeConflictsWithOverlappingSpans(change, in overlappingSpans) &&
+                   !OverwriteChangeConflictsWithIntersectingSpans(change, in intersectingSpans);
         }
 
         private static bool OverwriteChangeConflictsWithOverlappingSpans(
             TextChange change,
-            ArrayBuilder<TextChange> overlappingSpans)
+            in TemporaryArray<TextChange> overlappingSpans)
         {
             Debug.Assert(!IsPureInsertion(change));
 
@@ -575,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private static bool OverwriteChangeConflictsWithIntersectingSpans(
             TextChange change,
-            ArrayBuilder<TextChange> intersectingSpans)
+            in TemporaryArray<TextChange> intersectingSpans)
         {
             Debug.Assert(!IsPureInsertion(change));
 
@@ -587,17 +617,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // However, pure-insertion changes are extremely ambiguous. It is not possible to tell which
             // change should be applied first.  So if we get any pure-insertions we have to bail
             // on applying this span.
-            foreach (var otherSpan in intersectingSpans)
-            {
-                if (IsPureInsertion(otherSpan))
-                {
-                    // Intersecting with a pure-insertion is too ambiguous, so we just consider
-                    // this a conflict.
-                    return true;
-                }
-            }
-
-            return false;
+            return intersectingSpans.Any(static otherSpan => IsPureInsertion(otherSpan));
         }
     }
 }

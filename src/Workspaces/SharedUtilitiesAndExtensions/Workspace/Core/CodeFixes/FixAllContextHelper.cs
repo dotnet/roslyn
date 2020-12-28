@@ -7,17 +7,28 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
+    internal static class FixAllContextExtensions
+    {
+        public static IProgressTracker GetProgressTracker(this FixAllContext context)
+        {
+#if CODE_STYLE
+            return NoOpProgressTracker.Instance;
+#else
+            return context.ProgressTracker;
+#endif
+        }
+    }
+
     internal static class FixAllContextHelper
     {
-        public static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
-            FixAllContext fixAllContext,
-            IProgressTracker progressTrackerOpt)
+        public static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllContext fixAllContext)
         {
             var cancellationToken = fixAllContext.CancellationToken;
 
@@ -26,6 +37,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var document = fixAllContext.Document;
             var project = fixAllContext.Project;
+
+            var progressTracker = fixAllContext.GetProgressTracker();
 
             switch (fixAllContext.Scope)
             {
@@ -48,24 +61,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         .Where(p => p.Language == project.Language)
                         .ToImmutableArray();
 
-                    progressTrackerOpt?.AddItems(projectsToFix.Length);
+                    // Update the progress dialog with the count of projects to actually fix. We'll update the progress
+                    // bar as we get all the documents in AddDocumentDiagnosticsAsync.
+
+                    progressTracker.AddItems(projectsToFix.Length);
 
                     var diagnostics = new ConcurrentDictionary<ProjectId, ImmutableArray<Diagnostic>>();
-                    var tasks = new Task[projectsToFix.Length];
-                    for (var i = 0; i < projectsToFix.Length; i++)
+                    using (var _ = ArrayBuilder<Task>.GetInstance(projectsToFix.Length, out var tasks))
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        var projectToFix = projectsToFix[i];
-                        tasks[i] = Task.Run(async () =>
-                        {
-                            var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false);
-                            diagnostics.TryAdd(projectToFix.Id, projectDiagnostics);
-                            progressTrackerOpt?.ItemCompleted();
-                        }, cancellationToken);
-                    }
+                        foreach (var projectToFix in projectsToFix)
+                            tasks.Add(Task.Run(async () => await AddDocumentDiagnosticsAsync(diagnostics, projectToFix).ConfigureAwait(false), cancellationToken));
 
-                    await Task.WhenAll(tasks).ConfigureAwait(false);
-                    allDiagnostics = allDiagnostics.AddRange(diagnostics.SelectMany(i => i.Value));
+                        await Task.WhenAll(tasks).ConfigureAwait(false);
+                        allDiagnostics = allDiagnostics.AddRange(diagnostics.SelectMany(i => i.Value));
+                    }
                     break;
             }
 
@@ -76,6 +85,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             return await GetDocumentDiagnosticsToFixAsync(
                 allDiagnostics, projectsToFix, fixAllContext.CancellationToken).ConfigureAwait(false);
+
+            async Task AddDocumentDiagnosticsAsync(ConcurrentDictionary<ProjectId, ImmutableArray<Diagnostic>> diagnostics, Project projectToFix)
+            {
+                try
+                {
+                    var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false);
+                    diagnostics.TryAdd(projectToFix.Id, projectDiagnostics);
+                }
+                finally
+                {
+                    progressTracker.ItemCompleted();
+                }
+            }
         }
 
         private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
@@ -86,14 +108,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var treeToDocumentMap = await GetTreeToDocumentMapAsync(projects, cancellationToken).ConfigureAwait(false);
 
             var builder = ImmutableDictionary.CreateBuilder<Document, ImmutableArray<Diagnostic>>();
-            foreach (var documentAndDiagnostics in diagnostics.GroupBy(d => GetReportedDocument(d, treeToDocumentMap)))
+            foreach (var (document, diagnosticsForDocument) in diagnostics.GroupBy(d => GetReportedDocument(d, treeToDocumentMap)))
             {
+                if (document is null)
+                    continue;
+
                 cancellationToken.ThrowIfCancellationRequested();
-                var document = documentAndDiagnostics.Key;
                 if (!await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    var diagnosticsForDocument = documentAndDiagnostics.ToImmutableArray();
-                    builder.Add(document, diagnosticsForDocument);
+                    builder.Add(document, diagnosticsForDocument.ToImmutableArray());
                 }
             }
 
@@ -109,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 foreach (var document in project.Documents)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                     builder.Add(tree, document);
                 }
             }
@@ -117,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return builder.ToImmutable();
         }
 
-        private static Document GetReportedDocument(Diagnostic diagnostic, ImmutableDictionary<SyntaxTree, Document> treeToDocumentsMap)
+        private static Document? GetReportedDocument(Diagnostic diagnostic, ImmutableDictionary<SyntaxTree, Document> treeToDocumentsMap)
         {
             var tree = diagnostic.Location.SourceTree;
             if (tree != null)
@@ -137,18 +160,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public static string GetDefaultFixAllTitle(
             FixAllScope fixAllScope,
             ImmutableHashSet<string> diagnosticIds,
-            Document triggerDocument,
+            Document? triggerDocument,
             Project triggerProject)
         {
-            string diagnosticId;
-            if (diagnosticIds.Count == 1)
-            {
-                diagnosticId = diagnosticIds.Single();
-            }
-            else
-            {
-                diagnosticId = string.Join(",", diagnosticIds.ToArray());
-            }
+            var diagnosticId = string.Join(",", diagnosticIds);
 
             switch (fixAllScope)
             {
@@ -156,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     return string.Format(WorkspaceExtensionsResources.Fix_all_0, diagnosticId);
 
                 case FixAllScope.Document:
-                    return string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, diagnosticId, triggerDocument.Name);
+                    return string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, diagnosticId, triggerDocument!.Name);
 
                 case FixAllScope.Project:
                     return string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, diagnosticId, triggerProject.Name);

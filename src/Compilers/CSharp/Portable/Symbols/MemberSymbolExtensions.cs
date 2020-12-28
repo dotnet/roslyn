@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -366,6 +368,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Returns true if the method is a constructor and has a this() constructor initializer.
+        /// </summary>
+        internal static bool HasThisConstructorInitializer(this MethodSymbol method)
+        {
+            if ((object)method != null && method.MethodKind == MethodKind.Constructor)
+            {
+                SourceMemberMethodSymbol sourceMethod = method as SourceMemberMethodSymbol;
+                if ((object)sourceMethod != null)
+                {
+                    ConstructorDeclarationSyntax constructorSyntax = sourceMethod.SyntaxNode as ConstructorDeclarationSyntax;
+                    if (constructorSyntax != null)
+                    {
+                        ConstructorInitializerSyntax initializerSyntax = constructorSyntax.Initializer;
+                        if (initializerSyntax != null)
+                        {
+                            return initializerSyntax.Kind() == SyntaxKind.ThisConstructorInitializer;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        internal static bool IncludeFieldInitializersInBody(this MethodSymbol methodSymbol)
+        {
+            return methodSymbol.IsConstructor()
+                && !methodSymbol.HasThisConstructorInitializer()
+                && !(methodSymbol is SynthesizedRecordCopyCtor) // A record copy constructor is special, regular initializers are not supposed to be executed by it.
+                && !Binder.IsUserDefinedRecordCopyConstructor(methodSymbol);
+        }
+
+        /// <summary>
         /// NOTE: every struct has a public parameterless constructor either used-defined or default one
         /// </summary>
         internal static bool IsParameterlessConstructor(this MethodSymbol method)
@@ -544,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case SymbolKind.Method:
                     var method = (MethodSymbol)member;
-                    return method.GetConstructedLeastOverriddenMethod(accessingTypeOpt);
+                    return method.GetConstructedLeastOverriddenMethod(accessingTypeOpt, requireSameReturnType: false);
 
                 case SymbolKind.Property:
                     var property = (PropertySymbol)member;

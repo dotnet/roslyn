@@ -2,14 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
-using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             {
                 { new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Smart },
                 { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnTyping, LanguageNames.CSharp),  false },
-                { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp),  false },
+                { new OptionKey2(BraceCompletionOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp),  false },
             };
         }
 
@@ -1201,7 +1203,7 @@ class C : Attribute
 
             var optionSet = new Dictionary<OptionKey2, object>
             {
-                    { new OptionKey2(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false }
+                    { new OptionKey2(BraceCompletionOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false }
             };
 
             AssertFormatAfterTypeChar(code, expected, optionSet);
@@ -1381,11 +1383,6 @@ class C
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey2, object>
-            {
-                { new OptionKey2(BraceCompletionOptions.Enable, LanguageNames.CSharp), false }
-            };
-
             AssertFormatAfterTypeChar(code, expected);
         }
 
@@ -1410,11 +1407,6 @@ class C
     {
 }
 ";
-
-            var optionSet = new Dictionary<OptionKey2, object>
-            {
-                { new OptionKey2(BraceCompletionOptions.Enable, LanguageNames.CSharp), false }
-            };
 
             AssertFormatAfterTypeChar(code, expected);
         }
@@ -2242,7 +2234,35 @@ using System.B;
             AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
         }
 
-        private void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> changedOptionSet = null)
+        [Fact, WorkItem(49492, "https://github.com/dotnet/roslyn/issues/49492")]
+        public void PreserveAnnotationsOnMultiLineTrivia()
+        {
+            var text = @"
+namespace TestApp
+{
+    class Test
+    {
+    /* __marker__ */
+    }
+}
+";
+
+            var position = text.IndexOf("/* __marker__ */");
+            var syntaxTree = CSharpSyntaxTree.ParseText(text);
+            var root = syntaxTree.GetRoot();
+
+            var annotation = new SyntaxAnnotation("marker");
+            var markerTrivia = root.FindTrivia(position, findInsideTrivia: true);
+            var annotatedMarkerTrivia = markerTrivia.WithAdditionalAnnotations(annotation);
+            root = root.ReplaceTrivia(markerTrivia, annotatedMarkerTrivia);
+
+            var formattedRoot = Formatter.Format(root, new AdhocWorkspace());
+            var annotatedTrivia = formattedRoot.GetAnnotatedTrivia("marker");
+
+            Assert.Single(annotatedTrivia);
+        }
+
+        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> changedOptionSet = null)
         {
             using var workspace = TestWorkspace.CreateCSharp(code);
             if (changedOptionSet != null)

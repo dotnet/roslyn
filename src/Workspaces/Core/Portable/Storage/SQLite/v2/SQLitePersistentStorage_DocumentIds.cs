@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
@@ -14,13 +15,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// Kept locally so we don't have to hit the DB for the common case of trying to determine the 
         /// DB id for a document.
         /// </summary>
-        private readonly ConcurrentDictionary<DocumentId, int> _documentIdToIdMap = new ConcurrentDictionary<DocumentId, int>();
+        private readonly ConcurrentDictionary<DocumentId, int> _documentIdToIdMap = new();
 
         /// <summary>
         /// Given a document, and the name of a stream to read/write, gets the integral DB ID to 
         /// use to find the data inside the DocumentData table.
         /// </summary>
-        private bool TryGetDocumentDataId(SqlConnection connection, Document document, string name, out long dataId)
+        private bool TryGetDocumentDataId(SqlConnection connection, DocumentKey documentKey, Document? bulkLoadSnapshot, string name, out long dataId)
         {
             dataId = 0;
 
@@ -28,9 +29,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // This will only be expensive the first time we do this.  But will save
             // us from tons of back-and-forth as any BG analyzer processes all the
             // documents in a solution.
-            BulkPopulateProjectIds(connection, document.Project, fetchStringTable: true);
+            if (bulkLoadSnapshot != null)
+                BulkPopulateProjectIds(connection, bulkLoadSnapshot.Project.Solution.State, bulkLoadSnapshot.Project.State, fetchStringTable: true);
 
-            var documentId = TryGetDocumentId(connection, document);
+            var documentId = TryGetDocumentId(connection, documentKey);
             var nameId = TryGetStringId(connection, name);
             if (documentId == null || nameId == null)
             {
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             return true;
         }
 
-        private int? TryGetDocumentId(SqlConnection connection, Document document)
+        private int? TryGetDocumentId(SqlConnection connection, DocumentKey document)
         {
             // First see if we've cached the ID for this value locally.  If so, just return
             // what we already have.
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             return id;
         }
 
-        private int? TryGetDocumentIdFromDatabase(SqlConnection connection, Document document)
+        private int? TryGetDocumentIdFromDatabase(SqlConnection connection, DocumentKey document)
         {
             var projectId = TryGetProjectId(connection, document.Project);
             if (projectId == null)

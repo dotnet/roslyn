@@ -4,7 +4,6 @@
 
 Imports System.Runtime.CompilerServices
 Imports CompilationCreationTestHelpers
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -24,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                              {
                                 TestResources.SymbolsTests.CustomModifiers.Modifiers,
-                                TestResources.NetFX.v4_0_21006.mscorlib
+                                TestMetadata.ResourcesNet40.mscorlib
                              })
 
             Dim modifiersModule = assemblies(0).Modules(0)

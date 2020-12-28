@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (id != null && prefix != null && id.StartsWith(prefix, StringComparison.Ordinal))
                 {
-                    return id.Substring(prefix.Length);
+                    return id[prefix.Length..];
                 }
 
                 return id;
@@ -230,6 +232,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         results.Add(singleResult);
                     }
+
+                    break;
                 }
 
                 return results.ToImmutableAndFree();
@@ -268,12 +272,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (delimiterOffset >= 0)
                 {
-                    segment = _name.Substring(_index, delimiterOffset - _index);
+                    segment = _name[_index..delimiterOffset];
                     _index = delimiterOffset;
                 }
                 else
                 {
-                    segment = _name.Substring(_index);
+                    segment = _name[_index..];
                     _index = _name.Length;
                 }
 

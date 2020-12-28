@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -58,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         /// Analyzes the containing <c>GetHashCode</c> method to determine which fields and
         /// properties were combined to form a hash code for this type.
         /// </summary>
-        public (bool accessesBase, ImmutableArray<ISymbol> members, ImmutableArray<IOperation> statements) GetHashedMembers(ISymbol owningSymbol, IOperation? operation)
+        public (bool accessesBase, ImmutableArray<ISymbol> members, ImmutableArray<IOperation> statements) GetHashedMembers(ISymbol? owningSymbol, IOperation? operation)
         {
             if (!(operation is IBlockOperation blockOperation))
                 return default;
@@ -101,13 +99,13 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return null;
             }
 
-            if (!(statements[0] is IReturnOperation returnOperation))
+            if (!(statements[0] is IReturnOperation { ReturnedValue: { } returnedValue }))
             {
                 return null;
             }
 
             using var analyzer = new OperationDeconstructor(this, method, hashCodeVariable: null);
-            if (!analyzer.TryAddHashedSymbol(returnOperation.ReturnedValue, seenHash: false))
+            if (!analyzer.TryAddHashedSymbol(returnedValue, seenHash: false))
             {
                 return null;
             }
@@ -136,7 +134,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             // First statement has to be the declaration of the accumulator.
             // Last statement has to be the return of it.
             if (!(statements.First() is IVariableDeclarationGroupOperation varDeclStatement) ||
-                !(statements.Last() is IReturnOperation returnStatement))
+                !(statements.Last() is IReturnOperation { ReturnedValue: { } returnedValue }))
             {
                 return null;
             }
@@ -162,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             }
 
             var hashCodeVariable = declarator.Symbol;
-            if (!(IsLocalReference(returnStatement.ReturnedValue, hashCodeVariable)))
+            if (!(IsLocalReference(returnedValue, hashCodeVariable)))
             {
                 return null;
             }

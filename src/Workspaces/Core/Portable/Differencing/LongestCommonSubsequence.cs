@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,11 +11,11 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Differencing
 {
-    /// <summary>
-    /// Calculates Longest Common Subsequence.
-    /// </summary>
-    internal abstract class LongestCommonSubsequence<TSequence>
+    internal abstract class LongestCommonSubsequence
     {
+        // Define the pool in a non-generic base class to allow sharing among instantiations.
+        private static readonly ObjectPool<VBuffer> s_pool = new(() => new VBuffer());
+
         /// <summary>
         /// Underlying storage for <see cref="VArray"/>s allocated on <see cref="VStack"/>.
         /// </summary>
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// 
         /// We pool a few of these linked buffers on <see cref="VStack"/> to conserve allocations.
         /// </remarks>
-        private sealed class VBuffer
+        protected sealed class VBuffer
         {
             /// <summary>
             /// The max stack depth backed by the fist buffer.
@@ -44,7 +46,12 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             internal const int GrowFactor = 2;
 
-            public VBuffer Previous { get; }
+            /// <summary>
+            /// Do not pool segments that are too large.
+            /// </summary>
+            internal const int MaxPooledBufferSize = 1024 * 1024;
+
+            public VBuffer Previous { get; private set; }
             public VBuffer Next { get; private set; }
 
             public readonly int MinDepth;
@@ -86,6 +93,9 @@ namespace Microsoft.CodeAnalysis.Differencing
                 return new VArray(_array, start, length);
             }
 
+            public bool IsTooLargeToPool
+                => _array.Length > MaxPooledBufferSize;
+
             private static int GetVArrayLength(int depth)
                 => 2 * Math.Max(depth, 1) + 1;
 
@@ -96,18 +106,25 @@ namespace Microsoft.CodeAnalysis.Differencing
             // Sum { d = previousChunkDepth..maxDepth : 2*d+1 } = (maxDepth + 1)^2 - precedingBufferMaxDepth^2
             private static int GetNextBufferLength(int precedingBufferMaxDepth, int maxDepth)
                 => (maxDepth + 1) * (maxDepth + 1) - precedingBufferMaxDepth * precedingBufferMaxDepth;
+
+            public void Unlink()
+            {
+                Previous.Next = null;
+                Previous = null;
+            }
         }
 
-        private struct VStack
+        protected struct VStack
         {
-            private static readonly ObjectPool<VBuffer> s_bufferPool = new ObjectPool<VBuffer>(() => new VBuffer());
+            private readonly ObjectPool<VBuffer> _bufferPool;
 
             private VBuffer _currentBuffer;
             private int _depth;
 
-            public VStack(bool _)
+            public VStack(ObjectPool<VBuffer> bufferPool)
             {
-                _currentBuffer = s_bufferPool.Allocate();
+                _bufferPool = bufferPool;
+                _currentBuffer = bufferPool.Allocate();
                 _depth = 0;
             }
 
@@ -116,6 +133,8 @@ namespace Microsoft.CodeAnalysis.Differencing
                 var depth = _depth++;
                 if (depth > _currentBuffer.MaxDepth)
                 {
+                    // If the buffer is not big enough add another segment to the linked list (the constructor takes care of the linking).
+                    // Note that the segments are not pooled on their own. The whole linked list of buffers is pooled.
                     _currentBuffer = _currentBuffer.Next ?? new VBuffer(_currentBuffer);
                 }
 
@@ -129,19 +148,27 @@ namespace Microsoft.CodeAnalysis.Differencing
                 {
                     if (depth < buffer.MinDepth)
                     {
-                        buffer = buffer.Previous;
+                        var previousBuffer = buffer.Previous;
+
+                        // Trim large buffers from the linked list before we return the whole list back into the pool.
+                        if (buffer.IsTooLargeToPool)
+                        {
+                            buffer.Unlink();
+                        }
+
+                        buffer = previousBuffer;
                     }
 
                     yield return (buffer.GetVArray(depth), depth);
                 }
 
-                s_bufferPool.Free(_currentBuffer);
+                _bufferPool.Free(_currentBuffer);
                 _currentBuffer = null;
             }
         }
 
         // VArray struct enables array indexing in range [-d...d].
-        private readonly struct VArray
+        protected readonly struct VArray
         {
             private readonly int[] _buffer;
             private readonly int _start;
@@ -190,6 +217,15 @@ namespace Microsoft.CodeAnalysis.Differencing
             private int Offset => _length / 2;
         }
 
+        protected static VStack CreateStack()
+            => new(s_pool);
+    }
+
+    /// <summary>
+    /// Calculates Longest Common Subsequence.
+    /// </summary>
+    internal abstract class LongestCommonSubsequence<TSequence> : LongestCommonSubsequence
+    {
         protected abstract bool ItemsEqual(TSequence oldSequence, int oldIndex, TSequence newSequence, int newIndex);
 
         // TODO: Consolidate return types between GetMatchingPairs and GetEdit to avoid duplicated code (https://github.com/dotnet/roslyn/issues/16864)
@@ -380,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             var reachedEnd = false;
             VArray currentV = default;
 
-            var stack = new VStack(default);
+            var stack = CreateStack();
 
             for (var d = 0; d <= oldLength + newLength && !reachedEnd; d++)
             {

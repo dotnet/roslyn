@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -57,6 +55,12 @@ namespace Microsoft.Cci
         ThisCall = SignatureCallingConvention.ThisCall,
 
         /// <summary>
+        /// Extensible calling convention protocol. This represents either the union of calling convention modopts after the paramcount specifier
+        /// in IL, or platform default if none are present
+        /// </summary>
+        Unmanaged = SignatureCallingConvention.Unmanaged,
+
+        /// <summary>
         /// The convention for calling a generic method.
         /// </summary>
         Generic = SignatureAttributes.Generic,
@@ -80,23 +84,26 @@ namespace Microsoft.Cci
             | SignatureCallingConvention.StdCall
             | SignatureCallingConvention.ThisCall
             | SignatureCallingConvention.FastCall
-            | SignatureCallingConvention.VarArgs;
+            | SignatureCallingConvention.VarArgs
+            | SignatureCallingConvention.Unmanaged;
 
         private const SignatureAttributes SignatureAttributesMask =
             SignatureAttributes.Generic
             | SignatureAttributes.Instance
             | SignatureAttributes.ExplicitThis;
 
-        internal static CallingConvention FromSignatureConvention(this SignatureCallingConvention convention, bool throwOnInvalidConvention = false)
+        internal static CallingConvention FromSignatureConvention(this SignatureCallingConvention convention)
         {
-            var callingConvention = (CallingConvention)(convention & SignatureCallingConventionMask);
-            if (throwOnInvalidConvention && callingConvention != (CallingConvention)convention)
+            if (!convention.IsValid())
             {
                 throw new UnsupportedSignatureContent();
             }
 
-            return callingConvention;
+            return (CallingConvention)(convention & SignatureCallingConventionMask);
         }
+
+        internal static bool IsValid(this SignatureCallingConvention convention)
+            => convention <= SignatureCallingConvention.VarArgs || convention == SignatureCallingConvention.Unmanaged;
 
         internal static SignatureCallingConvention ToSignatureConvention(this CallingConvention convention)
             => (SignatureCallingConvention)convention & SignatureCallingConventionMask;
@@ -493,12 +500,6 @@ namespace Microsoft.Cci
             get;
             // ^ requires this.IsGeneric;
         }
-
-        /// <summary>
-        /// Returns true if this symbol was automatically created by the compiler, and does not have
-        /// an explicit corresponding source code declaration. 
-        /// </summary> 
-        bool IsImplicitlyDeclared { get; }
 
         /// <summary>
         /// True if this method has a non empty collection of SecurityAttributes or the System.Security.SuppressUnmanagedCodeSecurityAttribute.

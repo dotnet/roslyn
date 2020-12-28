@@ -25,12 +25,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Public Sub New()
         End Sub
 
-        Protected Overrides Function CanAddImport(node As SyntaxNode, cancellationToken As CancellationToken) As Boolean
-            If node.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing Then
-                Return False
-            End If
-
-            Return node.CanAddImportsStatements(cancellationToken)
+        Protected Overrides Function CanAddImport(node As SyntaxNode, allowInHiddenRegions As Boolean, cancellationToken As CancellationToken) As Boolean
+            cancellationToken.ThrowIfCancellationRequested()
+            Return node.CanAddImportsStatements(allowInHiddenRegions, cancellationToken)
         End Function
 
         Protected Overrides Function CanAddImportForMethod(
@@ -115,6 +112,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Protected Overrides Function CanAddImportForGetAwaiter(diagnosticId As String, syntaxFactsService As ISyntaxFacts, node As SyntaxNode) As Boolean
             Return diagnosticId = AddImportDiagnosticIds.BC36930 AndAlso
                 AncestorOrSelfIsAwaitExpression(syntaxFactsService, node)
+        End Function
+
+        Protected Overrides Function CanAddImportForGetEnumerator(diagnosticId As String, syntaxFactsService As ISyntaxFacts, node As SyntaxNode) As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Function CanAddImportForGetAsyncEnumerator(diagnosticId As String, syntaxFactsService As ISyntaxFacts, node As SyntaxNode) As Boolean
+            Return False
         End Function
 
         Protected Overrides Function CanAddImportForQuery(diagnosticId As String, node As SyntaxNode) As Boolean
@@ -270,17 +275,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 symbol As INamespaceOrTypeSymbol,
                 document As Document,
                 placeSystemNamespaceFirst As Boolean,
+                allowInHiddenRegions As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim importsStatement = GetImportsStatement(symbol)
 
             Return Await AddImportAsync(
-                contextNode, document, placeSystemNamespaceFirst,
+                contextNode, document, placeSystemNamespaceFirst, allowInHiddenRegions,
                 importsStatement, cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Overloads Shared Async Function AddImportAsync(
-                contextNode As SyntaxNode, document As Document, placeSystemNamespaceFirst As Boolean,
+                contextNode As SyntaxNode, document As Document,
+                placeSystemNamespaceFirst As Boolean, allowInHiddenRegions As Boolean,
                 importsStatement As ImportsStatementSyntax, cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
@@ -288,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Dim generator = SyntaxGenerator.GetGenerator(document)
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, generator, placeSystemNamespaceFirst, cancellationToken)
+            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, generator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken)
             newRoot = newRoot.WithAdditionalAnnotations(CaseCorrector.Annotation, Formatter.Annotation)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
 
@@ -298,14 +305,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Protected Overrides Function AddImportAsync(
                 contextNode As SyntaxNode,
                 nameSpaceParts As IReadOnlyList(Of String),
-                Document As Document,
+                document As Document,
                 placeSystemNamespaceFirst As Boolean,
+                allowInHiddenRegions As Boolean,
                 cancellationToken As CancellationToken) As Task(Of Document)
             Dim nameSyntax = CreateNameSyntax(nameSpaceParts, nameSpaceParts.Count - 1)
             Dim importsStatement = GetImportsStatement(nameSyntax)
 
             Return AddImportAsync(
-                contextNode, Document, placeSystemNamespaceFirst,
+                contextNode, document,
+                placeSystemNamespaceFirst, allowInHiddenRegions,
                 importsStatement, cancellationToken)
         End Function
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -53,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 SyntaxKind.ThisConstructorInitializer,
                 SyntaxKind.BaseConstructorInitializer,
                 SyntaxKind.ObjectCreationExpression,
+                SyntaxKind.ImplicitObjectCreationExpression,
                 SyntaxKind.Attribute,
                 SyntaxKind.NameMemberCref));
 
@@ -80,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.ThisConstructorInitializer,
             SyntaxKind.BaseConstructorInitializer,
             SyntaxKind.ObjectCreationExpression,
+            SyntaxKind.ImplicitObjectCreationExpression,
             SyntaxKind.Attribute,
             SyntaxKind.DelegateDeclaration,
             SyntaxKind.NameMemberCref,
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
         }
 
-        public override async Task<(ISymbol symbol, int selectedIndex)> GetInvocationSymbolAsync(
+        public override async Task<(ISymbol? symbol, int selectedIndex)> GetInvocationSymbolAsync(
             Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             {
                 if (signaturePermutation.UpdatedConfiguration.ToListOfParameters().Any())
                 {
-                    var updatedParameters = UpdateDeclaration(SeparatedList<ParameterSyntax>(new[] { lambda.Parameter }), signaturePermutation, CreateNewParameterSyntax);
+                    var updatedParameters = UpdateDeclaration(SeparatedList(new[] { lambda.Parameter }), signaturePermutation, CreateNewParameterSyntax);
                     return ParenthesizedLambdaExpression(
                         lambda.AsyncKeyword,
                         ParameterList(updatedParameters),
@@ -355,10 +355,26 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return parenLambda.WithParameterList(parenLambda.ParameterList.WithParameters(updatedParameters));
             }
 
+            // Handle references in crefs
+            if (updatedNode.IsKind(SyntaxKind.NameMemberCref, out NameMemberCrefSyntax? nameMemberCref))
+            {
+                if (nameMemberCref.Parameters == null ||
+                    !nameMemberCref.Parameters.Parameters.Any())
+                {
+                    return nameMemberCref;
+                }
+
+                var newParameters = UpdateDeclaration(nameMemberCref.Parameters.Parameters, signaturePermutation, CreateNewCrefParameterSyntax);
+
+                var newCrefParameterList = nameMemberCref.Parameters.WithParameters(newParameters);
+                return nameMemberCref.WithParameters(newCrefParameterList);
+            }
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
             // Update reference site argument lists
             if (updatedNode.IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax? invocation))
             {
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolInfo = semanticModel.GetSymbolInfo((InvocationExpressionSyntax)originalNode, cancellationToken);
 
                 return invocation.WithArgumentList(
@@ -373,15 +389,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         cancellationToken).ConfigureAwait(false));
             }
 
-            if (updatedNode.IsKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax? objCreation))
+            // Handles both ObjectCreationExpressionSyntax and ImplicitObjectCreationExpressionSyntax
+            if (updatedNode is BaseObjectCreationExpressionSyntax objCreation)
             {
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var symbolInfo = semanticModel.GetSymbolInfo((ObjectCreationExpressionSyntax)originalNode, cancellationToken);
-
                 if (objCreation.ArgumentList == null)
                 {
                     return updatedNode;
                 }
+
+                var symbolInfo = semanticModel.GetSymbolInfo((BaseObjectCreationExpressionSyntax)originalNode, cancellationToken);
 
                 return objCreation.WithArgumentList(
                     await UpdateArgumentListAsync(
@@ -398,7 +414,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             if (updatedNode.IsKind(SyntaxKind.ThisConstructorInitializer, out ConstructorInitializerSyntax? constructorInit) ||
                 updatedNode.IsKind(SyntaxKind.BaseConstructorInitializer, out constructorInit))
             {
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolInfo = semanticModel.GetSymbolInfo((ConstructorInitializerSyntax)originalNode, cancellationToken);
 
                 return constructorInit.WithArgumentList(
@@ -415,7 +430,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             if (updatedNode.IsKind(SyntaxKind.ElementAccessExpression, out ElementAccessExpressionSyntax? elementAccess))
             {
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolInfo = semanticModel.GetSymbolInfo((ElementAccessExpressionSyntax)originalNode, cancellationToken);
 
                 return elementAccess.WithArgumentList(
@@ -432,7 +446,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             if (updatedNode.IsKind(SyntaxKind.Attribute, out AttributeSyntax? attribute))
             {
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbolInfo = semanticModel.GetSymbolInfo((AttributeSyntax)originalNode, cancellationToken);
 
                 if (attribute.ArgumentList == null)
@@ -450,21 +463,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                         document,
                         originalNode.SpanStart,
                         cancellationToken).ConfigureAwait(false));
-            }
-
-            // Handle references in crefs
-            if (updatedNode.IsKind(SyntaxKind.NameMemberCref, out NameMemberCrefSyntax? nameMemberCref))
-            {
-                if (nameMemberCref.Parameters == null ||
-                    !nameMemberCref.Parameters.Parameters.Any())
-                {
-                    return nameMemberCref;
-                }
-
-                var newParameters = UpdateDeclaration(nameMemberCref.Parameters.Parameters, signaturePermutation, CreateNewCrefParameterSyntax);
-
-                var newCrefParameterList = nameMemberCref.Parameters.WithParameters(newParameters);
-                return nameMemberCref.WithParameters(newCrefParameterList);
             }
 
             Debug.Assert(false, "Unknown reference location");
@@ -572,13 +570,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
             else
             {
-#pragma warning disable IDE0007 // Use implicit type - Using 'var' causes "error CS8506: No best type was found for the switch expression"
-                // TODO: File a bug on IDE0007 analyzer
                 BaseArgumentListSyntax? argumentList = node switch
-#pragma warning restore IDE0007 // Use implicit type
                 {
                     InvocationExpressionSyntax invocation => invocation.ArgumentList,
-                    ObjectCreationExpressionSyntax objectCreation => objectCreation.ArgumentList,
+                    BaseObjectCreationExpressionSyntax objectCreation => objectCreation.ArgumentList,
                     ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList,
                     ElementAccessExpressionSyntax elementAccess => elementAccess.ArgumentList,
                     _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())

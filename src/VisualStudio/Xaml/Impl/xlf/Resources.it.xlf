@@ -17,6 +17,11 @@
         <target state="translated">Or&amp;dina spazi dei nomi</target>
         <note />
       </trans-unit>
+      <trans-unit id="Xaml_Language_Server_Client">
+        <source>XAML Language Server Client</source>
+        <target state="translated">Client del server di linguaggio XAML</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,12 +18,13 @@ using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
-    public abstract class AbstractCSharpCompletionProviderTests : AbstractCompletionProviderTests<CSharpTestWorkspaceFixture>
+    public abstract class AbstractCSharpCompletionProviderTests : AbstractCSharpCompletionProviderTests<CSharpTestWorkspaceFixture>
     {
-        protected AbstractCSharpCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
+    }
 
+    public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> : AbstractCompletionProviderTests<TWorkspaceFixture>
+        where TWorkspaceFixture : TestWorkspaceFixture, new()
+    {
         protected override TestWorkspace CreateWorkspace(string fileContents)
             => TestWorkspace.CreateCSharp(fileContents, exportProvider: ExportProvider);
 
@@ -112,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 inlineDescription, matchingFilters);
         }
 
-        protected string AddInsideMethod(string text)
+        protected static string AddInsideMethod(string text)
         {
             return
 @"class C
@@ -124,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 }";
         }
 
-        protected string AddUsingDirectives(string usingDirectives, string text)
+        protected static string AddUsingDirectives(string usingDirectives, string text)
         {
             return
 usingDirectives +
@@ -135,11 +138,10 @@ usingDirectives +
 text;
         }
 
-        protected async Task VerifySendEnterThroughToEnterAsync(string initialMarkup, string textTypedSoFar, EnterKeyRule sendThroughEnterOption, bool expected, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
+        protected async Task VerifySendEnterThroughToEnterAsync(string initialMarkup, string textTypedSoFar, EnterKeyRule sendThroughEnterOption, bool expected)
         {
-            using var workspace = TestWorkspace.CreateCSharp(initialMarkup, exportProvider: ExportProvider);
+            using var workspace = CreateWorkspace(initialMarkup);
             var hostDocument = workspace.DocumentWithCursor;
-            workspace.OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind);
 
             var documentId = workspace.GetDocumentId(hostDocument);
             var document = workspace.CurrentSolution.GetDocument(documentId);

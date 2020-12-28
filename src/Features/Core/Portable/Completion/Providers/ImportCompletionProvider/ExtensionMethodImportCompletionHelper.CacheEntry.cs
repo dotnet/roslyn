@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -29,6 +27,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             /// Mapping from the name of receiver type to extension method symbol infos.
             /// </summary>
             public readonly MultiDictionary<string, DeclaredSymbolInfo> ReceiverTypeNameToExtensionMethodMap { get; }
+
+            public bool ContainsExtensionMethod => !ReceiverTypeNameToExtensionMethodMap.IsEmpty;
 
             private CacheEntry(
                 Checksum checksum,

@@ -232,7 +232,7 @@ End Class
                            </file>
                        </compilation>
 
-            Dim comp20 = CreateEmptyCompilationWithReferences(src1, {TestReferences.NetFx.v4_0_21006.mscorlib}, TestOptions.ReleaseDll)
+            Dim comp20 = CreateEmptyCompilationWithReferences(src1, {TestMetadata.Net40.mscorlib}, TestOptions.ReleaseDll)
             ' "Compilation 2 Assembly"
             Dim comp40 = CreateCompilationWithMscorlib40AndReferences(src2, {comp20.ToMetadataReference()})
 
@@ -307,7 +307,7 @@ End Class
                            </file>
                        </compilation>
 
-            Dim comp20 = CreateEmptyCompilationWithReferences(src1, {TestReferences.NetFx.v4_0_21006.mscorlib}, TestOptions.ReleaseDll)
+            Dim comp20 = CreateEmptyCompilationWithReferences(src1, {TestMetadata.Net40.mscorlib}, TestOptions.ReleaseDll)
             '
             Dim comp40 = CreateCompilationWithMscorlib40AndReferences(src2, {comp20.ToMetadataReference()})
 
@@ -384,7 +384,7 @@ End Class
                            </file>
                        </compilation>
 
-            Dim comp20 = CreateEmptyCompilationWithReferences(src1, {TestReferences.NetFx.v4_0_21006.mscorlib}, TestOptions.ReleaseDll)
+            Dim comp20 = CreateEmptyCompilationWithReferences(src1, {TestMetadata.Net40.mscorlib}, TestOptions.ReleaseDll)
             Dim comp40 = CreateCompilationWithMscorlib40AndReferences(src2, {comp20.ToMetadataReference()})
 
             Dim ver20Symbols = GetSourceSymbols(comp20, SymbolCategory.NonTypeMember).Where(Function(s) Not s.IsAccessor() And s.Kind <> SymbolKind.Parameter).OrderBy(Function(s) s.Name).ToList()

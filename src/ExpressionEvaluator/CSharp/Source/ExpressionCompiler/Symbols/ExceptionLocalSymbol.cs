@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override BoundExpression RewriteLocal(CSharpCompilation compilation, EENamedTypeSymbol container, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
             var method = GetIntrinsicMethod(compilation, _getExceptionMethodName);
-            var call = BoundCall.Synthesized(syntax, receiverOpt: null, method: method);
+            var call = BoundCall.Synthesized(syntax, receiverOpt: null, method: method, binder: null);
             return ConvertToLocalType(compilation, call, this.Type, diagnostics);
         }
     }

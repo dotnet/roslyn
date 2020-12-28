@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var abstractMember in this.AbstractMembers)
             {
                 // Dev10 reports failure to implement properties/events in terms of the accessors
-                if (abstractMember.Kind == SymbolKind.Method)
+                if (abstractMember.Kind == SymbolKind.Method && abstractMember is not SynthesizedRecordOrdinaryMethod)
                 {
                     diagnostics.Add(ErrorCode.ERR_UnimplementedAbstractMethod, this.Locations[0], this, abstractMember);
                 }
@@ -331,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal Location? GetImplementsLocation(NamedTypeSymbol implementedInterface)
-#nullable restore
+#nullable disable
         {
             // We ideally want to identify the interface location in the base list with an exact match but
             // will fall back and use the first derived interface if exact interface is not present.
@@ -437,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        static private bool DeclaresBaseInterface(NamedTypeSymbol currType, NamedTypeSymbol @interface, ref HasBaseTypeDeclaringInterfaceResult result)
+        private static bool DeclaresBaseInterface(NamedTypeSymbol currType, NamedTypeSymbol @interface, ref HasBaseTypeDeclaringInterfaceResult result)
         {
             MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>.ValueSet set = currType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics[@interface];
 
@@ -531,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // NOTE: Normal finalize methods CanOverrideOrHide and will go through the normal code path.
 
                             // First is fine, since there should only be one, since there are no parameters.
-                            MethodSymbol overridden = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(ignoreInterfaceImplementationChanges: true);
+                            MethodSymbol overridden = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(out _);
 
                             // NOTE: Dev11 doesn't expose symbols, so it can treat destructors as override and let them go through the normal
                             // checks.  Roslyn can't, since the language says they are not virtual/override and that's what we need to expose
@@ -708,8 +710,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void CheckOverrideMember(Symbol overridingMember, OverriddenOrHiddenMembersResult overriddenOrHiddenMembers,
-            DiagnosticBag diagnostics, out bool suppressAccessors)
+        private void CheckOverrideMember(
+            Symbol overridingMember,
+            OverriddenOrHiddenMembersResult overriddenOrHiddenMembers,
+            DiagnosticBag diagnostics,
+            out bool suppressAccessors)
         {
             Debug.Assert((object)overridingMember != null);
             Debug.Assert(overriddenOrHiddenMembers != null);
@@ -812,26 +817,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // From: SymbolPreparer.cpp
-            // DevDiv Bugs 115384: Both out and ref parameters are implemented as references. In addition, out parameters are
-            // decorated with OutAttribute. In CLR when a signature is looked up in virtual dispatch, CLR does not distinguish
-            // between these to parameter types. The choice is the last method in the vtable. Therefore we check and warn if
-            // there would potentially be a mismatch in CLRs and C#s choice of the overridden method. Unfortunately we have no
-            // way of communicating to CLR which method is the overridden one. We only run into this problem when the
-            // parameters are generic.
-            var runtimeOverriddenMembers = overriddenOrHiddenMembers.RuntimeOverriddenMembers;
-            Debug.Assert(!runtimeOverriddenMembers.IsDefault);
-            if (runtimeOverriddenMembers.Length > 1 && overridingMember.Kind == SymbolKind.Method) // The runtime doesn't define overriding for properties or events.
+            // Both `ref` and `out` parameters (and `in` too) are implemented as references and are not distinguished by the runtime
+            // when resolving overrides. Similarly, distinctions between types that would map together because of generic substitution
+            // in the derived type where the override appears are the same from the runtime's point of view. In these cases we will
+            // need to produce a methodimpl to disambiguate. See the call to `RequiresExplicitOverride` below. It produces a boolean
+            // `warnAmbiguous` if the methodimpl could be misinterpreted due to a bug in the runtime
+            // (https://github.com/dotnet/runtime/issues/38119) in which case we produce a warning regarding that ambiguity.
+            // See https://github.com/dotnet/roslyn/issues/45453 for details.
+            if (!this.ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses && overridingMember is MethodSymbol overridingMethod)
             {
-                // CONSIDER: Dev10 doesn't seem to report this warning for indexers.
-                var ambiguousMethod = runtimeOverriddenMembers[0];
-                diagnostics.Add(ErrorCode.WRN_MultipleRuntimeOverrideMatches, ambiguousMethod.Locations[0], ambiguousMethod, overridingMember);
-                suppressAccessors = true;
+                overridingMethod.RequiresExplicitOverride(out bool warnAmbiguous);
+                if (warnAmbiguous)
+                {
+                    var ambiguousMethod = overridingMethod.OverriddenMethod;
+                    diagnostics.Add(ErrorCode.WRN_MultipleRuntimeOverrideMatches, ambiguousMethod.Locations[0], ambiguousMethod, overridingMember);
+                    suppressAccessors = true;
+                }
             }
 
             return;
 
-            static void checkSingleOverriddenMember(Symbol overridingMember, Symbol overriddenMember, DiagnosticBag diagnostics, ref bool suppressAccessors)
+            void checkSingleOverriddenMember(Symbol overridingMember, Symbol overriddenMember, DiagnosticBag diagnostics, ref bool suppressAccessors)
             {
                 var overridingMemberLocation = overridingMember.Locations[0];
                 var overridingMemberIsMethod = overridingMember.Kind == SymbolKind.Method;
@@ -938,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (overridingMethod.IsGenericMethod)
                         {
-                            overriddenMethod = overriddenMethod.Construct(overridingMethod.TypeArgumentsWithAnnotations);
+                            overriddenMethod = overriddenMethod.Construct(TypeMap.TypeParametersAsTypeSymbolsWithIgnoredAnnotations(overridingMethod.TypeParameters));
                         }
 
                         // Check for mismatched byref returns and return type. Ignore custom modifiers, because this diagnostic is based on the C# semantics.
@@ -946,13 +952,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_CantChangeRefReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
                         }
-                        else if (!overridingMethod.ReturnTypeWithAnnotations.Equals(overriddenMethod.ReturnTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
+                        else if (!IsValidOverrideReturnType(overridingMethod, overridingMethod.ReturnTypeWithAnnotations, overriddenMethod.ReturnTypeWithAnnotations, diagnostics))
                         {
                             // if the Return type is or contains an error type, the return type must be fixed before the override can be found, so suppress error
                             if (!IsOrContainsErrorType(overridingMethod.ReturnType))
                             {
-                                // error CS0508: return type must be 'C<V>' to match overridden member 'M<T>()'
-                                diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType);
+                                // If the return type would be a valid covariant return, suggest using covariant return feature.
+                                HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
+                                if (DeclaringCompilation.Conversions.HasIdentityOrImplicitReferenceConversion(overridingMethod.ReturnTypeWithAnnotations.Type, overriddenMethod.ReturnTypeWithAnnotations.Type, ref discardedUseSiteDiagnostics))
+                                {
+                                    if (!overridingMethod.ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses)
+                                    {
+                                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType);
+                                    }
+                                    else if (MessageID.IDS_FeatureCovariantReturnsForOverrides.GetFeatureAvailabilityDiagnosticInfo(this.DeclaringCompilation) is { } diagnosticInfo)
+                                    {
+                                        diagnostics.Add(diagnosticInfo, overridingMemberLocation);
+                                    }
+                                    else
+                                    {
+                                        throw ExceptionUtilities.Unreachable;
+                                    }
+                                }
+                                else
+                                {
+                                    // error CS0508: return type must be 'C<V>' to match overridden member 'M<T>()'
+                                    diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType);
+                                }
                             }
                         }
                         else if (overriddenMethod.IsRuntimeFinalizer())
@@ -982,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                static void checkOverriddenProperty(PropertySymbol overridingProperty, PropertySymbol overriddenProperty, DiagnosticBag diagnostics, ref bool suppressAccessors)
+                void checkOverriddenProperty(PropertySymbol overridingProperty, PropertySymbol overriddenProperty, DiagnosticBag diagnostics, ref bool suppressAccessors)
                 {
                     var overridingMemberLocation = overridingProperty.Locations[0];
                     var overridingType = overridingProperty.ContainingType;
@@ -996,13 +1022,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_CantChangeRefReturnOnOverride, overridingMemberLocation, overridingProperty, overriddenProperty);
                         suppressAccessors = true; //we get really unhelpful errors from the accessor if the ref kind is mismatched
                     }
-                    else if (!overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
+                    else if (overridingProperty.SetMethod is null ?
+                        !IsValidOverrideReturnType(overridingProperty, overridingMemberType, overriddenMemberType, diagnostics) :
+                        !overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
                     {
                         // if the type is or contains an error type, the type must be fixed before the override can be found, so suppress error
                         if (!IsOrContainsErrorType(overridingMemberType.Type))
                         {
-                            diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingProperty, overriddenProperty, overriddenMemberType.Type);
+                            // If the type would be a valid covariant return, suggest using covariant return feature.
+                            HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
+                            if (overridingProperty.SetMethod is null &&
+                                DeclaringCompilation.Conversions.HasIdentityOrImplicitReferenceConversion(overridingMemberType.Type, overriddenMemberType.Type, ref discardedUseSiteDiagnostics))
+                            {
+                                if (!overridingProperty.ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses)
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.Type);
+                                }
+                                else
+                                {
+                                    var diagnosticInfo = MessageID.IDS_FeatureCovariantReturnsForOverrides.GetFeatureAvailabilityDiagnosticInfo(this.DeclaringCompilation);
+                                    Debug.Assert(diagnosticInfo is { });
+                                    diagnostics.Add(diagnosticInfo, overridingMemberLocation);
+                                }
+                            }
+                            else
+                            {
+                                // error CS1715: 'Derived.M': type must be 'object' to match overridden member 'Base.M'
+                                diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.Type);
+                                // https://github.com/dotnet/roslyn/issues/44207 when overriddenMemberType.Type is an inheritable reference type and the covariant return
+                                // feature is enabled, and the platform supports it, and there is no setter, we can say it has to be 'object' **or a derived type**.
+                                // That would probably be a new error code.
+                            }
                         }
+
                         suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
                     }
                     else
@@ -1086,6 +1138,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)typeSymbol.VisitType((currentTypeSymbol, unused1, unused2) => currentTypeSymbol.IsErrorType(), (object)null) != null;
         }
 
+        /// <summary>
+        /// Return true if <paramref name="overridingReturnType"/> is valid for the return type of an override method when the overridden method's return type is <paramref name="overriddenReturnType"/>.
+        /// </summary>
+        private bool IsValidOverrideReturnType(Symbol overridingSymbol, TypeWithAnnotations overridingReturnType, TypeWithAnnotations overriddenReturnType, DiagnosticBag diagnostics)
+        {
+            if (overridingSymbol.ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses &&
+                DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureCovariantReturnsForOverrides.RequiredVersion())
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var result = DeclaringCompilation.Conversions.HasIdentityOrImplicitReferenceConversion(overridingReturnType.Type, overriddenReturnType.Type, ref useSiteDiagnostics);
+                if (useSiteDiagnostics != null)
+                {
+                    Location symbolLocation = overridingSymbol.Locations.FirstOrDefault();
+                    diagnostics.Add(symbolLocation, useSiteDiagnostics);
+                }
+
+                return result;
+            }
+            else
+            {
+                return overridingReturnType.Equals(overriddenReturnType, TypeCompareKind.AllIgnoreOptions);
+            }
+        }
+
         static readonly ReportMismatchInReturnType<Location> ReportBadReturn =
             (DiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool topLevel, Location location)
             => diagnostics.Add(topLevel ?
@@ -1102,47 +1178,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void CheckValidNullableMethodOverride<TArg>(
             CSharpCompilation compilation,
-            MethodSymbol overriddenMethod,
-            MethodSymbol overridingMethod,
+            MethodSymbol baseMethod,
+            MethodSymbol overrideMethod,
             DiagnosticBag diagnostics,
             ReportMismatchInReturnType<TArg> reportMismatchInReturnType,
             ReportMismatchInParameterType<TArg> reportMismatchInParameterType,
-            TArg extraArgument)
+            TArg extraArgument,
+            bool invokedAsExtensionMethod = false)
         {
-            if (!PerformValidNullableOverrideCheck(compilation, overriddenMethod, overridingMethod))
+            if (!PerformValidNullableOverrideCheck(compilation, baseMethod, overrideMethod))
             {
                 return;
             }
 
-            if ((overriddenMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn &&
-                (overridingMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) != FlowAnalysisAnnotations.DoesNotReturn)
+            if ((baseMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn &&
+                (overrideMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) != FlowAnalysisAnnotations.DoesNotReturn)
             {
-                diagnostics.Add(ErrorCode.WRN_DoesNotReturnMismatch, overridingMethod.Locations[0], new FormattedSymbol(overridingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
+                diagnostics.Add(ErrorCode.WRN_DoesNotReturnMismatch, overrideMethod.Locations[0], new FormattedSymbol(overrideMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
             }
 
             var conversions = compilation.Conversions.WithNullability(true);
+            var baseParameters = baseMethod.Parameters;
+            var overrideParameters = overrideMethod.Parameters;
+            var overrideParameterOffset = invokedAsExtensionMethod ? 1 : 0;
+            Debug.Assert(baseMethod.ParameterCount == overrideMethod.ParameterCount - overrideParameterOffset);
             if (reportMismatchInReturnType != null)
             {
+                var overrideReturnType = getNotNullIfNotNullOutputType(overrideMethod.ReturnTypeWithAnnotations, overrideMethod.ReturnNotNullIfParameterNotNull);
                 // check nested nullability
                 if (!isValidNullableConversion(
                         conversions,
-                        overridingMethod.RefKind,
-                        overridingMethod.ReturnTypeWithAnnotations.Type,
-                        overriddenMethod.ReturnTypeWithAnnotations.Type))
+                        overrideMethod.RefKind,
+                        overrideReturnType.Type,
+                        baseMethod.ReturnTypeWithAnnotations.Type))
                 {
-                    reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, false, extraArgument);
+                    reportMismatchInReturnType(diagnostics, baseMethod, overrideMethod, false, extraArgument);
                     return;
                 }
 
                 // check top-level nullability including flow analysis annotations
                 if (!NullableWalker.AreParameterAnnotationsCompatible(
-                        overridingMethod.RefKind == RefKind.Ref ? RefKind.Ref : RefKind.Out,
-                        overriddenMethod.ReturnTypeWithAnnotations,
-                        overriddenMethod.ReturnTypeFlowAnalysisAnnotations,
-                        overridingMethod.ReturnTypeWithAnnotations,
-                        overridingMethod.ReturnTypeFlowAnalysisAnnotations))
+                        overrideMethod.RefKind == RefKind.Ref ? RefKind.Ref : RefKind.Out,
+                        baseMethod.ReturnTypeWithAnnotations,
+                        baseMethod.ReturnTypeFlowAnalysisAnnotations,
+                        overrideReturnType,
+                        overrideMethod.ReturnTypeFlowAnalysisAnnotations))
                 {
-                    reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, true, extraArgument);
+                    reportMismatchInReturnType(diagnostics, baseMethod, overrideMethod, true, extraArgument);
                     return;
                 }
             }
@@ -1152,34 +1234,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            ImmutableArray<ParameterSymbol> overridingParameters = overridingMethod.GetParameters();
-            var overriddenParameters = overriddenMethod.GetParameters();
-
-            for (int i = 0; i < overriddenMethod.ParameterCount; i++)
+            for (int i = 0; i < baseParameters.Length; i++)
             {
-                var overriddenParameter = overriddenParameters[i];
-                var overriddenParameterType = overriddenParameter.TypeWithAnnotations;
-                var overridingParameter = overridingParameters[i];
-                var overridingParameterType = overridingParameter.TypeWithAnnotations;
+                var baseParameter = baseParameters[i];
+                var baseParameterType = baseParameter.TypeWithAnnotations;
+                var overrideParameter = overrideParameters[i + overrideParameterOffset];
+                var overrideParameterType = getNotNullIfNotNullOutputType(overrideParameter.TypeWithAnnotations, overrideParameter.NotNullIfParameterNotNull);
                 // check nested nullability
                 if (!isValidNullableConversion(
                         conversions,
-                        overridingParameter.RefKind,
-                        overriddenParameterType.Type,
-                        overridingParameterType.Type))
+                        overrideParameter.RefKind,
+                        baseParameterType.Type,
+                        overrideParameterType.Type))
                 {
-                    reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, overridingParameter, false, extraArgument);
+                    reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, false, extraArgument);
                 }
                 // check top-level nullability including flow analysis annotations
                 else if (!NullableWalker.AreParameterAnnotationsCompatible(
-                        overridingParameter.RefKind,
-                        overriddenParameterType,
-                        overriddenParameter.FlowAnalysisAnnotations,
-                        overridingParameterType,
-                        overridingParameter.FlowAnalysisAnnotations))
+                        overrideParameter.RefKind,
+                        baseParameterType,
+                        baseParameter.FlowAnalysisAnnotations,
+                        overrideParameterType,
+                        overrideParameter.FlowAnalysisAnnotations))
                 {
-                    reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, overridingParameter, true, extraArgument);
+                    reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, true, extraArgument);
                 }
+            }
+
+            TypeWithAnnotations getNotNullIfNotNullOutputType(TypeWithAnnotations outputType, ImmutableHashSet<string> notNullIfParameterNotNull)
+            {
+                if (!notNullIfParameterNotNull.IsEmpty)
+                {
+                    for (var i = 0; i < baseParameters.Length; i++)
+                    {
+                        var overrideParam = overrideParameters[i + overrideParameterOffset];
+                        if (notNullIfParameterNotNull.Contains(overrideParam.Name) && !baseParameters[i].TypeWithAnnotations.NullableAnnotation.IsAnnotated())
+                        {
+                            return outputType.AsNotAnnotated();
+                        }
+                    }
+                }
+
+                return outputType;
             }
 
             static bool isValidNullableConversion(
@@ -1256,7 +1352,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(overriddenOrHiddenMembers != null);
             Debug.Assert(!overriddenOrHiddenMembers.OverriddenMembers.Any()); //since hidingMethod.IsOverride is false
-            Debug.Assert(!overriddenOrHiddenMembers.RuntimeOverriddenMembers.Any()); //since hidingMethod.IsOverride is false
 
             var hiddenMembers = overriddenOrHiddenMembers.HiddenMembers;
             Debug.Assert(!hiddenMembers.IsDefault);
@@ -1283,7 +1378,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         //can actually get both, so don't use else if
                         if (!hidingMemberIsNew && hiddenMember.Kind == hidingMember.Kind &&
                             !hidingMember.IsAccessor() &&
-                            (hiddenMember.IsAbstract || hiddenMember.IsVirtual || hiddenMember.IsOverride))
+                            (hiddenMember.IsAbstract || hiddenMember.IsVirtual || hiddenMember.IsOverride) &&
+                            !IsShadowingSynthesizedRecordMember(hidingMember))
                         {
                             diagnostics.Add(ErrorCode.WRN_NewOrOverrideExpected, hidingMemberLocation, hidingMember, hiddenMember);
                             diagnosticAdded = true;
@@ -1296,11 +1392,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (!hidingMemberIsNew && !diagnosticAdded && !hidingMember.IsAccessor() && !hidingMember.IsOperator())
+                if (!hidingMemberIsNew && !IsShadowingSynthesizedRecordMember(hidingMember) && !diagnosticAdded && !hidingMember.IsAccessor() && !hidingMember.IsOperator())
                 {
                     diagnostics.Add(ErrorCode.WRN_NewRequired, hidingMemberLocation, hidingMember, hiddenMembers[0]);
                 }
             }
+        }
+
+        private static bool IsShadowingSynthesizedRecordMember(Symbol hidingMember)
+        {
+            return hidingMember is SynthesizedRecordEquals || hidingMember is SynthesizedRecordDeconstruct || hidingMember is SynthesizedRecordClone;
         }
 
         /// <summary>
@@ -1446,7 +1547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-#nullable restore
+#nullable disable
 
         /// <summary>
         /// Though there is a method that C# considers to be an implementation of the interface method, that

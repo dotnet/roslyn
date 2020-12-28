@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -56,8 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private const uint ResumeId = 707;
         private const uint SuspendId = 708;
         private const uint ToggleSuspendId = 709;
-        private static readonly Guid ReSharperPackageGuid = new Guid("0C6E6407-13FC-4878-869A-C8B4016C57FE");
-        private static readonly Guid ReSharperCommandGroup = new Guid("{47F03277-5055-4922-899C-0F7F30D26BF1}");
+        private static readonly Guid ReSharperPackageGuid = new("0C6E6407-13FC-4878-869A-C8B4016C57FE");
+        private static readonly Guid ReSharperCommandGroup = new("{47F03277-5055-4922-899C-0F7F30D26BF1}");
 
         private readonly VisualStudioWorkspace _workspace;
         private readonly System.IServiceProvider _serviceProvider;
@@ -70,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private OleComponent _oleComponent;
         private uint _priorityCommandTargetCookie = VSConstants.VSCOOKIE_NIL;
 
-        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private CancellationTokenSource _cancellationTokenSource = new();
         /// <summary>
         /// If false, ReSharper is either not installed, or has been disabled in the extension manager.
         /// If true, the ReSharper extension is enabled. ReSharper's internal status could be either suspended or enabled.
@@ -114,11 +116,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 return;
             }
 
-            var vsShell = _serviceProvider.GetService<IVsShell, SVsShell>();
+            var vsShell = IServiceProviderExtensions.GetService<SVsShell, IVsShell>(_serviceProvider);
             var hr = vsShell.IsPackageInstalled(ReSharperPackageGuid, out var extensionEnabled);
             if (ErrorHandler.Failed(hr))
             {
-                FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
                 return;
             }
 
@@ -127,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             if (_resharperExtensionInstalledAndEnabled)
             {
                 // We need to monitor for suspend/resume commands, so create and install the command target and the modal callback.
-                var priorityCommandTargetRegistrar = _serviceProvider.GetService<IVsRegisterPriorityCommandTarget, SVsRegisterPriorityCommandTarget>();
+                var priorityCommandTargetRegistrar = IServiceProviderExtensions.GetService<SVsRegisterPriorityCommandTarget, IVsRegisterPriorityCommandTarget>(_serviceProvider);
                 hr = priorityCommandTargetRegistrar.RegisterPriorityCommandTarget(
                     dwReserved: 0 /* from docs must be 0 */,
                     pCmdTrgt: this,
@@ -135,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
                 if (ErrorHandler.Failed(hr))
                 {
-                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                    FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
                     return;
                 }
 
@@ -171,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             ReSharperStatus currentStatus;
             try
             {
-                currentStatus = await IsReSharperRunningAsync(lastStatus, cancellationToken)
+                currentStatus = await IsReSharperRunningAsync(cancellationToken)
                     .ConfigureAwait(false);
             }
             catch (OperationCanceledException)
@@ -239,7 +241,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             var message = ServicesVSResources.We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor;
             KeybindingsResetLogger.Log("InfoBarShown");
             var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
-            infoBarService.ShowInfoBarInGlobalView(
+            infoBarService.ShowInfoBar(
                 string.Format(message, ReSharperExtensionName),
                 new InfoBarUI(title: ServicesVSResources.Reset_Visual_Studio_default_keymapping,
                               kind: InfoBarUI.UIKind.Button,
@@ -260,7 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         /// <summary>
         /// Returns true if ReSharper is installed, enabled, and not suspended.  
         /// </summary>
-        private async ValueTask<ReSharperStatus> IsReSharperRunningAsync(ReSharperStatus lastStatus, CancellationToken cancellationToken)
+        private async ValueTask<ReSharperStatus> IsReSharperRunningAsync(CancellationToken cancellationToken)
         {
             // Quick exit if resharper is either uninstalled or not enabled
             if (!_resharperExtensionInstalledAndEnabled)
@@ -317,7 +319,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 var hr = _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
                 if (ErrorHandler.Failed(hr))
                 {
-                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                    FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
                     await ShutdownAsync().ConfigureAwait(false);
 
                     return 0;
@@ -335,7 +337,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                _oleCommandTarget = _serviceProvider.GetService<IOleCommandTarget, SUIHostCommandDispatcher>();
+                _oleCommandTarget = IServiceProviderExtensions.GetService<SUIHostCommandDispatcher, IOleCommandTarget>(_serviceProvider);
             }
         }
 
@@ -345,7 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             if (_uiShell == null)
             {
-                _uiShell = _serviceProvider.GetService<IVsUIShell, SVsUIShell>();
+                _uiShell = IServiceProviderExtensions.GetService<SVsUIShell, IVsUIShell>(_serviceProvider);
             }
 
             ErrorHandler.ThrowOnFailure(_uiShell.PostExecCommand(
@@ -432,14 +434,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             if (_priorityCommandTargetCookie != VSConstants.VSCOOKIE_NIL)
             {
-                var priorityCommandTargetRegistrar = _serviceProvider.GetService<IVsRegisterPriorityCommandTarget, SVsRegisterPriorityCommandTarget>();
+                var priorityCommandTargetRegistrar = IServiceProviderExtensions.GetService<SVsRegisterPriorityCommandTarget, IVsRegisterPriorityCommandTarget>(_serviceProvider);
                 var cookie = _priorityCommandTargetCookie;
                 _priorityCommandTargetCookie = VSConstants.VSCOOKIE_NIL;
                 var hr = priorityCommandTargetRegistrar.UnregisterPriorityCommandTarget(cookie);
 
                 if (ErrorHandler.Failed(hr))
                 {
-                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+                    FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
                 }
             }
 

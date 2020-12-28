@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -71,13 +72,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public static ulong ToUnsigned(long v)
             => unchecked((ulong)v);
 
-        public static ulong ToUInt64(object o)
+        public static ulong ToUInt64(object? o)
             => o is ulong ? (ulong)o : unchecked((ulong)System.Convert.ToInt64(o));
 
-        public static long ToInt64(object o)
+        public static long ToInt64(object? o)
             => o is ulong ? unchecked((long)(ulong)o) : System.Convert.ToInt64(o);
 
-        public static bool IsIntegral(object value)
+        public static bool IsIntegral([NotNullWhen(true)] object? value)
             => value switch
             {
                 sbyte _ => true,

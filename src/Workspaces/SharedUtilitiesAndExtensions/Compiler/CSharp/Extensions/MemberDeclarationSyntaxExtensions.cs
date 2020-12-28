@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     internal static partial class MemberDeclarationSyntaxExtensions
     {
         private static readonly ConditionalWeakTable<MemberDeclarationSyntax, Dictionary<string, ImmutableArray<SyntaxToken>>> s_declarationCache =
-            new ConditionalWeakTable<MemberDeclarationSyntax, Dictionary<string, ImmutableArray<SyntaxToken>>>();
+            new();
         private static readonly ConditionalWeakTable<MemberDeclarationSyntax, Dictionary<string, ImmutableArray<SyntaxToken>>>.CreateValueCallback s_createLocalDeclarationMap = CreateLocalDeclarationMap;
 
         public static LocalDeclarationMap GetLocalDeclarationMap(this MemberDeclarationSyntax member)
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.EnumDeclaration:
                         return ((EnumDeclarationSyntax)member).Identifier;
                     case SyntaxKind.ClassDeclaration:
-                    case SyntaxKindEx.RecordDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
                         return ((TypeDeclarationSyntax)member).Identifier;
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 switch (member.Kind())
                 {
                     case SyntaxKind.ClassDeclaration:
-                    case SyntaxKindEx.RecordDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
                         return ((TypeDeclarationSyntax)member).Arity;
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 switch (member.Kind())
                 {
                     case SyntaxKind.ClassDeclaration:
-                    case SyntaxKindEx.RecordDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
                         return ((TypeDeclarationSyntax)member).TypeParameterList;
@@ -184,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.EnumMemberDeclaration:
                         return ((EnumMemberDeclarationSyntax)member).WithAttributeLists(attributeLists);
                     case SyntaxKind.ClassDeclaration:
-                    case SyntaxKindEx.RecordDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
                         return ((TypeDeclarationSyntax)member).WithAttributeLists(attributeLists);

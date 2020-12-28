@@ -423,5 +423,16 @@ end namespace"
             Await test.RunAsync()
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
+        <WorkItem(44076, "https://github.com/dotnet/roslyn/issues/44076")>
+        Public Async Function TestModuleConstructor() As Task
+            Dim source = "
+Friend Module Example
+    Sub New()
+    End Sub
+End Module
+"
+            Await VerifyVB.VerifyCodeFixAsync(source, source)
+        End Function
     End Class
 End Namespace

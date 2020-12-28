@@ -8,6 +8,7 @@ Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
@@ -37,43 +38,45 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
     Friend Class TestEnvironment
         Implements IDisposable
 
-        Private Shared ReadOnly s_exportCatalog As Lazy(Of ComposableCatalog) = New Lazy(Of ComposableCatalog)(
-            Function()
-                Dim catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
-                catalog = catalog.WithParts(GetType(FileChangeWatcherProvider),
-                                            GetType(MockVisualStudioWorkspace),
-                                            GetType(MetadataReferences.FileWatchedPortableExecutableReferenceFactory),
-                                            GetType(VisualStudioProjectFactory),
-                                            GetType(MockServiceProvider),
-                                            GetType(SolutionEventsBatchScopeCreator),
-                                            GetType(ProjectCodeModelFactory),
-                                            GetType(CPSProjectFactory),
-                                            GetType(VisualStudioRuleSetManagerFactory),
-                                            GetType(VsMetadataServiceFactory),
-                                            GetType(VisualStudioMetadataReferenceManagerFactory),
-                                            GetType(MockWorkspaceEventListenerProvider),
-                                            GetType(MockDiagnosticUpdateSourceRegistrationService),
-                                            GetType(HostDiagnosticUpdateSource))
+        ' TODO:
+        ' Use VisualStudioTestComposition.LanguageServices instead, With mocked services replaced With test mocks.
+        '   
+        '    WithoutParts(
+        '        GetType(VisualStudioWorkspaceImpl),
+        '        GetType(IServiceProvider),
+        '        GetType(IDiagnosticUpdateSourceRegistrationService)).
+        '    WithAdditionalParts(
+        '        GetType(MockVisualStudioWorkspace),
+        '        GetType(MockServiceProvider),
+        '        GetType(MockDiagnosticUpdateSourceRegistrationService),
+        '        GetType(MockWorkspaceEventListenerProvider))
 
-                Return catalog
-            End Function)
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf _
+            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
+            .AddParts(
+                GetType(FileChangeWatcherProvider),
+                GetType(MockVisualStudioWorkspace),
+                GetType(MetadataReferences.FileWatchedPortableExecutableReferenceFactory),
+                GetType(VisualStudioProjectFactory),
+                GetType(MockServiceProvider),
+                GetType(SolutionEventsBatchScopeCreator),
+                GetType(ProjectCodeModelFactory),
+                GetType(CPSProjectFactory),
+                GetType(VisualStudioRuleSetManagerFactory),
+                GetType(VsMetadataServiceFactory),
+                GetType(VisualStudioMetadataReferenceManagerFactory),
+                GetType(MockWorkspaceEventListenerProvider),
+                GetType(MockDiagnosticUpdateSourceRegistrationService),
+                GetType(HostDiagnosticUpdateSource),
+                GetType(HierarchyItemToProjectIdMap))
 
         Private ReadOnly _workspace As VisualStudioWorkspaceImpl
         Private ReadOnly _projectFilePaths As New List(Of String)
 
         Public Sub New(ParamArray extraParts As Type())
-            Dim exportCatalog = s_exportCatalog.Value
+            Dim composition = s_composition.AddParts(extraParts)
 
-            ' Don't create a new catalog instance if we aren't adding extra parts; some tests create a
-            ' TestEnvironment without extra parts more than once in the same test and that breaks the validation
-            ' made in SingleExportProviderFactory that prevents multiple compositions being created with unique
-            ' catalogs in the same test.
-            If extraParts.Any() Then
-                exportCatalog = exportCatalog.WithParts(extraParts)
-            End If
-
-            Dim exportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(exportCatalog)
-            ExportProvider = exportProviderFactory.CreateExportProvider()
+            ExportProvider = composition.ExportProviderFactory.CreateExportProvider()
             _workspace = ExportProvider.GetExportedValue(Of VisualStudioWorkspaceImpl)
             ThreadingContext = ExportProvider.GetExportedValue(Of IThreadingContext)()
             Interop.WrapperPolicy.s_ComWrapperFactory = MockComWrapperFactory.Instance
@@ -162,7 +165,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         <PartNotDiscoverable>
         <Export>
         <Export(GetType(SVsServiceProvider))>
-        Private Class MockServiceProvider
+        Friend Class MockServiceProvider
             Implements System.IServiceProvider
             Implements SVsServiceProvider ' The shell service provider actually implements this too for people using that type directly
             Implements Shell.IAsyncServiceProvider

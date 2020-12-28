@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         private class CompletionClosedEventSource : AbstractTaggerEventSource
         {
             private readonly IIntellisenseSessionStack _sessionStack;
-            private readonly HashSet<ICompletionSession> _trackedSessions = new HashSet<ICompletionSession>();
+            private readonly HashSet<ICompletionSession> _trackedSessions = new();
 
             public CompletionClosedEventSource(
                 IIntellisenseSessionStack sessionStack,
@@ -96,11 +96,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 }
             }
 
-            private void OnIntellisenseSessionCommitted(object sender, EventArgs e)
-                => UnhookCompletionSessionEvents((ICompletionSession)sender);
+            private void OnIntellisenseSessionCommitted(object? sender, EventArgs e)
+                => UnhookCompletionSessionEvents((ICompletionSession)(sender ?? throw new ArgumentNullException(nameof(sender))));
 
-            private void OnIntellisenseSessionDismissed(object sender, EventArgs e)
-                => UnhookCompletionSessionEvents((ICompletionSession)sender);
+            private void OnIntellisenseSessionDismissed(object? sender, EventArgs e)
+                => UnhookCompletionSessionEvents((ICompletionSession)(sender ?? throw new ArgumentNullException(nameof(sender))));
         }
     }
 }

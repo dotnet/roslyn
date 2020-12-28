@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -309,14 +311,14 @@ using Bar;"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterClassTypeParameterConstraint()
         {
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
 @"class C<T> where T : $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterClassTypeParameterConstraint2()
         {
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
 @"class C<T>
     where T : $$
     where U : U");
@@ -325,7 +327,7 @@ using Bar;"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterMethodTypeParameterConstraint()
         {
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
 @"class C {
     void Goo<T>()
       where T : $$");
@@ -334,7 +336,7 @@ using Bar;"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterMethodTypeParameterConstraint2()
         {
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
 @"class C {
     void Goo<T>()
       where T : $$

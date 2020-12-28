@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Tags;
@@ -154,7 +156,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         }
 
         public abstract bool CanNavigateTo(Workspace workspace);
-        public abstract bool TryNavigateTo(Workspace workspace, NavigationBehavior navigationBehavior);
+        public abstract bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab);
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,

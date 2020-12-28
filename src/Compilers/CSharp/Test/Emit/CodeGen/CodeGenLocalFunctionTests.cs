@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Reflection;
@@ -10,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -5195,7 +5196,7 @@ class C
             CompileAndVerify(
                 source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 symbolValidator: validate);
 
             static void validate(ModuleSymbol module)
@@ -5244,7 +5245,7 @@ class C
             CompileAndVerify(
                 source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 symbolValidator: validate);
 
             static void validate(ModuleSymbol module)
@@ -5285,7 +5286,7 @@ class C
             var verifier = CompileAndVerify(
                 source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 symbolValidator: validate);
 
             static void validate(ModuleSymbol module)
@@ -5318,7 +5319,7 @@ class C
             var verifier = CompileAndVerify(
                 source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 symbolValidator: validate);
 
             static void validate(ModuleSymbol module)
@@ -5352,7 +5353,7 @@ class C
             var verifier = CompileAndVerify(
                 source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 symbolValidator: validate);
 
             static void validate(ModuleSymbol module)
@@ -5385,7 +5386,7 @@ class C
             var verifier = CompileAndVerify(
                 source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 symbolValidator: validate);
 
             static void validate(ModuleSymbol module)
@@ -5418,7 +5419,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (9,10): error CS8764: Local function 'local1()' must be 'static' in order to use the Conditional attribute
                 //         [Conditional("DEBUG")] // 1
@@ -5453,7 +5454,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (9,22): error CS0633: The argument to the 'Conditional' attribute must be a valid identifier
                 //         [Conditional("hello world")] // 1
@@ -5490,14 +5491,14 @@ class C
             CompileAndVerify(
                 source,
                 options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview.WithPreprocessorSymbols("DEBUG"),
+                parseOptions: TestOptions.Regular9.WithPreprocessorSymbols("DEBUG"),
                 symbolValidator: validate,
                 expectedOutput: "hello");
 
             CompileAndVerify(
                 source,
                 options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 symbolValidator: validate,
                 expectedOutput: "");
 
@@ -5511,7 +5512,7 @@ class C
         }
 
         [Fact]
-        public void StaticLocalFunction_ConditionalAttribute_Unreferenced()
+        public void StaticLocalFunction_ConditionalAttribute_NoUnreferencedWarning()
         {
             var source = @"
 using System.Diagnostics;
@@ -5531,12 +5532,9 @@ class C
     }
 }
 ";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (12,21): warning CS8321: The local function 'local1' is declared but never used
-                //         static void local1()
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local1").WithArguments("local1").WithLocation(12, 21));
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics();
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithPreprocessorSymbols("DEBUG")).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular9.WithPreprocessorSymbols("DEBUG")).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5559,12 +5557,12 @@ class C
     }
 }
 ";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (11,21): warning CS8321: The local function 'local1' is declared but never used
                 //         static void local1() // 1
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local1").WithArguments("local1").WithLocation(11, 21));
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithPreprocessorSymbols("DEBUG")).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular9.WithPreprocessorSymbols("DEBUG")).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5591,13 +5589,13 @@ class C
             CompileAndVerify(
                 source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview.WithPreprocessorSymbols("DEBUG"),
+                parseOptions: TestOptions.Regular9.WithPreprocessorSymbols("DEBUG"),
                 symbolValidator: validate1);
 
             CompileAndVerify(
                 source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 symbolValidator: validate2);
 
             static void validate1(ModuleSymbol module)
@@ -5643,7 +5641,7 @@ class C
             var verifier = CompileAndVerify(
                 source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview);
+                parseOptions: TestOptions.Regular9);
 
             verifier.VerifyTypeIL("C", @"
     .class private auto ansi beforefieldinit C
@@ -5709,7 +5707,7 @@ class C
             var verifier = CompileAndVerify(
                 source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 symbolValidator: validate,
                 verify: Verification.Skipped);
 
@@ -5784,7 +5782,7 @@ class C
             var verifier = CompileAndVerify(
                 source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 symbolValidator: validate,
                 verify: Verification.Skipped);
 
@@ -5859,7 +5857,7 @@ class C
             var verifier = CompileAndVerify(
                 source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 assemblyValidator: validateAssembly,
                 verify: Verification.Skipped);
 
@@ -5927,7 +5925,7 @@ class C
             var verifier = CompileAndVerify(
                 source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                parseOptions: TestOptions.RegularPreview,
+                parseOptions: TestOptions.Regular9,
                 symbolValidator: validate);
 
             static void validate(ModuleSymbol module)
@@ -5936,6 +5934,132 @@ class C
                 var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
                 Assert.True(localFn1.HasSpecialName);
             }
+        }
+
+        [Fact]
+        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        public void MultipleLocalFunctionsUsingDynamic_01()
+        {
+            var source = @"
+public class Program
+{
+    static void Main()
+    {
+        Local1<object>();
+        Local1<object>();
+
+        static void Local1<T>()
+        {
+            System.Console.Write(Local2(Local3()));	
+            static string Local2(dynamic n) => n.ToString();
+        }
+
+        static int Local3() => (int)(dynamic)4;
+    }
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
+        }
+
+        [Fact]
+        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        public void MultipleLocalFunctionsUsingDynamic_02()
+        {
+            var source = @"
+public class Program
+{
+    static void Main()
+    {
+        Local1<object>();
+        Local1<object>();
+
+        static void Local1<T>()
+        {
+            System.Console.Write(Local2(Local3<object>()));	
+            static string Local2(dynamic n) => n.ToString();
+        }
+
+        static int Local3<S>() => (int)(dynamic)4;
+    }
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
+        }
+
+        [Fact]
+        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        public void MultipleLocalFunctionsUsingDynamic_03()
+        {
+            var source = @"
+public class Program
+{
+    static void Main()
+    {
+        Local1<object>();
+        Local1<object>();
+
+        static void Local1<T>()
+        {
+            System.Console.Write(Local2<object>(Local3<object>()));	
+            static string Local2<U>(dynamic n) => n.ToString();
+        }
+
+        static int Local3<S>() => (int)(dynamic)4;
+    }
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
+        }
+
+        [Fact]
+        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        public void MultipleLocalFunctionsUsingDynamic_04()
+        {
+            var source = @"
+public class Program
+{
+    static void Main()
+    {
+        Local1<object>();
+        Local1<object>();
+
+        static void Local1<T>()
+        {
+            System.Console.Write(Local1<object>(Local3<object>()));	
+            static string Local1<U>(dynamic n) => n.ToString();
+        }
+
+        static int Local3<S>() => (int)(dynamic)4;
+    }
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
+        }
+
+        [Fact]
+        [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
+        public void MultipleLocalFunctionsUsingDynamic_05()
+        {
+            var source = @"
+public class Program
+{
+    static void Main()
+    {
+        Local1<object>();
+        Local1<object>();
+
+        static void Local1<T>()
+        {
+            System.Console.Write(Local2<object>(Local3<object>()));	
+            static string Local2<U>(dynamic n) => n.ToString();
+        }
+
+        static int Local2<S>() => (int)(dynamic)4;
+        static int Local3<S>() => (int)(dynamic)4;
+    }
+}
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
         }
 
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = Verification.Passes)

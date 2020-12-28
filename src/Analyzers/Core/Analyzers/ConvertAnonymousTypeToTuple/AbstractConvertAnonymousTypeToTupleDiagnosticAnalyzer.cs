@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -21,6 +19,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
 
         protected AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer(ISyntaxKinds syntaxKinds)
             : base(IDEDiagnosticIds.ConvertAnonymousTypeToTupleDiagnosticId,
+                   EnforceOnBuildValues.ConvertAnonymousTypeToTuple,
                    option: null,
                    new LocalizableResourceString(nameof(AnalyzersResources.Convert_to_tuple), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Convert_to_tuple), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))

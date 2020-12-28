@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -27,25 +25,31 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppressions
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessarySuppressions)]
     [WorkItem(44177, "https://github.com/dotnet/roslyn/issues/44177")]
-    public abstract class RemoveUnnecessaryPragmaSuppressionsTests : AbstractUnncessarySuppressionDiagnosticTest
+    public abstract class RemoveUnnecessaryInlineSuppressionsTests : AbstractUnncessarySuppressionDiagnosticTest
     {
+        public RemoveUnnecessaryInlineSuppressionsTests(ITestOutputHelper logger)
+            : base(logger)
+        {
+        }
+
         #region Helpers
 
         internal sealed override CodeFixProvider CodeFixProvider
-            => new RemoveUnnecessaryPragmaSuppressionsCodeFixProvider();
-        internal sealed override AbstractRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer SuppressionAnalyzer
-            => new CSharpRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer();
+            => new RemoveUnnecessaryInlineSuppressionsCodeFixProvider();
+        internal sealed override AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer SuppressionAnalyzer
+            => new CSharpRemoveUnnecessaryInlineSuppressionsDiagnosticAnalyzer();
 
         protected sealed override ParseOptions GetScriptOptions() => Options.Script;
         protected internal sealed override string GetLanguage() => LanguageNames.CSharp;
-        protected sealed override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions,
-                (parameters.compilationOptions ?? TestOptions.DebugDll).WithReportSuppressedDiagnostics(true));
+
+        protected override TestParameters SetParameterDefaults(TestParameters parameters)
+            => parameters.WithCompilationOptions((parameters.compilationOptions ?? TestOptions.DebugDll).WithReportSuppressedDiagnostics(true));
 
         protected sealed class UserDiagnosticAnalyzer : DiagnosticAnalyzer
         {
@@ -107,7 +111,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
         protected sealed class CompilationEndDiagnosticAnalyzer : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Descriptor =
-                new DiagnosticDescriptor("CompilationEndId", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new DiagnosticDescriptor("CompilationEndId", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true,
+                    customTags: new[] { WellKnownDiagnosticTags.CompilationEnd });
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
             public override void Initialize(AnalysisContext context) =>
                 context.RegisterCompilationStartAction(context => context.RegisterCompilationEndAction(_ => { }));
@@ -117,16 +122,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
 
         #region Single analyzer tests (Compiler OR Analyzer)
 
-        public abstract class CompilerOrAnalyzerTests : RemoveUnnecessaryPragmaSuppressionsTests
+        public abstract class CompilerOrAnalyzerTests : RemoveUnnecessaryInlineSuppressionsTests
         {
+            public CompilerOrAnalyzerTests(ITestOutputHelper logger)
+                : base(logger)
+            {
+            }
+
+            protected abstract bool IsCompilerDiagnosticsTest { get; }
             protected abstract string VariableDeclaredButNotUsedDiagnosticId { get; }
             protected abstract string VariableAssignedButNotUsedDiagnosticId { get; }
             protected abstract ImmutableArray<string> UnsupportedDiagnosticIds { get; }
 
             public sealed class CompilerTests : CompilerOrAnalyzerTests
             {
+                public CompilerTests(ITestOutputHelper logger)
+                    : base(logger)
+                {
+                }
+
                 internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers
                     => ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer());
+
+                protected override bool IsCompilerDiagnosticsTest => true;
                 protected override string VariableDeclaredButNotUsedDiagnosticId => "CS0168";
                 protected override string VariableAssignedButNotUsedDiagnosticId => "CS0219";
                 protected override ImmutableArray<string> UnsupportedDiagnosticIds
@@ -141,9 +159,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
                             if (!supported.Contains(errorCode) && errorCode > 0)
                             {
                                 // Add all 3 supported formats for suppressions: integer, integer with leading zeros, "CS" prefix
-                                builder.Add(errorCode.ToString());
-                                builder.Add(errorCode.ToString("D4"));
-                                builder.Add("CS" + errorCode.ToString("D4"));
+                                var errorCodeString = errorCode.ToString();
+                                var errorCodeD4String = errorCode.ToString("D4");
+                                builder.Add(errorCodeString);
+                                if (errorCodeD4String != errorCodeString)
+                                    builder.Add(errorCodeD4String);
+                                builder.Add("CS" + errorCodeD4String);
                             }
                         }
 
@@ -154,8 +175,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
 
             public sealed class AnalyzerTests : CompilerOrAnalyzerTests
             {
+                public AnalyzerTests(ITestOutputHelper logger)
+                    : base(logger)
+                {
+                }
+
                 internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers
                     => ImmutableArray.Create<DiagnosticAnalyzer>(new UserDiagnosticAnalyzer(), new CompilationEndDiagnosticAnalyzer());
+                protected override bool IsCompilerDiagnosticsTest => false;
                 protected override string VariableDeclaredButNotUsedDiagnosticId => UserDiagnosticAnalyzer.Descriptor0168.Id;
                 protected override string VariableAssignedButNotUsedDiagnosticId => UserDiagnosticAnalyzer.Descriptor0219.Id;
                 protected override ImmutableArray<string> UnsupportedDiagnosticIds
@@ -167,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessarySuppre
             }
 
             [Fact]
-            public async Task TestDoNotRemoveRequiredDiagnosticSuppression()
+            public async Task TestDoNotRemoveRequiredDiagnosticSuppression_Pragma()
             {
                 await TestMissingInRegularAndScriptAsync(
         $@"
@@ -183,7 +210,7 @@ class Class
             }
 
             [Fact]
-            public async Task TestDoNotRemoveRequiredDiagnosticSuppression_02()
+            public async Task TestDoNotRemoveRequiredDiagnosticSuppression_Pragma_02()
             {
                 await TestMissingInRegularAndScriptAsync(
         $@"
@@ -197,17 +224,104 @@ class Class
 }}");
             }
 
+            [Fact]
+            public async Task TestDoNotRemoveRequiredDiagnosticSuppression_Attribute_Method()
+            {
+                var code = $@"
+class Class
+{{
+    [|[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]|]
+    void M()
+    {{
+        int y;
+    }}
+}}";
+                // Compiler diagnostics cannot be suppressed with SuppressMessageAttribute.
+                // Hence, attribute suppressions for compiler diagnostics are always unnecessary.
+                if (!IsCompilerDiagnosticsTest)
+                {
+                    await TestMissingInRegularAndScriptAsync(code);
+                }
+                else
+                {
+                    await TestInRegularAndScript1Async(code, @"
+class Class
+{
+    void M()
+    {
+        int y;
+    }
+}");
+                }
+            }
+
+            [Fact]
+            public async Task TestDoNotRemoveRequiredDiagnosticSuppression_Attribute_02()
+            {
+                var code = $@"
+[|[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]|]
+class Class
+{{
+    void M()
+    {{
+        int y;
+    }}
+}}";
+                // Compiler diagnostics cannot be suppressed with SuppressMessageAttribute.
+                // Hence, attribute suppressions for compiler diagnostics are always unnecessary.
+                if (!IsCompilerDiagnosticsTest)
+                {
+                    await TestMissingInRegularAndScriptAsync(code);
+                }
+                else
+                {
+                    await TestInRegularAndScript1Async(code, @"
+class Class
+{
+    void M()
+    {
+        int y;
+    }
+}");
+                }
+            }
+
+            public enum TestKind
+            {
+                Pragmas,
+                SuppressMessageAttributes,
+                PragmasAndSuppressMessageAttributes
+            }
+
             [Theory, CombinatorialData]
-            public async Task TestDoNotRemoveUnsupportedDiagnosticSuppression(bool disable)
+            [WorkItem(46047, "https://github.com/dotnet/roslyn/issues/46047")]
+            public async Task TestDoNotRemoveUnsupportedDiagnosticSuppression(bool disable, TestKind testKind)
             {
                 var disableOrRestore = disable ? "disable" : "restore";
                 var pragmas = new StringBuilder();
+                var suppressMessageAttribtes = new StringBuilder();
                 foreach (var id in UnsupportedDiagnosticIds)
                 {
-                    pragmas.AppendLine($@"#pragma warning {disableOrRestore} {id}");
+                    if (testKind == TestKind.Pragmas || testKind == TestKind.PragmasAndSuppressMessageAttributes)
+                        pragmas.AppendLine($@"#pragma warning {disableOrRestore} {id}");
+
+                    if (testKind == TestKind.SuppressMessageAttributes || testKind == TestKind.PragmasAndSuppressMessageAttributes)
+                        suppressMessageAttribtes.AppendLine($@"[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{id}"")]");
                 }
 
-                await TestMissingInRegularAndScriptAsync($"[|{pragmas}|]");
+                var source = $@"{{|FixAllInDocument:{pragmas}{suppressMessageAttribtes}|}}class Class {{ }}";
+
+                // Compiler diagnostics cannot be suppressed with SuppressMessageAttribute.
+                // Hence, attribute suppressions for compiler diagnostics are always unnecessary.
+                if (!IsCompilerDiagnosticsTest || testKind == TestKind.Pragmas)
+                {
+                    await TestMissingInRegularAndScriptAsync(source);
+                }
+                else
+                {
+                    var fixedSource = $@"{pragmas}class Class {{ }}";
+                    await TestInRegularAndScriptAsync(source, fixedSource);
+                }
             }
 
             [Fact]
@@ -216,18 +330,19 @@ class Class
                 await TestMissingInRegularAndScriptAsync(
         $@"
 #if false
-
+[|
 class Class
 {{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]
     void M()
     {{
-[|#pragma warning disable {VariableDeclaredButNotUsedDiagnosticId} // Variable is declared but never used - Inactive
+#pragma warning disable {VariableDeclaredButNotUsedDiagnosticId} // Variable is declared but never used - Inactive
         int y;
-#pragma warning restore {VariableDeclaredButNotUsedDiagnosticId} // Variable is declared but never used - Inactive|]
+#pragma warning restore {VariableDeclaredButNotUsedDiagnosticId} // Variable is declared but never used - Inactive
         y = 1;
     }}
 }}
-
+|]
 #endif");
             }
 
@@ -236,18 +351,19 @@ class Class
             {
                 await TestMissingInRegularAndScriptAsync(
         $@"
+[|
 class Class
 {{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]
     void M()
     {{
-[|#pragma warning disable {VariableDeclaredButNotUsedDiagnosticId} // Variable is declared but never used
+#pragma warning disable {VariableDeclaredButNotUsedDiagnosticId} // Variable is declared but never used
         int y   // CS1002: ; expected
-#pragma warning restore {VariableDeclaredButNotUsedDiagnosticId} // Variable is declared but never used|]
+#pragma warning restore {VariableDeclaredButNotUsedDiagnosticId} // Variable is declared but never used
         y = 1;
     }}
 }}
-
-#endif");
+|]");
             }
 
             [Fact]
@@ -256,17 +372,40 @@ class Class
                 await TestMissingInRegularAndScriptAsync(
         $@"
 #pragma warning disable {IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId}
-
+[|
 class Class
 {{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]
     void M()
     {{
-[|#pragma warning disable {VariableDeclaredButNotUsedDiagnosticId} // Variable is declared but never used - Unnecessary, but suppressed
+#pragma warning disable {VariableDeclaredButNotUsedDiagnosticId} // Variable is declared but never used - Unnecessary, but suppressed
         int y;
-#pragma warning restore {VariableDeclaredButNotUsedDiagnosticId} // Variable is declared but never used - Unnecessary, but suppressed|]
+#pragma warning restore {VariableDeclaredButNotUsedDiagnosticId} // Variable is declared but never used - Unnecessary, but suppressed
         y = 1;
     }}
-}}");
+}}
+|]");
+            }
+
+            [Fact, WorkItem(46075, "https://github.com/dotnet/roslyn/issues/46075")]
+            public async Task TestDoNotRemoveDiagnosticSuppressionInGeneratedCode()
+            {
+                await TestMissingInRegularAndScriptAsync(
+        $@"
+// <autogenerated>
+[|
+class Class
+{{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")] // Variable is declared but never used - Unnecessary, but not reported in generated code
+    void M()
+    {{
+#pragma warning disable {VariableDeclaredButNotUsedDiagnosticId} // Variable is declared but never used - Unnecessary, but not reported in generated code
+        int y;
+#pragma warning restore {VariableDeclaredButNotUsedDiagnosticId} // Variable is declared but never used - Unnecessary, but not reported in generated code
+        y = 1;
+    }}
+}}
+|]");
             }
 
             [Theory, CombinatorialData]
@@ -279,20 +418,73 @@ class Class
 
                 await TestMissingInRegularAndScriptAsync(
         $@"
+[|
 class Class
+{{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]
+    void M()
+    {{
+#pragma warning disable {VariableDeclaredButNotUsedDiagnosticId} // Variable is declared but never used - Unnecessary, but suppressed
+        int y;
+#pragma warning restore {VariableDeclaredButNotUsedDiagnosticId} // Variable is declared but never used - Unnecessary, but suppressed
+        y = 1;
+    }}
+}}
+|]", new TestParameters(options: options));
+            }
+
+            [Fact, WorkItem(47288, "https://github.com/dotnet/roslyn/issues/47288")]
+            public async Task TestDoNotRemoveExcludedDiagnosticCategorySuppression()
+            {
+                var options = new OptionsCollection(LanguageNames.CSharp)
+                {
+                    { CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions, "category: ExcludedCategory" }
+                };
+
+                await TestMissingInRegularAndScriptAsync(
+        $@"
+[|
+class Class
+{{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""ExcludedCategory"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""ExcludedCategory"", ""{VariableAssignedButNotUsedDiagnosticId}"")]
+    void M()
+    {{
+        int y;
+        y = 1;
+
+        int z = 1;
+        z++;
+    }}
+}}
+|]", new TestParameters(options: options));
+            }
+
+            [Fact]
+            public async Task TestDoNotRemoveDiagnosticSuppression_Attribute_OnPartialDeclarations()
+            {
+                await TestMissingInRegularAndScriptAsync(
+        $@"
+[|
+// Unnecessary, but we do not perform analysis for SuppressMessageAttributes on partial declarations.
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]
+partial class Class
+{{
+}}
+
+partial class Class
 {{
     void M()
     {{
-[|#pragma warning disable {VariableDeclaredButNotUsedDiagnosticId} // Variable is declared but never used - Unnecessary, but suppressed
         int y;
-#pragma warning restore {VariableDeclaredButNotUsedDiagnosticId} // Variable is declared but never used - Unnecessary, but suppressed|]
         y = 1;
     }}
-}}", new TestParameters(options: options));
+}}
+|]");
             }
 
             [Theory, CombinatorialData]
-            public async Task TestRemoveDiagnosticSuppression(bool testFixFromDisable)
+            public async Task TestRemoveDiagnosticSuppression_Pragma(bool testFixFromDisable)
             {
                 var (disablePrefix, disableSuffix, restorePrefix, restoreSuffix) = testFixFromDisable
                     ? ("[|", "|]", "", "")
@@ -313,6 +505,68 @@ class Class
         @"
 class Class
 {
+    void M()
+    {
+        int y;
+        y = 1;
+    }
+}");
+            }
+
+            [Fact]
+            public async Task TestRemoveDiagnosticSuppression_Attribute()
+            {
+                await TestInRegularAndScript1Async(
+        $@"
+class Class
+{{
+    [|[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]|] // Variable is declared but never used - Unnecessary
+    void M()
+    {{
+        int y;
+        y = 1;
+    }}
+}}",
+        @"
+class Class
+{
+    void M()
+    {
+        int y;
+        y = 1;
+    }
+}");
+            }
+
+            [Fact]
+            public async Task TestRemoveDiagnosticSuppression_Attribute_Trivia()
+            {
+                await TestInRegularAndScript1Async(
+        $@"
+class Class
+{{
+    // Comment1
+    /// <summary>
+    /// DocComment
+    /// </summary>
+    // Comment2
+    [|[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]|] // Comment3
+    // Comment4
+    void M()
+    {{
+        int y;
+        y = 1;
+    }}
+}}",
+        @"
+class Class
+{
+    // Comment1
+    /// <summary>
+    /// DocComment
+    /// </summary>
+    // Comment2
+    // Comment4
     void M()
     {
         int y;
@@ -372,7 +626,7 @@ class Class
             }
 
             [Theory, CombinatorialData]
-            public async Task TestRemoveDiagnosticSuppression_DuplicateSuppression(bool testFixFromDisable)
+            public async Task TestRemoveDiagnosticSuppression_DuplicatePragmaSuppression(bool testFixFromDisable)
             {
                 var (disablePrefix, disableSuffix, restorePrefix, restoreSuffix) = testFixFromDisable
                     ? ("[|", "|]", "", "")
@@ -403,8 +657,119 @@ class Class
 }}");
             }
 
+            [Fact]
+            public async Task TestRemoveDiagnosticSuppression_DuplicateAttributeSuppression()
+            {
+                // Compiler diagnostics cannot be suppressed with SuppressMessageAttribute.
+                // Hence, attribute suppressions for compiler diagnostics are always unnecessary.
+                var retainedAttributesInFixCode = IsCompilerDiagnosticsTest
+                    ? string.Empty
+                    : $@"[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")] // Variable is declared but never used - Necessary
+    ";
+
+                await TestInRegularAndScript1Async(
+        $@"
+class Class
+{{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")] // Variable is declared but never used - Necessary
+    {{|FixAllInDocument:[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")] // Variable is declared but never used - Unnecessary|}}
+    void M()
+    {{
+        int y;
+    }}
+}}",
+        $@"
+class Class
+{{
+    {retainedAttributesInFixCode}void M()
+    {{
+        int y;
+    }}
+}}");
+            }
+
+            [Fact]
+            public async Task TestRemoveDiagnosticSuppression_DuplicateAttributeSuppression_OnContainingSymbol()
+            {
+                // Compiler diagnostics cannot be suppressed with SuppressMessageAttribute.
+                // Hence, attribute suppressions for compiler diagnostics are always unnecessary.
+                var retainedAttributesInFixCode = IsCompilerDiagnosticsTest
+                    ? string.Empty
+                    : $@"[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")] // Variable is declared but never used - Necessary
+    ";
+
+                await TestInRegularAndScript1Async(
+        $@"
+{{|FixAllInDocument:[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")] // Variable is declared but never used - Unnecessary|}}
+class Class
+{{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")] // Variable is declared but never used - Necessary
+    void M()
+    {{
+        int y;
+    }}
+}}",
+        $@"
+class Class
+{{
+    {retainedAttributesInFixCode}void M()
+    {{
+        int y;
+    }}
+}}");
+            }
+
+            [Fact]
+            public async Task TestRemoveDiagnosticSuppression_DuplicatePragmaAndAttributeSuppression()
+            {
+                var source = $@"
+class Class
+{{
+    [|[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]
+    void M()
+    {{
+#pragma warning disable {VariableDeclaredButNotUsedDiagnosticId}|]
+        int y;
+#pragma warning restore {VariableDeclaredButNotUsedDiagnosticId}
+    }}
+}}";
+                string fixedSource;
+                if (IsCompilerDiagnosticsTest)
+                {
+                    // Compiler diagnostics cannot be suppressed with SuppressMessageAttribute.
+                    // Hence, attribute suppressions for compiler diagnostics are always unnecessary.
+                    fixedSource = $@"
+class Class
+{{
+    void M()
+    {{
+#pragma warning disable {VariableDeclaredButNotUsedDiagnosticId}
+        int y;
+#pragma warning restore {VariableDeclaredButNotUsedDiagnosticId}
+    }}
+}}";
+                }
+                else
+                {
+                    // Analyzer diagnostics can be suppressed with both SuppressMessageAttribute and pragmas.
+                    // SuppressMessageAttribute takes precedence over pragmas for duplicate suppressions,
+                    // hence duplicate pragmas are considered unnecessary.
+                    fixedSource = $@"
+class Class
+{{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]
+    void M()
+    {{
+        int y;
+    }}
+}}";
+                }
+
+                await TestInRegularAndScript1Async(source, fixedSource);
+            }
+
             [Theory, CombinatorialData]
-            public async Task TestRemoveDiagnosticSuppression_InnerValidSuppression(bool testFixFromDisable)
+            public async Task TestRemoveDiagnosticSuppression_Pragma_InnerValidSuppression(bool testFixFromDisable)
             {
                 var (disablePrefix, disableSuffix, restorePrefix, restoreSuffix) = testFixFromDisable
                     ? ("[|", "|]", "", "")
@@ -435,8 +800,33 @@ class Class
 }}");
             }
 
+            [Fact]
+            public async Task TestRemoveDiagnosticSuppression_Attribute_InnerValidSuppression()
+            {
+                await TestInRegularAndScript1Async(
+        $@"
+class Class
+{{
+    [|[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]|] // Variable is declared but never used - Unnecessary
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableAssignedButNotUsedDiagnosticId}"")] // Variable is assigned but its value is never used - Necessary
+    void M()
+    {{
+        int y = 0;
+    }}
+}}",
+        $@"
+class Class
+{{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableAssignedButNotUsedDiagnosticId}"")] // Variable is assigned but its value is never used - Necessary
+    void M()
+    {{
+        int y = 0;
+    }}
+}}");
+            }
+
             [Theory, CombinatorialData]
-            public async Task TestRemoveDiagnosticSuppression_OuterValidSuppression(bool testFixFromDisable)
+            public async Task TestRemoveDiagnosticSuppression_Pragma_OuterValidSuppression(bool testFixFromDisable)
             {
                 var (disablePrefix, disableSuffix, restorePrefix, restoreSuffix) = testFixFromDisable
                     ? ("[|", "|]", "", "")
@@ -463,6 +853,31 @@ class Class
 #pragma warning disable {VariableAssignedButNotUsedDiagnosticId} // Variable is assigned but its value is never used - Necessary
         int y = 0;
 #pragma warning restore {VariableAssignedButNotUsedDiagnosticId} // Variable is assigned but its value is never used - Necessary
+    }}
+}}");
+            }
+
+            [Fact]
+            public async Task TestRemoveDiagnosticSuppression_Attribute_OuterValidSuppression()
+            {
+                await TestInRegularAndScript1Async(
+        $@"
+class Class
+{{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableAssignedButNotUsedDiagnosticId}"")] // Variable is assigned but its value is never used - Necessary
+    [|[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]|] // Variable is declared but never used - Unnecessary
+    void M()
+    {{
+        int y = 0;
+    }}
+}}",
+        $@"
+class Class
+{{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableAssignedButNotUsedDiagnosticId}"")] // Variable is assigned but its value is never used - Necessary
+    void M()
+    {{
+        int y = 0;
     }}
 }}");
             }
@@ -554,7 +969,7 @@ class Class
             }
 
             [Theory, CombinatorialData]
-            public async Task TestRemoveUnknownDiagnosticSuppression(bool testFixFromDisable)
+            public async Task TestRemoveUnknownDiagnosticSuppression_Pragma(bool testFixFromDisable)
             {
                 var (disablePrefix, disableSuffix, restorePrefix, restoreSuffix) = testFixFromDisable
                     ? ("[|", "|]", "", "")
@@ -572,14 +987,34 @@ class Class
 {
 }");
             }
+
+            [Fact]
+            public async Task TestRemoveUnknownDiagnosticSuppression_Attribute()
+            {
+                await TestInRegularAndScript1Async(
+        @"
+[|[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""UnknownId"")]|]
+class Class
+{
+}",
+        @"
+class Class
+{
+}");
+            }
         }
 
         #endregion
 
         #region Multiple analyzer tests (Compiler AND Analyzer)
 
-        public sealed class CompilerAndAnalyzerTests : RemoveUnnecessaryPragmaSuppressionsTests
+        public sealed class CompilerAndAnalyzerTests : RemoveUnnecessaryInlineSuppressionsTests
         {
+            public CompilerAndAnalyzerTests(ITestOutputHelper logger)
+                : base(logger)
+            {
+            }
+
             internal override ImmutableArray<DiagnosticAnalyzer> OtherAnalyzers =>
                 ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer(), new UserDiagnosticAnalyzer());
 
@@ -605,20 +1040,22 @@ class Class
             public async Task TestDoNotRemoveDiagnosticSuppressionsForSuppressedAnalyzer()
             {
                 var source = $@"
-class Class
+[|class Class
 {{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""CS0168"")] // Variable is declared but never used - Unnecessary, but suppressed
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{UserDiagnosticAnalyzer.Descriptor0168.Id}"")] // Variable is declared but never used - Unnecessary, but suppressed
     void M()
     {{
-[|#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary, but suppressed
+#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary, but suppressed
 #pragma warning disable {UserDiagnosticAnalyzer.Descriptor0168.Id} // Variable is declared but never used - Unnecessary, but suppressed
         int y;
 #pragma warning restore {UserDiagnosticAnalyzer.Descriptor0168.Id} // Variable is declared but never used - Unnecessary, but suppressed
-#pragma warning restore CS0168 // Variable is declared but never used - Unnecessary, but suppressed|]
+#pragma warning restore CS0168 // Variable is declared but never used - Unnecessary, but suppressed
         y = 1;
     }}
-}}";
+}}|]";
                 var parameters = new TestParameters();
-                using var workspace = CreateWorkspaceFromFile(source, parameters);
+                using var workspace = CreateWorkspaceFromOptions(source, parameters);
 
                 // Suppress the diagnostic in options.
                 var projectId = workspace.Projects[0].Id;
@@ -685,18 +1122,20 @@ class Class
 
                 await TestMissingInRegularAndScriptAsync(
         $@"
-class Class
+[|class Class
 {{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""CS0168"")] // Variable is declared but never used - Unnecessary, but suppressed
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{UserDiagnosticAnalyzer.Descriptor0168.Id}"")] // Variable is declared but never used - Unnecessary, but suppressed
     void M()
     {{
-[|#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary, but suppressed
+#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary, but suppressed
 #pragma warning disable {UserDiagnosticAnalyzer.Descriptor0168.Id} // Variable is declared but never used - Unnecessary, but suppressed
         int y;
 #pragma warning restore {UserDiagnosticAnalyzer.Descriptor0168.Id} // Variable is declared but never used - Unnecessary, but suppressed
-#pragma warning restore CS0168 // Variable is declared but never used - Unnecessary, but suppressed|]
+#pragma warning restore CS0168 // Variable is declared but never used - Unnecessary, but suppressed
         y = 1;
     }}
-}}", new TestParameters(options: options));
+}}|]", new TestParameters(options: options));
             }
 
             [Theory, CombinatorialData]
@@ -769,8 +1208,12 @@ class Class
         $@"
 #pragma warning disable CS0168 // Variable is declared but never used - Unnecessary
 #pragma warning disable {UserDiagnosticAnalyzer.Descriptor0168.Id}
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""CS0168"")]
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{UserDiagnosticAnalyzer.Descriptor0168.Id}"")]
 class Class
 {{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""CS0168"")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{UserDiagnosticAnalyzer.Descriptor0168.Id}"")]
     void M()
     {{
 {disablePrefix}#pragma warning disable {UserDiagnosticAnalyzer.Descriptor0168.Id} // Variable is declared but never used - Unnecessary{disableSuffix}
@@ -791,6 +1234,54 @@ class Class
     }
 }");
             }
+        }
+
+        [Fact]
+        public async Task TestRemoveDiagnosticSuppression_Attribute_Field()
+        {
+            await TestInRegularAndScript1Async(
+    $@"
+class Class
+{{
+    [|[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""UnknownId"")]|]
+    private int f;
+}}", @"
+class Class
+{
+    private int f;
+}");
+        }
+
+        [Fact]
+        public async Task TestRemoveDiagnosticSuppression_Attribute_Property()
+        {
+            await TestInRegularAndScript1Async(
+    $@"
+class Class
+{{
+    [|[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""UnknownId"")]|]
+    public int P {{ get; }}
+}}", @"
+class Class
+{
+    public int P { get; }
+}");
+        }
+
+        [Fact]
+        public async Task TestRemoveDiagnosticSuppression_Attribute_Event()
+        {
+            await TestInRegularAndScript1Async(
+    $@"
+class Class
+{{
+    [|[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""UnknownId"")]|]
+    private event System.EventHandler SampleEvent;
+}}", @"
+class Class
+{
+    private event System.EventHandler SampleEvent;
+}");
         }
 
         #endregion

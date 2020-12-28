@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -126,14 +124,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        [return: MaybeNull]
-        internal T DecodeValue<T>(SpecialType specialType)
+        internal T? DecodeValue<T>(SpecialType specialType)
         {
-            TryDecodeValue(specialType, out T value);
+            TryDecodeValue(specialType, out T? value);
             return value;
         }
 
-        internal bool TryDecodeValue<T>(SpecialType specialType, [MaybeNull] out T value)
+        internal bool TryDecodeValue<T>(SpecialType specialType, [MaybeNullWhen(false)] out T value)
         {
             if (_kind == TypedConstantKind.Error)
             {
@@ -143,7 +140,7 @@ namespace Microsoft.CodeAnalysis
 
             if (_type!.SpecialType == specialType || (_type.TypeKind == TypeKind.Enum && specialType == SpecialType.System_Enum))
             {
-                value = (T)_value;
+                value = (T)_value!;
                 return true;
             }
 

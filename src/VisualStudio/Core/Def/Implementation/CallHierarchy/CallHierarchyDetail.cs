@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.CallHierarchy;
@@ -62,7 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             if (document != null)
             {
                 var navigator = _workspace.Services.GetService<IDocumentNavigationService>();
-                var options = _workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true);
+                var options = _workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true)
+                                                .WithChangedOption(NavigationOptions.ActivateTab, false);
                 navigator.TryNavigateToSpan(_workspace, document.Id, _span, options);
             }
         }

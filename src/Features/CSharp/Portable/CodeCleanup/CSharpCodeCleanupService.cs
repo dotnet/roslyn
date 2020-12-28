@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -23,16 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
     [ExportLanguageService(typeof(ICodeCleanupService), LanguageNames.CSharp), Shared]
     internal class CSharpCodeCleanupService : ICodeCleanupService
     {
-        private readonly ICodeFixService _codeFixServiceOpt;
+        private readonly ICodeFixService _codeFixService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeCleanupService(
-            // will remove the AllowDefault once CodeFixService is moved to Features
-            // https://github.com/dotnet/roslyn/issues/27369
-            [Import(AllowDefault = true)] ICodeFixService codeFixService)
+        public CSharpCodeCleanupService(ICodeFixService codeFixService)
         {
-            _codeFixServiceOpt = codeFixService;
+            _codeFixService = codeFixService;
         }
 
         /// <summary>
@@ -84,8 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                     new[] { IDEDiagnosticIds.UseObjectInitializerDiagnosticId, IDEDiagnosticIds.UseCollectionInitializerDiagnosticId }),
 
                 new DiagnosticSet(CSharpFeaturesResources.Apply_using_directive_placement_preferences,
-                    new[] { IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId })
-            );
+                    new[] { IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId }),
+
+                new DiagnosticSet(CSharpFeaturesResources.Apply_file_header_preferences,
+                    new[] { IDEDiagnosticIds.FileHeaderMismatch }));
 
         public async Task<Document> CleanupAsync(
             Document document,
@@ -94,7 +95,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             CancellationToken cancellationToken)
         {
             // add one item for the 'format' action we'll do last
-            progressTracker.AddItems(1);
+            if (enabledDiagnostics.FormatDocument)
+            {
+                progressTracker.AddItems(1);
+            }
 
             // and one for 'remove/sort usings' if we're going to run that.
             var organizeUsings = enabledDiagnostics.OrganizeUsings.IsRemoveUnusedImportEnabled ||
@@ -104,11 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 progressTracker.AddItems(1);
             }
 
-            if (_codeFixServiceOpt != null)
-            {
-                document = await ApplyCodeFixesAsync(
-                    document, enabledDiagnostics.Diagnostics, progressTracker, cancellationToken).ConfigureAwait(false);
-            }
+            document = await ApplyCodeFixesAsync(
+                document, enabledDiagnostics.Diagnostics, progressTracker, cancellationToken).ConfigureAwait(false);
 
             // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
             if (organizeUsings)
@@ -119,13 +120,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 progressTracker.ItemCompleted();
             }
 
-            progressTracker.Description = FeaturesResources.Formatting_document;
-            using (Logger.LogBlock(FunctionId.CodeCleanup_Format, cancellationToken))
+            if (enabledDiagnostics.FormatDocument)
             {
-                var result = await Formatter.FormatAsync(document, cancellationToken: cancellationToken).ConfigureAwait(false);
-                progressTracker.ItemCompleted();
-                return result;
+                progressTracker.Description = FeaturesResources.Formatting_document;
+                using (Logger.LogBlock(FunctionId.CodeCleanup_Format, cancellationToken))
+                {
+                    document = await Formatter.FormatAsync(document, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    progressTracker.ItemCompleted();
+                }
             }
+
+            return document;
         }
 
         private static async Task<Document> RemoveSortUsingsAsync(
@@ -183,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             {
                 using (Logger.LogBlock(FunctionId.CodeCleanup_ApplyCodeFixesAsync, diagnosticId, cancellationToken))
                 {
-                    document = await _codeFixServiceOpt.ApplyCodeFixesForSpecificDiagnosticIdAsync(
+                    document = await _codeFixService.ApplyCodeFixesForSpecificDiagnosticIdAsync(
                         document, diagnosticId, progressTracker, cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -192,6 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         }
 
         public EnabledDiagnosticOptions GetAllDiagnostics()
-            => new EnabledDiagnosticOptions(s_diagnosticSets, new OrganizeUsingsSet(isRemoveUnusedImportEnabled: true, isSortImportsEnabled: true));
+            => new EnabledDiagnosticOptions(formatDocument: true, s_diagnosticSets, new OrganizeUsingsSet(isRemoveUnusedImportEnabled: true, isSortImportsEnabled: true));
     }
 }

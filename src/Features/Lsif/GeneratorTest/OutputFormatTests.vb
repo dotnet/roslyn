@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
     <UseExportProvider>
     Public NotInheritable Class OutputFormatTests
         <Fact>
-        Public Async Sub TestLineModeOutput()
+        Public Async Function TestLineModeOutput() As Task
             Dim stringWriter = New StringWriter()
             Dim jsonWriter = New LineModeLsifJsonWriter(stringWriter)
 
@@ -30,14 +30,16 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
 {""uri"":""file:///Z:/A.cs"",""languageId"":""csharp"",""id"":3,""type"":""vertex"",""label"":""document""}
 {""kind"":""begin"",""scope"":""document"",""data"":3,""id"":4,""type"":""vertex"",""label"":""$event""}
 {""outV"":3,""inVs"":[],""id"":5,""type"":""edge"",""label"":""contains""}
-{""kind"":""end"",""scope"":""document"",""data"":3,""id"":6,""type"":""vertex"",""label"":""$event""}
-{""outV"":1,""inVs"":[3],""id"":7,""type"":""edge"",""label"":""contains""}
-{""kind"":""end"",""scope"":""project"",""data"":1,""id"":8,""type"":""vertex"",""label"":""$event""}
+{""result"":[],""id"":6,""type"":""vertex"",""label"":""foldingRangeResult""}
+{""outV"":3,""inVs"":[6],""id"":7,""type"":""edge"",""label"":""textDocument/foldingRange""}
+{""kind"":""end"",""scope"":""document"",""data"":3,""id"":8,""type"":""vertex"",""label"":""$event""}
+{""outV"":1,""inVs"":[3],""id"":9,""type"":""edge"",""label"":""contains""}
+{""kind"":""end"",""scope"":""project"",""data"":1,""id"":10,""type"":""vertex"",""label"":""$event""}
 ", stringWriter.ToString())
-        End Sub
+        End Function
 
         <Fact>
-        Public Async Sub TestJsonModeOutput()
+        Public Async Function TestJsonModeOutput() As Task
             Dim stringWriter = New StringWriter()
             Using jsonWriter = New JsonModeLsifJsonWriter(stringWriter)
 
@@ -90,10 +92,25 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
     ""label"": ""contains""
   },
   {
+    ""result"": [],
+    ""id"": 6,
+    ""type"": ""vertex"",
+    ""label"": ""foldingRangeResult""
+  },
+  {
+    ""outV"": 3,
+    ""inVs"": [
+      6
+    ],
+    ""id"": 7,
+    ""type"": ""edge"",
+    ""label"": ""textDocument/foldingRange""
+  },
+  {
     ""kind"": ""end"",
     ""scope"": ""document"",
     ""data"": 3,
-    ""id"": 6,
+    ""id"": 8,
     ""type"": ""vertex"",
     ""label"": ""$event""
   },
@@ -102,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
     ""inVs"": [
       3
     ],
-    ""id"": 7,
+    ""id"": 9,
     ""type"": ""edge"",
     ""label"": ""contains""
   },
@@ -110,11 +127,11 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
     ""kind"": ""end"",
     ""scope"": ""project"",
     ""data"": 1,
-    ""id"": 8,
+    ""id"": 10,
     ""type"": ""vertex"",
     ""label"": ""$event""
   }
 ]", stringWriter.ToString())
-        End Sub
+        End Function
     End Class
 End Namespace

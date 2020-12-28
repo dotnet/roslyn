@@ -6,18 +6,14 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Configuration.ConfigureCodeStyle
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Configuration.ConfigureSeverity
     Partial Public MustInherit Class MultipleCodeStyleOptionBasedConfigureSeverityTests
         Inherits AbstractSuppressionDiagnosticTest
 
-        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(
-                initialMarkup,
-                parameters.parseOptions,
-                If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
+        Protected Overrides Function SetParameterDefaults(parameters As TestParameters) As TestParameters
+            Return parameters.WithCompilationOptions(If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
         Protected Overrides Function GetLanguage() As String
@@ -73,10 +69,7 @@ End Class
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
 
 # IDE0037: Use inferred member name
-dotnet_style_prefer_inferred_anonymous_type_member_names = true:error
-
-# IDE0037: Use inferred member name
-dotnet_style_prefer_inferred_tuple_names = true:error
+dotnet_diagnostic.IDE0037.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -125,6 +118,9 @@ dotnet_style_prefer_inferred_tuple_names = true:error
 
 # IDE0037: Use inferred member name
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:error
+
+# IDE0037: Use inferred member name
+dotnet_diagnostic.IDE0037.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"
@@ -169,7 +165,61 @@ End Class
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:error
 
 # IDE0037: Use inferred member name
+dotnet_diagnostic.IDE0037.severity = error
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>"
+            Await TestInRegularAndScriptAsync(input, expected, CodeActionIndex)
+        End Function
+
+        <WorkItem(39664, "https://github.com/dotnet/roslyn/issues/39664")>
+        <ConditionalFact(GetType(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)>
+        Public Async Function ConfigureEditorconfig_AllPossibleEntriesExist_Error() As Task
+            Dim input = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.vb"">
+Class C
+    Sub M()
+        Dim a As Integer = 1
+        Dim t = ([||]a:= a, 2)
+    End Sub
+End Class
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
+
+# IDE0037: Use inferred member name
+dotnet_style_prefer_inferred_tuple_names = true:suggestion
+
+# IDE0037: Use inferred member name
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:warning
+
+# IDE0037: Use inferred member name
+dotnet_diagnostic.IDE0037.severity = silent
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>"
+            Dim expected = "
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.vb"">
+Class C
+    Sub M()
+        Dim a As Integer = 1
+        Dim t = (a:= a, 2)
+    End Sub
+End Class
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{cs,vb}]
+
+# IDE0037: Use inferred member name
 dotnet_style_prefer_inferred_tuple_names = true:error
+
+# IDE0037: Use inferred member name
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:error
+
+# IDE0037: Use inferred member name
+dotnet_diagnostic.IDE0037.severity = error
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>"

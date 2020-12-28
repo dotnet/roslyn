@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -265,21 +267,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         public async Task TestOpenProject_NetCoreMultiTFM_ProjectReference()
         {
             CreateFiles(GetNetCoreMultiTFMFiles_ProjectReference());
-
-            // Restoring for Project.csproj should also restore Library.csproj
-            DotNetRestore(@"Project\Project.csproj");
-
-            var projectFilePath = GetSolutionFileName(@"Project\Project.csproj");
-
-            await AssertNetCoreMultiTFMProject(projectFilePath);
-        }
-
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(DotNetCoreSdk.IsAvailable), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/42772")]
-        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        [Trait(Traits.Feature, Traits.Features.NetCore)]
-        public async Task TestOpenProject_NetCoreMultiTFM_ProjectReferenceWithReversedTFMs()
-        {
-            CreateFiles(GetNetCoreMultiTFMFiles_ProjectReferenceWithReversedTFMs());
 
             // Restoring for Project.csproj should also restore Library.csproj
             DotNetRestore(@"Project\Project.csproj");

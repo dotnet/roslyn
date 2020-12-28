@@ -346,7 +346,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         End If
 
                         If part = EnvDTE.vsCMPart.vsCMPartNavigate Then
-                            Return NavigationPointHelpers.GetNavigationPoint(text, GetTabSize(options), typeBlock.BlockStatement, typeBlock.EndBlockStatement, statementLine.LineNumber + 1)
+                            Return NavigationPointHelpers.GetNavigationPoint(text, GetTabSize(options), typeBlock.BlockStatement, statementLine.LineNumber + 1)
                         End If
 
                     Case Else
@@ -417,7 +417,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         End If
 
                         If part = EnvDTE.vsCMPart.vsCMPartNavigate Then
-                            Return NavigationPointHelpers.GetNavigationPoint(text, GetTabSize(options), enumBlock.EnumStatement, enumBlock.EndEnumStatement, statementLine.LineNumber + 1)
+                            Return NavigationPointHelpers.GetNavigationPoint(text, GetTabSize(options), enumBlock.EnumStatement, statementLine.LineNumber + 1)
                         End If
 
                     Case Else
@@ -1007,7 +1007,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                             lineNumber = text.Lines.IndexOf(colonTrivia.Value.SpanStart)
                         End If
 
-                        Return NavigationPointHelpers.GetNavigationPoint(text, GetTabSize(options), namespaceBlock.NamespaceStatement, namespaceBlock.EndNamespaceStatement, lineNumber)
+                        Return NavigationPointHelpers.GetNavigationPoint(text, GetTabSize(options), namespaceBlock.NamespaceStatement, lineNumber)
 
                     Case EnvDTE.vsCMPart.vsCMPartBody,
                          EnvDTE.vsCMPart.vsCMPartBodyWithDelimiter

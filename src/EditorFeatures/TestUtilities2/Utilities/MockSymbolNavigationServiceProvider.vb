@@ -13,11 +13,11 @@ Imports Microsoft.CodeAnalysis.Options
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     ' Note: by default, TestWorkspace produces a composition from all assemblies except EditorServicesTest2.
     ' This type has to be defined here until we get that cleaned up. Otherwise, other tests may import it.
-    <ExportWorkspaceServiceFactory(GetType(ISymbolNavigationService), ServiceLayer.Host), [Shared]>
+    <ExportWorkspaceServiceFactory(GetType(ISymbolNavigationService), ServiceLayer.Test), [Shared], PartNotDiscoverable>
     Public Class MockSymbolNavigationServiceProvider
         Implements IWorkspaceServiceFactory
 
-        Private _instance As MockSymbolNavigationService = New MockSymbolNavigationService()
+        Private ReadOnly _instance As MockSymbolNavigationService = New MockSymbolNavigationService()
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -37,14 +37,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Public TrySymbolNavigationNotifyProvidedSymbol As ISymbol
             Public TrySymbolNavigationNotifyProvidedProject As Project
-            Public TrySymbolNavigationNotifyReturnValue As Boolean = False
+            Public TrySymbolNavigationNotifyReturnValue As Boolean
 
             Public WouldNavigateToSymbolProvidedDefinitionItem As DefinitionItem
             Public WouldNavigateToSymbolProvidedSolution As Solution
-            Public WouldNavigateToSymbolReturnValue As Boolean = False
+            Public WouldNavigateToSymbolReturnValue As Boolean
             Public NavigationFilePathReturnValue As String = String.Empty
-            Public NavigationLineNumberReturnValue As Integer = 0
-            Public NavigationCharOffsetReturnValue As Integer = 0
+            Public NavigationLineNumberReturnValue As Integer
+            Public NavigationCharOffsetReturnValue As Integer
 
             Public Function TryNavigateToSymbol(symbol As ISymbol, project As Project, Optional options As OptionSet = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Boolean Implements ISymbolNavigationService.TryNavigateToSymbol
                 Me.TryNavigateToSymbolProvidedSymbol = symbol

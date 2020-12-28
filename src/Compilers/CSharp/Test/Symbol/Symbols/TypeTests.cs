@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -530,7 +533,7 @@ public class A {
 }
 ";
 
-            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
+            var compilation = CreateEmptyCompilation(text, new[] { TestMetadata.Net40.mscorlib });
             int[] ary = new int[2];
 
             var globalNS = compilation.SourceModule.GlobalNamespace;
@@ -1450,7 +1453,7 @@ class Program
 
             var errSymbol = comp.SourceModule.GlobalNamespace.GetMembers().FirstOrDefault() as NamedTypeSymbol;
             Assert.NotNull(errSymbol);
-            Assert.Equal(SimpleProgramNamedTypeSymbol.UnspeakableName, errSymbol.Name);
+            Assert.Equal(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, errSymbol.Name);
             Assert.False(errSymbol.IsErrorType(), "ErrorType");
             Assert.False(errSymbol.IsImplicitClass, "ImplicitClass");
         }
@@ -2323,6 +2326,83 @@ public class TestClass : TestClass.IInnerInterface
 ";
             var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CallingConventionOnMethods_FromSource()
+        {
+            var sourceComp = CreateCompilation(@"
+class C
+{
+    void M1() { }
+    void M2(params object[] p) { }
+    void M3(__arglist) { }
+}");
+
+            sourceComp.VerifyDiagnostics();
+            var c = sourceComp.GetTypeByMetadataName("C").GetPublicSymbol();
+            var m1 = (IMethodSymbol)c.GetMember("M1");
+            Assert.NotNull(m1);
+            Assert.Equal(SignatureCallingConvention.Default, m1.CallingConvention);
+            Assert.Empty(m1.UnmanagedCallingConventionTypes);
+
+            var m2 = (IMethodSymbol)c.GetMember("M2");
+            Assert.NotNull(m2);
+            Assert.Equal(SignatureCallingConvention.Default, m2.CallingConvention);
+            Assert.Empty(m2.UnmanagedCallingConventionTypes);
+
+            var m3 = (IMethodSymbol)c.GetMember("M3");
+            Assert.NotNull(m3);
+            Assert.Equal(SignatureCallingConvention.VarArgs, m3.CallingConvention);
+            Assert.Empty(m3.UnmanagedCallingConventionTypes);
+        }
+
+        [Fact]
+        public void CallingConventionOnMethods_FromMetadata()
+        {
+            var metadataComp = CreateCompilationWithIL("", ilSource: @"
+.class public auto ansi beforefieldinit C extends [mscorlib]System.Object
+{
+    .method public hidebysig instance void M1 () cil managed 
+    {
+        ret
+    }
+
+    .method public hidebysig instance void M2 (object[] p) cil managed 
+    {
+        .param [1] .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00 )
+        ret
+    }
+
+    .method public hidebysig instance vararg void M3 () cil managed 
+    {
+        ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
+}");
+
+            metadataComp.VerifyDiagnostics();
+            var c = metadataComp.GetTypeByMetadataName("C").GetPublicSymbol();
+            var m1 = (IMethodSymbol)c.GetMember("M1");
+            Assert.NotNull(m1);
+            Assert.Equal(SignatureCallingConvention.Default, m1.CallingConvention);
+            Assert.Empty(m1.UnmanagedCallingConventionTypes);
+
+            var m2 = (IMethodSymbol)c.GetMember("M2");
+            Assert.NotNull(m2);
+            Assert.Equal(SignatureCallingConvention.Default, m2.CallingConvention);
+            Assert.Empty(m2.UnmanagedCallingConventionTypes);
+
+            var m3 = (IMethodSymbol)c.GetMember("M3");
+            Assert.NotNull(m3);
+            Assert.Equal(SignatureCallingConvention.VarArgs, m3.CallingConvention);
+            Assert.Empty(m3.UnmanagedCallingConventionTypes);
         }
     }
 }

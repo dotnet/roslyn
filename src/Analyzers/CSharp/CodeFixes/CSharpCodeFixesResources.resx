@@ -132,4 +132,7 @@
   <data name="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code" xml:space="preserve">
     <value>Warning: Adding parameters to local function declaration may produce invalid code.</value>
   </data>
+  <data name="Convert_typeof_to_nameof" xml:space="preserve">
+    <value>Convert 'typeof' to 'nameof'</value>
+  </data>
 </root>

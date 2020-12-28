@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -264,7 +262,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                         editor.ReplaceNode(parent, parent.WithAdditionalAnnotations(
                             ConflictAnnotation.Create(FeaturesResources.Property_referenced_implicitly)));
                     }
-                    else if (syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(parent))
+                    else if (syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(parent))
                     {
                         editor.ReplaceNode(parent, parent.WithAdditionalAnnotations(
                             ConflictAnnotation.Create(FeaturesResources.Property_reference_cannot_be_updated)));
@@ -349,7 +347,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             var service = updatedDocument.GetRequiredLanguageService<IReplacePropertyWithMethodsService>();
 
-            var root = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await updatedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, updatedSolution.Workspace);
 

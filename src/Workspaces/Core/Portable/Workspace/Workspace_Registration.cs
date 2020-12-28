@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -15,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     public abstract partial class Workspace
     {
         private static readonly ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration> s_bufferToWorkspaceRegistrationMap =
-            new ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration>();
+            new();
 
         /// <summary>
         /// Gets the workspace associated with the specific text container.
@@ -70,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static WorkspaceRegistration CreateRegistration(SourceTextContainer container)
-            => new WorkspaceRegistration();
+            => new();
 
         private static readonly ConditionalWeakTable<SourceTextContainer, WorkspaceRegistration>.CreateValueCallback s_createRegistration = CreateRegistration;
 

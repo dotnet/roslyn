@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
                     loader: TextLoader.From(TextAndVersion.Create(SourceText.From(s), VersionStamp.Default)))).ToList();
 
             var proj = ProjectInfo.Create(pid, VersionStamp.Default, "test", "test.dll", LanguageNames.CSharp, documents: docs,
-                metadataReferences: new[] { TestReferences.NetFx.v4_0_30319.mscorlib });
+                metadataReferences: new[] { TestMetadata.Net451.mscorlib });
 
             return ws.AddProject(proj).Solution;
         }

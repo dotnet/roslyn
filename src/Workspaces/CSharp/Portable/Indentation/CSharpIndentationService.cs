@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
     [ExportLanguageService(typeof(IIndentationService), LanguageNames.CSharp), Shared]
     internal sealed partial class CSharpIndentationService : AbstractIndentationService<CompilationUnitSyntax>
     {
-        public static readonly CSharpIndentationService Instance = new CSharpIndentationService();
+        public static readonly CSharpIndentationService Instance = new();
 
         private static readonly AbstractFormattingRule s_instance = new FormattingRule();
 
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 }
 
                 if (node is BaseArgumentListSyntax argument &&
-                    argument.Parent.Kind() != SyntaxKind.ThisConstructorInitializer &&
+                    !argument.Parent.IsKind(SyntaxKind.ThisConstructorInitializer) &&
                     !IsBracketedArgumentListMissingBrackets(argument as BracketedArgumentListSyntax))
                 {
                     AddIndentBlockOperations(list, argument);
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 }
             }
 
-            private static bool IsBracketedArgumentListMissingBrackets(BracketedArgumentListSyntax node)
+            private static bool IsBracketedArgumentListMissingBrackets(BracketedArgumentListSyntax? node)
                 => node != null && node.OpenBracketToken.IsMissing && node.CloseBracketToken.IsMissing;
 
             private static void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
@@ -189,6 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
             private static void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node)
             {
+                RoslynDebug.AssertNotNull(node.Parent);
+
                 // only add indent block operation if the base token is the first token on line
                 var baseToken = node.Parent.GetFirstToken(includeZeroWidth: true);
 

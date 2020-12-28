@@ -2,19 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
-using System.IO.Pipes;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -28,7 +24,25 @@ namespace Microsoft.CodeAnalysis.Interactive
     /// </remarks>
     internal sealed partial class InteractiveHost : IDisposable
     {
-        internal const bool DefaultIs64Bit = true;
+        internal const InteractiveHostPlatform DefaultPlatform = InteractiveHostPlatform.Desktop32;
+
+        /// <summary>
+        /// Use Unicode encoding for STDOUT and STDERR of the InteractiveHost process.
+        /// Ideally, we would use UTF8 but SetConsoleOutputCP Windows API fails with "Invalid Handle" when Console.OutputEncoding is set to UTF8.
+        /// (issue tracked by https://github.com/dotnet/roslyn/issues/47571, https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1253106)
+        /// Unicode is not ideal since the message printed directly to STDOUT/STDERR from native code that do not encode the output are going to be garbled
+        /// (e.g. messages reported by CLR stack overflow and OOM exception handlers: https://github.com/dotnet/runtime/issues/45503).
+        /// </summary>
+        internal static readonly Encoding OutputEncoding = Encoding.Unicode;
+
+        private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new JsonRpcTargetOptions()
+        {
+            // Do not allow JSON-RPC to automatically subscribe to events and remote their calls.
+            NotifyClientOfEvents = false,
+
+            // Only allow public methods (may be on internal types) to be invoked remotely.
+            AllowNonPublicInvocation = false
+        };
 
         private readonly Type _replServiceProviderType;
         private readonly string _initialWorkingDirectory;
@@ -53,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </remarks>
         private readonly bool _joinOutputWritingThreadsOnDisposal;
 
-        internal event Action<bool>? ProcessStarting;
+        internal event Action<InteractiveHostPlatformInfo, InteractiveHostOptions, RemoteExecutionResult>? ProcessInitialized;
 
         public InteractiveHost(
             Type replServiceProviderType,
@@ -77,14 +91,17 @@ namespace Microsoft.CodeAnalysis.Interactive
         internal event Action<char[], int>? ErrorOutputReceived;
 
         internal Process? TryGetProcess()
-            => _lazyRemoteService?.TryGetInitializedService()?.Service.Process;
+            => _lazyRemoteService?.TryGetInitializedService()?.Service?.Process;
 
-        internal async Task<RemoteService> TryGetServiceAsync()
+        internal async Task<RemoteService?> TryGetServiceAsync()
             => (await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false)).Service;
 
         // Triggered whenever we create a fresh process.
         // The ProcessExited event is not hooked yet.
         internal event Action<Process>? InteractiveHostProcessCreated;
+
+        // Triggered whenever InteractiveHost process creation fails.
+        internal event Action<Exception?, int?>? InteractiveHostProcessCreationFailed;
 
         #endregion
 
@@ -242,13 +259,16 @@ namespace Microsoft.CodeAnalysis.Interactive
                 // The user reset the process during initialization. 
                 // The reset operation will recreate the process.
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
 
             return default;
         }
+
+        private async Task<RemoteExecutionResult> ExecuteRemoteAsync(string targetName, params object?[] arguments)
+            => (await InvokeRemoteAsync<RemoteExecutionResult.Data>(targetName, arguments).ConfigureAwait(false))?.Deserialize() ?? default;
 
         private async Task<TResult> InvokeRemoteAsync<TResult>(string targetName, params object?[] arguments)
         {
@@ -257,8 +277,13 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 return default!;
             }
+
             return await InvokeRemoteAsync<TResult>(initializedRemoteService.Service, targetName, arguments).ConfigureAwait(false);
         }
+
+        private static async Task<RemoteExecutionResult> ExecuteRemoteAsync(RemoteService remoteService, string targetName, params object?[] arguments)
+            => (await InvokeRemoteAsync<RemoteExecutionResult.Data>(remoteService, targetName, arguments).ConfigureAwait(false))?.Deserialize() ?? default;
+
         private static async Task<TResult> InvokeRemoteAsync<TResult>(RemoteService remoteService, string targetName, params object?[] arguments)
         {
             try
@@ -269,6 +294,28 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 return default!;
             }
+        }
+
+        private static JsonRpc CreateRpc(Stream stream, object? incomingCallTarget)
+        {
+            var jsonFormatter = new JsonMessageFormatter();
+
+            // disable interpreting of strings as DateTime during deserialization:
+            jsonFormatter.JsonSerializer.DateParseHandling = DateParseHandling.None;
+
+            var rpc = new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter))
+            {
+                CancelLocallyInvokedMethodsWhenConnectionIsClosed = true,
+            };
+
+            if (incomingCallTarget != null)
+            {
+                rpc.AddLocalRpcTarget(incomingCallTarget, s_jsonRpcTargetOptions);
+            }
+
+            rpc.StartListening();
+
+            return rpc;
         }
 
         #region Operations
@@ -301,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 return initializedService.InitializationResult;
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -318,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<RemoteExecutionResult> ExecuteAsync(string code)
         {
             Contract.ThrowIfNull(code);
-            return InvokeRemoteAsync<RemoteExecutionResult>(nameof(Service.ExecuteAsync), code);
+            return ExecuteRemoteAsync(nameof(Service.ExecuteAsync), code);
         }
 
         /// <summary>
@@ -333,9 +380,11 @@ namespace Microsoft.CodeAnalysis.Interactive
         public Task<RemoteExecutionResult> ExecuteFileAsync(string path)
         {
             Contract.ThrowIfNull(path);
-            return InvokeRemoteAsync<RemoteExecutionResult>(nameof(Service.ExecuteFileAsync), path);
+            return ExecuteRemoteAsync(nameof(Service.ExecuteFileAsync), path);
         }
-        /// <summary>        /// Asynchronously adds a reference to the set of available references for next submission.
+
+        /// <summary>
+        /// Asynchronously adds a reference to the set of available references for next submission.
         /// </summary>
         /// <param name="reference">The reference to add.</param>
         /// <remarks>
@@ -357,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             Contract.ThrowIfNull(sourceSearchPaths);
             Contract.ThrowIfNull(baseDirectory);
 
-            return InvokeRemoteAsync<RemoteExecutionResult>(nameof(Service.SetPathsAsync), referenceSearchPaths, sourceSearchPaths, baseDirectory);
+            return ExecuteRemoteAsync(nameof(Service.SetPathsAsync), referenceSearchPaths, sourceSearchPaths, baseDirectory);
         }
 
         #endregion

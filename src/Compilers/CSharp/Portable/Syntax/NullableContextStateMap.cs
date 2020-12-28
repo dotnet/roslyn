@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -39,25 +37,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             ExplicitlyRestored
         }
     }
-    internal sealed class NullableContextStateMap
+    internal readonly struct NullableContextStateMap
     {
-        private static readonly NullableContextStateMap EmptyGenerated = new NullableContextStateMap(ImmutableArray<NullableContextState>.Empty, isGeneratedCode: true);
-
-        private static readonly NullableContextStateMap EmptyNonGenerated = new NullableContextStateMap(ImmutableArray<NullableContextState>.Empty, isGeneratedCode: false);
+        private static readonly NullableContextStateMap Empty = new NullableContextStateMap(ImmutableArray<NullableContextState>.Empty);
 
         private readonly ImmutableArray<NullableContextState> _contexts;
 
-        private readonly bool _isGeneratedCode;
-
-        internal static NullableContextStateMap Create(SyntaxTree tree, bool isGeneratedCode)
+        internal static NullableContextStateMap Create(SyntaxTree tree)
         {
-            var contexts = GetContexts(tree, isGeneratedCode);
+            var contexts = GetContexts(tree);
 
-            var empty = isGeneratedCode ? EmptyGenerated : EmptyNonGenerated;
-            return contexts.IsEmpty ? empty : new NullableContextStateMap(contexts, isGeneratedCode);
+            return contexts.IsEmpty ? Empty : new NullableContextStateMap(contexts);
         }
 
-        private NullableContextStateMap(ImmutableArray<NullableContextState> contexts, bool isGeneratedCode)
+        private NullableContextStateMap(ImmutableArray<NullableContextState> contexts)
         {
 #if DEBUG
             for (int i = 1; i < contexts.Length; i++)
@@ -66,16 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 #endif
             _contexts = contexts;
-            _isGeneratedCode = isGeneratedCode;
         }
 
-        private static NullableContextState GetContextForFileStart(int position, bool isGeneratedCode)
-        {
-            // Generated files have an initial nullable context that is "disabled"
-            return isGeneratedCode
-                ? new NullableContextState(position, warningsState: NullableContextState.State.Disabled, annotationsState: NullableContextState.State.Disabled)
-                : new NullableContextState(position, warningsState: NullableContextState.State.Unknown, annotationsState: NullableContextState.State.Unknown);
-        }
+        private static NullableContextState GetContextForFileStart(int position)
+            => new NullableContextState(
+                position,
+                warningsState: NullableContextState.State.Unknown,
+                annotationsState: NullableContextState.State.Unknown);
 
         internal NullableContextState GetContextState(int position)
         {
@@ -89,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 index = ~index - 1;
             }
 
-            var context = GetContextForFileStart(position, _isGeneratedCode);
+            var context = GetContextForFileStart(position);
 
             if (index >= 0)
             {
@@ -118,9 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return false;
         }
 
-        private static ImmutableArray<NullableContextState> GetContexts(SyntaxTree tree, bool isGeneratedCode)
+        private static ImmutableArray<NullableContextState> GetContexts(SyntaxTree tree)
         {
-            var previousContext = GetContextForFileStart(position: 0, isGeneratedCode: isGeneratedCode);
+            var previousContext = GetContextForFileStart(position: 0);
 
             var builder = ArrayBuilder<NullableContextState>.GetInstance();
             foreach (var d in tree.GetRoot().GetDirectives())

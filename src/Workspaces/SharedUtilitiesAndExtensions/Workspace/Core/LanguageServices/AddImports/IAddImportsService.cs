@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
@@ -30,17 +28,19 @@ namespace Microsoft.CodeAnalysis.AddImports
         SyntaxNode AddImports(
             Compilation compilation, SyntaxNode root, SyntaxNode? contextLocation,
             IEnumerable<SyntaxNode> newImports, SyntaxGenerator generator,
-            bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
+            bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken);
     }
 
     internal static class IAddImportServiceExtensions
     {
         public static SyntaxNode AddImport(
             this IAddImportsService service, Compilation compilation, SyntaxNode root,
-            SyntaxNode contextLocation, SyntaxNode newImport, SyntaxGenerator generator, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+            SyntaxNode contextLocation, SyntaxNode newImport, SyntaxGenerator generator,
+            bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken)
         {
             return service.AddImports(compilation, root, contextLocation,
-                SpecializedCollections.SingletonEnumerable(newImport), generator, placeSystemNamespaceFirst, cancellationToken);
+                SpecializedCollections.SingletonEnumerable(newImport), generator,
+                placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
         }
     }
 }

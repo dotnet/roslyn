@@ -21,24 +21,36 @@
   </PropertyGroup>
 
   <Target Name="_GetFilesToPackage">
-    <ItemGroup>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CSharp.CodeStyle.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CodeStyle.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.resources.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.resources.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll"/>
-      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll"/>
+    <PropertyGroup>
+      <CodeStyleAnalyzerArtifactsBinDir>$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle\$(Configuration)\$(TargetFramework)</CodeStyleAnalyzerArtifactsBinDir>
+      <CodeStyleFixesArtifactsBinDir>$(ArtifactsBinDir)Microsoft.CodeAnalysis.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)</CodeStyleFixesArtifactsBinDir>
+      <CSharpCodeStyleAnalyzerArtifactsBinDir>$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle\$(Configuration)\$(TargetFramework)</CSharpCodeStyleAnalyzerArtifactsBinDir>
+      <CSharpCodeStyleFixesArtifactsBinDir>$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes\$(Configuration)\$(TargetFramework)</CSharpCodeStyleFixesArtifactsBinDir>
+      <CSharpCodeStyleTargetsFileName>Microsoft.CodeAnalysis.CSharp.CodeStyle.targets</CSharpCodeStyleTargetsFileName>
+      <DotNetExecutable Condition="'$(OS)' == 'Windows_NT'">$(DotNetRoot)dotnet.exe</DotNetExecutable>
+      <DotNetExecutable Condition="'$(DotNetExecutable)' == ''">$(DotNetRoot)dotnet</DotNetExecutable>
+    </PropertyGroup>
 
-      <TfmSpecificPackageFile Include="@(_File)" PackagePath="analyzers/dotnet/cs/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
+    <Exec Command='"$(DotNetExecutable)" "$(ArtifactsBinDir)CodeStyleConfigFileGenerator\$(Configuration)\netcoreapp3.1\CodeStyleConfigFileGenerator.dll" "CSharp" "$(CSharpCodeStyleFixesArtifactsBinDir)" "$(CSharpCodeStyleTargetsFileName)" "$(CodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.CodeStyle.dll;$(CSharpCodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.CSharp.CodeStyle.dll"' />
+
+    <ItemGroup>
+      <_File Include="$(CSharpCodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.CSharp.CodeStyle.dll" TargetDir="analyzers/dotnet/cs" />
+      <_File Include="$(CSharpCodeStyleFixesArtifactsBinDir)\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll" TargetDir="analyzers/dotnet/cs" />
+      <_File Include="$(CodeStyleAnalyzerArtifactsBinDir)\Microsoft.CodeAnalysis.CodeStyle.dll" TargetDir="analyzers/dotnet/cs" />
+      <_File Include="$(CodeStyleFixesArtifactsBinDir)\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll" TargetDir="analyzers/dotnet/cs" />
+      <_File Include="$(CSharpCodeStyleAnalyzerArtifactsBinDir)\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.resources.dll" TargetDir="analyzers/dotnet/cs" />
+      <_File Include="$(CSharpCodeStyleFixesArtifactsBinDir)\**\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.resources.dll" TargetDir="analyzers/dotnet/cs" />
+      <_File Include="$(CodeStyleAnalyzerArtifactsBinDir)\**\Microsoft.CodeAnalysis.CodeStyle.resources.dll" TargetDir="analyzers/dotnet/cs" />
+      <_File Include="$(CodeStyleFixesArtifactsBinDir)\**\Microsoft.CodeAnalysis.CodeStyle.Fixes.resources.dll" TargetDir="analyzers/dotnet/cs" />
+      <_File Include="$(CSharpCodeStyleFixesArtifactsBinDir)\$(CSharpCodeStyleTargetsFileName)" TargetDir="build" />
+      <_File Include="$(CSharpCodeStyleFixesArtifactsBinDir)\config\**\*.*" TargetDir="build/config" />
+      <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" TargetDir="build" />
+
+      <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>
   </Target>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpWorkspacesFixedVersion)" />
-    <PackageReference Include="Humanizer.Core" Version="$(HumanizerCoreVersion)" PrivateAssets="compile" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\..\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
     <ProjectReference Include="..\..\Core\CodeFixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.csproj" />
     <ProjectReference Include="..\Analyzers\Microsoft.CodeAnalysis.CSharp.CodeStyle.csproj" />
@@ -52,6 +64,9 @@
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="build\Microsoft.CodeAnalysis.CSharp.CodeStyle.props" />
   </ItemGroup>
   <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Workspace\CSharp\CSharpWorkspaceExtensions.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\CSharp\CodeFixes\CSharpCodeFixes.projitems" Label="Shared" />

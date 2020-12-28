@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -31,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     ///
     /// <para>It is assumed that if the type follows this shape that it is well behaved and that this
     /// transformation will preserve semantics.  If this assumption is not good in practice, we
-    /// could always limit the feature to only work on a whitelist of known safe types.</para>
-    /// 
+    /// could always limit the feature to only work on an allow list of known safe types.</para>
+    ///
     /// <para>Note that this feature only works if the code literally has <c>expr1.Length - expr2</c>. If
     /// code has this, and is calling into a method that takes either an <see cref="int"/> or a <see cref="T:System.Index"/>,
     /// it feels very safe to assume this is well behaved and switching to <c>^expr2</c> is going to
@@ -44,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     {
         public CSharpUseIndexOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseIndexOperatorDiagnosticId,
+                   EnforceOnBuildValues.UseIndexOperator,
                    CSharpCodeStyleOptions.PreferIndexOperator,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_index_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),

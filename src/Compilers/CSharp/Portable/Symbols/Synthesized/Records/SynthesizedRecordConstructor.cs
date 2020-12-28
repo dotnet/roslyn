@@ -2,13 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -16,9 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public SynthesizedRecordConstructor(
              SourceMemberContainerTypeSymbol containingType,
-             RecordDeclarationSyntax syntax,
-             DiagnosticBag diagnostics) :
-             base(containingType, syntax.ParameterList!.GetLocation(), syntax)
+             RecordDeclarationSyntax syntax) :
+             base(containingType, syntax.Identifier.GetLocation(), syntax, isIterator: false)
         {
             this.MakeFlags(MethodKind.Constructor, containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public, returnsVoid: true, isExtensionMethod: false);
         }
@@ -36,13 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetSyntax().PrimaryConstructorBaseType;
         }
 
-        internal override bool IsExpressionBodied
-        {
-            get
-            {
-                return false;
-            }
-        }
+        protected override bool AllowRefOrOut => false;
+
+        internal override bool IsExpressionBodied => false;
 
         protected override bool IsWithinExpressionOrBlockBody(int position, out int offset)
         {

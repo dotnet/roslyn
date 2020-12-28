@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             // a list that will be updated all at once the timer actually runs.
             private bool _notificationRequestEnqueued;
             private readonly SortedDictionary<int, NormalizedSnapshotSpanCollection> _snapshotVersionToSpansMap =
-                new SortedDictionary<int, NormalizedSnapshotSpanCollection>();
+                new();
 
             /// <summary>
             /// True if we are currently suppressing UI updates.  While suppressed we still continue

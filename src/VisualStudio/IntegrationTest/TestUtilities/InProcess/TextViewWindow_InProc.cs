@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,17 +68,38 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void ShowLightBulb()
         {
-            InvokeOnUIThread(cancellationToken =>
-            {
-                var shell = GetGlobalService<SVsUIShell, IVsUIShell>();
-                var cmdGroup = typeof(VSConstants.VSStd2KCmdID).GUID;
-                var cmdExecOpt = OLECMDEXECOPT.OLECMDEXECOPT_DONTPROMPTUSER;
+            // ⚠ The workarounds below (delays, retries) can be removed once integration test machines are updated to
+            // 16.9 Preview 2. https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform/pullrequest/283203
 
-                const VSConstants.VSStd2KCmdID ECMD_SMARTTASKS = (VSConstants.VSStd2KCmdID)147;
-                var cmdID = ECMD_SMARTTASKS;
-                object obj = null;
-                shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
-            });
+            // Start by sleeping 600ms to try and avoid the dismissal below
+            Thread.Sleep(600);
+
+            InvokeSmartTasks();
+
+            // The editor has an asynchronous background operation that dismisses the light bulb if it was shown within
+            // 500ms of the operation starting. Wait 1000ms and make sure the menu is still present.
+            // https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform/pullrequest/268277
+            Thread.Sleep(1000);
+
+            if (!IsLightBulbSessionExpanded())
+            {
+                InvokeSmartTasks();
+            }
+
+            void InvokeSmartTasks()
+            {
+                InvokeOnUIThread(cancellationToken =>
+                {
+                    var shell = GetGlobalService<SVsUIShell, IVsUIShell>();
+                    var cmdGroup = typeof(VSConstants.VSStd2KCmdID).GUID;
+                    var cmdExecOpt = OLECMDEXECOPT.OLECMDEXECOPT_DONTPROMPTUSER;
+
+                    const VSConstants.VSStd2KCmdID ECMD_SMARTTASKS = (VSConstants.VSStd2KCmdID)147;
+                    var cmdID = ECMD_SMARTTASKS;
+                    object obj = null;
+                    shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
+                });
+            }
         }
 
         public void WaitForLightBulbSession()
@@ -267,7 +290,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void VerifyTags(string tagTypeName, int expectedCount)
             => ExecuteOnActiveView(view =>
         {
-            Type type = WellKnownTagNames.GetTagTypeByName(tagTypeName);
+            var type = WellKnownTagNames.GetTagTypeByName(tagTypeName);
             bool filterTag(IMappingTagSpan<ITag> tag)
             {
                 return tag.Tag.GetType().Equals(type);

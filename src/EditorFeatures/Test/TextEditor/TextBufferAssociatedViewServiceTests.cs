@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
             var bufferCollection = new Collection<ITextBuffer>(SpecializedCollections.SingletonEnumerable(bufferMock.Object).ToList());
             var dummyReason = ConnectionReason.BufferGraphChange;
 
-            var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
             var service = Assert.IsType<TextBufferAssociatedViewService>(exportProvider.GetExportedValue<ITextBufferAssociatedViewService>());
 
             ((ITextViewConnectionListener)service).SubjectBuffersConnected(viewMock.Object, dummyReason, bufferCollection);

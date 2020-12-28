@@ -10,11 +10,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class LineEditTests
         Inherits EditingTestBase
 
-        Private Function ToCode(element As XElement) As String
+        Private Shared Function ToCode(element As XElement) As String
             Return element.Value.Replace(vbLf, vbCrLf)
         End Function
 
-        Private Function ToCode(element As XCData) As String
+        Private Shared Function ToCode(element As XCData) As String
             Return element.Value.Replace(vbLf, vbCrLf)
         End Function
 

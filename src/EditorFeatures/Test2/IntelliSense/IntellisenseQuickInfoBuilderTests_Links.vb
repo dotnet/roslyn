@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <InlineData("see")>
         <InlineData("a")>
-        Public Async Sub QuickInfoForPlainHyperlink(tag As String)
+        Public Async Function QuickInfoForPlainHyperlink(tag As String) As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -58,12 +58,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
             ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
-        End Sub
+        End Function
 
         <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <InlineData("see")>
         <InlineData("a")>
-        Public Async Sub QuickInfoForHyperlinkWithText(tag As String)
+        Public Async Function QuickInfoForHyperlinkWithText(tag As String) As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -105,6 +105,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
             ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
-        End Sub
+        End Function
     End Class
 End Namespace

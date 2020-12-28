@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -16,18 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LambdaDiscardParameters)]
     public class LambdaDiscardParametersTests : CompilingTestBase
     {
-        // This method should be removed once the lambda discard parameters feature is slotted into a C# language version
-        public new static CSharpCompilation CreateCompilation(
-            CSharpTestSource source,
-            System.Collections.Generic.IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            CSharpParseOptions parseOptions = null,
-            Roslyn.Test.Utilities.TargetFramework targetFramework = Roslyn.Test.Utilities.TargetFramework.Standard,
-            string assemblyName = "",
-            string sourceFileName = "",
-            bool skipUsesIsNullable = false)
-            => CSharpTestBase.CreateCompilation(source, references, options, parseOptions: parseOptions ?? TestOptions.RegularPreview, targetFramework, assemblyName, sourceFileName, skipUsesIsNullable);
-
         [Fact]
         public void DiscardParameters_CSharp8()
         {
@@ -56,24 +45,24 @@ public class C
 }", parseOptions: TestOptions.Regular8);
 
             comp.VerifyDiagnostics(
-                // (6,51): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,51): error CS8400: Feature 'lambda discard parameters' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         System.Func<short, string, long> f1 = (_, _) => 3L;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(6, 51),
-                // (10,13): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "_").WithArguments("lambda discard parameters", "9.0").WithLocation(6, 51),
+                // (10,13): error CS8400: Feature 'lambda discard parameters' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             _) => 4L;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(10, 13),
-                // (13,13): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "_").WithArguments("lambda discard parameters", "9.0").WithLocation(10, 13),
+                // (13,13): error CS8400: Feature 'lambda discard parameters' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             _) => 5L;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(13, 13),
-                // (16,13): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "_").WithArguments("lambda discard parameters", "9.0").WithLocation(13, 13),
+                // (16,13): error CS8400: Feature 'lambda discard parameters' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             _,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(16, 13),
-                // (17,13): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "_").WithArguments("lambda discard parameters", "9.0").WithLocation(16, 13),
+                // (17,13): error CS8400: Feature 'lambda discard parameters' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             _) => 6L;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(17, 13),
-                // (20,13): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "_").WithArguments("lambda discard parameters", "9.0").WithLocation(17, 13),
+                // (20,13): error CS8400: Feature 'lambda discard parameters' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //             _,
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(20, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "_").WithArguments("lambda discard parameters", "9.0").WithLocation(20, 13)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -94,7 +83,7 @@ public class C
         long f1(short _, string _) => 3L;
         System.Console.WriteLine(f1(1, null));
     }
-}", parseOptions: TestOptions.RegularPreview);
+}", parseOptions: TestOptions.Regular9);
 
             comp.VerifyDiagnostics(
                 // (6,33): error CS0100: The parameter name '_' is a duplicate
@@ -110,7 +99,7 @@ public class C
 public class C
 {
     public long M(short _, string _) => 3L;
-}", parseOptions: TestOptions.RegularPreview);
+}", parseOptions: TestOptions.Regular9);
 
             comp.VerifyDiagnostics(
                 // (4,35): error CS0100: The parameter name '_' is a duplicate
@@ -281,19 +270,19 @@ public class C
                 // (7,47): error CS0136: A local or parameter named '_' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //         System.Func<short, short, long> f1 = (_, a) => 0;
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "_").WithArguments("_").WithLocation(7, 47),
-                // (8,50): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,50): error CS8370: Feature 'lambda discard parameters' is not available in C# 7.3. Please use language version 9.0 or greater.
                 //         System.Func<short, short, long> f2 = (_, _) => 0;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(8, 50)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "_").WithArguments("lambda discard parameters", "9.0").WithLocation(8, 50)
                 );
 
             var comp2 = CreateCompilation(src, parseOptions: TestOptions.Regular8);
             comp2.VerifyDiagnostics(
-                // (8,50): error CS8652: The feature 'lambda discard parameters' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,50): error CS8400: Feature 'lambda discard parameters' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         System.Func<short, short, long> f2 = (_, _) => 0;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_").WithArguments("lambda discard parameters").WithLocation(8, 50)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "_").WithArguments("lambda discard parameters", "9.0").WithLocation(8, 50)
                 );
 
-            var comp3 = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
+            var comp3 = CreateCompilation(src, parseOptions: TestOptions.Regular9);
             comp3.VerifyDiagnostics();
         }
 

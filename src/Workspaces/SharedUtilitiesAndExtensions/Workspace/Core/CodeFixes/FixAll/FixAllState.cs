@@ -17,21 +17,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         internal FixAllContext.DiagnosticProvider DiagnosticProvider { get; }
 
-        public FixAllProvider FixAllProvider { get; }
-        public string CodeActionEquivalenceKey { get; }
+        public FixAllProvider? FixAllProvider { get; }
+        public string? CodeActionEquivalenceKey { get; }
         public CodeFixProvider CodeFixProvider { get; }
         public ImmutableHashSet<string> DiagnosticIds { get; }
-        public Document Document { get; }
+        public Document? Document { get; }
         public Project Project { get; }
         public FixAllScope Scope { get; }
         public Solution Solution => this.Project.Solution;
 
         internal FixAllState(
-            FixAllProvider fixAllProvider,
+            FixAllProvider? fixAllProvider,
             Document document,
             CodeFixProvider codeFixProvider,
             FixAllScope scope,
-            string codeActionEquivalenceKey,
+            string? codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
             FixAllContext.DiagnosticProvider fixAllDiagnosticProvider)
             : this(fixAllProvider, document, document.Project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider)
@@ -43,11 +43,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         internal FixAllState(
-            FixAllProvider fixAllProvider,
+            FixAllProvider? fixAllProvider,
             Project project,
             CodeFixProvider codeFixProvider,
             FixAllScope scope,
-            string codeActionEquivalenceKey,
+            string? codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
             FixAllContext.DiagnosticProvider fixAllDiagnosticProvider)
             : this(fixAllProvider, null, project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider)
@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private FixAllState(
-            FixAllProvider fixAllProvider,
-            Document document,
+            FixAllProvider? fixAllProvider,
+            Document? document,
             Project project,
             CodeFixProvider codeFixProvider,
             FixAllScope scope,
-            string codeActionEquivalenceKey,
+            string? codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
             FixAllContext.DiagnosticProvider fixAllDiagnosticProvider)
         {
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         internal bool IsFixMultiple => this.DiagnosticProvider is FixMultipleDiagnosticProvider;
 
-        public FixAllState WithScopeAndEquivalenceKey(FixAllScope scope, string codeActionEquivalenceKey)
+        public FixAllState WithScopeAndEquivalenceKey(FixAllScope scope, string? codeActionEquivalenceKey)
         {
             if (this.Scope == scope && this.CodeActionEquivalenceKey == codeActionEquivalenceKey)
             {

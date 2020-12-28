@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis
 {
     public interface ISourceGenerator
     {
-        void Initialize(InitializationContext context);
-        void Execute(SourceGeneratorContext context);
+        void Initialize(GeneratorInitializationContext context);
+        void Execute(GeneratorExecutionContext context);
     }
 }
 ```
@@ -43,11 +43,11 @@ Since generators are loaded from external assemblies, a generator cannot be used
 the assembly in which it is defined.
 
 `ISourceGenerator` has an `Initialize` method that is called by the host (either the IDE or
-the command-line compiler) exactly once. `Initialize` passes an instance of `InitializationContext`
+the command-line compiler) exactly once. `Initialize` passes an instance of `GeneratorInitializationContext`
 which can be used by the generator to register a set of callbacks that affect how future generation
 passes will occur.
 
-The main generation pass occurs via the `Execute` method. `Execute` passes an instance of `SourceGeneratorContext`
+The main generation pass occurs via the `Execute` method. `Execute` passes an instance of `GeneratorExecutionContext`
 that provides access to the current `Compilation` and allows the generator to alter the resulting output `Compilation`
 by adding source and reporting diagnostics.
 
@@ -57,7 +57,7 @@ collection, allowing for generation decisions to based on more than just the use
 ```csharp
 namespace Microsoft.CodeAnalysis
 {
-    public readonly struct SourceGeneratorContext
+    public readonly struct GeneratorExecutionContext
     {
         public ImmutableArray<AdditionalText> AdditionalFiles { get; }
 
@@ -124,7 +124,7 @@ file might look something like:
 ```csharp
 namespace Microsoft.CodeAnalysis
 {
-    public struct InitializationContext
+    public struct GeneratorInitializationContext
     {
         public void RegisterForAdditionalFileChanges(EditCallback<AdditionalFileEdit> callback){ }
     }
@@ -148,7 +148,7 @@ generator.
 
 By default, generated texts will be persisted to a `GeneratedFiles/{GeneratorAssemblyName}` 
 sub-folder within `CommandLineArguments.OutputDirectory`. The `fileNameHint` from 
-`SourceGeneratorContext.AddSource` will be used to create a unique name, with appropriate
+`GeneratorExecutionContext.AddSource` will be used to create a unique name, with appropriate
 collision renaming applied if required. For instance, on Windows a call to 
 `AddSource("MyCode", ...);` from `MyGenerator.dll` for a C# project might be 
 persisted as `obj/debug/GeneratedFiles/MyGenerator.dll/MyCode.cs`.
