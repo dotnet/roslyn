@@ -60,11 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion enumeratorConversion,
             BinderFlags location)
         {
-            Debug.Assert((object)collectionType != null, "Field 'collectionType' cannot be null");
-            Debug.Assert(elementType.HasType, "Field 'elementType' cannot be null");
-            Debug.Assert((object)getEnumeratorInfo != null, "Field 'getEnumeratorMethod' cannot be null");
-            Debug.Assert((object)currentPropertyGetter != null, "Field 'currentPropertyGetter' cannot be null");
-            Debug.Assert((object)moveNextInfo != null, "Field 'moveNextMethod' cannot be null");
+            Debug.Assert((object)collectionType != null, $"Field '{nameof(collectionType)}' cannot be null");
+            Debug.Assert(elementType.HasType, $"Field '{nameof(elementType)}' cannot be null");
+            Debug.Assert((object)getEnumeratorInfo != null, $"Field '{nameof(getEnumeratorInfo)}' cannot be null");
+            Debug.Assert((object)currentPropertyGetter != null, $"Field '{nameof(currentPropertyGetter)}' cannot be null");
+            Debug.Assert((object)moveNextInfo != null, $"Field '{nameof(moveNextInfo)}' cannot be null");
             Debug.Assert(patternDisposeInfo == null || needsDisposal);
 
             this.CollectionType = collectionType;
@@ -104,9 +104,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public ForEachEnumeratorInfo Build(BinderFlags location)
             {
-                Debug.Assert((object)CollectionType != null, "'CollectionType' cannot be null");
-                Debug.Assert((object)ElementType != null, "'ElementType' cannot be null");
-                Debug.Assert(GetEnumeratorInfo != null, "'GetEnumeratorCall' cannot be null");
+                Debug.Assert((object)CollectionType != null, $"'{nameof(CollectionType)}' cannot be null");
+                Debug.Assert((object)ElementType != null, $"'{nameof(ElementType)}' cannot be null");
+                Debug.Assert(GetEnumeratorInfo != null, $"'{nameof(GetEnumeratorInfo)}' cannot be null");
 
                 Debug.Assert(MoveNextInfo != null);
                 Debug.Assert(CurrentPropertyGetter != null);

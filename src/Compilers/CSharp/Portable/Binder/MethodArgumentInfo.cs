@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         BitVector DefaultArguments,
         bool Expanded)
     {
-        public static MethodArgumentInfo ParameterlessMethod(MethodSymbol method)
+        public static MethodArgumentInfo CreateParameterlessMethod(MethodSymbol method)
         {
             Debug.Assert(method.ParameterCount == 0);
             return new MethodArgumentInfo(method, Arguments: ImmutableArray<BoundExpression>.Empty, ArgsToParamsOpt: default, DefaultArguments: default, Expanded: false);

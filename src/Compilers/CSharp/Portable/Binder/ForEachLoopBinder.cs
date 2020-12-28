@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             // We know that IEnumerable<T>.GetEnumerator has no parameters
-                            builder.GetEnumeratorInfo = MethodArgumentInfo.ParameterlessMethod(specificGetEnumeratorMethod);
+                            builder.GetEnumeratorInfo = MethodArgumentInfo.CreateParameterlessMethod(specificGetEnumeratorMethod);
                         }
 
                         MethodSymbol currentPropertyGetter = isAsync ?
@@ -839,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We're operating with well-known members: we know MoveNext/MoveNextAsync have no parameters
                     if (moveNextMethod is not null)
                     {
-                        builder.MoveNextInfo = MethodArgumentInfo.ParameterlessMethod(moveNextMethod);
+                        builder.MoveNextInfo = MethodArgumentInfo.CreateParameterlessMethod(moveNextMethod);
                     }
                 }
                 else
@@ -1626,7 +1626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodArgumentInfo GetSpecialTypeMemberInfo(SpecialMember member, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
             return (MethodSymbol)GetSpecialTypeMember(member, diagnostics, syntax) is { } resolvedMember
-                    ? MethodArgumentInfo.ParameterlessMethod(resolvedMember)
+                    ? MethodArgumentInfo.CreateParameterlessMethod(resolvedMember)
                     : null;
         }
 
@@ -1634,7 +1634,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodArgumentInfo BindDefaultArguments(MethodSymbol method, BoundExpression extensionReceiverOpt, bool allowExtensionMethods, bool expanded, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(!method.IsExtensionMethod || allowExtensionMethods);
-            Debug.Assert(extensionReceiverOpt != null || !allowExtensionMethods);
+            Debug.Assert((extensionReceiverOpt != null) == allowExtensionMethods);
+
+            if (method.ParameterCount == 0)
+            {
+                return MethodArgumentInfo.CreateParameterlessMethod(method);
+            }
 
             var argsBuilder = ArrayBuilder<BoundExpression>.GetInstance(method.ParameterCount);
 

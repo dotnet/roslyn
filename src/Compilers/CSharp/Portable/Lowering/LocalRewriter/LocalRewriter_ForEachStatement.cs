@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (disposeInfo is null)
                 {
                     Debug.Assert(idisposableTypeSymbol is { });
-                    disposeInfo = MethodArgumentInfo.ParameterlessMethod(disposeMethod);
+                    disposeInfo = MethodArgumentInfo.CreateParameterlessMethod(disposeMethod);
                     receiver = ConvertReceiverForInvocation(forEachSyntax, boundEnumeratorVar, disposeMethod, receiverConversion, idisposableTypeSymbol);
                 }
                 else

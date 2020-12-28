@@ -6482,7 +6482,7 @@ public static class CExt
         public int Current => 1;
         public bool MoveNext() => false;
     }
-    public static Enumerator GetEnumerator(this C c, int i = 0) => null;
+    public static Enumerator GetEnumerator(this C c, int i = 1) => null;
 }
 ");
 
@@ -6517,7 +6517,7 @@ Block[B0] - Entry
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
               Value: 
-                IInvocationOperation (CExt.Enumerator CExt.GetEnumerator(this C c, [System.Int32 i = 0])) (OperationKind.Invocation, Type: CExt.Enumerator, IsImplicit) (Syntax: 'c')
+                IInvocationOperation (CExt.Enumerator CExt.GetEnumerator(this C c, [System.Int32 i = 1])) (OperationKind.Invocation, Type: CExt.Enumerator, IsImplicit) (Syntax: 'c')
                   Instance Receiver: 
                     null
                   Arguments(2):
@@ -6530,7 +6530,7 @@ Block[B0] - Entry
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'c')
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'c')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Next (Regular) Block[B2]
