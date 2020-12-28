@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -24,7 +23,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 writer.WriteInt32(DeclaredSymbolInfos.Length);
                 foreach (var declaredSymbolInfo in DeclaredSymbolInfos)
+                {
                     declaredSymbolInfo.WriteTo(writer);
+                }
             }
 
             public static DeclarationInfo? TryReadFrom(StringTable stringTable, ObjectReader reader)
@@ -32,11 +33,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 try
                 {
                     var declaredSymbolCount = reader.ReadInt32();
-                    using var _ = ArrayBuilder<DeclaredSymbolInfo>.GetInstance(declaredSymbolCount, out var result);
+                    var builder = ImmutableArray.CreateBuilder<DeclaredSymbolInfo>(declaredSymbolCount);
                     for (var i = 0; i < declaredSymbolCount; i++)
-                        result.Add(DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(stringTable, reader));
+                    {
+                        builder.Add(DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(stringTable, reader));
+                    }
 
-                    return new DeclarationInfo(result.ToImmutable());
+                    return new DeclarationInfo(builder.MoveToImmutable());
                 }
                 catch (Exception)
                 {
