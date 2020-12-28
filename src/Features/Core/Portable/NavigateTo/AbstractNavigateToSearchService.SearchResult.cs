@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 if (info.IsPartial)
                 {
                     return IsNonNestedNamedType(info)
-                        ? string.Format(FeaturesResources._0_1, document.Name, document.Project.Name)
+                        ? string.Format(FeaturesResources._0_1, document.Name, projectName)
                         : string.Format(FeaturesResources.in_0_1_2, info.ContainerDisplayName, document.Name, projectName);
                 }
                 else
