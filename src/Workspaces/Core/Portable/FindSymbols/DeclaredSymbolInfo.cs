@@ -219,6 +219,8 @@ $@"Invalid span in {nameof(DeclaredSymbolInfo)}.
                Hash.Combine(NameSuffix,
                Hash.Combine(ContainerDisplayName,
                Hash.Combine(FullyQualifiedContainerName,
-               Hash.Combine(Span.GetHashCode(), (int)_flags)))));
+               Hash.Combine(Span.GetHashCode(),
+               Hash.Combine((int)_flags,
+               Hash.CombineValues(InheritanceNames)))))));
     }
 }

@@ -5,7 +5,9 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -23,9 +25,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 writer.WriteInt32(DeclaredSymbolInfos.Length);
                 foreach (var declaredSymbolInfo in DeclaredSymbolInfos)
-                {
                     declaredSymbolInfo.WriteTo(writer);
-                }
             }
 
             public static DeclarationInfo? TryReadFrom(StringTable stringTable, ObjectReader reader)
@@ -33,13 +33,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 try
                 {
                     var declaredSymbolCount = reader.ReadInt32();
-                    var builder = ImmutableArray.CreateBuilder<DeclaredSymbolInfo>(declaredSymbolCount);
+                    using var _ = ArrayBuilder<DeclaredSymbolInfo>.GetInstance(out var result);
                     for (var i = 0; i < declaredSymbolCount; i++)
-                    {
-                        builder.Add(DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(stringTable, reader));
-                    }
+                        result.Add(DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(stringTable, reader));
 
-                    return new DeclarationInfo(builder.MoveToImmutable());
+                    return new DeclarationInfo(result.ToImmutable());
                 }
                 catch (Exception)
                 {

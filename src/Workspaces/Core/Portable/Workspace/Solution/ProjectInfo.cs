@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -34,6 +35,9 @@ namespace Microsoft.CodeAnalysis
         /// The name of the project. This may differ from the project's filename.
         /// </summary>
         public string Name => Attributes.Name;
+
+        /// <inheritdoc cref="ProjectAttributes.NameAndFlavor"/>
+        internal (string? name, string? flavor) NameAndFlavor => Attributes.NameAndFlavor;
 
         /// <summary>
         /// The name of the assembly that this project will create, without file extension.
@@ -360,7 +364,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal sealed class ProjectAttributes : IChecksummedObject, IObjectWritable
         {
+            /// <summary>
+            /// Matches names like: Microsoft.CodeAnalysis.Features (netcoreapp3.1)
+            /// </summary>
+            private static readonly Regex s_projectNameAndFlavor = new Regex(@"^(?<name>.*?)\s*\((?<flavor>.*?)\)$", RegexOptions.Compiled);
+
             private Checksum? _lazyChecksum;
+            private (string? name, string? flavor)? _lazyFlavorInfo;
 
             /// <summary>
             /// The unique Id of the project.
@@ -376,6 +386,23 @@ namespace Microsoft.CodeAnalysis
             /// The name of the project. This may differ from the project's filename.
             /// </summary>
             public string Name { get; }
+
+            /// <summary>
+            /// The name and flavor portions of the project broken out.  For example, the project
+            /// <c>Microsoft.CodeAnalysis.Workspace (netcoreapp3.1)</c> would have the name
+            /// <c>Microsoft.CodeAnalysis.Workspace</c> and the flavor <c>netcoreapp3.1</c>.  Values may be null <see
+            /// langword="null"/> if the name does not contain a flavor.
+            /// </summary>
+            public (string? name, string? flavor) NameAndFlavor => _lazyFlavorInfo ??= ComputeFlavorInfo();
+
+            private (string? name, string? flavor) ComputeFlavorInfo()
+            {
+                var match = s_projectNameAndFlavor.Match(Name);
+                if (match?.Success != true)
+                    return default;
+
+                return (match.Groups["name"].Value, match.Groups["flavor"].Value);
+            }
 
             /// <summary>
             /// The name of the assembly that this project will create, without file extension.

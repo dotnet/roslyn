@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServices;
 
@@ -40,5 +41,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ContainsIndexerMemberCref => _contextInfo.ContainsIndexerMemberCref;
         public bool ContainsTupleExpressionOrTupleType => _contextInfo.ContainsTupleExpressionOrTupleType;
         public bool ContainsGlobalAttributes => _contextInfo.ContainsGlobalAttributes;
+
+        private HashSet<DeclaredSymbolInfo> _declaredSymbolInfoSet;
+        public HashSet<DeclaredSymbolInfo> DeclaredSymbolInfoSet => _declaredSymbolInfoSet ??= new HashSet<DeclaredSymbolInfo>(DeclaredSymbolInfos);
     }
 }
