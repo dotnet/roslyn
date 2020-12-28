@@ -71,42 +71,38 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             private static string ComputeProjectName(Document document, ImmutableArray<Project> additionalMatchingProjects)
             {
-                if (TryComputeMergedProjectName(document, additionalMatchingProjects, out var mergedName))
-                    return mergedName;
+                // If there aren't any additional matches in other projects, we don't need to merge anything.
+                if (additionalMatchingProjects.Length > 0)
+                {
+                    // First get the simple project name and flavor for the actual project we got a hit in.  If we can't
+                    // figure this out, we can't create a merged name.
+                    var firstProject = document.Project;
+                    var (firstProjectName, firstProjectFlavor) = firstProject.State.NameAndFlavor;
+                    if (firstProjectName != null)
+                    {
+
+                        using var _ = ArrayBuilder<string>.GetInstance(out var flavors);
+                        flavors.Add(firstProjectFlavor!);
+
+                        // Now, do the same for the other projects where we had a match. As above, if we can't figure out the
+                        // simple name/flavor, or if the simple project name doesn't match the simple project name we started
+                        // with then we can't merge these.
+                        foreach (var additionalProject in additionalMatchingProjects)
+                        {
+                            var (projectName, projectFlavor) = additionalProject.State.NameAndFlavor;
+                            if (projectName == firstProjectName)
+                                flavors.Add(projectFlavor!);
+                        }
+
+                        flavors.RemoveDuplicates();
+                        flavors.Sort();
+
+                        return $"{firstProjectName} ({string.Join(", ", flavors)})";
+                    }
+                }
 
                 // Couldn't compute a merged project name (or only had one project).  Just return the name of hte project itself.
                 return document.Project.Name;
-            }
-
-            private static bool TryComputeMergedProjectName(
-                Document document, ImmutableArray<Project> additionalMatchingProjects, [NotNullWhen(true)] out string? mergedName)
-            {
-                mergedName = null;
-                if (additionalMatchingProjects.Length == 0)
-                    return false;
-
-                var firstProject = document.Project;
-                var (firstProjectName, firstProjectFlavor) = firstProject.State.NameAndFlavor;
-                if (firstProjectName == null)
-                    return false;
-
-                using var _ = ArrayBuilder<string>.GetInstance(out var flavors);
-                flavors.Add(firstProjectFlavor!);
-
-                foreach (var additionalProject in additionalMatchingProjects)
-                {
-                    var (projectName, projectFlavor) = additionalProject.State.NameAndFlavor;
-                    if (projectName != firstProjectName)
-                        return false;
-
-                    flavors.Add(projectFlavor!);
-                }
-
-                flavors.RemoveDuplicates();
-                flavors.Sort();
-
-                mergedName = $"{firstProjectName} ({string.Join(", ", flavors)})";
-                return true;
             }
 
             private static readonly char[] s_dotArray = { '.' };
