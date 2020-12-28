@@ -1011,6 +1011,33 @@ End Class
                     Await _aggregator.GetItemsAsync("Outer"))
             End Using
         End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoIncludeNonPartialOnlyContainingNestedTypes(testHost As TestHost) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Class Outer
+    Public Class Inner
+    End Class
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, createTrackingService:=Nothing)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener)
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
     End Class
 End Namespace
 #Enable Warning BC40000 ' MatchKind is obsolete

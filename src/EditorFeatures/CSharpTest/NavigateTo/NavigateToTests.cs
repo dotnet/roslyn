@@ -1359,6 +1359,33 @@ testHost, @"class C
                 },
                 await _aggregator.GetItemsAsync("Outer"));
         }
+
+        [Fact]
+        public async Task DoIncludeNonPartialOnlyContainingNestedTypes()
+        {
+            using var workspace = TestWorkspace.Create(@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"">
+            public class Outer
+            {
+                public class Inner {}
+            }
+        </Document>
+    </Project>
+</Workspace>
+", composition: EditorTestCompositions.EditorFeatures);
+
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+            _aggregator = new NavigateToTestAggregator(_provider);
+
+            VerifyNavigateToResultItems(
+                new()
+                {
+                    new NavigateToItem("Outer", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
+                },
+                await _aggregator.GetItemsAsync("Outer"));
+        }
     }
 }
 #pragma warning restore CS0618 // MatchKind is obsolete
