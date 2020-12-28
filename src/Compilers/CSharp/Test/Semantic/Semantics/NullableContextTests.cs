@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -430,7 +431,7 @@ class Program
             }
         }
 
-        private readonly struct NullableDirectives
+        public readonly struct NullableDirectives
         {
             internal readonly string[] Directives;
             internal readonly NullableContextState.State ExpectedWarningsState;
@@ -444,9 +445,7 @@ class Program
             }
         }
 
-        [Fact]
-        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
-        public void AnalyzeMethodsInEnabledContextOnly_01()
+        public static IEnumerable<object[]> AnalyzeMethodsInEnabledContextOnly_01_Data()
         {
             var projectSettings = new[]
             {
@@ -458,7 +457,6 @@ class Program
             };
             var nullableDirectives = new[]
             {
-                // { Directives, ExpectedWarningsState, ExpectedAnnotationsState }
                 new NullableDirectives(new string[0], NullableContextState.State.Unknown, NullableContextState.State.Unknown),
                 new NullableDirectives(new[] { "#nullable disable" }, NullableContextState.State.Disabled, NullableContextState.State.Disabled),
                 new NullableDirectives(new[] { "#nullable enable" }, NullableContextState.State.Enabled, NullableContextState.State.Enabled),
@@ -475,91 +473,102 @@ class Program
                 new NullableDirectives(new[] { "#nullable disable warnings" }, NullableContextState.State.Disabled, NullableContextState.State.Unknown),
                 new NullableDirectives(new[] { "#nullable enable warnings" }, NullableContextState.State.Enabled, NullableContextState.State.Unknown),
                 new NullableDirectives(new[] { "#nullable restore warnings" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Unknown),
-           };
-
-            var source =
-@"#nullable enable
-public class A
-{
-    public static void M(object obj) { }
-}";
-            var refA = CreateCompilation(source).EmitToImageReference();
-
+            };
             foreach (var projectSetting in projectSettings)
             {
                 foreach (var classDirectives in nullableDirectives)
                 {
                     foreach (var methodDirectives in nullableDirectives)
                     {
-                        analyzeMethods(refA, projectSetting, classDirectives, methodDirectives);
+                        yield return new object[] { projectSetting, classDirectives, methodDirectives };
                     }
                 }
             }
+        }
 
-            static void analyzeMethods(MetadataReference refA, NullableContextOptions? projectContext, NullableDirectives classDirectives, NullableDirectives methodDirectives)
+        [Theory]
+        [MemberData(nameof(AnalyzeMethodsInEnabledContextOnly_01_Data))]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
+        public void AnalyzeMethodsInEnabledContextOnly_01(NullableContextOptions? projectContext, NullableDirectives classDirectives, NullableDirectives methodDirectives)
+        {
+            var sourceA =
+@"#nullable enable
+public class A
+{
+    public static void M(object obj) { }
+}";
+            var refA = CreateCompilation(sourceA).EmitToImageReference();
+
+            // Use the directives to generate source such as:
+            // #nullable {classDirectives[0]}
+            // #nullable {classDirectives[1]}
+            // static class B
+            // {
+            // #nullable {methodDirectives[0]}
+            // #nullable {methodDirectives[1]}
+            //     static void Main() { A.M(null); }
+            // }
+            var sourceBuilder = new StringBuilder();
+            foreach (var str in classDirectives.Directives) sourceBuilder.AppendLine(str);
+            sourceBuilder.AppendLine("static class B");
+            sourceBuilder.AppendLine("{");
+            foreach (var str in methodDirectives.Directives) sourceBuilder.AppendLine(str);
+            sourceBuilder.AppendLine("    static void Main() { A.M(null); }");
+            sourceBuilder.AppendLine("}");
+            var sourceB = sourceBuilder.ToString();
+
+            var expectedWarningsStateForMethod = combineState(methodDirectives.ExpectedWarningsState, classDirectives.ExpectedWarningsState);
+            var expectedAnnotationsStateForMethod = combineState(methodDirectives.ExpectedAnnotationsState, classDirectives.ExpectedAnnotationsState);
+
+            bool isNullableEnabledForProject = projectContext != null && (projectContext.Value & NullableContextOptions.Warnings) != 0;
+            bool isNullableEnabledForClass = isNullableEnabled(classDirectives.ExpectedWarningsState, isNullableEnabledForProject);
+            bool isNullableEnabledForMethod = isNullableEnabled(expectedWarningsStateForMethod, isNullableEnabledForProject);
+
+            var options = TestOptions.ReleaseDll;
+            if (projectContext != null) options = options.WithNullableContextOptions(projectContext.Value);
+            var comp = CreateCompilation(sourceB, options: options, references: new[] { refA });
+            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+
+            if (isNullableEnabledForMethod)
             {
-                var sourceBuilder = new StringBuilder();
-                foreach (var str in classDirectives.Directives) sourceBuilder.AppendLine(str);
-                sourceBuilder.AppendLine("static class B");
-                sourceBuilder.AppendLine("{");
-                foreach (var str in methodDirectives.Directives) sourceBuilder.AppendLine(str);
-                sourceBuilder.AppendLine("    static void Main() { A.M(null); }");
-                sourceBuilder.AppendLine("}");
-                var source = sourceBuilder.ToString();
+                comp.VerifyDiagnostics(
+                    // (4,30): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                    //     static void Main() { A.M(null); }
+                    Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null"));
+            }
+            else
+            {
+                comp.VerifyDiagnostics();
+            }
 
-                var expectedWarningsStateForMethod = combineState(methodDirectives.ExpectedWarningsState, classDirectives.ExpectedWarningsState);
-                var expectedAnnotationsStateForMethod = combineState(methodDirectives.ExpectedAnnotationsState, classDirectives.ExpectedAnnotationsState);
+            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
+            Assert.Equal(isNullableEnabledForMethod, actualAnalyzedKeys.Contains("Main"));
 
-                bool isNullableEnabledForProject = projectContext != null && (projectContext.Value & NullableContextOptions.Warnings) != 0;
-                bool isNullableEnabledForClass = isNullableEnabled(classDirectives.ExpectedWarningsState, isNullableEnabledForProject);
-                bool isNullableEnabledForMethod = isNullableEnabled(expectedWarningsStateForMethod, isNullableEnabledForProject);
+            var tree = (CSharpSyntaxTree)comp.SyntaxTrees[0];
+            var syntaxNodes = tree.GetRoot().DescendantNodes();
+            verifyContextState(tree, syntaxNodes.OfType<ClassDeclarationSyntax>().Single(), classDirectives.ExpectedWarningsState, classDirectives.ExpectedAnnotationsState);
+            verifyContextState(tree, syntaxNodes.OfType<MethodDeclarationSyntax>().Single(), expectedWarningsStateForMethod, expectedAnnotationsStateForMethod);
 
-                var options = TestOptions.ReleaseDll;
-                if (projectContext != null) options = options.WithNullableContextOptions(projectContext.Value);
-                var comp = CreateCompilation(source, options: options, references: new[] { refA });
-                comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            static NullableContextState.State combineState(NullableContextState.State currentState, NullableContextState.State previousState)
+            {
+                return currentState == NullableContextState.State.Unknown ? previousState : currentState;
+            }
 
-                if (isNullableEnabledForMethod)
+            static void verifyContextState(CSharpSyntaxTree tree, CSharpSyntaxNode syntax, NullableContextState.State expectedWarningsState, NullableContextState.State expectedAnnotationsState)
+            {
+                var actualState = tree.GetNullableContextState(syntax.SpanStart);
+                Assert.Equal(expectedWarningsState, actualState.WarningsState);
+                Assert.Equal(expectedAnnotationsState, actualState.AnnotationsState);
+            }
+
+            static bool isNullableEnabled(NullableContextState.State state, bool isNullableEnabledForProject)
+            {
+                return state switch
                 {
-                    comp.VerifyDiagnostics(
-                        // (4,30): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                        //     static void Main() { A.M(null); }
-                        Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null"));
-                }
-                else
-                {
-                    comp.VerifyDiagnostics();
-                }
-
-                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
-                Assert.Equal(isNullableEnabledForMethod, actualAnalyzedKeys.Contains("Main"));
-
-                var tree = (CSharpSyntaxTree)comp.SyntaxTrees[0];
-                var syntaxNodes = tree.GetRoot().DescendantNodes();
-                verifyContextState(tree, syntaxNodes.OfType<ClassDeclarationSyntax>().Single(), classDirectives.ExpectedWarningsState, classDirectives.ExpectedAnnotationsState);
-                verifyContextState(tree, syntaxNodes.OfType<MethodDeclarationSyntax>().Single(), expectedWarningsStateForMethod, expectedAnnotationsStateForMethod);
-
-                static NullableContextState.State combineState(NullableContextState.State currentState, NullableContextState.State previousState)
-                {
-                    return currentState == NullableContextState.State.Unknown ? previousState : currentState;
-                }
-
-                static void verifyContextState(CSharpSyntaxTree tree, CSharpSyntaxNode syntax, NullableContextState.State expectedWarningsState, NullableContextState.State expectedAnnotationsState)
-                {
-                    var actualState = tree.GetNullableContextState(syntax.SpanStart);
-                    Assert.Equal(expectedWarningsState, actualState.WarningsState);
-                    Assert.Equal(expectedAnnotationsState, actualState.AnnotationsState);
-                }
-
-                static bool isNullableEnabled(NullableContextState.State state, bool isNullableEnabledForProject)
-                {
-                    return state switch
-                    {
-                        NullableContextState.State.Enabled => true,
-                        NullableContextState.State.Disabled => false,
-                        _ => isNullableEnabledForProject,
-                    };
-                }
+                    NullableContextState.State.Enabled => true,
+                    NullableContextState.State.Disabled => false,
+                    _ => isNullableEnabledForProject,
+                };
             }
         }
 
