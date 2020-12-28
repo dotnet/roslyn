@@ -3054,8 +3054,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            ParameterListSyntax? paramList = builder.RecordDeclarationWithParameters?.ParameterList;
-
             var memberSignatures = s_duplicateRecordMemberSignatureDictionary.Allocate();
             var members = ArrayBuilder<Symbol>.GetInstance(builder.NonTypeNonIndexerMembers.Count + 1);
             foreach (var member in builder.NonTypeNonIndexerMembers)
@@ -3077,7 +3075,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation = this.DeclaringCompilation;
 
             // Positional record
-            if (!(paramList is null))
+            if (builder.RecordDeclarationWithParameters?.ParameterList is { } paramList)
             {
                 Debug.Assert(builder.RecordDeclarationWithParameters is object);
                 Debug.Assert(builder.InstanceInitializersForRecordDeclarationWithParameters is object);
@@ -3089,6 +3087,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var existingOrAddedMembers = addProperties(ctor.Parameters);
                     addDeconstruct(ctor, existingOrAddedMembers);
+                }
+
+                if (builder.RecordDeclarationWithParameters?.BaseList is { } baseList)
+                {
+                    builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, baseList);
                 }
             }
 

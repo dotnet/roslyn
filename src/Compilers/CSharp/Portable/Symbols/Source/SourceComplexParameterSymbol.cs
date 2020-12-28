@@ -211,10 +211,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var completedOnThisThread = state.NotePartComplete(CompletionPart.EndDefaultSyntaxValue);
                     Debug.Assert(completedOnThisThread);
 
-                    if (binder is not null && parameterEqualsValue is not null && !_lazyDefaultSyntaxValue.IsBad)
+                    if (binder is not null &&
+                        !_lazyDefaultSyntaxValue.IsBad &&
+                        parameterEqualsValue is { Syntax: EqualsValueClauseSyntax { Value: { } valueSyntax } })
                     {
-                        var valueSyntax = parameterEqualsValue.Value.Syntax;
-                        Debug.Assert(valueSyntax.Parent.Kind() == SyntaxKind.EqualsValueClause);
                         NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, valueSyntax, diagnostics);
                         VerifyParamDefaultValueMatchesAttributeIfAny(_lazyDefaultSyntaxValue, valueSyntax, diagnostics);
                     }

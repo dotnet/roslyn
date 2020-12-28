@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -1343,23 +1344,61 @@ record R;
 @"#nullable enable
 record R();
 ";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor" });
+            verify(source, expectedAnalyzedKeys: new[] { "R..ctor()" });
 
             source =
 @"record R(object P
 #nullable enable
     );
 ";
-            verify(source, expectedAnalyzedKeys: new[] { ".ctor" });
+            verify(source, expectedAnalyzedKeys: new[] { "R..ctor(System.Object P)" });
 
-            static void verify(string source, string[] expectedAnalyzedKeys)
+            source =
+@"record A;
+#nullable disable
+record B0 : A
+#nullable enable
+{
+}
+#nullable disable
+record B1() : A
+#nullable enable
+{
+}
+#nullable disable
+record B2() : A
+#nullable enable
+    ();
+";
+            verify(source, expectedAnalyzedKeys: new[] { "B2..ctor()" });
+
+            source =
+@"record A(object P)
+{
+#nullable enable
+    internal static object F(object obj) => obj;
+#nullable disable
+}
+#nullable disable
+record B1() : A(
+    F(null));
+record B2() : A(
+#nullable enable
+    F(null));
+";
+            verify(source, expectedAnalyzedKeys: new[] { "B2..ctor()", "System.Object A.F(System.Object obj)" },
+                // (12,7): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     F(null));
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 7));
+
+            static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
                 comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
-                comp.VerifyDiagnostics();
+                comp.VerifyDiagnostics(expectedDiagnostics);
 
-                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
-                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
+                var actualAnalyzedKeys = GetIsNullableEnabledMethods(comp.NullableAnalysisData, key => ((MethodSymbol)key).ToTestDisplayString());
+                AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
             }
         }
 
@@ -1528,7 +1567,49 @@ class A : System.Attribute
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_13()
         {
-            var sourceA =
+            var source =
+@"#nullable disable
+object x = typeof(string);
+if (x == null) { }
+_ = x.ToString();
+#nullable enable
+";
+            verify(new[] { source }, projectContext: null, expectedAnalyzedKeys: new string[0]);
+
+            source =
+@"#nullable disable
+object x = typeof(string);
+if (x == null) { }
+#nullable enable
+_ = x.ToString();
+";
+            verify(new[] { source }, projectContext: null, expectedAnalyzedKeys: new[] { "<Main>$" },
+                // (5,5): warning CS8602: Dereference of a possibly null reference.
+                // _ = x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 5));
+
+            source =
+@"#nullable disable
+object x = typeof(string);
+if (x == null) { }
+#nullable restore
+_ = x.ToString();
+";
+            verify(new[] { source }, projectContext: NullableContextOptions.Warnings, expectedAnalyzedKeys: new[] { "<Main>$" },
+                // (5,5): warning CS8602: Dereference of a possibly null reference.
+                // _ = x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 5));
+
+            source =
+@"object x = typeof(string);
+if (x == null) { }
+#nullable enable
+#nullable disable
+_ = x.ToString();
+";
+            verify(new[] { source }, projectContext: null, expectedAnalyzedKeys: new string[0]);
+
+            source =
 @"object x = A.F();
 if (x == null) { }
 _ = x.ToString();
@@ -1537,9 +1618,52 @@ static class A
 #nullable enable
     internal static object F() => new object();
 }";
-            verify(new[] { sourceA }, "<Main>$", "F");
+            verify(new[] { source }, projectContext: null, expectedAnalyzedKeys: new[] { "F" });
 
-            sourceA =
+            source =
+@"object x = typeof(A);
+class A
+{
+#nullable enable
+#nullable disable
+}
+if (x == null) { }
+_ = x.ToString();
+";
+            verify(new[] { source }, projectContext: null, expectedAnalyzedKeys: new string[0],
+                // (7,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // if (x == null) { }
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "if (x == null) { }").WithLocation(7, 1));
+
+            source =
+@"#nullable enable
+object x = A.F();
+#nullable disable
+static class A
+{
+    internal static object F() => new object();
+}
+if (x == null) { }
+_ = x.ToString();
+";
+            verify(new[] { source }, projectContext: null, expectedAnalyzedKeys: new[] { "<Main>$" },
+                // (8,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // if (x == null) { }
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "if (x == null) { }").WithLocation(8, 1));
+
+            source =
+@"object x = F();
+if (x == null) { }
+_ = x.ToString();
+static object F()
+{
+#nullable enable
+    return new object();
+#nullable disable
+}";
+            verify(new[] { source }, projectContext: null, expectedAnalyzedKeys: new[] { "<Main>$" });
+
+            var sourceA =
 @"static class A
 {
 #nullable enable
@@ -1550,13 +1674,15 @@ static class A
 if (x == null) { }
 _ = x.ToString();
 ";
-            verify(new[] { sourceA, sourceB }, "F");
+            verify(new[] { sourceA, sourceB }, projectContext: null, expectedAnalyzedKeys: new[] { "F" });
 
-            static void verify(string[] source, params string[] expectedAnalyzedKeys)
+            static void verify(string[] source, NullableContextOptions? projectContext, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
-                var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+                var options = TestOptions.ReleaseExe;
+                if (projectContext != null) options = options.WithNullableContextOptions(projectContext.GetValueOrDefault());
+                var comp = CreateCompilation(source, options: options);
                 comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
-                comp.VerifyDiagnostics();
+                comp.VerifyDiagnostics(expectedDiagnostics);
 
                 AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
                 AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
@@ -1889,12 +2015,15 @@ class B
                 OrderBy(key => key).
                 ToArray();
 
-        private static string[] GetIsNullableEnabledMethods(ConcurrentDictionary<object, NullableWalker.Data> nullableData) =>
-            nullableData.
+        private static string[] GetIsNullableEnabledMethods(ConcurrentDictionary<object, NullableWalker.Data> nullableData, Func<object, string> toString = null)
+        {
+            toString ??= GetNullableDataKeyAsString;
+            return nullableData.
                 Where(pair => pair.Value.RequiredAnalysis && pair.Key is MethodSymbol method && method.IsNullableEnabled()).
-                Select(pair => GetNullableDataKeyAsString(pair.Key)).
+                Select(pair => toString(pair.Key)).
                 OrderBy(key => key).
                 ToArray();
+        }
 
         private static string GetNullableDataKeyAsString(object key) =>
             key is Symbol symbol ? symbol.MetadataName : ((SyntaxNode)key).ToString();

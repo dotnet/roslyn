@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            bool isNullableEnabled = compilation.IsNullableAnalysisEnabledIn(declaration.SyntaxReference.GetSyntax());
+            bool isNullableEnabled = IsNullableEnabled(compilation, CompilationUnit);
             this.MakeFlags(
                 MethodKind.Ordinary,
                 DeclarationModifiers.Static | DeclarationModifiers.Private | (hasAwait ? DeclarationModifiers.Async : DeclarationModifiers.None),
@@ -251,5 +251,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public SyntaxNode ReturnTypeSyntax => CompilationUnit.Members.First(m => m.Kind() == SyntaxKind.GlobalStatement);
+
+        private static bool IsNullableEnabled(CSharpCompilation compilation, CompilationUnitSyntax syntax)
+        {
+            foreach (var member in syntax.Members)
+            {
+                if (member.Kind() == SyntaxKind.GlobalStatement && compilation.IsNullableAnalysisEnabledIn(member))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }
