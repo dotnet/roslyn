@@ -19,6 +19,9 @@ jobs:
     vmImage: 'windows-2019'
   timeoutInMinutes: 40
 
+  variables:
+    NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
+
   steps:
     - template: checkout-windows-task.yml
 
