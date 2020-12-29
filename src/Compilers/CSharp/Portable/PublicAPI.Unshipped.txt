@@ -1,1 +1,6 @@
-
+Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken usingKeyword, Microsoft.CodeAnalysis.SyntaxToken staticKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.NameEqualsSyntax alias, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.UsingDirective(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.UsingDirective(Microsoft.CodeAnalysis.SyntaxToken staticKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.NameEqualsSyntax alias, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.UsingDirective(Microsoft.CodeAnalysis.SyntaxToken usingKeyword, Microsoft.CodeAnalysis.SyntaxToken staticKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.NameEqualsSyntax alias, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax

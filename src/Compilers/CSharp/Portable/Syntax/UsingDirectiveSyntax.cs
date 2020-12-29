@@ -17,6 +17,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// the type is a tuple-type there is no name to return.
         /// </summary>
         public NameSyntax? Name => this.Type as NameSyntax;
+
+        public UsingDirectiveSyntax Update(SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
+            => this.Update(usingKeyword, staticKeyword, alias, type: name, semicolonToken);
+
+        public UsingDirectiveSyntax WithName(NameSyntax name)
+            => WithType(name);
     }
 }
 
