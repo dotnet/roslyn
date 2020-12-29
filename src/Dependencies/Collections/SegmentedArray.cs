@@ -25,17 +25,6 @@ namespace Microsoft.CodeAnalysis.Collections
             if (length == 0)
                 return;
 
-            if ((uint)length <= (uint)sourceArray.Length
-                && (uint)length <= (uint)destinationArray.Length)
-            {
-                foreach (var (first, second) in GetSegments(sourceArray, destinationArray, length))
-                {
-                    first.CopyTo(second);
-                }
-
-                return;
-            }
-
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length));
             if (length > sourceArray.Length)
@@ -43,7 +32,10 @@ namespace Microsoft.CodeAnalysis.Collections
             if (length > destinationArray.Length)
                 throw new ArgumentException(SR.Arg_LongerThanDestArray, nameof(destinationArray));
 
-            throw new InvalidOperationException("This program location is thought to be unreachable.");
+            foreach (var (first, second) in GetSegments(sourceArray, destinationArray, length))
+            {
+                first.CopyTo(second);
+            }
         }
 
         private static SegmentEnumerable<T> GetSegments<T>(this SegmentedArray<T> array, int offset, int length)
