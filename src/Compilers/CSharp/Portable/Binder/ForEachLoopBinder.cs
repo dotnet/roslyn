@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Well-known members are matched by signature: we shouldn't find it if it doesn't have exactly 1 parameter.
                     Debug.Assert(getEnumeratorMethod.ParameterCount == 1);
-                    if (!getEnumeratorMethod.Parameters[0].IsOptional)
+                    if (getEnumeratorMethod?.Parameters[0].IsOptional == false)
                     {
                         collectionExpr = unwrappedCollectionExpr;
                         // This indicates a problem with the well-known IAsyncEnumerable type - it should have an optional cancellation token.
