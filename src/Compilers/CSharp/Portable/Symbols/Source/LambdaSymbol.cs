@@ -425,5 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal override bool IsNullableEnabled() => throw ExceptionUtilities.Unreachable;
     }
 }

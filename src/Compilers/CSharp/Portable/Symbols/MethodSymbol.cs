@@ -1166,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract bool AreLocalsZeroed { get; }
 
-        internal virtual bool IsNullableEnabled() => false;
+        internal abstract bool IsNullableEnabled();
 
         #region IMethodSymbolInternal
 

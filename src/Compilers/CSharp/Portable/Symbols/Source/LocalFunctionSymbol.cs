@@ -505,6 +505,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyTypeParameterConstraintKinds;
         }
 
+        internal override bool IsNullableEnabled() => throw ExceptionUtilities.Unreachable;
+
         public override int GetHashCode()
         {
             // this is what lambdas do (do not use hashes of other fields)

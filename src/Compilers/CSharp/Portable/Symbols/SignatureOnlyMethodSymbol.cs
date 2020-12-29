@@ -91,6 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name { get { return _name; } }
 
+        internal sealed override bool IsNullableEnabled() => false;
+
         #region Not used by MethodSignatureComparer
 
         internal override bool GenerateDebugInfo { get { throw ExceptionUtilities.Unreachable; } }

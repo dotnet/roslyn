@@ -578,6 +578,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
+        internal override bool IsNullableEnabled() => false;
+
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if ((object)this == obj) return true;
