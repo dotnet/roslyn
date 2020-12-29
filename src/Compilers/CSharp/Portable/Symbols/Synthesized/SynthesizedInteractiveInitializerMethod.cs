@@ -243,7 +243,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyIsNullableEnabled == ThreeState.Unknown)
             {
-                // Return true if nullable is not disabled in compilation options or if enabled in any syntax tree.
+                // Return true if nullable is not disabled in compilation options or if enabled
+                // in any syntax tree. This could be refined to ignore top-level methods and
+                // type declarations but this simple approach matches C#8 behavior.
                 var compilation = DeclaringCompilation;
                 bool value = (compilation.Options.NullableContextOptions != NullableContextOptions.Disable) ||
                     compilation.SyntaxTrees.Any(tree => ((CSharpSyntaxTree)tree).HasNullableEnables());
