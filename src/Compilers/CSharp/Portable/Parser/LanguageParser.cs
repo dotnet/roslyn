@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var alias = this.IsNamedAssignment() ? ParseNameEquals() : null;
 
-            NameSyntax name;
+            TypeSyntax type;
             SyntaxToken semicolon;
 
             if (IsPossibleNamespaceMemberDeclaration())
@@ -760,22 +760,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 //NB: there's no way this could be true for a set of tokens that form a valid 
                 //using directive, so there's no danger in checking the error case first.
 
-                name = WithAdditionalDiagnostics(CreateMissingIdentifierName(), GetExpectedTokenError(SyntaxKind.IdentifierToken, this.CurrentToken.Kind));
+                type = WithAdditionalDiagnostics(CreateMissingIdentifierName(), GetExpectedTokenError(SyntaxKind.IdentifierToken, this.CurrentToken.Kind));
                 semicolon = SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken);
             }
             else
             {
-                name = this.ParseQualifiedName();
-                if (name.IsMissing && this.PeekToken(1).Kind == SyntaxKind.SemicolonToken)
+                type = alias == null ? this.ParseQualifiedName() : this.ParseType();
+                if (type.IsMissing && this.PeekToken(1).Kind == SyntaxKind.SemicolonToken)
                 {
                     //if we can see a semicolon ahead, then the current token was
                     //probably supposed to be an identifier
-                    name = AddTrailingSkippedSyntax(name, this.EatToken());
+                    type = AddTrailingSkippedSyntax(type, this.EatToken());
                 }
                 semicolon = this.EatToken(SyntaxKind.SemicolonToken);
             }
 
-            var usingDirective = _syntaxFactory.UsingDirective(usingToken, staticToken, alias, name, semicolon);
+            var usingDirective = _syntaxFactory.UsingDirective(usingToken, staticToken, alias, type, semicolon);
             if (staticToken != null)
             {
                 usingDirective = CheckFeatureAvailability(usingDirective, MessageID.IDS_FeatureUsingStatic);
