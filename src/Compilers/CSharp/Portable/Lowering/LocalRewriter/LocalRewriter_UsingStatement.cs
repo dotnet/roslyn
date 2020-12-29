@@ -478,15 +478,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method = methodArgumentInfo.Method;
 
 #if DEBUG
-            Debug.Assert(!method.IsExtensionMethod || method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds[0] != RefKind.Ref);
             if (method.IsExtensionMethod)
             {
                 Debug.Assert(expression == null);
-                Debug.Assert(method.Parameters.AsSpan()[1..].All(p => p.IsOptional || p.IsParams));
+                Debug.Assert(method.Parameters.AsSpan()[1..].All(p => (p.IsOptional || p.IsParams) && p.RefKind == RefKind.None));
+                Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds[0] is RefKind.In or RefKind.None);
             }
             else
             {
                 Debug.Assert(method.Parameters.All(p => p.IsOptional || p.IsParams));
+                Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty);
             }
 #endif
 
