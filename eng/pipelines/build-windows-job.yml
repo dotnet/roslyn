@@ -16,7 +16,8 @@ parameters:
 jobs:
 - job: ${{ parameters.jobName }}
   pool:
-    vmImage: 'windows-2019'
+    name: NetCorePublic-Pool
+    queue: BuildPool.Windows.10.Amd64.Open
   timeoutInMinutes: 40
 
   variables:
