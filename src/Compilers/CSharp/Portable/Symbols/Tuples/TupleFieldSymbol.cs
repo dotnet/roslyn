@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override sealed bool IsExplicitlyNamedTupleElement
+        public sealed override bool IsExplicitlyNamedTupleElement
         {
             get
             {
