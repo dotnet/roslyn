@@ -235,8 +235,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool IsNullableAnalysisEnabledIn(SyntaxNode syntax)
         {
+            return IsNullableAnalysisEnabledIn((CSharpSyntaxTree)syntax.SyntaxTree, syntax.Span);
+        }
+
+        internal bool IsNullableAnalysisEnabledIn(CSharpSyntaxTree tree, TextSpan span)
+        {
             return GetNullableAnalysisValue() ??
-                ((CSharpSyntaxTree)syntax.SyntaxTree).IsNullableAnalysisEnabled(syntax.Span) ??
+                tree.IsNullableAnalysisEnabled(span) ??
                 (Options.NullableContextOptions & NullableContextOptions.Warnings) != 0;
         }
 

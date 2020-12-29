@@ -2008,6 +2008,113 @@ class B
             }
         }
 
+        [Fact]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
+        public void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_MethodBody()
+        {
+            var source =
+@"class Program
+{
+#nullable disable
+    static void Main()
+    {
+        object obj = typeof(object);
+    }
+#nullable enable
+}";
+            VerifySpeculativeSemanticModel(source, "string", Microsoft.CodeAnalysis.NullableAnnotation.None);
+
+            source =
+@"class Program
+{
+#nullable disable
+    static void Main()
+    {
+        object obj =
+#nullable enable
+            typeof(object);
+    }
+}";
+            VerifySpeculativeSemanticModel(source, "string", Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated);
+        }
+
+        [Fact]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
+        public void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_Initializer()
+        {
+            var source =
+@"class Program
+{
+#nullable disable
+    static object F = typeof(object);
+#nullable enable
+}";
+            VerifySpeculativeSemanticModel(source, "string", Microsoft.CodeAnalysis.NullableAnnotation.None);
+
+            source =
+@"class Program
+{
+#nullable disable
+    static object F =
+#nullable enable
+        typeof(object);
+}";
+            VerifySpeculativeSemanticModel(source, "string", Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated);
+        }
+
+        [Fact]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
+        public void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_Attribute()
+        {
+            var source =
+@"class A : System.Attribute
+{
+    internal A(object obj) { }
+}
+class Program
+{
+#nullable disable
+    [A(typeof(object)]
+    static void Main()
+    {
+    }
+#nullable enable
+}";
+            VerifySpeculativeSemanticModel(source, "string", Microsoft.CodeAnalysis.NullableAnnotation.None);
+
+            source =
+@"class A : System.Attribute
+{
+    internal A(object obj) { }
+}
+class Program
+{
+#nullable disable
+    [A(
+#nullable enable
+        typeof(object)]
+    static void Main()
+    {
+    }
+}";
+            // https://github.com/dotnet/roslyn/issues/50160: Debug.Assert() failure in MemberSemanticModel.GetSnapshotManager().
+#if !DEBUG
+            VerifySpeculativeSemanticModel(source, "string", Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated);
+#endif
+        }
+
+        private static void VerifySpeculativeSemanticModel(string source, string typeName, Microsoft.CodeAnalysis.NullableAnnotation expectedAnnotation)
+        {
+            var comp = CreateCompilation(source);
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var typeOf = syntaxTree.GetRoot().DescendantNodes().OfType<TypeOfExpressionSyntax>().Single();
+            var type = SyntaxFactory.ParseTypeName(typeName);
+            Assert.True(model.TryGetSpeculativeSemanticModel(typeOf.Type.SpanStart, type, out model, SpeculativeBindingOption.BindAsTypeOrNamespace));
+            var typeInfo = model.GetTypeInfo(type);
+            Assert.Equal(expectedAnnotation, typeInfo.Nullability.Annotation);
+        }
+
         private static string[] GetNullableDataKeysAsStrings(ConcurrentDictionary<object, NullableWalker.Data> nullableData, bool requiredAnalysis = false) =>
             nullableData.
                 Where(pair => !requiredAnalysis || pair.Value.RequiredAnalysis).

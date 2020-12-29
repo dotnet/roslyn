@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override bool IsNullableAnalysisEnabled()
             {
-                return Compilation.IsNullableAnalysisEnabled;
+                return Compilation.IsNullableAnalysisEnabledIn((CSharpSyntaxTree)_parentSemanticModelOpt.SyntaxTree, new TextSpan(OriginalPositionForSpeculation, 0));
             }
 
             internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
