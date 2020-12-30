@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteDesignerAttributeDiscoveryService), typeof(IRemoteDesignerAttributeDiscoveryService.ICallback)),
             (typeof(IRemoteProjectTelemetryService), typeof(IRemoteProjectTelemetryService.ICallback)),
             (typeof(IRemoteDiagnosticAnalyzerService), null),
+            (typeof(IRemoteDiagnosticCacheService), null),
             (typeof(IRemoteSemanticClassificationService), null),
             (typeof(IRemoteSemanticClassificationCacheService), null),
             (typeof(IRemoteDocumentHighlightsService), null),

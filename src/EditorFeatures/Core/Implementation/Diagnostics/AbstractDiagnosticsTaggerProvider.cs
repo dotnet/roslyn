@@ -8,7 +8,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -119,13 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected internal virtual ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
             => diagnosticData.DataLocation is object ? ImmutableArray.Create(diagnosticData.DataLocation) : ImmutableArray<DiagnosticDataLocation>.Empty;
 
-        protected override Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
-        {
-            ProduceTags(context, spanToTag);
-            return Task.CompletedTask;
-        }
-
-        private void ProduceTags(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag)
+        protected override async Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
             if (!this.IsEnabled)
             {
@@ -142,6 +135,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             var cancellationToken = context.CancellationToken;
             var workspace = document.Project.Solution.Workspace;
+
+            var diagnosticCacheService = workspace.Services.GetService<IDiagnosticCacheService>();
+            if (diagnosticCacheService != null)
+            {
+                // During solution load. if there's any cached diagnostics available,
+                // this service will (asynchronously) push updates to IDiagnosticService.
+                await diagnosticCacheService.TryLoadCachedDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
+            }
 
             // See if we've marked any spans as those we want to suppress diagnostics for.
             // This can happen for buffers used in the preview workspace where some feature

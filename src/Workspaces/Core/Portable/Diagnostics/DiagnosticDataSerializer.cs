@@ -5,13 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -96,6 +96,17 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             AnalyzerVersion.WriteTo(writer);
             Version.WriteTo(writer);
 
+            WriteDiagnosticDataArray(writer, items, cancellationToken);
+        }
+
+        public static void WriteDiagnosticDataNoProjectInfo(ObjectWriter writer, ImmutableArray<DiagnosticData> items, CancellationToken cancellationToken)
+        {
+            writer.WriteInt32(FormatVersion);
+            WriteDiagnosticDataArray(writer, items, cancellationToken);
+        }
+
+        private static void WriteDiagnosticDataArray(ObjectWriter writer, ImmutableArray<DiagnosticData> items, CancellationToken cancellationToken)
+        {
             writer.WriteInt32(items.Length);
 
             foreach (var item in items)
@@ -220,6 +231,81 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             }
         }
 
+        public static bool TryReadDiagnosticData(
+            ObjectReader reader,
+            DocumentKey documentKey,
+            CancellationToken cancellationToken,
+            out ImmutableArray<DiagnosticData> data)
+        {
+            data = default;
+
+            try
+            {
+                var format = reader.ReadInt32();
+                if (format != FormatVersion)
+                {
+                    return false;
+                }
+
+                data = ReadDiagnosticDataArray(reader, documentKey, cancellationToken);
+                return true;
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
+            {
+                return false;
+            }
+        }
+
+        private static void ReadDiagnosticInfo(ObjectReader reader, out DiagnosticInfo diagnosticInfo)
+        {
+            var id = reader.ReadString();
+            var category = reader.ReadString();
+
+            var message = reader.ReadString();
+            var messageFormat = reader.ReadString();
+            var title = reader.ReadString();
+            var description = reader.ReadString();
+            var helpLink = reader.ReadString();
+            var severity = (DiagnosticSeverity)reader.ReadInt32();
+            var defaultSeverity = (DiagnosticSeverity)reader.ReadInt32();
+            var isEnabledByDefault = reader.ReadBoolean();
+            var isSuppressed = reader.ReadBoolean();
+            var warningLevel = reader.ReadInt32();
+
+            // these fields are unused - the actual span is read in ReadLocation
+            _ = reader.ReadInt32();
+            _ = reader.ReadInt32();
+
+            TryReadLocationInfo(reader, out var locationInfo);
+            var additionalLocationInfo = ReadAdditionalLocationInfo(reader);
+
+            var customTagsCount = reader.ReadInt32();
+            var customTags = GetCustomTags(reader, customTagsCount);
+
+            var propertiesCount = reader.ReadInt32();
+            var properties = GetProperties(reader, propertiesCount);
+
+            diagnosticInfo = new DiagnosticInfo()
+            {
+                Id = id,
+                Category = category,
+                Message = message,
+                MessageFormat = messageFormat,
+                Title = title,
+                Description = description,
+                HelpLink = helpLink,
+                Severity = severity,
+                DefaultSeverity = defaultSeverity,
+                IsEnabledByDefault = isEnabledByDefault,
+                IsSuppressed = isSuppressed,
+                WarningLevel = warningLevel,
+                LocationInfo = locationInfo,
+                AdditionalLocationInfo = additionalLocationInfo,
+                CustomTags = customTags,
+                Properties = properties
+            };
+        }
+
         private static ImmutableArray<DiagnosticData> ReadDiagnosticDataArray(ObjectReader reader, Project project, TextDocument? document, CancellationToken cancellationToken)
         {
             var count = reader.ReadInt32();
@@ -233,101 +319,198 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             for (var i = 0; i < count; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                ReadDiagnosticInfo(reader, out var diagnosticInfo);
 
-                var id = reader.ReadString();
-                var category = reader.ReadString();
-
-                var message = reader.ReadString();
-                var messageFormat = reader.ReadString();
-                var title = reader.ReadString();
-                var description = reader.ReadString();
-                var helpLink = reader.ReadString();
-                var severity = (DiagnosticSeverity)reader.ReadInt32();
-                var defaultSeverity = (DiagnosticSeverity)reader.ReadInt32();
-                var isEnabledByDefault = reader.ReadBoolean();
-                var isSuppressed = reader.ReadBoolean();
-                var warningLevel = reader.ReadInt32();
-
-                // these fields are unused - the actual span is read in ReadLocation
-                _ = reader.ReadInt32();
-                _ = reader.ReadInt32();
-
-                var location = ReadLocation(project, reader, document);
-                var additionalLocations = ReadAdditionalLocations(project, reader);
-
-                var customTagsCount = reader.ReadInt32();
-                var customTags = GetCustomTags(reader, customTagsCount);
-
-                var propertiesCount = reader.ReadInt32();
-                var properties = GetProperties(reader, propertiesCount);
-
-                builder.Add(new DiagnosticData(
-                    id: id,
-                    category: category,
-                    message: message,
-                    enuMessageForBingSearch: messageFormat,
-                    severity: severity,
-                    defaultSeverity: defaultSeverity,
-                    isEnabledByDefault: isEnabledByDefault,
-                    warningLevel: warningLevel,
-                    customTags: customTags,
-                    properties: properties,
-                    projectId: project.Id,
-                    location: location,
-                    additionalLocations: additionalLocations,
-                    language: project.Language,
-                    title: title,
-                    description: description,
-                    helpLink: helpLink,
-                    isSuppressed: isSuppressed));
+                builder.Add(diagnosticInfo.ToDiagnosticData(project, document));
             }
 
             return builder.ToImmutableAndFree();
         }
 
-        private static DiagnosticDataLocation? ReadLocation(Project project, ObjectReader reader, TextDocument? document)
+        private static ImmutableArray<DiagnosticData> ReadDiagnosticDataArray(ObjectReader reader, DocumentKey documentKey, CancellationToken cancellationToken)
+        {
+            var count = reader.ReadInt32();
+            if (count == 0)
+            {
+                return ImmutableArray<DiagnosticData>.Empty;
+            }
+
+            var builder = ArrayBuilder<DiagnosticData>.GetInstance(count);
+
+            for (var i = 0; i < count; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                ReadDiagnosticInfo(reader, out var diagnosticInfo);
+
+                builder.Add(diagnosticInfo.ToDiagnosticData(documentKey));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        private static ImmutableArray<LocationInfo> ReadAdditionalLocationInfo(ObjectReader reader)
+        {
+            var count = reader.ReadInt32();
+            using var _ = ArrayBuilder<LocationInfo>.GetInstance(count, out var result);
+            for (var i = 0; i < count; i++)
+            {
+                if (TryReadLocationInfo(reader, out var locationInfo))
+                {
+                    result.Add(locationInfo);
+                }
+            }
+
+            return result.ToImmutable();
+        }
+
+        private static bool TryReadLocationInfo(ObjectReader reader, out LocationInfo locationInfo)
         {
             var exists = reader.ReadBoolean();
             if (!exists)
             {
-                return null;
+                locationInfo = default;
+                return false;
             }
 
-            TextSpan? sourceSpan = null;
-            if (reader.ReadBoolean())
+            locationInfo = new LocationInfo
             {
-                sourceSpan = new TextSpan(reader.ReadInt32(), reader.ReadInt32());
-            }
+                SourceSpan = reader.ReadBoolean() ? new TextSpan(reader.ReadInt32(), reader.ReadInt32()) : null,
 
-            var originalFile = reader.ReadString();
-            var originalStartLine = reader.ReadInt32();
-            var originalStartColumn = reader.ReadInt32();
-            var originalEndLine = reader.ReadInt32();
-            var originalEndColumn = reader.ReadInt32();
+                OriginalFile = reader.ReadString(),
+                OriginalStartLine = reader.ReadInt32(),
+                OriginalStartColumn = reader.ReadInt32(),
+                OriginalEndLine = reader.ReadInt32(),
+                OriginalEndColumn = reader.ReadInt32(),
 
-            var mappedFile = reader.ReadString();
-            var mappedStartLine = reader.ReadInt32();
-            var mappedStartColumn = reader.ReadInt32();
-            var mappedEndLine = reader.ReadInt32();
-            var mappedEndColumn = reader.ReadInt32();
+                MappedFile = reader.ReadString(),
+                MappedStartLine = reader.ReadInt32(),
+                MappedStartColumn = reader.ReadInt32(),
+                MappedEndLine = reader.ReadInt32(),
+                MappedEndColumn = reader.ReadInt32()
+            };
 
-            var documentId = document != null
-                ? document.Id
-                : project.Solution.GetDocumentIdsWithFilePath(originalFile).FirstOrDefault(documentId => documentId.ProjectId == project.Id);
-
-            return new DiagnosticDataLocation(documentId, sourceSpan,
-                originalFile, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
-                mappedFile, mappedStartLine, mappedStartColumn, mappedEndLine, mappedEndColumn);
+            return true;
         }
 
-        private static ImmutableArray<DiagnosticDataLocation> ReadAdditionalLocations(Project project, ObjectReader reader)
+        private struct LocationInfo
         {
-            var count = reader.ReadInt32();
-            using var _ = ArrayBuilder<DiagnosticDataLocation>.GetInstance(count, out var result);
-            for (var i = 0; i < count; i++)
-                result.AddIfNotNull(ReadLocation(project, reader, document: null));
+            public TextSpan? SourceSpan { get; set; }
+            public string? OriginalFile { get; set; }
+            public int OriginalStartLine { get; set; }
+            public int OriginalStartColumn { get; set; }
+            public int OriginalEndLine { get; set; }
+            public int OriginalEndColumn { get; set; }
+            public string? MappedFile { get; set; }
+            public int MappedStartLine { get; set; }
+            public int MappedStartColumn { get; set; }
+            public int MappedEndLine { get; set; }
+            public int MappedEndColumn { get; set; }
 
-            return result.ToImmutable();
+            public DiagnosticDataLocation ToDiagnosticDataLocation(Project project, TextDocument? document)
+            {
+                var documentId = document != null
+                   ? document.Id
+                   : project.Solution.GetDocumentIdsWithFilePath(OriginalFile).FirstOrDefault(documentId => documentId.ProjectId == project.Id);
+
+                return new DiagnosticDataLocation(documentId, SourceSpan,
+                      OriginalFile, OriginalStartLine, OriginalStartColumn, OriginalEndLine, OriginalEndColumn,
+                      MappedFile, MappedStartLine, MappedStartColumn, MappedEndLine, MappedEndColumn);
+            }
+
+            public DiagnosticDataLocation ToDiagnosticDataLocation(DocumentKey documentKey)
+            {
+                var documentId = OriginalFile?.Equals(documentKey.FilePath, StringComparison.OrdinalIgnoreCase) == true
+                   ? documentKey.Id
+                   : null;
+
+                return new DiagnosticDataLocation(documentId, SourceSpan,
+                      OriginalFile, OriginalStartLine, OriginalStartColumn, OriginalEndLine, OriginalEndColumn,
+                      MappedFile, MappedStartLine, MappedStartColumn, MappedEndLine, MappedEndColumn);
+            }
+        }
+
+        private static ImmutableArray<DiagnosticDataLocation> CreateAdditionalDiagnosticLocations(Project project, ImmutableArray<LocationInfo> additionalLocationInfo)
+        {
+            using var _ = ArrayBuilder<DiagnosticDataLocation>.GetInstance(additionalLocationInfo.Length, out var builder);
+            foreach (var info in additionalLocationInfo)
+                builder.Add(info.ToDiagnosticDataLocation(project, null));
+
+            return builder.ToImmutable();
+        }
+
+        private static ImmutableArray<DiagnosticDataLocation> CreateAdditionalDiagnosticLocations(DocumentKey documentKey, ImmutableArray<LocationInfo> additionalLocationInfo)
+        {
+            using var _ = ArrayBuilder<DiagnosticDataLocation>.GetInstance(additionalLocationInfo.Length, out var builder);
+            foreach (var info in additionalLocationInfo)
+                builder.Add(info.ToDiagnosticDataLocation(documentKey));
+
+            return builder.ToImmutable();
+        }
+
+        private struct DiagnosticInfo
+        {
+            public string Id { get; set; }
+            public string Category { get; set; }
+            public string? Message { get; set; }
+            public string? MessageFormat { get; set; }
+            public string? Title { get; set; }
+            public string? Description { get; set; }
+            public string? HelpLink { get; set; }
+            public DiagnosticSeverity Severity { get; set; }
+            public DiagnosticSeverity DefaultSeverity { get; set; }
+            public bool IsEnabledByDefault { get; set; }
+            public bool IsSuppressed { get; set; }
+            public int WarningLevel { get; set; }
+            public LocationInfo LocationInfo { get; set; }
+            public ImmutableArray<LocationInfo> AdditionalLocationInfo { get; set; }
+            public ImmutableArray<string> CustomTags { get; set; }
+            public ImmutableDictionary<string, string?> Properties { get; set; }
+
+            public DiagnosticData ToDiagnosticData(Project project, TextDocument? document)
+            {
+                return new DiagnosticData(
+                    id: Id,
+                    category: Category,
+                    message: Message,
+                    enuMessageForBingSearch: MessageFormat,
+                    severity: Severity,
+                    defaultSeverity: DefaultSeverity,
+                    isEnabledByDefault: IsEnabledByDefault,
+                    warningLevel: WarningLevel,
+                    customTags: CustomTags,
+                    properties: Properties,
+                    projectId: project.Id,
+                    location: LocationInfo.ToDiagnosticDataLocation(project, document),
+                    additionalLocations: CreateAdditionalDiagnosticLocations(project, AdditionalLocationInfo),
+                    language: project.Language,
+                    title: Title,
+                    description: Description,
+                    helpLink: HelpLink,
+                    isSuppressed: IsSuppressed);
+            }
+
+            public DiagnosticData ToDiagnosticData(DocumentKey documentKey)
+            {
+                return new DiagnosticData(
+                    id: Id,
+                    category: Category,
+                    message: Message,
+                    enuMessageForBingSearch: MessageFormat,
+                    severity: Severity,
+                    defaultSeverity: DefaultSeverity,
+                    isEnabledByDefault: IsEnabledByDefault,
+                    warningLevel: WarningLevel,
+                    customTags: CustomTags,
+                    properties: Properties,
+                    projectId: documentKey.Project.Id,
+                    location: LocationInfo.ToDiagnosticDataLocation(documentKey),
+                    additionalLocations: CreateAdditionalDiagnosticLocations(documentKey, AdditionalLocationInfo),
+                    language: null,
+                    title: Title,
+                    description: Description,
+                    helpLink: HelpLink,
+                    isSuppressed: IsSuppressed);
+            }
         }
 
         private static ImmutableDictionary<string, string?> GetProperties(ObjectReader reader, int count)
