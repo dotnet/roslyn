@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool IsNullableAnalysisEnabledIn(MethodSymbol method)
         {
             return GetNullableAnalysisValue() ??
-                method.IsNullableEnabled();
+                method.IsNullableAnalysisEnabled();
         }
 
         /// <summary>

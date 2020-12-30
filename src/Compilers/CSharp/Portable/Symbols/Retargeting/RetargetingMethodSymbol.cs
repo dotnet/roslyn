@@ -360,6 +360,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override bool IsNullableEnabled() => throw ExceptionUtilities.Unreachable;
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
     }
 }

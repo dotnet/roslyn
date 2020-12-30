@@ -2060,6 +2060,25 @@ class B
         typeof(object);
 }";
             VerifySpeculativeSemanticModel(source, "string", Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated);
+
+            source =
+@"class Program
+{
+#nullable disable
+    static object P { get; } = typeof(object);
+#nullable enable
+}";
+            VerifySpeculativeSemanticModel(source, "string", Microsoft.CodeAnalysis.NullableAnnotation.None);
+
+            source =
+@"class Program
+{
+#nullable disable
+    static object P { get; } =
+#nullable enable
+        typeof(object);
+}";
+            VerifySpeculativeSemanticModel(source, "string", Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated);
         }
 
         [Fact]
@@ -2126,7 +2145,7 @@ class Program
         {
             toString ??= GetNullableDataKeyAsString;
             return nullableData.
-                Where(pair => pair.Value.RequiredAnalysis && pair.Key is MethodSymbol method && method.IsNullableEnabled()).
+                Where(pair => pair.Value.RequiredAnalysis && pair.Key is MethodSymbol method && method.IsNullableAnalysisEnabled()).
                 Select(pair => toString(pair.Key)).
                 OrderBy(key => key).
                 ToArray();

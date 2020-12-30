@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal abstract override bool IsNullableEnabled();
+        internal abstract override bool IsNullableAnalysisEnabled();
 
         protected abstract CSharpSyntaxNode GetInitializer();
 

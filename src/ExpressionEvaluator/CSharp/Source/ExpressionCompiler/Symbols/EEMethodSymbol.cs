@@ -716,6 +716,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return localPosition;
         }
 
-        internal override bool IsNullableEnabled() => false;
+        internal override bool IsNullableAnalysisEnabled() => false;
     }
 }

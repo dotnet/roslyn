@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override bool IsNullableEnabled() => false;
+        internal override bool IsNullableAnalysisEnabled() => false;
 
 #if DEBUG
         protected override MethodSymbolAdapter CreateCciAdapter()

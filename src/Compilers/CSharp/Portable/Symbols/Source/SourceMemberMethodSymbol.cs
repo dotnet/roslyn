@@ -873,7 +873,7 @@ done:
             return builder.MostCommonValue;
         }
 
-        internal override bool IsNullableEnabled()
+        internal override bool IsNullableAnalysisEnabled()
         {
             Debug.Assert(!this.IsConstructor()); // Constructors should use IsNullableEnabledForConstructorsAndInitializers() instead.
             return flags.IsNullableEnabled;

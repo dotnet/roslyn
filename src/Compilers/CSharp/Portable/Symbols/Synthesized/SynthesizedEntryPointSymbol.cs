@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsNullableEnabled() => false;
+        internal sealed override bool IsNullableAnalysisEnabled() => false;
 
         private sealed class ScriptEntryPoint : SynthesizedEntryPointSymbol
         {

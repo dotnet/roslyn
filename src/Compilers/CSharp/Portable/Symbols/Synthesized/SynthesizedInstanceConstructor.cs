@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ReturnTypeWithAnnotations.Type.GetUseSiteDiagnostic();
         }
 
-        internal sealed override bool IsNullableEnabled() =>
+        internal sealed override bool IsNullableAnalysisEnabled() =>
             (ContainingType as SourceMemberContainerTypeSymbol)?.IsNullableEnabledForConstructorsAndInitializers(useStatic: false) ?? false;
 
         #endregion

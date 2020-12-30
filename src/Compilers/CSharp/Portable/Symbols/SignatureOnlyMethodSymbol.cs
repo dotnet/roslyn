@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string Name { get { return _name; } }
 
-        internal sealed override bool IsNullableEnabled() => false;
+        internal sealed override bool IsNullableAnalysisEnabled() => false;
 
         #region Not used by MethodSignatureComparer
 

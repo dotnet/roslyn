@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsNullableEnabled()
+        internal override bool IsNullableAnalysisEnabled()
         {
             return _hasThisInitializer ?
                 flags.IsNullableEnabled :

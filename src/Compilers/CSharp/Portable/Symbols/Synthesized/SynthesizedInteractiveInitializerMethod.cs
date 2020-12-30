@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _resultType; }
         }
 
-        internal override bool IsNullableEnabled()
+        internal override bool IsNullableAnalysisEnabled()
         {
             if (_lazyIsNullableEnabled == ThreeState.Unknown)
             {
