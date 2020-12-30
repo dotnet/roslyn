@@ -37,6 +37,11 @@
         <target state="translated">Strumento di esecuzione dell'analizzatore diagnostico</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_DiagnosticCache">
+        <source>Diagnostic cache</source>
+        <target state="new">Diagnostic cache</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_DocumentHighlights">
         <source>Document higlights</source>
         <target state="translated">Evidenziazioni del documento</target>

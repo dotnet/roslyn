@@ -37,6 +37,11 @@
         <target state="translated">診斷分析器執行器</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_DiagnosticCache">
+        <source>Diagnostic cache</source>
+        <target state="new">Diagnostic cache</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_DocumentHighlights">
         <source>Document higlights</source>
         <target state="translated">文件重點</target>

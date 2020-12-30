@@ -356,19 +356,19 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             {
                 if (TryReadLocationInfo(reader, out var locationInfo))
                 {
-                    result.Add(locationInfo);
+                    result.AddIfNotNull(locationInfo);
                 }
             }
 
             return result.ToImmutable();
         }
 
-        private static bool TryReadLocationInfo(ObjectReader reader, out LocationInfo locationInfo)
+        private static bool TryReadLocationInfo(ObjectReader reader, out LocationInfo? locationInfo)
         {
             var exists = reader.ReadBoolean();
             if (!exists)
             {
-                locationInfo = default;
+                locationInfo = null;
                 return false;
             }
 
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             public bool IsEnabledByDefault { get; set; }
             public bool IsSuppressed { get; set; }
             public int WarningLevel { get; set; }
-            public LocationInfo LocationInfo { get; set; }
+            public LocationInfo? LocationInfo { get; set; }
             public ImmutableArray<LocationInfo> AdditionalLocationInfo { get; set; }
             public ImmutableArray<string> CustomTags { get; set; }
             public ImmutableDictionary<string, string?> Properties { get; set; }
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                     customTags: CustomTags,
                     properties: Properties,
                     projectId: project.Id,
-                    location: LocationInfo.ToDiagnosticDataLocation(project, document),
+                    location: LocationInfo?.ToDiagnosticDataLocation(project, document),
                     additionalLocations: CreateAdditionalDiagnosticLocations(project, AdditionalLocationInfo),
                     language: project.Language,
                     title: Title,
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                     customTags: CustomTags,
                     properties: Properties,
                     projectId: documentKey.Project.Id,
-                    location: LocationInfo.ToDiagnosticDataLocation(documentKey),
+                    location: LocationInfo?.ToDiagnosticDataLocation(documentKey),
                     additionalLocations: CreateAdditionalDiagnosticLocations(documentKey, AdditionalLocationInfo),
                     language: null,
                     title: Title,

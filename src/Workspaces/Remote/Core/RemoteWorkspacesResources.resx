@@ -192,4 +192,7 @@
   <data name="FeatureName_SolutionAssetProvider" xml:space="preserve">
     <value>Asset provider</value>
   </data>
+  <data name="FeatureName_DiagnosticCache" xml:space="preserve">
+    <value>Diagnostic cache</value>
+  </data>
 </root>

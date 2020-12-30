@@ -37,6 +37,11 @@
         <target state="translated">진단 분석기 실행기</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_DiagnosticCache">
+        <source>Diagnostic cache</source>
+        <target state="new">Diagnostic cache</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_DocumentHighlights">
         <source>Document higlights</source>
         <target state="translated">문서 하이라이트</target>
