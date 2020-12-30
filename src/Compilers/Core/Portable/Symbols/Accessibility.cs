@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis
         Friend = Internal,
 
         /// <summary>
-        /// Accessible wherever either protected or friend members are accessible.
+        /// Accessible wherever either protected or internal members are accessible.
         /// </summary>
         ProtectedOrInternal = 5,
         
         /// <summary>
-        /// Accessible wherever either protected or internal members are accessible.
+        /// Accessible wherever either protected or friend members are accessible.
         /// </summary>
         ProtectedOrFriend = ProtectedOrInternal,
 
