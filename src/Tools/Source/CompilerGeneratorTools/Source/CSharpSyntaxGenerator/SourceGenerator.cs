@@ -8,8 +8,10 @@
 #nullable enable
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
@@ -45,6 +47,8 @@ namespace CSharpSyntaxGenerator
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
+        private static Tuple<ImmutableArray<byte>, ImmutableArray<(string hintName, SourceText sourceText)>> s_cachedResult;
+
         public void Initialize(GeneratorInitializationContext context)
         {
         }
@@ -64,6 +68,22 @@ namespace CSharpSyntaxGenerator
             if (syntaxXmlText == null)
             {
                 context.ReportDiagnostic(Diagnostic.Create(s_UnableToReadSyntaxXml, location: null));
+                return;
+            }
+
+            // Get the current input checksum, which will either be used for verifying the current cache or updating it
+            // with the new results.
+            var currentChecksum = syntaxXmlText.GetChecksum();
+
+            // Read the current cached result once to avoid race conditions
+            if (s_cachedResult is { } cachedResult
+                && cachedResult.Item1.SequenceEqual(currentChecksum))
+            {
+                foreach (var (hintName, sourceText) in cachedResult.Item2)
+                {
+                    context.AddSource(hintName, sourceText);
+                }
+
                 return;
             }
 
@@ -96,9 +116,14 @@ namespace CSharpSyntaxGenerator
 
             TreeFlattening.FlattenChildren(tree);
 
+            var cachedSources = ImmutableArray.CreateBuilder<(string hintName, SourceText sourceText)>();
             AddResult(writer => SourceWriter.WriteMain(writer, tree, context.CancellationToken), "Syntax.xml.Main.Generated.cs");
             AddResult(writer => SourceWriter.WriteInternal(writer, tree, context.CancellationToken), "Syntax.xml.Internal.Generated.cs");
             AddResult(writer => SourceWriter.WriteSyntax(writer, tree, context.CancellationToken), "Syntax.xml.Syntax.Generated.cs");
+
+            // Overwrite the cached result with the new result. This is an opportunistic cache, so as long as the write
+            // is atomic (which it is for a single pointer) synchronization is unnecessary.
+            s_cachedResult = Tuple.Create(currentChecksum, cachedSources.ToImmutable());
 
             void AddResult(Action<TextWriter> writeFunction, string hintName)
             {
@@ -111,7 +136,9 @@ namespace CSharpSyntaxGenerator
                 }
 
                 // And create a SourceText from the StringBuilder, once again avoiding allocating a single massive string
-                context.AddSource(hintName, SourceText.From(new StringBuilderReader(stringBuilder), stringBuilder.Length, encoding: Encoding.UTF8));
+                var sourceText = SourceText.From(new StringBuilderReader(stringBuilder), stringBuilder.Length, encoding: Encoding.UTF8);
+                cachedSources.Add((hintName, sourceText));
+                context.AddSource(hintName, sourceText);
             }
         }
 
