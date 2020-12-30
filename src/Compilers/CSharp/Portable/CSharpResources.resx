@@ -6603,4 +6603,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureUsingTypeAlias" xml:space="preserve">
     <value>using type alias</value>
   </data>
+  <data name="ERR_BadRefInUsingAlias" xml:space="preserve">
+    <value>Using alias cannot be a 'ref' type.</value>
+  </data>
 </root>
