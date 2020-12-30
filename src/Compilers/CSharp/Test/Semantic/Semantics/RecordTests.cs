@@ -1477,6 +1477,52 @@ class Program
 ");
         }
 
+        [Fact, WorkItem(50170, "https://github.com/dotnet/roslyn/issues/50170")]
+        public void StaticCtor()
+        {
+            var src = @"
+record R(int x)
+{
+    static R() { }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(50170, "https://github.com/dotnet/roslyn/issues/50170")]
+        public void StaticCtor_ParameterlessPrimaryCtor()
+        {
+            var src = @"
+record R()
+{
+    static R() { }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(50170, "https://github.com/dotnet/roslyn/issues/50170")]
+        public void StaticCtor_CopyCtor()
+        {
+            var src = @"
+record R()
+{
+    static R(R r) { }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,12): error CS0132: 'R.R(R)': a static constructor must be parameterless
+                //     static R(R r) { }
+                Diagnostic(ErrorCode.ERR_StaticConstParam, "R").WithArguments("R.R(R)").WithLocation(4, 12)
+                );
+        }
+
         [Fact(Skip = "record struct")]
         public void StructRecord1()
         {
