@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<Location> _locations;  // NOTE: can be empty for the "global" alias.
 
         // lazy binding
-        private readonly NameSyntax? _aliasTargetName;
+        private readonly TypeSyntax? _aliasTargetType;
         private readonly bool _isExtern;
         private DiagnosticBag? _aliasTargetDiagnostics;
 
@@ -75,13 +75,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _binder = binder;
         }
 
-        internal AliasSymbol(Binder binder, NameSyntax name, NameEqualsSyntax alias)
+        internal AliasSymbol(Binder binder, TypeSyntax type, NameEqualsSyntax alias)
             : this(binder, alias.Name.Identifier)
         {
-            Debug.Assert(name.Parent.IsKind(SyntaxKind.UsingDirective));
-            Debug.Assert(name.Parent == alias.Parent);
+            Debug.Assert(type.Parent.IsKind(SyntaxKind.UsingDirective));
+            Debug.Assert(type.Parent == alias.Parent);
 
-            _aliasTargetName = name;
+            _aliasTargetType = type;
         }
 
         internal AliasSymbol(Binder binder, ExternAliasDirectiveSyntax syntax)
@@ -267,9 +267,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // symbol. If it is an extern alias then find the target in the list of metadata references.
                 var newDiagnostics = DiagnosticBag.GetInstance();
 
-                NamespaceOrTypeSymbol symbol = this.IsExtern ?
-                    ResolveExternAliasTarget(newDiagnostics) :
-                    ResolveAliasTarget(_binder, _aliasTargetName, newDiagnostics, basesBeingResolved);
+                NamespaceOrTypeSymbol symbol = this.IsExtern
+                    ? ResolveExternAliasTarget(newDiagnostics)
+                    : ResolveAliasTarget(_binder, _aliasTargetType, newDiagnostics, basesBeingResolved);
 
                 if ((object?)Interlocked.CompareExchange(ref _aliasTarget, symbol, null) == null)
                 {
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return target;
         }
 
-        private static NamespaceOrTypeSymbol ResolveAliasTarget(Binder binder, NameSyntax? syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol>? basesBeingResolved)
+        private static NamespaceOrTypeSymbol ResolveAliasTarget(Binder binder, TypeSyntax? syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol>? basesBeingResolved)
         {
             var declarationBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
             return declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;

@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (usingAliases != null && usingAliases.ContainsKey(identifierValueText))
                         {
                             // Suppress diagnostics if we're already broken.
-                            if (!usingDirective.Name.IsMissing)
+                            if (!usingDirective.Type.IsMissing)
                             {
                                 // The using alias '{0}' appeared previously in this namespace
                                 diagnostics.Add(ErrorCode.ERR_DuplicateAlias, location, identifierValueText);
@@ -188,11 +188,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             // construct the alias sym with the binder for which we are building imports. That
                             // way the alias target can make use of extern alias definitions.
-                            usingAliases.Add(identifierValueText, new AliasAndUsingDirective(new AliasSymbol(usingsBinder, usingDirective.Name, usingDirective.Alias), usingDirective));
+                            usingAliases.Add(identifierValueText, new AliasAndUsingDirective(new AliasSymbol(usingsBinder, usingDirective.Type, usingDirective.Alias), usingDirective));
                         }
                     }
                     else
                     {
+                        Debug.Assert(usingDirective.Name != null);
                         if (usingDirective.Name.IsMissing)
                         {
                             //don't try to lookup namespaces inserted by parser error recovery
@@ -593,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (@using.NamespaceOrType.IsType)
                 {
                     var typeSymbol = (TypeSymbol)@using.NamespaceOrType;
-                    var location = @using.UsingDirective?.Name.Location ?? NoLocation.Singleton;
+                    var location = @using.UsingDirective?.Type.Location ?? NoLocation.Singleton;
                     typeSymbol.CheckAllConstraints(_compilation, conversions, location, semanticDiagnostics);
                 }
             }
