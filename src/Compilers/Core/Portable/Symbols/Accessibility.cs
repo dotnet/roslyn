@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -20,12 +20,14 @@ namespace Microsoft.CodeAnalysis
         Private = 1,
 
         /// <summary>
-        /// Only accessible where both protected and internal members are accessible.
+        /// Only accessible where both protected and internal members are accessible
+        /// (more restrictive than <see cref="Protected"/>, <see cref="Internal"/> and <see cref="ProtectedOrInternal"/>).
         /// </summary>
         ProtectedAndInternal = 2,
-        
+
         /// <summary>
-        /// Only accessible where both protected and friend members are accessible.
+        /// Only accessible where both protected and friend members are accessible
+        /// (more restrictive than <see cref="Protected"/>, <see cref="Friend"/> and <see cref="ProtectedOrFriend"/>).
         /// </summary>
         ProtectedAndFriend = ProtectedAndInternal,
 
@@ -35,12 +37,14 @@ namespace Microsoft.CodeAnalysis
         Friend = Internal,
 
         /// <summary>
-        /// Accessible wherever either protected or internal members are accessible.
+        /// Accessible wherever either protected or internal members are accessible
+        /// (less restrictive than <see cref="Protected"/>, <see cref="Internal"/> and <see cref="ProtectedAndInternal"/>).
         /// </summary>
         ProtectedOrInternal = 5,
-        
+
         /// <summary>
-        /// Accessible wherever either protected or friend members are accessible.
+        /// Accessible wherever either protected or friend members are accessible
+        /// (less restrictive than <see cref="Protected"/>, <see cref="Friend"/> and <see cref="ProtectedAndFriend"/>).
         /// </summary>
         ProtectedOrFriend = ProtectedOrInternal,
 
