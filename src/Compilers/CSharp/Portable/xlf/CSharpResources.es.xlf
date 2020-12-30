@@ -962,6 +962,11 @@
         <target state="translated">creación de objetos con tipo de destino</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUsingTypeAlias">
+        <source>using type alias</source>
+        <target state="new">using type alias</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">El ensamblado "{0}" que contiene el tipo "{1}" hace referencia a .NET Framework, lo cual no se admite.</target>

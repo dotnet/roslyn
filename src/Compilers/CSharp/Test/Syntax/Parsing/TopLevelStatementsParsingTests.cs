@@ -1531,26 +1531,19 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
         }
 
         [Fact]
-        public void TupleUnsupportedInUsingStatement()
+        public void TupleUnsupportedInUsingStatement_CSharp9()
         {
             var test = @"
 using VT2 = (int, int);
 ";
 
-            UsingTree(test,
-                // (2,13): error CS1001: Identifier expected
+            var tree = UsingTree(test, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+
+            var actualErrors = tree.GetDiagnostics();
+            actualErrors.Verify(
+                // (2,13): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 13),
-                // (2,13): error CS1002: ; expected
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 13),
-                // (2,14): error CS1525: Invalid expression term 'int'
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 14),
-                // (2,19): error CS1525: Invalid expression term 'int'
-                // using VT2 = (int, int);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 19)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int, int)").WithArguments("using type alias").WithLocation(2, 13));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1565,38 +1558,79 @@ using VT2 = (int, int);
                         }
                         N(SyntaxKind.EqualsToken);
                     }
-                    M(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.TupleType);
                     {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
-                    {
-                        N(SyntaxKind.TupleExpression);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.TupleElement);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.IntKeyword);
-                                }
+                                N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.IntKeyword);
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TupleElement);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TupleSupportedInUsingStatement_Preview()
+        {
+            var test = @"
+using VT2 = (int, int);
+";
+
+            var tree = UsingTree(test, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            var actualErrors = tree.GetDiagnostics();
+            actualErrors.Verify(new DiagnosticDescription[0]);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "VT2");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.TupleType);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.TupleElement);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TupleElement);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }

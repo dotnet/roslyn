@@ -2488,7 +2488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.UsingKeyword, node.UsingKeyword.Kind);
             Assert.Null(node.StaticKeyword);
             Assert.Null(node.Alias);
-            Assert.NotNull(node.Name);
+            Assert.NotNull(node.Type);
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
 
             AttachAndCheckDiagnostics(node);

@@ -962,6 +962,11 @@
         <target state="translated">Vytvoření objektu s cílovým typem</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUsingTypeAlias">
+        <source>using type alias</source>
+        <target state="new">using type alias</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">Sestavení {0}, které obsahuje typ {1}, se odkazuje na architekturu .NET Framework, což se nepodporuje.</target>

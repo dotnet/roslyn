@@ -215,6 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Return = MessageBase + 12790,
         IDS_FeatureVarianceSafetyForStaticInterfaceMembers = MessageBase + 12791,
         IDS_FeatureConstantInterpolatedStrings = MessageBase + 12792,
+
+        IDS_FeatureUsingTypeAlias = MessageBase + 12800,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -348,6 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureDefaultTypeParameterConstraint:
                     return LanguageVersion.CSharp9;
 
+                case MessageID.IDS_FeatureUsingTypeAlias: // syntax check
                 case MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers: //semantic check
                 case MessageID.IDS_FeatureConstantInterpolatedStrings: //semantic check
                     return LanguageVersion.Preview;

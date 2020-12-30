@@ -766,6 +766,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             else
             {
                 type = alias == null ? this.ParseQualifiedName() : this.ParseType();
+                if (type is not NameSyntax)
+                    type = CheckFeatureAvailability(type, MessageID.IDS_FeatureUsingTypeAlias);
+
                 if (type.IsMissing && this.PeekToken(1).Kind == SyntaxKind.SemicolonToken)
                 {
                     //if we can see a semicolon ahead, then the current token was
