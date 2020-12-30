@@ -2115,6 +2115,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">'{0}' ne peut pas avoir une valeur null ou être un espace blanc.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_dash_1">
+        <source>{0} - {1}</source>
+        <target state="new">{0} - {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">'{0}' n'a pas une valeur null ici.</target>
@@ -2485,6 +2490,11 @@ Le spécificateur de format standard "f" représente une combinaison des modèle
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">surcharges génériques</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="in_0_1_2">
+        <source>in {0} ({1} - {2})</source>
+        <target state="new">in {0} ({1} - {2})</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source_attribute">
