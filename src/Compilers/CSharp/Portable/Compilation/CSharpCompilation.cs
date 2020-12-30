@@ -13,7 +13,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;

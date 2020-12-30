@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 using System.Linq;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -248,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // type declarations but this simple approach matches C#8 behavior.
                 var compilation = DeclaringCompilation;
                 bool value = (compilation.Options.NullableContextOptions != NullableContextOptions.Disable) ||
-                    compilation.SyntaxTrees.Any(tree => ((CSharpSyntaxTree)tree).HasNullableEnables());
+                    compilation.SyntaxTrees.Any(tree => ((CSharpSyntaxTree)tree).IsNullableAnalysisEnabled(new TextSpan(0, tree.Length)) == true);
                 _lazyIsNullableAnalysisEnabled = value.ToThreeState();
             }
             return _lazyIsNullableAnalysisEnabled == ThreeState.True;

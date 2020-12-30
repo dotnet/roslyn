@@ -95,23 +95,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>
-        /// Returns true if any of the NullableContexts in this map enable annotations, warnings, or both.
-        /// This does not include any restore directives.
-        /// </summary>
-        internal bool HasNullableEnables()
-        {
-            foreach (var context in _contexts)
-            {
-                if (context.AnnotationsState == NullableContextState.State.Enabled || context.WarningsState == NullableContextState.State.Enabled)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        /// <summary>
         /// Returns whether nullable warnings are enabled within the span.
         /// Returns true if nullable warnings are enabled anywhere in the span;
         /// false if nullable warnings are disabled throughout the span; and
