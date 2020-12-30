@@ -81,13 +81,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return new CompilationOutputFilesWithImplicitPdbPath(project.CompilationOutputInfo.AssemblyPath);
         }
 
-        public void OnSourceFileUpdated(DocumentId documentId)
+        public void OnSourceFileUpdated(Document document)
         {
             var debuggingSession = _debuggingSession;
             if (debuggingSession != null)
             {
                 // fire and forget
-                _ = Task.Run(() => debuggingSession.LastCommittedSolution.OnSourceFileUpdatedAsync(documentId, debuggingSession.CancellationToken));
+                _ = Task.Run(() => debuggingSession.LastCommittedSolution.OnSourceFileUpdatedAsync(document, debuggingSession.CancellationToken));
             }
         }
 
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
-                var (oldDocument, oldDocumentState) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(document.Id, cancellationToken).ConfigureAwait(false);
+                var (oldDocument, oldDocumentState) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(document.Id, document, cancellationToken).ConfigureAwait(false);
                 if (oldDocumentState == CommittedSolution.DocumentState.OutOfSync ||
                     oldDocumentState == CommittedSolution.DocumentState.Indeterminate ||
                     oldDocumentState == CommittedSolution.DocumentState.DesignTimeOnly)
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public async Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
             var editSession = _editSession;
             if (editSession == null)
@@ -437,7 +437,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 if (baseActiveStatements.DocumentMap.TryGetValue(documentId, out var documentActiveStatements))
                 {
-                    var (baseDocument, _) = await lastCommittedSolution.GetDocumentAndStateAsync(documentId, cancellationToken).ConfigureAwait(false);
+                    var document = solution.GetDocument(documentId);
+                    var (baseDocument, _) = await lastCommittedSolution.GetDocumentAndStateAsync(documentId, document, cancellationToken).ConfigureAwait(false);
                     if (baseDocument != null)
                     {
                         spans.Add(documentActiveStatements.SelectAsArray(s => (s.Span, s.Flags)));
@@ -467,7 +468,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var lastCommittedSolution = editSession.DebuggingSession.LastCommittedSolution;
-            var (baseDocument, _) = await lastCommittedSolution.GetDocumentAndStateAsync(document.Id, cancellationToken).ConfigureAwait(false);
+            var (baseDocument, _) = await lastCommittedSolution.GetDocumentAndStateAsync(document.Id, document, cancellationToken).ConfigureAwait(false);
             if (baseDocument == null)
             {
                 return default;
@@ -504,17 +505,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                var (oldPrimaryDocument, _) = await editSession.DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(baseActiveStatement.PrimaryDocumentId, cancellationToken).ConfigureAwait(false);
-                if (oldPrimaryDocument == null)
-                {
-                    // Can't determine position of an active statement if the document is out-of-sync with loaded module debug information.
-                    return null;
-                }
-
                 var primaryDocument = solution.GetDocument(baseActiveStatement.PrimaryDocumentId);
                 if (primaryDocument == null)
                 {
                     // The document has been deleted.
+                    return null;
+                }
+
+                var (oldPrimaryDocument, _) = await editSession.DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(baseActiveStatement.PrimaryDocumentId, primaryDocument, cancellationToken).ConfigureAwait(false);
+                if (oldPrimaryDocument == null)
+                {
+                    // Can't determine position of an active statement if the document is out-of-sync with loaded module debug information.
                     return null;
                 }
 
@@ -544,7 +545,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// True if the instruction is located within an exception region, false if it is not, null if the instruction isn't an active statement 
         /// or the exception regions can't be determined.
         /// </returns>
-        public async Task<bool?> IsActiveStatementInExceptionRegionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken)
+        public async Task<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ActiveInstructionId instructionId, CancellationToken cancellationToken)
         {
             try
             {
@@ -564,7 +565,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                var baseExceptionRegions = (await editSession.GetBaseActiveExceptionRegionsAsync(cancellationToken).ConfigureAwait(false))[baseActiveStatement.Ordinal];
+                var baseExceptionRegions = (await editSession.GetBaseActiveExceptionRegionsAsync(solution, cancellationToken).ConfigureAwait(false))[baseActiveStatement.Ordinal];
 
                 // If the document is out-of-sync the exception regions can't be determined.
                 return baseExceptionRegions.Spans.IsDefault ? (bool?)null : baseExceptionRegions.IsActiveStatementCovered;

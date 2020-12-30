@@ -138,11 +138,12 @@ namespace Microsoft.CodeAnalysis
         public static Checksum Create<T>(WellKnownSynchronizationKind kind, T value, ISerializerService serializer)
         {
             using var stream = SerializableBytes.CreateWritableStream();
+            using var context = SolutionReplicationContext.Create();
 
             using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
             {
                 objectWriter.WriteInt32((int)kind);
-                serializer.Serialize(value, objectWriter, CancellationToken.None);
+                serializer.Serialize(value, objectWriter, context, CancellationToken.None);
             }
 
             stream.Position = 0;

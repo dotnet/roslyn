@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                            parent.IsKind(SyntaxKind.FixedStatement);
 
                 case SyntaxKind.ElseKeyword:
-                    return true;
+                    return token.Parent.IsKind(SyntaxKind.ElseClause);
 
                 case SyntaxKind.CloseBracketToken:
                     if (token.Parent.IsKind(SyntaxKind.AttributeList))

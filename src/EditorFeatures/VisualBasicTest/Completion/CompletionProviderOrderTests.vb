@@ -27,6 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion
                 GetType(FirstBuiltInCompletionProvider),
                 GetType(KeywordCompletionProvider),
                 GetType(SymbolCompletionProvider),
+                GetType(PreprocessorCompletionProvider),
                 GetType(ObjectInitializerCompletionProvider),
                 GetType(ObjectCreationCompletionProvider),
                 GetType(EnumCompletionProvider),

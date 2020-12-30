@@ -1295,10 +1295,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If boundExpression.Kind = BoundKind.Local Then
                     Dim local = DirectCast(boundExpression, BoundLocal).LocalSymbol
                     If Not local.IsConst Then
+                        ReportDiagnostic(diagnostics, boundExpression.Syntax, ERRID.ERR_RequiredConstExpr)
                         Return Nothing
                     End If
 
-                    Return local.GetConstantValue(Me)
+                    Return If(nonConstantDetected, Nothing, local.GetConstantValue(Me))
                 End If
 
                 ' Check that the expression is constant.
@@ -1330,9 +1331,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim binaryOperator = DirectCast(boundExpression, BoundBinaryOperator)
                             ' the right side is expected to be shorter for binary operations, so we use
                             ' recursion for this side.
-                            If GetExpressionConstantValueIfAny(binaryOperator.Right, diagnostics, context) Is Nothing Then
-                                nonConstantDetected = True
-                            End If
+                            GetExpressionConstantValueIfAny(binaryOperator.Right, diagnostics, context)
+                            nonConstantDetected = True
                             boundExpression = binaryOperator.Left
 
                         Case BoundKind.UnaryOperator

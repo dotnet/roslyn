@@ -29,6 +29,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             => typeof(DeclarationNameCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(48310, "https://github.com/dotnet/roslyn/issues/48310")]
+        public async Task TreatRecordPositionalParameterAsProperty()
+        {
+            var markup = @"
+public class MyClass
+{
+}
+
+public record R(MyClass $$
+";
+            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.PropertyPublic);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NameWithOnlyType1()
         {
             var markup = @"

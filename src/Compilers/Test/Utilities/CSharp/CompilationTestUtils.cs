@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -442,7 +441,7 @@ getOperation:
         /// </summary>
         internal static void VerifyTypes(this CSharpCompilation compilation, SyntaxTree tree = null)
         {
-            Assert.True(compilation.NullableSemanticAnalysisEnabled);
+            Assert.True(compilation.IsNullableAnalysisEnabled);
 
             if (tree == null)
             {

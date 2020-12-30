@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -24,10 +26,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [ExportLspMethod(LSP.Methods.TextDocumentCompletionResolveName, mutatesSolutionState: false)]
     internal class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
+        private readonly CompletionListCache? _completionListCache;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionResolveHandler()
+        public CompletionResolveHandler(CompletionListCache? completionListCache)
         {
+            _completionListCache = completionListCache;
         }
 
         private static CompletionResolveData GetCompletionResolveData(LSP.CompletionItem request)
@@ -48,14 +53,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return completionItem;
             }
 
-            var data = GetCompletionResolveData(completionItem);
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
-
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
-            var list = await completionService.GetCompletionsAsync(document, position, data.CompletionTrigger, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var data = GetCompletionResolveData(completionItem);
+
+            CompletionList? list = null;
+
+            // See if we have a cache of the completion list we need
+            if (_completionListCache != null && data.ResultId.HasValue)
+            {
+                list = await _completionListCache.GetCachedCompletionListAsync(data.ResultId.Value, cancellationToken).ConfigureAwait(false);
+            }
+
             if (list == null)
             {
-                return completionItem;
+                // We don't have a cache, so we need to recompute the list
+                var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
+                var completionOptions = await CompletionHandler.GetCompletionOptionsAsync(document, cancellationToken).ConfigureAwait(false);
+
+                list = await completionService.GetCompletionsAsync(document, position, data.CompletionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+                if (list == null)
+                {
+                    return completionItem;
+                }
             }
 
             var selectedItem = list.Items.FirstOrDefault(i => i.DisplayText == data.DisplayText);
