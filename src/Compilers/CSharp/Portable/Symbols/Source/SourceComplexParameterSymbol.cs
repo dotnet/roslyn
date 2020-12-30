@@ -195,6 +195,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
 
+        internal static SyntaxNode? GetDefaultValueSyntaxForIsNullableAnalysisEnabled(ParameterSyntax? parameterSyntax) =>
+            parameterSyntax?.Default?.Value;
+
         private ConstantValue DefaultSyntaxValue
         {
             get
@@ -211,12 +214,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var completedOnThisThread = state.NotePartComplete(CompletionPart.EndDefaultSyntaxValue);
                     Debug.Assert(completedOnThisThread);
 
-                    if (binder is not null &&
-                        !_lazyDefaultSyntaxValue.IsBad &&
-                        parameterEqualsValue is { Syntax: EqualsValueClauseSyntax { Value: { } valueSyntax } })
+                    if (parameterEqualsValue is not null)
                     {
-                        NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, valueSyntax, diagnostics);
-                        VerifyParamDefaultValueMatchesAttributeIfAny(_lazyDefaultSyntaxValue, valueSyntax, diagnostics);
+                        if (binder is not null &&
+                            GetDefaultValueSyntaxForIsNullableAnalysisEnabled(CSharpSyntaxNode) is { } valueSyntax)
+                        {
+                            NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, valueSyntax, diagnostics);
+                        }
+                        if (!_lazyDefaultSyntaxValue.IsBad)
+                        {
+                            VerifyParamDefaultValueMatchesAttributeIfAny(_lazyDefaultSyntaxValue, parameterEqualsValue.Value.Syntax, diagnostics);
+                        }
                     }
 
                     AddDeclarationDiagnostics(diagnostics);

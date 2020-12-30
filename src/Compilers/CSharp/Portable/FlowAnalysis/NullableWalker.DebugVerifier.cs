@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class DebugVerifier : BoundTreeWalker
         {
             private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol? Type)> _analyzedNullabilityMap;
-            private readonly SnapshotManager? _snapshotManager;
+            private readonly SnapshotManager _snapshotManager;
             private readonly HashSet<BoundExpression> _visitedExpressions = new HashSet<BoundExpression>();
             private int _recursionDepth;
 
-            private DebugVerifier(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol? Type)> analyzedNullabilityMap, SnapshotManager? snapshotManager)
+            private DebugVerifier(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol? Type)> analyzedNullabilityMap, SnapshotManager snapshotManager)
             {
                 _analyzedNullabilityMap = analyzedNullabilityMap;
                 _snapshotManager = snapshotManager;
@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false; // Same behavior as NullableWalker
             }
 
-            public static void Verify(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol? Type)> analyzedNullabilityMap, SnapshotManager? snapshotManagerOpt, BoundNode node)
+            public static void Verify(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol? Type)> analyzedNullabilityMap, SnapshotManager snapshotManager, BoundNode node)
             {
-                var verifier = new DebugVerifier(analyzedNullabilityMap, snapshotManagerOpt);
+                var verifier = new DebugVerifier(analyzedNullabilityMap, snapshotManager);
                 verifier.Visit(node);
-                snapshotManagerOpt?.VerifyUpdatedSymbols();
+                snapshotManager.VerifyUpdatedSymbols();
 
                 // Can't just remove nodes from _analyzedNullabilityMap and verify no nodes remaining because nodes can be reused.
                 Debug.Assert(verifier._analyzedNullabilityMap.Count == verifier._visitedExpressions.Count, $"Visited {verifier._visitedExpressions.Count} nodes, expected to visit {verifier._analyzedNullabilityMap.Count}");
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Ensure that we always have a snapshot for every BoundExpression in the map
                 // Re-enable of this assert is tracked by https://github.com/dotnet/roslyn/issues/36844
-                //if (_snapshotManager != null && node != null)
+                //if (node != null)
                 //{
                 //    _snapshotManager.VerifyNode(node);
                 //}

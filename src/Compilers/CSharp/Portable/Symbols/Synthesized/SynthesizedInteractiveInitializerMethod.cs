@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SourceMemberContainerTypeSymbol _containingType;
         private readonly TypeSymbol _resultType;
         private readonly TypeSymbol _returnType;
-        private ThreeState _lazyIsNullableEnabled;
+        private ThreeState _lazyIsNullableAnalysisEnabled;
 
         internal SynthesizedInteractiveInitializerMethod(SourceMemberContainerTypeSymbol containingType, DiagnosticBag diagnostics)
         {
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsNullableAnalysisEnabled()
         {
-            if (_lazyIsNullableEnabled == ThreeState.Unknown)
+            if (_lazyIsNullableAnalysisEnabled == ThreeState.Unknown)
             {
                 // Return true if nullable is not disabled in compilation options or if enabled
                 // in any syntax tree. This could be refined to ignore top-level methods and
@@ -249,9 +249,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var compilation = DeclaringCompilation;
                 bool value = (compilation.Options.NullableContextOptions != NullableContextOptions.Disable) ||
                     compilation.SyntaxTrees.Any(tree => ((CSharpSyntaxTree)tree).HasNullableEnables());
-                _lazyIsNullableEnabled = value.ToThreeState();
+                _lazyIsNullableAnalysisEnabled = value.ToThreeState();
             }
-            return _lazyIsNullableEnabled == ThreeState.True;
+            return _lazyIsNullableAnalysisEnabled == ThreeState.True;
         }
 
         private static void CalculateReturnType(

@@ -1777,8 +1777,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Symbol RemapSymbolIfNecessary(Symbol symbol)
         {
-            if (!Compilation.IsNullableAnalysisEnabled) return symbol;
-
             switch (symbol)
             {
                 case LocalSymbol _:

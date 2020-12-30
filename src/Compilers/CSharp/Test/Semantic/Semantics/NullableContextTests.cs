@@ -1373,6 +1373,29 @@ record B2() : A
             verify(source, expectedAnalyzedKeys: new[] { "B2..ctor()" });
 
             source =
+@"record A;
+#nullable disable
+record B0
+#nullable enable
+    :
+#nullable disable
+    A;
+#nullable disable
+record B1 :
+#nullable enable
+    A
+#nullable disable
+    ;
+#nullable disable
+record B2() :
+#nullable enable
+    A
+#nullable disable
+    ();
+";
+            verify(source, expectedAnalyzedKeys: new string[0]);
+
+            source =
 @"record A(object P)
 {
 #nullable enable

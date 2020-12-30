@@ -194,18 +194,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(expression));
             }
 
-            if (!Compilation.IsNullableAnalysisEnabled || bindingOption != SpeculativeBindingOption.BindAsExpression)
+            if (bindingOption == SpeculativeBindingOption.BindAsExpression && GetSnapshotManager() is { } snapshotManager)
+            {
+                crefSymbols = default;
+                position = CheckAndAdjustPosition(position);
+                expression = SyntaxFactory.GetStandaloneExpression(expression);
+                binder = GetSpeculativeBinder(position, expression, bindingOption);
+                var boundRoot = binder.BindExpression(expression, _ignoredDiagnostics);
+                ImmutableDictionary<Symbol, Symbol> ignored = null;
+                return (BoundExpression)NullableWalker.AnalyzeAndRewriteSpeculation(position, boundRoot, binder, snapshotManager, newSnapshots: out _, remappedSymbols: ref ignored);
+            }
+            else
             {
                 return GetSpeculativelyBoundExpressionWithoutNullability(position, expression, bindingOption, out binder, out crefSymbols);
             }
-
-            crefSymbols = default;
-            position = CheckAndAdjustPosition(position);
-            expression = SyntaxFactory.GetStandaloneExpression(expression);
-            binder = GetSpeculativeBinder(position, expression, bindingOption);
-            var boundRoot = binder.BindExpression(expression, _ignoredDiagnostics);
-            ImmutableDictionary<Symbol, Symbol> ignored = null;
-            return (BoundExpression)NullableWalker.AnalyzeAndRewriteSpeculation(position, boundRoot, binder, GetSnapshotManager(), newSnapshots: out _, remappedSymbols: ref ignored);
         }
 
         private Binder GetEnclosingBinderInternalWithinRoot(SyntaxNode node, int position)
@@ -698,8 +700,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private T GetRemappedSymbol<T>(T originalSymbol) where T : Symbol
         {
-            if (!Compilation.IsNullableAnalysisEnabled) return originalSymbol;
-
             EnsureNullabilityAnalysisPerformedIfNecessary();
             if (_lazyRemappedSymbols is null) return originalSymbol;
 
@@ -1747,7 +1747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundNode boundOuterExpression = this.Bind(incrementalBinder, lambdaOrQuery, _ignoredDiagnostics);
 
                 // https://github.com/dotnet/roslyn/issues/35038: We need to do a rewrite here, and create a test that can hit this.
-                if (!Compilation.IsNullableAnalysisEnabled && Compilation.IsNullableAnalysisEnabledAlways)
+                if (!IsNullableAnalysisEnabled() && Compilation.IsNullableAnalysisEnabledAlways)
                 {
                     AnalyzeBoundNodeNullability(boundOuterExpression, incrementalBinder, diagnostics: new DiagnosticBag(), createSnapshots: false);
                 }
@@ -2049,7 +2049,7 @@ done:
             Binder binder,
             DiagnosticBag diagnostics,
             bool createSnapshots,
-            out NullableWalker.SnapshotManager snapshotManager,
+            out NullableWalker.SnapshotManager? snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols);
 
         /// <summary>
@@ -2330,10 +2330,8 @@ foundParent:;
 
         internal override Symbol RemapSymbolIfNecessaryCore(Symbol symbol)
         {
-            Debug.Assert(symbol is LocalSymbol ||
-                         symbol is ParameterSymbol ||
-                         symbol is MethodSymbol { MethodKind: MethodKind.LambdaMethod });
-            Debug.Assert(Compilation.IsNullableAnalysisEnabled);
+            Debug.Assert(symbol is LocalSymbol or ParameterSymbol or MethodSymbol { MethodKind: MethodKind.LambdaMethod });
+
             EnsureNullabilityAnalysisPerformedIfNecessary();
 
             if (_lazyRemappedSymbols is null)

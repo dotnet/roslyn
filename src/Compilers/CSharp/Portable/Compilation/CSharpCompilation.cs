@@ -130,12 +130,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private HashSet<SyntaxTree>? _lazyCompilationUnitCompletedTrees;
 
         /// <summary>
-        /// Run the nullable walker during the flow analysis passes. True if the project-level nullable
-        /// context option is set, or if any file enables nullable or just the nullable warnings.
-        /// </summary>
-        private ThreeState _lazyShouldRunNullableAnalysis;
-
-        /// <summary>
         /// Nullable analysis data for methods, parameter default values, and attributes.
         /// The key is a symbol for methods or parameters, and syntax for attributes.
         /// The data is collected during testing only.
@@ -199,39 +193,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The flag is only to be used if PEVerify pass is extremely important.
         /// </summary>
         internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null;
-
-        /// <summary>
-        /// Returns true if nullable analysis is enabled in this compilation.
-        /// </summary>
-        /// <remarks>
-        /// Returns false if analysis is explicitly disabled for all methods; otherwise
-        /// returns true if the nullable context is enabled in the compilation options
-        /// or if there are any nullable-enabled contexts in the compilation.
-        /// </remarks>
-        internal bool IsNullableAnalysisEnabled
-        {
-            get
-            {
-                if (!_lazyShouldRunNullableAnalysis.HasValue())
-                {
-                    _lazyShouldRunNullableAnalysis = isEnabled().ToThreeState();
-                }
-                return _lazyShouldRunNullableAnalysis.Value();
-
-                bool isEnabled()
-                {
-                    if (GetNullableAnalysisValue() == false)
-                    {
-                        return false;
-                    }
-                    if (Options.NullableContextOptions != NullableContextOptions.Disable)
-                    {
-                        return true;
-                    }
-                    return SyntaxTrees.Any(tree => ((CSharpSyntaxTree)tree).HasNullableEnables());
-                }
-            }
-        }
 
         internal bool IsNullableAnalysisEnabledIn(SyntaxNode syntax)
         {

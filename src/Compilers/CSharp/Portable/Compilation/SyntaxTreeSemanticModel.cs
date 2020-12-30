@@ -773,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal AttributeSemanticModel CreateSpeculativeAttributeSemanticModel(int position, AttributeSyntax attribute, Binder binder, AliasSymbol aliasOpt, NamedTypeSymbol attributeType)
         {
-            var memberModel = Compilation.IsNullableAnalysisEnabled ? GetMemberModel(position) : null;
+            var memberModel = AttributeSemanticModel.IsNullableAnalysisEnabledIn(Compilation, attribute) ? GetMemberModel(position) : null;
             return AttributeSemanticModel.CreateSpeculative(this, attribute, attributeType, aliasOpt, binder, memberModel?.GetRemappedSymbols(), position);
         }
 
@@ -2347,8 +2347,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override Symbol RemapSymbolIfNecessaryCore(Symbol symbol)
         {
-            if (!(symbol is LocalSymbol || symbol is ParameterSymbol || symbol is MethodSymbol)
-                || symbol.Locations.IsDefaultOrEmpty)
+            Debug.Assert(symbol is LocalSymbol or ParameterSymbol or MethodSymbol { MethodKind: MethodKind.LambdaMethod });
+
+            if (symbol.Locations.IsDefaultOrEmpty)
             {
                 return symbol;
             }

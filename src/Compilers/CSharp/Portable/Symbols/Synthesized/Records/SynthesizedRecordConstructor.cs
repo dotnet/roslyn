@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public,
                 returnsVoid: true,
                 isExtensionMethod: false,
-                isNullableEnabled: false); // IsNullableEnabled uses containing type instead.
+                isNullableEnabled: false); // IsNullableAnalysisEnabled uses containing type instead.
         }
 
         internal RecordDeclarationSyntax GetSyntax()

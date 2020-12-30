@@ -442,8 +442,6 @@ getOperation:
         /// </summary>
         internal static void VerifyTypes(this CSharpCompilation compilation, SyntaxTree tree = null)
         {
-            Assert.True(compilation.IsNullableAnalysisEnabled);
-
             if (tree == null)
             {
                 foreach (var syntaxTree in compilation.SyntaxTrees)
@@ -453,6 +451,8 @@ getOperation:
 
                 return;
             }
+
+            Assert.True(compilation.IsNullableAnalysisEnabledIn((CSharpSyntaxTree)tree, new TextSpan(0, tree.Length)));
 
             var root = tree.GetRoot();
             var allAnnotations = getAnnotations();

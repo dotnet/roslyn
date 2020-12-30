@@ -1144,7 +1144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Gets the "after initializers state" which should be used at the beginning of nullable analysis
         /// of certain constructors. Only used for semantic model and debug verification.
         /// </summary>
-        internal static VariableState? GetAfterInitializersState(CSharpCompilation compilation, Symbol symbol)
+        internal static VariableState? GetAfterInitializersState(CSharpCompilation compilation, Symbol? symbol)
         {
             if (symbol is MethodSymbol method
                 && method.IncludeFieldInitializersInBody()
@@ -1179,7 +1179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static void AnalyzeWithoutRewrite(
             CSharpCompilation compilation,
-            Symbol symbol,
+            Symbol? symbol,
             BoundNode node,
             Binder binder,
             DiagnosticBag diagnostics,
@@ -1194,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static BoundNode AnalyzeAndRewrite(
             CSharpCompilation compilation,
-            Symbol symbol,
+            Symbol? symbol,
             BoundNode node,
             Binder binder,
             VariableState? initialState,
@@ -1210,7 +1210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static (SnapshotManager?, ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)>) AnalyzeWithSemanticInfo(
             CSharpCompilation compilation,
-            Symbol symbol,
+            Symbol? symbol,
             BoundNode node,
             Binder binder,
             VariableState? initialState,
@@ -1247,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
-            if (compilation.IsNullableAnalysisEnabled)
+            if (snapshotManager != null)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManager, node);
             }
@@ -1280,10 +1280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             newSnapshots = newSnapshotBuilder.ToManagerAndFree();
 
 #if DEBUG
-            if (binder.Compilation.IsNullableAnalysisEnabled)
-            {
-                DebugVerifier.Verify(analyzedNullabilitiesMap, newSnapshots, node);
-            }
+            DebugVerifier.Verify(analyzedNullabilitiesMap, newSnapshots, node);
 #endif
 
             return Rewrite(analyzedNullabilitiesMap, newSnapshots, node, ref remappedSymbols);

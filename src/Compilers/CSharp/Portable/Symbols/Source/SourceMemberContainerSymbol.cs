@@ -3085,9 +3085,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var ctor = addCtor(builder.RecordDeclarationWithParameters);
 
                 builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, paramList);
-                if (builder.RecordDeclarationWithParameters?.BaseList is { } baseList)
+                if (builder.RecordDeclarationWithParameters?.PrimaryConstructorBaseType?.ArgumentList is { } baseParamList)
                 {
-                    builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, baseList);
+                    builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, baseParamList);
                 }
 
                 if (ctor.ParameterCount != 0)

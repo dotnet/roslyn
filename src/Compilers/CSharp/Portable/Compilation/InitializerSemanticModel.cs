@@ -276,15 +276,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableWalker.AnalyzeWithoutRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots);
         }
 
+#nullable enable
+
         protected override bool IsNullableAnalysisEnabled()
         {
             switch (MemberSymbol.Kind)
             {
                 case SymbolKind.Field:
                 case SymbolKind.Property:
-                    return MemberSymbol.ContainingType is SourceMemberContainerTypeSymbol type && type.IsNullableEnabledForConstructorsAndInitializers(useStatic: MemberSymbol.IsStatic);
+                    return MemberSymbol.ContainingType is SourceMemberContainerTypeSymbol type &&
+                        type.IsNullableEnabledForConstructorsAndInitializers(useStatic: MemberSymbol.IsStatic);
                 case SymbolKind.Parameter:
-                    return Root is ParameterSyntax { Default: { } equalsValue } && Compilation.IsNullableAnalysisEnabledIn(equalsValue);
+                    return SourceComplexParameterSymbol.GetDefaultValueSyntaxForIsNullableAnalysisEnabled(Root as ParameterSyntax) is { } value &&
+                        Compilation.IsNullableAnalysisEnabledIn(value);
                 default:
                     Debug.Assert(false);
                     return false;
