@@ -165,6 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 if (@using.Alias == null)
                 {
+                    Contract.ThrowIfNull(@using.Name);
                     var symbolInfo = semanticModel.GetSymbolInfo(@using.Name);
                     if (symbolInfo.Symbol != null && symbolInfo.Symbol.Kind == SymbolKind.Namespace)
                     {
