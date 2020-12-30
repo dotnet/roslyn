@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net5.0",
                         new PackageIdentity(
                             "Microsoft.NETCore.App.Ref",
-                            "5.0.0-rc.1.20451.14"),
+                            "5.0.0"),
                         Path.Combine("ref", "net5.0"));
                 });
 
