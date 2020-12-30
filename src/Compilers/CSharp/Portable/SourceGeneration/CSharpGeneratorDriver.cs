@@ -2,17 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
+using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
@@ -20,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     public sealed class CSharpGeneratorDriver : GeneratorDriver
     {
+        private static readonly ConditionalWeakTable<SourceText, SyntaxTree> s_parsedGeneratedSources = new();
+
         /// <summary>
         /// Creates a new instance of <see cref="CSharpGeneratorDriver"/>
         /// </summary>
@@ -57,7 +55,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             => new CSharpGeneratorDriver(parseOptions ?? CSharpParseOptions.Default, generators.ToImmutableArray(), optionsProvider ?? CompilerAnalyzerConfigOptionsProvider.Empty, additionalTexts.AsImmutableOrEmpty());
 
         internal override SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken)
-            => SyntaxFactory.ParseSyntaxTree(input.Text, _state.ParseOptions, fileName, cancellationToken);
+        {
+            if (s_parsedGeneratedSources.TryGetValue(input.Text, out var existingTree)
+                && Equals(_state.ParseOptions, existingTree.Options)
+                && Equals(fileName, existingTree.FilePath))
+            {
+                return existingTree;
+            }
+
+            var tree = SyntaxFactory.ParseSyntaxTree(input.Text, _state.ParseOptions, fileName, cancellationToken);
+
+#if NETCOREAPP
+            s_parsedGeneratedSources.AddOrUpdate(input.Text, tree);
+#else
+            s_parsedGeneratedSources.Remove(input.Text);
+            s_parsedGeneratedSources.Add(input.Text, tree);
+#endif
+
+            return tree;
+        }
 
         internal override GeneratorDriver FromState(GeneratorDriverState state) => new CSharpGeneratorDriver(state);
 
