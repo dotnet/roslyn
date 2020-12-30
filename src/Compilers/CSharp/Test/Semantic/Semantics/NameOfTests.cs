@@ -1829,7 +1829,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
-        public void TestInvalidRecursiveUsageOfNameofInAttributesDoesNotCrashCompiler()
+        public void TestInvalidRecursiveUsageOfNameofInAttributesDoesNotCrashCompiler1()
         {
             var source = @"
 class C
@@ -1843,6 +1843,23 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                     // (4,18): error CS0411: The type arguments for method 'C.Method<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                     //     [Attr(nameof(Method().Method))]
                     Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("C.Method<T>()").WithLocation(4, 18));
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestInvalidRecursiveUsageOfNameofInAttributesDoesNotCrashCompiler2()
+        {
+            var source = @"
+class C
+{
+    [Attr(nameof(Method<C>().Method))]
+    T Method<T>() where T : C => default;
+}
+class Attr : System.Attribute { public Attr(string s) {} }";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (4,18): error CS0120: An object reference is required for the non-static field, method, or property 'C.Method<C>()'
+                    //     [Attr(nameof(Method<C>().Method))]
+                    Diagnostic(ErrorCode.ERR_ObjectRequired, "Method<C>").WithArguments("C.Method<C>()").WithLocation(4, 18));
         }
     }
 }
