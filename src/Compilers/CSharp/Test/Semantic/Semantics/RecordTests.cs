@@ -27741,9 +27741,9 @@ public record Outer(object O1)
 
     /// <summary>Summary</summary>
     /// <param name=""I1"">Description for I1</param>
-    /// <param name=""O1"">Error</param>
-    /// <param name=""P1"">Error</param>
-    /// <param name=""C"">Error</param>
+    /// <param name=""O1"">Error O1</param>
+    /// <param name=""P1"">Error P1</param>
+    /// <param name=""C"">Error C</param>
     public record C(int I1);
 }
 
@@ -27783,9 +27783,9 @@ namespace System.Runtime.CompilerServices
 @"<member name=""M:Outer.C.#ctor(System.Int32)"">
     <summary>Summary</summary>
     <param name=""I1"">Description for I1</param>
-    <param name=""O1"">Error</param>
-    <param name=""P1"">Error</param>
-    <param name=""C"">Error</param>
+    <param name=""O1"">Error O1</param>
+    <param name=""P1"">Error P1</param>
+    <param name=""C"">Error C</param>
 </member>
 ", constructor.GetDocumentationCommentXml());
         }
