@@ -742,7 +742,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             TypeSyntax type;
             SyntaxToken semicolon;
 
-            if (IsPossibleNamespaceMemberDeclaration())
+            var isAliasToFunctionPointer = alias != null && this.CurrentToken.Kind == SyntaxKind.DelegateKeyword;
+            if (!isAliasToFunctionPointer && IsPossibleNamespaceMemberDeclaration())
             {
                 //We're worried about the case where someone already has a correct program
                 //and they've gone back to add a using directive, but have not finished the

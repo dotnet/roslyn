@@ -72,6 +72,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void SimpleUsingDirectiveFunctionPointer()
+        {
+            UsingTree(
+@"using delegate*<int, void>;",
+                // (1,27): error CS1001: Identifier expected
+                // using delegate*<int, void>;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 27));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.FunctionPointerType);
+                            {
+                                N(SyntaxKind.DelegateKeyword);
+                                N(SyntaxKind.AsteriskToken);
+                                N(SyntaxKind.FunctionPointerParameterList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.FunctionPointerParameter);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.FunctionPointerParameter);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.VoidKeyword);
+                                        }
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void SimpleUsingDirectivePredefinedType()
         {
             UsingTree(
@@ -268,6 +324,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void StaticUsingDirectiveFunctionPointer()
+        {
+            UsingTree(
+@"using static delegate*<int, void>;",
+                // (1,7): error CS0106: The modifier 'static' is not valid for this item
+                // using static delegate*<int, void>;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(1, 7),
+                // (1,34): error CS1001: Identifier expected
+                // using static delegate*<int, void>;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 34));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.FunctionPointerType);
+                            {
+                                N(SyntaxKind.DelegateKeyword);
+                                N(SyntaxKind.AsteriskToken);
+                                N(SyntaxKind.FunctionPointerParameterList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.FunctionPointerParameter);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.FunctionPointerParameter);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.VoidKeyword);
+                                        }
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void StaticUsingDirectivePredefinedType()
         {
             UsingTree(
@@ -440,6 +556,60 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.IdentifierToken, "A");
                         }
                         N(SyntaxKind.AsteriskToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AliasUsingDirectiveFunctionPointer()
+        {
+            UsingTree(
+@"using x = delegate*<int, void>;",
+                // (1,11): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // using x = delegate*<int, void>;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*<int, void>").WithArguments("using type alias").WithLocation(1, 11));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
