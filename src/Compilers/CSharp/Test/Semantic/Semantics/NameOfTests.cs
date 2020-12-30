@@ -1523,11 +1523,9 @@ public class C
         + "","" + nameof(Property.Field)
         + "","" + nameof(Property.Method)
         + "","" + nameof(Property.Event)
-        + "","" + nameof(Property.Event)
         + "","" + nameof(Field.Property) 
         + "","" + nameof(Field.Field)
         + "","" + nameof(Field.Method)
-        + "","" + nameof(Field.Event)
         + "","" + nameof(Field.Event)
         + "","" + nameof(Event.Invoke)
         ;
@@ -1544,7 +1542,7 @@ public class C1
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.RegularPreview,
-                expectedOutput: "Property,Field,Method,Event,Event,Property,Field,Method,Event,Event,Invoke").VerifyDiagnostics();
+                expectedOutput: "Property,Field,Method,Event,Property,Field,Method,Event,Invoke").VerifyDiagnostics();
         }
 
         [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
@@ -1781,6 +1779,70 @@ public struct S
     }
 }";
             CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceStaticMembersFromInstanceMemberInNameofUsedRecursivelyInAttributes1()
+        {
+            var source = @"
+class C
+{
+    [Attr(nameof(Prop.StaticMethod))]
+    public C Prop { get; }
+    public static void StaticMethod(){}
+}
+class Attr : System.Attribute { public Attr(string s) {} }";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics()
+                .VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceStaticMembersFromInstanceMemberInNameofUsedRecursivelyInAttributes2()
+        {
+            var source = @"
+class C
+{
+    [Attr(nameof(Prop.Prop))]
+    public static C Prop { get; }
+}
+class Attr : System.Attribute { public Attr(string s) {} }";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics()
+                .VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestCanReferenceStaticMembersFromInstanceMemberInNameofUsedRecursivelyInAttributes3()
+        {
+            var source = @"
+
+[Attr(nameof(C.Prop.Prop))]
+class C
+{
+    public static C Prop { get; }
+}
+class Attr : System.Attribute { public Attr(string s) {} }";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics()
+                .VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(40229, "https://github.com/dotnet/roslyn/issues/40229")]
+        public void TestInvalidRecursiveUsageOfNameofInAttributesDoesNotCrashCompiler()
+        {
+            var source = @"
+class C
+{
+    [Attr(nameof(Method().Method))]
+    T Method<T>() where T : C => default;
+}
+class Attr : System.Attribute { public Attr(string s) {} }";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (4,18): error CS0411: The type arguments for method 'C.Method<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                    //     [Attr(nameof(Method().Method))]
+                    Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("C.Method<T>()").WithLocation(4, 18));
         }
     }
 }

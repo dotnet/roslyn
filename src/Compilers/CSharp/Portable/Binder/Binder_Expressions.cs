@@ -7027,7 +7027,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!symbol.RequiresInstanceReceiver())
             {
-                if (instanceReceiver == true && !(IsInsideNameof && IsFeatureAvailable(node, MessageID.IDS_FeatureReducedMemberAccessChecksInNameof)))
+                if (instanceReceiver == true)
                 {
                     if (!IsInsideNameof)
                     {
@@ -7036,9 +7036,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ErrorCode.ERR_ObjectProhibited;
                         Error(diagnostics, errorCode, node, symbol);
                     }
-                    else
+                    else if (CheckFeatureAvailability(node, MessageID.IDS_FeatureReducedMemberAccessChecksInNameof, diagnostics))
                     {
-                        CheckFeatureAvailability(node, MessageID.IDS_FeatureReducedMemberAccessChecksInNameof, diagnostics);
+                        return false;
                     }
                     resultKind = LookupResultKind.StaticInstanceMismatch;
                     return true;
