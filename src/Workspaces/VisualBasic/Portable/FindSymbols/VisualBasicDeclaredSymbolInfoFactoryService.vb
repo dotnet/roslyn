@@ -117,6 +117,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
         End Function
 
         Public Overrides Function TryGetDeclaredSymbolInfo(stringTable As StringTable, node As SyntaxNode, rootNamespace As String, ByRef declaredSymbolInfo As DeclaredSymbolInfo) As Boolean
+            ' If this Is a part of partial type that only contains nested types, then we don't make an info type for it.
+            ' That's because we effectively think of this as just being a virtual container just to hold the nested
+            ' types, And Not something someone would want to explicitly navigate to itself.  Similar to how we think of
+            ' namespaces.
+            Dim typeDecl = TryCast(node, TypeBlockSyntax)
+            If typeDecl IsNot Nothing AndAlso
+               typeDecl.BlockStatement.Modifiers.Any(SyntaxKind.PartialKeyword) AndAlso
+               typeDecl.Members.Any() AndAlso
+               typeDecl.Members.All(Function(m) TypeOf m Is TypeBlockSyntax) Then
+
+                declaredSymbolInfo = Nothing
+                Return False
+            End If
+
             Select Case node.Kind()
                 Case SyntaxKind.ClassBlock
                     Dim classDecl = CType(node, ClassBlockSyntax)

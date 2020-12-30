@@ -110,19 +110,19 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                 foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
                 {
-                    AddResultIfMatch(
+                    await AddResultIfMatchAsync(
                         document, declaredSymbolInfo,
                         nameMatcher, containerMatcherOpt,
                         kinds,
                         nameMatches, containerMatches,
-                        result, cancellationToken);
+                        result, cancellationToken).ConfigureAwait(false);
                 }
             }
 
             return result.ToImmutable();
         }
 
-        private static void AddResultIfMatch(
+        private static async Task AddResultIfMatchAsync(
             Document document, DeclaredSymbolInfo declaredSymbolInfo,
             PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
             DeclaredSymbolInfoKindSet kinds,
@@ -137,14 +137,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 nameMatcher.AddMatches(declaredSymbolInfo.Name, nameMatches) &&
                 containerMatcherOpt?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, containerMatches) != false)
             {
-                result.Add(ConvertResult(
-                    declaredSymbolInfo, document, nameMatches, containerMatches));
+                result.Add(await ConvertResultAsync(
+                    declaredSymbolInfo, document, nameMatches, containerMatches, cancellationToken).ConfigureAwait(false));
             }
         }
 
-        private static SearchResult ConvertResult(
+        private static async Task<SearchResult> ConvertResultAsync(
             DeclaredSymbolInfo declaredSymbolInfo, Document document,
-            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches)
+            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
+            CancellationToken cancellationToken)
         {
             var matchKind = GetNavigateToMatchKind(nameMatches);
 
@@ -158,9 +159,36 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             foreach (var match in nameMatches)
                 matchedSpans.AddRange(match.MatchedSpans);
 
+            // See if we have a match in a linked file.  If so, see if we have the same match in other projects that
+            // this file is linked in.  If so, include the full set of projects the match is in so we can display that
+            // well in the UI.
+            var additionalMatchingProjects = await GetAdditionalProjectsWithMatchAsync(
+                document, declaredSymbolInfo, cancellationToken).ConfigureAwait(false);
             return new SearchResult(
                 document, declaredSymbolInfo, kind, matchKind, isCaseSensitive, navigableItem,
-                matchedSpans.ToImmutable());
+                matchedSpans.ToImmutable(), additionalMatchingProjects);
+        }
+
+        private static async Task<ImmutableArray<Project>> GetAdditionalProjectsWithMatchAsync(
+            Document document, DeclaredSymbolInfo declaredSymbolInfo, CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<Project>.GetInstance(out var result);
+
+            var solution = document.Project.Solution;
+            var linkedDocumentIds = document.GetLinkedDocumentIds();
+            foreach (var linkedDocumentId in linkedDocumentIds)
+            {
+                var linkedDocument = solution.GetRequiredDocument(linkedDocumentId);
+                var index = await linkedDocument.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
+
+                // See if the index for the other file also contains this same info.  If so, merge the results so the
+                // user only sees them as a single hit in the UI.
+                if (index.DeclaredSymbolInfoSet.Contains(declaredSymbolInfo))
+                    result.Add(linkedDocument.Project);
+            }
+
+            result.RemoveDuplicates();
+            return result.ToImmutable();
         }
 
         private static string GetItemKind(DeclaredSymbolInfo declaredSymbolInfo)
