@@ -728,9 +728,9 @@ public class C
     }
     public sealed class Enumerator
     {
-        public async System.Threading.Tasks.Task<bool> MoveNextAsync(int ok = 0)
+        public async System.Threading.Tasks.Task<bool> MoveNextAsync(int ok = 1)
         {
-            System.Console.Write(""MoveNextAsync"");
+            System.Console.Write($""MoveNextAsync {ok}"");
             await System.Threading.Tasks.Task.Yield();
             return false;
         }
@@ -742,7 +742,7 @@ public class C
 }";
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "MoveNextAsync");
+            CompileAndVerify(comp, expectedOutput: "MoveNextAsync 1");
         }
 
         [Fact]
@@ -765,7 +765,7 @@ public class C
     {
         public async System.Threading.Tasks.Task<bool> MoveNextAsync(params int[] ok)
         {
-            System.Console.Write(""MoveNextAsync"");
+            System.Console.Write($""MoveNextAsync {ok.Length}"");
             await System.Threading.Tasks.Task.Yield();
             return false;
         }
@@ -777,7 +777,7 @@ public class C
 }";
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "MoveNextAsync");
+            CompileAndVerify(comp, expectedOutput: "MoveNextAsync 0");
         }
 
         [Fact]
