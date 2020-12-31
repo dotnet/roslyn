@@ -1302,19 +1302,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsBuilder.AddRange(argsToParamsOpt);
             }
 
+            // Params methods can be invoked in normal form, so the strongest assertion we can make is that, if
+            // we're in an expanded context, the last param must be params. The inverse is not necessarily true.
+            Debug.Assert(!expanded || parameters[^1].IsParams);
+            // Params array is filled in the local rewriter
+            var lastIndex = expanded ? ^1 : ^0;
+
             // Go over missing parameters, inserting default values for optional parameters
-            for (int i = 0; i < parameters.Length; i++)
+            foreach (var parameter in parameters.AsSpan()[..lastIndex])
             {
-                var parameter = parameters[i];
                 if (!visitedParameters[parameter.Ordinal])
                 {
-                    // Params array is filled in the local rewriter
-                    if (expanded && parameter.Ordinal == parameters.Length - 1)
-                    {
-                        Debug.Assert(parameter.IsParams);
-                        break;
-                    }
-
                     Debug.Assert(parameter.IsOptional || !assertMissingParametersAreOptional);
 
                     defaultArguments[argumentsBuilder.Count] = true;

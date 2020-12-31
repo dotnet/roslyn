@@ -204,6 +204,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BitVector defaultArguments = default;
                 Debug.Assert(parameters.Length == indexerAccess.Indexer.Parameters.Length);
+
+                // If OriginalIndexersOpt is set, there was an overload resolution failure, and we don't want to make guesses about the default
+                // arguments that will end up being reflected in the SemanticModel/IOperation
                 if (indexerAccess.OriginalIndexersOpt.IsDefault)
                 {
                     BindDefaultArguments(indexerAccess.Syntax, parameters, argumentsBuilder, refKindsBuilderOpt, ref argsToParams, out defaultArguments, indexerAccess.Expanded, enableCallerInfo: true, diagnostics);
