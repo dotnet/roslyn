@@ -21,13 +21,14 @@ jobs:
     jobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
-    # useCache: true
+    queueName: BuildPool.Windows.10.Amd64.Open
 
 - template: eng/pipelines/build-windows-job.yml
   parameters:
     jobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
+    vmImageName: windows-2019
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:

@@ -9,31 +9,26 @@ parameters:
 - name: configuration
   type: string
   default: 'Debug'
-- name: useCache
-  type: boolean
-  default: false
+- name: queueName
+  type: string
+  default: ''
+- name: vmImageName
+  type: string
+  default: ''
 
 jobs:
 - job: ${{ parameters.jobName }}
   pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.Open
-  timeoutInMinutes: 40
+    ${{ if ne(parameters.queueName, '') }}:
+      name: NetCorePublic-Pool
+      queue: ${{ parameters.queueName }}
 
-  variables:
-    NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
+    ${{ if ne(parameters.vmImageName, '') }}:
+      vmImage: ${{ parameters.vmImageName }}
+  timeoutInMinutes: 40
 
   steps:
     - template: checkout-windows-task.yml
-
-    - task: Cache@2
-      inputs:
-        key: 'nuget | "$(Agent.OS)" | eng/Versions.props,!**/bin/**'
-        restoreKeys: |
-          nuget | "$(Agent.OS)"
-        path: $(NUGET_PACKAGES)
-      displayName: Cache NuGet packages
-      condition: and(succeeded(), eq('${{ parameters.useCache }}', true))
 
     - task: PowerShell@2
       displayName: Restore
