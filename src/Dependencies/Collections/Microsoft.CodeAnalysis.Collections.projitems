@@ -10,6 +10,16 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Collections</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+Builder+KeyCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+Builder+ValueCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+Builder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+Enumerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+KeyCollection+Enumerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+KeyCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+ValueCollection+Enumerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+ValueCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\HashHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\IDictionaryDebugView`2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\InsertionBehavior.cs" />
