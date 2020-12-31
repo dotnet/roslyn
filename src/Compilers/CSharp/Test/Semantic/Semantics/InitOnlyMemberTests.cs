@@ -4035,5 +4035,151 @@ I1 is 0");
 }
 ");
         }
+
+        [Fact]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
+        public void NestedInitializer()
+        {
+            var source = @"
+using System;
+
+Person person = new Person(""j"", ""p"");
+Container c = new Container(person)
+{
+    Person = { FirstName = ""c"" }
+};
+
+public record Person(String FirstName, String LastName);
+public record Container(Person Person);
+";
+            var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, source }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (7,16): error CS8852: Init-only property or indexer 'Person.FirstName' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //     Person = { FirstName = "c" }
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "FirstName").WithArguments("Person.FirstName").WithLocation(7, 16)
+                );
+        }
+
+        [Fact]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
+        public void NestedInitializer_NewT()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void M<T>(Person person) where T : Container, new()
+    {
+        Container c = new T()
+        {
+            Person = { FirstName = ""c"" }
+        };
+    }
+}
+
+public record Person(String FirstName, String LastName);
+public record Container(Person Person);
+";
+            var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, source });
+            comp.VerifyEmitDiagnostics(
+                // (10,24): error CS8852: Init-only property or indexer 'Person.FirstName' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //             Person = { FirstName = "c" }
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "FirstName").WithArguments("Person.FirstName").WithLocation(10, 24)
+                );
+        }
+
+        [Fact]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
+        public void NestedInitializer_UsingGenericType()
+        {
+            var source = @"
+using System;
+
+Person person = new Person(""j"", ""p"");
+var c = new Container<Person>(person)
+{
+    PropertyT = { FirstName = ""c"" }
+};
+
+public record Person(String FirstName, String LastName);
+public record Container<T>(T PropertyT) where T : Person;
+";
+            var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, source }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (7,19): error CS8852: Init-only property or indexer 'Person.FirstName' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //     PropertyT = { FirstName = "c" }
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "FirstName").WithArguments("Person.FirstName").WithLocation(7, 19)
+                );
+        }
+
+        [Fact]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
+        public void NestedInitializer_UsingNew()
+        {
+            var source = @"
+using System;
+
+Person person = new Person(""j"", ""p"");
+Container c = new Container(person)
+{
+    Person = new Person(""j"", ""p"") { FirstName = ""c"" }
+};
+
+Console.Write(c.Person.FirstName);
+
+public record Person(String FirstName, String LastName);
+public record Container(Person Person);
+";
+            var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, source }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "c");
+        }
+
+        [Fact]
+        [WorkItem(50126, "https://github.com/dotnet/roslyn/issues/50126")]
+        public void NestedInitializer_UsingNewNoPia()
+        {
+            string pia = @"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: ImportedFromTypeLib(""GeneralPIA.dll"")]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58277"")]
+[CoClass(typeof(ClassITest28))]
+public interface ITest28
+{
+    int Property { get; init; }
+}
+
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58278"")]
+public abstract class ClassITest28 //: ITest28
+{
+    public ClassITest28(int x) { }
+}
+";
+
+            var piaCompilation = CreateCompilationWithMscorlib45(new[] { IsExternalInitTypeDefinition, pia }, options: TestOptions.DebugDll);
+
+            CompileAndVerify(piaCompilation);
+
+            string source = @"
+class UsePia
+{
+    public static void Main()
+    {
+        var x1 = new ITest28();
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { source },
+                new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
+                options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics();
+        }
     }
 }

@@ -562,32 +562,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundObjectOrCollectionValuePlaceholder : BoundValuePlaceholderBase
     {
-        public BoundObjectOrCollectionValuePlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+        public BoundObjectOrCollectionValuePlaceholder(SyntaxNode syntax, bool isNew, TypeSymbol type, bool hasErrors)
             : base(BoundKind.ObjectOrCollectionValuePlaceholder, syntax, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
+            this.IsNew = isNew;
         }
 
-        public BoundObjectOrCollectionValuePlaceholder(SyntaxNode syntax, TypeSymbol type)
+        public BoundObjectOrCollectionValuePlaceholder(SyntaxNode syntax, bool isNew, TypeSymbol type)
             : base(BoundKind.ObjectOrCollectionValuePlaceholder, syntax, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
+            this.IsNew = isNew;
         }
 
 
         public new TypeSymbol Type => base.Type!;
+
+        public bool IsNew { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitObjectOrCollectionValuePlaceholder(this);
 
-        public BoundObjectOrCollectionValuePlaceholder Update(TypeSymbol type)
+        public BoundObjectOrCollectionValuePlaceholder Update(bool isNew, TypeSymbol type)
         {
-            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (isNew != this.IsNew || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundObjectOrCollectionValuePlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundObjectOrCollectionValuePlaceholder(this.Syntax, isNew, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -9760,7 +9764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(type);
+            return node.Update(node.IsNew, type);
         }
         public override BoundNode? VisitDup(BoundDup node)
         {
@@ -11002,7 +11006,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return node;
             }
 
-            BoundObjectOrCollectionValuePlaceholder updatedNode = node.Update(infoAndType.Type!);
+            BoundObjectOrCollectionValuePlaceholder updatedNode = node.Update(node.IsNew, infoAndType.Type!);
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -13354,6 +13358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node, object? arg) => new TreeDumperNode("objectOrCollectionValuePlaceholder", null, new TreeDumperNode[]
         {
+            new TreeDumperNode("isNew", node.IsNew, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
