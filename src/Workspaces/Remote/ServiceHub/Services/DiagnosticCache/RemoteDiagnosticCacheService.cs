@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +17,11 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class RemoteDiagnosticCacheService : BrokeredServiceBase, IRemoteDiagnosticCacheService
     {
+        private const string PersistenceName = "<CachedDiagnsoticsForDocument>";
+
+        private const int MaxCachedDocumentCount = 10;
+        private readonly LinkedList<(DocumentId id, Checksum checksum, ImmutableArray<DiagnosticData> diagnostics)> _cachedData = new();
+
         internal sealed class Factory : FactoryBase<IRemoteDiagnosticCacheService>
         {
             protected override IRemoteDiagnosticCacheService CreateService(in ServiceConstructionArguments arguments)
@@ -27,11 +33,12 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        private const string PersistenceName = "<CachedDiagnsoticsForDocument>";
-
         public ValueTask CacheDiagnosticsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics, CancellationToken cancellationToken)
             => RunServiceAsync(async cancellationToken =>
             {
+                lock (_cachedData)
+                    _cachedData.Clear();
+
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetRequiredDocument(documentId);
                 await CacheDiagnosticsAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
@@ -74,6 +81,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(DocumentKey documentKey, Checksum checksum, CancellationToken cancellationToken)
         {
+            if (TryGetFromInMemoryCache(documentKey, checksum, out var diagnostics))
+                return diagnostics;
+
             var workspace = GetWorkspace();
             if (workspace.Services.GetService<IPersistentStorageService>() is not IChecksummedPersistentStorageService persistenceService)
                 return ImmutableArray<DiagnosticData>.Empty;
@@ -87,9 +97,52 @@ namespace Microsoft.CodeAnalysis.Remote
             if (reader == null)
                 return ImmutableArray<DiagnosticData>.Empty;
 
-            return DiagnosticDataSerializer.TryReadDiagnosticData(reader, documentKey, cancellationToken, out var diagnostics)
-                ? diagnostics
-                : ImmutableArray<DiagnosticData>.Empty;
+            if (!DiagnosticDataSerializer.TryReadDiagnosticData(reader, documentKey, cancellationToken, out diagnostics))
+            {
+                diagnostics = ImmutableArray<DiagnosticData>.Empty;
+            }
+
+            UpdateInMemoryCache(documentKey, checksum, diagnostics);
+            return diagnostics;
+        }
+
+        private bool TryGetFromInMemoryCache(DocumentKey documentKey, Checksum checksum, out ImmutableArray<DiagnosticData> diagnostics)
+        {
+            lock (_cachedData)
+            {
+                var data = _cachedData.FirstOrNull(d => d.id == documentKey.Id && d.checksum == checksum);
+                if (data != null)
+                {
+                    diagnostics = data.Value.diagnostics;
+                    return true;
+                }
+            }
+
+            diagnostics = default;
+            return false;
+        }
+
+        private void UpdateInMemoryCache(DocumentKey documentKey, Checksum checksum, ImmutableArray<DiagnosticData> diagnostics)
+        {
+            lock (_cachedData)
+            {
+                // First, remove any existing info for this doc.
+                for (var currentNode = _cachedData.First; currentNode != null; currentNode = currentNode.Next)
+                {
+                    if (currentNode.Value.id == documentKey.Id)
+                    {
+                        _cachedData.Remove(currentNode);
+                        break;
+                    }
+                }
+
+                // Then place the cached information for this doc at the end.
+                _cachedData.AddLast((documentKey.Id, checksum, diagnostics));
+
+                // And ensure we don't cache too many docs.
+                if (_cachedData.Count > MaxCachedDocumentCount)
+                    _cachedData.RemoveFirst();
+            }
         }
     }
 }
