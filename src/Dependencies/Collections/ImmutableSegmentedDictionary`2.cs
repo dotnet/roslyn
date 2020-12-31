@@ -51,7 +51,22 @@ namespace Microsoft.CodeAnalysis.Collections
     /// </remarks>
     /// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
     /// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
-    internal partial class ImmutableSegmentedDictionary<TKey, TValue> : IImmutableDictionary<TKey, TValue>, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDictionary
+    /// <devremarks>
+    /// <para>This type has a documented contract of being exactly one reference-type field in size.</para>
+    ///
+    /// <para><strong>IMPORTANT NOTICE FOR MAINTAINERS AND REVIEWERS:</strong></para>
+    ///
+    /// <para>This type should be thread-safe. As a struct, it cannot protect its own fields from being changed from one
+    /// thread while its members are executing on other threads because structs can change <em>in place</em> simply by
+    /// reassigning the field containing this struct. Therefore it is extremely important that <strong>⚠⚠ Every member
+    /// should only dereference <c>this</c> ONCE ⚠⚠</strong>. If a member needs to reference the
+    /// <see cref="_dictionary"/> field, that counts as a dereference of <c>this</c>. Calling other instance members
+    /// (properties or methods) also counts as dereferencing <c>this</c>. Any member that needs to use <c>this</c> more
+    /// than once must instead assign <c>this</c> to a local variable and use that for the rest of the code instead.
+    /// This effectively copies the one field in the struct to a local variable so that it is insulated from other
+    /// threads.</para>
+    /// </devremarks>
+    internal readonly partial struct ImmutableSegmentedDictionary<TKey, TValue> : IImmutableDictionary<TKey, TValue>, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDictionary, IEquatable<ImmutableSegmentedDictionary<TKey, TValue>>
         where TKey : notnull
     {
         public static readonly ImmutableSegmentedDictionary<TKey, TValue> Empty = new(new SegmentedDictionary<TKey, TValue>());
@@ -68,6 +83,10 @@ namespace Microsoft.CodeAnalysis.Collections
         public int Count => _dictionary.Count;
 
         public bool IsEmpty => _dictionary.Count == 0;
+
+        public bool IsDefault => _dictionary == null;
+
+        public bool IsDefaultOrEmpty => _dictionary?.Count is null or 0;
 
         public KeyCollection Keys => new(this);
 
@@ -109,16 +128,30 @@ namespace Microsoft.CodeAnalysis.Collections
             set => throw new NotSupportedException();
         }
 
+        public static bool operator ==(ImmutableSegmentedDictionary<TKey, TValue> left, ImmutableSegmentedDictionary<TKey, TValue> right)
+            => left.Equals(right);
+
+        public static bool operator !=(ImmutableSegmentedDictionary<TKey, TValue> left, ImmutableSegmentedDictionary<TKey, TValue> right)
+            => !left.Equals(right);
+
+        public static bool operator ==(ImmutableSegmentedDictionary<TKey, TValue>? left, ImmutableSegmentedDictionary<TKey, TValue>? right)
+            => left.GetValueOrDefault().Equals(right.GetValueOrDefault());
+
+        public static bool operator !=(ImmutableSegmentedDictionary<TKey, TValue>? left, ImmutableSegmentedDictionary<TKey, TValue>? right)
+            => !left.GetValueOrDefault().Equals(right.GetValueOrDefault());
+
         public ImmutableSegmentedDictionary<TKey, TValue> Add(TKey key, TValue value)
         {
-            var dictionary = new SegmentedDictionary<TKey, TValue>(_dictionary, _dictionary.Comparer);
+            var self = this;
+            var dictionary = new SegmentedDictionary<TKey, TValue>(self._dictionary, self._dictionary.Comparer);
             dictionary.Add(key, value);
             return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
         }
 
         public ImmutableSegmentedDictionary<TKey, TValue> AddRange(IEnumerable<KeyValuePair<TKey, TValue>> pairs)
         {
-            var dictionary = new SegmentedDictionary<TKey, TValue>(_dictionary, _dictionary.Comparer);
+            var self = this;
+            var dictionary = new SegmentedDictionary<TKey, TValue>(self._dictionary, self._dictionary.Comparer);
             foreach (var pair in pairs)
             {
                 dictionary.Add(pair.Key, pair.Value);
@@ -129,12 +162,13 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public ImmutableSegmentedDictionary<TKey, TValue> Clear()
         {
-            if (IsEmpty)
+            var self = this;
+            if (self.IsEmpty)
             {
-                return this;
+                return self;
             }
 
-            return Empty.WithComparer(KeyComparer);
+            return Empty.WithComparer(self.KeyComparer);
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> pair)
@@ -154,10 +188,11 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public ImmutableSegmentedDictionary<TKey, TValue> Remove(TKey key)
         {
-            if (!_dictionary.ContainsKey(key))
-                return this;
+            var self = this;
+            if (!self._dictionary.ContainsKey(key))
+                return self;
 
-            var dictionary = new SegmentedDictionary<TKey, TValue>(_dictionary, _dictionary.Comparer);
+            var dictionary = new SegmentedDictionary<TKey, TValue>(self._dictionary, self._dictionary.Comparer);
             dictionary.Remove(key);
             return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
         }
@@ -174,7 +209,8 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public ImmutableSegmentedDictionary<TKey, TValue> SetItem(TKey key, TValue value)
         {
-            var dictionary = new SegmentedDictionary<TKey, TValue>(_dictionary, _dictionary.Comparer);
+            var self = this;
+            var dictionary = new SegmentedDictionary<TKey, TValue>(self._dictionary, self._dictionary.Comparer);
             dictionary[key] = value;
             return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
         }
@@ -197,9 +233,10 @@ namespace Microsoft.CodeAnalysis.Collections
         public bool TryGetKey(TKey equalKey, [NotNullWhen(true)] out TKey? actualKey)
 #pragma warning restore CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
         {
-            foreach (var key in Keys)
+            var self = this;
+            foreach (var key in self.Keys)
             {
-                if (KeyComparer.Equals(key, equalKey))
+                if (self.KeyComparer.Equals(key, equalKey))
                 {
                     actualKey = key;
                     return true;
@@ -219,12 +256,13 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             keyComparer ??= EqualityComparer<TKey>.Default;
 
-            if (KeyComparer == keyComparer)
+            var self = this;
+            if (self.KeyComparer == keyComparer)
             {
                 // Don't need to reconstruct the dictionary because the key comparer is the same
-                return this;
+                return self;
             }
-            else if (IsEmpty)
+            else if (self.IsEmpty)
             {
                 if (keyComparer == Empty.KeyComparer)
                 {
@@ -237,12 +275,24 @@ namespace Microsoft.CodeAnalysis.Collections
             }
             else
             {
-                return ImmutableSegmentedDictionary.CreateRange(keyComparer, this);
+                return ImmutableSegmentedDictionary.CreateRange(keyComparer, self);
             }
         }
 
         public Builder ToBuilder()
             => new(this);
+
+        public override int GetHashCode()
+            => _dictionary?.GetHashCode() ?? 0;
+
+        public override bool Equals(object? obj)
+        {
+            return obj is ImmutableSegmentedDictionary<TKey, TValue> other
+                && Equals(other);
+        }
+
+        public bool Equals(ImmutableSegmentedDictionary<TKey, TValue> other)
+            => _dictionary == other._dictionary;
 
         IImmutableDictionary<TKey, TValue> IImmutableDictionary<TKey, TValue>.Clear()
             => Clear();
