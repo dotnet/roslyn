@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -444,6 +445,13 @@ class Program
                 ExpectedWarningsState = expectedWarningsState;
                 ExpectedAnnotationsState = expectedAnnotationsState;
             }
+
+            public override string ToString()
+            {
+                var builder = new StringBuilder();
+                foreach (var str in Directives) builder.AppendLine(str);
+                return builder.ToString();
+            }
         }
 
         public static IEnumerable<object[]> AnalyzeMethodsInEnabledContextOnly_01_Data()
@@ -500,30 +508,19 @@ public class A
 }";
             var refA = CreateCompilation(sourceA).EmitToImageReference();
 
-            // Use the directives to generate source such as:
-            // #nullable {classDirectives[0]}
-            // #nullable {classDirectives[1]}
-            // static class B
-            // {
-            // #nullable {methodDirectives[0]}
-            // #nullable {methodDirectives[1]}
-            //     static void Main() { A.M(null); }
-            // }
-            var sourceBuilder = new StringBuilder();
-            foreach (var str in classDirectives.Directives) sourceBuilder.AppendLine(str);
-            sourceBuilder.AppendLine("static class B");
-            sourceBuilder.AppendLine("{");
-            foreach (var str in methodDirectives.Directives) sourceBuilder.AppendLine(str);
-            sourceBuilder.AppendLine("    static void Main() { A.M(null); }");
-            sourceBuilder.AppendLine("}");
-            var sourceB = sourceBuilder.ToString();
+            var sourceB =
+$@"{classDirectives}
+static class B
+{{
+{methodDirectives}
+    static void Main() {{ A.M(null); }}
+}}";
 
-            var expectedWarningsStateForMethod = combineState(methodDirectives.ExpectedWarningsState, classDirectives.ExpectedWarningsState);
-            var expectedAnnotationsStateForMethod = combineState(methodDirectives.ExpectedAnnotationsState, classDirectives.ExpectedAnnotationsState);
+            var expectedWarningsStateForMethod = CombineState(methodDirectives.ExpectedWarningsState, classDirectives.ExpectedWarningsState);
+            var expectedAnnotationsStateForMethod = CombineState(methodDirectives.ExpectedAnnotationsState, classDirectives.ExpectedAnnotationsState);
 
             bool isNullableEnabledForProject = projectContext != null && (projectContext.Value & NullableContextOptions.Warnings) != 0;
-            bool isNullableEnabledForClass = isNullableEnabled(classDirectives.ExpectedWarningsState, isNullableEnabledForProject);
-            bool isNullableEnabledForMethod = isNullableEnabled(expectedWarningsStateForMethod, isNullableEnabledForProject);
+            bool isNullableEnabledForMethod = IsNullableEnabled(expectedWarningsStateForMethod, isNullableEnabledForProject);
 
             var options = TestOptions.ReleaseDll;
             if (projectContext != null) options = options.WithNullableContextOptions(projectContext.Value);
@@ -550,27 +547,27 @@ public class A
             verifyContextState(tree, syntaxNodes.OfType<ClassDeclarationSyntax>().Single(), classDirectives.ExpectedWarningsState, classDirectives.ExpectedAnnotationsState);
             verifyContextState(tree, syntaxNodes.OfType<MethodDeclarationSyntax>().Single(), expectedWarningsStateForMethod, expectedAnnotationsStateForMethod);
 
-            static NullableContextState.State combineState(NullableContextState.State currentState, NullableContextState.State previousState)
-            {
-                return currentState == NullableContextState.State.Unknown ? previousState : currentState;
-            }
-
             static void verifyContextState(CSharpSyntaxTree tree, CSharpSyntaxNode syntax, NullableContextState.State expectedWarningsState, NullableContextState.State expectedAnnotationsState)
             {
                 var actualState = tree.GetNullableContextState(syntax.SpanStart);
                 Assert.Equal(expectedWarningsState, actualState.WarningsState);
                 Assert.Equal(expectedAnnotationsState, actualState.AnnotationsState);
             }
+        }
 
-            static bool isNullableEnabled(NullableContextState.State state, bool isNullableEnabledForProject)
+        private static NullableContextState.State CombineState(NullableContextState.State currentState, NullableContextState.State previousState)
+        {
+            return currentState == NullableContextState.State.Unknown ? previousState : currentState;
+        }
+
+        private static bool IsNullableEnabled(NullableContextState.State state, bool isNullableEnabledForProject)
+        {
+            return state switch
             {
-                return state switch
-                {
-                    NullableContextState.State.Enabled => true,
-                    NullableContextState.State.Disabled => false,
-                    _ => isNullableEnabledForProject,
-                };
-            }
+                NullableContextState.State.Enabled => true,
+                NullableContextState.State.Disabled => false,
+                _ => isNullableEnabledForProject,
+            };
         }
 
         [Fact]
@@ -2045,7 +2042,7 @@ class B
     }
 #nullable enable
 }";
-            VerifySpeculativeSemanticModel(source, "string", Microsoft.CodeAnalysis.NullableAnnotation.None);
+            VerifySpeculativeSemanticModel(source, null, "string", Microsoft.CodeAnalysis.NullableAnnotation.None);
 
             source =
 @"class Program
@@ -2058,7 +2055,7 @@ class B
             typeof(object);
     }
 }";
-            VerifySpeculativeSemanticModel(source, "string", Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated);
+            VerifySpeculativeSemanticModel(source, null, "string", Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated);
         }
 
         [Fact]
@@ -2072,7 +2069,7 @@ class B
     static object F = typeof(object);
 #nullable enable
 }";
-            VerifySpeculativeSemanticModel(source, "string", Microsoft.CodeAnalysis.NullableAnnotation.None);
+            VerifySpeculativeSemanticModel(source, null, "string", Microsoft.CodeAnalysis.NullableAnnotation.None);
 
             source =
 @"class Program
@@ -2082,7 +2079,7 @@ class B
 #nullable enable
         typeof(object);
 }";
-            VerifySpeculativeSemanticModel(source, "string", Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated);
+            VerifySpeculativeSemanticModel(source, null, "string", Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated);
 
             source =
 @"class Program
@@ -2091,7 +2088,7 @@ class B
     static object P { get; } = typeof(object);
 #nullable enable
 }";
-            VerifySpeculativeSemanticModel(source, "string", Microsoft.CodeAnalysis.NullableAnnotation.None);
+            VerifySpeculativeSemanticModel(source, null, "string", Microsoft.CodeAnalysis.NullableAnnotation.None);
 
             source =
 @"class Program
@@ -2101,7 +2098,7 @@ class B
 #nullable enable
         typeof(object);
 }";
-            VerifySpeculativeSemanticModel(source, "string", Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated);
+            VerifySpeculativeSemanticModel(source, null, "string", Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated);
         }
 
         [Fact]
@@ -2122,7 +2119,7 @@ class Program
     }
 #nullable enable
 }";
-            VerifySpeculativeSemanticModel(source, "string", Microsoft.CodeAnalysis.NullableAnnotation.None);
+            VerifySpeculativeSemanticModel(source, null, "string", Microsoft.CodeAnalysis.NullableAnnotation.None);
 
             source =
 @"class A : System.Attribute
@@ -2141,13 +2138,46 @@ class Program
 }";
             // https://github.com/dotnet/roslyn/issues/50160: Debug.Assert() failure in MemberSemanticModel.GetSnapshotManager().
 #if !DEBUG
-            VerifySpeculativeSemanticModel(source, "string", Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated);
+            VerifySpeculativeSemanticModel(source, null, "string", Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated);
 #endif
         }
 
-        private static void VerifySpeculativeSemanticModel(string source, string typeName, Microsoft.CodeAnalysis.NullableAnnotation expectedAnnotation)
+        [Theory]
+        [MemberData(nameof(AnalyzeMethodsInEnabledContextOnly_01_Data))]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
+        public void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel(NullableContextOptions? projectContext, NullableDirectives sourceDirectives, NullableDirectives speculativeDirectives)
         {
-            var comp = CreateCompilation(source);
+            // SyntaxTreeSemanticModel.IsNullableAnalysisEnabledAtSpeculativePosition() does not handle '#nullable restore'.
+            if (speculativeDirectives.ExpectedWarningsState == NullableContextState.State.ExplicitlyRestored) return;
+
+            var source =
+$@"class Program
+{{
+{sourceDirectives}
+    static void Main()
+    {{
+        object obj = typeof(object);
+    }}
+}}";
+            var typeName =
+$@"{speculativeDirectives}
+string";
+
+            var expectedWarningsState = CombineState(speculativeDirectives.ExpectedWarningsState, sourceDirectives.ExpectedWarningsState);
+
+            bool isNullableEnabledForProject = projectContext != null && (projectContext.Value & NullableContextOptions.Warnings) != 0;
+            Microsoft.CodeAnalysis.NullableAnnotation expectedAnnotation = IsNullableEnabled(expectedWarningsState, isNullableEnabledForProject) ?
+                Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated :
+                Microsoft.CodeAnalysis.NullableAnnotation.None;
+
+            VerifySpeculativeSemanticModel(source, projectContext, typeName, expectedAnnotation);
+        }
+
+        private static void VerifySpeculativeSemanticModel(string source, NullableContextOptions? projectContext, string typeName, Microsoft.CodeAnalysis.NullableAnnotation expectedAnnotation)
+        {
+            var options = TestOptions.ReleaseDll;
+            if (projectContext != null) options = options.WithNullableContextOptions(projectContext.GetValueOrDefault());
+            var comp = CreateCompilation(source, options: options);
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
             var typeOf = syntaxTree.GetRoot().DescendantNodes().OfType<TypeOfExpressionSyntax>().Single();

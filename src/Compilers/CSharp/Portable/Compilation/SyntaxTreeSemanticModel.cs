@@ -772,13 +772,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal AttributeSemanticModel CreateSpeculativeAttributeSemanticModel(int position, AttributeSyntax attribute, Binder binder, AliasSymbol aliasOpt, NamedTypeSymbol attributeType)
         {
-            var memberModel = IsNullableAnalysisEnabledAt(position) ? GetMemberModel(position) : null;
+            var memberModel = IsNullableAnalysisEnabledAtSpeculativePosition(position, attribute) ? GetMemberModel(position) : null;
             return AttributeSemanticModel.CreateSpeculative(this, attribute, attributeType, aliasOpt, binder, memberModel?.GetRemappedSymbols(), position);
         }
 
-        internal bool IsNullableAnalysisEnabledAt(int position)
+        internal bool IsNullableAnalysisEnabledAtSpeculativePosition(int position, SyntaxNode speculativeSyntax)
         {
-            return Compilation.IsNullableAnalysisEnabledIn((CSharpSyntaxTree)SyntaxTree, new TextSpan(position, 0));
+            Debug.Assert(speculativeSyntax.SyntaxTree != SyntaxTree);
+
+            // CSharpSyntaxTree.IsNullableAnalysisEnabled() does not differentiate between no '#nullable' directives
+            // and '#nullable restore' - it returns null in both cases. Since we fallback to the directives in the original
+            // syntax tree, we're not handling '#nullable restore' correctly in the speculative text.
+            return ((CSharpSyntaxTree)speculativeSyntax.SyntaxTree).IsNullableAnalysisEnabled(speculativeSyntax.Span) ??
+                Compilation.IsNullableAnalysisEnabledIn((CSharpSyntaxTree)SyntaxTree, new TextSpan(position, 0));
         }
 
         private MemberSemanticModel GetMemberModel(int position)

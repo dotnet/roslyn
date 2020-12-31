@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override bool IsNullableAnalysisEnabled()
             {
-                return _parentSemanticModelOpt.IsNullableAnalysisEnabledAt(OriginalPositionForSpeculation);
+                return _parentSemanticModelOpt.IsNullableAnalysisEnabledAtSpeculativePosition(OriginalPositionForSpeculation, Root);
             }
 
             internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
