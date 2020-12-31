@@ -1534,7 +1534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   // Supporting attributes is tracked by
                                                   // https://github.com/dotnet/roslyn/issues/36066
                                                   this is AttributeSemanticModel)) ||
-                             (manager is object && remappedSymbols is object && syntax == Root && IsNullableAnalysisEnabled() && _lazySnapshotManager is null));
+                             (manager is object && remappedSymbols is object && syntax == Root && (IsNullableAnalysisEnabled() || (IsSpeculativeSemanticModel && _parentSemanticModelOpt is object)) && _lazySnapshotManager is null));
                 if (manager is object)
                 {
                     _lazySnapshotManager = manager;

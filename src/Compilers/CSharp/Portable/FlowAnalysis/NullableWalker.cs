@@ -1247,9 +1247,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
-            if (snapshotManager != null)
+            if (snapshotManager != null && isNullableAnalysisEnabled(compilation))
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManager, node);
+            }
+
+            static bool isNullableAnalysisEnabled(CSharpCompilation compilation)
+            {
+                if (compilation.Options.NullableContextOptions != NullableContextOptions.Disable)
+                {
+                    return true;
+                }
+                return compilation.SyntaxTrees.Any(tree => ((CSharpSyntaxTree)tree).IsNullableAnalysisEnabled(new Text.TextSpan(0, tree.Length)) == true);
             }
 #endif
 
