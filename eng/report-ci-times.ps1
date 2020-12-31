@@ -2,9 +2,8 @@
 # after running this script you can check 'ci-times.csv' and paste into 'all-ci-times.xlsx' to graph the data
 
 $roslynPipelineId = "15"
-# number of recent CI runs to scrape data from.
-# adjust as needed to get a varying picture of the data.
-$runCount = 200
+$minDate = [DateTime]::Now.AddDays(-14)
+$maxDate = [DateTime]::MaxValue
 
 $baseURL = "https://dev.azure.com/dnceng/public/_apis/"
 $runsURL = "$baseURL/pipelines/$roslynPipelineId/runs?api-version=6.0-preview.1"
@@ -66,47 +65,65 @@ class Job {
 function initialPass() {
     $runs = (Invoke-WebRequest -uri $runsURL | ConvertFrom-Json)
     $allJobs = [System.Collections.Generic.List[Job]]::new()
-    foreach ($run in $runs.value[0..$runCount]) {
-        if ($run.result -eq "succeeded") {
-            $runDetails = (Invoke-WebRequest -uri $run._links.self.href | ConvertFrom-Json)
-            $refName = $runDetails.resources.repositories.self.refName
 
-            # uncomment the desired condition to filter the builds we measure
-            if (
-                # distrust all PR/feature/release branch builds and only get master CI builds
-                # $refName -ne "refs/heads/master"
+    foreach ($run in $runs.value) {
+        if ($run.createdDate -lt $minDate) {
+            continue
+        }
 
-                # ignore specific PRs which change CI config and thus don't have valid data points
-                $refName -eq "refs/pulls/50046/merge" -or $refName -eq "refs/pulls/49626/merge"
+        if ($run.createdDate -gt $maxDate) {
+            continue
+        }
 
-                # specifically gather data on experimental azure vmImage builds
-                # $refName -ne "refs/pulls/50046/merge"
-            ) {
-                continue
-            }
-            $createdJob = [Job]::new()
-            $createdJob.runId = $run.id
-            $createdJob.attempt = 0
-            $createdJob.name = "0_Run_Queued"
-            $createdJob.relativeStart = [TimeSpan]0
-            $createdJob.duration = [DateTime]$run.finishedDate - [DateTime]$run.createdDate
-            $createdJob.startDelay = [TimeSpan]0
-            $allJobs.Add($createdJob) | Out-Null
+        if ($run.result -ne "succeeded") {
+            continue
+        }
 
-            $runStartTime = [DateTime]$run.createdDate
+        $runDetails = (Invoke-WebRequest -uri $run._links.self.href | ConvertFrom-Json)
+        $refName = $runDetails.resources.repositories.self.refName
 
-            $timeline = (Invoke-WebRequest -uri "$buildsURL/$($run.id)/timeline" | ConvertFrom-Json)
-            foreach ($record in $timeline.records) {
-                # not sure yet how to deal with multiple attempts. but data from succeeded in jobs in attempts that ultimately fail is probably still helpful.
-                if ($record.attempt -eq 1 -and $record.type -eq "job" -and $record.result -eq "succeeded" -and $wantedRecords.Contains($record.name)) {
-                    $job = [Job]::new()
-                    $job.runId = $run.id;
-                    $job.attempt = $record.attempt;
-                    $job.name = "$($priorities[$record.name])_$($record.name)";
-                    $job.relativeStart = [DateTime]$record.startTime - $runStartTime;
-                    $job.duration = [DateTime]$record.finishTime - [DateTime]$record.startTime;
-                    $allJobs.Add($job) | Out-Null
-                }
+        # uncomment the desired condition to filter the builds we measure
+        if (
+            # distrust all PR/feature/release branch builds and only get master CI builds
+            $refName -ne "refs/heads/master"
+
+            # ignore specific PRs which modify infra and thus don't measure the "production" behavior
+            # $refName -eq "refs/pulls/50046/merge" -or $refName -eq "refs/pulls/49626/merge"
+
+            # specifically gather data on experimental builds
+            # $refName -ne "refs/heads/dev/rigibson/no-windows-vmImage"
+        ) {
+            continue
+        }
+
+        $timeline = (Invoke-WebRequest -uri "$buildsURL/$($run.id)/timeline" | ConvertFrom-Json)
+        if (($timeline.records | Where-Object { $_.attempt -gt 1 }).Length -gt 0) {
+            # not yet sure how to properly handle jobs with multiple attempts so will just skip them for now.
+            continue
+        }
+
+        Write-Host "Measuring run $($run.id) created at $($run.createdDate) - $($run._links.web.href)"
+
+        $createdJob = [Job]::new()
+        $createdJob.runId = $run.id
+        $createdJob.attempt = 0
+        $createdJob.name = "0_Run_Queued"
+        $createdJob.relativeStart = [TimeSpan]0
+        $createdJob.duration = [DateTime]$run.finishedDate - [DateTime]$run.createdDate
+        $createdJob.startDelay = [TimeSpan]0
+        $allJobs.Add($createdJob) | Out-Null
+
+        $runStartTime = [DateTime]$run.createdDate
+
+        foreach ($record in $timeline.records) {
+            if ($record.type -eq "job" -and $record.result -eq "succeeded" -and $wantedRecords.Contains($record.name)) {
+                $job = [Job]::new()
+                $job.runId = $run.id;
+                $job.attempt = $record.attempt;
+                $job.name = "$($priorities[$record.name])_$($record.name)";
+                $job.relativeStart = [DateTime]$record.startTime - $runStartTime;
+                $job.duration = [DateTime]$record.finishTime - [DateTime]$record.startTime;
+                $allJobs.Add($job) | Out-Null
             }
         }
     }
@@ -193,4 +210,6 @@ foreach ($jobName in $prerequisites.Keys) {
 }
 $averageJobs.Add((getAverageTimes("0_Run_Created")))
 
+$filename = "ci-times.csv"
 $averageJobs + $allJobs | Sort-Object -Property runId,name | Export-Csv -Path "ci-times.csv"
+Write-Host "Exported CSV to $(Join-Path $(Get-Location) $filename)"
