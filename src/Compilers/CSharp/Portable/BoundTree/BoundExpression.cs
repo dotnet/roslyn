@@ -438,7 +438,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultArguments: default(BitVector),
                 constantValueOpt: ConstantValueOpt,
                 initializerExpressionOpt: newInitializerExpression,
-                binderOpt: BinderOpt,
                 type: changeTypeOpt ?? Type);
         }
     }
