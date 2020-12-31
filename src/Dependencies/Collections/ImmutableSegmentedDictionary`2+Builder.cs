@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public IEqualityComparer<TKey> KeyComparer => _dictionary.KeyComparer;
 
-            public IEqualityComparer<TValue> ValueComparer => _dictionary.ValueComparer;
-
             public int Count => ReadOnlyDictionary.Count;
 
             public KeyCollection Keys => new(this);
@@ -101,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Collections
             public bool Contains(KeyValuePair<TKey, TValue> item)
             {
                 return TryGetValue(item.Key, out var value)
-                    && ValueComparer.Equals(value, item.Value);
+                    && EqualityComparer<TValue>.Default.Equals(value, item.Value);
             }
 
             public bool ContainsKey(TKey key)
@@ -109,20 +107,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public bool ContainsValue(TValue value)
             {
-                if (ValueComparer == EqualityComparer<TValue>.Default)
-                {
-                    return _dictionary.ContainsValue(value);
-                }
-                else
-                {
-                    foreach (var pair in ReadOnlyDictionary)
-                    {
-                        if (ValueComparer.Equals(pair.Value, value))
-                            return true;
-                    }
-
-                    return false;
-                }
+                return _dictionary.ContainsValue(value);
             }
 
             public Enumerator GetEnumerator()
@@ -198,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 var dictionary = ReadOnlyDictionary;
                 _mutableDictionary = null;
-                return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary, ValueComparer);
+                return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
             }
 
             void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)

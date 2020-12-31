@@ -54,20 +54,16 @@ namespace Microsoft.CodeAnalysis.Collections
     internal partial class ImmutableSegmentedDictionary<TKey, TValue> : IImmutableDictionary<TKey, TValue>, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDictionary
         where TKey : notnull
     {
-        public static readonly ImmutableSegmentedDictionary<TKey, TValue> Empty = new(new SegmentedDictionary<TKey, TValue>(), valueComparer: null);
+        public static readonly ImmutableSegmentedDictionary<TKey, TValue> Empty = new(new SegmentedDictionary<TKey, TValue>());
 
         private readonly SegmentedDictionary<TKey, TValue> _dictionary;
-        private readonly IEqualityComparer<TValue> _valueComparer;
 
-        private ImmutableSegmentedDictionary(SegmentedDictionary<TKey, TValue> dictionary, IEqualityComparer<TValue>? valueComparer)
+        private ImmutableSegmentedDictionary(SegmentedDictionary<TKey, TValue> dictionary)
         {
             _dictionary = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
-            _valueComparer = valueComparer ?? EqualityComparer<TValue>.Default;
         }
 
         public IEqualityComparer<TKey> KeyComparer => _dictionary.Comparer;
-
-        public IEqualityComparer<TValue> ValueComparer => _valueComparer;
 
         public int Count => _dictionary.Count;
 
@@ -117,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             var dictionary = new SegmentedDictionary<TKey, TValue>(_dictionary, _dictionary.Comparer);
             dictionary.Add(key, value);
-            return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary, _valueComparer);
+            return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
         }
 
         public ImmutableSegmentedDictionary<TKey, TValue> AddRange(IEnumerable<KeyValuePair<TKey, TValue>> pairs)
@@ -128,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 dictionary.Add(pair.Key, pair.Value);
             }
 
-            return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary, _valueComparer);
+            return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
         }
 
         public ImmutableSegmentedDictionary<TKey, TValue> Clear()
@@ -138,35 +134,20 @@ namespace Microsoft.CodeAnalysis.Collections
                 return this;
             }
 
-            return Empty.WithComparers(KeyComparer, ValueComparer);
+            return Empty.WithComparer(KeyComparer);
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> pair)
         {
             return TryGetValue(pair.Key, out var value)
-                && ValueComparer.Equals(value, pair.Value);
+                && EqualityComparer<TValue>.Default.Equals(value, pair.Value);
         }
 
         public bool ContainsKey(TKey key)
             => _dictionary.ContainsKey(key);
 
         public bool ContainsValue(TValue value)
-        {
-            if (ValueComparer == EqualityComparer<TValue>.Default)
-            {
-                return _dictionary.ContainsValue(value);
-            }
-            else
-            {
-                foreach (var pair in this)
-                {
-                    if (ValueComparer.Equals(pair.Value, value))
-                        return true;
-                }
-
-                return false;
-            }
-        }
+            => _dictionary.ContainsValue(value);
 
         public Enumerator GetEnumerator()
             => new(_dictionary, Enumerator.ReturnType.KeyValuePair);
@@ -178,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             var dictionary = new SegmentedDictionary<TKey, TValue>(_dictionary, _dictionary.Comparer);
             dictionary.Remove(key);
-            return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary, _valueComparer);
+            return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
         }
 
         public ImmutableSegmentedDictionary<TKey, TValue> RemoveRange(IEnumerable<TKey> keys)
@@ -195,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             var dictionary = new SegmentedDictionary<TKey, TValue>(_dictionary, _dictionary.Comparer);
             dictionary[key] = value;
-            return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary, _valueComparer);
+            return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
         }
 
         public ImmutableSegmentedDictionary<TKey, TValue> SetItems(IEnumerable<KeyValuePair<TKey, TValue>> items)
@@ -234,33 +215,29 @@ namespace Microsoft.CodeAnalysis.Collections
 #pragma warning restore CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
             => _dictionary.TryGetValue(key, out value);
 
-        public ImmutableSegmentedDictionary<TKey, TValue> WithComparers(IEqualityComparer<TKey>? keyComparer)
-            => WithComparers(keyComparer, valueComparer: null);
-
-        public ImmutableSegmentedDictionary<TKey, TValue> WithComparers(IEqualityComparer<TKey>? keyComparer, IEqualityComparer<TValue>? valueComparer)
+        public ImmutableSegmentedDictionary<TKey, TValue> WithComparer(IEqualityComparer<TKey>? keyComparer)
         {
             keyComparer ??= EqualityComparer<TKey>.Default;
-            valueComparer ??= EqualityComparer<TValue>.Default;
 
-            if (IsEmpty)
+            if (KeyComparer == keyComparer)
+            {
+                // Don't need to reconstruct the dictionary because the key comparer is the same
+                return this;
+            }
+            else if (IsEmpty)
             {
                 if (keyComparer == Empty.KeyComparer)
                 {
-                    return new ImmutableSegmentedDictionary<TKey, TValue>(Empty._dictionary, valueComparer);
+                    return Empty;
                 }
                 else
                 {
-                    return new ImmutableSegmentedDictionary<TKey, TValue>(new SegmentedDictionary<TKey, TValue>(keyComparer), _valueComparer);
+                    return new ImmutableSegmentedDictionary<TKey, TValue>(new SegmentedDictionary<TKey, TValue>(keyComparer));
                 }
-            }
-            else if (KeyComparer == keyComparer)
-            {
-                // Don't need to reconstruct the dictionary because the key comparer is the same
-                return new ImmutableSegmentedDictionary<TKey, TValue>(_dictionary, valueComparer);
             }
             else
             {
-                return ImmutableSegmentedDictionary.CreateRange(keyComparer, valueComparer, this);
+                return ImmutableSegmentedDictionary.CreateRange(keyComparer, this);
             }
         }
 

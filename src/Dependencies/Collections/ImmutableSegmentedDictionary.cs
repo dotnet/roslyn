@@ -20,11 +20,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public static ImmutableSegmentedDictionary<TKey, TValue> Create<TKey, TValue>(IEqualityComparer<TKey>? keyComparer)
             where TKey : notnull
-            => ImmutableSegmentedDictionary<TKey, TValue>.Empty.WithComparers(keyComparer);
-
-        public static ImmutableSegmentedDictionary<TKey, TValue> Create<TKey, TValue>(IEqualityComparer<TKey>? keyComparer, IEqualityComparer<TValue>? valueComparer)
-            where TKey : notnull
-            => ImmutableSegmentedDictionary<TKey, TValue>.Empty.WithComparers(keyComparer, valueComparer);
+            => ImmutableSegmentedDictionary<TKey, TValue>.Empty.WithComparer(keyComparer);
 
         public static ImmutableSegmentedDictionary<TKey, TValue>.Builder CreateBuilder<TKey, TValue>()
             where TKey : notnull
@@ -34,51 +30,35 @@ namespace Microsoft.CodeAnalysis.Collections
             where TKey : notnull
             => Create<TKey, TValue>(keyComparer).ToBuilder();
 
-        public static ImmutableSegmentedDictionary<TKey, TValue>.Builder CreateBuilder<TKey, TValue>(IEqualityComparer<TKey>? keyComparer, IEqualityComparer<TValue>? valueComparer)
-            where TKey : notnull
-            => Create<TKey, TValue>(keyComparer, valueComparer).ToBuilder();
-
         public static ImmutableSegmentedDictionary<TKey, TValue> CreateRange<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> items)
             where TKey : notnull
             => ImmutableSegmentedDictionary<TKey, TValue>.Empty.AddRange(items);
 
         public static ImmutableSegmentedDictionary<TKey, TValue> CreateRange<TKey, TValue>(IEqualityComparer<TKey>? keyComparer, IEnumerable<KeyValuePair<TKey, TValue>> items)
             where TKey : notnull
-            => ImmutableSegmentedDictionary<TKey, TValue>.Empty.WithComparers(keyComparer).AddRange(items);
-
-        public static ImmutableSegmentedDictionary<TKey, TValue> CreateRange<TKey, TValue>(IEqualityComparer<TKey>? keyComparer, IEqualityComparer<TValue>? valueComparer, IEnumerable<KeyValuePair<TKey, TValue>> items)
-            where TKey : notnull
-            => ImmutableSegmentedDictionary<TKey, TValue>.Empty.WithComparers(keyComparer, valueComparer).AddRange(items);
+            => ImmutableSegmentedDictionary<TKey, TValue>.Empty.WithComparer(keyComparer).AddRange(items);
 
         public static ImmutableSegmentedDictionary<TKey, TValue> ToImmutableSegmentedDictionary<TKey, TValue>(this IEnumerable<KeyValuePair<TKey, TValue>> items)
             where TKey : notnull
-            => ToImmutableSegmentedDictionary(items, keyComparer: null, valueComparer: null);
+            => ToImmutableSegmentedDictionary(items, keyComparer: null);
 
         public static ImmutableSegmentedDictionary<TKey, TValue> ToImmutableSegmentedDictionary<TKey, TValue>(this IEnumerable<KeyValuePair<TKey, TValue>> items, IEqualityComparer<TKey>? keyComparer)
-            where TKey : notnull
-            => ToImmutableSegmentedDictionary(items, keyComparer, valueComparer: null);
-
-        public static ImmutableSegmentedDictionary<TKey, TValue> ToImmutableSegmentedDictionary<TKey, TValue>(this IEnumerable<KeyValuePair<TKey, TValue>> items, IEqualityComparer<TKey>? keyComparer, IEqualityComparer<TValue>? valueComparer)
             where TKey : notnull
         {
             if (items is null)
                 throw new ArgumentNullException(nameof(items));
 
             if (items is ImmutableSegmentedDictionary<TKey, TValue> existingDictionary)
-                return existingDictionary.WithComparers(keyComparer, valueComparer);
+                return existingDictionary.WithComparer(keyComparer);
 
-            return ImmutableSegmentedDictionary<TKey, TValue>.Empty.WithComparers(keyComparer, valueComparer).AddRange(items);
+            return ImmutableSegmentedDictionary<TKey, TValue>.Empty.WithComparer(keyComparer).AddRange(items);
         }
 
         public static ImmutableSegmentedDictionary<TKey, TValue> ToImmutableSegmentedDictionary<TSource, TKey, TValue>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector)
             where TKey : notnull
-            => ToImmutableSegmentedDictionary(source, keySelector, elementSelector, keyComparer: null, valueComparer: null);
+            => ToImmutableSegmentedDictionary(source, keySelector, elementSelector, keyComparer: null);
 
         public static ImmutableSegmentedDictionary<TKey, TValue> ToImmutableSegmentedDictionary<TSource, TKey, TValue>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector, IEqualityComparer<TKey>? keyComparer)
-            where TKey : notnull
-            => ToImmutableSegmentedDictionary(source, keySelector, elementSelector, keyComparer, valueComparer: null);
-
-        public static ImmutableSegmentedDictionary<TKey, TValue> ToImmutableSegmentedDictionary<TSource, TKey, TValue>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector, IEqualityComparer<TKey>? keyComparer, IEqualityComparer<TValue>? valueComparer)
             where TKey : notnull
         {
             if (source is null)
@@ -88,16 +68,12 @@ namespace Microsoft.CodeAnalysis.Collections
             if (elementSelector is null)
                 throw new ArgumentNullException(nameof(elementSelector));
 
-            return ImmutableSegmentedDictionary<TKey, TValue>.Empty.WithComparers(keyComparer, valueComparer)
+            return ImmutableSegmentedDictionary<TKey, TValue>.Empty.WithComparer(keyComparer)
                 .AddRange(source.Select(element => new KeyValuePair<TKey, TValue>(keySelector(element), elementSelector(element))));
         }
 
         public static ImmutableSegmentedDictionary<TKey, TSource> ToImmutableSegmentedDictionary<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
             where TKey : notnull
-            => ToImmutableSegmentedDictionary(source, keySelector, elementSelector: static x => x, keyComparer: null, valueComparer: null);
-
-        public static ImmutableSegmentedDictionary<TKey, TSource> ToImmutableSegmentedDictionary<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, IEqualityComparer<TKey>? keyComparer)
-            where TKey : notnull
-            => ToImmutableSegmentedDictionary(source, keySelector, elementSelector: static x => x, keyComparer, valueComparer: null);
+            => ToImmutableSegmentedDictionary(source, keySelector, elementSelector: static x => x, keyComparer: null);
     }
 }
