@@ -15,6 +15,7 @@ namespace Analyzer.Utilities.PooledObjects
     internal sealed partial class ArrayBuilder<T> : IReadOnlyCollection<T>, IReadOnlyList<T>, IDisposable
     {
         #region DebuggerProxy
+#pragma warning disable CA1812 // ArrayBuilder<T>.DebuggerProxy is an internal class that is apparently never instantiated - used in DebuggerTypeProxy attribute above.
         private sealed class DebuggerProxy
         {
             private readonly ArrayBuilder<T> _builder;
@@ -41,6 +42,7 @@ namespace Analyzer.Utilities.PooledObjects
             }
         }
 #pragma warning restore CA1819
+#pragma warning restore CA1812
         #endregion
 
         private readonly ImmutableArray<T>.Builder _builder;
