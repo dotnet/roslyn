@@ -762,8 +762,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return EnumeratorResult.FailedAndReported;
             }
 
-            if (SatisfiesIEnumerableInterfaces(ref builder, ref collectionExpr, isAsync, diagnostics, unwrappedCollectionExpr, unwrappedCollectionExprType) is not EnumeratorResult.FailedNotReported and var result)
+            if (SatisfiesIEnumerableInterfaces(ref builder, unwrappedCollectionExpr, isAsync, diagnostics, unwrappedCollectionExprType) is not EnumeratorResult.FailedNotReported and var result)
             {
+                collectionExpr = unwrappedCollectionExpr;
                 return result;
             }
 
@@ -815,14 +816,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private EnumeratorResult SatisfiesIEnumerableInterfaces(ref ForEachEnumeratorInfo.Builder builder, ref BoundExpression collectionExpr, bool isAsync, DiagnosticBag diagnostics, BoundExpression unwrappedCollectionExpr, TypeSymbol unwrappedCollectionExprType)
+        private EnumeratorResult SatisfiesIEnumerableInterfaces(ref ForEachEnumeratorInfo.Builder builder, BoundExpression collectionExpr, bool isAsync, DiagnosticBag diagnostics, TypeSymbol unwrappedCollectionExprType)
         {
             if (!AllInterfacesContainsIEnumerable(ref builder, unwrappedCollectionExprType, isAsync, diagnostics, out bool foundMultipleGenericIEnumerableInterfaces))
             {
                 return EnumeratorResult.FailedNotReported;
             }
 
-            collectionExpr = unwrappedCollectionExpr;
             if (ReportConstantNullCollectionExpr(collectionExpr, diagnostics))
             {
                 return EnumeratorResult.FailedAndReported;
@@ -856,14 +856,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics, errorLocationSyntax.Location, isOptional: false);
 
                     // Well-known members are matched by signature: we shouldn't find it if it doesn't have exactly 1 parameter.
-                    Debug.Assert(getEnumeratorMethod.ParameterCount == 1);
-                    if (getEnumeratorMethod?.Parameters[0].IsOptional == false)
-                    {
-                        collectionExpr = unwrappedCollectionExpr;
-                        // This indicates a problem with the well-known IAsyncEnumerable type - it should have an optional cancellation token.
-                        diagnostics.Add(ErrorCode.ERR_AwaitForEachMissingMember, _syntax.Expression.Location, unwrappedCollectionExprType, GetAsyncEnumeratorMethodName);
-                        return EnumeratorResult.FailedAndReported;
-                    }
+                    Debug.Assert(getEnumeratorMethod is null or { ParameterCount: 1 });
+
+                    // C# 8 shipped allowing the CancellationToken of `IAsyncEnumerable.GetAsyncEnumerator` to be non-optional.
+                    // https://github.com/dotnet/roslyn/issues/50182 tracks enabling this error and breaking the scenario.
+                    // if (getEnumeratorMethod?.Parameters[0].IsOptional == false)
+                    // {
+                    //     // This indicates a problem with the well-known IAsyncEnumerable type - it should have an optional cancellation token.
+                    //     diagnostics.Add(ErrorCode.ERR_AwaitForEachMissingMember, _syntax.Expression.Location, unwrappedCollectionExprType, GetAsyncEnumeratorMethodName);
+                    //     return EnumeratorResult.FailedAndReported;
+                    // }
                 }
                 else
                 {
@@ -878,7 +880,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol enumeratorType = specificGetEnumeratorMethod.ReturnType;
 
                     // IAsyncEnumerable<T>.GetAsyncEnumerator has a default param, so let's fill it in
-                    builder.GetEnumeratorInfo = BindDefaultArguments(specificGetEnumeratorMethod, extensionReceiverOpt: null, expanded: false, collectionExpr.Syntax, diagnostics);
+                    builder.GetEnumeratorInfo = BindDefaultArguments(
+                        specificGetEnumeratorMethod,
+                        extensionReceiverOpt: null,
+                        expanded: false,
+                        collectionExpr.Syntax,
+                        diagnostics,
+                        // C# 8 shipped allowing the CancellationToken of `IAsyncEnumerable.GetAsyncEnumerator` to be non-optional,
+                        // filling in a default value in that case. https://github.com/dotnet/roslyn/issues/50182 tracks making
+                        // this an error and breaking the scenario.
+                        assertMissingParametersAreOptional: false);
 
                     MethodSymbol currentPropertyGetter;
                     if (isAsync)
@@ -1641,7 +1652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <param name="extensionReceiverOpt">If method is an extension method, this must be non-null.</param>
-        private MethodArgumentInfo BindDefaultArguments(MethodSymbol method, BoundExpression extensionReceiverOpt, bool expanded, SyntaxNode syntax, DiagnosticBag diagnostics)
+        private MethodArgumentInfo BindDefaultArguments(MethodSymbol method, BoundExpression extensionReceiverOpt, bool expanded, SyntaxNode syntax, DiagnosticBag diagnostics, bool assertMissingParametersAreOptional = true)
         {
             Debug.Assert((extensionReceiverOpt != null) == method.IsExtensionMethod);
 
@@ -1667,7 +1678,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultArguments: out BitVector defaultArguments,
                 expanded,
                 enableCallerInfo: true,
-                diagnostics);
+                diagnostics,
+                assertMissingParametersAreOptional);
 
             return new MethodArgumentInfo(method, argsBuilder.ToImmutableAndFree(), argsToParams, defaultArguments, expanded);
         }

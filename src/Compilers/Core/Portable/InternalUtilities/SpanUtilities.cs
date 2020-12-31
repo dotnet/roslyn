@@ -2,15 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace System
+using System;
+
+namespace Microsoft.CodeAnalysis
 {
-    internal static class SpanExtensions
+    internal static class SpanUtilities
     {
-        public static bool All<T>(this ReadOnlySpan<T> span, Func<T, bool> predicate)
+        public static bool All<TElement, TParam>(this ReadOnlySpan<TElement> span, TParam param, Func<TElement, TParam, bool> predicate)
         {
             foreach (var e in span)
             {
-                if (!predicate(e))
+                if (!predicate(e, param))
                 {
                     return false;
                 }

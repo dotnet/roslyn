@@ -1162,90 +1162,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SourceLocation(token);
         }
 
-        internal BoundExpression BindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol containingMember, bool enableCallerInfo, DiagnosticBag diagnostics)
-        {
-            Debug.Assert(parameter.IsOptional);
-
-            TypeSymbol parameterType = parameter.Type;
-            if (Flags.Includes(BinderFlags.ParameterDefaultValue))
-            {
-                // This is only expected to occur in recursive error scenarios, for example: `object F(object param = F()) { }`
-                // We return a non-error expression here to ensure ERR_DefaultValueMustBeConstant (or another appropriate diagnostics) is produced by the caller.
-                return new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
-            }
-
-            var defaultConstantValue = parameter.ExplicitDefaultConstantValue switch
-            {
-                // Bad default values are implicitly replaced with default(T) at call sites.
-                { IsBad: true } => ConstantValue.Null,
-                var constantValue => constantValue
-            };
-            Debug.Assert((object?)defaultConstantValue != ConstantValue.Unset);
-
-            var callerSourceLocation = enableCallerInfo ? GetCallerLocation(syntax) : null;
-            BoundExpression defaultValue;
-            if (callerSourceLocation is object && parameter.IsCallerLineNumber)
-            {
-                int line = callerSourceLocation.SourceTree.GetDisplayLineNumber(callerSourceLocation.SourceSpan);
-                defaultValue = new BoundLiteral(syntax, ConstantValue.Create(line), Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
-            }
-            else if (callerSourceLocation is object && parameter.IsCallerFilePath)
-            {
-                string path = callerSourceLocation.SourceTree.GetDisplayPath(callerSourceLocation.SourceSpan, Compilation.Options.SourceReferenceResolver);
-                defaultValue = new BoundLiteral(syntax, ConstantValue.Create(path), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
-            }
-            else if (callerSourceLocation is object && parameter.IsCallerMemberName)
-            {
-                var memberName = containingMember.GetMemberCallerName();
-                defaultValue = new BoundLiteral(syntax, ConstantValue.Create(memberName), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
-            }
-            else if (defaultConstantValue == ConstantValue.NotAvailable)
-            {
-                // There is no constant value given for the parameter in source/metadata.
-                if (parameterType.IsDynamic() || parameterType.SpecialType == SpecialType.System_Object)
-                {
-                    // We have something like M([Optional] object x). We have special handling for such situations.
-                    defaultValue = GetDefaultParameterSpecialNoConversion(syntax, parameter, diagnostics);
-                }
-                else
-                {
-                    // The argument to M([Optional] int x) becomes default(int)
-                    defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
-                }
-            }
-            else if (defaultConstantValue.IsNull)
-            {
-                defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
-            }
-            else
-            {
-                TypeSymbol constantType = Compilation.GetSpecialType(defaultConstantValue.SpecialType);
-                defaultValue = new BoundLiteral(syntax, defaultConstantValue, constantType) { WasCompilerGenerated = true };
-            }
-
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-            Conversion conversion = Conversions.ClassifyConversionFromExpression(defaultValue, parameterType, ref useSiteDiagnostics);
-            diagnostics.Add(syntax, useSiteDiagnostics);
-
-            if (!conversion.IsValid && defaultConstantValue is { SpecialType: SpecialType.System_Decimal or SpecialType.System_DateTime })
-            {
-                // Usually, if a default constant value fails to convert to the parameter type, we want an error at the call site.
-                // For legacy reasons, decimal and DateTime constants are special. If such a constant fails to convert to the parameter type
-                // then we want to silently replace it with default(ParameterType).
-                defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
-            }
-            else
-            {
-                if (!conversion.IsValid)
-                {
-                    GenerateImplicitConversionError(diagnostics, syntax, conversion, defaultValue, parameterType);
-                }
-                defaultValue = CreateConversion(defaultValue, conversion, parameterType, diagnostics);
-            }
-
-            return defaultValue;
-        }
-
         private BoundExpression GetDefaultParameterSpecialNoConversion(SyntaxNode syntax, ParameterSymbol parameter, DiagnosticBag diagnostics)
         {
             var parameterType = parameter.Type;
@@ -1349,7 +1265,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BitVector defaultArguments,
             bool expanded,
             bool enableCallerInfo,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool assertMissingParametersAreOptional = true)
         {
 
             var visitedParameters = BitVector.Create(parameters.Length);
@@ -1362,8 +1279,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // only proceed with binding default arguments if we know there is some optional parameter that has not been matched by an explicit argument
-            if (!parameters.Any(static (param, visitedParameters) => !visitedParameters[param.Ordinal] && param.IsOptional, visitedParameters))
+            // only proceed with binding default arguments if we know there is some parameter that has not been matched by an explicit argument
+            if (parameters.All(static (param, visitedParameters) => visitedParameters[param.Ordinal], visitedParameters))
             {
                 defaultArguments = default;
                 return;
@@ -1389,10 +1306,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < parameters.Length; i++)
             {
                 var parameter = parameters[i];
-                if (!visitedParameters[parameter.Ordinal] && parameter.IsOptional)
+                if (!visitedParameters[parameter.Ordinal])
                 {
+                    // Params array is filled in the local rewriter
+                    if (expanded && parameter.Ordinal == parameters.Length - 1)
+                    {
+                        break;
+                    }
+
+                    Debug.Assert(parameter.IsOptional || !assertMissingParametersAreOptional);
+
                     defaultArguments[argumentsBuilder.Count] = true;
-                    argumentsBuilder.Add(BindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics));
+                    argumentsBuilder.Add(bindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics));
 
                     if (argumentRefKindsBuilder is { Count: > 0 })
                     {
@@ -1410,6 +1335,89 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt = argsToParamsBuilder.ToImmutableOrNull();
                 argsToParamsBuilder.Free();
             }
+
+            BoundExpression bindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol containingMember, bool enableCallerInfo, DiagnosticBag diagnostics)
+            {
+                TypeSymbol parameterType = parameter.Type;
+                if (Flags.Includes(BinderFlags.ParameterDefaultValue))
+                {
+                    // This is only expected to occur in recursive error scenarios, for example: `object F(object param = F()) { }`
+                    // We return a non-error expression here to ensure ERR_DefaultValueMustBeConstant (or another appropriate diagnostics) is produced by the caller.
+                    return new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                }
+
+                var defaultConstantValue = parameter.ExplicitDefaultConstantValue switch
+                {
+                    // Bad default values are implicitly replaced with default(T) at call sites.
+                    { IsBad: true } => ConstantValue.Null,
+                    var constantValue => constantValue
+                };
+                Debug.Assert((object?)defaultConstantValue != ConstantValue.Unset);
+
+                var callerSourceLocation = enableCallerInfo ? GetCallerLocation(syntax) : null;
+                BoundExpression defaultValue;
+                if (callerSourceLocation is object && parameter.IsCallerLineNumber)
+                {
+                    int line = callerSourceLocation.SourceTree.GetDisplayLineNumber(callerSourceLocation.SourceSpan);
+                    defaultValue = new BoundLiteral(syntax, ConstantValue.Create(line), Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
+                }
+                else if (callerSourceLocation is object && parameter.IsCallerFilePath)
+                {
+                    string path = callerSourceLocation.SourceTree.GetDisplayPath(callerSourceLocation.SourceSpan, Compilation.Options.SourceReferenceResolver);
+                    defaultValue = new BoundLiteral(syntax, ConstantValue.Create(path), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
+                }
+                else if (callerSourceLocation is object && parameter.IsCallerMemberName)
+                {
+                    var memberName = containingMember.GetMemberCallerName();
+                    defaultValue = new BoundLiteral(syntax, ConstantValue.Create(memberName), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
+                }
+                else if (defaultConstantValue == ConstantValue.NotAvailable)
+                {
+                    // There is no constant value given for the parameter in source/metadata.
+                    if (parameterType.IsDynamic() || parameterType.SpecialType == SpecialType.System_Object)
+                    {
+                        // We have something like M([Optional] object x). We have special handling for such situations.
+                        defaultValue = GetDefaultParameterSpecialNoConversion(syntax, parameter, diagnostics);
+                    }
+                    else
+                    {
+                        // The argument to M([Optional] int x) becomes default(int)
+                        defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                    }
+                }
+                else if (defaultConstantValue.IsNull)
+                {
+                    defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                }
+                else
+                {
+                    TypeSymbol constantType = Compilation.GetSpecialType(defaultConstantValue.SpecialType);
+                    defaultValue = new BoundLiteral(syntax, defaultConstantValue, constantType) { WasCompilerGenerated = true };
+                }
+
+                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+                Conversion conversion = Conversions.ClassifyConversionFromExpression(defaultValue, parameterType, ref useSiteDiagnostics);
+                diagnostics.Add(syntax, useSiteDiagnostics);
+
+                if (!conversion.IsValid && defaultConstantValue is { SpecialType: SpecialType.System_Decimal or SpecialType.System_DateTime })
+                {
+                    // Usually, if a default constant value fails to convert to the parameter type, we want an error at the call site.
+                    // For legacy reasons, decimal and DateTime constants are special. If such a constant fails to convert to the parameter type
+                    // then we want to silently replace it with default(ParameterType).
+                    defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                }
+                else
+                {
+                    if (!conversion.IsValid)
+                    {
+                        GenerateImplicitConversionError(diagnostics, syntax, conversion, defaultValue, parameterType);
+                    }
+                    defaultValue = CreateConversion(defaultValue, conversion, parameterType, diagnostics);
+                }
+
+                return defaultValue;
+            }
+
         }
 
 #nullable disable

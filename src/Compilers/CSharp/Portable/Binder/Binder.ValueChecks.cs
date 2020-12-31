@@ -201,8 +201,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     parameters = parameters.RemoveAt(parameters.Length - 1);
                 }
+
+                BitVector defaultArguments = default;
                 Debug.Assert(parameters.Length == indexerAccess.Indexer.Parameters.Length);
-                BindDefaultArguments(indexerAccess.Syntax, parameters, argumentsBuilder, refKindsBuilderOpt, ref argsToParams, out var defaultArguments, indexerAccess.Expanded, enableCallerInfo: true, diagnostics);
+                if (indexerAccess.OriginalIndexersOpt.IsDefault)
+                {
+                    BindDefaultArguments(indexerAccess.Syntax, parameters, argumentsBuilder, refKindsBuilderOpt, ref argsToParams, out defaultArguments, indexerAccess.Expanded, enableCallerInfo: true, diagnostics);
+                }
 
                 indexerAccess = indexerAccess.Update(
                     indexerAccess.ReceiverOpt,

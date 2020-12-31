@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Synthesize a call `expression.Method()`, but with some extra smarts to handle extension methods, and to fill-in optional and params parameters.
         /// </summary>
-        private BoundExpression MakeCallWithNoExplicitArgument(MethodArgumentInfo methodArgumentInfo, SyntaxNode syntax, BoundExpression? expression)
+        private BoundExpression MakeCallWithNoExplicitArgument(MethodArgumentInfo methodArgumentInfo, SyntaxNode syntax, BoundExpression? expression, bool assertParametersAreOptional = true)
         {
             MethodSymbol method = methodArgumentInfo.Method;
 
@@ -481,12 +481,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (method.IsExtensionMethod)
             {
                 Debug.Assert(expression == null);
-                Debug.Assert(method.Parameters.AsSpan()[1..].All(p => (p.IsOptional || p.IsParams) && p.RefKind == RefKind.None));
+                Debug.Assert(method.Parameters.AsSpan()[1..].All(assertParametersAreOptional, (p, assertOptional) => (p.IsOptional || p.IsParams || !assertOptional) && p.RefKind == RefKind.None));
                 Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds[0] is RefKind.In or RefKind.None);
             }
             else
             {
-                Debug.Assert(method.Parameters.All(p => p.IsOptional || p.IsParams));
+                Debug.Assert(!assertParametersAreOptional || method.Parameters.All(p => p.IsOptional || p.IsParams));
                 Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty);
             }
 #endif
