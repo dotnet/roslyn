@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.Collections
     /// <typeparam name="TKey">The type of the keys in the dictionary.</typeparam>
     /// <typeparam name="TValue">The type of the values in the dictionary.</typeparam>
     /// <devremarks>
-    /// <para>This type has a documented contract of being exactly one reference-type field in size.</para>
+    /// <para>This type has a documented contract of being exactly one reference-type field in size. Our own
+    /// <see cref="RoslynImmutableInterlocked"/> class depends on it, as well as others externally.</para>
     ///
     /// <para><strong>IMPORTANT NOTICE FOR MAINTAINERS AND REVIEWERS:</strong></para>
     ///
