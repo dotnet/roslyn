@@ -1311,6 +1311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Params array is filled in the local rewriter
                     if (expanded && parameter.Ordinal == parameters.Length - 1)
                     {
+                        Debug.Assert(parameter.IsParams);
                         break;
                     }
 
