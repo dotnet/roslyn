@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Xml;
 using System.Xml.Serialization;
 using Microsoft.CodeAnalysis;
@@ -21,7 +22,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace CSharpSyntaxGenerator
 {
     [Generator]
-    public sealed class SourceGenerator : ISourceGenerator
+    public sealed class SourceGenerator : CachingSourceGenerator
     {
         private static readonly DiagnosticDescriptor s_MissingSyntaxXml = new DiagnosticDescriptor(
             "CSSG1001",
@@ -47,48 +48,35 @@ namespace CSharpSyntaxGenerator
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        private static Tuple<ImmutableArray<byte>, ImmutableArray<(string hintName, SourceText sourceText)>> s_cachedResult;
-
-        public void Initialize(GeneratorInitializationContext context)
+        protected override bool TryGetRelevantInput(in GeneratorExecutionContext context, out AdditionalText? input, out SourceText? inputText)
         {
-        }
-
-        public void Execute(GeneratorExecutionContext context)
-        {
-            var syntaxXml = context.AdditionalFiles.SingleOrDefault(a => Path.GetFileName(a.Path) == "Syntax.xml");
-
-            if (syntaxXml == null)
+            input = context.AdditionalFiles.SingleOrDefault(a => Path.GetFileName(a.Path) == "Syntax.xml");
+            if (input == null)
             {
                 context.ReportDiagnostic(Diagnostic.Create(s_MissingSyntaxXml, location: null));
-                return;
+                inputText = null;
+                return false;
             }
 
-            var syntaxXmlText = syntaxXml.GetText();
-
-            if (syntaxXmlText == null)
+            inputText = input.GetText();
+            if (inputText == null)
             {
                 context.ReportDiagnostic(Diagnostic.Create(s_UnableToReadSyntaxXml, location: null));
-                return;
+                return false;
             }
 
-            // Get the current input checksum, which will either be used for verifying the current cache or updating it
-            // with the new results.
-            var currentChecksum = syntaxXmlText.GetChecksum();
+            return true;
+        }
 
-            // Read the current cached result once to avoid race conditions
-            if (s_cachedResult is { } cachedResult
-                && cachedResult.Item1.SequenceEqual(currentChecksum))
-            {
-                foreach (var (hintName, sourceText) in cachedResult.Item2)
-                {
-                    context.AddSource(hintName, sourceText);
-                }
-
-                return;
-            }
-
+        protected override bool TryGenerateSources(
+            AdditionalText input,
+            SourceText inputText,
+            out ImmutableArray<(string hintName, SourceText sourceText)> sources,
+            out ImmutableArray<Diagnostic> diagnostics,
+            CancellationToken cancellationToken)
+        {
             Tree tree;
-            var reader = XmlReader.Create(new SourceTextReader(syntaxXmlText), new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit });
+            var reader = XmlReader.Create(new SourceTextReader(inputText), new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit });
 
             try
             {
@@ -99,33 +87,34 @@ namespace CSharpSyntaxGenerator
             {
                 var xmlException = (XmlException)ex.InnerException;
 
-                var line = syntaxXmlText.Lines[xmlException.LineNumber - 1]; // LineNumber is one-based.
+                var line = inputText.Lines[xmlException.LineNumber - 1]; // LineNumber is one-based.
                 int offset = xmlException.LinePosition - 1; // LinePosition is one-based
                 var position = line.Start + offset;
                 var span = new TextSpan(position, 0);
-                var lineSpan = syntaxXmlText.Lines.GetLinePositionSpan(span);
+                var lineSpan = inputText.Lines.GetLinePositionSpan(span);
 
-                context.ReportDiagnostic(
+                sources = default;
+                diagnostics = ImmutableArray.Create(
                     Diagnostic.Create(
                         s_SyntaxXmlError,
-                        location: Location.Create(syntaxXml.Path, span, lineSpan),
+                        location: Location.Create(input.Path, span, lineSpan),
                         xmlException.Message));
 
-                return;
+                return false;
             }
 
             TreeFlattening.FlattenChildren(tree);
 
-            var cachedSources = ImmutableArray.CreateBuilder<(string hintName, SourceText sourceText)>();
-            AddResult(writer => SourceWriter.WriteMain(writer, tree, context.CancellationToken), "Syntax.xml.Main.Generated.cs");
-            AddResult(writer => SourceWriter.WriteInternal(writer, tree, context.CancellationToken), "Syntax.xml.Internal.Generated.cs");
-            AddResult(writer => SourceWriter.WriteSyntax(writer, tree, context.CancellationToken), "Syntax.xml.Syntax.Generated.cs");
+            var sourcesBuilder = ImmutableArray.CreateBuilder<(string hintName, SourceText sourceText)>();
+            addResult(writer => SourceWriter.WriteMain(writer, tree, cancellationToken), "Syntax.xml.Main.Generated.cs");
+            addResult(writer => SourceWriter.WriteInternal(writer, tree, cancellationToken), "Syntax.xml.Internal.Generated.cs");
+            addResult(writer => SourceWriter.WriteSyntax(writer, tree, cancellationToken), "Syntax.xml.Syntax.Generated.cs");
 
-            // Overwrite the cached result with the new result. This is an opportunistic cache, so as long as the write
-            // is atomic (which it is for a single pointer) synchronization is unnecessary.
-            s_cachedResult = Tuple.Create(currentChecksum, cachedSources.ToImmutable());
+            sources = sourcesBuilder.ToImmutable();
+            diagnostics = ImmutableArray<Diagnostic>.Empty;
+            return true;
 
-            void AddResult(Action<TextWriter> writeFunction, string hintName)
+            void addResult(Action<TextWriter> writeFunction, string hintName)
             {
                 // Write out the contents to a StringBuilder to avoid creating a single large string
                 // in memory
@@ -137,8 +126,7 @@ namespace CSharpSyntaxGenerator
 
                 // And create a SourceText from the StringBuilder, once again avoiding allocating a single massive string
                 var sourceText = SourceText.From(new StringBuilderReader(stringBuilder), stringBuilder.Length, encoding: Encoding.UTF8);
-                cachedSources.Add((hintName, sourceText));
-                context.AddSource(hintName, sourceText);
+                sourcesBuilder.Add((hintName, sourceText));
             }
         }
 
