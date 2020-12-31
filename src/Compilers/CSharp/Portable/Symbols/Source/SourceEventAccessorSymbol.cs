@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 @event.Modifiers,
                 returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
                 isExtensionMethod: false,
-                isNullableEnabled: isNullableEnabled,
+                isNullableAnalysisEnabled: isNullableEnabled,
                 isMetadataVirtualIgnoringModifiers: @event.IsExplicitInterfaceImplementation);
 
             _name = GetOverriddenAccessorName(@event, isAdder) ?? name;

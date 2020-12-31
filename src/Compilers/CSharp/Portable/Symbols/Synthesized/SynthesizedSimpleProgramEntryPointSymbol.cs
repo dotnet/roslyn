@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Static | DeclarationModifiers.Private | (hasAwait ? DeclarationModifiers.Async : DeclarationModifiers.None),
                 returnsVoid: !hasAwait && !hasReturnWithExpression,
                 isExtensionMethod: false,
-                isNullableEnabled: isNullableEnabled,
+                isNullableAnalysisEnabled: isNullableEnabled,
                 isMetadataVirtualIgnoringModifiers: false);
 
             _parameters = ImmutableArray.Create(SynthesizedParameterSymbol.Create(this,
