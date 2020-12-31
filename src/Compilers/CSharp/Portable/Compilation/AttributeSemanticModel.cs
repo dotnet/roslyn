@@ -122,7 +122,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsNullableAnalysisEnabledIn(Compilation, (AttributeSyntax)Root);
         }
 
-        internal static bool IsNullableAnalysisEnabledIn(CSharpCompilation compilation, AttributeSyntax syntax) => compilation.IsNullableAnalysisEnabledIn(syntax);
+        internal static bool IsNullableAnalysisEnabledIn(CSharpCompilation compilation, AttributeSyntax syntax)
+        {
+            return compilation.IsNullableAnalysisEnabledIn(syntax);
+        }
 
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel? speculativeModel)
         {

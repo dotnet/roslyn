@@ -13,7 +13,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -773,8 +772,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal AttributeSemanticModel CreateSpeculativeAttributeSemanticModel(int position, AttributeSyntax attribute, Binder binder, AliasSymbol aliasOpt, NamedTypeSymbol attributeType)
         {
-            var memberModel = AttributeSemanticModel.IsNullableAnalysisEnabledIn(Compilation, attribute) ? GetMemberModel(position) : null;
+            var memberModel = IsNullableAnalysisEnabledAt(position) ? GetMemberModel(position) : null;
             return AttributeSemanticModel.CreateSpeculative(this, attribute, attributeType, aliasOpt, binder, memberModel?.GetRemappedSymbols(), position);
+        }
+
+        internal bool IsNullableAnalysisEnabledAt(int position)
+        {
+            return Compilation.IsNullableAnalysisEnabledIn((CSharpSyntaxTree)SyntaxTree, new TextSpan(position, 0));
         }
 
         private MemberSemanticModel GetMemberModel(int position)
