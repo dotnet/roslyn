@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
     /// </summary>
     internal partial class GlobalFlowStateAnalysis : ForwardDataFlowAnalysis<GlobalFlowStateAnalysisData, GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisResult, GlobalFlowStateBlockAnalysisResult, GlobalFlowStateAnalysisValueSet>
     {
-        internal static readonly GlobalFlowStateAnalysisDomain GlobalFlowStateAnalysisDomainInstance = new GlobalFlowStateAnalysisDomain(GlobalFlowStateAnalysisValueSetDomain.Instance);
+        internal static readonly GlobalFlowStateAnalysisDomain GlobalFlowStateAnalysisDomainInstance = new(GlobalFlowStateAnalysisValueSetDomain.Instance);
 
         private GlobalFlowStateAnalysis(GlobalFlowStateAnalysisDomain analysisDomain, GlobalFlowStateDataFlowOperationVisitor operationVisitor)
             : base(analysisDomain, operationVisitor)
@@ -140,6 +140,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         }
 
         protected override GlobalFlowStateBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, GlobalFlowStateAnalysisData data)
-            => new GlobalFlowStateBlockAnalysisResult(basicBlock, data);
+            => new(basicBlock, data);
     }
 }
