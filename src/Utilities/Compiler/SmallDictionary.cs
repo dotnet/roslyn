@@ -518,9 +518,9 @@ namespace Analyzer.Utilities
 
             public struct Enumerator
             {
-                private readonly Stack<AvlNode> _stack;
+                private readonly Stack<AvlNode>? _stack;
                 private Node? _next;
-                private Node _current;
+                private Node? _current;
 
                 public Enumerator(SmallDictionary<K, V> dict)
                     : this()
@@ -541,7 +541,10 @@ namespace Analyzer.Utilities
                     }
                 }
 
-                public K Current => _current.Key;
+                public K Current
+                    => _current is null
+                        ? throw new InvalidOperationException()
+                        : _current.Key;
 
                 public bool MoveNext()
                 {
@@ -571,7 +574,7 @@ namespace Analyzer.Utilities
                 {
                     if (child != null)
                     {
-                        _stack.Push(child);
+                        _stack?.Push(child);
                     }
                 }
             }
@@ -634,9 +637,9 @@ namespace Analyzer.Utilities
 
             public struct Enumerator
             {
-                private readonly Stack<AvlNode> _stack;
+                private readonly Stack<AvlNode>? _stack;
                 private Node? _next;
-                private Node _current;
+                private Node? _current;
 
                 public Enumerator(SmallDictionary<K, V> dict)
                     : this()
@@ -659,7 +662,10 @@ namespace Analyzer.Utilities
                     }
                 }
 
-                public V Current => _current.Value;
+                public V Current
+                    => _current is null
+                        ? throw new InvalidOperationException()
+                        : _current.Value;
 
                 public bool MoveNext()
                 {
@@ -689,7 +695,7 @@ namespace Analyzer.Utilities
                 {
                     if (child != null)
                     {
-                        _stack.Push(child);
+                        _stack?.Push(child);
                     }
                 }
             }
@@ -740,9 +746,9 @@ namespace Analyzer.Utilities
 
         public struct Enumerator
         {
-            private readonly Stack<AvlNode> _stack;
+            private readonly Stack<AvlNode>? _stack;
             private Node? _next;
-            private Node _current;
+            private Node? _current;
 
             public Enumerator(SmallDictionary<K, V> dict)
                 : this()
@@ -765,7 +771,10 @@ namespace Analyzer.Utilities
                 }
             }
 
-            public KeyValuePair<K, V> Current => new(_current.Key, _current.Value);
+            public KeyValuePair<K, V> Current
+                    => _current is null
+                        ? throw new InvalidOperationException()
+                        : new(_current.Key, _current.Value);
 
             public bool MoveNext()
             {
@@ -795,7 +804,7 @@ namespace Analyzer.Utilities
             {
                 if (child != null)
                 {
-                    _stack.Push(child);
+                    _stack?.Push(child);
                 }
             }
         }
