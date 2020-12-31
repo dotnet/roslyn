@@ -8,9 +8,12 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
+
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -32,6 +35,8 @@ namespace Microsoft.CodeAnalysis
     /// </remarks>
     public abstract class GeneratorDriver
     {
+        private static readonly ConditionalWeakTable<SourceText, SyntaxTree> s_parsedGeneratedSources = new();
+
         internal readonly GeneratorDriverState _state;
 
         internal GeneratorDriver(GeneratorDriverState state)
@@ -339,9 +344,30 @@ namespace Microsoft.CodeAnalysis
             var prefix = GetFilePathPrefixForGenerator(generator);
             foreach (var source in generatedSources)
             {
-                trees.Add(ParseGeneratedSourceText(source, Path.Combine(prefix, source.HintName), cancellationToken));
+                trees.Add(GetOrParseGeneratedSourceText(source, Path.Combine(prefix, source.HintName), cancellationToken));
             }
             return trees.ToImmutableAndFree();
+        }
+
+        private SyntaxTree GetOrParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken)
+        {
+            if (s_parsedGeneratedSources.TryGetValue(input.Text, out var existingTree)
+                && Equals(_state.ParseOptions, existingTree.Options)
+                && Equals(fileName, existingTree.FilePath))
+            {
+                return existingTree;
+            }
+
+            var tree = ParseGeneratedSourceText(input, fileName, cancellationToken);
+
+#if NETCOREAPP
+            s_parsedGeneratedSources.AddOrUpdate(input.Text, tree);
+#else
+            s_parsedGeneratedSources.Remove(input.Text);
+            s_parsedGeneratedSources.Add(input.Text, tree);
+#endif
+
+            return tree;
         }
 
         private GeneratorDriver BuildFinalCompilation(Compilation compilation, out Compilation outputCompilation, GeneratorDriverState state, CancellationToken cancellationToken)
