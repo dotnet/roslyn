@@ -271,9 +271,9 @@ function BuildSolution {
   fi
 
   local roslyn_use_hard_links=""
-    if [[ "$ci" == true ]]; then
-      roslyn_use_hard_links="/p:ROSLYNUSEHARDLINKS=true"
-    fi
+  if [[ "$ci" == true ]]; then
+    roslyn_use_hard_links="/p:ROSLYNUSEHARDLINKS=true"
+  fi
 
   # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
   # We don't pass /warnaserror to msbuild (warn_as_error is set to false by default above), but set 
