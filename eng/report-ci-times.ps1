@@ -1,8 +1,10 @@
 # This script scrapes AzDo data and writes out a CSV of build runtimes
 # after running this script you can check 'ci-times.csv' and paste into 'all-ci-times.xlsx' to graph the data
 
+. (Join-Path $PSScriptRoot "build-utils.ps1")
+
 $roslynPipelineId = "15"
-$minDate = [DateTime]::Now.AddDays(-14)
+$minDate = [DateTime]::Now.AddDays(-2)
 $maxDate = [DateTime]::MaxValue
 
 $baseURL = "https://dev.azure.com/dnceng/public/_apis/"
@@ -61,6 +63,17 @@ class Job {
     [TimeSpan] $duration
 }
 
+function Test-Any() {
+    begin {
+        $any = $false
+    }
+    process {
+        $any = $true
+    }
+    end {
+        $any
+    }
+}
 
 function initialPass() {
     $runs = (Invoke-WebRequest -uri $runsURL | ConvertFrom-Json)
@@ -97,7 +110,7 @@ function initialPass() {
         }
 
         $timeline = (Invoke-WebRequest -uri "$buildsURL/$($run.id)/timeline" | ConvertFrom-Json)
-        if (($timeline.records | Where-Object { $_.attempt -gt 1 }).Length -gt 0) {
+        if ($timeline.records | Where-Object { $_.attempt -gt 1 } | Test-Any) {
             # not yet sure how to properly handle jobs with multiple attempts so will just skip them for now.
             continue
         }
@@ -188,7 +201,12 @@ function fillPrereqTimes($allJobs) {
 function getAverageTimes([string]$jobName) {
     $matchingJobs = $allJobs | Where-Object { $_.name -eq $jobName }
     function getAverageTime($propName) {
-        return [TimeSpan]::new(($matchingJobs | Select-Object -ExpandProperty $propName | Measure-Object -Property Ticks -Average).Average)
+        $measurement = $matchingJobs | Select-Object -ExpandProperty $propName | Measure-Object -Property Ticks -Average
+        if ($null -ne $measurement) {
+            return [TimeSpan]::new($measurement.Average)
+        } else {
+            return [TimeSpan]::Zero
+        }
     }
 
     $averageJob = [Job]::new()
@@ -210,6 +228,6 @@ foreach ($jobName in $prerequisites.Keys) {
 }
 $averageJobs.Add((getAverageTimes("0_Run_Created")))
 
-$filename = "ci-times.csv"
-$averageJobs + $allJobs | Sort-Object -Property runId,name | Export-Csv -Path "ci-times.csv"
-Write-Host "Exported CSV to $(Join-Path $(Get-Location) $filename)"
+$outDir = Join-Path $ArtifactsDir "ci-times.csv"
+$averageJobs + $allJobs | Sort-Object -Property runId,name | Export-Csv -Path $outDir
+Write-Host "Exported CSV to $outDir"
