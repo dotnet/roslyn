@@ -628,6 +628,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         removeOptions |= SyntaxRemoveOptions.KeepLeadingTrivia;
                     }
                 }
+
                 editor.RemoveNode(node, removeOptions);
             }
 
@@ -678,6 +679,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         // Mark the node as processed so that the trivia only gets added once.
                         processedNodes.Add(insertionNode);
                     }
+
                     editor.InsertBefore(insertionNode, declarationStatement);
                 }
             }
