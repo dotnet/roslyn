@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     {
                         pendingWrites.Free();
                     }
+
                     _pendingWritesMap.Free();
                     _pendingWritesMap = null;
                 }
@@ -304,6 +305,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         {
                             _currentAnalysisData.ResetState();
                         }
+
                         break;
 
                     case MethodKind.LocalFunction:
@@ -438,6 +440,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             {
                                 _currentAnalysisData.SetEmptyInvocationTargetsForDelegate(write);
                             }
+
                             return;
 
                         case OperationKind.LocalReference:
@@ -455,6 +458,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             {
                                 _currentAnalysisData.SetEmptyInvocationTargetsForDelegate(write);
                             }
+
                             return;
 
                         default:

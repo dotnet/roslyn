@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis
                 _capacity = newCapacity;
                 Check();
             }
+
             Check();
         }
 
@@ -132,6 +133,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
             }
+
             for (int i = 0; i < _bits.Length; i++)
             {
                 Word w = _bits[i];
@@ -400,6 +402,7 @@ namespace Microsoft.CodeAnalysis
             {
                 value[_capacity - i - 1] = this[i] ? '1' : '0';
             }
+
             return new string(value);
         }
     }

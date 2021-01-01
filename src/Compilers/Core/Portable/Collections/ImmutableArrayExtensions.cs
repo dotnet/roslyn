@@ -270,6 +270,7 @@ namespace Microsoft.CodeAnalysis
             {
                 builder.Add(map(self[i], other[i], i, arg));
             }
+
             return builder.ToImmutableAndFree();
         }
 

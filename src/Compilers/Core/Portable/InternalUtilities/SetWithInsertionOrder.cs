@@ -44,6 +44,7 @@ namespace Roslyn.Utilities
                 {
                     throw new IndexOutOfRangeException();
                 }
+
                 Add(value);
             }
             else
@@ -63,6 +64,7 @@ namespace Roslyn.Utilities
                     throw;
                 }
             }
+
             return true;
         }
 
@@ -77,6 +79,7 @@ namespace Roslyn.Utilities
             {
                 return false;
             }
+
             _elements!.RemoveAt(_elements.IndexOf(value));
             return true;
         }

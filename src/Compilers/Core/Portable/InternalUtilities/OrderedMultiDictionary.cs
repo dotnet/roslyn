@@ -43,6 +43,7 @@ namespace Roslyn.Utilities
                 _keys.Add(k);
                 set = new SetWithInsertionOrder<V>();
             }
+
             set.Add(v);
             _dictionary[k] = set;
         }

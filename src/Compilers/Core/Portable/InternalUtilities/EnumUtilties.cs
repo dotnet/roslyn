@@ -66,6 +66,7 @@ namespace Roslyn.Utilities
                     return false;
                 }
             }
+
             return true;
         }
 #endif

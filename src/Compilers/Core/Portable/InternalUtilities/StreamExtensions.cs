@@ -48,6 +48,7 @@ namespace Roslyn.Utilities
                     break;
                 }
             }
+
             return totalBytesRead;
         }
 

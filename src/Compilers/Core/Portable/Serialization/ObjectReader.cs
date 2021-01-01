@@ -479,11 +479,13 @@ namespace Roslyn.Utilities
 
             // optimizations for supported array type by binary reader
             if (type == typeof(byte)) { return _reader.ReadBytes(length); }
+
             if (type == typeof(char)) { return _reader.ReadChars(length); }
 
             // optimizations for string where object reader/writer has its own mechanism to
             // reduce duplicated strings
             if (type == typeof(string)) { return ReadStringArrayElements(CreateArray<string>(length)); }
+
             if (type == typeof(bool)) { return ReadBooleanArrayElements(CreateArray<bool>(length)); }
 
             // otherwise, read elements directly from underlying binary writer
