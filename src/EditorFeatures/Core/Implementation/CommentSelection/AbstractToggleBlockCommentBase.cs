@@ -151,6 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 {
                     DeleteBlockComment(blockCommentSelection, spanToRemove, textChanges, commentInfo);
                 }
+
                 var trackingSpan = TextSpan.FromBounds(intersectingBlockComments.First().Start, intersectingBlockComments.Last().End);
                 trackingSpans.Add(new CommentTrackingSpan(trackingSpan));
                 return true;
