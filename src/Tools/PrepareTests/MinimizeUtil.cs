@@ -10,6 +10,7 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.Win32.SafeHandles;
 
 internal static class MinimizeUtil
 {
@@ -50,7 +51,7 @@ internal static class MinimizeUtil
                     Directory.CreateDirectory(currentOutputDirectory);
                     var fileName = Path.GetFileName(sourceFilePath);
 
-                    if (fileName.EndsWith(".dll") && TryGetMvid(sourceFilePath, out var mvid))
+                    if (TryGetMvid(sourceFilePath, out var mvid))
                     {
                         if (!idToFilePathMap.TryGetValue(mvid, out var list))
                         {
@@ -72,6 +73,8 @@ internal static class MinimizeUtil
                     }
                 }
             }
+
+            var relevant = idToFilePathMap.Where(m => m.Value.Count > 1).ToList();
 
             // https://github.com/dotnet/roslyn/issues/49486
             // we should avoid copying the files under Resources.
@@ -180,6 +183,9 @@ internal static class MinimizeUtil
 
     private static bool TryGetMvid(string filePath, out Guid mvid)
     {
+        mvid = WindowsUtil.GetFileId(filePath);
+        return true;
+
         try
         {
             using var stream = File.OpenRead(filePath);
@@ -198,6 +204,71 @@ internal static class MinimizeUtil
         {
             mvid = default;
             return false;
+        }
+    }
+
+    internal static class WindowsUtil
+    {
+        /// <summary>Gets an id which uniquely identifies a file within a volume.</summary>
+        internal static unsafe Guid GetFileId(string filename)
+        {
+            var handle = CreateFile(
+                filename,
+                dwDesiredAccess: default(FileAccess), // metadata only
+                dwShareMode: FileShare.ReadWrite,
+                lpSecurityAttributes: IntPtr.Zero,
+                dwCreationDisposition: FileMode.Open,
+                dwFlagsAndAttributes: FileAttributes.Normal,
+                hTemplateFile: IntPtr.Zero);
+
+            if (handle.IsInvalid)
+            {
+                throw new IOException($@"Failed to open file ""{filename}"" with exception 0x{Marshal.GetLastWin32Error():X}");
+            }
+
+            const int FileIdInfo = 0x12;
+            FileIdInfo info = default;
+            var success = GetFileInformationByHandleEx(handle, infoClass: FileIdInfo, ref info, dwBufferSize: sizeof(FileIdInfo));
+            if (!success)
+            {
+                throw new IOException($@"Failed to get file information for ""{filename}"" with exception 0x{Marshal.GetLastWin32Error():X}");
+            }
+
+            handle.Close();
+
+            byte[] bytes = new byte[16];
+            Array.Copy(BitConverter.GetBytes(info.fileIdLowPart), bytes, length: 8);
+            Array.Copy(BitConverter.GetBytes(info.fileIdHighPart), sourceIndex: 0, bytes, destinationIndex: 8, length: 8);
+
+            // assuming all the files from the build are on the same volume.
+            return new Guid(bytes);
+
+            // https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
+            [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+            static extern SafeFileHandle CreateFile(
+                string lpFileName,
+                [MarshalAs(UnmanagedType.U4)] FileAccess dwDesiredAccess,
+                [MarshalAs(UnmanagedType.U4)] FileShare dwShareMode,
+                IntPtr lpSecurityAttributes,
+                [MarshalAs(UnmanagedType.U4)] FileMode dwCreationDisposition,
+                [MarshalAs(UnmanagedType.U4)] FileAttributes dwFlagsAndAttributes,
+                IntPtr hTemplateFile);
+
+            // https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getfileinformationbyhandleex
+            // note that 'fileInfo' should be 'out' but due to a bug this causes an error in 16.8
+            [DllImport("kernel32.dll", SetLastError = true)]
+            static extern bool GetFileInformationByHandleEx(
+                SafeFileHandle hFile,
+                int infoClass,
+                ref FileIdInfo fileInfo,
+                int dwBufferSize);
+        }
+
+        private struct FileIdInfo
+        {
+            public long volumeSerialNumber;
+            public long fileIdHighPart;
+            public long fileIdLowPart;
         }
     }
 }

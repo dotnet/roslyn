@@ -7,5 +7,6 @@
     <SignAssembly>false</SignAssembly>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <IsShipping>false</IsShipping>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 </Project>
