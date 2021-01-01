@@ -183,8 +183,11 @@ internal static class MinimizeUtil
 
     private static bool TryGetMvid(string filePath, out Guid mvid)
     {
-        mvid = WindowsUtil.GetFileId(filePath);
-        return true;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            mvid = WindowsUtil.GetFileId(filePath);
+            return true;
+        }
 
         try
         {
