@@ -34,16 +34,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         {
-            if (fixAllContext.Document != null)
-            {
-                var documentsAndDiagnosticsToFixMap = await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false);
-                return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
-            }
-            else
-            {
-                var projectsAndDiagnosticsToFixMap = await fixAllContext.GetProjectDiagnosticsToFixAsync().ConfigureAwait(false);
-                return await GetFixAsync(projectsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
-            }
+            Contract.ThrowIfNull(fixAllContext.Document);
+            var documentsAndDiagnosticsToFixMap = await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false);
+            return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
         }
 
         #endregion
@@ -162,46 +155,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             await Task.WhenAll(fixerTasks).ConfigureAwait(false);
         }
 
-        private async Task<CodeAction?> GetFixAsync(
-            ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectsAndDiagnosticsToFixMap,
-            FixAllContext fixAllContext)
-        {
-            var cancellationToken = fixAllContext.CancellationToken;
-            var fixAllState = fixAllContext.State;
-
-            if (projectsAndDiagnosticsToFixMap != null && projectsAndDiagnosticsToFixMap.Any())
-            {
-                FixAllLogger.LogDiagnosticsStats(fixAllState.CorrelationId, projectsAndDiagnosticsToFixMap);
-
-                var bag = new ConcurrentBag<(Diagnostic diagnostic, CodeAction action)>();
-                using (Logger.LogBlock(
-                    FunctionId.CodeFixes_FixAllOccurrencesComputation_Project_Fixes,
-                    FixAllLogger.CreateCorrelationLogMessage(fixAllState.CorrelationId),
-                    cancellationToken))
-                {
-                    var projects = projectsAndDiagnosticsToFixMap.Keys;
-                    var tasks = projects.Select(p => AddProjectFixesAsync(
-                        p, projectsAndDiagnosticsToFixMap[p], bag, fixAllState, cancellationToken)).ToArray();
-
-                    await Task.WhenAll(tasks).ConfigureAwait(false);
-                }
-
-                var result = bag.ToImmutableArray();
-                if (result.Length > 0)
-                {
-                    var functionId = FunctionId.CodeFixes_FixAllOccurrencesComputation_Project_Merge;
-                    using (Logger.LogBlock(functionId, cancellationToken))
-                    {
-                        FixAllLogger.LogFixesToMergeStats(functionId, fixAllState.CorrelationId, result.Length);
-                        return await TryGetMergedFixAsync(
-                            result, fixAllState, cancellationToken).ConfigureAwait(false);
-                    }
-                }
-            }
-
-            return null;
-        }
-
         private static Action<CodeAction, ImmutableArray<Diagnostic>> GetRegisterCodeFixAction(
             FixAllState fixAllState,
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> result)
@@ -225,14 +178,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     }
                 }
             };
-        }
-
-        private Task AddProjectFixesAsync(
-            Project project, ImmutableArray<Diagnostic> diagnostics,
-            ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
-            FixAllState fixAllState, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
         }
 
         private async Task<CodeAction?> TryGetMergedFixAsync(
