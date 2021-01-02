@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
             protected override async Task<SyntaxNode?> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             {
                 var cancellationToken = fixAllContext.CancellationToken;
-                var newDoc = await FixAllAsync(
+                var newDoc = await CSharpRemoveConfusingSuppressionCodeFixProvider.FixAllAsync(
                     document, diagnostics,
                     fixAllContext.CodeActionEquivalenceKey == NegateExpression,
                     cancellationToken).ConfigureAwait(false);
