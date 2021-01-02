@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.Utilities
         {
             get
             {
-                if (_scopes == null || _scopes.Count == 0)
-                    return _defaultDescription;
-
                 var scopes = _scopes;
+
+                if (scopes.Count == 0)
+                    return _defaultDescription;
 
                 // Most common case
                 if (scopes.Count == 1)
@@ -87,9 +87,6 @@ namespace Microsoft.CodeAnalysis.Utilities
             var total = 0;
 
             var scopes = _scopes;
-            if (scopes == null)
-                return;
-
             foreach (var scope in scopes)
             {
                 completed += scope.CompletedItems;
@@ -109,9 +106,6 @@ namespace Microsoft.CodeAnalysis.Utilities
         protected void OnScopeDisposed(OperationScope scope)
         {
             if (scope == null)
-                return;
-
-            if (_scopes == null)
                 return;
 
             while (true)
