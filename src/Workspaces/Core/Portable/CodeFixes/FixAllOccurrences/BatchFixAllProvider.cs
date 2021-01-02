@@ -30,16 +30,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private BatchFixAllProvider() { }
 
-        #region "AbstractFixAllProvider methods"
-
         public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         {
             Contract.ThrowIfNull(fixAllContext.Document);
             var documentsAndDiagnosticsToFixMap = await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false);
             return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
         }
-
-        #endregion
 
         private static async Task<CodeAction?> GetFixAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
