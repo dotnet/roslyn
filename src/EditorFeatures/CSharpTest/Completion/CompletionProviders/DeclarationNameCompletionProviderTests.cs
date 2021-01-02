@@ -1181,6 +1181,50 @@ class Test
             await VerifyItemExistsAsync(markup, "tokens");
         }
 
+        [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PluralizeSpan()
+        {
+            var markup = @"
+using System;
+
+class Test
+{
+    void M(Span<Test> $$) { }
+}
+";
+            await VerifyItemExistsAsync(markup, "tests");
+        }
+
+        [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PluralizeValidGetEnumerator()
+        {
+            var markup = @"
+class MyClass
+{
+    public void M(MyOwnCollection<MyClass> $$) { }
+}
+
+
+class MyOwnCollection<T>
+{
+    public MyEnumerator GetEnumerator()
+    {
+        return new MyEnumerator();
+    }
+
+    public class MyEnumerator
+    {
+        public T Current { get; }
+        
+        public bool MoveNext() { return false; }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "myClasses");
+        }
+
         [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InPatternMatching1()
