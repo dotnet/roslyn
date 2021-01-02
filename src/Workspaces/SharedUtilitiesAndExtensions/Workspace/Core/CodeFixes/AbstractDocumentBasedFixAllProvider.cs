@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -128,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Project project,
             PooledDictionary<DocumentId, SourceText> docIdToNewText)
         {
+            var cancellationToken = fixAllContext.CancellationToken;
             var progressTracker = fixAllContext.GetProgressTracker();
 
             var solution = fixAllContext.Solution;
@@ -159,7 +161,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         return default;
 
                     // Convert new documents to text so we can release any expensive trees that may have been created.
-                    return (document.Id, await newDocument.GetTextAsync(fixAllContext.CancellationToken).ConfigureAwait(false));
+                    // We need to cleanup the documents first before doing this so that all formatting, simplification,
+                    // etc. has been applied.
+                    var cleanedDocument = await PostProcessCodeAction.Instance.PostProcessChangesAsync(newDocument, cancellationToken).ConfigureAwait(false);
+                    return (document.Id, await cleanedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false));
                 }));
             }
 
@@ -171,6 +176,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 if (docId != null)
                     docIdToNewText[docId] = newText;
             }
+        }
+
+        /// <summary>
+        /// Dummy class just to get access to <see cref="CodeAction.PostProcessChangesAsync(Document, CancellationToken)"/>
+        /// </summary>
+        private class PostProcessCodeAction : CodeAction
+        {
+            public static readonly PostProcessCodeAction Instance = new();
+
+            public override string Title => "";
+
+            public new Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
+                => base.PostProcessChangesAsync(document, cancellationToken);
         }
     }
 }
