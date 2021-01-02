@@ -16,6 +16,5 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
         /// Finds the definitions for the symbol at the specific position in the document.
         /// </summary>
         Task<IEnumerable<INavigableItem>?> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken);
-
     }
 }
