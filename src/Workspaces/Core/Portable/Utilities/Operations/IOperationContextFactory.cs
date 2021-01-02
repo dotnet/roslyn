@@ -5,11 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Utilities
 {
+    /// <summary>
+    /// Factory to create <see cref="IOperationContext"/>s.
+    /// </summary>
     internal interface IOperationContextFactory : IWorkspaceService
     {
         IOperationContext CreateOperationContext(string title, string description, bool allowCancellation, bool showProgress);
@@ -19,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Utilities
     internal class DefaultOperationContextFactory : IOperationContextFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultOperationContextFactory()
         {
         }
@@ -33,6 +38,8 @@ namespace Microsoft.CodeAnalysis.Utilities
             private DefaultOperationContext()
             {
             }
+
+            public CancellationToken CancellationToken { get; }
 
             public string Description => "";
 
