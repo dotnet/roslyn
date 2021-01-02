@@ -186,13 +186,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        public static async Task<Solution> FixAllInSolutionAsync(
+        public static Task<Solution> FixAllInSolutionAsync(
             FixAllContext fixAllContext,
             Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> computeNewDocumentAsync)
         {
-            var progressTracker = fixAllContext.GetProgressTracker();
-            progressTracker.Description = GetDefaultFixAllTitle(fixAllContext);
-
             var solution = fixAllContext.Solution;
             var dependencyGraph = solution.GetProjectDependencyGraph();
 
@@ -205,12 +202,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // By processing one project at a time, we can also let go of a project once done with it, allowing us to
             // reclaim lots of the memory so we don't overload the system while processing a large solution.
             var sortedProjectIds = dependencyGraph.GetTopologicallySortedProjects().ToImmutableArray();
-            progressTracker.AddItems(sortedProjectIds.Length);
+            return FixAllInSolutionAsync(fixAllContext, sortedProjectIds, computeNewDocumentAsync);
+        }
+
+        public static async Task<Solution> FixAllInSolutionAsync(
+            FixAllContext fixAllContext,
+            ImmutableArray<ProjectId> projectIds,
+            Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> computeNewDocumentAsync)
+        {
+            var progressTracker = fixAllContext.GetProgressTracker();
+            progressTracker.Description = GetDefaultFixAllTitle(fixAllContext);
+
+            var solution = fixAllContext.Solution;
+            progressTracker.AddItems(projectIds.Length);
 
             using var _ = PooledDictionary<DocumentId, SourceText>.GetInstance(out var docIdToNewText);
 
             var currentSolution = solution;
-            foreach (var projectId in sortedProjectIds)
+            foreach (var projectId in projectIds)
             {
                 try
                 {

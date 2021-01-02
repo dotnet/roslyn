@@ -3,14 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 #pragma warning disable RS0005 // Do not use generic CodeAction.Create to create CodeAction
@@ -22,44 +17,38 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </summary>
     internal abstract class DocumentBasedFixAllProvider : FixAllProvider
     {
-        protected abstract string CodeActionTitle
-        {
-            get;
-        }
+        protected abstract string CodeActionTitle { get; }
+
+        protected virtual string GetCodeActionTitle(FixAllContext context)
+            => CodeActionTitle;
 
         public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         {
-            CodeAction? fixAction;
+            var title = GetCodeActionTitle(fixAllContext);
             switch (fixAllContext.Scope)
             {
                 case FixAllScope.Document:
-                    fixAction = CodeAction.Create(
-                        CodeActionTitle,
-                        cancellationToken => GetDocumentFixesAsync(fixAllContext.WithCancellationToken(cancellationToken)),
-                        nameof(DocumentBasedFixAllProvider));
-                    break;
+                    return Task.FromResult<CodeAction?>(CodeAction.Create(
+                        title,
+                        c => GetDocumentFixesAsync(fixAllContext.WithCancellationToken(c)),
+                        nameof(DocumentBasedFixAllProvider)));
 
                 case FixAllScope.Project:
-                    fixAction = CodeAction.Create(
-                        CodeActionTitle,
-                        cancellationToken => GetProjectFixesAsync(fixAllContext.WithCancellationToken(cancellationToken), fixAllContext.Project),
-                        nameof(DocumentBasedFixAllProvider));
-                    break;
+                    return Task.FromResult<CodeAction?>(CodeAction.Create(
+                        title,
+                        c => GetProjectFixesAsync(fixAllContext.WithCancellationToken(c), fixAllContext.Project),
+                        nameof(DocumentBasedFixAllProvider)));
 
                 case FixAllScope.Solution:
-                    fixAction = CodeAction.Create(
-                        CodeActionTitle,
-                        cancellationToken => GetSolutionFixesAsync(fixAllContext.WithCancellationToken(cancellationToken)),
-                        nameof(DocumentBasedFixAllProvider));
-                    break;
+                    return Task.FromResult<CodeAction?>(CodeAction.Create(
+                        title,
+                        c => GetSolutionFixesAsync(fixAllContext.WithCancellationToken(c)),
+                        nameof(DocumentBasedFixAllProvider)));
 
                 case FixAllScope.Custom:
                 default:
-                    fixAction = null;
-                    break;
+                    return Task.FromResult<CodeAction?>(null);
             }
-
-            return Task.FromResult(fixAction);
         }
 
         /// <summary>
@@ -81,147 +70,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var documentDiagnosticsToFix = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
             if (!documentDiagnosticsToFix.TryGetValue(fixAllContext.Document, out var diagnostics))
-            {
                 return fixAllContext.Document;
-            }
 
             var newRoot = await FixAllInDocumentAsync(fixAllContext, fixAllContext.Document, diagnostics).ConfigureAwait(false);
             if (newRoot == null)
-            {
                 return fixAllContext.Document;
-            }
 
             return fixAllContext.Document.WithSyntaxRoot(newRoot);
         }
 
-        private async Task<Solution> GetSolutionFixesAsync(FixAllContext fixAllContext, ImmutableArray<Document> documents)
-        {
-            var documentDiagnosticsToFix = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
-
-            using var _1 = PooledHashSet<Document>.GetInstance(out var documentsToFix);
-            using var _2 = PooledDictionary<DocumentId, Task<SyntaxNode?>>.GetInstance(out var documentIdToNewNode);
-
-            // Determine the set of documents to actually fix.  We can also use this to update the progress bar with
-            // the amount of remaining work to perform.  We'll update the progress bar as we perform each fix in
-            // FixAllInDocumentAsync.
-
-            foreach (var document in documents)
-            {
-                // Don't bother examining any documents that aren't in the list of docs that
-                // actually have diagnostics.
-                if (!documentDiagnosticsToFix.TryGetValue(document, out var diagnostics))
-                    continue;
-
-                documentsToFix.Add(document);
-            }
-
-            var progressTracker = fixAllContext.GetProgressTracker();
-            progressTracker.Description = WorkspaceExtensionsResources.Applying_fix_all;
-            progressTracker.AddItems(documentsToFix.Count);
-
-            foreach (var document in documentsToFix)
-            {
-                // Upper loop ensures that this indexing will always succeed.
-                var diagnostics = documentDiagnosticsToFix[document];
-                documentIdToNewNode.Add(document.Id, FixAllInDocumentAsync(fixAllContext, progressTracker, document, diagnostics));
-            }
-
-            // Allow the processing of all the documents to happen concurrently.
-            await Task.WhenAll(documentIdToNewNode.Values).ConfigureAwait(false);
-
-            var solution = fixAllContext.Solution;
-            foreach (var (docId, syntaxNodeTask) in documentIdToNewNode)
-            {
-                var newDocumentRoot = await syntaxNodeTask.ConfigureAwait(false);
-                if (newDocumentRoot == null)
-                    continue;
-
-                solution = solution.WithDocumentSyntaxRoot(docId, newDocumentRoot);
-            }
-
-            return solution;
-        }
-
-        private async Task<SyntaxNode?> FixAllInDocumentAsync(
-            FixAllContext fixAllContext,
-            IProgressTracker progressTracker,
-            Document document,
-            ImmutableArray<Diagnostic> diagnostics)
-        {
-            try
-            {
-                return await this.FixAllInDocumentAsync(fixAllContext, document, diagnostics).ConfigureAwait(false);
-            }
-            finally
-            {
-                progressTracker.ItemCompleted();
-            }
-        }
-
         private Task<Solution> GetProjectFixesAsync(FixAllContext fixAllContext, Project project)
-            => GetSolutionFixesAsync(fixAllContext, project.Documents.ToImmutableArray());
+            => FixAllContextHelper.FixAllInSolutionAsync(fixAllContext, ImmutableArray.Create(project.Id), GetFixAllInDocumentFunction());
 
-        private async Task<Solution> GetSolutionFixesAsync(FixAllContext fixAllContext)
+        private Task<Solution> GetSolutionFixesAsync(FixAllContext fixAllContext)
+            => FixAllContextHelper.FixAllInSolutionAsync(fixAllContext, GetFixAllInDocumentFunction());
+
+        private Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> GetFixAllInDocumentFunction()
         {
-            var solution = fixAllContext.Solution;
-            var dependencyGraph = solution.GetProjectDependencyGraph();
-
-            var progressTracker = fixAllContext.GetProgressTracker();
-            progressTracker.AddItems(solution.ProjectIds.Count);
-
-            var currentSolution = solution;
-            foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects())
+            return async (context, document, diagnostics) =>
             {
-                var project = solution.GetRequiredProject(projectId);
-                var newDocumentRoots = await GetProjectFixesNewAsync(fixAllContext, progressTracker, project).ConfigureAwait(false);
-                foreach (var (docId, newRoot) in newDocumentRoots)
-                    currentSolution = currentSolution.WithDocumentSyntaxRoot(docId, newRoot);
-            }
+                var newRoot = await this.FixAllInDocumentAsync(context, document, diagnostics).ConfigureAwait(false);
+                if (newRoot == null)
+                    return null;
 
-            return currentSolution;
-        }
-
-        private async Task<Dictionary<DocumentId, SyntaxNode>> GetProjectFixesNewAsync(FixAllContext fixAllContext, IProgressTracker progressTracker, Project project)
-        {
-            try
-            {
-                var soltion = fixAllContext.Solution;
-
-                progressTracker.Description = "Computing diagnostics for " + project.Name;
-                var diagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
-                var treeToDiagnostics = diagnostics.Where(d => d.Location.IsInSource).GroupBy(d => d.Location.SourceTree);
-
-                progressTracker.Description = "Applying fixes to " + project.Name;
-                using var _ = ArrayBuilder<Task<(DocumentId, SyntaxNode?)>>.GetInstance(out var tasks);
-                foreach (var group in treeToDiagnostics)
-                {
-                    var tree = group.Key;
-                    Contract.ThrowIfNull(tree);
-                    var document = soltion.GetRequiredDocument(tree);
-
-                    tasks.Add(Task.Run(async () =>
-                    {
-                        var newRoot = await this.FixAllInDocumentAsync(fixAllContext, document, diagnostics).ConfigureAwait(false);
-                        return (document.Id, newRoot);
-                    }));
-                }
-
-                await Task.WhenAll(tasks).ConfigureAwait(false);
-
-                var result = new Dictionary<DocumentId, SyntaxNode>();
-                foreach (var task in tasks)
-                {
-                    var (docId, newRoot) = await task.ConfigureAwait(false);
-                    if (newRoot != null)
-                        result[docId] = newRoot;
-                }
-
-                return result;
-            }
-            finally
-            {
-                progressTracker.ItemCompleted();
-            }
+                return document.WithSyntaxRoot(newRoot);
+            };
         }
     }
 }

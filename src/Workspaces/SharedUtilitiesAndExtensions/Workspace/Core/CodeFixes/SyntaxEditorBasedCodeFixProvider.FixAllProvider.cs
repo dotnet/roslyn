@@ -29,6 +29,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             public sealed override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             {
+                if (fixAllContext.Scope == FixAllScope.Solution)
+                    return CodeAction.Create()
+
                 var documentsAndDiagnosticsToFixMap = await GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
                 return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
             }
@@ -45,6 +48,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
                 FixAllContext fixAllContext)
             {
+                if (fixAllContext.Scope == )
+
                 // Process all documents in parallel.
                 var progressTracker = fixAllContext.GetProgressTracker();
 
