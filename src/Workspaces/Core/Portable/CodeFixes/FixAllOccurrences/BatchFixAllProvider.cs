@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         #endregion
 
-        private async Task<CodeAction?> GetFixAsync(
+        private static async Task<CodeAction?> GetFixAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
             FixAllContext fixAllContext)
         {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
-        private async Task<ImmutableArray<(Diagnostic diagnostic, CodeAction action)>> GetDiagnosticsAndCodeActionsAsync(
+        private static async Task<ImmutableArray<(Diagnostic diagnostic, CodeAction action)>> GetDiagnosticsAndCodeActionsAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
             FixAllContext fixAllContext)
         {
@@ -113,14 +113,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return fixesBag.ToImmutableArray();
         }
 
-        private async Task AddDocumentFixesAsync(
+        private static async Task AddDocumentFixesAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
             FixAllState fixAllState, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             try
             {
-                await this.AddDocumentFixesAsync(document, diagnostics, fixes, fixAllState, cancellationToken).ConfigureAwait(false);
+                await AddDocumentFixesAsync(document, diagnostics, fixes, fixAllState, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        private async Task AddDocumentFixesAsync(
+        private static async Task AddDocumentFixesAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
             FixAllState fixAllState, CancellationToken cancellationToken)
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             };
         }
 
-        private async Task<CodeAction?> TryGetMergedFixAsync(
+        private static async Task<CodeAction?> TryGetMergedFixAsync(
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> batchOfFixes,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -198,13 +198,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
-        private string GetFixAllTitle(FixAllState fixAllState)
+        private static string GetFixAllTitle(FixAllState fixAllState)
             => FixAllContextHelper.GetDefaultFixAllTitle(fixAllState.Scope, fixAllState.DiagnosticIds, fixAllState.Document, fixAllState.Project);
 
-        private async Task<Solution> TryMergeFixesAsync(
+        private static async Task<Solution> TryMergeFixesAsync(
             Solution oldSolution,
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
-            FixAllState fixAllState, CancellationToken cancellationToken)
+            FixAllState _, CancellationToken cancellationToken)
         {
             var documentIdToChangedDocuments = await GetDocumentIdToChangedDocumentsAsync(
                 oldSolution, diagnosticsAndCodeActions, cancellationToken).ConfigureAwait(false);
