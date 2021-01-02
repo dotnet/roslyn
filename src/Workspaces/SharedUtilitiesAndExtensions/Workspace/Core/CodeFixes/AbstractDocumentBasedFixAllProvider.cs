@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var solution = fixAllContext.Solution;
             progressTracker.AddItems(projectIds.Length);
 
-            using var _ = PooledDictionary<DocumentId, SourceText>.GetInstance(out var docIdToNewText);
+            using var _ = PooledDictionary<DocumentId, SyntaxNode>.GetInstance(out var docIdToNewRoot);
 
             var currentSolution = solution;
             foreach (var projectId in projectIds)
@@ -110,9 +110,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 try
                 {
                     var project = solution.GetRequiredProject(projectId);
-                    await AddDocumentFixesAsync(fixAllContext, project, docIdToNewText).ConfigureAwait(false);
-                    foreach (var (docId, newText) in docIdToNewText)
-                        currentSolution = currentSolution.WithDocumentText(docId, newText);
+                    await AddDocumentFixesAsync(fixAllContext, project, docIdToNewRoot).ConfigureAwait(false);
+                    foreach (var (docId, newRoot) in docIdToNewRoot)
+                        currentSolution = currentSolution.WithDocumentSyntaxRoot(docId, newRoot);
                 }
                 finally
                 {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private async Task AddDocumentFixesAsync(
             FixAllContext fixAllContext,
             Project project,
-            PooledDictionary<DocumentId, SourceText> docIdToNewText)
+            PooledDictionary<DocumentId, SyntaxNode> docIdToNewRoot)
         {
             var progressTracker = fixAllContext.GetProgressTracker();
 
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // affected documents in this project.
             progressTracker.Description = string.Format(WorkspaceExtensionsResources.Applying_fixes_to_0, project.Name);
 
-            using var _ = ArrayBuilder<Task<(DocumentId, SourceText)>>.GetInstance(out var tasks);
+            using var _ = ArrayBuilder<Task<(DocumentId, SyntaxNode)>>.GetInstance(out var tasks);
             foreach (var group in diagnostics.Where(d => d.Location.IsInSource).GroupBy(d => d.Location.SourceTree))
             {
                 var tree = group.Key;
@@ -158,8 +158,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     if (newDocument == null || newDocument == document)
                         return default;
 
-                    // Convert new documents to text so we can release any expensive trees that may have been created.
-                    return (document.Id, await newDocument.GetTextAsync(fixAllContext.CancellationToken).ConfigureAwait(false));
+                    return (document.Id, await newDocument.GetRequiredSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false));
                 }));
             }
 
@@ -167,9 +166,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             foreach (var task in tasks)
             {
-                var (docId, newText) = await task.ConfigureAwait(false);
+                var (docId, newRoot) = await task.ConfigureAwait(false);
                 if (docId != null)
-                    docIdToNewText[docId] = newText;
+                    docIdToNewRoot[docId] = newRoot;
             }
         }
     }
