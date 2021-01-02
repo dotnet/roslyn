@@ -74,6 +74,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                     : new ProgressTracker();
 #endif
 
+                this.AddScope(description);
+
                 _dialog = CreateDialog(dialogFactory, showProgress);
                 _registration = notificationService.Start(title);
             }

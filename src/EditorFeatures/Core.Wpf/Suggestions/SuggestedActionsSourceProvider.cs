@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public readonly ICodeActionEditHandlerService EditHandler;
         public readonly IAsynchronousOperationListener OperationListener;
-        public readonly IWaitIndicator WaitIndicator;
         public readonly ImmutableArray<Lazy<ISuggestedActionCallback>> ActionCallbacks;
 
         public readonly ImmutableArray<Lazy<IImageMonikerService, OrderableMetadata>> ImageMonikerServices;
@@ -59,7 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IDiagnosticAnalyzerService diagnosticService,
             ICodeFixService codeFixService,
             ICodeActionEditHandlerService editHandler,
-            IWaitIndicator waitIndicator,
             ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
             IAsynchronousOperationListenerProvider listenerProvider,
             [ImportMany] IEnumerable<Lazy<IImageMonikerService, OrderableMetadata>> imageMonikerServices,
@@ -72,7 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             _suggestedActionCategoryRegistry = suggestedActionCategoryRegistry;
             ActionCallbacks = actionCallbacks.ToImmutableArray();
             EditHandler = editHandler;
-            WaitIndicator = waitIndicator;
             OperationListener = listenerProvider.GetListener(FeatureAttribute.LightBulb);
 
             ImageMonikerServices = ExtensionOrderer.Order(imageMonikerServices).ToImmutableArray();

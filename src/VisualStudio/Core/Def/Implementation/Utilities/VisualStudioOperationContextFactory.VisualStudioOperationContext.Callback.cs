@@ -8,7 +8,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 {
     internal partial class VisualStudioOperationContextFactory
     {
-
         private partial class VisualStudioOperationContext
         {
             private class Callback : IVsThreadedWaitDialogCallback

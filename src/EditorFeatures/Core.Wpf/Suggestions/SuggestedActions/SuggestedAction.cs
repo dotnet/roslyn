@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -17,6 +18,7 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -104,15 +106,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 // WaitIndicator cannot be used with async/await. Even though we call async methods
                 // later in this call chain, do not await them.
-                SourceProvider.WaitIndicator.Wait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true, action: waitContext =>
+                var operationContextFactory = Workspace.Services.GetRequiredService<IOperationContextFactory>();
+                using (var context = operationContextFactory.CreateOperationContext(CodeAction.Title, CodeAction.Message, allowCancellation: true, showProgress: true))
                 {
-                    using var combinedCancellationToken = cancellationToken.CombineWith(waitContext.CancellationToken);
-                    InnerInvoke(waitContext.ProgressTracker, combinedCancellationToken.Token);
+                    using var combinedCancellationToken = cancellationToken.CombineWith(context.CancellationToken);
+                    var progressTracker = new OperationScopeProgressTracker(context.Scopes.Last());
+                    InnerInvoke(progressTracker, combinedCancellationToken.Token);
                     foreach (var actionCallback in SourceProvider.ActionCallbacks)
                     {
                         actionCallback.Value.OnSuggestedActionExecuted(this);
                     }
-                });
+                }
             }
         }
 
