@@ -15,14 +15,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         protected abstract string CodeActionTitle { get; }
 
-        protected virtual string GetCodeActionTitle(FixAllContext context)
-            => CodeActionTitle;
-
         public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         {
             return FixAllContextHelper.GetFixAllCodeActionAsync(
                 fixAllContext,
-                GetCodeActionTitle(fixAllContext),
+                CodeActionTitle,
                 async (context, document, diagnostics) =>
                 {
                     // if we didn't get a new root back, just return null to indicate we had no work to do here.

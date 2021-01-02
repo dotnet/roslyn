@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -16,28 +17,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// subclass needs to provide is how each document will apply all the fixes to all the 
         /// diagnostics in that document.
         /// </summary>
-        internal sealed class SyntaxEditorBasedFixAllProvider : DocumentBasedFixAllProvider
+        internal sealed class SyntaxEditorBasedFixAllProvider : FixAllProvider
         {
             private readonly SyntaxEditorBasedCodeFixProvider _codeFixProvider;
 
             public SyntaxEditorBasedFixAllProvider(SyntaxEditorBasedCodeFixProvider codeFixProvider)
                 => _codeFixProvider = codeFixProvider;
 
-            protected override string CodeActionTitle => "";
-
-            protected override string GetCodeActionTitle(FixAllContext context)
-                => FixAllContextHelper.GetDefaultFixAllTitle(context);
-
-            protected override async Task<SyntaxNode?> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
+            public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             {
-                var newDocument = await FixDocumentAsync(document, diagnostics, fixAllContext).ConfigureAwait(false);
-
-                // If we didn't get a new document, or the doc was unchanged, pass back null to indicate there are no
-                // fixes for this file.
-                if (newDocument == null || newDocument == document)
-                    return null;
-
-                return await newDocument.GetSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
+                return FixAllContextHelper.GetFixAllCodeActionAsync(
+                    fixAllContext,
+                    FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext),
+                    async (context, document, diagnostics) => await FixDocumentAsync(document, diagnostics, context).ConfigureAwait(false));
             }
 
             private async Task<Document> FixDocumentAsync(
@@ -56,9 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 // PERF: Do not invoke FixAllAsync on the code fix provider if there are no diagnostics to be fixed.
                 if (filteredDiagnostics.Length == 0)
-                {
                     return document;
-                }
 
                 return await _codeFixProvider.FixAllAsync(document, filteredDiagnostics, fixAllContext.CancellationToken).ConfigureAwait(false);
             }
