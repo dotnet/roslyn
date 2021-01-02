@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     {
         internal abstract partial class RemoveSuppressionCodeAction
         {
-            public static BatchFixAllProvider GetBatchFixer(AbstractSuppressionCodeFixProvider suppressionFixProvider)
+            public static FixAllProvider GetBatchFixer(AbstractSuppressionCodeFixProvider suppressionFixProvider)
                 => new RemoveSuppressionBatchFixAllProvider(suppressionFixProvider);
 
             /// <summary>
             /// Batch fixer for pragma suppression removal code action.
             /// </summary>
-            private sealed class RemoveSuppressionBatchFixAllProvider : BatchFixAllProvider
+            private sealed class RemoveSuppressionBatchFixAllProvider : AbstractSuppressionBatchFixAllProvider
             {
                 private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider;
 
