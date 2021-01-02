@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Utilities
     /// <summary>
     /// Represents an update of a progress.
     /// </summary>
-    internal readonly struct ProgressInfo
+    public readonly struct ProgressInfo
     {
         public ProgressInfo(int completedItems, int totalItems)
         {

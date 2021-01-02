@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Utilities
     /// Represents a context of executing potentially long running operation with possible wait indication providing
     /// cancellability, progress and information to the host.
     /// </summary>
-    internal interface IOperationContext : IDisposable
+    public interface IOperationContext : IDisposable
     {
         /// <summary>
         /// Cancellation token that allows user to cancel the operation unless the operation is not cancellable.
