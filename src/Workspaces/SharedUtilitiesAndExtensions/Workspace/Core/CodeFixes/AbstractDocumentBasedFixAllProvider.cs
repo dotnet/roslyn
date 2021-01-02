@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var solution = fixAllContext.Solution;
 
-            // We have 2 pieces of work per project.  Computing diagnostics, computing fixes, and applying fixes.
+            // We have 3 pieces of work per project.  Computing diagnostics, computing fixes, and applying fixes.
             progressTracker.AddItems(projectIds.Length * 3);
 
             using var _ = PooledDictionary<DocumentId, SyntaxNode>.GetInstance(out var docIdToNewRoot);
