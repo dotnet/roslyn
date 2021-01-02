@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         #region "AbstractFixAllProvider methods"
 
-        public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+        public sealed override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         {
             if (fixAllContext.Document != null)
             {
