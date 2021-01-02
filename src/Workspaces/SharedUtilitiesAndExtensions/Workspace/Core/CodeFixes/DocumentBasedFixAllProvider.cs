@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -159,10 +161,67 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private Task<Solution> GetProjectFixesAsync(FixAllContext fixAllContext, Project project)
             => GetSolutionFixesAsync(fixAllContext, project.Documents.ToImmutableArray());
 
-        private Task<Solution> GetSolutionFixesAsync(FixAllContext fixAllContext)
+        private async Task<Solution> GetSolutionFixesAsync(FixAllContext fixAllContext)
         {
-            var documents = fixAllContext.Solution.Projects.SelectMany(i => i.Documents).ToImmutableArray();
-            return GetSolutionFixesAsync(fixAllContext, documents);
+            var solution = fixAllContext.Solution;
+            var dependencyGraph = solution.GetProjectDependencyGraph();
+
+            var progressTracker = fixAllContext.GetProgressTracker();
+            progressTracker.AddItems(solution.ProjectIds.Count);
+
+            var currentSolution = solution;
+            foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects())
+            {
+                var project = solution.GetRequiredProject(projectId);
+                var newDocumentRoots = await GetProjectFixesNewAsync(fixAllContext, progressTracker, project).ConfigureAwait(false);
+                foreach (var (docId, newRoot) in newDocumentRoots)
+                    currentSolution = currentSolution.WithDocumentSyntaxRoot(docId, newRoot);
+            }
+
+            return currentSolution;
+        }
+
+        private async Task<Dictionary<DocumentId, SyntaxNode>> GetProjectFixesNewAsync(FixAllContext fixAllContext, IProgressTracker progressTracker, Project project)
+        {
+            try
+            {
+                var soltion = fixAllContext.Solution;
+
+                progressTracker.Description = "Computing diagnostics for " + project.Name;
+                var diagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
+                var treeToDiagnostics = diagnostics.Where(d => d.Location.IsInSource).GroupBy(d => d.Location.SourceTree);
+
+                progressTracker.Description = "Applying fixes to " + project.Name;
+                using var _ = ArrayBuilder<Task<(DocumentId, SyntaxNode?)>>.GetInstance(out var tasks);
+                foreach (var group in treeToDiagnostics)
+                {
+                    var tree = group.Key;
+                    Contract.ThrowIfNull(tree);
+                    var document = soltion.GetRequiredDocument(tree);
+
+                    tasks.Add(Task.Run(async () =>
+                    {
+                        var newRoot = await this.FixAllInDocumentAsync(fixAllContext, document, diagnostics).ConfigureAwait(false);
+                        return (document.Id, newRoot);
+                    }));
+                }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+
+                var result = new Dictionary<DocumentId, SyntaxNode>();
+                foreach (var task in tasks)
+                {
+                    var (docId, newRoot) = await task.ConfigureAwait(false);
+                    if (newRoot != null)
+                        result[docId] = newRoot;
+                }
+
+                return result;
+            }
+            finally
+            {
+                progressTracker.ItemCompleted();
+            }
         }
     }
 }
