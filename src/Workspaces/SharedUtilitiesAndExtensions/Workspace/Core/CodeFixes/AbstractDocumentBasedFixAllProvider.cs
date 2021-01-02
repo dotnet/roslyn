@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (!documentDiagnosticsToFix.TryGetValue(fixAllContext.Document, out var diagnostics))
                 return fixAllContext.Document;
 
-            var newDoc = await this.FixAllInDocumentAsync(fixAllContext, fixAllContext.Document, diagnostics).ConfigureAwait(false);
+            var newDoc = await this.FixAllAsync(fixAllContext, fixAllContext.Document, diagnostics).ConfigureAwait(false);
             return newDoc ?? fixAllContext.Document;
         }
 
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 tasks.Add(Task.Run(async () =>
                 {
-                    var newDocument = await this.FixAllInDocumentAsync(fixAllContext, document, documentDiagnostics).ConfigureAwait(false);
+                    var newDocument = await this.FixAllAsync(fixAllContext, document, documentDiagnostics).ConfigureAwait(false);
                     if (newDocument == null || newDocument == document)
                         return default;
 
