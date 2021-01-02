@@ -5440,7 +5440,6 @@ class MyClass
         myClass.ToString();
     }
 }
-
 ";
 
             var expected = @"
