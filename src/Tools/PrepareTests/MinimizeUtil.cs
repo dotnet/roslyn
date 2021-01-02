@@ -188,7 +188,7 @@ internal static class MinimizeUtil
             return true;
         }
 
-        if (Path.GetExtension(filePath) != ".dll")
+        if (!filePath.EndsWith(".dll"))
         {
             mvid = default;
             return false;
