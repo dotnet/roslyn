@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Helper class for "Fix all occurrences" code fix providers.
     /// </summary>
-    internal partial class BatchFixAllProvider : FixAllProvider
+    internal sealed class BatchFixAllProvider : FixAllProvider
     {
         public static readonly FixAllProvider Instance = new BatchFixAllProvider();
 
-        protected BatchFixAllProvider() { }
+        private BatchFixAllProvider() { }
 
         #region "AbstractFixAllProvider methods"
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        protected virtual async Task AddDocumentFixesAsync(
+        private async Task AddDocumentFixesAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
             FixAllState fixAllState, CancellationToken cancellationToken)
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             };
         }
 
-        protected virtual Task AddProjectFixesAsync(
+        private Task AddProjectFixesAsync(
             Project project, ImmutableArray<Diagnostic> diagnostics,
             ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
             FixAllState fixAllState, CancellationToken cancellationToken)
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return Task.CompletedTask;
         }
 
-        public virtual async Task<CodeAction?> TryGetMergedFixAsync(
+        private async Task<CodeAction?> TryGetMergedFixAsync(
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> batchOfFixes,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -253,10 +253,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
-        public virtual string GetFixAllTitle(FixAllState fixAllState)
+        private string GetFixAllTitle(FixAllState fixAllState)
             => FixAllContextHelper.GetDefaultFixAllTitle(fixAllState.Scope, fixAllState.DiagnosticIds, fixAllState.Document, fixAllState.Project);
 
-        public virtual async Task<Solution> TryMergeFixesAsync(
+        private async Task<Solution> TryMergeFixesAsync(
             Solution oldSolution,
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
             FixAllState fixAllState, CancellationToken cancellationToken)
