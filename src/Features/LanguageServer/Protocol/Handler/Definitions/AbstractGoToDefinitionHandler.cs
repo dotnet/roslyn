@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var definitionService = document.Project.LanguageServices.GetRequiredService<IFindDefinitionService>();
             var definitions = await definitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (definitions != null && definitions.Count() > 0)
+            if (definitions?.Any() == true)
             {
                 foreach (var definition in definitions)
                 {
