@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     /// <summary>
     /// Wrapper around a <see cref="IUIThreadOperationContext"/> adapting it to be an <see cref="IOperationContext"/>.
     /// </summary>
-    internal class UIOperationContext : IOperationContext
+    internal class UIOperationContextAdapter : IOperationContext
     {
         private readonly IUIThreadOperationContext _operationContext;
 
-        public UIOperationContext(IUIThreadOperationContext operationContext)
+        public UIOperationContextAdapter(IUIThreadOperationContext operationContext)
         {
             _operationContext = operationContext;
         }
@@ -27,20 +27,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public string Description => _operationContext.Description;
 
-        public IEnumerable<IOperationScope> Scopes => _operationContext.Scopes.Select(s => new UIOperationScope(s, allowDispose: false));
+        public IEnumerable<IOperationScope> Scopes => _operationContext.Scopes.Select(s => new UIOperationScopeAdapter(s, allowDispose: false));
 
         public IOperationScope AddScope(string description)
-            => new UIOperationScope(_operationContext.AddScope(allowCancellation: false, description), allowDispose: true);
+            => new UIOperationScopeAdapter(_operationContext.AddScope(allowCancellation: false, description), allowDispose: true);
 
         public void Dispose()
             => _operationContext.Dispose();
 
-        private class UIOperationScope : IOperationScope
+        private class UIOperationScopeAdapter : IOperationScope
         {
             private readonly IUIThreadOperationScope _operationScope;
             private readonly bool _allowDispose;
 
-            public UIOperationScope(IUIThreadOperationScope operationScope, bool allowDispose)
+            public UIOperationScopeAdapter(IUIThreadOperationScope operationScope, bool allowDispose)
             {
                 _operationScope = operationScope;
                 _allowDispose = allowDispose;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
 
             public IProgress<CodeAnalysis.Utilities.ProgressInfo> Progress
-                => new Progress(_operationScope.Progress);
+                => new ProgressAdapter(_operationScope.Progress);
 
             public void Dispose()
             {
@@ -64,11 +64,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
-        private class Progress : IProgress<CodeAnalysis.Utilities.ProgressInfo>
+        private class ProgressAdapter : IProgress<CodeAnalysis.Utilities.ProgressInfo>
         {
             private readonly IProgress<VisualStudio.Utilities.ProgressInfo> _progress;
 
-            public Progress(IProgress<VisualStudio.Utilities.ProgressInfo> progress)
+            public ProgressAdapter(IProgress<VisualStudio.Utilities.ProgressInfo> progress)
             {
                 _progress = progress;
             }
