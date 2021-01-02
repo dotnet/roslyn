@@ -4,31 +4,27 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
     /// <summary>
     /// Provides a base class to write a <see cref="FixAllProvider"/> that fixes documents independently.
     /// </summary>
-    internal abstract class DocumentBasedFixAllProvider : FixAllProvider
+    internal abstract class DocumentBasedFixAllProvider : AbstractDocumentBasedFixAllProvider
     {
         protected abstract string CodeActionTitle { get; }
 
-        public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
-        {
-            return FixAllContextHelper.GetFixAllCodeActionAsync(
-                fixAllContext,
-                CodeActionTitle,
-                async (context, document, diagnostics) =>
-                {
-                    // if we didn't get a new root back, just return null to indicate we had no work to do here.
-                    var newRoot = await this.FixAllInDocumentAsync(context, document, diagnostics).ConfigureAwait(false);
-                    if (newRoot == null)
-                        return null;
+        protected override string GetFixAllTitle(FixAllContext fixAllContext)
+            => CodeActionTitle;
 
-                    return document.WithSyntaxRoot(newRoot);
-                });
+        protected override async Task<Document?> FixAllAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics)
+        {
+            // if we didn't get a new root back, just return null to indicate we had no work to do here.
+            var newRoot = await this.FixAllInDocumentAsync(context, document, diagnostics).ConfigureAwait(false);
+            if (newRoot == null)
+                return null;
+
+            return document.WithSyntaxRoot(newRoot);
         }
 
         /// <summary>
