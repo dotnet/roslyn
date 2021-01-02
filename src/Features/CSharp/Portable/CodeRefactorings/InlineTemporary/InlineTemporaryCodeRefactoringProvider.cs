@@ -461,6 +461,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
             var newExpression = InitializerRewriter.Visit(expression, localSymbol, semanticModel);
 
+            if (newExpression.IsKind(SyntaxKind.ImplicitObjectCreationExpression))
+            {
+                var implicitCreation = (ImplicitObjectCreationExpressionSyntax)newExpression;
+                var type = localSymbol.Type.GenerateTypeSyntax();
+                newExpression = SyntaxFactory.ObjectCreationExpression(implicitCreation.NewKeyword, type, implicitCreation.ArgumentList, implicitCreation.Initializer);
+            }
+
             // If this is an array initializer, we need to transform it into an array creation
             // expression for inlining.
             if (newExpression.Kind() == SyntaxKind.ArrayInitializerExpression)
