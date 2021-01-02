@@ -4133,7 +4133,8 @@ public record Container(Person Person);
 ";
             var comp = CreateCompilation(new[] { IsExternalInitTypeDefinition, source }, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "c");
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            CompileAndVerify(comp, expectedOutput: "c", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Fails);
         }
 
         [Fact]
