@@ -26,10 +26,13 @@ namespace Microsoft.CodeAnalysis.Utilities
             _scopes = ImmutableList<OperationScope>.Empty;
         }
 
+        public abstract CancellationToken CancellationToken { get; }
+
         /// <summary>
-        /// Gets user readable operation description, composed of initial context description or
-        /// descriptions of all currently added scopes.
+        /// Invoked when new <see cref="IOperationScope"/>s are added or disposed.
         /// </summary>
+        protected abstract void OnScopeInformationChanged();
+
         public string Description
         {
             get
@@ -74,11 +77,11 @@ namespace Microsoft.CodeAnalysis.Utilities
                 }
             }
 
-            this.OnScopesChanged();
+            this.OnScopeInformationChanged();
             return scope;
         }
 
-        protected void OnScopeProgressChanged(IOperationScope _)
+        private void OnScopeProgressChanged()
         {
             var completed = 0;
             var total = 0;
@@ -95,15 +98,8 @@ namespace Microsoft.CodeAnalysis.Utilities
 
             Interlocked.Exchange(ref _completedItems, completed);
             Interlocked.Exchange(ref _totalItems, total);
-        }
 
-        /// <summary>
-        /// Invoked when new <see cref="IOperationScope"/>s are added or disposed.
-        /// </summary>
-        protected virtual void OnScopesChanged() { }
-
-        protected virtual void OnScopeChanged(IOperationScope uiThreadOperationScope)
-        {
+            this.OnScopeInformationChanged();
         }
 
         void IDisposable.Dispose()
@@ -131,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Utilities
                 }
             }
 
-            OnScopesChanged();
+            OnScopeInformationChanged();
         }
 
         protected class OperationScope : IOperationScope, IProgress<ProgressInfo>
@@ -156,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Utilities
                     if (!string.Equals(_description, value, StringComparison.Ordinal))
                     {
                         _description = value;
-                        _context.OnScopeChanged(this);
+                        _context.OnScopeInformationChanged();
                     }
                 }
             }
@@ -174,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Utilities
             {
                 Interlocked.Exchange(ref _completedItems, progressInfo.CompletedItems);
                 Interlocked.Exchange(ref _totalItems, progressInfo.TotalItems);
-                _context.OnScopeProgressChanged(this);
+                _context.OnScopeProgressChanged();
             }
         }
     }

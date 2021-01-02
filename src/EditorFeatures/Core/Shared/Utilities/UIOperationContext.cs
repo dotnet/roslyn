@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.Utilities;
 using Microsoft.VisualStudio.Utilities;
 
@@ -23,12 +23,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             _operationContext = operationContext;
         }
 
+        public CancellationToken CancellationToken => _operationContext.UserCancellationToken;
+
         public string Description => _operationContext.Description;
 
         public IEnumerable<IOperationScope> Scopes => _operationContext.Scopes.Select(s => new UIOperationScope(s, allowDispose: false));
 
         public IOperationScope AddScope(string description)
-            => new UIOperationScope(this, description, allowDispose: true);
+            => new UIOperationScope(_operationContext.AddScope(allowCancellation: false, description), allowDispose: true);
 
         public void Dispose()
             => _operationContext.Dispose();
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
         }
 
-        private class Progress : IProgress<ProgressInfo>
+        private class Progress : IProgress<CodeAnalysis.Utilities.ProgressInfo>
         {
             private readonly IProgress<VisualStudio.Utilities.ProgressInfo> _progress;
 
