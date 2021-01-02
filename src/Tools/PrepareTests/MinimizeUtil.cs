@@ -183,10 +183,15 @@ internal static class MinimizeUtil
 
     private static bool TryGetMvid(string filePath, out Guid mvid)
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && WindowsUtil.TryGetFileId(filePath, out mvid))
         {
-            mvid = WindowsUtil.GetFileId(filePath);
             return true;
+        }
+
+        if (Path.GetExtension(filePath) != ".dll")
+        {
+            mvid = default;
+            return false;
         }
 
         try
@@ -213,7 +218,7 @@ internal static class MinimizeUtil
     internal static class WindowsUtil
     {
         /// <summary>Gets an id which uniquely identifies a file within a volume.</summary>
-        internal static unsafe Guid GetFileId(string filename)
+        internal static unsafe bool TryGetFileId(string filename, out Guid id)
         {
             var handle = CreateFile(
                 filename,
@@ -229,9 +234,23 @@ internal static class MinimizeUtil
                 throw new IOException($@"Failed to open file ""{filename}"" with exception 0x{Marshal.GetLastWin32Error():X}");
             }
 
+            const int FileStandardInfo = 0x1;
+            FileStandardInfo standardInfo = default;
+            var success = GetFileInformationByHandleEx(handle, infoClass: FileStandardInfo, &standardInfo, sizeof(FileStandardInfo));
+            if (!success)
+            {
+                throw new IOException($@"Failed to get number of links for ""{filename}"" with exception 0x{Marshal.GetLastWin32Error():X}");
+            }
+
+            if (standardInfo.NumberOfLinks < 2)
+            {
+                id = default;
+                return false;
+            }
+
             const int FileIdInfo = 0x12;
-            FileIdInfo info = default;
-            var success = GetFileInformationByHandleEx(handle, infoClass: FileIdInfo, ref info, dwBufferSize: sizeof(FileIdInfo));
+            FileIdInfo idInfo = default;
+            success = GetFileInformationByHandleEx(handle, infoClass: FileIdInfo, &idInfo, dwBufferSize: sizeof(FileIdInfo));
             if (!success)
             {
                 throw new IOException($@"Failed to get file information for ""{filename}"" with exception 0x{Marshal.GetLastWin32Error():X}");
@@ -240,11 +259,12 @@ internal static class MinimizeUtil
             handle.Close();
 
             byte[] bytes = new byte[16];
-            Array.Copy(BitConverter.GetBytes(info.fileIdLowPart), bytes, length: 8);
-            Array.Copy(BitConverter.GetBytes(info.fileIdHighPart), sourceIndex: 0, bytes, destinationIndex: 8, length: 8);
+            Array.Copy(BitConverter.GetBytes(idInfo.fileIdLowPart), bytes, length: 8);
+            Array.Copy(BitConverter.GetBytes(idInfo.fileIdHighPart), sourceIndex: 0, bytes, destinationIndex: 8, length: 8);
 
             // assuming all the files from the build are on the same volume.
-            return new Guid(bytes);
+            id = new Guid(bytes);
+            return true;
 
             // https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
             [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
@@ -263,8 +283,17 @@ internal static class MinimizeUtil
             static extern bool GetFileInformationByHandleEx(
                 SafeFileHandle hFile,
                 int infoClass,
-                ref FileIdInfo fileInfo,
+                void* fileInfo,
                 int dwBufferSize);
+        }
+
+        private struct FileStandardInfo
+        {
+            public long AllocationSize;
+            public long EndOfFile;
+            public uint NumberOfLinks;
+            public bool DeletePending;
+            public bool Directory;
         }
 
         private struct FileIdInfo
