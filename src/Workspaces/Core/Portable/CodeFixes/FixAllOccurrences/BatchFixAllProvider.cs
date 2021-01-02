@@ -34,11 +34,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public sealed override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         {
-            if (fixAllContext.Scope == FixAllScope.Solution)
-            {
-
-            }
-
             if (fixAllContext.Document != null)
             {
                 var documentsAndDiagnosticsToFixMap = await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false);
