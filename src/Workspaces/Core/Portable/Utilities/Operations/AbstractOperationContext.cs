@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         public abstract CancellationToken CancellationToken { get; }
 
         /// <summary>
-        /// Invoked when new <see cref="IOperationScope"/>s are added or disposed.
+        /// Invoked when new <see cref="IOperationScope"/>s are added, disposed or changed.
         /// </summary>
         protected abstract void OnScopeInformationChanged();
 
