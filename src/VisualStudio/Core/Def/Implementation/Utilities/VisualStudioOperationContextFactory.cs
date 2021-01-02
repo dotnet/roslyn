@@ -68,12 +68,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                 _allowCancel = allowCancel;
                 _cancellationTokenSource = new CancellationTokenSource();
 
-#if false
-                this.ProgressTracker = showProgress
-                    ? new ProgressTracker((_1, _2, _3) => UpdateDialog())
-                    : new ProgressTracker();
-#endif
-
                 this.AddScope(description);
 
                 _dialog = CreateDialog(dialogFactory, showProgress);
@@ -143,9 +137,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             private void OnCanceled()
             {
                 if (_allowCancel)
-                {
                     _cancellationTokenSource.Cancel();
-                }
+            }
+
+            private class Callback : IVsThreadedWaitDialogCallback
+            {
+                private readonly VisualStudioOperationContext _context;
+
+                public Callback(VisualStudioOperationContext context)
+                    => _context = context;
+
+                public void OnCanceled()
+                    => _context.OnCanceled();
             }
         }
     }
