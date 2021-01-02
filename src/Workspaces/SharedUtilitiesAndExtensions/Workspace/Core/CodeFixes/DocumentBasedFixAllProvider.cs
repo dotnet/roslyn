@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         protected virtual string GetCodeActionTitle(FixAllContext context)
             => CodeActionTitle;
 
-        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+        public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         {
             var title = GetCodeActionTitle(fixAllContext);
             switch (fixAllContext.Scope)

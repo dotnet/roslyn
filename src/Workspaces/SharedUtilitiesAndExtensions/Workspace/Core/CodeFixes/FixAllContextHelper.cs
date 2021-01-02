@@ -250,6 +250,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // First, get all the diagnostics for this project.
             progressTracker.Description = string.Format(WorkspaceExtensionsResources.Computing_diagnostics_for_0, project.Name);
             var diagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
+            if (diagnostics.IsDefaultOrEmpty)
+                return;
 
             // Then, once we've got the diagnostics, compute and apply the fixes for all in parallel to all the
             // affected documents in this project.
