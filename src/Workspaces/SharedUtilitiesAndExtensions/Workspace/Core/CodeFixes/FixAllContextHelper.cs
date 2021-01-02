@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -185,6 +186,57 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     throw ExceptionUtilities.UnexpectedValue(fixAllScope);
             }
         }
+
+#pragma warning disable RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
+
+        public static Task<CodeAction?> GetFixAllCodeActionAsync(
+            FixAllContext fixAllContext, string title, Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllInDocumentAsync)
+        {
+            switch (fixAllContext.Scope)
+            {
+                case FixAllScope.Document:
+                    return Task.FromResult<CodeAction?>(CodeAction.Create(
+                        title,
+                        c => GetDocumentFixesAsync(fixAllContext.WithCancellationToken(c), fixAllInDocumentAsync),
+                        nameof(DocumentBasedFixAllProvider)));
+
+                case FixAllScope.Project:
+                    return Task.FromResult<CodeAction?>(CodeAction.Create(
+                        title,
+                        c => GetProjectFixesAsync(fixAllContext.WithCancellationToken(c), fixAllContext.Project, fixAllInDocumentAsync),
+                        nameof(DocumentBasedFixAllProvider)));
+
+                case FixAllScope.Solution:
+                    return Task.FromResult<CodeAction?>(CodeAction.Create(
+                        title,
+                        c => GetSolutionFixesAsync(fixAllContext.WithCancellationToken(c), fixAllInDocumentAsync),
+                        nameof(DocumentBasedFixAllProvider)));
+
+                case FixAllScope.Custom:
+                default:
+                    return Task.FromResult<CodeAction?>(null);
+            }
+        }
+
+#pragma warning restore RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
+
+        private static async Task<Document> GetDocumentFixesAsync(FixAllContext fixAllContext, Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllInDocumentAsync)
+        {
+            RoslynDebug.AssertNotNull(fixAllContext.Document);
+
+            var documentDiagnosticsToFix = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
+            if (!documentDiagnosticsToFix.TryGetValue(fixAllContext.Document, out var diagnostics))
+                return fixAllContext.Document;
+
+            var newDoc = await fixAllInDocumentAsync(fixAllContext, fixAllContext.Document, diagnostics).ConfigureAwait(false);
+            return newDoc ?? fixAllContext.Document;
+        }
+
+        private static Task<Solution> GetProjectFixesAsync(FixAllContext fixAllContext, Project project, Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllInDocumentAsync)
+            => FixAllInSolutionAsync(fixAllContext, ImmutableArray.Create(project.Id), fixAllInDocumentAsync);
+
+        private static Task<Solution> GetSolutionFixesAsync(FixAllContext fixAllContext, Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllInDocumentAsync)
+            => FixAllInSolutionAsync(fixAllContext, fixAllInDocumentAsync);
 
         public static Task<Solution> FixAllInSolutionAsync(
             FixAllContext fixAllContext,
