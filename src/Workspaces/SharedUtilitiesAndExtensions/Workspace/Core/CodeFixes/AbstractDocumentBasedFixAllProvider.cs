@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -106,12 +107,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             using var _1 = PooledDictionary<DocumentId, SyntaxNode>.GetInstance(out var docIdToNewRoot);
             using var _2 = PooledDictionary<DocumentId, SyntaxNode>.GetInstance(out var docIdToCleanedRoot);
+            using var _3 = ArrayBuilder<Task<(DocumentId docId, SourceText sourceText)>>.GetInstance(out var cleanupTasks);
 
             var currentSolution = solution;
             foreach (var projectId in projectIds)
             {
+                // Clear out the temporary state.
                 docIdToNewRoot.Clear();
                 docIdToCleanedRoot.Clear();
+                cleanupTasks.Clear();
 
                 try
                 {
@@ -119,6 +123,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     // First, determine what the new syntax tree should be for all these documents.
                     await AddDocumentFixesAsync(fixAllContext, project, docIdToNewRoot).ConfigureAwait(false);
+                    if (docIdToNewRoot.Count == 0)
+                        continue;
 
                     // Next, go and insert those all into the solution so all the docs in this particular project point
                     // at the new trees.  At this point though, the trees have not been postprocessed/cleaned.
@@ -126,22 +132,30 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         currentSolution = currentSolution.WithDocumentSyntaxRoot(docId, newRoot);
 
                     // Next, go and cleanup the trees we inserted.  We do this in bulk so we can benefit from Sharing a
-                    // single compilation across all of them for all the semantic work we need to do.
+                    // single compilation across all of them for all the semantic work we need to do. 
                     //
                     // Also, once we clean the document, get the text of it and insert that back into the final
                     // solution.  This way we can release both the original fixed tree, and the cleaned tree (both of
                     // which can be much more expensive than just text).
-                    var cleanedSolution = currentSolution;
+
                     foreach (var (docId, _) in docIdToNewRoot)
                     {
                         var dirtyDocument = currentSolution.GetRequiredDocument(docId);
-                        var cleanedDocument = await PostProcessCodeAction.Instance.PostProcessChangesAsync(dirtyDocument, cancellationToken).ConfigureAwait(false);
-
-                        var cleanedText = await cleanedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        cleanedSolution = cleanedSolution.WithDocumentText(docId, cleanedText);
+                        cleanupTasks.Add(Task.Run(async () =>
+                        {
+                            var cleanedDocument = await PostProcessCodeAction.Instance.PostProcessChangesAsync(dirtyDocument, cancellationToken).ConfigureAwait(false);
+                            var cleanedText = await cleanedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                            return (dirtyDocument.Id, cleanedText);
+                        }));
                     }
 
-                    currentSolution = cleanedSolution;
+                    await Task.WhenAll(cleanupTasks).ConfigureAwait(false);
+
+                    foreach (var task in cleanupTasks)
+                    {
+                        var (docId, cleanedText) = await task.ConfigureAwait(false);
+                        currentSolution = currentSolution.WithDocumentText(docId, cleanedText);
+                    }
                 }
                 finally
                 {
