@@ -811,5 +811,16 @@ public class C
             compilation.VerifyEmitDiagnostics(expectedDiagnostics);
             compilation.VerifyDiagnostics(expectedDiagnostics);
         }
+
+        [Fact]
+        public void TestSpanGetMembers()
+        {
+            var compilation = CreateCompilation(string.Empty);
+
+            var type = compilation.GetTypeByMetadataName("System.Span`1");
+            Assert.NotEmpty(type.GetMembers());
+
+            CompileAndVerify(compilation);
+        }
     }
 }
