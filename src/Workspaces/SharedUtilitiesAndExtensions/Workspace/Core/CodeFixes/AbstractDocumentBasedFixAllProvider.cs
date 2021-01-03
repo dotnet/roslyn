@@ -166,8 +166,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
             if (!diagnostics.IsEmpty)
             {
-                // Then, once we've got the diagnostics, compute the fixes for all of them in parallel to all the
-                // affected documents in this project.
+                // Then, once we've got the diagnostics, bucket them by document and the process all documents in
+                // parallel to get the change for each doc.
                 var name = fixAllContext.Document?.Name ?? fixAllContext.Project.Name;
                 progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Computing_fixes_for_1_diagnostics, name, diagnostics.Length);
 
