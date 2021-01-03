@@ -105,22 +105,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var fixAllContext in fixAllContexts)
             {
                 Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project);
-                currentSolution = await FixSingleContextAsync(currentSolution, fixAllContext).ConfigureAwait(false);
+                currentSolution = await FixSingleContextAsync(currentSolution, fixAllContext, progressTracker).ConfigureAwait(false);
             }
 
             return currentSolution;
         }
 
-        private async Task<Solution> FixSingleContextAsync(Solution currentSolution, FixAllContext fixAllContext)
+        private async Task<Solution> FixSingleContextAsync(Solution currentSolution, FixAllContext fixAllContext, IProgressTracker progressTracker)
         {
             // First, determine the diagnostics to fix.
-            var diagnostics = await DetermineDiagnosticsAsync(fixAllContext).ConfigureAwait(false);
+            var diagnostics = await DetermineDiagnosticsAsync(fixAllContext, progressTracker).ConfigureAwait(false);
 
             // Second, get the fixes for all the diagnostics, and apply them to determine the new root/text for each doc.
-            var docIdToNewRootOrText = await GetFixedDocumentsAsync(fixAllContext, diagnostics).ConfigureAwait(false);
+            var docIdToNewRootOrText = await GetFixedDocumentsAsync(fixAllContext, progressTracker, diagnostics).ConfigureAwait(false);
 
             // Finally, cleanup the new doc roots, and apply the results to the solution.
-            currentSolution = await CleanupAndApplyChangesAsync(fixAllContext, currentSolution, docIdToNewRootOrText).ConfigureAwait(false);
+            currentSolution = await CleanupAndApplyChangesAsync(fixAllContext, progressTracker, currentSolution, docIdToNewRootOrText).ConfigureAwait(false);
 
             return currentSolution;
         }
@@ -131,9 +131,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Determines all the diagnostics we should be fixing for the given <paramref name="fixAllContext"/>.
         /// </summary>
-        private static async Task<ImmutableArray<Diagnostic>> DetermineDiagnosticsAsync(FixAllContext fixAllContext)
+        private static async Task<ImmutableArray<Diagnostic>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgressTracker progressTracker)
         {
-            var progressTracker = fixAllContext.GetProgressTracker();
             using var _ = progressTracker.ItemCompletedScope(string.Format(WorkspaceExtensionsResources._0_Computing_diagnostics, GetName(fixAllContext)));
 
             return fixAllContext.Document != null
@@ -148,10 +147,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// documents that don't support syntax.
         /// </summary>
         private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> GetFixedDocumentsAsync(
-            FixAllContext fixAllContext, ImmutableArray<Diagnostic> diagnostics)
+            FixAllContext fixAllContext, IProgressTracker progressTracker, ImmutableArray<Diagnostic> diagnostics)
         {
             var cancellationToken = fixAllContext.CancellationToken;
-            var progressTracker = fixAllContext.GetProgressTracker();
 
             using var _1 = progressTracker.ItemCompletedScope(string.Format(WorkspaceExtensionsResources._0_Computing_fixes_for_1_diagnostics, GetName(fixAllContext), diagnostics.Length));
             using var _2 = ArrayBuilder<Task<(DocumentId, (SyntaxNode? node, SourceText? text))>>.GetInstance(out var tasks);
@@ -205,11 +203,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         private static async Task<Solution> CleanupAndApplyChangesAsync(
             FixAllContext fixAllContext,
+            IProgressTracker progressTracker,
             Solution currentSolution,
             Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)> docIdToNewRootOrText)
         {
             var cancellationToken = fixAllContext.CancellationToken;
-            var progressTracker = fixAllContext.GetProgressTracker();
 
             var description = fixAllContext.Document != null
                     ? string.Format(WorkspaceExtensionsResources._0_Applying_fixes, GetName(fixAllContext))
