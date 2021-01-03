@@ -233,7 +233,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     : string.Format(WorkspaceExtensionsResources._0_Applying_fixes_to_1_documents, fixAllContext.Project.Name, docIdToNewRootOrText.Count);
 
                 // Next, go and insert those all into the solution so all the docs in this particular project point at
-                // the new trees (or text).  At this point though, the trees have not been cleaned up.
+                // the new trees (or text).  At this point though, the trees have not been cleaned up.  We don't cleanup
+                // the documents as they are created, or one at a time as we add them, as that would cause us to run
+                // cleanup on N different solution forks (which would be very expensive).  Instead, by adding all the
+                // changed documents to one solution, and hten cleaning *those* we only perform cleanup semantics on one
+                // forked solution.
                 foreach (var (docId, (newRoot, newText)) in docIdToNewRootOrText)
                 {
                     currentSolution = newRoot != null
@@ -241,12 +245,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         : currentSolution.WithDocumentText(docId, newText);
                 }
 
-                // Next, go and cleanup any trees we inserted.  We do this in bulk so we can benefit from sharing a
-                // single compilation across all of them for all the semantic work we need to do. 
-                //
-                // Also, once we clean the document, we get the text of it and insert that back into the final solution.
-                // This way we can release both the original fixed tree, and the cleaned tree (both of which can be much
-                // more expensive than just text).
+                // Next, go and cleanup any trees we inserted. Once we clean the document, we get the text of it and
+                // insert that back into the final solution.  This way we can release both the original fixed tree, and
+                // the cleaned tree (both of which can be much more expensive than just text).
                 //
                 // Do this in parallel across all the documents that were fixed.
                 foreach (var (docId, (newRoot, _)) in docIdToNewRootOrText)
