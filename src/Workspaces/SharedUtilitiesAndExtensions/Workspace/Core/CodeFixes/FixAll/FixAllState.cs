@@ -107,15 +107,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 this.DiagnosticProvider);
         }
 
-        public FixAllState WithProjectAndDocument(Project project, Document? document)
+        public FixAllState WithProject(Project project)
         {
-            if (this.Project == project && this.Document == document)
+            if (this.Project == project)
+                return this;
+
+            return new FixAllState(
+                this.FixAllProvider,
+                this.Document,
+                project,
+                this.CodeFixProvider,
+                this.Scope,
+                this.CodeActionEquivalenceKey,
+                this.DiagnosticIds,
+                this.DiagnosticProvider);
+        }
+
+        public FixAllState WithDocument(Document? document)
+        {
+            if (this.Document == document)
                 return this;
 
             return new FixAllState(
                 this.FixAllProvider,
                 document,
-                project,
+                this.Project,
                 this.CodeFixProvider,
                 this.Scope,
                 this.CodeActionEquivalenceKey,

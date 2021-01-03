@@ -52,6 +52,11 @@
         <target state="translated">Aviso: a declaração altera e escopo e pode alterar o significado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_Applying_fixes">
+        <source>{0}: Applying fixes</source>
+        <target state="new">{0}: Applying fixes</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_Applying_fixes_to_1_documents">
         <source>{0}: Applying fixes to {1} document(s)</source>
         <target state="new">{0}: Applying fixes to {1} document(s)</target>
