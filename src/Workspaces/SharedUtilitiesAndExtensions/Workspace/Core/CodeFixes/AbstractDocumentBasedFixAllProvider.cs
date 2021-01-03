@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         var text = newDocument.SupportsSyntaxTree ? null : await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                         return (document.Id, (node, text));
-                    }));
+                    }, cancellationToken));
                 }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             var cleanedDocument = await PostProcessCodeAction.Instance.PostProcessChangesAsync(dirtyDocument, cancellationToken).ConfigureAwait(false);
                             var cleanedText = await cleanedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                             return (dirtyDocument.Id, cleanedText);
-                        }));
+                        }, cancellationToken));
                     }
                 }
 
