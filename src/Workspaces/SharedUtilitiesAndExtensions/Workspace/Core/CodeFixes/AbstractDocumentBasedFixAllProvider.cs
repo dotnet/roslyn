@@ -119,8 +119,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // Second, get the fixes for all the diagnostics, and apply them to determine the new root/text for each doc.
             var docIdToNewRootOrText = await GetFixedDocumentsAsync(fixAllContext, diagnostics).ConfigureAwait(false);
 
-            // Finally, apply all the fixes to the solution.  This can actually be significant work as we need to
-            // cleanup the documents.
+            // Finally, cleanup the new doc roots, and apply the results to the solution.
             currentSolution = await CleanupAndApplyChangesAsync(fixAllContext, currentSolution, docIdToNewRootOrText).ConfigureAwait(false);
 
             return currentSolution;
