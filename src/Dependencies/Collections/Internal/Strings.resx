@@ -117,6 +117,81 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Arg_ArrayPlusOffTooSmall" xml:space="preserve">
+    <value>Destination array is not long enough to copy all the items in the collection. Check array index and length.</value>
+  </data>
+  <data name="Arg_HTCapacityOverflow" xml:space="preserve">
+    <value>Hashtable's capacity overflowed and went negative. Check load factor, capacity and the current size of the table.</value>
+  </data>
+  <data name="Arg_KeyNotFoundWithKey" xml:space="preserve">
+    <value>The given key '{0}' was not present in the dictionary.</value>
+  </data>
+  <data name="Arg_LongerThanDestArray" xml:space="preserve">
+    <value>Destination array was not long enough. Check the destination index, length, and the array's lower bounds.</value>
+  </data>
+  <data name="Arg_LongerThanSrcArray" xml:space="preserve">
+    <value>Source array was not long enough. Check the source index, length, and the array's lower bounds.</value>
+  </data>
+  <data name="Arg_NonZeroLowerBound" xml:space="preserve">
+    <value>The lower bound of target array must be zero.</value>
+  </data>
+  <data name="Arg_RankMultiDimNotSupported" xml:space="preserve">
+    <value>Only single dimensional arrays are supported for the requested action.</value>
+  </data>
+  <data name="Arg_WrongType" xml:space="preserve">
+    <value>The value "{0}" is not of type "{1}" and cannot be used in this generic collection.</value>
+  </data>
+  <data name="Argument_AddingDuplicateWithKey" xml:space="preserve">
+    <value>An item with the same key has already been added. Key: {0}</value>
+  </data>
+  <data name="Argument_InvalidArrayType" xml:space="preserve">
+    <value>Target array type is not compatible with the type of items in the collection.</value>
+  </data>
+  <data name="Argument_InvalidOffLen" xml:space="preserve">
+    <value>Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.</value>
+  </data>
+  <data name="ArgumentOutOfRange_ArrayLB" xml:space="preserve">
+    <value>Number was less than the array's lower bound in the first dimension.</value>
+  </data>
+  <data name="ArgumentOutOfRange_BiggerThanCollection" xml:space="preserve">
+    <value>Larger than collection size.</value>
+  </data>
+  <data name="ArgumentOutOfRange_Count" xml:space="preserve">
+    <value>Count must be positive and count must refer to a location within the string/array/collection.</value>
+  </data>
+  <data name="ArgumentOutOfRange_Index" xml:space="preserve">
+    <value>Index was out of range. Must be non-negative and less than the size of the collection.</value>
+  </data>
+  <data name="ArgumentOutOfRange_ListInsert" xml:space="preserve">
+    <value>Index must be within the bounds of the List.</value>
+  </data>
+  <data name="ArgumentOutOfRange_NeedNonNegNum" xml:space="preserve">
+    <value>Non-negative number required.</value>
+  </data>
+  <data name="ArgumentOutOfRange_SmallCapacity" xml:space="preserve">
+    <value>capacity was less than the current size.</value>
+  </data>
+  <data name="InvalidOperation_ConcurrentOperationsNotSupported" xml:space="preserve">
+    <value>Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct.</value>
+  </data>
+  <data name="InvalidOperation_EnumFailedVersion" xml:space="preserve">
+    <value>Collection was modified; enumeration operation may not execute.</value>
+  </data>
+  <data name="InvalidOperation_EnumOpCantHappen" xml:space="preserve">
+    <value>Enumeration has either not started or has already finished.</value>
+  </data>
+  <data name="InvalidOperation_IComparerFailed" xml:space="preserve">
+    <value>Failed to compare two elements in the array.</value>
+  </data>
+  <data name="NotSupported_KeyCollectionSet" xml:space="preserve">
+    <value>Mutating a key collection derived from a dictionary is not allowed.</value>
+  </data>
+  <data name="NotSupported_ValueCollectionSet" xml:space="preserve">
+    <value>Mutating a value collection derived from a dictionary is not allowed.</value>
+  </data>
+  <data name="Rank_MustMatch" xml:space="preserve">
+    <value>The specified arrays must have the same number of dimensions.</value>
+  </data>
   <data name="NotSupported_FixedSizeCollection" xml:space="preserve">
     <value>Collection was of a fixed size.</value>
   </data>

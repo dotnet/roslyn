@@ -930,10 +930,9 @@
     [async] using var x = ..., y = ...;
   -->
   <Node Name="BoundUsingLocalDeclarations" Base="BoundMultipleLocalDeclarationsBase">
-    <Field Name="DisposeMethodOpt" Type="MethodSymbol?" Null="Allow"/>
+    <Field Name="PatternDisposeInfoOpt" Type="MethodArgumentInfo?"/>
     <Field Name="IDisposableConversion" Type="Conversion"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
-    <Field Name="Binder" Type="Binder" />
   </Node>
 
   <!-- 
@@ -1101,8 +1100,7 @@
     <Field Name="IDisposableConversion" Type="Conversion" />
     <Field Name="Body" Type="BoundStatement"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
-    <Field Name="DisposeMethodOpt" Type="MethodSymbol?"/>
-    <Field Name="Binder" Type="Binder" />
+    <Field Name="PatternDisposeInfoOpt" Type="MethodArgumentInfo?"/>
   </Node>
 
   <Node Name="BoundFixedStatement" Base="BoundStatement">
@@ -1593,9 +1591,6 @@
         Only kept in the tree if the call was an error and overload resolution
         was unable to choose a best method.-->
     <Field Name="OriginalMethodsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
-    
-    <!-- BinderOpt is added as a temporary solution for IOperation implementation and should probably be removed in the future -->
-    <Field Name="BinderOpt" Type="Binder?"/>
   </Node>
 
   <Node Name="BoundEventAssignmentOperator" Base="BoundExpression">
@@ -1658,9 +1653,6 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
     <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?"/>
     <Field Name="WasTargetTyped" Type="bool"/>
-
-    <!-- BinderOpt is added as a temporary solution for IOperation implementation and should probably be removed in the future -->
-    <Field Name="BinderOpt" Type="Binder?"/>
   </Node>
   
 
@@ -1748,10 +1740,6 @@
 
     <!-- Used by IOperation to reconstruct the receiver for this expression. -->
     <Field Name="ReceiverType" Type="TypeSymbol" Null="disallow"/>
-    
-    <!-- Binder is a temporary solution for IOperation implementation and should probably be removed in the future -->
-    <!-- Tracked by https://github.com/dotnet/roslyn/issues/20787 -->
-    <Field Name="Binder" Type="Binder"/>
   </Node>
 
   <Node Name="BoundDynamicObjectInitializerMember" Base="BoundExpression">
@@ -1779,7 +1767,6 @@
     <Field Name="DefaultArguments" Type="BitVector" />
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
-    <Field Name="BinderOpt" Type="Binder?" />
   </Node>
 
   <Node Name="BoundDynamicCollectionElementInitializer" Base="BoundDynamicInvocableBase">
@@ -1935,10 +1922,6 @@
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="DefaultArguments" Type="BitVector" />
-
-    <!-- BinderOpt and UseSetterForDefaultArgumentGeneration are added as a temporary solution for IOperation implementation and should probably be removed in the future -->
-    <!-- Tracked by https://github.com/dotnet/roslyn/issues/20787 -->
-    <Field Name="BinderOpt" Type="Binder?"/>
     <!--The set of indexer symbols from which this call's indexer was chosen.
         Only kept in the tree if the call was an error and overload resolution
         was unable to choose a best indexer.-->

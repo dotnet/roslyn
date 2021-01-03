@@ -6,6 +6,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
@@ -16,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
 {
     public class AddAccessibilityModifiersTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
-        public void TestStandardProperties()
-            => VerifyCS.VerifyStandardProperties();
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        public void TestStandardProperty(AnalyzerProperty property)
+            => VerifyCS.VerifyStandardProperty(property);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestAllConstructs()

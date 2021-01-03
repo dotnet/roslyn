@@ -2822,4 +2822,10 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Removal_of_document_not_supported" xml:space="preserve">
     <value>Removal of document not supported</value>
   </data>
+  <data name="in_0_1_2" xml:space="preserve">
+    <value>in {0} ({1} - {2})</value>
+  </data>
+  <data name="_0_dash_1" xml:space="preserve">
+    <value>{0} - {1}</value>
+  </data>
 </root>
