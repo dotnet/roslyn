@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 case FixAllScope.Project:
                     return Task.FromResult<CodeAction?>(CodeAction.Create(
                         title,
-                        c => GetProjectFixesAsync(fixAllContext.WithCancellationToken(c), fixAllContext.Project),
+                        c => GetProjectFixesAsync(fixAllContext.WithCancellationToken(c)),
                         nameof(BatchFixAllProvider)));
 
                 case FixAllScope.Solution:
@@ -65,19 +65,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
 #pragma warning restore RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
 
-        private async Task<Document> GetDocumentFixesAsync(FixAllContext fixAllContext)
-        {
-            var diagnostics = await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false);
+        private static Task<Solution> GetDocumentFixesAsync(FixAllContext fixAllContext)
+            => FixAllInProjectsAsync(
+                fixAllContext,
+                ImmutableArray.Create(fixAllContext));
 
-        }
-
-        private static Task<Solution> GetProjectFixesAsync(FixAllContext fixAllContext, Project project)
-            => FixAllInSolutionAsync(fixAllContext, ImmutableArray.Create(project.Id));
+        private static Task<Solution> GetProjectFixesAsync(FixAllContext fixAllContext)
+            => FixAllInProjectsAsync(
+                fixAllContext,
+                ImmutableArray.Create(fixAllContext));
 
         private static Task<Solution> GetSolutionFixesAsync(FixAllContext fixAllContext)
-            => FixAllInSolutionAsync(fixAllContext);
-
-        private static Task<Solution> FixAllInSolutionAsync(FixAllContext fixAllContext)
         {
             var solution = fixAllContext.Solution;
             var dependencyGraph = solution.GetProjectDependencyGraph();
@@ -91,32 +89,37 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // By processing one project at a time, we can also let go of a project once done with it, allowing us to
             // reclaim lots of the memory so we don't overload the system while processing a large solution.
             var sortedProjectIds = dependencyGraph.GetTopologicallySortedProjects().ToImmutableArray();
-            return FixAllInSolutionAsync(fixAllContext, sortedProjectIds);
+            return FixAllInProjectsAsync(
+                fixAllContext,
+                sortedProjectIds.SelectAsArray(
+                    id => fixAllContext.WithScope(FixAllScope.Project).WithProjectAndDocument(solution.GetRequiredProject(id), document: null)));
         }
 
-        private static async Task<Solution> FixAllInSolutionAsync(
-            FixAllContext fixAllContext,
-            ImmutableArray<ProjectId> projectIds)
+#if false
+                // Create a project-scoped context as we only want the diagnostics from that.
+                var newContext = fixAllContext.WithScope(FixAllScope.Project).WithProjectAndDocument(project, document: null);
+
+#endif
+
+        private static async Task<Solution> FixAllInProjectsAsync(
+            FixAllContext originalFixAllContext,
+            ImmutableArray<FixAllContext> fixAllContexts)
         {
-            var cancellationToken = fixAllContext.CancellationToken;
-            var progressTracker = fixAllContext.GetProgressTracker();
-            progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
+            var cancellationToken = originalFixAllContext.CancellationToken;
+            var progressTracker = originalFixAllContext.GetProgressTracker();
+            progressTracker.Description = FixAllContextHelper.GetDefaultFixAllTitle(originalFixAllContext);
 
-            var solution = fixAllContext.Solution;
-
-            // We have 2*P + 1 pieces of work.  Computing diagnostics and fixes/changes per project, and then one pass
+            // We have 2*P + 1 pieces of work.  Computing diagnostics and fixes/changes per context, and then one pass
             // applying fixes.
-            progressTracker.AddItems(projectIds.Length * 2 + 1);
+            progressTracker.AddItems(fixAllContexts.Length * 2 + 1);
 
             // Mapping from document to the cumulative text changes created for that document.
             var docIdToIntervalTree = new Dictionary<DocumentId, SimpleIntervalTree<TextChange, TextChangeIntervalIntrospector>>();
 
-            foreach (var projectId in projectIds)
+            foreach (var fixAllContext in fixAllContexts)
             {
-                var project = solution.GetRequiredProject(projectId);
-
                 // First, determine the diagnostics to fix.
-                var documentToDiagnostics = await DetermineDiagnosticsAsync(fixAllContext, project).ConfigureAwait(false);
+                var documentToDiagnostics = await DetermineDiagnosticsAsync(fixAllContext).ConfigureAwait(false);
 
                 // Second, process all those diagnostics, merging the cumulative set of text changes per document into docIdToIntervalTree.
                 await AddDocumentChangesAsync(fixAllContext, docIdToIntervalTree, documentToDiagnostics).ConfigureAwait(false);
@@ -135,12 +138,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, Project project)
+        private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext)
         {
             var progressTracker = fixAllContext.GetProgressTracker();
             using var _ = progressTracker.ItemCompletedScope();
 
-            progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Computing_diagnostics, project.Name);
+            progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Computing_diagnostics, fixAllContext.Project.Name);
 
             // If this is a FixMultipleDiagnosticProvider we already have the diagnostics.  Just filter down to those from this project.
             if (fixAllContext.State.DiagnosticProvider is FixAllState.FixMultipleDiagnosticProvider fixMultipleDiagnosticProvider)
@@ -156,9 +159,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
                     fixAllContext.CancellationToken))
             {
-                // Create a project-scoped context as we only want the diagnostics from that.
-                var newContext = fixAllContext.WithScope(FixAllScope.Project).WithProjectAndDocument(project, document: null);
-                return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(newContext).ConfigureAwait(false);
+                return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
             }
         }
 
