@@ -90,9 +90,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         /// <summary>
-        /// All fix-alls funnel into this method.  For doc-fix-all or project-fix-all call into this with just their
-        /// single <see cref="FixAllContext"/> in <paramref name="fixAllContexts"/>.  For solution-fix-all, <paramref
-        /// name="fixAllContexts"/> will contain a context for each project in the solution.
+        /// All fix-alls funnel into this method.  For doc-fix-all or project-fix-all, both call into this with just
+        /// their single <see cref="FixAllContext"/> in <paramref name="fixAllContexts"/>.  For solution-fix-all,
+        /// <paramref name="fixAllContexts"/> will contain a context for each project in the solution.
         /// </summary>
         private async Task<Solution> FixAllContextsAsync(
             FixAllContext originalFixAllContext,
