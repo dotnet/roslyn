@@ -109,57 +109,49 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // We have 3 pieces of work per project.  Computing diagnostics, computing fixes, and applying fixes.
             progressTracker.AddItems(projectIds.Length * 3);
 
-            using var _ = PooledDictionary<DocumentId, SyntaxNode>.GetInstance(out var docIdToNewRoot);
-
             var currentSolution = solution;
             foreach (var projectId in projectIds)
             {
-                // Clear out the temporary state.
-                docIdToNewRoot.Clear();
-
                 var project = solution.GetRequiredProject(projectId);
 
                 // First, determine the diagnostics to fix.
-                ImmutableArray<Diagnostic> diagnostics;
-                using (progressTracker.ItemCompletedScope())
-                {
-                    progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Computing_diagnostics, project.Name);
-                    diagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
-                }
+                var diagnostics = await DetermineDiagnosticsAsync(fixAllContext, project).ConfigureAwait(false);
 
                 // Second, get the fixes for all the diagnostics.
-                using (progressTracker.ItemCompletedScope())
-                {
-                    // Then, once we've got the diagnostics, compute the fixes for all of them in parallel to all the
-                    // affected documents in this project.
-                    progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Computing_fixes, project.Name);
-                    await AddDocumentFixesAsync(fixAllContext, diagnostics, docIdToNewRoot).ConfigureAwait(false);
-                }
+                var docIdToNewRoot = await GetDocumentFixesAsync(fixAllContext, project, diagnostics).ConfigureAwait(false);
 
                 // Third, apply all the fixes to the solution.  This can actually be significant work as we need to
                 // cleanup the documents.
-                using (progressTracker.ItemCompletedScope())
-                {
-                    // Then, once we've got the diagnostics, compute and apply the fixes for all in parallel to all the
-                    // affected documents in this project.
-                    progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Applying_fixes, project.Name);
-                    currentSolution = await ApplyChangesAsync(currentSolution, docIdToNewRoot, cancellationToken).ConfigureAwait(false);
-                }
+                currentSolution = await ApplyChangesAsync(fixAllContext, currentSolution, project, docIdToNewRoot, cancellationToken).ConfigureAwait(false);
             }
 
             return currentSolution;
         }
 
-        private async Task AddDocumentFixesAsync(
-            FixAllContext fixAllContext,
-            ImmutableArray<Diagnostic> diagnostics,
-            PooledDictionary<DocumentId, SyntaxNode> docIdToNewRoot)
+        private static async Task<ImmutableArray<Diagnostic>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, Project project)
         {
+            var progressTracker = fixAllContext.GetProgressTracker();
+            using var _ = progressTracker.ItemCompletedScope();
+
+            progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Computing_diagnostics, project.Name);
+            return await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
+        }
+
+        private async Task<Dictionary<DocumentId, SyntaxNode>> GetDocumentFixesAsync(
+            FixAllContext fixAllContext, Project project, ImmutableArray<Diagnostic> diagnostics)
+        {
+            var progressTracker = fixAllContext.GetProgressTracker();
+            using var _1 = progressTracker.ItemCompletedScope();
+
+            // Then, once we've got the diagnostics, compute the fixes for all of them in parallel to all the
+            // affected documents in this project.
+            progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Computing_fixes, project.Name);
+
             var cancellationToken = fixAllContext.CancellationToken;
 
             var solution = fixAllContext.Solution;
 
-            using var _ = ArrayBuilder<Task<(DocumentId, SyntaxNode)>>.GetInstance(out var tasks);
+            using var _2 = ArrayBuilder<Task<(DocumentId, SyntaxNode)>>.GetInstance(out var tasks);
             foreach (var group in diagnostics.Where(d => d.Location.IsInSource).GroupBy(d => d.Location.SourceTree))
             {
                 var tree = group.Key;
@@ -181,19 +173,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
+            var docIdToNewRoot = new Dictionary<DocumentId, SyntaxNode>();
             foreach (var task in tasks)
             {
                 var (docId, newRoot) = await task.ConfigureAwait(false);
                 if (docId != null)
                     docIdToNewRoot[docId] = newRoot;
             }
+
+            return docIdToNewRoot;
         }
 
         private static async Task<Solution> ApplyChangesAsync(
+            FixAllContext fixAllContext,
             Solution currentSolution,
+            Project project,
             Dictionary<DocumentId, SyntaxNode> docIdToNewRoot,
             CancellationToken cancellationToken)
         {
+            var progressTracker = fixAllContext.GetProgressTracker();
+            using var _1 = progressTracker.ItemCompletedScope();
+
+            // Then, once we've got the diagnostics, compute and apply the fixes for all in parallel to all the
+            // affected documents in this project.
+            progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Applying_fixes, project.Name);
+
             // Next, go and insert those all into the solution so all the docs in this particular project point
             // at the new trees.  At this point though, the trees have not been postprocessed/cleaned.
             foreach (var (docId, newRoot) in docIdToNewRoot)
