@@ -84,11 +84,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             //
             // By processing one project at a time, we can also let go of a project once done with it, allowing us to
             // reclaim lots of the memory so we don't overload the system while processing a large solution.
-            var sortedProjectIds = dependencyGraph.GetTopologicallySortedProjects().ToImmutableArray();
+            //
+            // Note: we have to filter down to projects of the same language as the FixAllContext points at a
+            // CodeFixProvider, and we can't call into providers of different languages with diagnostics from a
+            // different language.
+            var sortedProjects = dependencyGraph.GetTopologicallySortedProjects()
+                                                .Select(id => solution.GetRequiredProject(id))
+                                                .Where(p => p.Language == fixAllContext.Project.Language);
             return FixAllContextsAsync(
                 fixAllContext,
-                sortedProjectIds.SelectAsArray(
-                    id => fixAllContext.WithScope(FixAllScope.Project).WithProject(solution.GetRequiredProject(id)).WithDocument(null)));
+                sortedProjects.SelectAsArray(
+                    p => fixAllContext.WithScope(FixAllScope.Project).WithProject(p).WithDocument(null)));
         }
 
         /// <summary>

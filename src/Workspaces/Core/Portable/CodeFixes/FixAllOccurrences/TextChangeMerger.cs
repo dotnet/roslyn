@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
     /// <summary>
-    /// Helpers to merge text changes together into a total set of changes.
+    /// Helper to merge many disparate text changes to a single document together into a total set of changes.
     /// </summary>
     internal class TextChangeMerger
     {
@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public async Task TryMergeChangesAsync(Document newDocument, CancellationToken cancellationToken)
         {
             Debug.Assert(newDocument.Id == _oldDocument.Id);
+
+            cancellationToken.ThrowIfCancellationRequested();
             var currentChanges = await _differenceService.GetTextChangesAsync(
                 _oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
 
@@ -51,6 +53,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 foreach (var change in currentChanges)
                     _totalChangesIntervalTree.AddIntervalInPlace(change);
             }
+        }
+
+        /// <summary>
+        /// Try to merge the changes made to all the documents in <paramref name="newDocuments"/> in order into the
+        /// tracked changes. If there is any conflicting changes with existing changes for a particular document, then
+        /// no changes will be added for it.
+        /// </summary>
+        public async Task TryMergeChangesAsync(ImmutableArray<Document> newDocuments, CancellationToken cancellationToken)
+        {
+            foreach (var newDocument in newDocuments)
+                await TryMergeChangesAsync(newDocument, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<SourceText> GetFinalMergedTextAsync(CancellationToken cancellationToken)

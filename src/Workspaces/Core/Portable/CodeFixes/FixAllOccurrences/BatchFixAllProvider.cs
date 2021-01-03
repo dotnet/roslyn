@@ -279,30 +279,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             using var _ = ArrayBuilder<Task>.GetInstance(out var mergeDocumentChangesTasks);
             foreach (var group in allChangedDocumentsInDiagnosticsOrder.GroupBy(d => d.Id))
             {
-                var currentDocId = group.Key;
+                var docId = group.Key;
                 var allDocChanges = group.ToImmutableArray();
-                var originalDocument = solution.GetRequiredDocument(currentDocId);
 
                 // If we don't have an text merger for this doc yet, create one to keep track of all the changes.
-                if (!docIdToTextMerger.TryGetValue(currentDocId, out var textMerger))
+                if (!docIdToTextMerger.TryGetValue(docId, out var textMerger))
                 {
+                    var originalDocument = solution.GetRequiredDocument(docId);
                     textMerger = new TextChangeMerger(originalDocument);
-                    docIdToTextMerger.Add(currentDocId, textMerger);
+                    docIdToTextMerger.Add(docId, textMerger);
                 }
 
-                // Process all document groups in parallel.
-                mergeDocumentChangesTasks.Add(Task.Run(async () =>
-                {
-                    // For each change produced for this document (ordered by the diagnostic that created it), merge in
-                    // the changes to get the latest cumulative changes.
-                    foreach (var changedDocument in allDocChanges)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        Debug.Assert(changedDocument.Id == originalDocument.Id);
-
-                        await textMerger.TryMergeChangesAsync(changedDocument, cancellationToken).ConfigureAwait(false);
-                    }
-                }, cancellationToken));
+                // Process all document groups in parallel.  For each group, merge all the doc changes into an
+                // aggregated set of changes in the TextChangeMerger type.
+                mergeDocumentChangesTasks.Add(Task.Run(
+                    async () => await textMerger.TryMergeChangesAsync(allDocChanges, cancellationToken).ConfigureAwait(false), cancellationToken));
             }
 
             await Task.WhenAll(mergeDocumentChangesTasks).ConfigureAwait(false);
