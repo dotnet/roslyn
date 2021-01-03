@@ -91,6 +91,54 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         internal bool IsFixMultiple => this.DiagnosticProvider is FixMultipleDiagnosticProvider;
 
+        public FixAllState WithScope(FixAllScope scope)
+        {
+            if (this.Scope == scope)
+                return this;
+
+            return new FixAllState(
+                this.FixAllProvider,
+                this.Document,
+                this.Project,
+                this.CodeFixProvider,
+                scope,
+                this.CodeActionEquivalenceKey,
+                this.DiagnosticIds,
+                this.DiagnosticProvider);
+        }
+
+        public FixAllState WithProject(Project project)
+        {
+            if (this.Project == project)
+                return this;
+
+            return new FixAllState(
+                this.FixAllProvider,
+                this.Document,
+                project,
+                this.CodeFixProvider,
+                this.Scope,
+                this.CodeActionEquivalenceKey,
+                this.DiagnosticIds,
+                this.DiagnosticProvider);
+        }
+
+        public FixAllState WithDocument(Document? document)
+        {
+            if (this.Document == document)
+                return this;
+
+            return new FixAllState(
+                this.FixAllProvider,
+                document,
+                this.Project,
+                this.CodeFixProvider,
+                this.Scope,
+                this.CodeActionEquivalenceKey,
+                this.DiagnosticIds,
+                this.DiagnosticProvider);
+        }
+
         public FixAllState WithScopeAndEquivalenceKey(FixAllScope scope, string? codeActionEquivalenceKey)
         {
             if (this.Scope == scope && this.CodeActionEquivalenceKey == codeActionEquivalenceKey)

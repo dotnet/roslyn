@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             switch (fixAllContext.Scope)
             {
                 case FixAllScope.Document:
+                    Contract.ThrowIfNull(fixAllContext.Document);
                     return Task.FromResult<CodeAction?>(CodeAction.Create(
                         title,
                         c => GetDocumentFixesAsync(fixAllContext.WithCancellationToken(c)),
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 case FixAllScope.Project:
                     return Task.FromResult<CodeAction?>(CodeAction.Create(
                         title,
-                        c => GetProjectFixesAsync(fixAllContext.WithCancellationToken(c), fixAllContext.Project),
+                        c => GetProjectFixesAsync(fixAllContext.WithCancellationToken(c)),
                         nameof(DocumentBasedFixAllProvider)));
 
                 case FixAllScope.Solution:
@@ -60,26 +61,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
 #pragma warning restore RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
 
-        private async Task<Document> GetDocumentFixesAsync(FixAllContext fixAllContext)
-        {
-            RoslynDebug.AssertNotNull(fixAllContext.Document);
+        private Task<Solution> GetDocumentFixesAsync(FixAllContext fixAllContext)
+            => FixAllContextsAsync(
+                fixAllContext,
+                ImmutableArray.Create(fixAllContext));
 
-            var document = fixAllContext.Document;
-            var documentDiagnosticsToFix = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
-            if (!documentDiagnosticsToFix.TryGetValue(document, out var diagnostics))
-                return document;
-
-            var newDoc = await this.FixAllAsync(fixAllContext, document, diagnostics).ConfigureAwait(false);
-            return newDoc ?? document;
-        }
-
-        private Task<Solution> GetProjectFixesAsync(FixAllContext fixAllContext, Project project)
-            => FixAllInSolutionAsync(fixAllContext, ImmutableArray.Create(project.Id));
+        private Task<Solution> GetProjectFixesAsync(FixAllContext fixAllContext)
+            => FixAllContextsAsync(
+                fixAllContext,
+                ImmutableArray.Create(fixAllContext.WithDocument(null)));
 
         private Task<Solution> GetSolutionFixesAsync(FixAllContext fixAllContext)
-            => FixAllInSolutionAsync(fixAllContext);
-
-        private Task<Solution> FixAllInSolutionAsync(FixAllContext fixAllContext)
         {
             var solution = fixAllContext.Solution;
             var dependencyGraph = solution.GetProjectDependencyGraph();
@@ -93,52 +85,58 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // By processing one project at a time, we can also let go of a project once done with it, allowing us to
             // reclaim lots of the memory so we don't overload the system while processing a large solution.
             var sortedProjectIds = dependencyGraph.GetTopologicallySortedProjects().ToImmutableArray();
-            return FixAllInSolutionAsync(fixAllContext, sortedProjectIds);
+            return FixAllContextsAsync(
+                fixAllContext,
+                sortedProjectIds.SelectAsArray(
+                    id => fixAllContext.WithScope(FixAllScope.Project).WithProject(solution.GetRequiredProject(id)).WithDocument(null)));
         }
 
-        private async Task<Solution> FixAllInSolutionAsync(
-            FixAllContext fixAllContext,
-            ImmutableArray<ProjectId> projectIds)
+        private async Task<Solution> FixAllContextsAsync(
+            FixAllContext originalFixAllContext,
+            ImmutableArray<FixAllContext> fixAllContexts)
         {
-            var cancellationToken = fixAllContext.CancellationToken;
-            var progressTracker = fixAllContext.GetProgressTracker();
-            progressTracker.Description = this.GetFixAllTitle(fixAllContext);
+            var progressTracker = originalFixAllContext.GetProgressTracker();
+            progressTracker.Description = this.GetFixAllTitle(originalFixAllContext);
 
-            var solution = fixAllContext.Solution;
+            var solution = originalFixAllContext.Solution;
 
             // We have 3 pieces of work per project.  Computing diagnostics, computing fixes, and applying fixes.
-            progressTracker.AddItems(projectIds.Length * 3);
+            progressTracker.AddItems(fixAllContexts.Length * 3);
 
             var currentSolution = solution;
-            foreach (var projectId in projectIds)
+            foreach (var fixAllContext in fixAllContexts)
             {
-                var project = solution.GetRequiredProject(projectId);
+                Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project);
 
                 // First, determine the diagnostics to fix.
-                var diagnostics = await DetermineDiagnosticsAsync(fixAllContext, project).ConfigureAwait(false);
+                var diagnostics = await DetermineDiagnosticsAsync(fixAllContext).ConfigureAwait(false);
 
                 // Second, get the fixes for all the diagnostics.
-                var docIdToNewRootOrText = await GetDocumentFixesAsync(fixAllContext, project, diagnostics).ConfigureAwait(false);
+                var docIdToNewRootOrText = await GetDocumentFixesAsync(fixAllContext, diagnostics).ConfigureAwait(false);
 
                 // Finally, apply all the fixes to the solution.  This can actually be significant work as we need to
                 // cleanup the documents.
-                currentSolution = await ApplyChangesAsync(fixAllContext, currentSolution, project, docIdToNewRootOrText, cancellationToken).ConfigureAwait(false);
+                currentSolution = await ApplyChangesAsync(fixAllContext, currentSolution, docIdToNewRootOrText).ConfigureAwait(false);
             }
 
             return currentSolution;
         }
 
-        private static async Task<ImmutableArray<Diagnostic>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, Project project)
+        private static async Task<ImmutableArray<Diagnostic>> DetermineDiagnosticsAsync(FixAllContext fixAllContext)
         {
             var progressTracker = fixAllContext.GetProgressTracker();
-            using var _ = progressTracker.ItemCompletedScope();
+            using var _1 = progressTracker.ItemCompletedScope();
 
+            var project = fixAllContext.Project;
             progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Computing_diagnostics, project.Name);
-            return await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
+
+            return fixAllContext.Document != null
+                ? await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false)
+                : await fixAllContext.GetAllDiagnosticsAsync(fixAllContext.Project).ConfigureAwait(false);
         }
 
         private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> GetDocumentFixesAsync(
-            FixAllContext fixAllContext, Project project, ImmutableArray<Diagnostic> diagnostics)
+            FixAllContext fixAllContext, ImmutableArray<Diagnostic> diagnostics)
         {
             var progressTracker = fixAllContext.GetProgressTracker();
             using var _1 = progressTracker.ItemCompletedScope();
@@ -148,6 +146,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 // Then, once we've got the diagnostics, compute the fixes for all of them in parallel to all the
                 // affected documents in this project.
+                var project = fixAllContext.Project;
                 progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Computing_fixes_for_1_diagnostics, project.Name, diagnostics.Length);
 
                 var cancellationToken = fixAllContext.CancellationToken;
@@ -157,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     var tree = group.Key;
                     Contract.ThrowIfNull(tree);
-                    var document = project.Solution.GetRequiredDocument(tree);
+                    var document = fixAllContext.Solution.GetRequiredDocument(tree);
                     var documentDiagnostics = group.ToImmutableArray();
                     if (documentDiagnostics.IsDefaultOrEmpty)
                         continue;
@@ -193,10 +192,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private static async Task<Solution> ApplyChangesAsync(
             FixAllContext fixAllContext,
             Solution currentSolution,
-            Project project,
-            Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)> docIdToNewRootOrText,
-            CancellationToken cancellationToken)
+            Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)> docIdToNewRootOrText)
         {
+            var cancellationToken = fixAllContext.CancellationToken;
             var progressTracker = fixAllContext.GetProgressTracker();
             using var _1 = progressTracker.ItemCompletedScope();
 
@@ -204,6 +202,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 // Then, once we've got the diagnostics, compute and apply the fixes for all in parallel to all the
                 // affected documents in this project.
+                var project = fixAllContext.Project;
                 progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Applying_fixes_to_1_documents, project.Name, docIdToNewRootOrText.Count);
 
                 // Next, go and insert those all into the solution so all the docs in this particular project point at

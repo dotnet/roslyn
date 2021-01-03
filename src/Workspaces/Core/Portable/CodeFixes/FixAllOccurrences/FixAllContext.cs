@@ -232,6 +232,30 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return new FixAllContext(State, this.ProgressTracker, cancellationToken);
         }
 
+        public FixAllContext WithScope(FixAllScope scope)
+        {
+            if (this.Scope == scope)
+                return this;
+
+            return new FixAllContext(State.WithScope(scope), ProgressTracker, CancellationToken);
+        }
+
+        public FixAllContext WithProject(Project project)
+        {
+            if (this.Project == project)
+                return this;
+
+            return new FixAllContext(State.WithProject(project), ProgressTracker, CancellationToken);
+        }
+
+        public FixAllContext WithDocument(Document? document)
+        {
+            if (this.Document == document)
+                return this;
+
+            return new FixAllContext(State.WithDocument(document), ProgressTracker, CancellationToken);
+        }
+
         internal Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync()
             => DiagnosticProvider.GetDocumentDiagnosticsToFixAsync(this);
 
