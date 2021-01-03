@@ -156,4 +156,7 @@
   <data name="_0_Computing_fixes_for_1_diagnostics" xml:space="preserve">
     <value>{0}: Computing fixes for {1} diagnostic(s)</value>
   </data>
+  <data name="_0_Applying_fixes" xml:space="preserve">
+    <value>{0}: Applying fixes</value>
+  </data>
 </root>
