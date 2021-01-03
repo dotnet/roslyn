@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -169,7 +168,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Dictionary<DocumentId, SimpleIntervalTree<TextChange, TextChangeIntervalIntrospector>> docIdToIntervalTree,
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentToDiagnostics)
         {
-            // First, order the diagnostics so we process them in a consistent manner.
+            // First, order the diagnostics so we process them in a consistent manner and get the same results given the
+            // same input solution.
             var orderedDiagnostics = documentToDiagnostics.SelectMany(kvp => kvp.Value)
                                                           .Where(d => d.Location.IsInSource)
                                                           .OrderBy(d => d.Location.SourceTree!.FilePath)
@@ -208,13 +208,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     // Create a context that will add the reported code actions into this
                     using var _2 = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
-                    using var _3 = ArrayBuilder<Document>.GetInstance(out var changedDocuments);
                     var context = new CodeFixContext(document, diagnostic, GetRegisterCodeFixAction(fixAllContext.CodeActionEquivalenceKey, codeActions), cancellationToken);
 
                     // Wait for the all the code actions to be reported for this diagnostic.
                     await (fixAllContext.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask).ConfigureAwait(false);
 
                     // Now, process each code action and find out all the document changes caused by it.
+                    using var _3 = ArrayBuilder<Document>.GetInstance(out var changedDocuments);
+
                     foreach (var codeAction in codeActions)
                     {
                         var changedSolution = await codeAction.GetChangedSolutionInternalAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
