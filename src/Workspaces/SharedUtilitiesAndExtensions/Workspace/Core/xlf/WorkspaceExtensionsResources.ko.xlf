@@ -52,9 +52,9 @@
         <target state="translated">경고: 선언 시 범위가 변경되고 의미가 변경될 수 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_Applying_fixes">
-        <source>{0}: Applying fixes</source>
-        <target state="new">{0}: Applying fixes</target>
+      <trans-unit id="_0_Applying_fixes_to_1_documents">
+        <source>{0}: Applying fixes to {1} document(s)</source>
+        <target state="new">{0}: Applying fixes to {1} document(s)</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_Computing_diagnostics">
@@ -62,9 +62,9 @@
         <target state="new">{0}: Computing diagnostics</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_Computing_fixes">
-        <source>{0}: Computing fixes</source>
-        <target state="new">{0}: Computing fixes</target>
+      <trans-unit id="_0_Computing_fixes_for_1_diagnostics">
+        <source>{0}: Computing fixes for {1} diagnostic(s)</source>
+        <target state="new">{0}: Computing fixes for {1} diagnostic(s)</target>
         <note />
       </trans-unit>
     </body>
