@@ -105,9 +105,6 @@ namespace Microsoft.CodeAnalysis.Utilities
 
         private void OnScopeDisposed(OperationScope scope)
         {
-            if (scope == null)
-                return;
-
             while (true)
             {
                 var oldScopes = _scopes;
