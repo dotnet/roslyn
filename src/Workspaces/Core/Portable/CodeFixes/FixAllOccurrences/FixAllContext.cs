@@ -236,6 +236,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             => DiagnosticProvider.GetDocumentDiagnosticsToFixAsync(this);
 
         internal Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync()
-            => State.DiagnosticProvider.GetProjectDiagnosticsToFixAsync(this);
+            => DiagnosticProvider.GetProjectDiagnosticsToFixAsync(this);
     }
 }

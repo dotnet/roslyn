@@ -52,6 +52,21 @@
         <target state="translated">Upozornění: Deklarace mění rozsah a může změnit význam.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_Applying_fixes_to_1_documents">
+        <source>{0}: Applying fixes to {1} document(s)</source>
+        <target state="new">{0}: Applying fixes to {1} document(s)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_Computing_diagnostics">
+        <source>{0}: Computing diagnostics</source>
+        <target state="new">{0}: Computing diagnostics</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_Computing_fixes_for_1_diagnostics">
+        <source>{0}: Computing fixes for {1} diagnostic(s)</source>
+        <target state="new">{0}: Computing fixes for {1} diagnostic(s)</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
