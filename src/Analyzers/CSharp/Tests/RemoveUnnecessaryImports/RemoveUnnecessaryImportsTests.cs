@@ -199,6 +199,7 @@ class Program
                     Sources = { batchFixedSource },
                     MarkupHandling = MarkupMode.Allow,
                 },
+                NumberOfFixAllIterations = 1,
             }.RunAsync();
         }
 
