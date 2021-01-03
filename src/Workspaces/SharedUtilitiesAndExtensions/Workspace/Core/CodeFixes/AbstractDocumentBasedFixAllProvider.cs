@@ -90,9 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// their single <see cref="FixAllContext"/> in <paramref name="fixAllContexts"/>.  For solution-fix-all,
         /// <paramref name="fixAllContexts"/> will contain a context for each project in the solution.
         /// </summary>
-        private async Task<Solution> FixAllContextsAsync(
-            FixAllContext originalFixAllContext,
-            ImmutableArray<FixAllContext> fixAllContexts)
+        private async Task<Solution> FixAllContextsAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
         {
             var progressTracker = originalFixAllContext.GetProgressTracker();
             progressTracker.Description = this.GetFixAllTitle(originalFixAllContext);
