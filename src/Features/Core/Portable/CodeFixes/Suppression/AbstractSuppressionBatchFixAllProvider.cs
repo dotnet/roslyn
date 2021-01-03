@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     {
         protected AbstractSuppressionBatchFixAllProvider() { }
 
-        #region "AbstractFixAllProvider methods"
-
         public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         {
             if (fixAllContext.Document != null)
@@ -43,8 +41,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 return await GetFixAsync(projectsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
             }
         }
-
-        #endregion
 
         private async Task<CodeAction?> GetFixAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
