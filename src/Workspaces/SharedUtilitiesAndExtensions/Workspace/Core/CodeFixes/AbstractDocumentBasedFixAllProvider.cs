@@ -152,14 +152,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 var cancellationToken = fixAllContext.CancellationToken;
 
-                var solution = fixAllContext.Solution;
-
                 using var _2 = ArrayBuilder<Task<(DocumentId, SyntaxNode)>>.GetInstance(out var tasks);
                 foreach (var group in diagnostics.Where(d => d.Location.IsInSource).GroupBy(d => d.Location.SourceTree))
                 {
                     var tree = group.Key;
                     Contract.ThrowIfNull(tree);
-                    var document = solution.GetRequiredDocument(tree);
+                    var document = project.Solution.GetRequiredDocument(tree);
                     var documentDiagnostics = group.ToImmutableArray();
                     if (documentDiagnostics.IsDefaultOrEmpty)
                         continue;
