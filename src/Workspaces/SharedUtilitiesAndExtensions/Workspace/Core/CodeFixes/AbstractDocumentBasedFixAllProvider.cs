@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var diagnostics = await DetermineDiagnosticsAsync(fixAllContext).ConfigureAwait(false);
 
             // Second, get the fixes for all the diagnostics.
-            var docIdToNewRootOrText = await GetDocumentFixesAsync(fixAllContext, diagnostics).ConfigureAwait(false);
+            var docIdToNewRootOrText = await GetFixedDocumentsAsync(fixAllContext, diagnostics).ConfigureAwait(false);
 
             // Finally, apply all the fixes to the solution.  This can actually be significant work as we need to
             // cleanup the documents.
@@ -132,6 +132,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return currentSolution;
         }
 
+        /// <summary>
+        /// Determines all the diagnostics we should be fixing for the given <paramref name="fixAllContext"/>.
+        /// </summary>
         private static async Task<ImmutableArray<Diagnostic>> DetermineDiagnosticsAsync(FixAllContext fixAllContext)
         {
             var progressTracker = fixAllContext.GetProgressTracker();
@@ -145,7 +148,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 : await fixAllContext.GetAllDiagnosticsAsync(fixAllContext.Project).ConfigureAwait(false);
         }
 
-        private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> GetDocumentFixesAsync(
+        /// <summary>
+        /// Attempts to fix all the provided <paramref name="diagnostics"/> returning, for each updated document, either
+        /// the new syntax root for that document or its new text.  Syntax roots are returned for documents that support
+        /// them, and are used to perform a final cleanup pass for formatting/simplication/etc.  Text is returned for
+        /// documents that don't support syntax.
+        /// </summary>
+        private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> GetFixedDocumentsAsync(
             FixAllContext fixAllContext, ImmutableArray<Diagnostic> diagnostics)
         {
             var cancellationToken = fixAllContext.CancellationToken;
