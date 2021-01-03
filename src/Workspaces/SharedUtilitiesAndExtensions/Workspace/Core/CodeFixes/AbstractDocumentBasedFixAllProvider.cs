@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // Finally, apply all the fixes to the solution.  This can actually be significant work as we need to
             // cleanup the documents.
-            currentSolution = await ApplyChangesAsync(fixAllContext, currentSolution, docIdToNewRootOrText).ConfigureAwait(false);
+            currentSolution = await CleanupAndApplyChangesAsync(fixAllContext, currentSolution, docIdToNewRootOrText).ConfigureAwait(false);
 
             return currentSolution;
         }
@@ -208,7 +208,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return docIdToNewRootOrText;
         }
 
-        private static async Task<Solution> ApplyChangesAsync(
+        /// <summary>
+        /// Take all the fixed documents and format/simplify/clean them up (if the language supports that), and take the
+        /// resultant text and apply it to the solution.  If the language doesn't support cleanup, then just take the
+        /// given text and apply that instead.
+        /// </summary>
+        private static async Task<Solution> CleanupAndApplyChangesAsync(
             FixAllContext fixAllContext,
             Solution currentSolution,
             Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)> docIdToNewRootOrText)
@@ -228,18 +233,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     : string.Format(WorkspaceExtensionsResources._0_Applying_fixes_to_1_documents, fixAllContext.Project.Name, docIdToNewRootOrText.Count);
 
                 // Next, go and insert those all into the solution so all the docs in this particular project point at
-                // the new trees (or text).  At this point though, the trees have not been postprocessed/cleaned.
+                // the new trees (or text).  At this point though, the trees have not been cleaned up.
                 foreach (var (docId, (newRoot, newText)) in docIdToNewRootOrText)
                 {
-                    if (newRoot != null)
-                    {
-                        currentSolution = currentSolution.WithDocumentSyntaxRoot(docId, newRoot);
-                    }
-                    else
-                    {
-                        Contract.ThrowIfNull(newText);
-                        currentSolution = currentSolution.WithDocumentText(docId, newText);
-                    }
+                    currentSolution = newRoot != null
+                        ? currentSolution.WithDocumentSyntaxRoot(docId, newRoot)
+                        : currentSolution.WithDocumentText(docId, newText);
                 }
 
                 // Next, go and cleanup any trees we inserted.  We do this in bulk so we can benefit from sharing a
@@ -248,6 +247,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 // Also, once we clean the document, we get the text of it and insert that back into the final solution.
                 // This way we can release both the original fixed tree, and the cleaned tree (both of which can be much
                 // more expensive than just text).
+                //
+                // Do this in parallel across all the documents that were fixed.
                 foreach (var (docId, (newRoot, _)) in docIdToNewRootOrText)
                 {
                     if (newRoot != null)
@@ -264,6 +265,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 await Task.WhenAll(cleanupTasks).ConfigureAwait(false);
 
+                // Finally, apply the cleaned documents to the solution.
                 foreach (var task in cleanupTasks)
                 {
                     var (docId, cleanedText) = await task.ConfigureAwait(false);
