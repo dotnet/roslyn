@@ -26,55 +26,42 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         public static readonly FixAllProvider Instance = new BatchFixAllProvider();
 
-        private BatchFixAllProvider() { }
-
-#pragma warning disable RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
-
-        public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+        private BatchFixAllProvider()
         {
-            Contract.ThrowIfNull(fixAllContext.Document);
-            var title = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
-
-            switch (fixAllContext.Scope)
-            {
-                case FixAllScope.Document:
-                    Contract.ThrowIfNull(fixAllContext.Document);
-                    return Task.FromResult<CodeAction?>(CodeAction.Create(
-                        title,
-                        c => GetDocumentFixesAsync(fixAllContext.WithCancellationToken(c)),
-                        nameof(BatchFixAllProvider)));
-
-                case FixAllScope.Project:
-                    return Task.FromResult<CodeAction?>(CodeAction.Create(
-                        title,
-                        c => GetProjectFixesAsync(fixAllContext.WithCancellationToken(c)),
-                        nameof(BatchFixAllProvider)));
-
-                case FixAllScope.Solution:
-                    return Task.FromResult<CodeAction?>(CodeAction.Create(
-                        title,
-                        c => GetSolutionFixesAsync(fixAllContext.WithCancellationToken(c)),
-                        nameof(BatchFixAllProvider)));
-
-                case FixAllScope.Custom:
-                default:
-                    return Task.FromResult<CodeAction?>(null);
-            }
         }
 
-#pragma warning restore RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
+        public sealed override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+        {
+            Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.Solution);
+            Contract.ThrowIfNull(fixAllContext.Document);
 
-        private static Task<Solution> GetDocumentFixesAsync(FixAllContext fixAllContext)
+            var solution = fixAllContext.Scope switch
+            {
+                FixAllScope.Document => await GetDocumentFixesAsync(fixAllContext).ConfigureAwait(false),
+                FixAllScope.Project => await GetProjectFixesAsync(fixAllContext).ConfigureAwait(false),
+                FixAllScope.Solution => await GetSolutionFixesAsync(fixAllContext).ConfigureAwait(false),
+                _ => throw ExceptionUtilities.UnexpectedValue(fixAllContext.Scope),
+            };
+
+            if (solution == null)
+                return null;
+
+            return new CodeAction.SolutionChangeAction(
+                FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext),
+                c => Task.FromResult(solution));
+        }
+
+        private static Task<Solution?> GetDocumentFixesAsync(FixAllContext fixAllContext)
             => FixAllContextsAsync(
                 fixAllContext,
                 ImmutableArray.Create(fixAllContext));
 
-        private static Task<Solution> GetProjectFixesAsync(FixAllContext fixAllContext)
+        private static Task<Solution?> GetProjectFixesAsync(FixAllContext fixAllContext)
             => FixAllContextsAsync(
                 fixAllContext,
                 ImmutableArray.Create(fixAllContext.WithDocument(null)));
 
-        private static Task<Solution> GetSolutionFixesAsync(FixAllContext fixAllContext)
+        private static Task<Solution?> GetSolutionFixesAsync(FixAllContext fixAllContext)
         {
             var solution = fixAllContext.Solution;
             var dependencyGraph = solution.GetProjectDependencyGraph();
@@ -87,11 +74,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             //
             // By processing one project at a time, we can also let go of a project once done with it, allowing us to
             // reclaim lots of the memory so we don't overload the system while processing a large solution.
-            var sortedProjectIds = dependencyGraph.GetTopologicallySortedProjects().ToImmutableArray();
+            //
+            // Note: we have to filter down to projects of the same language as the FixAllContext points at a
+            // CodeFixProvider, and we can't call into providers of different languages with diagnostics from a
+            // different language.
+            var sortedProjects = dependencyGraph.GetTopologicallySortedProjects()
+                                                .Select(id => solution.GetRequiredProject(id))
+                                                .Where(p => p.Language == fixAllContext.Project.Language);
             return FixAllContextsAsync(
                 fixAllContext,
-                sortedProjectIds.SelectAsArray(
-                    id => fixAllContext.WithScope(FixAllScope.Project).WithProject(solution.GetRequiredProject(id)).WithDocument(null)));
+                sortedProjects.SelectAsArray(
+                    p => fixAllContext.WithScope(FixAllScope.Project).WithProject(p).WithDocument(null)));
         }
 
         /// <summary>
@@ -99,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// single <see cref="FixAllContext"/> in <paramref name="fixAllContexts"/>.  For solution-fix-all, <paramref
         /// name="fixAllContexts"/> will contain a context for each project in the solution.
         /// </summary>
-        private static async Task<Solution> FixAllContextsAsync(
+        private static async Task<Solution?> FixAllContextsAsync(
             FixAllContext originalFixAllContext,
             ImmutableArray<FixAllContext> fixAllContexts)
         {
@@ -127,6 +120,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             progressTracker.Description = WorkspaceExtensionsResources.Applying_fix_all;
             using (progressTracker.ItemCompletedScope())
             {
+                if (docIdToTextMerger.Count == 0)
+                    return null;
+
                 var currentSolution = originalFixAllContext.Solution;
                 foreach (var group in docIdToTextMerger.GroupBy(kvp => kvp.Key.ProjectId))
                     currentSolution = await ApplyChangesAsync(currentSolution, group.SelectAsArray(kvp => (kvp.Key, kvp.Value)), cancellationToken).ConfigureAwait(false);
