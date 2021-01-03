@@ -6,3 +6,17 @@ Microsoft.CodeAnalysis.Solution.GetSourceGeneratedDocumentAsync(Microsoft.CodeAn
 Microsoft.CodeAnalysis.SourceGeneratedDocument
 Microsoft.CodeAnalysis.SourceGeneratedDocument.HintName.get -> string
 Microsoft.CodeAnalysis.SourceGeneratedDocument.SourceGenerator.get -> Microsoft.CodeAnalysis.ISourceGenerator
+Microsoft.CodeAnalysis.Utilities.IOperationContext
+Microsoft.CodeAnalysis.Utilities.IOperationContext.AddScope(string description) -> Microsoft.CodeAnalysis.Utilities.IOperationScope
+Microsoft.CodeAnalysis.Utilities.IOperationContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.Utilities.IOperationContext.Description.get -> string
+Microsoft.CodeAnalysis.Utilities.IOperationContext.Scopes.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Utilities.IOperationScope>
+Microsoft.CodeAnalysis.Utilities.IOperationScope
+Microsoft.CodeAnalysis.Utilities.IOperationScope.Description.get -> string
+Microsoft.CodeAnalysis.Utilities.IOperationScope.Description.set -> void
+Microsoft.CodeAnalysis.Utilities.IOperationScope.Progress.get -> System.IProgress<Microsoft.CodeAnalysis.Utilities.ProgressInfo>
+Microsoft.CodeAnalysis.Utilities.ProgressInfo
+Microsoft.CodeAnalysis.Utilities.ProgressInfo.CompletedItems.get -> int
+Microsoft.CodeAnalysis.Utilities.ProgressInfo.ProgressInfo() -> void
+Microsoft.CodeAnalysis.Utilities.ProgressInfo.ProgressInfo(int completedItems, int totalItems) -> void
+Microsoft.CodeAnalysis.Utilities.ProgressInfo.TotalItems.get -> int

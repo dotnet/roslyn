@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         /// </summary>
         public IOperationScope AddScope(string description)
         {
-            var scope = new OperationScope(description, this);
+            var scope = new OperationScope(this, description);
 
             while (true)
             {
@@ -129,15 +129,15 @@ namespace Microsoft.CodeAnalysis.Utilities
             private int _completedItems;
             private int _totalItems;
 
-            public OperationScope(string description, AbstractOperationContext context)
+            public OperationScope(AbstractOperationContext context, string description)
             {
-                _context = context ?? throw new ArgumentNullException(nameof(context));
-                this.Description = description ?? "";
+                _context = context;
+                _description = description ?? "";
             }
 
             public string Description
             {
-                get { return _description; }
+                get => _description;
                 set
                 {
                     if (!string.Equals(_description, value, StringComparison.Ordinal))
