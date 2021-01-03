@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
     internal static class IProgressTrackerExtensions
     {
+        /// <summary>
+        /// Opens a scope that will call <see cref="IProgressTracker.ItemCompleted"/> on <paramref name="tracker"/> once
+        /// disposed. This is useful to easily wrap a series of operations and now that progress will be reported no
+        /// matter how it completes.
+        /// </summary>
         public static ItemCompletedDisposer ItemCompletedScope(this IProgressTracker tracker)
         {
             return new ItemCompletedDisposer(tracker);

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             protected override string GetFixAllTitle(FixAllContext fixAllContext)
                 => FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
 
-            protected override async Task<Document?> FixAllAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics)
+            protected override async Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             {
                 var model = await document.GetRequiredSemanticModelAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
 
