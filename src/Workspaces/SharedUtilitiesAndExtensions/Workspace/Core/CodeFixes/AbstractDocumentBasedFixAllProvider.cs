@@ -26,40 +26,32 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         protected abstract Task<Document?> FixAllAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics);
 
+        public sealed override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
+            => base.GetSupportedFixAllScopes();
+
+        public sealed override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+        {
+            Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.Solution);
+
+            var solution = fixAllContext.Scope switch
+            {
+                FixAllScope.Document => await GetDocumentFixesAsync(fixAllContext).ConfigureAwait(false),
+                FixAllScope.Project => await GetProjectFixesAsync(fixAllContext).ConfigureAwait(false),
+                FixAllScope.Solution => await GetSolutionFixesAsync(fixAllContext).ConfigureAwait(false),
+                _ => throw ExceptionUtilities.UnexpectedValue(fixAllContext.Scope),
+            };
+
+            if (solution == null)
+                return null;
+
 #pragma warning disable RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
 
-        public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
-        {
-            var title = GetFixAllTitle(fixAllContext);
+            return CodeAction.Create(
+                GetFixAllTitle(fixAllContext),
+                c => Task.FromResult(solution));
 
-            switch (fixAllContext.Scope)
-            {
-                case FixAllScope.Document:
-                    Contract.ThrowIfNull(fixAllContext.Document);
-                    return Task.FromResult<CodeAction?>(CodeAction.Create(
-                        title,
-                        c => GetDocumentFixesAsync(fixAllContext.WithCancellationToken(c)),
-                        nameof(DocumentBasedFixAllProvider)));
-
-                case FixAllScope.Project:
-                    return Task.FromResult<CodeAction?>(CodeAction.Create(
-                        title,
-                        c => GetProjectFixesAsync(fixAllContext.WithCancellationToken(c)),
-                        nameof(DocumentBasedFixAllProvider)));
-
-                case FixAllScope.Solution:
-                    return Task.FromResult<CodeAction?>(CodeAction.Create(
-                        title,
-                        c => GetSolutionFixesAsync(fixAllContext.WithCancellationToken(c)),
-                        nameof(DocumentBasedFixAllProvider)));
-
-                case FixAllScope.Custom:
-                default:
-                    return Task.FromResult<CodeAction?>(null);
-            }
+#pragma warning disable RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
         }
-
-#pragma warning restore RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
 
         private Task<Solution> GetDocumentFixesAsync(FixAllContext fixAllContext)
             => FixAllContextsAsync(
