@@ -95,12 +95,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     id => fixAllContext.WithScope(FixAllScope.Project).WithProjectAndDocument(solution.GetRequiredProject(id), document: null)));
         }
 
-#if false
-                // Create a project-scoped context as we only want the diagnostics from that.
-                var newContext = fixAllContext.WithScope(FixAllScope.Project).WithProjectAndDocument(project, document: null);
-
-#endif
-
         private static async Task<Solution> FixAllInProjectsAsync(
             FixAllContext originalFixAllContext,
             ImmutableArray<FixAllContext> fixAllContexts)
@@ -130,9 +124,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             progressTracker.Description = WorkspaceExtensionsResources.Applying_fix_all;
             using (progressTracker.ItemCompletedScope())
             {
-                var currentSolution = solution;
-                foreach (var projectId in projectIds)
-                    currentSolution = await ApplyChangesAsync(currentSolution, projectId, docIdToIntervalTree, cancellationToken).ConfigureAwait(false);
+                var currentSolution = originalFixAllContext.Solution;
+                foreach (var group in docIdToIntervalTree.GroupBy(kvp => kvp.Key.ProjectId))
+                    currentSolution = await ApplyChangesAsync(currentSolution, group.SelectAsArray(kvp => (kvp.Key, kvp.Value)), cancellationToken).ConfigureAwait(false);
 
                 return currentSolution;
             }
@@ -143,7 +137,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var progressTracker = fixAllContext.GetProgressTracker();
             using var _ = progressTracker.ItemCompletedScope();
 
-            progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Computing_diagnostics, fixAllContext.Project.Name);
+            var project = fixAllContext.Project;
+            progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Computing_diagnostics, project.Name);
 
             // If this is a FixMultipleDiagnosticProvider we already have the diagnostics.  Just filter down to those from this project.
             if (fixAllContext.State.DiagnosticProvider is FixAllState.FixMultipleDiagnosticProvider fixMultipleDiagnosticProvider)
@@ -155,9 +150,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // Otherwise, compute the fixes explicitly.
             using (Logger.LogBlock(
-                    FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Diagnostics,
-                    FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
-                    fixAllContext.CancellationToken))
+                   FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Diagnostics,
+                   FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
+                   fixAllContext.CancellationToken))
             {
                 return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
             }
@@ -330,10 +325,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static async Task<Solution> ApplyChangesAsync(
-            Solution currentSolution, ProjectId projectId,
-            Dictionary<DocumentId, SimpleIntervalTree<TextChange, TextChangeIntervalIntrospector>> docIdToIntervalTree, CancellationToken cancellationToken)
+            Solution currentSolution,
+            ImmutableArray<(DocumentId, SimpleIntervalTree<TextChange, TextChangeIntervalIntrospector>)> docIdsAndIntervalTrees,
+            CancellationToken cancellationToken)
         {
-            foreach (var (documentId, totalChangesIntervalTree) in docIdToIntervalTree.Where(kvp => kvp.Key.ProjectId == projectId))
+            foreach (var (documentId, totalChangesIntervalTree) in docIdsAndIntervalTrees)
             {
                 // WithChanges requires a ordered list of TextChanges without any overlap.
                 var changesToApply = totalChangesIntervalTree.Distinct().OrderBy(tc => tc.Span.Start);
