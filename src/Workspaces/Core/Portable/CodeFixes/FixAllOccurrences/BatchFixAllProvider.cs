@@ -343,13 +343,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var orderedDocuments = changedDocuments.OrderBy(t => codeActionToDiagnosticLocation[t.action])
                                                    .ThenBy(t => t.action.Title)
-                                                   .ToImmutableArray();
+                                                   .SelectAsArray(t => t.document);
 
             if (orderedDocuments.Length == 1)
             {
                 // Super simple case.  Only one code action changed this document.  Just use
                 // its final result.
-                var document = orderedDocuments[0].document;
+                var document = orderedDocuments[0];
                 var finalText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 documentIdToFinalText.TryAdd(document.Id, finalText);
                 return;
@@ -360,16 +360,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // More complex case.  We have multiple changes to the document.  Apply them in order
             // to get the final document.
 
-            var oldDocument = oldSolution.GetRequiredDocument(orderedDocuments[0].document.Id);
+            var oldDocument = oldSolution.GetRequiredDocument(orderedDocuments[0].Id);
             var textChangeMerger = new TextChangeMerger(oldDocument);
 
-            foreach (var (_, currentDocument) in orderedDocuments)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await textChangeMerger.TryMergeChangesAsync(currentDocument, cancellationToken).ConfigureAwait(false);
-            }
-
+            await textChangeMerger.TryMergeChangesAsync(orderedDocuments, cancellationToken).ConfigureAwait(false);
             var newText = await textChangeMerger.GetFinalMergedTextAsync(cancellationToken).ConfigureAwait(false);
+
             documentIdToFinalText.TryAdd(oldDocument.Id, newText);
         }
 
