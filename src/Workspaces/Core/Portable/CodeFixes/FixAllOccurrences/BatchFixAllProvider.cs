@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -110,9 +109,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // Mapping from document to the cumulative text changes created for that document.
             var docIdToIntervalTree = new Dictionary<DocumentId, SimpleIntervalTree<TextChange, TextChangeIntervalIntrospector>>();
 
+            // Process each context one at a time.
             foreach (var fixAllContext in fixAllContexts)
             {
-                // First, determine the diagnostics to fix.
+                // First, determine the diagnostics to fix for that context.
                 var documentToDiagnostics = await DetermineDiagnosticsAsync(fixAllContext).ConfigureAwait(false);
 
                 // Second, process all those diagnostics, merging the cumulative set of text changes per document into docIdToIntervalTree.
@@ -140,6 +140,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var project = fixAllContext.Project;
             progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Computing_diagnostics, project.Name);
 
+            return await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false);
+
+#if false
+
             // If this is a FixMultipleDiagnosticProvider we already have the diagnostics.  Just filter down to those from this project.
             if (fixAllContext.State.DiagnosticProvider is FixAllState.FixMultipleDiagnosticProvider fixMultipleDiagnosticProvider)
             {
@@ -156,6 +160,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
             }
+
+#endif
         }
 
         private static async Task AddDocumentChangesAsync(
