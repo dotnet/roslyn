@@ -61,9 +61,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 default:
                     return Task.FromResult<CodeAction?>(null);
             }
-
-            var documentsAndDiagnosticsToFixMap = await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false);
-            return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
         }
 
 #pragma warning restore RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
@@ -110,16 +107,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // We have 3 pieces of work per project.  Computing diagnostics, computing fixes, and applying fixes.
             progressTracker.AddItems(projectIds.Length * 3);
 
+            var docIdToIntervalTree = new Dictionary<DocumentId, SimpleIntervalTree<TextChange, TextChangeIntervalIntrospector>>();
+
             var currentSolution = solution;
             foreach (var projectId in projectIds)
             {
                 var project = solution.GetRequiredProject(projectId);
 
                 // First, determine the diagnostics to fix.
-                var diagnostics = await DetermineDiagnosticsAsync(fixAllContext, project).ConfigureAwait(false);
+                var documentToDiagnostics = await DetermineDiagnosticsAsync(fixAllContext, project).ConfigureAwait(false);
 
                 // Second, get the fixes for all the diagnostics.
-                var docIdToNewRoot = await GetDocumentFixesAsync(fixAllContext, project, diagnostics).ConfigureAwait(false);
+                await AddDocumentFixesAsync(fixAllContext, project, docIdToIntervalTree, documentToDiagnostics).ConfigureAwait(false);
 
                 // Finally, apply all the fixes to the solution.  This can actually be significant work as we need to
                 // cleanup the documents.
@@ -128,6 +127,112 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             return currentSolution;
         }
+
+        private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, Project project)
+        {
+            var progressTracker = fixAllContext.GetProgressTracker();
+            using var _ = progressTracker.ItemCompletedScope();
+
+            progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Computing_diagnostics, project.Name);
+
+            // If this is a FixMultipleDiagnosticProvider we already have the diagnostics.  Just filter down to those from this project.
+            if (fixAllContext.State.DiagnosticProvider is FixAllState.FixMultipleDiagnosticProvider fixMultipleDiagnosticProvider)
+            {
+                return fixMultipleDiagnosticProvider.DocumentDiagnosticsMap
+                                                    .Where(kvp => kvp.Key.Project == project)
+                                                    .ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            }
+
+            // Otherwise, compute the fixes explicitly.
+            using (Logger.LogBlock(
+                    FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Diagnostics,
+                    FixAllLogger.CreateCorrelationLogMessage(fixAllContext.State.CorrelationId),
+                    fixAllContext.CancellationToken))
+            {
+                // Create a project-scoped context as we only want the diagnostics from that.
+                var newContext = fixAllContext.WithScope(FixAllScope.Project).WithProjectAndDocument(project, document: null);
+                return await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(newContext).ConfigureAwait(false);
+            }
+        }
+
+        private async Task AddDocumentFixesAsync(
+            FixAllContext fixAllContext,
+            Project project,
+            Dictionary<DocumentId, SimpleIntervalTree<TextChange, TextChangeIntervalIntrospector>> docIdToIntervalTree,
+            ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentToDiagnostics)
+        {
+            var cancellationToken = fixAllContext.CancellationToken;
+            var solution = project.Solution;
+
+            // Order the diagnostics so we process them in a consistent order.
+            var allDiagnostics = documentToDiagnostics.SelectMany(kvp => kvp.Value)
+                                                      .Where(d => d.Location.IsInSource)
+                                                      .OrderBy(d => d.Location.SourceTree!.FilePath)
+                                                      .ThenBy(d => d.Location.SourceSpan.Start)
+                                                      .ToImmutableArray();
+
+            var diagnosticToChangedDocuments = new ConcurrentDictionary<Diagnostic, ImmutableArray<Document>>();
+
+            using var _1 = ArrayBuilder<Task>.GetInstance(out var fixedDocumentsArray);
+
+            foreach (var diagnostic in allDiagnostics)
+            {
+                var document = solution.GetRequiredDocument(diagnostic.Location.SourceTree);
+
+                cancellationToken.ThrowIfCancellationRequested();
+                tasks.Add(Task.Run(() => 
+                {
+                    var codeActions 
+                    var context = new CodeFixContext(document, diagnostic, registerCodeFix, cancellationToken);
+
+                        // TODO: Wrap call to ComputeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
+                        // a buggy extension that throws can't bring down the host?
+                        return fixAllContext.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
+                }, cancellationToken));
+            }
+
+            await Task.WhenAll(fixedDocumentsArray).ConfigureAwait(false);
+
+            using var _3 = ArrayBuilder<Document>.GetInstance(out var allFixedDocuments);
+            foreach (var task in fixedDocumentsArray)
+            {
+                var fixedDocuments = await task.ConfigureAwait(false);
+                allFixedDocuments.AddRange(fixedDocuments);
+            }
+
+            using var _4 = ArrayBuilder<Task>.GetInstance(out var x);
+            foreach (var group in allFixedDocuments.GroupBy(d => d.Id))
+            {
+                var docId = group.Key;
+                var allDocChanges = group.ToImmutableArray();
+
+                if (!docIdToIntervalTree.TryGetValue(docId, out var totalChangesIntervalTree))
+                {
+                    totalChangesIntervalTree = SimpleIntervalTree.Create(new TextChangeIntervalIntrospector(), Array.Empty<TextChange>());
+                    docIdToIntervalTree.Add(docId, totalChangesIntervalTree);
+                }
+
+                x.Add(Task.Run(async () =>
+                {
+                    var oldDocument = oldSolution.GetRequiredDocument(orderedDocuments[0].document.Id);
+                    var differenceService = oldSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
+
+                    foreach (var (_, currentDocument) in orderedDocuments)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        Debug.Assert(currentDocument.Id == oldDocument.Id);
+
+                        await TryAddDocumentMergeChangesAsync(
+                            differenceService,
+                            oldDocument,
+                            currentDocument,
+                            totalChangesIntervalTree,
+                            cancellationToken).ConfigureAwait(false);
+                    }
+                }, cancellationToken));
+            }
+        }
+
 
         private static async Task<CodeAction?> GetFixAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
