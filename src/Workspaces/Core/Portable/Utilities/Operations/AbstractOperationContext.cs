@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         {
         }
 
-        protected void OnScopeDisposed(OperationScope scope)
+        private void OnScopeDisposed(OperationScope scope)
         {
             if (scope == null)
                 return;
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Utilities
             OnScopeInformationChanged();
         }
 
-        protected class OperationScope : IOperationScope, IProgress<ProgressInfo>
+        private class OperationScope : IOperationScope, IProgress<ProgressInfo>
         {
             private readonly AbstractOperationContext _context;
 
