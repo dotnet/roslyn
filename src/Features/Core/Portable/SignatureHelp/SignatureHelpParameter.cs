@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IEnumerable<SymbolDisplayPart> suffixDisplayParts = null,
             IEnumerable<SymbolDisplayPart> selectedDisplayParts = null)
             : this(name, isOptional,
-                  c => documentationFactory(c).ToTaggedText(),
+                  documentationFactory is null ? null : c => documentationFactory(c).ToTaggedText(),
                   displayParts.ToTaggedText(),
                   prefixDisplayParts.ToTaggedText(),
                   suffixDisplayParts.ToTaggedText(),

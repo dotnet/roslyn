@@ -2115,6 +2115,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">'{0}' non può essere Null o uno spazio vuoto.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_dash_1">
+        <source>{0} - {1}</source>
+        <target state="new">{0} - {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">'{0}' non è Null in questo punto.</target>
@@ -2485,6 +2490,11 @@ L'identificatore di formato standard "f" rappresenta una combinazione degli sche
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">overload generici</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="in_0_1_2">
+        <source>in {0} ({1} - {2})</source>
+        <target state="new">in {0} ({1} - {2})</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source_attribute">
