@@ -51,14 +51,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private Task<Solution?> GetDocumentFixesAsync(FixAllContext fixAllContext)
-            => FixAllContextsAsync(
-                fixAllContext,
-                ImmutableArray.Create(fixAllContext));
+            => FixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext));
 
         private Task<Solution?> GetProjectFixesAsync(FixAllContext fixAllContext)
-            => FixAllContextsAsync(
-                fixAllContext,
-                ImmutableArray.Create(fixAllContext.WithDocument(null)));
+            => FixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext.WithDocument(null)));
 
         private Task<Solution?> GetSolutionFixesAsync(FixAllContext fixAllContext)
         {

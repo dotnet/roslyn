@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         protected abstract string CodeActionTitle { get; }
 
-        protected override string GetFixAllTitle(FixAllContext fixAllContext)
+        protected sealed override string GetFixAllTitle(FixAllContext fixAllContext)
             => CodeActionTitle;
 
-        protected override async Task<Document?> FixAllAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics)
+        protected sealed override async Task<Document?> FixAllAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics)
         {
             // if we didn't get a new root back, just return null to indicate we had no work to do here.
             var newRoot = await this.FixAllInDocumentAsync(context, document, diagnostics).ConfigureAwait(false);

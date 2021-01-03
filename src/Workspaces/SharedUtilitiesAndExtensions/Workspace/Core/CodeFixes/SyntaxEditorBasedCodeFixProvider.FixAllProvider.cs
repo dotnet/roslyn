@@ -26,10 +26,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             protected override string GetFixAllTitle(FixAllContext fixAllContext)
                 => FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
 
-            protected override async Task<Document?> FixAllAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics)
+            protected override async Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             {
-                var cancellationToken = context.CancellationToken;
-                var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var model = await document.GetRequiredSemanticModelAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
 
                 // Ensure that diagnostics for this document are always in document location
                 // order.  This provides a consistent and deterministic order for fixers
@@ -37,14 +36,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 // Also ensure that we do not pass in duplicates by invoking Distinct.
                 // See https://github.com/dotnet/roslyn/issues/31381, that seems to be causing duplicate diagnostics.
                 var filteredDiagnostics = diagnostics.Distinct()
-                                                     .WhereAsArray(d => _codeFixProvider.IncludeDiagnosticDuringFixAll(d, document, model, context.CodeActionEquivalenceKey, cancellationToken))
+                                                     .WhereAsArray(d => _codeFixProvider.IncludeDiagnosticDuringFixAll(d, document, model, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken))
                                                      .Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
 
                 // PERF: Do not invoke FixAllAsync on the code fix provider if there are no diagnostics to be fixed.
                 if (filteredDiagnostics.Length == 0)
+                {
                     return document;
+                }
 
-                return await _codeFixProvider.FixAllAsync(document, filteredDiagnostics, cancellationToken).ConfigureAwait(false);
+                return await _codeFixProvider.FixAllAsync(document, filteredDiagnostics, fixAllContext.CancellationToken).ConfigureAwait(false);
             }
         }
     }
