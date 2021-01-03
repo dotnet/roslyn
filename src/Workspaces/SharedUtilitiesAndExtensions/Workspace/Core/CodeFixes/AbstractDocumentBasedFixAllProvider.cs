@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private static async Task<ImmutableArray<Diagnostic>> DetermineDiagnosticsAsync(FixAllContext fixAllContext)
         {
             var progressTracker = fixAllContext.GetProgressTracker();
-            using var _1 = progressTracker.ItemCompletedScope();
+            using var _ = progressTracker.ItemCompletedScope();
 
             var name = fixAllContext.Document?.Name ?? fixAllContext.Project.Name;
             progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Computing_diagnostics, name);
@@ -150,8 +150,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private async Task<Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>> GetDocumentFixesAsync(
             FixAllContext fixAllContext, ImmutableArray<Diagnostic> diagnostics)
         {
+            var cancellationToken = fixAllContext.CancellationToken;
             var progressTracker = fixAllContext.GetProgressTracker();
+
             using var _1 = progressTracker.ItemCompletedScope();
+            using var _2 = ArrayBuilder<Task<(DocumentId, (SyntaxNode? node, SourceText? text))>>.GetInstance(out var tasks);
 
             var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
             if (!diagnostics.IsEmpty)
@@ -161,9 +164,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var name = fixAllContext.Document?.Name ?? fixAllContext.Project.Name;
                 progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Computing_fixes_for_1_diagnostics, name, diagnostics.Length);
 
-                var cancellationToken = fixAllContext.CancellationToken;
-
-                using var _2 = ArrayBuilder<Task<(DocumentId, (SyntaxNode? node, SourceText? text))>>.GetInstance(out var tasks);
                 foreach (var group in diagnostics.Where(d => d.Location.IsInSource).GroupBy(d => d.Location.SourceTree))
                 {
                     var tree = group.Key;
@@ -208,7 +208,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var cancellationToken = fixAllContext.CancellationToken;
             var progressTracker = fixAllContext.GetProgressTracker();
+
             using var _1 = progressTracker.ItemCompletedScope();
+            using var _2 = ArrayBuilder<Task<(DocumentId docId, SourceText sourceText)>>.GetInstance(out var cleanupTasks);
 
             if (docIdToNewRootOrText.Count > 0)
             {
@@ -239,8 +241,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 // Also, once we clean the document, we get the text of it and insert that back into the final solution.
                 // This way we can release both the original fixed tree, and the cleaned tree (both of which can be much
                 // more expensive than just text).
-                using var _2 = ArrayBuilder<Task<(DocumentId docId, SourceText sourceText)>>.GetInstance(out var cleanupTasks);
-
                 foreach (var (docId, (newRoot, _)) in docIdToNewRootOrText)
                 {
                     if (newRoot != null)
