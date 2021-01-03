@@ -92,65 +92,45 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         internal bool IsFixMultiple => this.DiagnosticProvider is FixMultipleDiagnosticProvider;
 
         public FixAllState WithScope(FixAllScope scope)
-        {
-            if (this.Scope == scope)
-                return this;
+            => this.With(scope: scope);
 
-            return new FixAllState(
-                this.FixAllProvider,
-                this.Document,
-                this.Project,
-                this.CodeFixProvider,
-                scope,
-                this.CodeActionEquivalenceKey,
-                this.DiagnosticIds,
-                this.DiagnosticProvider);
-        }
+        public FixAllState WithCodeActionEquivalenceKey(string codeActionEquivalenceKey)
+            => this.With(codeActionEquivalenceKey: codeActionEquivalenceKey);
 
         public FixAllState WithProject(Project project)
-        {
-            if (this.Project == project)
-                return this;
-
-            return new FixAllState(
-                this.FixAllProvider,
-                this.Document,
-                project,
-                this.CodeFixProvider,
-                this.Scope,
-                this.CodeActionEquivalenceKey,
-                this.DiagnosticIds,
-                this.DiagnosticProvider);
-        }
+            => this.With(project: project);
 
         public FixAllState WithDocument(Document? document)
-        {
-            if (this.Document == document)
-                return this;
+            => this.With(document: document);
 
-            return new FixAllState(
-                this.FixAllProvider,
-                document,
-                this.Project,
-                this.CodeFixProvider,
-                this.Scope,
-                this.CodeActionEquivalenceKey,
-                this.DiagnosticIds,
-                this.DiagnosticProvider);
-        }
-
-        public FixAllState WithScopeAndEquivalenceKey(FixAllScope scope, string? codeActionEquivalenceKey)
+        public FixAllState With(
+            Optional<Document?> document = default,
+            Optional<Project> project = default,
+            Optional<FixAllScope> scope = default,
+            Optional<string?> codeActionEquivalenceKey = default)
         {
-            if (this.Scope == scope && this.CodeActionEquivalenceKey == codeActionEquivalenceKey)
+            var newDocument = document.HasValue ? document.Value : this.Document;
+            var newProject = project.HasValue ? project.Value : this.Project;
+            var newScope = scope.HasValue ? scope.Value : this.Scope;
+            var newCodeActionEquivalenceKey = codeActionEquivalenceKey.HasValue ? codeActionEquivalenceKey.Value : this.CodeActionEquivalenceKey;
+
+            if (newDocument == this.Document &&
+                newProject == this.Project &&
+                newScope == this.Scope &&
+                newCodeActionEquivalenceKey == this.CodeActionEquivalenceKey)
             {
                 return this;
             }
 
             return new FixAllState(
                 this.FixAllProvider,
-                this.Document, this.Project, this.CodeFixProvider,
-                scope, codeActionEquivalenceKey,
-                this.DiagnosticIds, this.DiagnosticProvider);
+                newDocument,
+                newProject,
+                this.CodeFixProvider,
+                newScope,
+                newCodeActionEquivalenceKey,
+                this.DiagnosticIds,
+                this.DiagnosticProvider);
         }
 
         #region FixMultiple
