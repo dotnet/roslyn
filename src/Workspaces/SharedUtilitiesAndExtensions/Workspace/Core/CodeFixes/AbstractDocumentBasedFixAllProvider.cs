@@ -125,16 +125,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return currentSolution;
         }
 
+        private static string GetName(FixAllContext fixAllContext)
+            => fixAllContext.Document?.Name ?? fixAllContext.Project.Name;
+
         /// <summary>
         /// Determines all the diagnostics we should be fixing for the given <paramref name="fixAllContext"/>.
         /// </summary>
         private static async Task<ImmutableArray<Diagnostic>> DetermineDiagnosticsAsync(FixAllContext fixAllContext)
         {
             var progressTracker = fixAllContext.GetProgressTracker();
-            using var _ = progressTracker.ItemCompletedScope();
-
-            var name = fixAllContext.Document?.Name ?? fixAllContext.Project.Name;
-            progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Computing_diagnostics, name);
+            using var _ = progressTracker.ItemCompletedScope(string.Format(WorkspaceExtensionsResources._0_Computing_diagnostics, GetName(fixAllContext)));
 
             return fixAllContext.Document != null
                 ? await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false)
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var cancellationToken = fixAllContext.CancellationToken;
             var progressTracker = fixAllContext.GetProgressTracker();
 
-            using var _1 = progressTracker.ItemCompletedScope();
+            using var _1 = progressTracker.ItemCompletedScope(string.Format(WorkspaceExtensionsResources._0_Computing_fixes_for_1_diagnostics, GetName(fixAllContext), diagnostics.Length));
             using var _2 = ArrayBuilder<Task<(DocumentId, (SyntaxNode? node, SourceText? text))>>.GetInstance(out var tasks);
 
             var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
@@ -161,9 +161,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 // Then, once we've got the diagnostics, bucket them by document and the process all documents in
                 // parallel to get the change for each doc.
-                var name = fixAllContext.Document?.Name ?? fixAllContext.Project.Name;
-                progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Computing_fixes_for_1_diagnostics, name, diagnostics.Length);
-
                 foreach (var group in diagnostics.Where(d => d.Location.IsInSource).GroupBy(d => d.Location.SourceTree))
                 {
                     var tree = group.Key;
@@ -214,17 +211,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var cancellationToken = fixAllContext.CancellationToken;
             var progressTracker = fixAllContext.GetProgressTracker();
 
-            using var _1 = progressTracker.ItemCompletedScope();
-            using var _2 = ArrayBuilder<Task<(DocumentId docId, SourceText sourceText)>>.GetInstance(out var cleanupTasks);
+            var description = fixAllContext.Document != null
+                    ? string.Format(WorkspaceExtensionsResources._0_Applying_fixes, GetName(fixAllContext))
+                    : string.Format(WorkspaceExtensionsResources._0_Applying_fixes_to_1_documents, GetName(fixAllContext), docIdToNewRootOrText.Count);
+
+            using var _1 = progressTracker.ItemCompletedScope(description);
 
             if (docIdToNewRootOrText.Count > 0)
             {
-                // Then, once we've got the diagnostics, compute and apply the fixes for all in parallel to all the
-                // affected documents in this project.
-                progressTracker.Description = fixAllContext.Document != null
-                    ? string.Format(WorkspaceExtensionsResources._0_Applying_fixes, fixAllContext.Document.Name)
-                    : string.Format(WorkspaceExtensionsResources._0_Applying_fixes_to_1_documents, fixAllContext.Project.Name, docIdToNewRootOrText.Count);
-
                 // Next, go and insert those all into the solution so all the docs in this particular project point at
                 // the new trees (or text).  At this point though, the trees have not been cleaned up.  We don't cleanup
                 // the documents as they are created, or one at a time as we add them, as that would cause us to run
@@ -235,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     currentSolution = newRoot != null
                         ? currentSolution.WithDocumentSyntaxRoot(docId, newRoot)
-                        : currentSolution.WithDocumentText(docId, newText);
+                        : currentSolution.WithDocumentText(docId, newText!);
                 }
 
                 // Next, go and cleanup any trees we inserted. Once we clean the document, we get the text of it and
@@ -243,12 +237,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 // the cleaned tree (both of which can be much more expensive than just text).
                 //
                 // Do this in parallel across all the documents that were fixed.
+                using var _2 = ArrayBuilder<Task<(DocumentId docId, SourceText sourceText)>>.GetInstance(out var tasks);
+
                 foreach (var (docId, (newRoot, _)) in docIdToNewRootOrText)
                 {
                     if (newRoot != null)
                     {
                         var dirtyDocument = currentSolution.GetRequiredDocument(docId);
-                        cleanupTasks.Add(Task.Run(async () =>
+                        tasks.Add(Task.Run(async () =>
                         {
                             var cleanedDocument = await PostProcessCodeAction.Instance.PostProcessChangesAsync(dirtyDocument, cancellationToken).ConfigureAwait(false);
                             var cleanedText = await cleanedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -257,10 +253,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     }
                 }
 
-                await Task.WhenAll(cleanupTasks).ConfigureAwait(false);
+                await Task.WhenAll(tasks).ConfigureAwait(false);
 
                 // Finally, apply the cleaned documents to the solution.
-                foreach (var task in cleanupTasks)
+                foreach (var task in tasks)
                 {
                     var (docId, cleanedText) = await task.ConfigureAwait(false);
                     currentSolution = currentSolution.WithDocumentText(docId, cleanedText);
