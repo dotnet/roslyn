@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Utilities
             while (true)
             {
                 var oldScopes = _scopes;
-                var newScopes = oldScopes == null ? ImmutableList.Create<OperationScope>(scope) : oldScopes.Add(scope);
+                var newScopes = oldScopes.Add(scope);
 
                 var currentScopes = Interlocked.CompareExchange(ref _scopes, newScopes, oldScopes);
                 if (currentScopes == oldScopes)
