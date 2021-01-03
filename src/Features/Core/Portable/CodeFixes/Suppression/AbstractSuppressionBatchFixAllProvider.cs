@@ -354,30 +354,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             // More complex case.  We have multiple changes to the document.  Apply them in order
             // to get the final document.
 
-            var totalChangesIntervalTree = SimpleIntervalTree.Create(new TextChangeMerger.IntervalIntrospector(), Array.Empty<TextChange>());
-
             var oldDocument = oldSolution.GetRequiredDocument(orderedDocuments[0].document.Id);
-            var differenceService = oldSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
+            var merger = new TextChangeMerger(oldDocument);
 
             foreach (var (_, currentDocument) in orderedDocuments)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 Debug.Assert(currentDocument.Id == oldDocument.Id);
 
-                await TextChangeMerger.TryMergeChangesAsync(
-                    differenceService,
-                    oldDocument,
-                    currentDocument,
-                    totalChangesIntervalTree,
-                    cancellationToken).ConfigureAwait(false);
+                await merger.TryMergeChangesAsync(currentDocument, cancellationToken).ConfigureAwait(false);
             }
 
             // WithChanges requires a ordered list of TextChanges without any overlap.
-            var changesToApply = totalChangesIntervalTree.Distinct().OrderBy(tc => tc.Span.Start);
-
-            var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newText = oldText.WithChanges(changesToApply);
-
+            var newText = await merger.GetFinalMergedTextAsync(cancellationToken).ConfigureAwait(false);
             documentIdToFinalText.TryAdd(oldDocument.Id, newText);
         }
 

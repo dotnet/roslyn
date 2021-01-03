@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -15,37 +16,52 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Helpers to merge text changes together into a total set of changes.
     /// </summary>
-    internal static class TextChangeMerger
+    internal class TextChangeMerger
     {
-        public readonly struct IntervalIntrospector : IIntervalIntrospector<TextChange>
+        private readonly struct IntervalIntrospector : IIntervalIntrospector<TextChange>
         {
             int IIntervalIntrospector<TextChange>.GetStart(TextChange value) => value.Span.Start;
             int IIntervalIntrospector<TextChange>.GetLength(TextChange value) => value.Span.Length;
         }
 
-        /// <summary>
-        /// Try to merge the changes between <paramref name="newDocument"/> and <paramref name="oldDocument"/>
-        /// into <paramref name="cumulativeChanges"/>. If there is any conflicting change in 
-        /// <paramref name="newDocument"/> with existing <paramref name="cumulativeChanges"/>, then no
-        /// changes are added
-        /// </summary>
-        public static async Task TryMergeChangesAsync(
-            IDocumentTextDifferencingService differenceService,
-            Document oldDocument,
-            Document newDocument,
-            SimpleIntervalTree<TextChange, IntervalIntrospector> cumulativeChanges,
-            CancellationToken cancellationToken)
-        {
-            var currentChanges = await differenceService.GetTextChangesAsync(
-                oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
+        private readonly Document _oldDocument;
+        private readonly IDocumentTextDifferencingService _differenceService;
 
-            if (AllChangesCanBeApplied(cumulativeChanges, currentChanges))
+        private readonly SimpleIntervalTree<TextChange, IntervalIntrospector> _totalChangesIntervalTree =
+            SimpleIntervalTree.Create(new IntervalIntrospector(), Array.Empty<TextChange>());
+
+        public TextChangeMerger(Document document)
+        {
+            _oldDocument = document;
+            _differenceService = document.Project.Solution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
+        }
+
+        /// <summary>
+        /// Try to merge the changes made to <paramref name="newDocument"/> into the tracked changes. If there is any
+        /// conflicting change in <paramref name="newDocument"/> with existing changes, then no changes are added.
+        /// </summary>
+        public async Task TryMergeChangesAsync(Document newDocument, CancellationToken cancellationToken)
+        {
+            Debug.Assert(newDocument.Id == _oldDocument.Id);
+            var currentChanges = await _differenceService.GetTextChangesAsync(
+                _oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
+
+            if (AllChangesCanBeApplied(_totalChangesIntervalTree, currentChanges))
             {
                 foreach (var change in currentChanges)
-                {
-                    cumulativeChanges.AddIntervalInPlace(change);
-                }
+                    _totalChangesIntervalTree.AddIntervalInPlace(change);
             }
+        }
+
+        public async Task<SourceText> GetFinalMergedTextAsync(CancellationToken cancellationToken)
+        {
+            // WithChanges requires a ordered list of TextChanges without any overlap.
+            var changesToApply = _totalChangesIntervalTree.Distinct().OrderBy(tc => tc.Span.Start);
+
+            var oldText = await _oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var newText = oldText.WithChanges(changesToApply);
+
+            return newText;
         }
 
         private static bool AllChangesCanBeApplied(

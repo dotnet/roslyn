@@ -112,14 +112,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             progressTracker.AddItems(fixAllContexts.Length * 2 + 1);
 
             // Mapping from document to the cumulative text changes created for that document.
-            var docIdToIntervalTree = new Dictionary<DocumentId, SimpleIntervalTree<TextChange, TextChangeMerger.IntervalIntrospector>>();
+            var docIdToTextMerger = new Dictionary<DocumentId, TextChangeMerger>();
 
             // Process each context one at a time, allowing us to dump most of the information we computed for each once
-            // done with it.  The only information we need to preserve is the data we store in docIdToIntervalTree
+            // done with it.  The only information we need to preserve is the data we store in docIdToTextMerger
             foreach (var fixAllContext in fixAllContexts)
             {
                 Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project);
-                await FixSingleContextAsync(docIdToIntervalTree, fixAllContext).ConfigureAwait(false);
+                await FixSingleContextAsync(docIdToTextMerger, fixAllContext).ConfigureAwait(false);
             }
 
             // Finally, merge in all text changes into the solution.  We can't do this per-project as we have to have
@@ -128,20 +128,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             using (progressTracker.ItemCompletedScope())
             {
                 var currentSolution = originalFixAllContext.Solution;
-                foreach (var group in docIdToIntervalTree.GroupBy(kvp => kvp.Key.ProjectId))
+                foreach (var group in docIdToTextMerger.GroupBy(kvp => kvp.Key.ProjectId))
                     currentSolution = await ApplyChangesAsync(currentSolution, group.SelectAsArray(kvp => (kvp.Key, kvp.Value)), cancellationToken).ConfigureAwait(false);
 
                 return currentSolution;
             }
         }
 
-        private static async Task FixSingleContextAsync(Dictionary<DocumentId, SimpleIntervalTree<TextChange, TextChangeMerger.IntervalIntrospector>> docIdToIntervalTree, FixAllContext fixAllContext)
+        private static async Task FixSingleContextAsync(Dictionary<DocumentId, TextChangeMerger> docIdToTextMerger, FixAllContext fixAllContext)
         {
             // First, determine the diagnostics to fix for that context.
             var documentToDiagnostics = await DetermineDiagnosticsAsync(fixAllContext).ConfigureAwait(false);
 
-            // Second, process all those diagnostics, merging the cumulative set of text changes per document into docIdToIntervalTree.
-            await AddDocumentChangesAsync(fixAllContext, docIdToIntervalTree, documentToDiagnostics).ConfigureAwait(false);
+            // Second, process all those diagnostics, merging the cumulative set of text changes per document into docIdToTextMerger.
+            await AddDocumentChangesAsync(fixAllContext, docIdToTextMerger, documentToDiagnostics).ConfigureAwait(false);
         }
 
         private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext)
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private static async Task AddDocumentChangesAsync(
             FixAllContext fixAllContext,
-            Dictionary<DocumentId, SimpleIntervalTree<TextChange, TextChangeMerger.IntervalIntrospector>> docIdToIntervalTree,
+            Dictionary<DocumentId, TextChangeMerger> docIdToTextMerger,
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentToDiagnostics)
         {
             // First, order the diagnostics so we process them in a consistent manner and get the same results given the
@@ -185,9 +185,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var allChangedDocumentsInDiagnosticsOrder =
                 await GetAllChangedDocumentsInDiagnosticsOrderAsync(fixAllContext, orderedDiagnostics).ConfigureAwait(false);
 
-            // Finally, take all the changes made to each document and merge them together into docIdToIntervalTree to
+            // Finally, take all the changes made to each document and merge them together into docIdToTextMerger to
             // keep track of the total set of changes to any particular document.
-            await MergeTextChangesAsync(fixAllContext, allChangedDocumentsInDiagnosticsOrder, docIdToIntervalTree).ConfigureAwait(false);
+            await MergeTextChangesAsync(fixAllContext, allChangedDocumentsInDiagnosticsOrder, docIdToTextMerger).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -261,12 +261,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Take all the changes made to a particular document and determine the text changes caused by each one.  Take
         /// those individual text changes and attempt to merge them together in order into <paramref
-        /// name="docIdToIntervalTree"/>.
+        /// name="docIdToTextMerger"/>.
         /// </summary>
         private static async Task MergeTextChangesAsync(
             FixAllContext fixAllContext,
             ImmutableArray<Document> allChangedDocumentsInDiagnosticsOrder,
-            Dictionary<DocumentId, SimpleIntervalTree<TextChange, TextChangeMerger.IntervalIntrospector>> docIdToIntervalTree)
+            Dictionary<DocumentId, TextChangeMerger> docIdToTextMerger)
         {
             var solution = fixAllContext.Solution;
             var cancellationToken = fixAllContext.CancellationToken;
@@ -283,11 +283,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var allDocChanges = group.ToImmutableArray();
                 var originalDocument = solution.GetRequiredDocument(currentDocId);
 
-                // If we don't have an interval tree for this doc yet, create one to keep track of all the changes.
-                if (!docIdToIntervalTree.TryGetValue(currentDocId, out var totalChangesIntervalTree))
+                // If we don't have an text merger for this doc yet, create one to keep track of all the changes.
+                if (!docIdToTextMerger.TryGetValue(currentDocId, out var textMerger))
                 {
-                    totalChangesIntervalTree = SimpleIntervalTree.Create(new TextChangeMerger.IntervalIntrospector(), Array.Empty<TextChange>());
-                    docIdToIntervalTree.Add(currentDocId, totalChangesIntervalTree);
+                    textMerger = new TextChangeMerger(originalDocument);
+                    docIdToTextMerger.Add(currentDocId, textMerger);
                 }
 
                 // Process all document groups in parallel.
@@ -300,12 +300,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         cancellationToken.ThrowIfCancellationRequested();
                         Debug.Assert(changedDocument.Id == originalDocument.Id);
 
-                        await TextChangeMerger.TryMergeChangesAsync(
-                            differenceService,
-                            originalDocument,
-                            changedDocument,
-                            totalChangesIntervalTree,
-                            cancellationToken).ConfigureAwait(false);
+                        await textMerger.TryMergeChangesAsync(changedDocument, cancellationToken).ConfigureAwait(false);
                     }
                 }, cancellationToken));
             }
@@ -338,17 +333,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private static async Task<Solution> ApplyChangesAsync(
             Solution currentSolution,
-            ImmutableArray<(DocumentId, SimpleIntervalTree<TextChange, TextChangeMerger.IntervalIntrospector>)> docIdsAndIntervalTrees,
+            ImmutableArray<(DocumentId, TextChangeMerger)> docIdsAndMerger,
             CancellationToken cancellationToken)
         {
-            foreach (var (documentId, totalChangesIntervalTree) in docIdsAndIntervalTrees)
+            foreach (var (documentId, textMerger) in docIdsAndMerger)
             {
-                // WithChanges requires a ordered list of TextChanges without any overlap.
-                var changesToApply = totalChangesIntervalTree.Distinct().OrderBy(tc => tc.Span.Start);
-
-                var oldDocument = currentSolution.GetRequiredDocument(documentId);
-                var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var newText = oldText.WithChanges(changesToApply);
+                var nextText = await textMerger.GetFinalMergedTextAsync(cancellationToken).ConfigureAwait(false);
                 currentSolution = currentSolution.WithDocumentText(documentId, newText);
             }
 
