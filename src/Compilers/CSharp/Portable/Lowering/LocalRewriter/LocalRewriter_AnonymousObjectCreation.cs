@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultArguments: default(BitVector),
                 constantValueOpt: null,
                 initializerExpressionOpt: null,
-                binderOpt: null,
                 type: node.Type);
         }
     }
