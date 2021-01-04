@@ -167,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets the constant value.
         ''' </summary>
-        ''' <param name="inProgress">>Used to detect dependencies between constant field values.</param>
+        ''' <param name="inProgress">Used to detect dependencies between constant field values.</param>
         Friend Overrides Function GetConstantValue(inProgress As ConstantFieldsInProgress) As ConstantValue
             Return Nothing
         End Function
