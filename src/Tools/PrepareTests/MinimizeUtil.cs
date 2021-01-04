@@ -82,6 +82,7 @@ internal static class MinimizeUtil
             var individualFiles = new[]
             {
                 "global.json",
+                "NuGet.config",
                 "src/Workspaces/MSBuildTest/Resources/.editorconfig",
                 "src/Workspaces/MSBuildTest/Resources/global.json",
                 "src/Workspaces/MSBuildTest/Resources/Directory.Build.props",
