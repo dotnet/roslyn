@@ -291,8 +291,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         {
             try
             {
+                var solution = _proxy.Workspace.CurrentSolution;
                 var instructionId = new ManagedInstructionId(new ManagedMethodId(moduleId, methodToken, methodVersion), ilOffset);
-                return await _proxy.IsActiveStatementInExceptionRegionAsync(instructionId, cancellationToken).ConfigureAwait(false);
+                return await _proxy.IsActiveStatementInExceptionRegionAsync(solution, instructionId, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {

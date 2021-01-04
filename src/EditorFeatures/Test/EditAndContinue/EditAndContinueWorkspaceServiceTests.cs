@@ -1669,31 +1669,30 @@ class C1
 
             workspace.ChangeSolution(project.Solution);
 
-            var (_, moduleId) = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path);
+            var moduleId = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path);
 
             var service = CreateEditAndContinueService(workspace);
             var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
 
             // An active statement may be present in the added file since the file exists in the PDB:
-            var activeInstruction1 = new ActiveInstructionId(new ActiveMethodId(moduleId, token: 0x06000001, version: 1), ilOffset: 1);
+            var activeInstruction1 = new ManagedInstructionId(new ManagedMethodId(moduleId, token: 0x06000001, version: 1), ilOffset: 1);
             var activeSpan1 = GetSpan(source1, "System.Console.WriteLine(1);");
             var sourceText1 = SourceText.From(source1, Encoding.UTF8);
             var activeLineSpan1 = sourceText1.Lines.GetLinePositionSpan(activeSpan1);
             var activeStatements = ImmutableArray.Create(
-                new ActiveStatementDebugInfo(
+                new ManagedActiveStatementDebugInfo(
                     activeInstruction1,
                     "test.cs",
-                    activeLineSpan1,
-                    threadIds: ImmutableArray.Create(Guid.NewGuid()),
+                    activeLineSpan1.ToSourceSpan(),
                     ActiveStatementFlags.IsLeafFrame));
 
             // disallow any edits (attach scenario)
             StartEditSession(
                 service,
-                _ => new ValueTask<ImmutableArray<ActiveStatementDebugInfo>>(activeStatements),
-                loadedModules: new MockDebuggeeModuleMetadataProvider()
+                activeStatements,
+                loadedModules: new MockManagedEditAndContinueDebuggerService()
                 {
-                    IsEditAndContinueAvailable = _ => (errorCode: 123, errorMessage: "*attached*")
+                    IsEditAndContinueAvailable = _ => new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.Attach, localizedMessage: "*attached*")
                 });
 
             // File watcher observes the document and adds it to the workspace:
@@ -1713,8 +1712,8 @@ class C1
             // No changes.
             Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, s_noSolutionActiveSpans, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-            var (solutionStatusEmit, deltas, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, s_noSolutionActiveSpans, CancellationToken.None).ConfigureAwait(false);
-            Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
+            var (updates, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, s_noSolutionActiveSpans, CancellationToken.None).ConfigureAwait(false);
+            Assert.Equal(ManagedModuleUpdateStatus.None, updates.Status);
 
             AssertEx.Empty(emitDiagnostics);
 

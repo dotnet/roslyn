@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public EndSession? EndEditSessionImpl;
         public Func<Solution, SolutionActiveStatementSpanProvider, string?, bool>? HasChangesImpl;
         public Func<Solution, SolutionActiveStatementSpanProvider, (ManagedModuleUpdates, ImmutableArray<DiagnosticData>)>? EmitSolutionUpdateImpl;
-        public Func<Solution,ManagedInstructionId, bool?>? IsActiveStatementInExceptionRegionImpl;
+        public Func<Solution, ManagedInstructionId, bool?>? IsActiveStatementInExceptionRegionImpl;
         public Action<Document>? OnSourceFileUpdatedImpl;
         public Action? CommitSolutionUpdateImpl;
         public Action? DiscardSolutionUpdateImpl;
