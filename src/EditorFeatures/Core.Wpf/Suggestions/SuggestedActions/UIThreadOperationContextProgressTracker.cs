@@ -55,7 +55,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             _scope.Progress.Report(new ProgressInfo());
-
         }
     }
 }
