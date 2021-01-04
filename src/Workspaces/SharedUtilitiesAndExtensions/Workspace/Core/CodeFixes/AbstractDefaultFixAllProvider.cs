@@ -78,8 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                                 .Where(p => p.Language == fixAllContext.Project.Language);
             return FixAllContextsAsync(
                 fixAllContext,
-                sortedProjects.SelectAsArray(
-                    p => fixAllContext.WithScope(FixAllScope.Project).WithProject(p).WithDocument(null)));
+                sortedProjects.SelectAsArray(p => fixAllContext.WithScope(FixAllScope.Project).WithProject(p).WithDocument(null)));
         }
 
         /// <summary>
