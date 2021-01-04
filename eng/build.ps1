@@ -180,6 +180,11 @@ function Process-Arguments() {
     exit 1
   }
 
+  if ($testVsi -and $helix) {
+    Write-Host "Cannot run integration tests on Helix"
+    exit 1
+  }
+
   if ($testVsi) {
     # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
     $script:runAnalyzers = $false
@@ -397,7 +402,7 @@ function TestUsingRunTests() {
     $args += " --sequential"
   }
 
-  if ($helix -or $ci) {
+  if (-not $testVsi -and ($helix -or $ci)) {
     $args += " --helix"
   }
 
