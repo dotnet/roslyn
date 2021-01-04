@@ -37,6 +37,11 @@ namespace Analyzer.Utilities
         /// <summary>
         /// A method named Close on a type that implements <see cref="System.IDisposable"/>.
         /// </summary>
-        Close
+        Close,
+
+        /// <summary>
+        /// A method named CloseAsync that has no parameters and returns Task.
+        /// </summary>
+        CloseAsync,
     }
 }

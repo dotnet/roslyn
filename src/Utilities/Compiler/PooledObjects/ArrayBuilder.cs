@@ -226,7 +226,9 @@ namespace Analyzer.Utilities.PooledObjects
 
         public T Last()
         {
+#pragma warning disable IDE0056
             return _builder[_builder.Count - 1];
+#pragma warning restore IDE0056
         }
 
         public T First()
@@ -395,6 +397,7 @@ namespace Analyzer.Utilities.PooledObjects
         }
 
         internal Dictionary<K, ImmutableArray<T>> ToDictionary<K>(Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
+            where K : notnull
         {
             if (this.Count == 1)
             {

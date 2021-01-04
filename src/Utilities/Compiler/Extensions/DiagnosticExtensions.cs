@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -12,34 +13,30 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class DiagnosticExtensions
     {
-        public static IEnumerable<Diagnostic> CreateDiagnostics(
-            this IEnumerable<SyntaxNode> nodes,
-            DiagnosticDescriptor rule,
-            params object[] args)
-        {
-            foreach (SyntaxNode node in nodes)
-            {
-                yield return node.CreateDiagnostic(rule, args);
-            }
-        }
-
         public static Diagnostic CreateDiagnostic(
             this SyntaxNode node,
             DiagnosticDescriptor rule,
             params object[] args)
-        {
-            return node.GetLocation().CreateDiagnostic(rule, args);
-        }
+            => node.CreateDiagnostic(rule, properties: null, args);
 
         public static Diagnostic CreateDiagnostic(
             this SyntaxNode node,
             DiagnosticDescriptor rule,
-            ImmutableDictionary<string, string?> properties,
+            ImmutableDictionary<string, string?>? properties,
+            params object[] args)
+            => node.CreateDiagnostic(rule, additionalLocations: ImmutableArray<Location>.Empty, properties, args);
+
+        public static Diagnostic CreateDiagnostic(
+            this SyntaxNode node,
+            DiagnosticDescriptor rule,
+            ImmutableArray<Location> additionalLocations,
+            ImmutableDictionary<string, string?>? properties,
             params object[] args)
             => node
                 .GetLocation()
                 .CreateDiagnostic(
                     rule: rule,
+                    additionalLocations: additionalLocations,
                     properties: properties,
                     args: args);
 
@@ -47,19 +44,25 @@ namespace Analyzer.Utilities.Extensions
             this IOperation operation,
             DiagnosticDescriptor rule,
             params object[] args)
-        {
-            return operation.Syntax.CreateDiagnostic(rule, args);
-        }
+            => operation.CreateDiagnostic(rule, properties: null, args);
 
-        public static IEnumerable<Diagnostic> CreateDiagnostics(
-            this IEnumerable<SyntaxToken> tokens,
+        public static Diagnostic CreateDiagnostic(
+            this IOperation operation,
             DiagnosticDescriptor rule,
+            ImmutableDictionary<string, string?>? properties,
             params object[] args)
         {
-            foreach (SyntaxToken token in tokens)
-            {
-                yield return token.CreateDiagnostic(rule, args);
-            }
+            return operation.Syntax.CreateDiagnostic(rule, properties, args);
+        }
+
+        public static Diagnostic CreateDiagnostic(
+            this IOperation operation,
+            DiagnosticDescriptor rule,
+            ImmutableArray<Location> additionalLocations,
+            ImmutableDictionary<string, string?>? properties,
+            params object[] args)
+        {
+            return operation.Syntax.CreateDiagnostic(rule, additionalLocations, properties, args);
         }
 
         public static Diagnostic CreateDiagnostic(
@@ -70,42 +73,21 @@ namespace Analyzer.Utilities.Extensions
             return token.GetLocation().CreateDiagnostic(rule, args);
         }
 
-        public static IEnumerable<Diagnostic> CreateDiagnostics(
-            this IEnumerable<SyntaxNodeOrToken> nodesOrTokens,
-            DiagnosticDescriptor rule,
-            params object[] args)
-        {
-            foreach (SyntaxNodeOrToken nodeOrToken in nodesOrTokens)
-            {
-                yield return nodeOrToken.CreateDiagnostic(rule, args);
-            }
-        }
-
-        public static Diagnostic CreateDiagnostic(
-            this SyntaxNodeOrToken nodeOrToken,
-            DiagnosticDescriptor rule,
-            params object[] args)
-        {
-            return nodeOrToken.GetLocation().CreateDiagnostic(rule, args);
-        }
-
-        public static IEnumerable<Diagnostic> CreateDiagnostics(
-            this IEnumerable<ISymbol> symbols,
-            DiagnosticDescriptor rule,
-            params object[] args)
-        {
-            foreach (ISymbol symbol in symbols)
-            {
-                yield return symbol.CreateDiagnostic(rule, args);
-            }
-        }
-
         public static Diagnostic CreateDiagnostic(
             this ISymbol symbol,
             DiagnosticDescriptor rule,
             params object[] args)
         {
             return symbol.Locations.CreateDiagnostic(rule, args);
+        }
+
+        public static Diagnostic CreateDiagnostic(
+            this ISymbol symbol,
+            DiagnosticDescriptor rule,
+            ImmutableDictionary<string, string?>? properties,
+            params object[] args)
+        {
+            return symbol.Locations.CreateDiagnostic(rule, properties, args);
         }
 
         public static Diagnostic CreateDiagnostic(
@@ -121,7 +103,15 @@ namespace Analyzer.Utilities.Extensions
         public static Diagnostic CreateDiagnostic(
             this Location location,
             DiagnosticDescriptor rule,
-            ImmutableDictionary<string, string?> properties,
+            ImmutableDictionary<string, string?>? properties,
+            params object[] args)
+            => location.CreateDiagnostic(rule, ImmutableArray<Location>.Empty, properties, args);
+
+        public static Diagnostic CreateDiagnostic(
+            this Location location,
+            DiagnosticDescriptor rule,
+            ImmutableArray<Location> additionalLocations,
+            ImmutableDictionary<string, string?>? properties,
             params object[] args)
         {
             if (!location.IsInSource)
@@ -132,19 +122,9 @@ namespace Analyzer.Utilities.Extensions
             return Diagnostic.Create(
                 descriptor: rule,
                 location: location,
+                additionalLocations: additionalLocations,
                 properties: properties,
                 messageArgs: args);
-        }
-
-        public static IEnumerable<Diagnostic> CreateDiagnostics(
-            this IEnumerable<IEnumerable<Location>> setOfLocations,
-            DiagnosticDescriptor rule,
-            params object[] args)
-        {
-            foreach (IEnumerable<Location> locations in setOfLocations)
-            {
-                yield return locations.CreateDiagnostic(rule, args);
-            }
         }
 
         public static Diagnostic CreateDiagnostic(
@@ -177,21 +157,17 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// TODO: Revert this reflection based workaround once we move to Microsoft.CodeAnalysis version 3.0
         /// </summary>
-        private static readonly PropertyInfo s_syntaxTreeDiagnosticOptionsProperty =
+        private static readonly PropertyInfo? s_syntaxTreeDiagnosticOptionsProperty =
             typeof(SyntaxTree).GetTypeInfo().GetDeclaredProperty("DiagnosticOptions");
+
+        private static readonly PropertyInfo? s_compilationOptionsSyntaxTreeOptionsProviderProperty =
+            typeof(CompilationOptions).GetTypeInfo().GetDeclaredProperty("SyntaxTreeOptionsProvider");
 
         public static void ReportNoLocationDiagnostic(
             this CompilationAnalysisContext context,
             DiagnosticDescriptor rule,
             params object[] args)
             => context.Compilation.ReportNoLocationDiagnostic(rule, context.ReportDiagnostic, properties: null, args);
-
-        public static void ReportNoLocationDiagnostic(
-            this Compilation compilation,
-            DiagnosticDescriptor rule,
-            Action<Diagnostic> addDiagnostic,
-            params object[] args)
-            => compilation.ReportNoLocationDiagnostic(rule, addDiagnostic, properties: null, args);
 
         public static void ReportNoLocationDiagnostic(
             this Compilation compilation,
@@ -221,7 +197,12 @@ namespace Analyzer.Utilities.Extensions
 
             DiagnosticSeverity? GetEffectiveSeverity()
             {
-                if (s_syntaxTreeDiagnosticOptionsProperty == null)
+                // Microsoft.CodeAnalysis version >= 3.7 exposes options through 'CompilationOptions.SyntaxTreeOptionsProvider.TryGetDiagnosticValue'
+                // Microsoft.CodeAnalysis version 3.3 - 3.7 exposes options through 'SyntaxTree.DiagnosticOptions'. This API is deprecated in 3.7.
+
+                var syntaxTreeOptionsProvider = s_compilationOptionsSyntaxTreeOptionsProviderProperty?.GetValue(compilation.Options);
+                var syntaxTreeOptionsProviderTryGetDiagnosticValueMethod = syntaxTreeOptionsProvider?.GetType().GetRuntimeMethods().FirstOrDefault(m => m.Name == "TryGetDiagnosticValue");
+                if (syntaxTreeOptionsProviderTryGetDiagnosticValueMethod == null && s_syntaxTreeDiagnosticOptionsProperty == null)
                 {
                     return rule.DefaultSeverity;
                 }
@@ -229,24 +210,61 @@ namespace Analyzer.Utilities.Extensions
                 ReportDiagnostic? overriddenSeverity = null;
                 foreach (var tree in compilation.SyntaxTrees)
                 {
-                    var options = (ImmutableDictionary<string, ReportDiagnostic>)s_syntaxTreeDiagnosticOptionsProperty.GetValue(tree);
-                    if (options.TryGetValue(rule.Id, out var configuredValue))
-                    {
-                        if (configuredValue == ReportDiagnostic.Suppress)
-                        {
-                            // Any suppression entry always wins.
-                            return null;
-                        }
+                    ReportDiagnostic? configuredValue = null;
 
-                        if (overriddenSeverity == null)
+                    // Prefer 'CompilationOptions.SyntaxTreeOptionsProvider', if available.
+                    if (s_compilationOptionsSyntaxTreeOptionsProviderProperty != null)
+                    {
+                        if (syntaxTreeOptionsProviderTryGetDiagnosticValueMethod != null)
                         {
-                            overriddenSeverity = configuredValue;
+                            // public abstract bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, out ReportDiagnostic severity);
+                            // public abstract bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity);
+                            object?[] parameters;
+                            if (syntaxTreeOptionsProviderTryGetDiagnosticValueMethod.GetParameters().Length == 3)
+                            {
+                                parameters = new object?[] { tree, rule.Id, null };
+                            }
+                            else
+                            {
+                                parameters = new object?[] { tree, rule.Id, CancellationToken.None, null };
+                            }
+
+                            if (syntaxTreeOptionsProviderTryGetDiagnosticValueMethod.Invoke(syntaxTreeOptionsProvider, parameters) is true &&
+                                parameters.Last() is ReportDiagnostic value)
+                            {
+                                configuredValue = value;
+                            }
                         }
-                        else if (overriddenSeverity.Value.IsLessSevereThan(configuredValue))
+                    }
+                    else
+                    {
+                        RoslynDebug.Assert(s_syntaxTreeDiagnosticOptionsProperty != null);
+                        var options = (ImmutableDictionary<string, ReportDiagnostic>)s_syntaxTreeDiagnosticOptionsProperty.GetValue(tree)!;
+                        if (options.TryGetValue(rule.Id, out var value))
                         {
-                            // Choose the most severe value for conflicts.
-                            overriddenSeverity = configuredValue;
+                            configuredValue = value;
                         }
+                    }
+
+                    if (configuredValue == null)
+                    {
+                        continue;
+                    }
+
+                    if (configuredValue == ReportDiagnostic.Suppress)
+                    {
+                        // Any suppression entry always wins.
+                        return null;
+                    }
+
+                    if (overriddenSeverity == null)
+                    {
+                        overriddenSeverity = configuredValue;
+                    }
+                    else if (overriddenSeverity.Value.IsLessSevereThan(configuredValue.Value))
+                    {
+                        // Choose the most severe value for conflicts.
+                        overriddenSeverity = configuredValue;
                     }
                 }
 

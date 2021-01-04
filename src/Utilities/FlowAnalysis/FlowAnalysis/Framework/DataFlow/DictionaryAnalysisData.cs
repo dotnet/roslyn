@@ -12,6 +12,7 @@ using Analyzer.Utilities.PooledObjects;
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     public sealed class DictionaryAnalysisData<TKey, TValue> : AbstractAnalysisData, IDictionary<TKey, TValue>
+        where TKey : notnull
     {
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private PooledDictionary<TKey, TValue> _coreAnalysisData;

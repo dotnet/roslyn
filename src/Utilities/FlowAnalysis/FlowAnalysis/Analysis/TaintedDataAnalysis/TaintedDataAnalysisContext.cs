@@ -26,12 +26,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
-            CopyAnalysisResult? copyAnalysisResultOpt,
+            CopyAnalysisResult? copyAnalysisResult,
             PointsToAnalysisResult? pointsToAnalysisResult,
             ValueContentAnalysisResult? valueContentAnalysisResult,
             Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult?> tryGetOrComputeAnalysisResult,
             ControlFlowGraph? parentControlFlowGraph,
-            InterproceduralTaintedDataAnalysisData? interproceduralAnalysisDataOpt,
+            InterproceduralTaintedDataAnalysisData? interproceduralAnalysisData,
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
             TaintedDataSymbolMap<SinkInfo> taintedSinkInfos)
@@ -45,13 +45,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                   pessimisticAnalysis,
                   predicateAnalysis: false,
                   exceptionPathsAnalysis: false,
-                  copyAnalysisResultOpt,
+                  copyAnalysisResult,
                   pointsToAnalysisResult,
                   valueContentAnalysisResult,
                   tryGetOrComputeAnalysisResult,
                   parentControlFlowGraph,
-                  interproceduralAnalysisDataOpt,
-                  interproceduralAnalysisPredicateOpt: null)
+                  interproceduralAnalysisData,
+                  interproceduralAnalysisPredicate: null)
         {
             Debug.Assert(pointsToAnalysisResult != null);
 
@@ -68,7 +68,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             AnalyzerOptions analyzerOptions,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
-            CopyAnalysisResult? copyAnalysisResultOpt,
+            CopyAnalysisResult? copyAnalysisResult,
             PointsToAnalysisResult? pointsToAnalysisResult,
             ValueContentAnalysisResult? valueContentAnalysisResult,
             Func<TaintedDataAnalysisContext, TaintedDataAnalysisResult?> tryGetOrComputeAnalysisResult,
@@ -86,12 +86,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 analyzerOptions,
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis,
-                copyAnalysisResultOpt,
+                copyAnalysisResult,
                 pointsToAnalysisResult,
                 valueContentAnalysisResult,
                 tryGetOrComputeAnalysisResult,
                 parentControlFlowGraph: null,
-                interproceduralAnalysisDataOpt: null,
+                interproceduralAnalysisData: null,
                 taintedSourceInfos: taintedSourceInfos,
                 taintedSanitizerInfos: taintedSanitizerInfos,
                 taintedSinkInfos: taintedSinkInfos);
@@ -100,10 +100,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         public override TaintedDataAnalysisContext ForkForInterproceduralAnalysis(
             IMethodSymbol invokedMethod,
             ControlFlowGraph invokedCfg,
-            IOperation operation,
-            PointsToAnalysisResult? pointsToAnalysisResultOpt,
-            DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>? copyAnalysisResultOpt,
-            DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>? valueContentAnalysisResultOpt,
+            PointsToAnalysisResult? pointsToAnalysisResult,
+            DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>? copyAnalysisResult,
+            DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>? valueContentAnalysisResult,
             InterproceduralTaintedDataAnalysisData? interproceduralAnalysisData)
         {
             return new TaintedDataAnalysisContext(
@@ -114,9 +113,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 this.AnalyzerOptions,
                 this.InterproceduralAnalysisConfiguration,
                 this.PessimisticAnalysis,
-                copyAnalysisResultOpt,
-                pointsToAnalysisResultOpt,
-                valueContentAnalysisResultOpt,
+                copyAnalysisResult,
+                pointsToAnalysisResult,
+                valueContentAnalysisResult,
                 this.TryGetOrComputeAnalysisResult,
                 this.ControlFlowGraph,
                 interproceduralAnalysisData,

@@ -43,7 +43,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             /// <remarks>
             /// Mapping of AnalysisEntity (for a field or property of the tracked type) to AbstractLocation(s) to IAssignmentOperation(s)
             /// </remarks>
-            private PooledDictionary<AnalysisEntity, TrackedAssignmentData>? TrackedFieldPropertyAssignmentsOpt;
+            private PooledDictionary<AnalysisEntity, TrackedAssignmentData>? TrackedFieldPropertyAssignments;
 
             /// <summary>
             /// The types containing the property set we're tracking.
@@ -53,7 +53,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             public PropertySetDataFlowOperationVisitor(PropertySetAnalysisContext analysisContext)
                 : base(analysisContext)
             {
-                Debug.Assert(analysisContext.PointsToAnalysisResultOpt != null);
+                Debug.Assert(analysisContext.PointsToAnalysisResult != null);
 
                 this._hazardousUsageBuilder = ImmutableDictionary.CreateBuilder<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult>();
 
@@ -75,7 +75,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                 if (this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetInitializationHazardousUsageEvaluator(out _))
                 {
-                    this.TrackedFieldPropertyAssignmentsOpt = PooledDictionary<AnalysisEntity, TrackedAssignmentData>.GetInstance();
+                    this.TrackedFieldPropertyAssignments = PooledDictionary<AnalysisEntity, TrackedAssignmentData>.GetInstance();
                 }
             }
 
@@ -181,7 +181,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     }
                     else if (constructorMapper.MapFromValueContentAbstractValue != null)
                     {
-                        Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt != null);
+                        Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResult != null);
                         using ArrayBuilder<PointsToAbstractValue> pointsToBuilder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
                         using ArrayBuilder<ValueContentAbstractValue> valueContentBuilder = ArrayBuilder<ValueContentAbstractValue>.GetInstance();
 
@@ -229,7 +229,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                 // If we need to evaluate hazardous usages on initializations, track assignments of properties and fields, so
                 // at the end of the CFG we can figure out which assignment operations to flag.
-                if (this.TrackedFieldPropertyAssignmentsOpt != null
+                if (this.TrackedFieldPropertyAssignments != null
                     && this.TrackedTypeSymbols.Any(s => operation.Target.Type.GetBaseTypesAndThis().Contains(s))
                     && (operation.Target.Kind == OperationKind.PropertyReference
                         || operation.Target.Kind == OperationKind.FieldReference
@@ -251,12 +251,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     if (targetAnalysisEntity != null)
                     {
                         PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(operation.Value);
-                        if (!this.TrackedFieldPropertyAssignmentsOpt.TryGetValue(
+                        if (!this.TrackedFieldPropertyAssignments.TryGetValue(
                                 targetAnalysisEntity,
                                 out TrackedAssignmentData trackedAssignmentData))
                         {
                             trackedAssignmentData = new TrackedAssignmentData();
-                            this.TrackedFieldPropertyAssignmentsOpt.Add(targetAnalysisEntity, trackedAssignmentData);
+                            this.TrackedFieldPropertyAssignments.Add(targetAnalysisEntity, trackedAssignmentData);
                         }
 
                         if (pointsToAbstractValue.Kind == PointsToAbstractValueKind.KnownLocations)
@@ -306,7 +306,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     }
                     else if (propertyMapper.MapFromValueContentAbstractValue != null)
                     {
-                        Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt != null);
+                        Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResult != null);
                         propertySetAbstractValueKind = propertyMapper.MapFromValueContentAbstractValue(
                             this.GetValueContentAbstractValue(operation.Value));
                     }
@@ -353,7 +353,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             /// </remarks>
             internal void ProcessExitBlock(PropertySetBlockAnalysisResult exitBlockOutput)
             {
-                if (this.TrackedFieldPropertyAssignmentsOpt == null)
+                if (this.TrackedFieldPropertyAssignments == null)
                 {
                     return;
                 }
@@ -364,9 +364,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         out HazardousUsageEvaluator initializationHazardousUsageEvaluator);
 
                     foreach (KeyValuePair<AnalysisEntity, TrackedAssignmentData> kvp
-                        in this.TrackedFieldPropertyAssignmentsOpt)
+                        in this.TrackedFieldPropertyAssignments)
                     {
-                        if (!this.DataFlowAnalysisContext.PointsToAnalysisResultOpt!.ExitBlockOutput.Data.TryGetValue(
+                        if (!this.DataFlowAnalysisContext.PointsToAnalysisResult!.ExitBlockOutput.Data.TryGetValue(
                                 kvp.Key, out PointsToAbstractValue pointsToAbstractValue))
                         {
                             continue;
@@ -452,13 +452,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
                 finally
                 {
-                    foreach (TrackedAssignmentData trackedAssignmentData in this.TrackedFieldPropertyAssignmentsOpt.Values)
+                    foreach (TrackedAssignmentData trackedAssignmentData in this.TrackedFieldPropertyAssignments.Values)
                     {
                         trackedAssignmentData.Free();
                     }
 
-                    this.TrackedFieldPropertyAssignmentsOpt.Dispose();
-                    this.TrackedFieldPropertyAssignmentsOpt = null;
+                    this.TrackedFieldPropertyAssignments.Dispose();
+                    this.TrackedFieldPropertyAssignments = null;
                 }
             }
 
@@ -570,11 +570,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         (containingType, false),
                         out string containingTypeName))
                 {
-                    if (hazardousUsageTypeNames == null)
-                    {
-                        hazardousUsageTypeNames = PooledHashSet<string>.GetInstance();
-                    }
-
+                    hazardousUsageTypeNames = PooledHashSet<string>.GetInstance();
                     hazardousUsageTypeNames.Add(containingTypeName);
                 }
 
