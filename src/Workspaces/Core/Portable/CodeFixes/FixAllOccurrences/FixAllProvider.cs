@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// only affect the <see cref="Document"/> the diagnostic was produced in.
         /// </summary>
         /// <param name="fixAllAsync">
-        /// Callback that will the diagnostics present in the provided document.  The document returned will only be
+        /// Callback that will the fix diagnostics present in the provided document.  The document returned will only be
         /// examined for its content (e.g. it's <see cref="SyntaxTree"/> or <see cref="SourceText"/>.  No other aspects
         /// of (like it's properties), or changes to the <see cref="Project"/> or <see cref="Solution"/> it points at
         /// will be considered.
