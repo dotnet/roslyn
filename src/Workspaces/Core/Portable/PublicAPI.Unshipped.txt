@@ -9,3 +9,4 @@ Microsoft.CodeAnalysis.Solution.GetSourceGeneratedDocumentAsync(Microsoft.CodeAn
 Microsoft.CodeAnalysis.SourceGeneratedDocument
 Microsoft.CodeAnalysis.SourceGeneratedDocument.HintName.get -> string
 Microsoft.CodeAnalysis.SourceGeneratedDocument.SourceGenerator.get -> Microsoft.CodeAnalysis.ISourceGenerator
+static Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeFixes.FixAllContext, Microsoft.CodeAnalysis.Document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> fixAllAsync) -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
