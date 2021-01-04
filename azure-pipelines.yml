@@ -22,11 +22,11 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
 
-# - template: eng/pipelines/build-windows-job.yml
-#   parameters:
-#     jobName: Build_Windows_Release
-#     testArtifactName: Transport_Artifacts_Windows_Release
-#     configuration: Release
+- template: eng/pipelines/build-windows-job.yml
+  parameters:
+    jobName: Build_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
+    configuration: Release
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -64,32 +64,32 @@ jobs:
     configuration: Debug
     testArguments: -testCoreClr
 
-# - template: eng/pipelines/test-windows-job.yml
-#   parameters:
-#     testRunName: 'Test Windows Desktop Release 32'
-#     jobName: Test_Windows_Desktop_Release_32
-#     buildJobName: Build_Windows_Release
-#     testArtifactName: Transport_Artifacts_Windows_Release
-#     configuration: Release
-#     testArguments: -testDesktop -test32
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows Desktop Release 32'
+    jobName: Test_Windows_Desktop_Release_32
+    buildJobName: Build_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
+    configuration: Release
+    testArguments: -testDesktop -test32
 
-# - template: eng/pipelines/test-windows-job.yml
-#   parameters:
-#     testRunName: 'Test Windows Desktop Release 64'
-#     jobName: Test_Windows_Desktop_Release_64
-#     buildJobName: Build_Windows_Release
-#     testArtifactName: Transport_Artifacts_Windows_Release
-#     configuration: Release
-#     testArguments: -testDesktop -test64
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows Desktop Release 64'
+    jobName: Test_Windows_Desktop_Release_64
+    buildJobName: Build_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
+    configuration: Release
+    testArguments: -testDesktop -test64
 
-# - template: eng/pipelines/test-windows-job.yml
-#   parameters:
-#     testRunName: 'Test Windows CoreClr Release'
-#     jobName: Test_Windows_CoreClr_Release
-#     buildJobName: Build_Windows_Release
-#     testArtifactName: Transport_Artifacts_Windows_Release
-#     configuration: Release
-#     testArguments: -testCoreClr
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows CoreClr Release'
+    jobName: Test_Windows_CoreClr_Release
+    buildJobName: Build_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
+    configuration: Release
+    testArguments: -testCoreClr
 
 # Unix Build and Test Jobs 
 - template: eng/pipelines/build-unix-job.yml

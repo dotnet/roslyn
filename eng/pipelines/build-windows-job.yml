@@ -36,7 +36,7 @@ jobs:
       displayName: Prepare Unit Tests
       inputs:
         filePath: eng/prepare-tests.ps1
-        arguments: -configuration ${{ parameters.configuration }} -noBuild
+        arguments: -configuration ${{ parameters.configuration }}
 
     - task: PublishPipelineArtifact@1
       displayName: Publish Test Payload

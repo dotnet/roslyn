@@ -54,8 +54,6 @@ namespace RunTests
                 Environment.SetEnvironmentVariable("BUILD_SOURCEBRANCH", sourceBranch);
             }
 
-            // TODO: can we minimize the number of repeated uploads/downloads?
-            // for example, by uploading .duplicate dir as its own artifact for Helix to consume as a correlation payload.
             var msbuildTestPayloadRoot = ".";
             var isAzureDevOpsRun = Environment.GetEnvironmentVariable("SYSTEM_ACCESSTOKEN") is not null;
             if (!isAzureDevOpsRun)
@@ -73,6 +71,7 @@ namespace RunTests
 
             if (Environment.GetEnvironmentVariable("BUILD_REASON") is null)
                 Environment.SetEnvironmentVariable("BUILD_REASON", "pr");
+
             var buildNumber = Environment.GetEnvironmentVariable("BUILD_BUILDNUMBER") ?? "0";
             var workItems = assemblyInfoList.Select(ai => makeHelixWorkItemProject(ai));
             var project = @"
@@ -108,7 +107,6 @@ namespace RunTests
 
             string makeHelixWorkItemProject(AssemblyInfo assemblyInfo)
             {
-
                 // TODO: there ideally shouldn't be a coupling between RunTests.dll running on Windows vs. Unix and
                 // the actual tests running on Windows vs. Unix. For now, however, this is convenient to help us generate the right stuff
                 var isUnix = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);

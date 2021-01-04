@@ -87,7 +87,7 @@ namespace RunTests
         public bool UseHelix { get; set; }
 
         /// <summary>
-        /// Whether to run test partitions as Helix work items.
+        /// Name of the Helix queue to run tests on (only valid when <see cref="UseHelix" /> is <see langword="true" />).
         /// </summary>
         public string? HelixQueueName { get; set; }
 
@@ -161,8 +161,8 @@ namespace RunTests
                 { "traits=", "xUnit traits to include (semicolon delimited)", (string s) => traits = s },
                 { "notraits=", "xUnit traits to exclude (semicolon delimited)", (string s) => noTraits = s },
                 { "timeout=", "Minute timeout to limit the tests to", (int i) => timeout = i },
-                { "out=", "Test result file directory (when running on Helix, this should be relative to the Helix work item directory)", (string s) => resultFileDirectory = s },
-                { "logs=", "Log file directory (when running on Helix, this should be relative to the Helix work item directory)", (string s) => logFileDirectory = s },
+                { "out=", "Test result file directory (when running on Helix, this is relative to the Helix work item directory)", (string s) => resultFileDirectory = s },
+                { "logs=", "Log file directory (when running on Helix, this is relative to the Helix work item directory)", (string s) => logFileDirectory = s },
                 { "display=", "Display", (Display d) => display = d },
                 { "artifactspath=", "Path to the artifacts directory", (string s) => artifactsPath = s },
                 { "procdumppath=", "Path to procdump", (string s) => procDumpFilePath = s },

@@ -33,7 +33,6 @@ namespace RunTests
 
         internal static async Task<int> Main(string[] args)
         {
-
             Logger.Log("RunTest command line");
             Logger.Log(string.Join(" ", args));
 
@@ -186,10 +185,10 @@ namespace RunTests
 
         private static void WriteLogFile(Options options)
         {
-            Directory.CreateDirectory(options.LogFilesDirectory);
             var logFilePath = Path.Combine(options.LogFilesDirectory, "runtests.log");
             try
             {
+                Directory.CreateDirectory(options.LogFilesDirectory);
                 using (var writer = new StreamWriter(logFilePath, append: false))
                 {
                     Logger.WriteTo(writer);

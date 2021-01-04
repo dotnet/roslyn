@@ -49,15 +49,6 @@ jobs:
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
-    - task: PublishTestResults@2
-      displayName: Publish xUnit Test Results
-      inputs:
-        testRunner: XUnit
-        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}\*.xml'
-        mergeTestResults: true
-        testRunTitle: '${{ parameters.testRunName }}'
-      condition: false
-
     - template: publish-logs.yml
       parameters:
         configuration: ${{ parameters.configuration }}
