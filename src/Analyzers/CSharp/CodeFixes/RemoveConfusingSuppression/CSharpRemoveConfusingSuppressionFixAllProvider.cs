@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
 {
     internal partial class CSharpRemoveConfusingSuppressionCodeFixProvider
     {
-        private class CSharpRemoveConfusingSuppressionFixAllProvider : DocumentBasedFixAllProvider
+        private class CSharpRemoveConfusingSuppressionFixAllProvider : RoslynDocumentBasedFixAllProvider
         {
             public CSharpRemoveConfusingSuppressionFixAllProvider()
             {

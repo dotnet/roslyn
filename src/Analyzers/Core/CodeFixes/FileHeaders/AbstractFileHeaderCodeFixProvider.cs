@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             }
         }
 
-        private class FixAll : DocumentBasedFixAllProvider
+        private class FixAll : RoslynDocumentBasedFixAllProvider
         {
             private readonly AbstractFileHeaderCodeFixProvider _codeFixProvider;
 

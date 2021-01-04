@@ -16,15 +16,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// subclass needs to provide is how each document will apply all the fixes to all the 
         /// diagnostics in that document.
         /// </summary>
-        internal sealed class SyntaxEditorBasedFixAllProvider : AbstractDocumentBasedFixAllProvider
+        internal sealed class SyntaxEditorBasedFixAllProvider : DocumentBasedFixAllProvider
         {
             private readonly SyntaxEditorBasedCodeFixProvider _codeFixProvider;
 
             public SyntaxEditorBasedFixAllProvider(SyntaxEditorBasedCodeFixProvider codeFixProvider)
                 => _codeFixProvider = codeFixProvider;
-
-            protected override string GetFixAllTitle(FixAllContext fixAllContext)
-                => FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
 
             protected override async Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             {
