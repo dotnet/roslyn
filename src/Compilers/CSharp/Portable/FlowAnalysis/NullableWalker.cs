@@ -1092,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Once we address https://github.com/dotnet/roslyn/issues/46579 we should also always pass `getFinalNullableState: true` in debug mode.
                     // We will likely always need to write a 'null' out for the out parameter in this code path, though, because
                     // we don't want to introduce behavior differences between debug and release builds
-                    Analyze(compilation, method, node, new DiagnosticBag(), useConstructorExitWarnings: false, initialNullableState: null, getFinalNullableState: false, out _, requiredAnalysis: false);
+                    Analyze(compilation, method, node, new DiagnosticBag(), useConstructorExitWarnings: false, initialNullableState: null, getFinalNullableState: false, out _, requiresAnalysis: false);
                 }
                 finalNullableState = null;
                 return;
@@ -1101,7 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Analyze(compilation, method, node, diagnostics, useConstructorExitWarnings, initialNullableState, getFinalNullableState, out finalNullableState);
         }
 
-        internal static void Analyze(
+        private static void Analyze(
             CSharpCompilation compilation,
             MethodSymbol method,
             BoundNode node,
@@ -1110,7 +1110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableState? initialNullableState,
             bool getFinalNullableState,
             out VariableState? finalNullableState,
-            bool requiredAnalysis = true)
+            bool requiresAnalysis = true)
         {
             if (method.IsImplicitlyDeclared && !method.IsImplicitConstructor && !method.IsScriptInitializer)
             {
@@ -1137,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnTypesOpt: null,
                 getFinalNullableState,
                 finalNullableState: out finalNullableState,
-                requiredAnalysis);
+                requiresAnalysis);
         }
 
         /// <summary>
@@ -1185,7 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool createSnapshots)
         {
-            _ = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState: GetAfterInitializersState(compilation, symbol), diagnostics, createSnapshots, requiredAnalysis: false);
+            _ = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState: GetAfterInitializersState(compilation, symbol), diagnostics, createSnapshots, requiresAnalysis: false);
         }
 
         /// <summary>
@@ -1204,7 +1204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref ImmutableDictionary<Symbol, Symbol>? remappedSymbols)
         {
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)> analyzedNullabilitiesMap;
-            (snapshotManager, analyzedNullabilitiesMap) = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState, diagnostics, createSnapshots, requiredAnalysis: true);
+            (snapshotManager, analyzedNullabilitiesMap) = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState, diagnostics, createSnapshots, requiresAnalysis: true);
             return Rewrite(analyzedNullabilitiesMap, snapshotManager, node, ref remappedSymbols);
         }
 
@@ -1216,7 +1216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableState? initialState,
             DiagnosticBag diagnostics,
             bool createSnapshots,
-            bool requiredAnalysis)
+            bool requiresAnalysis)
         {
             var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol?)>(EqualityComparer<BoundExpression>.Default, NullabilityInfoTypeComparer.Instance);
 
@@ -1240,7 +1240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnTypesOpt: null,
                 getFinalNullableState: false,
                 out _,
-                requiredAnalysis);
+                requiresAnalysis);
 
             var analyzedNullabilitiesMap = analyzedNullabilities.ToImmutable();
             var snapshotManager = snapshotBuilder?.ToManagerAndFree();
@@ -1333,7 +1333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             DiagnosticBag diagnostics)
         {
-            bool requiredAnalysis = true;
+            bool requiresAnalysis = true;
             var compilation = binder.Compilation;
             if (!HasRequiredLanguageVersion(compilation) || !compilation.IsNullableAnalysisEnabledIn(syntax))
             {
@@ -1342,7 +1342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
                 diagnostics = new DiagnosticBag();
-                requiredAnalysis = false;
+                requiresAnalysis = false;
             }
 
             Analyze(
@@ -1361,7 +1361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnTypesOpt: null,
                 getFinalNullableState: false,
                 out _,
-                requiredAnalysis);
+                requiresAnalysis);
         }
 
         internal static void Analyze(
@@ -1409,7 +1409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>? returnTypesOpt,
             bool getFinalNullableState,
             out VariableState? finalNullableState,
-            bool requiredAnalysis = true)
+            bool requiresAnalysis = true)
         {
             Debug.Assert(diagnostics != null);
             var walker = new NullableWalker(compilation,
@@ -1428,7 +1428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             finalNullableState = null;
             try
             {
-                Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt, requiredAnalysis);
+                Analyze(walker, symbol, diagnostics, initialState, snapshotBuilderOpt, requiresAnalysis);
                 if (getFinalNullableState)
                 {
                     Debug.Assert(!walker.IsConditionalState);
@@ -1447,7 +1447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag? diagnostics,
             VariableState? initialState,
             SnapshotManager.Builder? snapshotBuilderOpt,
-            bool requiredAnalysis = true)
+            bool requiresAnalysis = true)
         {
             Debug.Assert(snapshotBuilderOpt is null || symbol is object);
             try
@@ -1470,11 +1470,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var key = (object?)symbol ?? walker.methodMainNode.Syntax;
                 if (state.TryGetValue(key, out var result))
                 {
-                    Debug.Assert(result.RequiredAnalysis == requiredAnalysis);
+                    Debug.Assert(result.RequiredAnalysis == requiresAnalysis);
                 }
                 else
                 {
-                    state.TryAdd(key, new Data(walker._variableSlot.Count, requiredAnalysis));
+                    state.TryAdd(key, new Data(walker._variableSlot.Count, requiresAnalysis));
                 }
             }
         }
