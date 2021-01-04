@@ -68,7 +68,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)WorkspaceServices\SemanticModelReuse\ISemanticModelReuseWorkspaceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WorkspaceServices\SemanticModelReuse\SemanticModelReuseWorkspaceServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\SyntaxEditorBasedCodeFixProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\SyntaxEditorBasedCodeFixProvider.FixAllProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\ISyntaxFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NameGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\CodeChangeProviderMetadata.cs" />
