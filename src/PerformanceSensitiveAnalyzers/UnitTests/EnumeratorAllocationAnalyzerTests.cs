@@ -51,9 +51,13 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(25,24): warning HAA0401: Non-ValueType enumerator may result in a heap allocation
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic().WithLocation(25, 24),
+#pragma warning restore RS0030 // Do not used banned APIs
                 // Test0.cs(30,24): warning HAA0401: Non-ValueType enumerator may result in a heap allocation
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic().WithLocation(30, 24));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -88,7 +92,9 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(17,24): warning HAA0401: Non-ValueType enumerator may result in a heap allocation
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic().WithLocation(17, 24));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -131,7 +137,9 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(17,43): warning HAA0401: Non-ValueType enumerator may result in a heap allocation
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic().WithLocation(17, 43));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
