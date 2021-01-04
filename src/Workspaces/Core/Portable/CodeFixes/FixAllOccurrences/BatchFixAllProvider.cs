@@ -33,11 +33,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         protected sealed override string GetFixAllTitle(FixAllContext fixAllContext)
             => FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
 
-        /// <summary>
-        /// All fix-alls funnel into this method.  For doc-fix-all or project-fix-all call into this with just their
-        /// single <see cref="FixAllContext"/> in <paramref name="fixAllContexts"/>.  For solution-fix-all, <paramref
-        /// name="fixAllContexts"/> will contain a context for each project in the solution.
-        /// </summary>
         protected sealed override async Task<Solution?> FixAllContextsAsync(
             FixAllContext originalFixAllContext,
             ImmutableArray<FixAllContext> fixAllContexts)
