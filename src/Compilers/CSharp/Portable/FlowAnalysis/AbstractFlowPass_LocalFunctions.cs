@@ -58,6 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement localFunc)
         {
+            if (localFunc.Symbol.IsExtern)
+            {
+                // an extern local function is not permitted to have a body and thus shouldn't be flow analyzed
+                return null;
+            }
+
             var oldSymbol = this.CurrentSymbol;
             var localFuncSymbol = localFunc.Symbol;
             this.CurrentSymbol = localFuncSymbol;

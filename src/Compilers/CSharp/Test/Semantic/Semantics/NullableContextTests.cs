@@ -4,9 +4,12 @@
 
 #nullable disable
 
+using System.Collections.Concurrent;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -149,5 +152,271 @@ partial class C
                 Assert.True(contextInherited.AnnotationsInherited());
             }
         }
+
+        // See also CommandLineTests.NullableAnalysisFlags().
+        [Fact]
+        public void NullableAnalysisFlags_01()
+        {
+            var source =
+@"#nullable enable
+class Program
+{
+    const object? C1 = null;
+    const object? C2 = null;
+#nullable enable
+    static object F1() => C1;
+#nullable disable
+    static object F2() => C2;
+}";
+
+            // https://github.com/dotnet/roslyn/issues/49746: Currently, if we analyze any members, we analyze all.
+            var expectedAnalyzedKeysAll = new[] { ".cctor", ".ctor", "F1", "F2" };
+
+            verify(parseOptions: TestOptions.Regular, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", null), expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "always"), expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"));
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "ALWAYS"), expectedAnalyzedKeysAll); // unrecognized value (incorrect case) ignored
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "NEVER"), expectedAnalyzedKeysAll); // unrecognized value (incorrect case) ignored
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "true"), expectedAnalyzedKeysAll); // unrecognized value ignored
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "false"), expectedAnalyzedKeysAll); // unrecognized value ignored
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "unknown"), expectedAnalyzedKeysAll); // unrecognized value ignored
+
+            void verify(CSharpParseOptions parseOptions, params string[] expectedAnalyzedKeys)
+            {
+                var comp = CreateCompilation(source, parseOptions: parseOptions);
+                comp.NullableAnalysisData = new ConcurrentDictionary<object, int>();
+                if (expectedAnalyzedKeys.Length > 0)
+                {
+                    comp.VerifyDiagnostics(
+                        // (7,27): warning CS8603: Possible null reference return.
+                        //     static object F1() => C1;
+                        Diagnostic(ErrorCode.WRN_NullReferenceReturn, "C1").WithLocation(7, 27));
+                }
+                else
+                {
+                    comp.VerifyDiagnostics();
+                }
+
+                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData);
+                AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
+            }
+        }
+
+        [Fact]
+        public void NullableAnalysisFlags_02()
+        {
+            var source =
+@"#nullable enable
+class Program
+{
+    const object? C1 = null;
+    const object? C2 = null;
+#nullable enable
+    static void F1(object obj = C1) { }
+#nullable disable
+    static void F2(object obj = C2) { }
+}";
+
+            // https://github.com/dotnet/roslyn/issues/49746: Currently, if we analyze any members, we analyze all.
+            var expectedAnalyzedKeysAll = new[] { ".cctor", ".ctor", "= C1", "= C2", "F1", "F2" };
+
+            verify(parseOptions: TestOptions.Regular, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", null), expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "always"), expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"));
+
+            void verify(CSharpParseOptions parseOptions, params string[] expectedAnalyzedKeys)
+            {
+                var comp = CreateCompilation(source, parseOptions: parseOptions);
+                comp.NullableAnalysisData = new ConcurrentDictionary<object, int>();
+                if (expectedAnalyzedKeys.Length > 0)
+                {
+                    comp.VerifyDiagnostics(
+                        // (7,33): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                        //     static void F1(object obj = C1) { }
+                        Diagnostic(ErrorCode.WRN_NullAsNonNullable, "C1").WithLocation(7, 33));
+                }
+                else
+                {
+                    comp.VerifyDiagnostics();
+                }
+
+                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData);
+                AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
+            }
+        }
+
+        [Fact]
+        public void NullableAnalysisFlags_03()
+        {
+            var sourceA =
+@"#nullable enable
+public class A : System.Attribute
+{
+    public A(object obj) { }
+    public const object? C1 = null;
+    public const object? C2 = null;
+}";
+            var refA = CreateCompilation(sourceA).EmitToImageReference();
+
+            var sourceB =
+@"#nullable enable
+[A(A.C1)]
+struct B1
+{
+}
+#nullable disable
+[A(A.C2)]
+struct B2
+{
+}";
+
+            // https://github.com/dotnet/roslyn/issues/49746: Currently, if we analyze any members, we analyze all.
+            var expectedAnalyzedKeysAll = new[] { ".cctor", ".cctor", "A(A.C1)", "A(A.C2)" };
+
+            verify(parseOptions: TestOptions.Regular, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", null), expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "always"), expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"));
+
+            void verify(CSharpParseOptions parseOptions, params string[] expectedAnalyzedKeys)
+            {
+                var comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: parseOptions);
+                comp.NullableAnalysisData = new ConcurrentDictionary<object, int>();
+                if (expectedAnalyzedKeys.Length > 0)
+                {
+                    comp.VerifyDiagnostics(
+                        // (2,4): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                        // [A(A.C1)]
+                        Diagnostic(ErrorCode.WRN_NullAsNonNullable, "A.C1").WithLocation(2, 4));
+                }
+                else
+                {
+                    comp.VerifyDiagnostics();
+                }
+
+                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData);
+                AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
+            }
+        }
+
+        [Fact]
+        public void NullableAnalysisFlags_MethodBodySemanticModel()
+        {
+            var source =
+@"#nullable enable
+class Program
+{
+    static object F(object? obj)
+    {
+        if (obj == null) return null;
+        return obj;
+    }
+}";
+
+            var expectedAnalyzedKeysAll = new[] { "F" };
+
+            verify(parseOptions: TestOptions.Regular, expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", null), expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "always"), expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), expectedFlowState: false);
+
+            void verify(CSharpParseOptions parseOptions, bool expectedFlowState, params string[] expectedAnalyzedKeys)
+            {
+                var comp = CreateCompilation(source, parseOptions: parseOptions);
+                comp.NullableAnalysisData = new ConcurrentDictionary<object, int>();
+                var syntaxTree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(syntaxTree);
+                var syntax = syntaxTree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Skip(1).Single();
+                Assert.Equal("return obj;", syntax.ToString());
+                var typeInfo = model.GetTypeInfo(syntax.Expression);
+                var expectedNullability = expectedFlowState ? Microsoft.CodeAnalysis.NullableFlowState.NotNull : Microsoft.CodeAnalysis.NullableFlowState.None;
+                Assert.Equal(expectedNullability, typeInfo.Nullability.FlowState);
+
+                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData);
+                AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
+            }
+        }
+
+        [Fact]
+        public void NullableAnalysisFlags_AttributeSemanticModel()
+        {
+            var source =
+@"#nullable enable
+class A : System.Attribute
+{
+    public A(object obj) { }
+    public static object F;
+}
+[A(A.F = null)]
+class B
+{
+}";
+
+            var expectedAnalyzedKeysAll = new[] { "A(A.F = null)" };
+
+            verify(parseOptions: TestOptions.Regular, expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", null), expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "always"), expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), expectedFlowState: false);
+
+            void verify(CSharpParseOptions parseOptions, bool expectedFlowState, params string[] expectedAnalyzedKeys)
+            {
+                var comp = CreateCompilation(source, parseOptions: parseOptions);
+                comp.NullableAnalysisData = new ConcurrentDictionary<object, int>();
+                var syntaxTree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(syntaxTree);
+                var syntax = syntaxTree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().Single();
+                Assert.Equal("A.F = null", syntax.ToString());
+                var typeInfo = model.GetTypeInfo(syntax.Expression);
+                var expectedNullability = expectedFlowState ? Microsoft.CodeAnalysis.NullableFlowState.MaybeNull : Microsoft.CodeAnalysis.NullableFlowState.None;
+                Assert.Equal(expectedNullability, typeInfo.Nullability.FlowState);
+
+                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData);
+                AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
+            }
+        }
+
+        [Fact]
+        public void NullableAnalysisFlags_InitializerSemanticModel()
+        {
+            var source =
+@"#nullable enable
+class Program
+{
+    static object F;
+    static void M(object arg = (F = null)) { }
+}";
+
+            var expectedAnalyzedKeysAll = new[] { "arg" };
+
+            verify(parseOptions: TestOptions.Regular, expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", null), expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "always"), expectedFlowState: true, expectedAnalyzedKeysAll);
+            verify(parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"), expectedFlowState: false);
+
+            void verify(CSharpParseOptions parseOptions, bool expectedFlowState, params string[] expectedAnalyzedKeys)
+            {
+                var comp = CreateCompilation(source, parseOptions: parseOptions);
+                comp.NullableAnalysisData = new ConcurrentDictionary<object, int>();
+                var syntaxTree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(syntaxTree);
+                var syntax = syntaxTree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().First().Value;
+                Assert.Equal("(F = null)", syntax.ToString());
+                var typeInfo = model.GetTypeInfo(syntax);
+                var expectedNullability = expectedFlowState ? Microsoft.CodeAnalysis.NullableFlowState.MaybeNull : Microsoft.CodeAnalysis.NullableFlowState.None;
+                Assert.Equal(expectedNullability, typeInfo.Nullability.FlowState);
+
+                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData);
+                AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
+            }
+        }
+
+        private static string[] GetNullableDataKeysAsStrings(ConcurrentDictionary<object, int> nullableData) =>
+            nullableData.Keys.Select(key => GetNullableDataKeyAsString(key)).OrderBy(key => key).ToArray();
+
+        private static string GetNullableDataKeyAsString(object key) =>
+            key is Symbol symbol ? symbol.MetadataName : ((SyntaxNode)key).ToString();
     }
 }

@@ -127,10 +127,16 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.CodeStyle", "src\CodeStyle\CSharp\Analyzers\Microsoft.CodeAnalysis.CSharp.CodeStyle.csproj", "{AA87BFED-089A-4096-B8D5-690BDC7D5B24}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes", "src\CodeStyle\CSharp\CodeFixes\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.csproj", "{A07ABCF5-BC43-4EE9-8FD8-B2D77FD54D73}"
+	ProjectSection(ProjectDependencies) = postProject
+		{432F4461-E198-44AA-8022-9E8C06A17C93} = {432F4461-E198-44AA-8022-9E8C06A17C93}
+	EndProjectSection
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.CodeAnalysis.VisualBasic.CodeStyle", "src\CodeStyle\VisualBasic\Analyzers\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.vbproj", "{2531A8C4-97DD-47BC-A79C-B7846051E137}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes", "src\CodeStyle\VisualBasic\CodeFixes\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.vbproj", "{0141285D-8F6C-42C7-BAF3-3C0CCD61C716}"
+	ProjectSection(ProjectDependencies) = postProject
+		{432F4461-E198-44AA-8022-9E8C06A17C93} = {432F4461-E198-44AA-8022-9E8C06A17C93}
+	EndProjectSection
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "CSharpAnalyzerDriver", "src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.shproj", "{54E08BF5-F819-404F-A18D-0AB9EA81EA04}"
 EndProject
@@ -158,12 +164,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildValidator", "src\Tools
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrepareTests", "src\Tools\PrepareTests\PrepareTests.csproj", "{9B25E472-DF94-4E24-9F5D-E487CE5A91FB}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeStyleConfigFileGenerator", "src\CodeStyle\Tools\CodeStyleConfigFileGenerator.csproj", "{432F4461-E198-44AA-8022-9E8C06A17C93}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Collections", "src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.shproj", "{E919DD77-34F8-4F57-8058-4D3FF4C2B241}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\VisualBasic\VisualBasicWorkspaceExtensions.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
 		src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
+		src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\CSharp\CSharpCompilerExtensions.projitems*{21b239d0-d144-430f-a394-c066d58ee267}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\CSharp\CSharpWorkspaceExtensions.projitems*{21b239d0-d144-430f-a394-c066d58ee267}*SharedItemsImports = 5
@@ -177,6 +188,7 @@ Global
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{54e08bf5-f819-404f-a18d-0ab9ea81ea04}*SharedItemsImports = 13
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\VisualBasic\VisualBasicCompilerExtensions.projitems*{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\VisualBasic\VisualBasicWorkspaceExtensions.projitems*{57ca988d-f010-4bf2-9a2e-07d6dcd2ff2c}*SharedItemsImports = 5
+		src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems*{5f8d2414-064a-4b3a-9b42-8e2a04246be5}*SharedItemsImports = 5
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{5f8d2414-064a-4b3a-9b42-8e2a04246be5}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems*{5f8d2414-064a-4b3a-9b42-8e2a04246be5}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\Core\WorkspaceExtensions.projitems*{5f8d2414-064a-4b3a-9b42-8e2a04246be5}*SharedItemsImports = 5
@@ -195,6 +207,7 @@ Global
 		src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems*{d73adf7d-2c1c-42ae-b2ab-edc9497e4b71}*SharedItemsImports = 13
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}*SharedItemsImports = 5
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{e8f0baa5-7327-43d1-9a51-644e81ae55f1}*SharedItemsImports = 13
+		src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems*{e919dd77-34f8-4f57-8058-4d3ff4c2b241}*SharedItemsImports = 13
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -449,6 +462,10 @@ Global
 		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{432F4461-E198-44AA-8022-9E8C06A17C93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{432F4461-E198-44AA-8022-9E8C06A17C93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{432F4461-E198-44AA-8022-9E8C06A17C93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{432F4461-E198-44AA-8022-9E8C06A17C93}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -522,6 +539,8 @@ Global
 		{706CFC25-B6E0-4DAA-BCC4-F6FAAFEEDF87} = {3FF38FD4-DF16-44B0-924F-0D5AE155495B}
 		{E9211052-7700-4A2F-B1AE-34FD5CCAB8AF} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
+		{432F4461-E198-44AA-8022-9E8C06A17C93} = {B20208C3-D3A6-4020-A274-6BE3786D29FB}
+		{E919DD77-34F8-4F57-8058-4D3FF4C2B241} = {3CDEA9FB-CD44-4AB4-98A8-5537AAA2169B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}

@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -46,8 +47,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             {
-                if (!RemoteHostOptions.IsUsingServiceHubOutOfProcess(workspaceServices)
-                    || workspaceServices.Workspace is not VisualStudioWorkspace)
+                // We don't want to bring up the OOP process in a VS cloud environment client instance
+                // Avoids proffering brokered services on the client instance.
+                if (!RemoteHostOptions.IsUsingServiceHubOutOfProcess(workspaceServices) ||
+                    workspaceServices.Workspace is not VisualStudioWorkspace ||
+                    workspaceServices.GetRequiredService<IWorkspaceContextService>().IsCloudEnvironmentClient())
                 {
                     // Run code in the current process
                     return new DefaultRemoteHostClientProvider();

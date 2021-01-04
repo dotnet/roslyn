@@ -6524,7 +6524,7 @@ class C
         Public Async Function CompletionBeforeVarWithEnableNullableReferenceAnalysisIDEFeatures(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                  <Workspace>
-                     <Project Language="C#" LanguageVersion="8" CommonReferences="true" AssemblyName="CSProj" Features="run-nullable-analysis">
+                     <Project Language="C#" LanguageVersion="8" CommonReferences="true" AssemblyName="CSProj" Features="run-nullable-analysis=always">
                          <Document><![CDATA[
 class C
 {
@@ -7766,8 +7766,9 @@ public class AA
     }
 }</Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
-                state.Workspace.SetOptions(
-                    state.Workspace.Options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True))
+                state.Workspace.SetOptions(state.Workspace.Options _
+                                           .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True) _
+                                           .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, -1))
 
                 Dim expectedText = "
 using CC;

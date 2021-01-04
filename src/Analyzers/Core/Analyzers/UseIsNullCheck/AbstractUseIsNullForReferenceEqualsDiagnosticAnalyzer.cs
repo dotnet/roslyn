@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
     {
         protected AbstractUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(LocalizableString title)
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
+                   EnforceOnBuildValues.UseIsNullCheck,
                    CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod,
                    title,
                    new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))

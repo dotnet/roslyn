@@ -3051,6 +3051,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation = this.DeclaringCompilation;
 
             // Positional record
+            bool primaryAndCopyCtorAmbiguity = false;
             if (!(paramList is null))
             {
                 Debug.Assert(builder.RecordDeclarationWithParameters is object);
@@ -3063,9 +3064,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var existingOrAddedMembers = addProperties(ctor.Parameters);
                     addDeconstruct(ctor, existingOrAddedMembers);
                 }
+
+                primaryAndCopyCtorAmbiguity = ctor.ParameterCount == 1 && ctor.Parameters[0].Type.Equals(this, TypeCompareKind.AllIgnoreOptions);
             }
 
-            addCopyCtor();
+            addCopyCtor(primaryAndCopyCtorAmbiguity);
             addCloneMethod();
 
             PropertySymbol equalityContract = addEqualityContract();
@@ -3097,7 +3100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SynthesizedRecordConstructor addCtor(RecordDeclarationSyntax declWithParameters)
             {
                 Debug.Assert(declWithParameters.ParameterList is object);
-                var ctor = new SynthesizedRecordConstructor(this, declWithParameters, diagnostics);
+                var ctor = new SynthesizedRecordConstructor(this, declWithParameters);
                 members.Add(ctor);
                 return ctor;
             }
@@ -3146,7 +3149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            void addCopyCtor()
+            void addCopyCtor(bool primaryAndCopyCtorAmbiguity)
             {
                 var targetMethod = new SignatureOnlyMethodSymbol(
                     WellKnownMemberNames.InstanceConstructorName,
@@ -3168,7 +3171,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingConstructor))
                 {
-                    members.Add(new SynthesizedRecordCopyCtor(this, memberOffset: members.Count));
+                    var copyCtor = new SynthesizedRecordCopyCtor(this, memberOffset: members.Count);
+                    members.Add(copyCtor);
+
+                    if (primaryAndCopyCtorAmbiguity)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RecordAmbigCtor, copyCtor.Locations[0]);
+                    }
                 }
                 else
                 {
@@ -3540,7 +3549,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         case MethodKind.Constructor:
                             // Ignore the record copy constructor
-                            if (!IsRecord || !SynthesizedRecordCopyCtor.HasCopyConstructorSignature(method))
+                            if (!IsRecord ||
+                                !(SynthesizedRecordCopyCtor.HasCopyConstructorSignature(method) && method is not SynthesizedRecordConstructor))
                             {
                                 hasInstanceConstructor = true;
                                 hasParameterlessInstanceConstructor = hasParameterlessInstanceConstructor || method.ParameterCount == 0;

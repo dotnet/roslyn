@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public void EndEditSession() => throw new NotImplementedException();
 
-        public Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+        public Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
             => Task.FromResult((GetBaseActiveStatementSpansAsyncImpl ?? throw new NotImplementedException()).Invoke(documentIds));
 
         public Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, ActiveInstructionId instructionId, CancellationToken cancellationToken)
@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public Task<bool> HasChangesAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken) => throw new NotImplementedException();
 
-        public Task<bool?> IsActiveStatementInExceptionRegionAsync(ActiveInstructionId instructionId, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ActiveInstructionId instructionId, CancellationToken cancellationToken) => throw new NotImplementedException();
 
-        public void OnSourceFileUpdated(DocumentId documentId) => throw new NotImplementedException();
+        public void OnSourceFileUpdated(Document document) => throw new NotImplementedException();
 
         public void ReportApplyChangesException(Solution solution, string message) => throw new NotImplementedException();
 

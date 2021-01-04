@@ -52,7 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptCompletionHandlerShim(ILspWorkspaceRegistrationService workspaceRegistrationService) : base(Array.Empty<Lazy<CompletionProvider, CompletionProviderMetadata>>())
+        public TypeScriptCompletionHandlerShim(ILspWorkspaceRegistrationService workspaceRegistrationService)
+            : base(completionProviders: Array.Empty<Lazy<CompletionProvider, CompletionProviderMetadata>>(), completionListCache: null)
         {
             _workspaceRegistrationService = workspaceRegistrationService;
         }
@@ -75,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptCompletionResolverHandlerShim(ILspWorkspaceRegistrationService workspaceRegistrationService)
+        public TypeScriptCompletionResolverHandlerShim(ILspWorkspaceRegistrationService workspaceRegistrationService) : base(completionListCache: null)
         {
             _workspaceRegistrationService = workspaceRegistrationService;
         }

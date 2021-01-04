@@ -1313,10 +1313,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var fullSpan = this.Root.FullSpan;
             var position = node.SpanStart;
-            if (node is StatementSyntax)
+
+            // skip zero-width tokens to get the position, but never get past the end of the node
+            SyntaxToken firstToken = node.GetFirstToken(includeZeroWidth: false);
+            if (firstToken.Node is object)
             {
-                // skip zero-width tokens to get the position, but never get past the end of the node
-                int betterPosition = node.GetFirstToken(includeZeroWidth: false).SpanStart;
+                int betterPosition = firstToken.SpanStart;
                 if (betterPosition < node.Span.End)
                 {
                     position = betterPosition;
@@ -1777,7 +1779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Symbol RemapSymbolIfNecessary(Symbol symbol)
         {
-            if (!Compilation.NullableSemanticAnalysisEnabled) return symbol;
+            if (!Compilation.IsNullableAnalysisEnabled) return symbol;
 
             switch (symbol)
             {
