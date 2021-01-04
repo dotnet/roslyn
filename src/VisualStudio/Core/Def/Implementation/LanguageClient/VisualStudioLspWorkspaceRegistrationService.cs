@@ -32,13 +32,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 _registrations = _registrations.Add(workspace);
             }
         }
-
-        public void Unregister(Workspace workspace)
-        {
-            lock (_gate)
-            {
-                _registrations = _registrations.Remove(workspace);
-            }
-        }
     }
 }
