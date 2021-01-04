@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static readonly Func<CSharpSyntaxNode, bool> s_isMemberDeclarationFunction = IsMemberDeclaration;
 
+#nullable enable
         internal SyntaxTreeSemanticModel(CSharpCompilation compilation, SyntaxTree syntaxTree, bool ignoreAccessibility = false)
         {
             _compilation = compilation;
@@ -137,6 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Compilation.GetDiagnosticsForSyntaxTree(
             CompilationStage.Compile, this.SyntaxTree, span, includeEarlierStages: true, cancellationToken: cancellationToken);
         }
+#nullable disable
 
         /// <summary>
         /// Gets the enclosing binder associated with the node
@@ -2364,7 +2366,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return symbol;
             }
 
-            var position = CheckAndAdjustPosition(symbol.Locations[0].SourceSpan.Start);
+            var location = symbol.Locations[0];
+            if (location.SourceTree != this.SyntaxTree)
+            {
+                return symbol;
+            }
+
+            var position = CheckAndAdjustPosition(location.SourceSpan.Start);
             var memberModel = GetMemberModel(position);
             return memberModel?.RemapSymbolIfNecessaryCore(symbol) ?? symbol;
         }
