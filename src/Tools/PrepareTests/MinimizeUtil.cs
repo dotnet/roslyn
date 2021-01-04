@@ -189,6 +189,9 @@ done
 scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
 ");
 
+                // Working around an AzDo file permissions bug.
+                builder.AppendLine("find $scriptroot -name ilasm | xargs chmod 755");
+
                 var count = 0;
                 foreach (var tuple in group)
                 {
@@ -199,12 +202,6 @@ scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
                         builder.AppendLine($@"mkdir -p ""$scriptroot/{directory}""");
                     }
                     builder.AppendLine($@"ln ""$HELIX_CORRELATION_PAYLOAD/{source}"" ""$scriptroot/{destFilePath}"" || exit $?");
-
-                    // Working around an AzDo file permissions bug.
-                    if (Path.GetFileName(destFilePath) == "ilasm")
-                    {
-                        builder.AppendLine($"chmod 755 $scriptroot/{destFilePath}");
-                    }
 
                     count++;
                     if (count % 1_000 == 0)

@@ -43,7 +43,6 @@ jobs:
     # Work around for files not maintaining permissions after pipeline download
     # https://github.com/microsoft/azure-pipelines-tasks/issues/6364
     - bash: |
-        find artifacts/bin -name ilasm | xargs chmod 755
         chmod 755 eng/build.sh
       workingDirectory: '$(Build.SourcesDirectory)'
       displayName: Fix executable permissions in pipeline artifact
