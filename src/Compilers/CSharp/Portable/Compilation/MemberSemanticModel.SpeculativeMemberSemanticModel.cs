@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public SpeculativeMemberSemanticModel(SyntaxTreeSemanticModel parentSemanticModel, Symbol owner, TypeSyntax root, Binder rootBinder, NullableWalker.SnapshotManager snapshotManagerOpt, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt, int position)
                 : base(root, owner, rootBinder, containingSemanticModelOpt: null, parentSemanticModelOpt: parentSemanticModel, snapshotManagerOpt, parentRemappedSymbolsOpt, speculatedPosition: position)
             {
+                Debug.Assert(parentSemanticModel is not null);
             }
 
             protected override NullableWalker.SnapshotManager GetSnapshotManager()
