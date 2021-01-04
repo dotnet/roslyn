@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <param name="fixAllAsync">
         /// Callback that will the fix diagnostics present in the provided document.  The document returned will only be
         /// examined for its content (e.g. it's <see cref="SyntaxTree"/> or <see cref="SourceText"/>.  No other aspects
-        /// of (like it's properties), or changes to the <see cref="Project"/> or <see cref="Solution"/> it points at
+        /// of it (like attributes), or changes to the <see cref="Project"/> or <see cref="Solution"/> it points at
         /// will be considered.
         /// </param>
         public static FixAllProvider Create(Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync)
