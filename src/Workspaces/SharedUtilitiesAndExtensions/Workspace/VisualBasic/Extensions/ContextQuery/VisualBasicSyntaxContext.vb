@@ -54,8 +54,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public ReadOnly IsPreprocessorEndDirectiveKeywordContext As Boolean
         Public ReadOnly IsWithinPreprocessorContext As Boolean
 
-        Public ReadOnly IsObjectCreationContext As Boolean
-
         Private Sub New(
             workspace As Workspace,
             semanticModel As SemanticModel,
@@ -133,8 +131,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Me.IsCustomEventContext = isCustomEventContext
 
             Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective()
-
-            Me.IsObjectCreationContext = syntaxTree.IsObjectCreationTypeContext(position, cancellationToken)
         End Sub
 
         Private Shared Shadows Function IsWithinAsyncMethod(targetToken As SyntaxToken) As Boolean

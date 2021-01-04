@@ -50,9 +50,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function ShouldProvideParenthesisCompletionAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of Boolean)
-            If commitKey.HasValue Then
-                Return Task.FromResult(commitKey.Value = "."c)
-            End If
             Return Task.FromResult(False)
         End Function
     End Class

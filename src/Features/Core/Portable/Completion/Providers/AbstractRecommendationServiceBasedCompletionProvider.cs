@@ -91,34 +91,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 rules = rules.WithSelectionBehavior(PreselectedItemSelectionBehavior);
             }
 
-            var symbol = symbols[0];
-            var item = SymbolCompletionItem.CreateWithNameAndKind(
+            return SymbolCompletionItem.CreateWithNameAndKind(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
                 symbols: symbols,
                 rules: rules,
                 contextPosition: context.Position,
                 insertionText: insertionText,
-                filterText: GetFilterText(symbol, displayText, context),
+                filterText: GetFilterText(symbols[0], displayText, context),
                 supportedPlatforms: supportedPlatformData);
-
-            if (symbol.IsKind(SymbolKind.Method))
-            {
-                var isInferredTypeDelegate = context.InferredTypes.Any(type => type.IsDelegateType());
-                if (!isInferredTypeDelegate)
-                {
-                    item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
-                }
-            }
-            else if (symbol.IsKind(SymbolKind.NamedType) || symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.IsType)
-            {
-                if (IsObjectCreationContext(context))
-                {
-                    item = SymbolCompletionItem.AddShouldProvideParenthesisCompletion(item);
-                }
-            }
-
-            return item;
         }
 
         private static bool ShouldSoftSelectInArgumentList(CompletionContext completionContext, SyntaxContext context, bool preselect)
@@ -137,8 +118,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract CompletionItemSelectionBehavior PreselectedItemSelectionBehavior { get; }
 
         protected abstract bool IsInstrinsic(ISymbol symbol);
-
-        protected abstract bool IsObjectCreationContext(SyntaxContext context);
 
         private static int ComputeSymbolMatchPriority(ISymbol symbol)
         {

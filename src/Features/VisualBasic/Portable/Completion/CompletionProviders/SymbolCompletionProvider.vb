@@ -153,15 +153,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return If(TryCast(s, ITypeSymbol)?.IsIntrinsicType(), False)
         End Function
 
-        Protected Overrides Function IsObjectCreationContext(context As SyntaxContext) As Boolean
-            Dim syntaxContext = TryCast(context, VisualBasicSyntaxContext)
-            If syntaxContext Is Nothing Then
-                Return False
-            End If
-
-            Return syntaxContext.IsObjectCreationContext
-        End Function
-
         Protected Overrides ReadOnly Property PreselectedItemSelectionBehavior As CompletionItemSelectionBehavior
             Get
                 Return CompletionItemSelectionBehavior.SoftSelection

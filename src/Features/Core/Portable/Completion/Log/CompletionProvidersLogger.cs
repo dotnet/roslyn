@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Runtime.Serialization.Json;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Completion.Log

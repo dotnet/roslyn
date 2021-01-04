@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Log
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
@@ -65,15 +64,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), preselect As Boolean) As CompletionItemRules
             Return s_rules
-        End Function
-
-        Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
-            If ch = "."c Then
-                CompletionProvidersLogger.LogCommitUsingDotToAddParenthesis()
-                Return SymbolCompletionItem.GetInsertionText(item) + "()"
-            End If
-
-            Return MyBase.GetInsertionText(item, ch)
         End Function
     End Class
 End Namespace
