@@ -8,7 +8,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);EDITOR_FEATURES</DefineConstants>
     <ApplyNgenOptimization>partial</ApplyNgenOptimization>
-
     <!-- NuGet -->
     <PackageId>Microsoft.CodeAnalysis.EditorFeatures.Common</PackageId>
     <IsPackable>true</IsPackable>
