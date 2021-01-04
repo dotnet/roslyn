@@ -35,7 +35,7 @@ jobs:
         path: '$(Build.SourcesDirectory)'
 
     - task: BatchScript@1
-      displayName: Rehydrate Unit Tests Environment
+      displayName: Rehydrate RunTests
       inputs:
         filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/netcoreapp3.1/rehydrate.cmd
       env:
