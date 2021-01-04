@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -135,8 +136,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Formatting_TriggerOnStatementCompletion
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.AutoFormattingOnSemicolon); }
-            set { SetBooleanOption(FeatureOnOffOptions.AutoFormattingOnSemicolon, value); }
+            get { return GetBooleanOption(FormattingFeatureOptions.AutoFormattingOnSemicolon); }
+            set { SetBooleanOption(FormattingFeatureOptions.AutoFormattingOnSemicolon, value); }
         }
 
         public int HighlightReferences
