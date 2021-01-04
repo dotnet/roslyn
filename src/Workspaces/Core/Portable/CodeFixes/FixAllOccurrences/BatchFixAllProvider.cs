@@ -27,9 +27,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
         }
 
-        protected sealed override string GetFixAllTitle(FixAllContext fixAllContext)
-            => FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
-
         private static string GetName(FixAllContext fixAllContext)
             => fixAllContext.Document?.Name ?? fixAllContext.Project.Name;
 

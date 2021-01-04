@@ -23,9 +23,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             public SyntaxEditorBasedFixAllProvider(SyntaxEditorBasedCodeFixProvider codeFixProvider)
                 => _codeFixProvider = codeFixProvider;
 
-            protected override string GetFixAllTitle(FixAllContext fixAllContext)
-                => FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
-
             protected override async Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             {
                 var model = await document.GetRequiredSemanticModelAsync(fixAllContext.CancellationToken).ConfigureAwait(false);

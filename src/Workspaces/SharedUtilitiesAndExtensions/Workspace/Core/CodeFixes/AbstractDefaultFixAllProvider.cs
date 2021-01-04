@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Gets an appropriate title to show in user facing UI (for example, the title of a progress bar).
         /// </summary>
-        protected abstract string GetFixAllTitle(FixAllContext fixAllContext);
+        protected virtual string GetFixAllTitle(FixAllContext fixAllContext)
+            => FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
 
         public sealed override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
             => base.GetSupportedFixAllScopes();
