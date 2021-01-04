@@ -270,19 +270,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             if (ch is ';' or '.' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
             {
-                var insertionText = SymbolCompletionItem.GetInsertionText(item);
-                if (ch == ';')
-                {
-                    CompletionProvidersLogger.LogCommitUsingSemicolonToAddParenthesis();
-                    insertionText += "()";
-                }
-                else if (ch == '.')
-                {
-                    CompletionProvidersLogger.LogCommitUsingDotToAddParenthesis();
-                    insertionText += "()";
-                }
-
-                return insertionText;
+                CompletionProvidersLogger.LogCustomizedCommitToAddParenthesis(ch);
+                return SymbolCompletionItem.GetInsertionText(item) + "()";
             }
 
             return base.GetInsertionText(item, ch);

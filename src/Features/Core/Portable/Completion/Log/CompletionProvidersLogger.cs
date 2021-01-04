@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Runtime.Serialization.Json;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Completion.Log
@@ -92,6 +93,19 @@ namespace Microsoft.CodeAnalysis.Completion.Log
 
         internal static void LogCommitUsingDotToAddParenthesis() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.CommitUsingDotToAddParenthesis);
+
+        internal static void LogCustomizedCommitToAddParenthesis(char? commitChar)
+        {
+            switch (commitChar)
+            {
+                case '.':
+                    LogCommitUsingDotToAddParenthesis();
+                    break;
+                case ';':
+                    LogCommitUsingSemicolonToAddParenthesis();
+                    break;
+            }
+        }
 
         internal static void ReportTelemetry()
         {

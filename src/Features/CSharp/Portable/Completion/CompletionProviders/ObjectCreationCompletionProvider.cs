@@ -117,13 +117,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static readonly CompletionItemRules s_objectRules =
             CompletionItemRules.Create(
-                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', ';')),
+                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', ';', '.')),
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
         private static readonly CompletionItemRules s_defaultRules =
             CompletionItemRules.Create(
-                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '{', ';')),
+                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '{', ';', '.')),
                 matchPriority: MatchPriority.Preselect,
                 selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
@@ -151,17 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             if (ch is ';' or '.')
             {
-                if (ch is ';')
-                {
-                    CompletionProvidersLogger.LogCommitUsingSemicolonToAddParenthesis();
-                }
-                else if (ch is '.')
-                {
-                    CompletionProvidersLogger.LogCommitUsingDotToAddParenthesis();
-                }
-
-                var insertionText = SymbolCompletionItem.GetInsertionText(item);
-                return insertionText + "()";
+                CompletionProvidersLogger.LogCustomizedCommitToAddParenthesis(ch);
+                return SymbolCompletionItem.GetInsertionText(item) + "()";
             }
 
             return base.GetInsertionText(item, ch);
