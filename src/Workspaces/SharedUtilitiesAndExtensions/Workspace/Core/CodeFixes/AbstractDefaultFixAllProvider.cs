@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
     /// <summary>
-    /// Default implementation of a <see cref="FixAllProvider"/> that handles efficiently the dispatch logic for fixing
+    /// Default implementation of a <see cref="FixAllProvider"/> that efficiently handles the dispatch logic for fixing
     /// entire solutions.
     /// </summary>
     internal abstract class AbstractDefaultFixAllProvider : FixAllProvider
