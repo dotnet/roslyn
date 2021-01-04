@@ -274,8 +274,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 fieldsInvolvedInCycles = ArrayBuilder<SourceFieldSymbolWithSyntaxReference>.GetInstance(graph.Count);
                 // We sort fields that belong to the same compilation by location to process cycles in deterministic order.
                 // Relative order between compilations is not important, cycles do not cross compilation boundaries. 
-                fieldsInvolvedInCycles.AddRange(graph.Keys.GroupBy(f => f.DeclaringCompilation).
-                    SelectMany(g => g.OrderByDescending((f1, f2) => g.Key.CompareSourceLocations(f1.ErrorLocation, f2.ErrorLocation))));
+                fieldsInvolvedInCycles.AddRange(graph.Keys.GroupBy(static f => f.DeclaringCompilation).
+                    SelectMany(static g => g.OrderByDescending((f1, f2) => g.Key.CompareSourceLocations(f1.ErrorLocation, f2.ErrorLocation))));
             }
 
             while (true)

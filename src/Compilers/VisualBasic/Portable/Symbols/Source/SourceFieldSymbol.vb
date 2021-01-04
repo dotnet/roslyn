@@ -175,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Helper to get a constant value of the field with cycle detection.
         ''' Also avoids deep recursion due to references to other constant fields in the value.
-        ''' Derived types utilizing this helper should provide storage for lazily calculated
+        ''' Derived types utilizing this helper should provide storage for the lazily calculated
         ''' <see cref="EvaluatedConstant"/> value and should implement the following APIs:
         ''' <see cref="GetLazyConstantTuple()"/>,
         ''' <see cref="SetLazyConstantTuple(EvaluatedConstant, DiagnosticBag)"/>,
@@ -219,9 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim dependencies As New ConstantFieldsInProgress.Dependencies(builder)
                 Dim diagnostics = DiagnosticBag.GetInstance()
                 Dim constantTuple As EvaluatedConstant = MakeConstantTuple(dependencies, diagnostics)
-#If DEBUG Then
                 dependencies.Freeze()
-#End If
 
                 If startsCycle Then
                     diagnostics.Clear()
@@ -350,9 +348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim dependencies As New ConstantFieldsInProgress.Dependencies(builder)
             Dim diagnostics = DiagnosticBag.GetInstance()
             valueTuple = MakeConstantTuple(dependencies, diagnostics)
-#If DEBUG Then
             dependencies.Freeze()
-#End If
 
             Dim result As ImmutableHashSet(Of SourceFieldSymbol)
 

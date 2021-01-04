@@ -53,11 +53,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _builder.Add(field)
             End Sub
 
-#If DEBUG Then
+            <Conditional("DEBUG")>
             Friend Sub Freeze()
+#If DEBUG Then
                 _isFrozen = True
+#End If
             End Sub
 
+#If DEBUG Then
         End Class
 #Else
         End Structure
