@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Provides a base class to write a <see cref="FixAllProvider"/> that fixes documents independently.
     /// </summary>
-    internal abstract class DocumentBasedFixAllProvider : AbstractDocumentBasedFixAllProvider
+    internal abstract class RoslynDocumentBasedFixAllProvider : DocumentBasedFixAllProvider
     {
         protected abstract string CodeActionTitle { get; }
 
