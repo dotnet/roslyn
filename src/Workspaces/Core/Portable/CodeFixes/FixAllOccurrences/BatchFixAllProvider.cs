@@ -137,22 +137,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var solution = fixAllContext.Solution;
             var cancellationToken = fixAllContext.CancellationToken;
 
-            // Next, process each diagnostic, determine the code actions to fix it, then figure out the document 
-            // changes produced by that code action.
-            using var _1 = ArrayBuilder<Task<ImmutableArray<Document>>>.GetInstance(out var fixedDocumentsArray);
+            // Process each diagnostic, determine the code actions to fix it, then figure out the document changes
+            // produced by that code action.
+            using var _1 = ArrayBuilder<Task<ImmutableArray<Document>>>.GetInstance(out var tasks);
             foreach (var diagnostic in orderedDiagnostics)
             {
                 var document = solution.GetRequiredDocument(diagnostic.Location.SourceTree!);
 
                 cancellationToken.ThrowIfCancellationRequested();
-                fixedDocumentsArray.Add(Task.Run(async () =>
+                tasks.Add(Task.Run(async () =>
                 {
                     // Create a context that will add the reported code actions into this
                     using var _2 = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
                     var context = new CodeFixContext(document, diagnostic, GetRegisterCodeFixAction(fixAllContext.CodeActionEquivalenceKey, codeActions), cancellationToken);
 
                     // Wait for the all the code actions to be reported for this diagnostic.
-                    await (fixAllContext.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask).ConfigureAwait(false);
+                    var registerTask = fixAllContext.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
+                    await registerTask.ConfigureAwait(false);
 
                     // Now, process each code action and find out all the document changes caused by it.
                     using var _3 = ArrayBuilder<Document>.GetInstance(out var changedDocuments);
@@ -160,19 +161,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     foreach (var codeAction in codeActions)
                     {
                         var changedSolution = await codeAction.GetChangedSolutionInternalAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-                        if (changedSolution is null)
+                        if (changedSolution != null)
                         {
-                            // No changed documents
-                            continue;
+                            var changedDocumentIds = new SolutionChanges(changedSolution, solution).GetProjectChanges().SelectMany(p => p.GetChangedDocuments());
+                            changedDocuments.AddRange(changedDocumentIds.Select(id => changedSolution.GetRequiredDocument(id)));
                         }
-
-                        var solutionChanges = new SolutionChanges(changedSolution, solution);
-
-                        // TODO: Handle added/removed documents
-                        // TODO: Handle changed/added/removed additional documents
-
-                        var documentIdsWithChanges = solutionChanges.GetProjectChanges().SelectMany(p => p.GetChangedDocuments());
-                        changedDocuments.AddRange(documentIdsWithChanges.Select(id => changedSolution.GetRequiredDocument(id)));
                     }
 
                     return changedDocuments.ToImmutable();
@@ -180,18 +173,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             // Wait for all that work to finish.
-            await Task.WhenAll(fixedDocumentsArray).ConfigureAwait(false);
+            await Task.WhenAll(tasks).ConfigureAwait(false);
 
             // Flatten the set of changed documents.  These will naturally still be ordered by the diagnostic that
             // caused the change.
-            using var _4 = ArrayBuilder<Document>.GetInstance(out var allFixedDocuments);
-            foreach (var task in fixedDocumentsArray)
-            {
-                var fixedDocuments = await task.ConfigureAwait(false);
-                allFixedDocuments.AddRange(fixedDocuments);
-            }
+            using var _4 = ArrayBuilder<Document>.GetInstance(out var result);
+            foreach (var task in tasks)
+                result.AddRange(await task.ConfigureAwait(false));
 
-            return allFixedDocuments.ToImmutable();
+            return result.ToImmutable();
         }
 
         /// <summary>
