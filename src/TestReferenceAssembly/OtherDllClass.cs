@@ -15,7 +15,7 @@ namespace OtherDll
     /// <remarks>
     /// Since Roslyn doesn't support cross-binary DFA, and this class is
     /// defined in a different binary, using this class from test source code
-    /// is a way to test handling of non-interprocedural results in dataflow 
+    /// is a way to test handling of non-interprocedural results in dataflow
     /// analysis implementations.
     /// </remarks>
     public class OtherDllClass<T>
@@ -30,7 +30,7 @@ namespace OtherDll
 
         public T? Default
         {
-            get { return default; }
+            get => default;
             set { }
         }
 

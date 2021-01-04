@@ -74,27 +74,14 @@ namespace Analyzer.Utilities.PooledObjects
 
         public int Count
         {
-            get
-            {
-                return _builder.Count;
-            }
-            set
-            {
-                _builder.Count = value;
-            }
+            get => _builder.Count;
+            set => _builder.Count = value;
         }
 
         public T this[int index]
         {
-            get
-            {
-                return _builder[index];
-            }
-
-            set
-            {
-                _builder[index] = value;
-            }
+            get => _builder[index];
+            set => _builder[index] = value;
         }
 
         /// <summary>

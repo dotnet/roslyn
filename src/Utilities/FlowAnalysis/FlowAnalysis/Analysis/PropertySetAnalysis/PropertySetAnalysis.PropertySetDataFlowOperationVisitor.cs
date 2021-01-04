@@ -79,29 +79,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
             }
 
-            public ImmutableDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult> HazardousUsages
-            {
-                get
-                {
-                    return this._hazardousUsageBuilder.ToImmutable();
-                }
-            }
+            public ImmutableDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult> HazardousUsages => this._hazardousUsageBuilder.ToImmutable();
 
-            public ImmutableHashSet<IMethodSymbol> VisitedLocalFunctions
-            {
-                get
-                {
-                    return this._visitedLocalFunctions.ToImmutable();
-                }
-            }
+            public ImmutableHashSet<IMethodSymbol> VisitedLocalFunctions => this._visitedLocalFunctions.ToImmutable();
 
-            public ImmutableHashSet<IFlowAnonymousFunctionOperation> VisitedLambdas
-            {
-                get
-                {
-                    return this._visitedLambdas.ToImmutable();
-                }
-            }
+            public ImmutableHashSet<IFlowAnonymousFunctionOperation> VisitedLambdas => this._visitedLambdas.ToImmutable();
 
             protected override PropertySetAbstractValue GetAbstractDefaultValue(ITypeSymbol type) => ValueDomain.Bottom;
 

@@ -154,10 +154,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 Debug.Assert(_currentBasicBlock != null);
                 return _currentBasicBlock!;
             }
-            private set
-            {
-                _currentBasicBlock = value;
-            }
+            private set => _currentBasicBlock = value;
         }
         protected ControlFlowConditionKind FlowBranchConditionKind { get; private set; }
         protected PointsToAbstractValue ThisOrMePointsToAbstractValue { get; }
