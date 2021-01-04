@@ -125,15 +125,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return currentSolution;
         }
 
-        private static string GetName(FixAllContext fixAllContext)
-            => fixAllContext.Document?.Name ?? fixAllContext.Project.Name;
-
         /// <summary>
         /// Determines all the diagnostics we should be fixing for the given <paramref name="fixAllContext"/>.
         /// </summary>
         private static async Task<ImmutableArray<Diagnostic>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgressTracker progressTracker)
         {
-            using var _ = progressTracker.ItemCompletedScope(string.Format(WorkspaceExtensionsResources._0_Computing_diagnostics, GetName(fixAllContext)));
+            using var _ = progressTracker.ItemCompletedScope();
 
             return fixAllContext.Document != null
                 ? await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false)
@@ -151,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var cancellationToken = fixAllContext.CancellationToken;
 
-            using var _1 = progressTracker.ItemCompletedScope(string.Format(WorkspaceExtensionsResources._0_Computing_fixes_for_1_diagnostics, GetName(fixAllContext), diagnostics.Length));
+            using var _1 = progressTracker.ItemCompletedScope();
             using var _2 = ArrayBuilder<Task<(DocumentId, (SyntaxNode? node, SourceText? text))>>.GetInstance(out var tasks);
 
             var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
@@ -209,11 +206,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var cancellationToken = fixAllContext.CancellationToken;
 
-            var description = fixAllContext.Document != null
-                    ? string.Format(WorkspaceExtensionsResources._0_Applying_fixes, GetName(fixAllContext))
-                    : string.Format(WorkspaceExtensionsResources._0_Applying_fixes_to_1_documents, GetName(fixAllContext), docIdToNewRootOrText.Count);
-
-            using var _1 = progressTracker.ItemCompletedScope(description);
+            using var _1 = progressTracker.ItemCompletedScope();
 
             if (docIdToNewRootOrText.Count > 0)
             {
