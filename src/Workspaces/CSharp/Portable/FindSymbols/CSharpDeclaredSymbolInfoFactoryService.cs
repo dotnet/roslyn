@@ -149,6 +149,19 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
 
         public override bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, string rootNamespace, out DeclaredSymbolInfo declaredSymbolInfo)
         {
+            // If this is a part of partial type that only contains nested types, then we don't make an info type for
+            // it. That's because we effectively think of this as just being a virtual container just to hold the nested
+            // types, and not something someone would want to explicitly navigate to itself.  Similar to how we think of
+            // namespaces.
+            if (node is TypeDeclarationSyntax typeDeclaration &&
+                typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword) &&
+                typeDeclaration.Members.Any() &&
+                typeDeclaration.Members.All(m => m is BaseTypeDeclarationSyntax))
+            {
+                declaredSymbolInfo = default;
+                return false;
+            }
+
             switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
