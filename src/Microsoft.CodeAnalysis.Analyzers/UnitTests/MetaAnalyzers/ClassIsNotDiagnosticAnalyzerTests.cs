@@ -27,7 +27,9 @@ namespace RoslynSandbox
     {
     }
 }",
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic().WithLocation(8, 20).WithArguments("NotAnAnalyzer"));
+#pragma warning restore RS0030 // Do not used banned APIs
 
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports Microsoft.CodeAnalysis
@@ -38,7 +40,9 @@ Namespace RoslynSandbox
     Friend Class NotAnAnalyzer
     End Class
 End Namespace",
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyVB.Diagnostic().WithLocation(7, 18).WithArguments("NotAnAnalyzer"));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -55,7 +59,9 @@ namespace RoslynSandbox
     {
     }
 }",
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic().WithLocation(8, 27).WithArguments("NotAnAnalyzer"));
+#pragma warning restore RS0030 // Do not used banned APIs
 
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports Microsoft.CodeAnalysis
