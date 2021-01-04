@@ -194,15 +194,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableArray<Document> allChangedDocumentsInDiagnosticsOrder,
             Dictionary<DocumentId, TextChangeMerger> docIdToTextMerger)
         {
-            var solution = fixAllContext.Solution;
             var cancellationToken = fixAllContext.CancellationToken;
-
-            var differenceService = solution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
 
             // Now for each document that is changed, grab all the documents it was changed to (remember, many code
             // actions might have touched that document).  Figure out the actual change, and then add that to the
             // interval tree of changes we're keeping track of for that document.
-            using var _ = ArrayBuilder<Task>.GetInstance(out var mergeDocumentChangesTasks);
+            using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
             foreach (var group in allChangedDocumentsInDiagnosticsOrder.GroupBy(d => d.Id))
             {
                 var docId = group.Key;
@@ -211,18 +208,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 // If we don't have an text merger for this doc yet, create one to keep track of all the changes.
                 if (!docIdToTextMerger.TryGetValue(docId, out var textMerger))
                 {
-                    var originalDocument = solution.GetRequiredDocument(docId);
+                    var originalDocument = fixAllContext.Solution.GetRequiredDocument(docId);
                     textMerger = new TextChangeMerger(originalDocument);
                     docIdToTextMerger.Add(docId, textMerger);
                 }
 
                 // Process all document groups in parallel.  For each group, merge all the doc changes into an
                 // aggregated set of changes in the TextChangeMerger type.
-                mergeDocumentChangesTasks.Add(Task.Run(
+                tasks.Add(Task.Run(
                     async () => await textMerger.TryMergeChangesAsync(allDocChanges, cancellationToken).ConfigureAwait(false), cancellationToken));
             }
 
-            await Task.WhenAll(mergeDocumentChangesTasks).ConfigureAwait(false);
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private static Action<CodeAction, ImmutableArray<Diagnostic>> GetRegisterCodeFixAction(
