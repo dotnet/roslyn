@@ -52,11 +52,6 @@
         <target state="translated">警告: 宣言によりスコープが変更され、意味が変わる可能性があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_Applying_fixes">
-        <source>{0}: Applying fixes</source>
-        <target state="new">{0}: Applying fixes</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

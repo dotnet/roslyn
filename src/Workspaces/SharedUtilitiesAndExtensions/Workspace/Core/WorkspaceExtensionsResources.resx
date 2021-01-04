@@ -147,7 +147,4 @@
   <data name="Applying_fix_all" xml:space="preserve">
     <value>Applying 'fix all'</value>
   </data>
-  <data name="_0_Applying_fixes" xml:space="preserve">
-    <value>{0}: Applying fixes</value>
-  </data>
 </root>

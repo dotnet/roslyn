@@ -52,11 +52,6 @@
         <target state="translated">경고: 선언 시 범위가 변경되고 의미가 변경될 수 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_Applying_fixes">
-        <source>{0}: Applying fixes</source>
-        <target state="new">{0}: Applying fixes</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

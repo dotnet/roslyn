@@ -52,11 +52,6 @@
         <target state="translated">Avertissement : La déclaration change la portée et éventuellement la signification.</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_Applying_fixes">
-        <source>{0}: Applying fixes</source>
-        <target state="new">{0}: Applying fixes</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>
