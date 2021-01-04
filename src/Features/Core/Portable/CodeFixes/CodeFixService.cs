@@ -23,17 +23,15 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    using Editor.Shared.Utilities;
     using DiagnosticId = String;
     using LanguageKind = String;
 
     [Export(typeof(ICodeFixService)), Shared]
-    internal partial class CodeFixService : ForegroundThreadAffinitizedObject, ICodeFixService
+    internal partial class CodeFixService : ICodeFixService
     {
         private static readonly Comparison<DiagnosticData> s_diagnosticDataComparisonById =
             new((d1, d2) => DiagnosticId.CompareOrdinal(d1.Id, d2.Id));
@@ -61,12 +59,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CodeFixService(
-            IThreadingContext threadingContext,
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
             [ImportMany] IEnumerable<Lazy<IErrorLoggerService>> loggers,
             [ImportMany] IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
             [ImportMany] IEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> configurationProviders)
-            : base(threadingContext, assertIsForeground: false)
         {
             _errorLoggers = loggers;
             _diagnosticService = diagnosticAnalyzerService;
@@ -263,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var solution = await fixAllService.GetFixAllChangedSolutionAsync(
                 new FixAllContext(fixCollection.FixAllState, progressTracker, cancellationToken)).ConfigureAwait(false);
 
-            return solution.GetDocument(document.Id) ?? throw new NotSupportedException(EditorFeaturesResources.Removal_of_document_not_supported);
+            return solution.GetDocument(document.Id) ?? throw new NotSupportedException(FeaturesResources.Removal_of_document_not_supported);
         }
 
         private bool TryGetWorkspaceFixersMap(Document document, [NotNullWhen(true)] out Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>? fixerMap)
@@ -307,8 +303,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     var errorReportingService = workspace.Services.GetRequiredService<IErrorReportingService>();
                     var message = lazyFixer.Metadata.Name != null
-                        ? string.Format(EditorFeaturesResources.Error_creating_instance_of_CodeFixProvider_0, lazyFixer.Metadata.Name)
-                        : EditorFeaturesResources.Error_creating_instance_of_CodeFixProvider;
+                        ? string.Format(FeaturesResources.Error_creating_instance_of_CodeFixProvider_0, lazyFixer.Metadata.Name)
+                        : FeaturesResources.Error_creating_instance_of_CodeFixProvider;
 
                     errorReportingService.ShowGlobalErrorInfo(
                         message,

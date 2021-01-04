@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 
     public class RemoveUnnecessaryCastTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public void TestStandardProperties()
-            => VerifyCS.VerifyStandardProperties();
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public void TestStandardProperty(AnalyzerProperty property)
+            => VerifyCS.VerifyStandardProperty(property);
 
         [WorkItem(545979, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545979")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
@@ -8416,6 +8416,45 @@ class C
             };
 
             await test.RunAsync();
+        }
+
+        [WorkItem(50000, "https://github.com/dotnet/roslyn/issues/50000")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task KeepNecessaryCastIfRemovalWouldCreateIllegalConditionalExpression()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    ushort Goo(string s)
+        => s is null ? (ushort)1234 : ushort.Parse(s);
+}
+",
+                LanguageVersion = LanguageVersion.CSharp8,
+            }.RunAsync();
+        }
+
+        [WorkItem(50000, "https://github.com/dotnet/roslyn/issues/50000")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveUnnecessaryCastWhenConditionalExpressionIsLegal()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class C
+{
+    ushort Goo(string s)
+        => s is null ? [|(ushort)|]1234 : ushort.Parse(s);
+}",
+                FixedCode = @"
+class C
+{
+    ushort Goo(string s)
+        => s is null ? 1234 : ushort.Parse(s);
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
         }
     }
 }

@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
         Inherits AbstractChangeSignatureTests
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Theory, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         <MemberData(NameOf(AbstractChangeSignatureTests.GetAllSignatureSpecificationsForTheory), New Integer() {1, 3, 2, 0}, MemberType:=GetType(AbstractChangeSignatureTests))>
         Public Async Function TestAllSignatureChanges_1This_3Regular_2Default(totalParameters As Integer, signature As Integer()) As Task
             Dim markup = <Text><![CDATA[
@@ -58,7 +58,7 @@ End Module
                 verifyNoDiagnostics:=True)
         End Function
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Theory, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         <MemberData(NameOf(AbstractChangeSignatureTests.GetAllSignatureSpecificationsForTheory), New Integer() {1, 3, 0, 1}, MemberType:=GetType(AbstractChangeSignatureTests))>
         Public Async Function TestAllSignatureChanges_1This_3Regular_1ParamArray(totalParameters As Integer, signature As Integer()) As Task
             Dim markup = <Text><![CDATA[
@@ -90,7 +90,7 @@ End Module
                 verifyNoDiagnostics:=True)
         End Function
 
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Theory, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         <MemberData(NameOf(AbstractChangeSignatureTests.GetAllSignatureSpecificationsForTheory), New Integer() {0, 3, 0, 0}, MemberType:=GetType(AbstractChangeSignatureTests))>
         Public Async Function TestAllSignatureChanges_Delegate_3(totalParameters As Integer, signature As Integer()) As Task
             Dim markup = <Text><![CDATA[

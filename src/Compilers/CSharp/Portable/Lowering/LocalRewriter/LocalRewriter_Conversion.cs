@@ -772,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression rewrittenConversion = MakeConversionNode(syntax, rewrittenOperand, conversion.UnderlyingConversions[0], rewrittenType.GetNullableUnderlyingType(), @checked);
                 MethodSymbol ctor = UnsafeGetNullableMethod(syntax, rewrittenType, SpecialMember.System_Nullable_T__ctor);
-                return new BoundObjectCreationExpression(syntax, ctor, null, rewrittenConversion);
+                return new BoundObjectCreationExpression(syntax, ctor, rewrittenConversion);
             }
             else
             {
@@ -789,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // (If the source is known to be possibly null then we need to keep the call to get Value 
                     // in place so that it throws at runtime.)
                     MethodSymbol get_Value = UnsafeGetNullableMethod(syntax, rewrittenOperandType, SpecialMember.System_Nullable_T_get_Value);
-                    value = BoundCall.Synthesized(syntax, rewrittenOperand, get_Value, binder: null);
+                    value = BoundCall.Synthesized(syntax, rewrittenOperand, get_Value);
                 }
 
                 return MakeConversionNode(syntax, value, conversion.UnderlyingConversions[0], rewrittenType, @checked);
@@ -881,10 +881,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = new BoundObjectCreationExpression(
                 syntax,
                 UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
-                null,
                 MakeConversionNode(
                     syntax,
-                    BoundCall.Synthesized(syntax, boundTemp, getValueOrDefault, binder: null),
+                    BoundCall.Synthesized(syntax, boundTemp, getValueOrDefault),
                     conversion.UnderlyingConversions[0],
                     type.GetNullableUnderlyingType(),
                     @checked));
@@ -926,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (nonNullValue != null)
             {
                 Debug.Assert(conversion.Method is { });
-                return MakeLiftedUserDefinedConversionConsequence(BoundCall.Synthesized(syntax, receiverOpt: null, conversion.Method, nonNullValue, binder: null), type);
+                return MakeLiftedUserDefinedConversionConsequence(BoundCall.Synthesized(syntax, receiverOpt: null, conversion.Method, nonNullValue), type);
             }
 
             return DistributeLiftedConversionIntoLiftedOperand(syntax, operand, conversion, false, type);
@@ -959,7 +958,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundObjectCreationExpression(
                     syntax,
                     UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
-                    null,
                     MakeConversionNode(
                         syntax,
                         nonNullValue,
@@ -1064,7 +1062,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundReadOnlySpanFromArray(syntax, rewrittenOperand, conversion.Method, rewrittenType) { WasCompilerGenerated = true };
             }
 
-            BoundExpression result = BoundCall.Synthesized(syntax, receiverOpt: null, conversion.Method, rewrittenOperand, binder: null);
+            BoundExpression result = BoundCall.Synthesized(syntax, receiverOpt: null, conversion.Method, rewrittenOperand);
             Debug.Assert(TypeSymbol.Equals(result.Type, rewrittenType, TypeCompareKind.ConsiderEverything2));
             return result;
         }
@@ -1075,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(resultType.IsNullableType() && TypeSymbol.Equals(resultType.GetNullableUnderlyingType(), call.Method.ReturnType, TypeCompareKind.ConsiderEverything2));
                 MethodSymbol ctor = UnsafeGetNullableMethod(call.Syntax, resultType, SpecialMember.System_Nullable_T__ctor);
-                return new BoundObjectCreationExpression(call.Syntax, ctor, null, call);
+                return new BoundObjectCreationExpression(call.Syntax, ctor, call);
             }
 
             return call;
@@ -1130,11 +1128,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression condition = MakeNullableHasValue(syntax, boundTemp);
 
             // temp.GetValueOrDefault()
-            BoundCall callGetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, getValueOrDefault, binder: null);
+            BoundCall callGetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, getValueOrDefault);
 
             // op_Whatever(temp.GetValueOrDefault())
             Debug.Assert(conversion.Method is { });
-            BoundCall userDefinedCall = BoundCall.Synthesized(syntax, receiverOpt: null, conversion.Method, callGetValueOrDefault, binder: null);
+            BoundCall userDefinedCall = BoundCall.Synthesized(syntax, receiverOpt: null, conversion.Method, callGetValueOrDefault);
 
             // new R?(op_Whatever(temp.GetValueOrDefault())
             BoundExpression consequence = MakeLiftedUserDefinedConversionConsequence(userDefinedCall, rewrittenType);
@@ -1430,7 +1428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(TypeSymbol.Equals(method.ReturnType, toType, TypeCompareKind.ConsiderEverything2));
-                return BoundCall.Synthesized(syntax, receiverOpt: null, method, operand, binder: null);
+                return BoundCall.Synthesized(syntax, receiverOpt: null, method, operand);
             }
         }
 

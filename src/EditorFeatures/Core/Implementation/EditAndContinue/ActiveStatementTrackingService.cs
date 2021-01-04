@@ -171,7 +171,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                         return;
                     }
 
-                    var baseActiveStatementSpans = await _encService.GetBaseActiveStatementSpansAsync(openDocumentIds, _cancellationSource.Token).ConfigureAwait(false);
+                    var currentSolution = _workspace.CurrentSolution;
+                    var baseActiveStatementSpans = await _encService.GetBaseActiveStatementSpansAsync(currentSolution, openDocumentIds, _cancellationSource.Token).ConfigureAwait(false);
                     if (baseActiveStatementSpans.IsDefault)
                     {
                         // Edit session not in progress.
@@ -179,7 +180,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                     }
 
                     Debug.Assert(openDocumentIds.Length == baseActiveStatementSpans.Length);
-                    var currentSolution = _workspace.CurrentSolution;
 
                     lock (_trackingSpans)
                     {

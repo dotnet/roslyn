@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 savedInputExpression = loweredInput.Update(
                     loweredInput.Constructor, arguments: newArguments.ToImmutableAndFree(), loweredInput.ArgumentNamesOpt, loweredInput.ArgumentRefKindsOpt,
                     loweredInput.Expanded, loweredInput.ArgsToParamsOpt, loweredInput.DefaultArguments, loweredInput.ConstantValueOpt,
-                    loweredInput.InitializerExpressionOpt, loweredInput.BinderOpt, loweredInput.Type);
+                    loweredInput.InitializerExpressionOpt, loweredInput.Type);
 
                 return rewrittenDag;
 

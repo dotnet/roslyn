@@ -57708,13 +57708,7 @@ interface D : A.E
             compilation1.VerifyDiagnostics(
                 // (4,11): warning CS8645: 'C<object>' is already listed in the interface list on type 'A' with different nullability of reference types.
                 // interface A : B, C<object>
-                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "A").WithArguments("C<object>", "A").WithLocation(4, 11),
-                // (18,17): error CS0104: 'E' is an ambiguous reference between 'C<object?>.E' and 'C<object>.E'
-                // interface D : A.E
-                Diagnostic(ErrorCode.ERR_AmbigContext, "E").WithArguments("E", "C<object?>.E", "C<object>.E").WithLocation(18, 17),
-                // (20,7): error CS0104: 'E' is an ambiguous reference between 'C<object?>.E' and 'C<object>.E'
-                //     A.E Test();
-                Diagnostic(ErrorCode.ERR_AmbigContext, "E").WithArguments("E", "C<object?>.E", "C<object>.E").WithLocation(20, 7)
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "A").WithArguments("C<object>", "A").WithLocation(4, 11)
                 );
         }
 

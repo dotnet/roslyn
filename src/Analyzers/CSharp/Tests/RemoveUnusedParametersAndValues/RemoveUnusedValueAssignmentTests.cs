@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
             Option(CSharpCodeStyleOptions.UnusedValueAssignment,
                    new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Suggestion));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
-        public void TestStandardProperties()
-            => VerifyCS.VerifyStandardProperties();
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public void TestStandardProperty(AnalyzerProperty property)
+            => VerifyCS.VerifyStandardProperty(property);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Initialization_Suppressed()

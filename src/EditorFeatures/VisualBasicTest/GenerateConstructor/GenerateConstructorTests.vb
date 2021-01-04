@@ -1866,6 +1866,83 @@ End Class",
 End Class")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructorCrossLanguageCycleAvoidance() As Task
+            Await TestInRegularAndScriptAsync(
+<Workspace>
+    <Project Language="C#" Name="CSharpProject" CommonReferences="true">
+        <Document>
+            public class BaseType
+            {
+                public BaseType(int x, int y) { }
+            }
+        </Document>
+    </Project>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <ProjectReference>CSharpProject</ProjectReference>
+        <Document>
+Public Class B
+    Inherits BaseType
+
+    Public Sub New(a As Integer)
+        [|Me.New(a, 1)|]
+    End Sub
+End Class</Document>
+    </Project>
+</Workspace>.ToString(),
+"
+Public Class B
+    Inherits BaseType
+
+    Public Sub New(a As Integer)
+        Me.New(a, 1)
+    End Sub
+
+    Public Sub New(x As Integer, y As Integer)
+        MyBase.New(x, y)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(49850, "https://github.com/dotnet/roslyn/issues/49850")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructorCrossLanguage() As Task
+            Await TestInRegularAndScriptAsync(
+<Workspace>
+    <Project Language="C#" Name="CSharpProject" CommonReferences="true">
+        <Document>
+public class BaseType
+{
+    public BaseType(string x) { }
+}</Document>
+    </Project>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <ProjectReference>CSharpProject</ProjectReference>
+        <Document>
+Option Strict On
+
+Public Class B
+    Public Sub M()
+        Dim x = [|New BaseType(42)|]
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>.ToString(),
+"
+public class BaseType
+{
+    private int v;
+
+    public BaseType(string x) { }
+
+    public BaseType(int v)
+    {
+        this.v = v;
+    }
+}")
+        End Function
+
         <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function CreateFieldDefaultNamingStyle() As Task

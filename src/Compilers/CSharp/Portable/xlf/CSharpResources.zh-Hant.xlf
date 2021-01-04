@@ -777,6 +777,11 @@
         <target state="translated">'{0}': 只有在屬性或索引子同時具有 get 和 set 存取子時，才能在存取子上使用 'readonly'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RecordAmbigCtor">
+        <source>The primary constructor conflicts with the synthesized copy constructor.</source>
+        <target state="new">The primary constructor conflicts with the synthesized copy constructor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">不能將 '{1}' 參考指派至 '{0}'，因為 '{1}' 的逸出範圍比 '{0}' 還要窄。</target>

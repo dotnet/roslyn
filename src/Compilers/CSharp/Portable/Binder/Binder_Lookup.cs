@@ -1058,11 +1058,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (interfaces.Length > 0)
             {
                 var tmp = LookupResult.GetInstance();
-                foreach (TypeSymbol baseInterface in interfaces)
+                HashSet<NamedTypeSymbol> seenInterfaces = null;
+                if (interfaces.Length > 1)
                 {
-                    LookupMembersWithoutInheritance(tmp, baseInterface, name, arity, options, originalBinder, accessThroughType, diagnose, ref useSiteDiagnostics, basesBeingResolved);
-                    MergeHidingLookupResults(current, tmp, basesBeingResolved, ref useSiteDiagnostics);
-                    tmp.Clear();
+                    seenInterfaces = new HashSet<NamedTypeSymbol>(Symbols.SymbolEqualityComparer.IgnoringNullable);
+                }
+
+                foreach (NamedTypeSymbol baseInterface in interfaces)
+                {
+                    if (seenInterfaces is null || seenInterfaces.Add(baseInterface))
+                    {
+                        LookupMembersWithoutInheritance(tmp, baseInterface, name, arity, options, originalBinder, accessThroughType, diagnose, ref useSiteDiagnostics, basesBeingResolved);
+                        MergeHidingLookupResults(current, tmp, basesBeingResolved, ref useSiteDiagnostics);
+                        tmp.Clear();
+                    }
                 }
                 tmp.Free();
             }

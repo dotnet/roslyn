@@ -37,16 +37,6 @@
         <target state="translated">続行しますか。破損状態のコードが生成される可能性があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
-        <source>Error creating instance of CodeFixProvider</source>
-        <target state="translated">CodeFixProvider のインスタンスの作成でエラーが発生しました</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
-        <source>Error creating instance of CodeFixProvider '{0}'</source>
-        <target state="translated">CodeFixProvider '{0}' のインスタンスの作成でエラーが発生しました</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">インポートされていない名前空間の項目</target>
@@ -120,11 +110,6 @@
       <trans-unit id="Punctuation">
         <source>Punctuation</source>
         <target state="translated">句読点</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removal_of_document_not_supported">
-        <source>Removal of document not supported</source>
-        <target state="translated">ドキュメントの削除はサポートされていません</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
