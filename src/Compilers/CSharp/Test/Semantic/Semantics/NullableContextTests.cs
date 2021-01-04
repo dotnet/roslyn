@@ -2147,7 +2147,8 @@ class Program
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel(NullableContextOptions? projectContext, NullableDirectives sourceDirectives, NullableDirectives speculativeDirectives)
         {
-            // SyntaxTreeSemanticModel.IsNullableAnalysisEnabledAtSpeculativePosition() does not handle '#nullable restore'.
+            // https://github.com/dotnet/roslyn/issues/50234: SyntaxTreeSemanticModel.IsNullableAnalysisEnabledAtSpeculativePosition()
+            // does not handle '#nullable restore'.
             if (speculativeDirectives.ExpectedWarningsState == NullableContextState.State.ExplicitlyRestored) return;
 
             var source =

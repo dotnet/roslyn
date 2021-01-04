@@ -782,9 +782,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(speculativeSyntax.SyntaxTree != SyntaxTree);
 
-            // CSharpSyntaxTree.IsNullableAnalysisEnabled() does not differentiate between no '#nullable' directives
-            // and '#nullable restore' - it returns null in both cases. Since we fallback to the directives in the original
-            // syntax tree, we're not handling '#nullable restore' correctly in the speculative text.
+            // https://github.com/dotnet/roslyn/issues/50234: CSharpSyntaxTree.IsNullableAnalysisEnabled() does not differentiate
+            // between no '#nullable' directives and '#nullable restore' - it returns null in both cases. Since we fallback to the
+            // directives in the original syntax tree, we're not handling '#nullable restore' correctly in the speculative text.
             return ((CSharpSyntaxTree)speculativeSyntax.SyntaxTree).IsNullableAnalysisEnabled(speculativeSyntax.Span) ??
                 Compilation.IsNullableAnalysisEnabledIn((CSharpSyntaxTree)SyntaxTree, new TextSpan(position, 0));
         }
