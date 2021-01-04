@@ -68,10 +68,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                 _allowCancel = allowCancel;
                 _cancellationTokenSource = new CancellationTokenSource();
 
-                this.AddScope(description);
-
                 _dialog = CreateDialog(dialogFactory, showProgress);
                 _registration = notificationService.Start(title);
+
+                this.AddScope(description);
             }
 
             private IVsThreadedWaitDialog3 CreateDialog(
