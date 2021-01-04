@@ -198,7 +198,7 @@ The 'helpLinkUri' value is used to show information when this diagnostic in the 
 
 ## RS1016: Code fix providers should provide FixAll support
 
-A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.
+A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at <https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md> for further details.
 
 |Item|Value|
 |-|-|
@@ -510,7 +510,7 @@ Invalid entry in analyzer release file.
 
 ## [RS2008](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Enable analyzer release tracking
 
-Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.
+Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at <https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md>.
 
 |Item|Value|
 |-|-|
