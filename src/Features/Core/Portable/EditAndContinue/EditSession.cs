@@ -805,11 +805,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             _nonRemappableRegions,
                             projectChanges.NewActiveStatements,
                             out var activeStatementsInUpdatedMethods,
-                            out var moduleNonRemappableRegions);
-
-                        var exceptionRegions = moduleNonRemappableRegions.SelectAsArray(
-                            r => r.Region.IsExceptionRegion,
-                            r => new ManagedExceptionRegionUpdate(r.Method, r.Region.LineDelta, r.Region.Span.ToSourceSpan()));
+                            out var moduleNonRemappableRegions,
+                            out var exceptionRegionUpdates);
 
                         deltas.Add(new ManagedModuleUpdate(
                             mvid,
@@ -819,7 +816,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             lineEdits,
                             updatedMethodTokens,
                             activeStatementsInUpdatedMethods,
-                            exceptionRegions));
+                            exceptionRegionUpdates));
 
                         nonRemappableRegions.Add((mvid, moduleNonRemappableRegions));
                         emitBaselines.Add((project.Id, emitResult.Baseline));
@@ -879,7 +876,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> previousNonRemappableRegions,
             ImmutableArray<(DocumentId DocumentId, ImmutableArray<ActiveStatement> ActiveStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions)> newActiveStatementsInChangedDocuments,
             out ImmutableArray<ManagedActiveStatementUpdate> activeStatementsInUpdatedMethods,
-            out ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)> nonRemappableRegions)
+            out ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)> nonRemappableRegions,
+            out ImmutableArray<ManagedExceptionRegionUpdate> exceptionRegionUpdates)
         {
             using var _1 = PooledDictionary<(ManagedModuleMethodId MethodId, LinePositionSpan BaseSpan), LinePositionSpan>.GetInstance(out var changedNonRemappableSpans);
             var activeStatementsInUpdatedMethodsBuilder = ArrayBuilder<ManagedActiveStatementUpdate>.GetInstance();
@@ -996,6 +994,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             nonRemappableRegions = nonRemappableRegionsBuilder.ToImmutableAndFree();
+
+            // The range span in exception region updates is the new span. Deltas are inverse.
+            //   old = new + delta
+            //   new = old – delta
+            exceptionRegionUpdates = nonRemappableRegions.SelectAsArray(
+                r => r.Region.IsExceptionRegion,
+                r => new ManagedExceptionRegionUpdate(
+                    r.Method,
+                    -r.Region.LineDelta,
+                    r.Region.Span.AddLineDelta(r.Region.LineDelta).ToSourceSpan()));
         }
 
         internal void StorePendingUpdate(Solution solution, SolutionUpdate update)

@@ -192,6 +192,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         private static string InspectActiveStatementUpdate(ManagedActiveStatementUpdate update)
             => $"{update.Method.GetDebuggerDisplay()} IL_{update.ILOffset:X4}: {update.NewSpan.GetDebuggerDisplay()}";
 
+        private static string InspectExceptionRegionUpdate(ManagedExceptionRegionUpdate r)
+            => $"{r.Method.GetDebuggerDisplay()} | {r.NewSpan.GetDebuggerDisplay()} Delta={r.Delta}";
+
         private static string GetFirstLineText(LinePositionSpan span, SourceText text)
             => text.Lines[span.Start.Line].ToString().Trim();
 
@@ -362,7 +365,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,
-                out var nonRemappableRegions);
+                out var nonRemappableRegions,
+                out var exceptionRegionUpdates);
 
             AssertEx.Equal(new[]
             {
@@ -370,6 +374,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 "0x06000004 v1 | ER (14,8)-(16,9) δ=1",
                 "0x06000004 v1 | ER (10,10)-(12,11) δ=1"
             }, nonRemappableRegions.Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
+
+            AssertEx.Equal(new[]
+            {
+                "0x06000004 v1 | (15,8)-(17,9) Delta=-1",
+                "0x06000004 v1 | (11,10)-(13,11) Delta=-1"
+            }, exceptionRegionUpdates.Select(InspectExceptionRegionUpdate));
 
             AssertEx.Equal(new[]
             {
@@ -466,7 +476,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,
-                out var nonRemappableRegions);
+                out var nonRemappableRegions,
+                out var exceptionRegionUpdates);
 
             // although the span has not changed the method has, so we need to add corresponding non-remappable regions
             AssertEx.Equal(new[]
@@ -474,6 +485,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 "0x06000001 v1 | AS (6,18)-(6,23) δ=0",
                 "0x06000001 v1 | ER (8,8)-(12,9) δ=0",
             }, nonRemappableRegions.OrderBy(r => r.Region.Span.Start.Line).Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
+
+            AssertEx.Equal(new[]
+            {
+                "0x06000001 v1 | (8,8)-(12,9) Delta=0",
+            }, exceptionRegionUpdates.Select(InspectExceptionRegionUpdate));
 
             AssertEx.Equal(new[]
             {
@@ -726,7 +742,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 initialNonRemappableRegions,
                 newActiveStatementsInChangedDocuments,
                 out var activeStatementsInUpdatedMethods,
-                out var nonRemappableRegions);
+                out var nonRemappableRegions,
+                out var exceptionRegionUpdates);
 
             // Note: Since no method have been remapped yet all the following spans are in their pre-remap locations: 
             AssertEx.Equal(new[]
@@ -740,6 +757,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 "0x06000004 v1 | AS (52,22)-(52,26) δ=3",  // AS:3 moved +1 in first edit, +2 in second
                 "0x06000004 v1 | ER (55,16)-(57,9) δ=3",   // ER:3.1 moved +1 in first edit, +2 in second     
             }, nonRemappableRegions.OrderBy(r => r.Region.Span.Start.Line).Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
+
+            AssertEx.Equal(new[]
+            {
+                "0x06000002 v2 | (17,16)-(20,9) Delta=1",
+                "0x06000003 v1 | (34,20)-(36,13) Delta=-2",
+                "0x06000003 v1 | (38,16)-(40,9) Delta=-2",
+                "0x06000004 v1 | (53,20)-(56,13) Delta=-3",
+                "0x06000004 v1 | (58,16)-(60,9) Delta=-3",
+            }, exceptionRegionUpdates.Select(InspectExceptionRegionUpdate));
 
             AssertEx.Equal(new[]
             {
