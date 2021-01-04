@@ -148,12 +148,6 @@ void goo()
         }
 
         [Fact]
-        public void FailingTest()
-        {
-            Assert.True(false);
-        }
-
-        [Fact]
         public void TestBug530094()
         {
             var t = SyntaxFactory.AccessorDeclaration(SyntaxKind.UnknownAccessorDeclaration);
