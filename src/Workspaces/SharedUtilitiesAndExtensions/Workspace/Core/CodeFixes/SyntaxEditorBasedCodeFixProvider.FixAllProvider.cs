@@ -3,12 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -20,72 +16,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// subclass needs to provide is how each document will apply all the fixes to all the 
         /// diagnostics in that document.
         /// </summary>
-        internal sealed class SyntaxEditorBasedFixAllProvider : FixAllProvider
+        internal sealed class SyntaxEditorBasedFixAllProvider : AbstractDocumentBasedFixAllProvider
         {
             private readonly SyntaxEditorBasedCodeFixProvider _codeFixProvider;
 
             public SyntaxEditorBasedFixAllProvider(SyntaxEditorBasedCodeFixProvider codeFixProvider)
                 => _codeFixProvider = codeFixProvider;
 
-            public sealed override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
-            {
-                var documentsAndDiagnosticsToFixMap = await GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
-                return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
-            }
+            protected override string GetFixAllTitle(FixAllContext fixAllContext)
+                => FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
 
-            private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllContext fixAllContext)
-            {
-                var result = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
-
-                // Filter out any documents that we don't have any diagnostics for.
-                return result.Where(kvp => !kvp.Value.IsDefaultOrEmpty).ToImmutableDictionary();
-            }
-
-            private async Task<CodeAction> GetFixAsync(
-                ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
-                FixAllContext fixAllContext)
-            {
-                // Process all documents in parallel.
-                var progressTracker = fixAllContext.GetProgressTracker();
-
-                progressTracker.Description = WorkspaceExtensionsResources.Applying_fix_all;
-                progressTracker.AddItems(documentsAndDiagnosticsToFixMap.Count);
-
-                var updatedDocumentTasks = documentsAndDiagnosticsToFixMap.Select(
-                    kvp => FixDocumentAsync(kvp.Key, kvp.Value, fixAllContext, progressTracker));
-
-                await Task.WhenAll(updatedDocumentTasks).ConfigureAwait(false);
-
-                var currentSolution = fixAllContext.Solution;
-                foreach (var task in updatedDocumentTasks)
-                {
-                    // 'await' the tasks so that if any completed in a canceled manner then we'll
-                    // throw the right exception here.  Calling .Result on the tasks might end up
-                    // with AggregateExceptions being thrown instead.
-                    var updatedDocument = await task.ConfigureAwait(false);
-                    currentSolution = currentSolution.WithDocumentSyntaxRoot(
-                        updatedDocument.Id,
-                        await updatedDocument.GetRequiredSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false));
-                }
-
-                var title = FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
-                return new CustomCodeActions.SolutionChangeAction(title, _ => Task.FromResult(currentSolution));
-            }
-
-            private async Task<Document> FixDocumentAsync(Document key, ImmutableArray<Diagnostic> value, FixAllContext fixAllContext, IProgressTracker progressTracker)
-            {
-                try
-                {
-                    return await FixDocumentAsync(key, value, fixAllContext).ConfigureAwait(false);
-                }
-                finally
-                {
-                    progressTracker.ItemCompleted();
-                }
-            }
-
-            private async Task<Document> FixDocumentAsync(
-                Document document, ImmutableArray<Diagnostic> diagnostics, FixAllContext fixAllContext)
+            protected override async Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             {
                 var model = await document.GetRequiredSemanticModelAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
 

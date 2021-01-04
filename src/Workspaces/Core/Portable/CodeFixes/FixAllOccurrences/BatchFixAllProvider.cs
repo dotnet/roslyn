@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         #region "AbstractFixAllProvider methods"
 
-        public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+        public sealed override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
         {
             if (fixAllContext.Document != null)
             {
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var solution = fixAllState.Solution;
             var newSolution = await TryMergeFixesAsync(
-                solution, batchOfFixes, fixAllState, cancellationToken).ConfigureAwait(false);
+                solution, batchOfFixes, cancellationToken).ConfigureAwait(false);
             if (newSolution != null && newSolution != solution)
             {
                 var title = GetFixAllTitle(fixAllState);
@@ -253,13 +253,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
-        public virtual string GetFixAllTitle(FixAllState fixAllState)
+        private static string GetFixAllTitle(FixAllState fixAllState)
             => FixAllContextHelper.GetDefaultFixAllTitle(fixAllState.Scope, fixAllState.DiagnosticIds, fixAllState.Document, fixAllState.Project);
 
-        public virtual async Task<Solution> TryMergeFixesAsync(
+        private static async Task<Solution> TryMergeFixesAsync(
             Solution oldSolution,
             ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
-            FixAllState fixAllState, CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
             var documentIdToChangedDocuments = await GetDocumentIdToChangedDocumentsAsync(
                 oldSolution, diagnosticsAndCodeActions, cancellationToken).ConfigureAwait(false);
