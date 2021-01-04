@@ -119,69 +119,75 @@ jobs:
 
 # Build Correctness Jobs
 
-# - job: Correctness_Determinism
-#   pool:
-#     name: NetCorePublic-Pool
-#     queue: BuildPool.Windows.10.Amd64.VS2017.Open
-#   timeoutInMinutes: 90
-#   steps:
-#     - script: eng/test-determinism.cmd -configuration Debug
-#       displayName: Build - Validate determinism
+- job: Correctness_Determinism
+  pool:
+    name: NetCorePublic-Pool
+    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+  timeoutInMinutes: 90
+  steps:
+    - template: eng/pipelines/checkout-windows-task.yml
 
-#     - template: eng/pipelines/publish-logs.yml
-#       parameters:
-#         jobName: Correctness_Determinism
-#         configuration: Debug
+    - script: eng/test-determinism.cmd -configuration Debug
+      displayName: Build - Validate determinism
 
-# - job: Correctness_Build
-#   pool:
-#     name: NetCorePublic-Pool
-#     queue: BuildPool.Windows.10.Amd64.VS2017.Open
-#   timeoutInMinutes: 90
-#   steps:
-#     - script: eng/test-build-correctness.cmd -configuration Release
-#       displayName: Build - Validate correctness
+    - template: eng/pipelines/publish-logs.yml
+      parameters:
+        jobName: Correctness_Determinism
+        configuration: Debug
 
-#     - template: eng/pipelines/publish-logs.yml
-#       parameters:
-#         jobName: Correctness_Build
-#         configuration: Release
+- job: Correctness_Build
+  pool:
+    name: NetCorePublic-Pool
+    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+  timeoutInMinutes: 90
+  steps:
+    - template: eng/pipelines/checkout-windows-task.yml
 
-#     - task: PublishBuildArtifacts@1
-#       displayName: Publish Artifact Packages
-#       inputs:
-#         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
-#         ArtifactName: 'Packages - PreRelease'
-#         publishLocation: Container
-#       condition: succeeded()
+    - script: eng/test-build-correctness.cmd -configuration Release
+      displayName: Build - Validate correctness
 
-#     - task: PublishBuildArtifacts@1
-#       displayName: Publish VSIX Packages
-#       inputs:
-#         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\VSSetup\Release\Installer'
-#         ArtifactName: 'VSIX - PreRelease'
-#         publishLocation: Container
-#       condition: succeeded()
+    - template: eng/pipelines/publish-logs.yml
+      parameters:
+        jobName: Correctness_Build
+        configuration: Release
 
-# - job: Correctness_SourceBuild
-#   pool:
-#    name: NetCorePublic-Pool
-#    queue: BuildPool.Ubuntu.1604.amd64.Open
-#   timeoutInMinutes: 90
-#   steps:
-#     - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --docker --sourceBuild
-#       displayName: Build
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Artifact Packages
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\packages\Release\PreRelease'
+        ArtifactName: 'Packages - PreRelease'
+        publishLocation: Container
+      condition: succeeded()
 
-#     - template: eng/pipelines/publish-logs.yml
-#       parameters:
-#         jobName: Correctness_SourceBuild
-#         configuration: Release
-#     - task: PublishBuildArtifacts@1
-#       displayName: Publish Logs
-#       inputs:
-#         PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/Debug'
-#         ArtifactName: 'SourceBuild_Test'
-#         publishLocation: Container
-#       continueOnError: true
-#       condition: not(succeeded())
+    - task: PublishBuildArtifacts@1
+      displayName: Publish VSIX Packages
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\VSSetup\Release\Installer'
+        ArtifactName: 'VSIX - PreRelease'
+        publishLocation: Container
+      condition: succeeded()
+
+- job: Correctness_SourceBuild
+  pool:
+   name: NetCorePublic-Pool
+   queue: BuildPool.Ubuntu.1604.amd64.Open
+  timeoutInMinutes: 90
+  steps:
+    - template: eng/pipelines/checkout-unix-task.yml
+
+    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --docker --sourceBuild
+      displayName: Build
+
+    - template: eng/pipelines/publish-logs.yml
+      parameters:
+        jobName: Correctness_SourceBuild
+        configuration: Release
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/Debug'
+        ArtifactName: 'SourceBuild_Test'
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())
 

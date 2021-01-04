@@ -37,16 +37,6 @@
         <target state="translated">Chcete přesto pokračovat? Výsledkem může být poškozený kód.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
-        <source>Error creating instance of CodeFixProvider</source>
-        <target state="translated">Při vytváření instance CodeFixProvider došlo k chybě.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
-        <source>Error creating instance of CodeFixProvider '{0}'</source>
-        <target state="translated">Při vytváření instance CodeFixProvider {0} došlo k chybě.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">položky z neimportovaných oborů názvů</target>
@@ -120,11 +110,6 @@
       <trans-unit id="Punctuation">
         <source>Punctuation</source>
         <target state="translated">Interpunkce</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removal_of_document_not_supported">
-        <source>Removal of document not supported</source>
-        <target state="translated">Odebrání dokumentu se nepodporuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">

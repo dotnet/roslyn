@@ -9,6 +9,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\AbstractDocumentBasedFixAllProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\IVirtualCharLanguageService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\HostWorkspaceServicesExtensions.cs" />

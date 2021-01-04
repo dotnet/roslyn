@@ -114,12 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return NullableWalker.AnalyzeAndRewrite(Compilation, symbol: null, boundRoot, binder, initialState: null, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
         }
 
-#if DEBUG
         protected override void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots)
         {
             NullableWalker.AnalyzeWithoutRewrite(Compilation, symbol: null, boundRoot, binder, diagnostics, createSnapshots);
         }
-#endif
 
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
         {

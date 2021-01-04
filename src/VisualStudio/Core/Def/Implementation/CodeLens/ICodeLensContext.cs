@@ -24,12 +24,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         /// Get reference count of the given descriptor
         /// </summary>
         Task<ReferenceCount?> GetReferenceCountAsync(
-            CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken);
+            CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, ReferenceCount? previousCount, CancellationToken cancellationToken);
 
         /// <summary>
         /// get reference location descriptor of the given descriptor
         /// </summary>
-        Task<ImmutableArray<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(
+        Task<(string projectVersion, ImmutableArray<ReferenceLocationDescriptor> references)?> FindReferenceLocationsAsync(
             CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken);
 
         /// <summary>

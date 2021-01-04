@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
         public CSharpUseRangeOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseRangeOperatorDiagnosticId,
+                   EnforceOnBuildValues.UseRangeOperator,
                    CSharpCodeStyleOptions.PreferRangeOperator,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_range_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),

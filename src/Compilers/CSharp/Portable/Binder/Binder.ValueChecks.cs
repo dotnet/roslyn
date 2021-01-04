@@ -201,8 +201,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     parameters = parameters.RemoveAt(parameters.Length - 1);
                 }
+
+                BitVector defaultArguments = default;
                 Debug.Assert(parameters.Length == indexerAccess.Indexer.Parameters.Length);
-                BindDefaultArguments(indexerAccess.Syntax, parameters, argumentsBuilder, refKindsBuilderOpt, ref argsToParams, out var defaultArguments, indexerAccess.Expanded, enableCallerInfo: true, diagnostics);
+
+                // If OriginalIndexersOpt is set, there was an overload resolution failure, and we don't want to make guesses about the default
+                // arguments that will end up being reflected in the SemanticModel/IOperation
+                if (indexerAccess.OriginalIndexersOpt.IsDefault)
+                {
+                    BindDefaultArguments(indexerAccess.Syntax, parameters, argumentsBuilder, refKindsBuilderOpt, ref argsToParams, out defaultArguments, indexerAccess.Expanded, enableCallerInfo: true, diagnostics);
+                }
 
                 indexerAccess = indexerAccess.Update(
                     indexerAccess.ReceiverOpt,
@@ -213,7 +221,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     indexerAccess.Expanded,
                     argsToParams,
                     defaultArguments,
-                    indexerAccess.BinderOpt,
                     indexerAccess.Type);
 
                 refKindsBuilderOpt?.Free();
@@ -1411,6 +1418,11 @@ moreArguments:
                         {
                             var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
                             parameterName = parameters[paramIndex].Name;
+
+                            if (string.IsNullOrEmpty(parameterName))
+                            {
+                                parameterName = paramIndex.ToString();
+                            }
                         }
                         else
                         {
@@ -1430,7 +1442,12 @@ moreArguments:
             //                                                    its val escape is ExternalScope                   (does not affect overall result)
             if (unmatchedInParameter != null && isRefEscape)
             {
-                Error(diagnostics, GetStandardCallEscapeError(checkingReceiver), syntax, symbol, unmatchedInParameter.Name);
+                var parameterName = unmatchedInParameter.Name;
+                if (string.IsNullOrEmpty(parameterName))
+                {
+                    parameterName = unmatchedInParameter.Ordinal.ToString();
+                }
+                Error(diagnostics, GetStandardCallEscapeError(checkingReceiver), syntax, symbol, parameterName);
                 return false;
             }
 
@@ -2047,6 +2064,25 @@ moreArguments:
                         scopeOfTheContainingExpression,
                         isRefEscape: true);
 
+                case BoundKind.FunctionPointerInvocation:
+                    var ptrInvocation = (BoundFunctionPointerInvocation)expr;
+
+                    methodSymbol = ptrInvocation.FunctionPointer.Signature;
+                    if (methodSymbol.RefKind == RefKind.None)
+                    {
+                        break;
+                    }
+
+                    return GetInvocationEscapeScope(
+                        methodSymbol,
+                        receiverOpt: null,
+                        methodSymbol.Parameters,
+                        ptrInvocation.Arguments,
+                        ptrInvocation.ArgumentRefKindsOpt,
+                        argsToParamsOpt: default,
+                        scopeOfTheContainingExpression,
+                        isRefEscape: true);
+
                 case BoundKind.IndexerAccess:
                     var indexerAccess = (BoundIndexerAccess)expr;
                     var indexerSymbol = indexerAccess.Indexer;
@@ -2493,6 +2529,20 @@ moreArguments:
                         scopeOfTheContainingExpression,
                         isRefEscape: false);
 
+                case BoundKind.FunctionPointerInvocation:
+                    var ptrInvocation = (BoundFunctionPointerInvocation)expr;
+                    var ptrSymbol = ptrInvocation.FunctionPointer.Signature;
+
+                    return GetInvocationEscapeScope(
+                        ptrSymbol,
+                        receiverOpt: null,
+                        ptrSymbol.Parameters,
+                        ptrInvocation.Arguments,
+                        ptrInvocation.ArgumentRefKindsOpt,
+                        argsToParamsOpt: default,
+                        scopeOfTheContainingExpression,
+                        isRefEscape: false);
+
                 case BoundKind.IndexerAccess:
                     var indexerAccess = (BoundIndexerAccess)expr;
                     var indexerSymbol = indexerAccess.Indexer;
@@ -2847,6 +2897,24 @@ moreArguments:
                         call.Arguments,
                         call.ArgumentRefKindsOpt,
                         call.ArgsToParamsOpt,
+                        checkingReceiver,
+                        escapeFrom,
+                        escapeTo,
+                        diagnostics,
+                        isRefEscape: false);
+
+                case BoundKind.FunctionPointerInvocation:
+                    var ptrInvocation = (BoundFunctionPointerInvocation)expr;
+                    var ptrSymbol = ptrInvocation.FunctionPointer.Signature;
+
+                    return CheckInvocationEscape(
+                        ptrInvocation.Syntax,
+                        ptrSymbol,
+                        receiverOpt: null,
+                        ptrSymbol.Parameters,
+                        ptrInvocation.Arguments,
+                        ptrInvocation.ArgumentRefKindsOpt,
+                        argsToParamsOpt: default,
                         checkingReceiver,
                         escapeFrom,
                         escapeTo,

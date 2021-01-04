@@ -120,9 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Binder for symbol being analyzed.
-        /// Must be non-null except from BestTypeForLambdaReturns which does not rely on this field.
         /// </summary>
-        private readonly Binder? _binder;
+        private readonly Binder _binder;
 
         /// <summary>
         /// Conversions with nullability and unknown matching any.
@@ -364,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useDelegateInvokeParameterTypes,
             MethodSymbol? delegateInvokeMethodOpt,
             BoundNode node,
-            Binder? binder,
+            Binder binder,
             Conversions conversions,
             VariableState? initialState,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>? returnTypesOpt,
@@ -644,8 +643,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var memberState = state[slot];
-                var badState = fieldType.Type.IsPossiblyNullableReferenceTypeTypeParameter() ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
-                if (memberState == badState)
+                var badState = fieldType.Type.IsPossiblyNullableReferenceTypeTypeParameter() && (annotations & FlowAnalysisAnnotations.NotNull) == 0
+                    ? NullableFlowState.MaybeDefault
+                    : NullableFlowState.MaybeNull;
+                if (memberState >= badState) // is 'memberState' as bad as or worse than 'badState'?
                 {
                     Diagnostics.Add(ErrorCode.WRN_UninitializedNonNullableField, exitLocation ?? symbol.Locations.FirstOrNone(), symbol.Kind.Localize(), symbol.Name);
                 }
@@ -1072,16 +1073,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool getFinalNullableState,
             out VariableState? finalNullableState)
         {
-            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker)
+            if (CanSkipAnalysis(compilation))
             {
-#if DEBUG
-                // Always run analysis in debug builds so that we can more reliably catch
-                // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
-                // Once we address https://github.com/dotnet/roslyn/issues/46579 we should also always pass `getFinalNullableState: true` in debug mode.
-                // We will likely always need to write a 'null' out for the out parameter in this code path, though, because
-                // we don't want to introduce behavior differences between debug and release builds
-                Analyze(compilation, method, node, new DiagnosticBag(), useConstructorExitWarnings: false, initialNullableState: null, getFinalNullableState: false, out _);
-#endif
+                if (compilation.IsNullableAnalysisEnabledAlways)
+                {
+                    // Once we address https://github.com/dotnet/roslyn/issues/46579 we should also always pass `getFinalNullableState: true` in debug mode.
+                    // We will likely always need to write a 'null' out for the out parameter in this code path, though, because
+                    // we don't want to introduce behavior differences between debug and release builds
+                    Analyze(compilation, method, node, new DiagnosticBag(), useConstructorExitWarnings: false, initialNullableState: null, getFinalNullableState: false, out _);
+                }
                 finalNullableState = null;
                 return;
             }
@@ -1158,11 +1158,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-#if DEBUG
         /// <summary>
         /// Analyzes a set of bound nodes, recording updated nullability information. This method is only
-        /// used during debug runs when nullability is disabled to verify that correct semantic information
-        /// is being recorded for all bound nodes. The results are thrown away.
+        /// used when nullable is explicitly enabled for all methods but disabled otherwise to verify that
+        /// correct semantic information is being recorded for all bound nodes. The results are thrown away.
         /// </summary>
         internal static void AnalyzeWithoutRewrite(
             CSharpCompilation compilation,
@@ -1174,7 +1173,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _ = AnalyzeWithSemanticInfo(compilation, symbol, node, binder, initialState: GetAfterInitializersState(compilation, symbol), diagnostics, createSnapshots);
         }
-#endif
 
         /// <summary>
         /// Analyzes a set of bound nodes, recording updated nullability information, and returns an
@@ -1233,7 +1231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
             // https://github.com/dotnet/roslyn/issues/34993 Enable for all calls
-            if (compilation.NullableSemanticAnalysisEnabled)
+            if (compilation.IsNullableAnalysisEnabled)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, snapshotManager, node);
             }
@@ -1266,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             newSnapshots = newSnapshotBuilder.ToManagerAndFree();
 
 #if DEBUG
-            if (binder.Compilation.NullableSemanticAnalysisEnabled)
+            if (binder.Compilation.IsNullableAnalysisEnabled)
             {
                 DebugVerifier.Verify(analyzedNullabilitiesMap, newSnapshots, node);
             }
@@ -1290,16 +1288,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rewrittenNode;
         }
 
+        private static bool CanSkipAnalysis(CSharpCompilation compilation)
+        {
+            return compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.IsNullableAnalysisEnabled;
+        }
+
         internal static bool NeedsAnalysis(CSharpCompilation compilation)
         {
-#if DEBUG
-            // Always run analysis in debug builds so that we can more reliably catch
-            // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
-            return true;
-#else
-            var canSkipAnalysis = compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker;
-            return !canSkipAnalysis;
-#endif
+            return !CanSkipAnalysis(compilation) || compilation.IsNullableAnalysisEnabledAlways;
         }
 
         /// <summary>Analyzes a node in a "one-off" context, such as for attributes or parameter default values.</summary>
@@ -1309,15 +1305,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             var compilation = binder.Compilation;
-            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() || !compilation.ShouldRunNullableWalker)
+            if (CanSkipAnalysis(compilation))
             {
-#if DEBUG
-                // Always run analysis in debug builds so that we can more reliably catch
-                // nullable regressions e.g. https://github.com/dotnet/roslyn/issues/40136
+                if (!compilation.IsNullableAnalysisEnabledAlways)
+                {
+                    return;
+                }
                 diagnostics = new DiagnosticBag();
-#else
-                return;
-#endif
             }
 
             Analyze(
@@ -1436,26 +1430,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ex.AddAnError(diagnostics);
             }
-        }
 
-#if DEBUG
-#if REPORT_MAX
-        private static (Symbol symbol, int slots) s_maxSlots;
-#endif
-#endif
+            if (walker.compilation.NullableAnalysisData is { } state)
+            {
+                var key = (object?)symbol ?? walker.methodMainNode.Syntax;
+                state[key] = walker._variableSlot.Count;
+            }
+        }
 
         private SharedWalkerState SaveSharedState()
         {
-#if DEBUG
-#if REPORT_MAX
-            int slots = _variableSlot.Count;
-            if (slots > s_maxSlots.slots)
-            {
-                s_maxSlots = (_symbol, slots);
-                Debug.WriteLine("{0}: {1}", slots, _symbol);
-            }
-#endif
-#endif
             return new SharedWalkerState(
                 _variableSlot.ToImmutableDictionary(),
                 ImmutableArray.Create(variableBySlot, start: 0, length: nextVariableSlot),
@@ -3533,17 +3517,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static TypeWithAnnotations BestTypeForLambdaReturns(
             ArrayBuilder<(BoundExpression, TypeWithAnnotations)> returns,
-            CSharpCompilation compilation,
+            Binder binder,
             BoundNode node,
             Conversions conversions)
         {
-            var walker = new NullableWalker(compilation,
+            var walker = new NullableWalker(binder.Compilation,
                                             symbol: null,
                                             useConstructorExitWarnings: false,
                                             useDelegateInvokeParameterTypes: false,
                                             delegateInvokeMethodOpt: null,
                                             node,
-                                            binder: null, // Never used
+                                            binder,
                                             conversions: conversions,
                                             initialState: null,
                                             returnTypesOpt: null,
@@ -3576,7 +3560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion conversion = conversionsWithoutNullability.ClassifyConversionFromExpression(placeholder, bestType, ref useSiteDiagnostics);
                     resultTypes[i] = walker.VisitConversion(conversionOpt: null, placeholder, conversion, bestTypeWithObliviousAnnotation, resultTypes[i].ToTypeWithState(),
                         checkConversion: false, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Return,
-                        reportRemainingWarnings: false, reportTopLevelWarnings: false).ToTypeWithAnnotations(compilation);
+                        reportRemainingWarnings: false, reportTopLevelWarnings: false).ToTypeWithAnnotations(binder.Compilation);
                 }
 
                 // Set top-level nullability on inferred type
@@ -4996,7 +4980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (node is BoundForEachStatement { EnumeratorInfoOpt: { GetEnumeratorMethod: { TypeArgumentsWithAnnotations: { IsEmpty: false } } } })
+            if (node is BoundForEachStatement { EnumeratorInfoOpt: { GetEnumeratorInfo: { Method: { TypeArgumentsWithAnnotations: { IsEmpty: false } } } } })
             {
                 return true;
             }
@@ -5080,14 +5064,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (HasImplicitTypeArguments(node))
                 {
-                    var binder = node switch
-                    {
-                        BoundCall { BinderOpt: { } b } => b,
-                        BoundCollectionElementInitializer { BinderOpt: { } b } => b,
-                        BoundForEachStatement { EnumeratorInfoOpt: { Binder: { } b } } => b,
-                        _ => throw ExceptionUtilities.UnexpectedValue(node)
-                    };
-                    method = InferMethodTypeArguments(binder, method, GetArgumentsForMethodTypeInference(results, argumentsNoConversions), refKindsOpt, argsToParamsOpt, expanded);
+                    method = InferMethodTypeArguments(method, GetArgumentsForMethodTypeInference(results, argumentsNoConversions), refKindsOpt, argsToParamsOpt, expanded);
                     parametersOpt = method.Parameters;
                 }
                 if (ConstraintsHelper.RequiresChecking(method))
@@ -5847,14 +5824,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private MethodSymbol InferMethodTypeArguments(
-            Binder binder,
             MethodSymbol method,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
             bool expanded)
         {
-            Debug.Assert(binder != null);
             Debug.Assert(method.IsGenericMethod);
 
             // https://github.com/dotnet/roslyn/issues/27961 OverloadResolution.IsMemberApplicableInNormalForm and
@@ -5878,7 +5853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // false for constructors and several other cases (see Binder use). Should we
                 // capture the original value in the BoundCall?
                 allowRefOmittedArguments: true,
-                binder: binder,
+                binder: _binder,
                 expanded: expanded,
                 parameterTypes: out ImmutableArray<TypeWithAnnotations> parameterTypes,
                 parameterRefKinds: out ImmutableArray<RefKind> parameterRefKinds);
@@ -5886,7 +5861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
             var result = MethodTypeInferrer.Infer(
-                binder,
+                _binder,
                 _conversions,
                 definition.TypeParameters,
                 definition.ContainingType,
@@ -7475,7 +7450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         arguments.Add(new BoundExpressionWithNullability(syntax, new BoundParameter(syntax, parameter), parameterType.NullableAnnotation, parameterType.Type));
                     }
                     Debug.Assert(_binder is object);
-                    method = InferMethodTypeArguments(_binder, method, arguments.ToImmutableAndFree(), argumentRefKindsOpt: default, argsToParamsOpt: default, expanded: false);
+                    method = InferMethodTypeArguments(method, arguments.ToImmutableAndFree(), argumentRefKindsOpt: default, argsToParamsOpt: default, expanded: false);
                 }
                 if (invokedAsExtensionMethod)
                 {
@@ -7791,7 +7766,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (deconstructMethod is object)
             {
                 Debug.Assert(invocation is object);
-                Debug.Assert(invocation.BinderOpt is object);
                 Debug.Assert(rightResult.Type is object);
 
                 int n = variables.Count;
@@ -7816,7 +7790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             placeholderArgs.Add(new BoundExpressionWithNullability(variables[i].Expression.Syntax, variables[i].Expression, NullableAnnotation.Oblivious, conversion.DeconstructionInfo.OutputPlaceholders[i].Type));
                         }
-                        deconstructMethod = InferMethodTypeArguments(invocation.BinderOpt, deconstructMethod, placeholderArgs.ToImmutableAndFree(), invocation.ArgumentRefKindsOpt, invocation.ArgsToParamsOpt, invocation.Expanded);
+                        deconstructMethod = InferMethodTypeArguments(deconstructMethod, placeholderArgs.ToImmutableAndFree(), invocation.ArgumentRefKindsOpt, invocation.ArgsToParamsOpt, invocation.Expanded);
 
                         // check the constraints remain valid with the re-inferred parameter types
                         if (ConstraintsHelper.RequiresChecking(deconstructMethod))
@@ -8513,19 +8487,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol? reinferredGetEnumeratorMethod = null;
 
-            if (node.EnumeratorInfoOpt?.GetEnumeratorMethod is { IsExtensionMethod: true, Parameters: var parameters } enumeratorMethod)
+            if (node.EnumeratorInfoOpt?.GetEnumeratorInfo is { Method: { IsExtensionMethod: true, Parameters: var parameters } } enumeratorMethodInfo)
             {
                 // this is case 7
+                // We do not need to do this same analysis for non-extension methods because they do not have generic parameters that
+                // can be inferred from usage like extension methods can. We don't warn about default arguments at the call site, so
+                // there's nothing that can be learned from the non-extension case.
                 var (method, results, _) = VisitArguments(
                     node,
-                    ImmutableArray.Create(node.Expression),
+                    enumeratorMethodInfo.Arguments,
                     refKindsOpt: default,
                     parameters,
-                    argsToParamsOpt: default,
-                    defaultArguments: default,
+                    argsToParamsOpt: enumeratorMethodInfo.ArgsToParamsOpt,
+                    defaultArguments: enumeratorMethodInfo.DefaultArguments,
                     expanded: false,
                     invokedAsExtensionMethod: true,
-                    enumeratorMethod);
+                    enumeratorMethodInfo.Method);
 
                 targetTypeWithAnnotations = results[0].LValueType;
                 reinferredGetEnumeratorMethod = method;
@@ -8577,7 +8554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings: false,
                 AssignmentKind.Assignment);
 
-            bool reportedDiagnostic = node.EnumeratorInfoOpt?.GetEnumeratorMethod is { IsExtensionMethod: true }
+            bool reportedDiagnostic = node.EnumeratorInfoOpt?.GetEnumeratorInfo.Method is { IsExtensionMethod: true }
                 ? false
                 : CheckPossibleNullReceiver(expr);
 
@@ -8606,7 +8583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Reinfer the return type of the node.Expression.GetEnumerator().Current property, so that if
                 // the collection changed nested generic types we pick up those changes.
-                reinferredGetEnumeratorMethod ??= (MethodSymbol)AsMemberOfType(convertedResult.Type, node.EnumeratorInfoOpt.GetEnumeratorMethod);
+                reinferredGetEnumeratorMethod ??= (MethodSymbol)AsMemberOfType(convertedResult.Type, node.EnumeratorInfoOpt.GetEnumeratorInfo.Method);
                 var enumeratorReturnType = GetReturnTypeWithState(reinferredGetEnumeratorMethod);
 
                 if (enumeratorReturnType.State != NullableFlowState.NotNull)
@@ -8626,7 +8603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Analyze `await MoveNextAsync()`
                 if (node.AwaitOpt is { AwaitableInstancePlaceholder: BoundAwaitableValuePlaceholder moveNextPlaceholder } awaitMoveNextInfo)
                 {
-                    var moveNextAsyncMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.MoveNextMethod);
+                    var moveNextAsyncMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.MoveNextInfo.Method);
 
                     EnsureAwaitablePlaceholdersInitialized();
                     var result = new VisitResult(GetReturnTypeWithState(moveNextAsyncMethod), moveNextAsyncMethod.ReturnTypeWithAnnotations);
@@ -8640,10 +8617,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var disposalPlaceholder = awaitDisposalInfo.AwaitableInstancePlaceholder;
                     bool addedPlaceholder = false;
-                    if (node.EnumeratorInfoOpt.DisposeMethod is not null) // no statically known Dispose method if doing a runtime check
+                    if (node.EnumeratorInfoOpt.PatternDisposeInfo is { Method: var originalDisposeMethod }) // no statically known Dispose method if doing a runtime check
                     {
                         Debug.Assert(disposalPlaceholder is not null);
-                        var disposeAsyncMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.DisposeMethod);
+                        var disposeAsyncMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, originalDisposeMethod);
                         EnsureAwaitablePlaceholdersInitialized();
                         var result = new VisitResult(GetReturnTypeWithState(disposeAsyncMethod), disposeAsyncMethod.ReturnTypeWithAnnotations);
                         _awaitablePlaceholdersOpt.Add(disposalPlaceholder, (disposalPlaceholder, result));

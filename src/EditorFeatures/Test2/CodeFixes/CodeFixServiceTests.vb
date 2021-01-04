@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -59,7 +58,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim logger = SpecializedCollections.SingletonEnumerable(New Lazy(Of IErrorLoggerService)(Function() workspace.Services.GetService(Of IErrorLoggerService)))
                 Dim codefixService = New CodeFixService(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     diagnosticService,
                     logger,
                     {New Lazy(Of CodeFixProvider, Mef.CodeChangeProviderMetadata)(
@@ -128,7 +126,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim logger = SpecializedCollections.SingletonEnumerable(New Lazy(Of IErrorLoggerService)(Function() workspace.Services.GetService(Of IErrorLoggerService)))
                 Dim codefixService = New CodeFixService(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     diagnosticService,
                     logger,
                     {New Lazy(Of CodeFixProvider, Mef.CodeChangeProviderMetadata)(

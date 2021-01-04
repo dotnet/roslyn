@@ -1689,7 +1689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableDictionary<Symbol, Symbol> remappedSymbols = null;
                     var compilation = bodyBinder.Compilation;
                     var isSufficientLangVersion = compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion();
-                    if (compilation.NullableSemanticAnalysisEnabled)
+                    if (compilation.IsNullableAnalysisEnabled)
                     {
                         methodBodyForSemanticModel = NullableWalker.AnalyzeAndRewrite(
                             compilation,
@@ -2020,7 +2020,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt: ImmutableArray<int>.Empty,
                 defaultArguments: BitVector.Empty,
                 resultKind: resultKind,
-                binderOpt: null,
                 type: baseConstructor.ReturnType,
                 hasErrors: hasErrors)
             { WasCompilerGenerated = true };
@@ -2068,7 +2067,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt: default,
                 defaultArguments: default,
                 resultKind: LookupResultKind.Viable,
-                binderOpt: null,
                 type: baseConstructor.ReturnType,
                 hasErrors: false)
             { WasCompilerGenerated = true };

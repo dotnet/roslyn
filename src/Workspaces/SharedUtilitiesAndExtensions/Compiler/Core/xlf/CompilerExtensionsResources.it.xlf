@@ -17,11 +17,6 @@
         <target state="translated">Esiste già un elemento con la stessa chiave ma valore diverso.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ArgumentException_OtherNotArrayOfCorrectLength">
-        <source>Object is not a array with the same number of elements as the array to compare it to.</source>
-        <target state="translated">L'oggetto non è una matrice con lo stesso numero di elementi della matrice a cui confrontarlo.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Begins_with_I">
         <source>Begins with I</source>
         <target state="translated">Inizia con I</target>
@@ -106,11 +101,6 @@
         <source>Non-Field Members</source>
         <target state="translated">Membri non di campo</target>
         <note>{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="NotSupported_FixedSizeCollection">
-        <source>Collection was of a fixed size.</source>
-        <target state="translated">La raccolta è a dimensione fissa.</target>
-        <note />
       </trans-unit>
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>

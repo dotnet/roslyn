@@ -14,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
         Public Sub New()
             MyBase.New(
                 diagnosticId:=IDEDiagnosticIds.RemoveUnnecessaryByValDiagnosticId,
+                enforceOnBuild:=EnforceOnBuildValues.RemoveUnnecessaryByVal,
                 [option]:=Nothing,
                 title:=New LocalizableResourceString(NameOf(VisualBasicAnalyzersResources.Remove_ByVal), VisualBasicAnalyzersResources.ResourceManager, GetType(VisualBasicAnalyzersResources)),
                 isUnnecessary:=True)

@@ -12,7 +12,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -13100,10 +13099,9 @@ End Interface";
             compilation2.VerifyOperationTree(node, expectedOperationTree:
 @"
 IInvalidOperation (OperationKind.Invalid, Type: System.Object, IsInvalid) (Syntax: 'i.R[1]')
-  Children(3):
+  Children(2):
       IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: I, IsInvalid) (Syntax: 'i')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid, IsImplicit) (Syntax: 'i.R[1]')
 ");
         }
 
