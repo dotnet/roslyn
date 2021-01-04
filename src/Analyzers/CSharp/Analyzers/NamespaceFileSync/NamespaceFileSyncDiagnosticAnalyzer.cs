@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
             }
 
             if (!context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(ProjectDirOption, out var projectDir)
-                || projectDir is null or { Length: 0 })
+                || string.IsNullOrEmpty(projectDir))
             {
                 return;
             }
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
             [NotNullWhen(returnValue: true)] out string? targetNamespace)
         {
             var filePath = Path.Combine(namespaceDeclaration.SyntaxTree.FilePath, ".");
-            if (!filePath.Contains(projectDir))
+            if (!filePath.StartsWith(projectDir))
             {
                 // The file does not exist within the project directory
                 targetNamespace = null;
@@ -144,7 +145,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
             }
 
             var relativeFilePath = filePath.Substring(projectDir.Length);
-            var folders = Path.ChangeExtension(relativeFilePath, null).Split(Path.DirectorySeparatorChar).Where(e => e.Length > 0);
+            var folders = Path
+                .ChangeExtension(relativeFilePath, null)
+                .Split(new[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+
             var expectedNamespace = PathMetadataUtilities.TryBuildNamespaceFromFolders(folders, CSharpSyntaxFacts.Instance, rootNamespace);
 
             if (expectedNamespace is null || expectedNamespace.Equals(namespaceDeclaration.Name.ToString()))
