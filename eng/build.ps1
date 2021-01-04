@@ -234,6 +234,7 @@ function BuildSolution() {
   $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
 
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
+  $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
   try {
     MSBuild $toolsetBuildProj `
@@ -261,6 +262,7 @@ function BuildSolution() {
       $msbuildWarnAsError `
       $buildFromSource `
       $generateDocumentationFile `
+      $roslynUseHardLinks `
       @properties
   }
   finally {
