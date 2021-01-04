@@ -85,12 +85,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var cancellationToken = fixAllContext.CancellationToken;
 
-            using var _1 = progressTracker.ItemCompletedScope(string.Format(WorkspaceExtensionsResources._0_Computing_fixes_for_1_diagnostics, GetName(fixAllContext), diagnostics.Length));
+            using var _1 = progressTracker.ItemCompletedScope();
             using var _2 = ArrayBuilder<Task<(DocumentId, (SyntaxNode? node, SourceText? text))>>.GetInstance(out var tasks);
 
             var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
             if (!diagnostics.IsEmpty)
             {
+                progressTracker.Description = string.Format(WorkspaceExtensionsResources._0_Computing_fixes_for_1_diagnostics, GetName(fixAllContext), diagnostics.Length);
+
                 // Then, once we've got the diagnostics, bucket them by document and the process all documents in
                 // parallel to get the change for each doc.
                 foreach (var group in diagnostics.Where(d => d.Location.IsInSource).GroupBy(d => d.Location.SourceTree))
@@ -143,14 +145,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var cancellationToken = fixAllContext.CancellationToken;
 
-            var description = fixAllContext.Document != null
-                    ? string.Format(WorkspaceExtensionsResources._0_Applying_fixes, GetName(fixAllContext))
-                    : string.Format(WorkspaceExtensionsResources._0_Applying_fixes_to_1_documents, GetName(fixAllContext), docIdToNewRootOrText.Count);
-
-            using var _1 = progressTracker.ItemCompletedScope(description);
+            using var _1 = progressTracker.ItemCompletedScope();
 
             if (docIdToNewRootOrText.Count > 0)
             {
+                progressTracker.Description = fixAllContext.Document != null
+                    ? string.Format(WorkspaceExtensionsResources._0_Applying_fixes, GetName(fixAllContext))
+                    : string.Format(WorkspaceExtensionsResources._0_Applying_fixes_to_1_documents, GetName(fixAllContext), docIdToNewRootOrText.Count);
+
                 // Next, go and insert those all into the solution so all the docs in this particular project point at
                 // the new trees (or text).  At this point though, the trees have not been cleaned up.  We don't cleanup
                 // the documents as they are created, or one at a time as we add them, as that would cause us to run

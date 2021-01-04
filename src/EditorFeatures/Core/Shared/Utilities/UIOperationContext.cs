@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         public IEnumerable<IOperationScope> Scopes => _operationContext.Scopes.Select(s => new UIOperationScopeAdapter(s, allowDispose: false));
 
         public IOperationScope AddScope(string description)
-            => new UIOperationScopeAdapter(_operationContext.AddScope(allowCancellation: false, description), allowDispose: true);
+            => new UIOperationScopeAdapter(_operationContext.AddScope(allowCancellation: true, description), allowDispose: true);
 
         public void Dispose()
             => _operationContext.Dispose();

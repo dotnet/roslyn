@@ -61,6 +61,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             CodeAction = codeAction;
         }
 
+        public string DisplayTextSuffix => "";
+
         internal virtual CodeActionPriority Priority => CodeAction.Priority;
 
         internal bool IsForCodeQualityImprovement

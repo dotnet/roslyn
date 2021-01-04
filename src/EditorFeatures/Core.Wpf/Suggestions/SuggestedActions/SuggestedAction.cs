@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// <summary>
     /// Base class for all Roslyn light bulb menu items.
     /// </summary>
-    internal abstract partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction, IEquatable<ISuggestedAction>
+    internal abstract partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction3, IEquatable<ISuggestedAction>
     {
         protected readonly SuggestedActionsSourceProvider SourceProvider;
 
@@ -96,6 +97,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public void Invoke(CancellationToken cancellationToken)
         {
+            // WaitIndicator cannot be used with async/await. Even though we call async methods
+            // later in this call chain, do not await them.
+            var operationContextFactory = Workspace.Services.GetRequiredService<IOperationContextFactory>();
+
+            using var context = operationContextFactory.CreateOperationContext(CodeAction.Title, CodeAction.Message, allowCancellation: true, showProgress: true);
+            using var combinedCancellationToken = cancellationToken.CombineWith(context.CancellationToken);
+
+            Invoke(context, combinedCancellationToken.Token);
+        }
+
+        public void Invoke(IUIThreadOperationContext context)
+        {
+            this.Invoke(new UIOperationContextAdapter(context), context.UserCancellationToken);
+        }
+
+        private void Invoke(IOperationContext context, CancellationToken cancellationToken)
+        {
             // While we're not technically doing anything async here, we need to let the
             // integration test harness know that it should not proceed until all this
             // work is done.  Otherwise it might ask to do some work before we finish.
@@ -104,19 +122,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // to the UI thread as well.
             using (SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}"))
             {
-                // WaitIndicator cannot be used with async/await. Even though we call async methods
-                // later in this call chain, do not await them.
-                var operationContextFactory = Workspace.Services.GetRequiredService<IOperationContextFactory>();
-                using (var context = operationContextFactory.CreateOperationContext(CodeAction.Title, CodeAction.Message, allowCancellation: true, showProgress: true))
-                {
-                    using var combinedCancellationToken = cancellationToken.CombineWith(context.CancellationToken);
-                    var progressTracker = new OperationScopeProgressTracker(context.Scopes.Last());
-                    InnerInvoke(progressTracker, combinedCancellationToken.Token);
-                    foreach (var actionCallback in SourceProvider.ActionCallbacks)
-                    {
-                        actionCallback.Value.OnSuggestedActionExecuted(this);
-                    }
-                }
+                using var combinedCancellationToken = cancellationToken.CombineWith(context.CancellationToken);
+                using var scope = context.AddScope(CodeAction.Message);
+
+                InnerInvoke(new OperationScopeProgressTracker(scope), combinedCancellationToken.Token);
+                foreach (var actionCallback in SourceProvider.ActionCallbacks)
+                    actionCallback.Value.OnSuggestedActionExecuted(this);
             }
         }
 
@@ -215,6 +226,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return text.Replace("_", "__");
             }
         }
+
+        public string DisplayTextSuffix => "";
 
         protected async Task<SolutionPreviewResult> GetPreviewResultAsync(CancellationToken cancellationToken)
         {
