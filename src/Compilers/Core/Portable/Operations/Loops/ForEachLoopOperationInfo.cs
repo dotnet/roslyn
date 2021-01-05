@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public readonly bool IsAsynchronous;
         public readonly bool NeedsDispose;
         public readonly bool KnownToImplementIDisposable;
-        public readonly IMethodSymbol? DisposeMethod;
-        public readonly bool IsPatternDispose;
+        public readonly IMethodSymbol? PatternDisposeMethod;
 
         /// <summary>
         /// The conversion from the type of the <see cref="CurrentProperty"/> to the <see cref="ElementType"/>.
@@ -36,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public readonly ImmutableArray<IArgumentOperation> GetEnumeratorArguments;
         public readonly ImmutableArray<IArgumentOperation> MoveNextArguments;
         public readonly ImmutableArray<IArgumentOperation> CurrentArguments;
+        public readonly ImmutableArray<IArgumentOperation> DisposeArguments;
 
         public ForEachLoopOperationInfo(
             ITypeSymbol elementType,
@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isAsynchronous,
             bool needsDispose,
             bool knownToImplementIDisposable,
-            IMethodSymbol? disposeMethod,
-            bool isPatternDispose,
+            IMethodSymbol? patternDisposeMethod,
             IConvertibleConversion currentConversion,
             IConvertibleConversion elementConversion,
             ImmutableArray<IArgumentOperation> getEnumeratorArguments = default,
             ImmutableArray<IArgumentOperation> moveNextArguments = default,
-            ImmutableArray<IArgumentOperation> currentArguments = default)
+            ImmutableArray<IArgumentOperation> currentArguments = default,
+            ImmutableArray<IArgumentOperation> disposeArguments = default)
         {
             ElementType = elementType;
             GetEnumeratorMethod = getEnumeratorMethod;
@@ -60,13 +60,13 @@ namespace Microsoft.CodeAnalysis.Operations
             IsAsynchronous = isAsynchronous;
             KnownToImplementIDisposable = knownToImplementIDisposable;
             NeedsDispose = needsDispose;
-            DisposeMethod = disposeMethod;
-            IsPatternDispose = isPatternDispose;
+            PatternDisposeMethod = patternDisposeMethod;
             CurrentConversion = currentConversion;
             ElementConversion = elementConversion;
             GetEnumeratorArguments = getEnumeratorArguments;
             MoveNextArguments = moveNextArguments;
             CurrentArguments = currentArguments;
+            DisposeArguments = disposeArguments;
         }
     }
 }

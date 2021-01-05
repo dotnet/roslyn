@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 #if CODE_STYLE
@@ -46,13 +47,13 @@ namespace Microsoft.CodeAnalysis.CodeQuality
 
         protected static DiagnosticDescriptor CreateDescriptor(
             string id,
+            EnforceOnBuild enforceOnBuild,
             LocalizableString title,
             LocalizableString messageFormat,
             bool isUnnecessary,
             bool isEnabledByDefault = true,
             bool isConfigurable = true,
-            LocalizableString description = null,
-            params string[] customTags)
+            LocalizableString description = null)
 #pragma warning disable RS0030 // Do not used banned APIs
             => new(
                     id, title, messageFormat,
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
                     isEnabledByDefault,
                     description,
                     helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(id),
-                    customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, customTags));
+                    customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, enforceOnBuild));
 #pragma warning disable RS0030 // Do not used banned APIs
     }
 }

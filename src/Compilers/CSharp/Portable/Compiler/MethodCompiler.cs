@@ -2020,7 +2020,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt: ImmutableArray<int>.Empty,
                 defaultArguments: BitVector.Empty,
                 resultKind: resultKind,
-                binderOpt: null,
                 type: baseConstructor.ReturnType,
                 hasErrors: hasErrors)
             { WasCompilerGenerated = true };
@@ -2068,7 +2067,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt: default,
                 defaultArguments: default,
                 resultKind: LookupResultKind.Viable,
-                binderOpt: null,
                 type: baseConstructor.ReturnType,
                 hasErrors: false)
             { WasCompilerGenerated = true };

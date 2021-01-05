@@ -14,7 +14,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -465,10 +464,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitUsingDeclaration(IUsingDeclarationOperation operation)
         {
             LogString($"{nameof(IUsingDeclarationOperation)}");
-            LogString($"(IsAsynchronous: {operation.IsAsynchronous})");
+            LogString($"(IsAsynchronous: {operation.IsAsynchronous}");
+
+            var disposeMethod = ((UsingDeclarationOperation)operation).DisposeInfo.DisposeMethod;
+            if (disposeMethod is object)
+            {
+                LogSymbol(disposeMethod, ", DisposeMethod");
+            }
+            LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.DeclarationGroup, "DeclarationGroup");
+            var disposeArgs = ((UsingDeclarationOperation)operation).DisposeInfo.DisposeArguments;
+            if (!disposeArgs.IsDefaultOrEmpty)
+            {
+                VisitArray(disposeArgs, "DisposeArguments", logElementCount: true);
+            }
         }
 
         public override void VisitVariableDeclarator(IVariableDeclaratorOperation operation)
@@ -731,6 +742,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 LogString($" (IsAsynchronous)");
             }
+            var disposeMethod = ((UsingOperation)operation).DisposeInfo.DisposeMethod;
+            if (disposeMethod is object)
+            {
+                LogSymbol(disposeMethod, " (DisposeMethod");
+                LogString(")");
+            }
             LogCommonPropertiesAndNewLine(operation);
 
             LogLocals(operation.Locals);
@@ -739,6 +756,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Assert.NotEqual(OperationKind.VariableDeclaration, operation.Resources.Kind);
             Assert.NotEqual(OperationKind.VariableDeclarator, operation.Resources.Kind);
+
+            var disposeArgs = ((UsingOperation)operation).DisposeInfo.DisposeArguments;
+            if (!disposeArgs.IsDefaultOrEmpty)
+            {
+                VisitArray(disposeArgs, "DisposeArguments", logElementCount: true);
+            }
         }
 
         // https://github.com/dotnet/roslyn/issues/21281
