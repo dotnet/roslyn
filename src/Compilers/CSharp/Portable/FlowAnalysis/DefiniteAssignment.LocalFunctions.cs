@@ -23,7 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             { }
         }
 
-        protected override LocalFunctionState CreateLocalFunctionState()
+        protected override LocalFunctionState CreateLocalFunctionState(LocalFunctionSymbol symbol)
+            => CreateLocalFunctionState();
+
+        private LocalFunctionState CreateLocalFunctionState()
             => new LocalFunctionState(
                 // The bottom state should assume all variables, even new ones, are assigned
                 new LocalState(BitVector.AllSet(nextVariableSlot), normalizeToBottom: true),

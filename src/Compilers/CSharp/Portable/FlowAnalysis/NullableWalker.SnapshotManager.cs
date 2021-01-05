@@ -53,38 +53,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             }
 
-            internal (NullableWalker, VariableState, Symbol) RestoreWalkerToAnalyzeNewNode(
-                int position,
-                BoundNode nodeToAnalyze,
-                Binder binder,
-                ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)>.Builder analyzedNullabilityMap,
-                SnapshotManager.Builder newManagerOpt)
+            internal (VariableState, Symbol) GetSnapshot(int position)
             {
                 Snapshot incrementalSnapshot = GetSnapshotForPosition(position);
                 var sharedState = _walkerSharedStates[incrementalSnapshot.SharedStateIndex];
-                var variableState = new VariableState(sharedState.VariableSlot, sharedState.VariableBySlot, sharedState.VariableTypes, incrementalSnapshot.VariableState.Clone());
-                return (new NullableWalker(binder.Compilation,
-                                           sharedState.Symbol,
-                                           useConstructorExitWarnings: false,
-                                           useDelegateInvokeParameterTypes: false,
-                                           delegateInvokeMethodOpt: null,
-                                           nodeToAnalyze,
-                                           binder,
-                                           binder.Conversions,
-                                           variableState,
-                                           returnTypesOpt: null,
-                                           analyzedNullabilityMap,
-                                           snapshotBuilderOpt: newManagerOpt,
-                                           isSpeculative: true),
-                        variableState,
-                        sharedState.Symbol);
+                var variableState = new VariableState(sharedState.Variables, incrementalSnapshot.VariableState.Clone());
+                return (variableState, sharedState.Symbol);
             }
 
             internal TypeWithAnnotations? GetUpdatedTypeForLocalSymbol(SourceLocalSymbol symbol)
             {
                 var snapshot = GetSnapshotForPosition(symbol.IdentifierToken.SpanStart);
                 var sharedState = _walkerSharedStates[snapshot.SharedStateIndex];
-                if (sharedState.VariableTypes.TryGetValue(symbol, out var updatedType))
+                if (sharedState.Variables.TryGetType(symbol, out var updatedType))
                 {
                     return updatedType;
                 }
@@ -272,20 +253,12 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
         /// </summary>
         internal struct SharedWalkerState
         {
-            internal readonly ImmutableDictionary<VariableIdentifier, int> VariableSlot;
-            internal readonly ImmutableArray<VariableIdentifier> VariableBySlot;
-            internal readonly ImmutableDictionary<Symbol, TypeWithAnnotations> VariableTypes;
+            internal readonly Variables Variables;
             internal readonly Symbol Symbol;
 
-            internal SharedWalkerState(
-                ImmutableDictionary<VariableIdentifier, int> variableSlot,
-                ImmutableArray<VariableIdentifier> variableBySlot,
-                ImmutableDictionary<Symbol, TypeWithAnnotations> variableTypes,
-                Symbol symbol)
+            internal SharedWalkerState(Variables variables, Symbol symbol)
             {
-                VariableSlot = variableSlot;
-                VariableBySlot = variableBySlot;
-                VariableTypes = variableTypes;
+                Variables = variables;
                 Symbol = symbol;
             }
         }

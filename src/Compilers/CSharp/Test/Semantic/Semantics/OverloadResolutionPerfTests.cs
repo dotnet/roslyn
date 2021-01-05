@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Collections.Concurrent;
@@ -428,53 +427,98 @@ class Program
             comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
             comp.VerifyDiagnostics();
 
-            CheckIsSimpleMethod(comp, "F2", true);
-
             var method = comp.GetMember("Program.F2");
             Assert.Equal(1, comp.NullableAnalysisData[method].TrackedEntries);
         }
 
-        [Theory]
-        [InlineData("class Program { static object F() => null; }", "F", true)]
-        [InlineData("class Program { static void F() { } }", "F", true)]
-        [InlineData("class Program { static void F() { { } { } { } } }", "F", true)]
-        [InlineData("class Program { static void F() { ;;; } }", "F", false)]
-        [InlineData("class Program { static void F2(System.Action a) { } static void F() { F2(() => { }); } }", "F", true)]
-        [InlineData("class Program { static void F() { void Local() { } } }", "F", false)]
-        [InlineData("class Program { static void F() { System.Action a = () => { }; } }", "F", false)]
-        [InlineData("class Program { static void F() { if (true) { } } }", "F", false)]
-        [InlineData("class Program { static void F() { while (true) { } } }", "F", false)]
-        [InlineData("class Program { static void F() { try { } finally { } } }", "F", false)]
-        [InlineData("class Program { static void F() { label: F(); } }", "F", false)]
+        [Fact]
         [WorkItem(49745, "https://github.com/dotnet/roslyn/issues/49745")]
-        public void NullableState_IsSimpleMethod(string source, string methodName, bool expectedResult)
+        public void NullableStateLocalFunctions()
         {
+            const int nFunctions = 2000;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#nullable enable");
+            builder.AppendLine("class Program");
+            builder.AppendLine("{");
+            builder.AppendLine("    static void F(object arg)");
+            builder.AppendLine("    {");
+            for (int i = 0; i < nFunctions; i++)
+            {
+                builder.AppendLine($"        _ = F{i}(arg);");
+                builder.AppendLine($"        static object F{i}(object arg{i}) => arg{i};");
+            }
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
             var comp = CreateCompilation(source);
-            var diagnostics = comp.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error);
-            diagnostics.Verify();
-            CheckIsSimpleMethod(comp, methodName, expectedResult);
+            comp.NullableAnalysisData = new ConcurrentDictionary<object, NullableWalker.Data>();
+            comp.VerifyDiagnostics();
+
+            var method = comp.GetMember("Program.F");
+            Assert.Equal(1, comp.NullableAnalysisData[method].TrackedEntries);
         }
 
-        private static void CheckIsSimpleMethod(CSharpCompilation comp, string methodName, bool expectedResult)
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void NullableStateTooManyLocals()
         {
-            var tree = comp.SyntaxTrees[0];
-            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            var methodDeclaration = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.ToString() == methodName);
-            var methodBody = methodDeclaration.Body;
-            BoundBlock block;
-            if (methodBody is { })
+            const int nLocals = 65536;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#nullable enable");
+            builder.AppendLine("class Program");
+            builder.AppendLine("{");
+            builder.AppendLine("    static object F()");
+            builder.AppendLine("    {");
+            builder.AppendLine("        object i0 = null;");
+            for (int i = 1; i < nLocals; i++)
             {
-                var binder = model.GetEnclosingBinder(methodBody.SpanStart);
-                block = binder.BindEmbeddedBlock(methodBody, new DiagnosticBag());
+                builder.AppendLine($"        var i{i} = i{i - 1};");
             }
-            else
+            builder.AppendLine($"        return i{nLocals - 1};");
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Perf: NullableWalker.Variables.GetMembers() is O(n^2).
+#if false
+            comp.VerifyDiagnostics(
+                // (6,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object i0 = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 21));
+#endif
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void NullableStateTooManyNestedFunctions()
+        {
+            const int nFunctions = 65536;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#nullable enable");
+            builder.AppendLine("class Program");
+            builder.AppendLine("{");
+            builder.AppendLine("    static T F1<T>(System.Func<T, T> f, T arg) => f(arg);");
+            builder.AppendLine("    static object F2(object arg)");
+            builder.AppendLine("    {");
+            builder.AppendLine("        if (arg == null) { }");
+            builder.AppendLine("        var value = arg;");
+            for (int i = 0; i < nFunctions; i++)
             {
-                var expressionBody = methodDeclaration.ExpressionBody;
-                var binder = model.GetEnclosingBinder(expressionBody.SpanStart);
-                block = binder.BindExpressionBodyAsBlock(expressionBody, new DiagnosticBag());
+                builder.AppendLine("        value = F1(arg => arg, value);");
             }
-            var actualResult = NullableWalker.IsSimpleMethodVisitor.IsSimpleMethod(block);
-            Assert.Equal(expectedResult, actualResult);
+            builder.AppendLine("        return value;");
+            builder.AppendLine("    }");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Investigate performance.
+#if false
+            comp.VerifyDiagnostics();
+#endif
         }
     }
 }

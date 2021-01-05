@@ -19,6 +19,7 @@
 #define REFERENCE_STATE
 #endif
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -38,6 +39,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         DefiniteAssignmentPass.LocalState,
         DefiniteAssignmentPass.LocalFunctionState>
     {
+        /// <summary>
+        /// A mapping from local variables to the index of their slot in a flow analysis local state.
+        /// </summary>
+        private readonly PooledDictionary<VariableIdentifier, int> _variableSlot = PooledDictionary<VariableIdentifier, int>.GetInstance();
+
+        /// <summary>
+        /// A mapping from the local variable slot to the symbol for the local variable itself.  This
+        /// is used in the implementation of region analysis (support for extract method) to compute
+        /// the set of variables "always assigned" in a region of code.
+        ///
+        /// The first slot, slot 0, is reserved for indicating reachability, so the first tracked variable will
+        /// be given slot 1. When referring to VariableIdentifier.ContainingSlot, slot 0 indicates
+        /// that the variable in VariableIdentifier.Symbol is a root, i.e. not nested within another
+        /// tracked variable. Slots &lt; 0 are illegal.
+        /// </summary>
+        protected VariableIdentifier[] variableBySlot = new VariableIdentifier[1];
+
+        /// <summary>
+        /// Variable slots are allocated to local variables sequentially and never reused.  This is
+        /// the index of the next slot number to use.
+        /// </summary>
+        protected int nextVariableSlot = 1;
+
         /// <summary>
         /// Some variables that should be considered initially assigned.  Used for region analysis.
         /// </summary>
@@ -192,6 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void Free()
         {
+            _variableSlot.Free();
             _usedVariables.Free();
             _readParameters?.Free();
             _usedLocalFunctions.Free();
@@ -202,6 +227,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             _unsafeAddressTakenVariables.Free();
 
             base.Free();
+        }
+
+        protected override bool TryGetVariable(VariableIdentifier identifier, out int slot)
+        {
+            return _variableSlot.TryGetValue(identifier, out slot);
+        }
+
+        protected override int AddVariable(VariableIdentifier identifier)
+        {
+            int slot = nextVariableSlot++;
+            _variableSlot.Add(identifier, slot);
+            if (slot >= variableBySlot.Length)
+            {
+                Array.Resize(ref this.variableBySlot, slot * 2);
+            }
+
+            variableBySlot[slot] = identifier;
+            return slot;
+        }
+
+        protected Symbol GetNonMemberSymbol(int slot)
+        {
+            VariableIdentifier variableId = variableBySlot[slot];
+            while (variableId.ContainingSlot > 0)
+            {
+                Debug.Assert(variableId.Symbol.Kind == SymbolKind.Field || variableId.Symbol.Kind == SymbolKind.Property || variableId.Symbol.Kind == SymbolKind.Event,
+                    "inconsistent property symbol owner");
+                variableId = variableBySlot[variableId.ContainingSlot];
+            }
+            return variableId.Symbol;
+        }
+
+        private int RootSlot(int slot)
+        {
+            while (true)
+            {
+                int containingSlot = variableBySlot[slot].ContainingSlot;
+                if (containingSlot == 0)
+                {
+                    return slot;
+                }
+                else
+                {
+                    slot = containingSlot;
+                }
+            }
         }
 
 #if DEBUG
