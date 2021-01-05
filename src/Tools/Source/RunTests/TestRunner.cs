@@ -87,7 +87,6 @@ namespace RunTests
 
     <ItemGroup>
         " + correlationPayload + string.Join("", workItems) + @"
-        <TestTimeout>00:15:00</TestTimeout>
     </ItemGroup>
 </Project>
 ";
@@ -125,6 +124,7 @@ namespace RunTests
                 " + lsCommand + @"
                 dotnet " + commandLineArguments + @"
             </Command>
+            <Timeout>00:15:00</Timeout>
         </HelixWorkItem>
 ";
                 return workItem;
