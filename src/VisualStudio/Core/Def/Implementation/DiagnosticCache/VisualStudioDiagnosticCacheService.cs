@@ -19,6 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
 {
     internal sealed partial class VisualStudioDiagnosticCacheService : IDiagnosticCacheService
     {
+        // TODO: loc
         private const string CachedMessageFormat = "(Loaded from cache) - {0}";
 
         private readonly VisualStudioWorkspace _workspace;
@@ -57,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
             var cachedDiagnostics = await GetCachedDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
             if (!cachedDiagnostics.IsDefault)
             {
-                _updateTracker.TryUpdateDiagnostics(document, cachedDiagnostics);
+                _updateTracker.TryUpdateDiagnosticsLoadedFromCache(document, cachedDiagnostics);
             }
 
             return true;
@@ -65,11 +66,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
 
         public void OnAnalyzeDocument(Document document)
         {
-            _updateTracker.OnLiveAnalysisStarted(document.Project.Solution.FilePath);
-            if (document.IsOpen())
+            var isAnalyzedForFirstTime = _updateTracker.OnLiveAnalysisStarted(document);
+            if (isAnalyzedForFirstTime && document.IsOpen())
             {
-                // TODO: Only need to do this once (i.e. the first time, in case no diagnostics for this document,)
-                //       after that it will be handled by monitoring diagnostics update.
+                // Only need to do this once, i.e. only the first time, in case there no diagnostics in this document,
+                // then we want to make sure clear cached diagnostics for this document, after that it will be handled
+                // by monitoring diagnostics update.
                 _cacheUpdater.QueueUpdate(document.Id);
             }
         }

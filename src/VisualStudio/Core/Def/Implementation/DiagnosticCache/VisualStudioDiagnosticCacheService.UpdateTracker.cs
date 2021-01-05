@@ -26,10 +26,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
             private const string DiagnosticsUpdatedEventName = "CachedDiagnosticsUpdated";
 
             private readonly object _gate = new();
+
             // This is null from when live analysis started until a new solution is opened,
             // which means no cached diagnostic update is allowed.
             private string? _currentSolutionPath;
+
+            // Keeps track of all documents we pushed cached diagnostics for.
             private readonly HashSet<DocumentId> _requestedDocuments = new();
+
+            // Keeps track of documents encountered for live analysis.
+            private readonly HashSet<DocumentId> _analyzedDocuments = new();
+
             private readonly TaskQueue _updateQueue;
 
             public UpdateTracker(
@@ -37,12 +44,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
                 IDiagnosticUpdateSourceRegistrationService registrationService,
                 IAsynchronousOperationListenerProvider listenerProvider)
             {
+                _currentSolutionPath = workspace.CurrentSolution.FilePath;
                 _updateQueue = new TaskQueue(listenerProvider.GetListener(nameof(VisualStudioDiagnosticCacheService)), TaskScheduler.Default);
                 workspace.WorkspaceChanged += OnWorkspaceChanged;
                 registrationService.Register(this);
             }
 
-            public void TryUpdateDiagnostics(Document document, ImmutableArray<DiagnosticData> diagnostics)
+            public void TryUpdateDiagnosticsLoadedFromCache(Document document, ImmutableArray<DiagnosticData> diagnostics)
             {
                 Debug.Assert(!diagnostics.IsDefault);
                 var solutionPath = document.Project.Solution.FilePath;
@@ -68,17 +76,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
                 }
             }
 
-            public void OnLiveAnalysisStarted(string? solutionPath)
+            public bool OnLiveAnalysisStarted(Document document)
             {
                 lock (_gate)
                 {
+                    var solutionPath = document.Project.Solution.FilePath;
                     // _currentSolutionPath == null means live analysis already started.
                     if (_currentSolutionPath != null && solutionPath == _currentSolutionPath)
                     {
                         _currentSolutionPath = null;
                         _requestedDocuments.Clear();
+
+                        // Schedule update to clear all cached diagnostics from DiagnosticService
                         _updateQueue.ScheduleTask(DiagnosticsUpdatedEventName, () => DiagnosticsCleared?.Invoke(this, EventArgs.Empty), CancellationToken.None);
                     }
+
+                    return _analyzedDocuments.Add(document.Id);
                 }
             }
 
@@ -90,6 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
                     {
                         _currentSolutionPath = e.NewSolution.FilePath;
                         _requestedDocuments.Clear();
+                        _analyzedDocuments.Clear();
                         _updateQueue.ScheduleTask(DiagnosticsUpdatedEventName, () => DiagnosticsCleared?.Invoke(this, EventArgs.Empty), CancellationToken.None);
                     }
                 }
@@ -102,16 +116,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
 
             public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
                 => ImmutableArray<DiagnosticData>.Empty;
+        }
 
-            private class CachedDiagnosticsUpdateArgsId : BuildToolId.Base<DocumentId>, ISupportLiveUpdate
+        private class CachedDiagnosticsUpdateArgsId : BuildToolId.Base<DocumentId>, ISupportLiveUpdate
+        {
+            public CachedDiagnosticsUpdateArgsId(DocumentId documentId)
+                : base(documentId)
             {
-                public CachedDiagnosticsUpdateArgsId(DocumentId documentId)
-                    : base(documentId)
-                {
-                }
-
-                public override string BuildTool => nameof(VisualStudioDiagnosticCacheService);
             }
+
+            public override string BuildTool => nameof(VisualStudioDiagnosticCacheService);
         }
     }
 }

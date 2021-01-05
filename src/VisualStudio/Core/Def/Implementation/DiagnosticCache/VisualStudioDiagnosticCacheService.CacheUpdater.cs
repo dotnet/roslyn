@@ -122,9 +122,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DiagnosticCache
                         var buckets = _diagnosticService.GetPushDiagnosticBuckets(_workspace, document.Project.Id, document.Id, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken);
                         foreach (var bucket in buckets)
                         {
-                            // Only cache results from live analysis
+                            // Only cache results from actual live analysis
                             var id = bucket.Id;
-                            if (id is ISupportLiveUpdate)
+                            if (id is ISupportLiveUpdate && id is not CachedDiagnosticsUpdateArgsId)
                             {
                                 builder.AddRange(_diagnosticService.GetPushDiagnostics(
                                     _workspace, document.Project.Id, document.Id, id,
