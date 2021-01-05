@@ -169,20 +169,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return Parent == null || !Parent.Type.HasValueCopySemantics();
         }
 
-        public bool HasConstantValue
+        public bool HasConstantValue => Symbol switch
         {
-            get
-            {
-                return Symbol switch
-                {
-                    IFieldSymbol field => field.HasConstantValue,
-
-                    ILocalSymbol local => local.HasConstantValue,
-
-                    _ => false,
-                };
-            }
-        }
+            IFieldSymbol field => field.HasConstantValue,
+            ILocalSymbol local => local.HasConstantValue,
+            _ => false,
+        };
 
         public ISymbol? Symbol { get; }
         public ImmutableArray<AbstractIndex> Indices { get; }
@@ -193,19 +185,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public AnalysisEntity? Parent { get; }
         public bool IsThisOrMeInstance { get; }
 
-        public bool HasUnknownInstanceLocation
+        public bool HasUnknownInstanceLocation => InstanceLocation.Kind switch
         {
-            get
-            {
-                return InstanceLocation.Kind switch
-                {
-                    PointsToAbstractValueKind.Unknown
-                    or PointsToAbstractValueKind.UnknownNull
-                    or PointsToAbstractValueKind.UnknownNotNull => true,
-                    _ => false,
-                };
-            }
-        }
+            PointsToAbstractValueKind.Unknown
+            or PointsToAbstractValueKind.UnknownNull
+            or PointsToAbstractValueKind.UnknownNotNull => true,
+            _ => false,
+        };
 
         public bool IsLValueFlowCaptureEntity => CaptureId.HasValue && CaptureId.Value.IsLValueFlowCapture;
 
