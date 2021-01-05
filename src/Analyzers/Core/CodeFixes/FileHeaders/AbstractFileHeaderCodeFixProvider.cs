@@ -34,9 +34,6 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.FileHeaderMismatch);
 
-        public override FixAllProvider GetFixAllProvider()
-            => new FixAll(this);
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             foreach (var diagnostic in context.Diagnostics)
@@ -235,20 +232,13 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             }
         }
 
-        private class FixAll : DocumentBasedFixAllProvider
-        {
-            private readonly AbstractFileHeaderCodeFixProvider _codeFixProvider;
-
-            public FixAll(AbstractFileHeaderCodeFixProvider codeFixProvider)
-                => _codeFixProvider = codeFixProvider;
-
-            protected override async Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
+        public override FixAllProvider GetFixAllProvider()
+            => FixAllProvider.Create(async (context, document, diagnostics) =>
             {
                 if (diagnostics.IsEmpty)
                     return null;
 
-                return await _codeFixProvider.GetTransformedDocumentAsync(document, fixAllContext.CancellationToken).ConfigureAwait(false);
-            }
-        }
+                return await this.GetTransformedDocumentAsync(document, context.CancellationToken).ConfigureAwait(false);
+            });
     }
 }

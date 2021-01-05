@@ -36,9 +36,6 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
 
-        public override FixAllProvider GetFixAllProvider()
-            => new ConflictMarkerFixAllProvider(this);
-
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
@@ -345,6 +342,10 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
             return finalDoc;
         }
+
+        public override FixAllProvider GetFixAllProvider()
+            => FixAllProvider.Create(async (context, document, diagnostics) =>
+                await this.FixAllAsync(document, diagnostics, context.CodeActionEquivalenceKey, context.CancellationToken).ConfigureAwait(false));
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
