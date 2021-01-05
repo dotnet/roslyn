@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor
     {
         bool IsImmediateWindow { get; }
 
+        void HACK_StartCompletionSession(IIntellisenseSession editorSessionOpt);
+
         uint StartBufferUpdate();
         void EndBufferUpdate(uint cookie);
     }
