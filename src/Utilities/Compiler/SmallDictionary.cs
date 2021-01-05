@@ -97,10 +97,7 @@ namespace Analyzer.Utilities
                 return value;
             }
 
-            set
-            {
-                this.Insert(GetHashCode(key), key, value, add: false);
-            }
+            set => this.Insert(GetHashCode(key), key, value, add: false);
         }
 
         public bool ContainsKey(K key)
