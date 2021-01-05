@@ -10,24 +10,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
 {
     internal partial class CSharpRemoveConfusingSuppressionCodeFixProvider
     {
-        private class CSharpRemoveConfusingSuppressionFixAllProvider : RoslynDocumentBasedFixAllProvider
+        private class CSharpRemoveConfusingSuppressionFixAllProvider : DocumentBasedFixAllProvider
         {
-            public CSharpRemoveConfusingSuppressionFixAllProvider()
-            {
-            }
-
-            protected override string CodeActionTitle
-                => CSharpAnalyzersResources.Remove_suppression_operators;
-
-            protected override async Task<SyntaxNode?> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
-            {
-                var cancellationToken = fixAllContext.CancellationToken;
-                var newDoc = await CSharpRemoveConfusingSuppressionCodeFixProvider.FixAllAsync(
+            protected override Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
+                => CSharpRemoveConfusingSuppressionCodeFixProvider.FixAllAsync(
                     document, diagnostics,
                     fixAllContext.CodeActionEquivalenceKey == NegateExpression,
-                    cancellationToken).ConfigureAwait(false);
-                return await newDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            }
+                    fixAllContext.CancellationToken);
         }
     }
 }

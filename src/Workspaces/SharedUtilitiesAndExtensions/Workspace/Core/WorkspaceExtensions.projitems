@@ -22,7 +22,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\AddImports\IAddImportsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\CodeFixCategory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\CustomCodeActions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\RoslynDocumentBasedFixAllProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DocumentExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISolutionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeInferenceServiceExtensions.cs" />

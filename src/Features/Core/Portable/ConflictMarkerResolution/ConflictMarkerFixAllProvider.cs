@@ -11,17 +11,14 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 {
     internal abstract partial class AbstractResolveConflictMarkerCodeFixProvider
     {
-        private class ConflictMarkerFixAllProvider : RoslynDocumentBasedFixAllProvider
+        private class ConflictMarkerFixAllProvider : DocumentBasedFixAllProvider
         {
             private readonly AbstractResolveConflictMarkerCodeFixProvider _codeFixProvider;
 
             public ConflictMarkerFixAllProvider(AbstractResolveConflictMarkerCodeFixProvider codeFixProvider)
                 => _codeFixProvider = codeFixProvider;
 
-            protected override string CodeActionTitle
-                => FeaturesResources.Resolve_conflict_markers;
-
-            protected override Task<SyntaxNode?> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
+            protected override Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
                 => _codeFixProvider.FixAllAsync(document, diagnostics, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).AsNullable();
         }
     }

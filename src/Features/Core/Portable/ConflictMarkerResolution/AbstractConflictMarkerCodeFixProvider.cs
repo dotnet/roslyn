@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
         private static int GetEndIncludingLineBreak(SourceText text, int position)
             => text.Lines.GetLineFromPosition(position).SpanIncludingLineBreak.End;
 
-        private async Task<SyntaxNode> FixAllAsync(
+        private async Task<Document> FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             string? equivalenceKey, CancellationToken cancellationToken)
         {
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             var finalText = text.WithChanges(edits);
             var finalDoc = document.WithText(finalText);
 
-            return await finalDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return finalDoc;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

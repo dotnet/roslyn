@@ -235,23 +235,19 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             }
         }
 
-        private class FixAll : RoslynDocumentBasedFixAllProvider
+        private class FixAll : DocumentBasedFixAllProvider
         {
             private readonly AbstractFileHeaderCodeFixProvider _codeFixProvider;
 
             public FixAll(AbstractFileHeaderCodeFixProvider codeFixProvider)
                 => _codeFixProvider = codeFixProvider;
 
-            protected override string CodeActionTitle => CodeFixesResources.Add_file_header;
-
-            protected override Task<SyntaxNode?> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
+            protected override async Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
             {
                 if (diagnostics.IsEmpty)
-                {
-                    return SpecializedTasks.Null<SyntaxNode>();
-                }
+                    return null;
 
-                return _codeFixProvider.GetTransformedSyntaxRootAsync(document, fixAllContext.CancellationToken).AsNullable();
+                return await _codeFixProvider.GetTransformedDocumentAsync(document, fixAllContext.CancellationToken).ConfigureAwait(false);
             }
         }
     }
