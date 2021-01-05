@@ -4682,15 +4682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.PropertyAccess:
-                    var propertySymbol = ((BoundPropertyAccess)boundMember).PropertySymbol;
-                    var memberNameSyntax = namedAssignment.Left;
-                    hasErrors |= isRhsNestedInitializer && !CheckNestedObjectInitializerPropertySymbol(propertySymbol, memberNameSyntax, diagnostics, hasErrors, ref resultKind);
-
-                    if (propertySymbol.SetMethod?.IsInitOnly == true)
-                    {
-                        CheckFeatureAvailability(memberNameSyntax, MessageID.IDS_FeatureInitOnlySetters, diagnostics);
-                    }
-
+                    hasErrors |= isRhsNestedInitializer && !CheckNestedObjectInitializerPropertySymbol(((BoundPropertyAccess)boundMember).PropertySymbol, namedAssignment.Left, diagnostics, hasErrors, ref resultKind);
                     break;
 
                 case BoundKind.IndexerAccess:
@@ -5182,6 +5174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol initializerTypeOpt = null,
             bool wasTargetTyped = false)
         {
+
             BoundExpression result = null;
             bool hasErrors = type.IsErrorType();
             if (type.IsAbstract)

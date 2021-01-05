@@ -1077,11 +1077,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (setMethod.IsInitOnly &&
-                        !isAllowedInitOnlySet(receiver))
+                    if (setMethod.IsInitOnly)
                     {
-                        Error(diagnostics, ErrorCode.ERR_AssignmentInitOnly, node, propertySymbol);
-                        return false;
+                        if (!isAllowedInitOnlySet(receiver))
+                        {
+                            Error(diagnostics, ErrorCode.ERR_AssignmentInitOnly, node, propertySymbol);
+                            return false;
+                        }
+
+                        if (setMethod.DeclaringCompilation != this.Compilation)
+                        {
+                            // an error would have already been reported on declaring an init-only setter
+                            CheckFeatureAvailability(node, MessageID.IDS_FeatureInitOnlySetters, diagnostics);
+                        }
                     }
 
                     var accessThroughType = this.GetAccessThroughType(receiver);

@@ -160,6 +160,101 @@ public class D
         }
 
         [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
+        public void TestCSharp8_ConsumptionInAssignment(bool useMetadataImage)
+        {
+            string lib_cs = @"
+public record C
+{
+    public string Property { get; init; }
+    public string Property2 { get; }
+}
+";
+            var lib = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+
+            string source = @"
+public class D
+{
+    void M(C c)
+    {
+        c.Property = string.Empty;
+        c.Property2 = string.Empty;
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8,
+                references: new[] { useMetadataImage ? lib.EmitToImageReference() : lib.ToMetadataReference() });
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS8852: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //         c.Property = string.Empty;
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(6, 9),
+                // (7,9): error CS0200: Property or indexer 'C.Property2' cannot be assigned to -- it is read only
+                //         c.Property2 = string.Empty;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "c.Property2").WithArguments("C.Property2").WithLocation(7, 9)
+                );
+        }
+
+        [Fact, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
+        public void TestCSharp8_ConsumptionWithinSameCompilation()
+        {
+            string source = @"
+class C
+{
+    string Property { get; init; }
+    string Property2 { get; }
+
+    void M(C c)
+    {
+        _ = new C() { Property = string.Empty, Property2 = string.Empty };
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // (4,28): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     string Property { get; init; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "init").WithArguments("init-only setters", "9.0").WithLocation(4, 28),
+                // (9,48): error CS0200: Property or indexer 'C.Property2' cannot be assigned to -- it is read only
+                //         _ = new C() { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Property2").WithArguments("C.Property2").WithLocation(9, 48)
+                );
+        }
+
+        [Fact, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
+        public void TestCSharp8_ConsumptionFromCompilationReference()
+        {
+            string lib_cs = @"
+public class C
+{
+    public string Property { get; init; }
+    public string Property2 { get; }
+}
+";
+            var lib = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular8, assemblyName: "lib");
+
+            string source = @"
+public class D
+{
+    void M()
+    {
+        _ = new C() { Property = string.Empty, Property2 = string.Empty };
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { lib.ToMetadataReference() }, assemblyName: "comp");
+            comp.VerifyEmitDiagnostics(
+                // (6,23): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = new C() { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "Property").WithArguments("init-only setters", "9.0").WithLocation(6, 23),
+                // (6,48): error CS0200: Property or indexer 'C.Property2' cannot be assigned to -- it is read only
+                //         _ = new C() { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Property2").WithArguments("C.Property2").WithLocation(6, 48)
+                );
+        }
+
+        [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
         public void TestCSharp8_ConsumptionWithDynamicArgument(bool useMetadataImage)
         {
             string lib_cs = @"
