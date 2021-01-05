@@ -377,6 +377,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (setMethod != null)
                 {
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, namedArgument, hasBaseReceiver: false);
+
+                    if (setMethod.DeclaringCompilation != this.Compilation)
+                    {
+                        // an error would have already been reported on declaring an init-only setter
+                        CheckFeatureAvailability(namedArgument, MessageID.IDS_FeatureInitOnlySetters, diagnostics);
+                    }
                 }
             }
 

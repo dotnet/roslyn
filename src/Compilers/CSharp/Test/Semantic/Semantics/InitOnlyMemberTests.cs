@@ -194,6 +194,44 @@ public class D
                 );
         }
 
+        [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
+        public void TestCSharp8_ConsumptionInAttribute(bool useMetadataImage)
+        {
+            string lib_cs = @"
+public class TestAttribute : System.Attribute
+{
+    public int Property { get; init; }
+    public int Property2 { get; }
+}
+";
+            var lib = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+
+            string source = @"
+[Test(Property = 42, Property2 = 43)]
+class C
+{
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8,
+                references: new[] { useMetadataImage ? lib.EmitToImageReference() : lib.ToMetadataReference() });
+            comp.VerifyEmitDiagnostics(
+                // (2,7): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // [Test(Property = 42, Property2 = 43)]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "Property = 42").WithArguments("init-only setters", "9.0").WithLocation(2, 7),
+                // (2,22): error CS0617: 'Property2' is not a valid named attribute argument. Named attribute arguments must be fields which are not readonly, static, or const, or read-write properties which are public and not static.
+                // [Test(Property = 42, Property2 = 43)]
+                Diagnostic(ErrorCode.ERR_BadNamedAttributeArgument, "Property2").WithArguments("Property2").WithLocation(2, 22)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9,
+                references: new[] { useMetadataImage ? lib.EmitToImageReference() : lib.ToMetadataReference() });
+            comp.VerifyEmitDiagnostics(
+                // (2,22): error CS0617: 'Property2' is not a valid named attribute argument. Named attribute arguments must be fields which are not readonly, static, or const, or read-write properties which are public and not static.
+                // [Test(Property = 42, Property2 = 43)]
+                Diagnostic(ErrorCode.ERR_BadNamedAttributeArgument, "Property2").WithArguments("Property2").WithLocation(2, 22)
+                );
+        }
+
         [Fact, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
         public void TestCSharp8_ConsumptionWithinSameCompilation()
         {
@@ -218,6 +256,33 @@ class C
                 // (9,48): error CS0200: Property or indexer 'C.Property2' cannot be assigned to -- it is read only
                 //         _ = new C() { Property = string.Empty, Property2 = string.Empty };
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Property2").WithArguments("C.Property2").WithLocation(9, 48)
+                );
+        }
+
+        [Fact, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
+        public void TestCSharp8_ConsumptionWithinSameCompilation_InAttribute()
+        {
+            string source = @"
+public class TestAttribute : System.Attribute
+{
+    public int Property { get; init; }
+    public int Property2 { get; }
+}
+
+[Test(Property = 42, Property2 = 43)]
+class C
+{
+}
+";
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular8);
+            comp.VerifyEmitDiagnostics(
+                // (4,32): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //     public int Property { get; init; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "init").WithArguments("init-only setters", "9.0").WithLocation(4, 32),
+                // (8,22): error CS0617: 'Property2' is not a valid named attribute argument. Named attribute arguments must be fields which are not readonly, static, or const, or read-write properties which are public and not static.
+                // [Test(Property = 42, Property2 = 43)]
+                Diagnostic(ErrorCode.ERR_BadNamedAttributeArgument, "Property2").WithArguments("Property2").WithLocation(8, 22)
                 );
         }
 
