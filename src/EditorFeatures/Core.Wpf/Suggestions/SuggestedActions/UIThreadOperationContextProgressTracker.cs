@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public UIThreadOperationContextProgressTracker(IUIThreadOperationScope scope)
             => _scope = scope;
 
-        public string Description { get => _scope.Description; set => _scope.Description = value; }
+        public string? Description { get => _scope.Description; set => _scope.Description = value; }
 
         public int CompletedItems { get; private set; }
 
