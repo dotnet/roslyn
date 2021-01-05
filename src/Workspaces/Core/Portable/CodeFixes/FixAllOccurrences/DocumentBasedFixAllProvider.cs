@@ -17,6 +17,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
+    /// <summary>
+    /// Provides a base class to write a <see cref="FixAllProvider"/> that fixes documents independently. This type
+    /// should be used instead of <see cref="WellKnownFixAllProviders.BatchFixer"/> in the case where fixes for a <see
+    /// cref="Diagnostic"/> only affect the <see cref="Document"/> the diagnostic was produced in.
+    /// </summary>
     /// <remarks>
     /// This type provides suitable logic for fixing large solutions in an efficient manner.  Projects are serially
     /// processed, with all the documents in the project being processed in parallel.  Diagnostics are computed for the
@@ -28,6 +33,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         protected DocumentBasedFixAllProvider()
         {
         }
+
+        /// <summary>
+        /// Produce a suitable title for the fix-all <see cref="CodeAction"/> this type creates in <see
+        /// cref="GetFixAsync(FixAllContext)"/>.  Override this if customizing that title is desired.
+        /// </summary>
+        protected virtual string GetFixAllTitle(FixAllContext fixAllContext)
+            => FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
 
         /// <summary>
         /// Fix all the <paramref name="diagnostics"/> present in <paramref name="document"/>.  The document returned
@@ -47,13 +59,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public sealed override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
             => base.GetSupportedFixAllScopes();
-
-        /// <summary>
-        /// Produce a suitable title for the fix-all <see cref="CodeAction"/> this type creates in <see
-        /// cref="GetFixAsync(FixAllContext)"/>.  Override this if customizing that title is desired.
-        /// </summary>
-        protected virtual string GetFixAllTitle(FixAllContext fixAllContext)
-            => FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
 
         public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             => DefaultFixAllProviderHelpers.GetFixAsync(
