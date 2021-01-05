@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.VisualBasic;
 using Test.Utilities;
 using Xunit;
 
@@ -41,9 +38,6 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         private const string CSharpApiProviderFileName = "ApiProviderFileName.cs";
         private const string VisualBasicApiProviderFileName = "ApiProviderFileName.vb";
 
-        private static readonly CompilationOptions s_csharpCompilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-        private static readonly CompilationOptions s_visualBasicCompilationOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-
         private const string CSharpRestrictedInternalsVisibleToAttribute = @"
 namespace System.Runtime.CompilerServices
 {
@@ -73,10 +67,21 @@ End Namespace";
                 TestState =
                 {
                     Sources = { apiConsumerSource },
+                    AdditionalProjects =
+                    {
+                        [ApiProviderProjectName] =
+                        {
+                            Sources =
+                            {
+                                (CSharpApiProviderFileName, apiProviderSource + CSharpRestrictedInternalsVisibleToAttribute),
+                            },
+                        },
+                    },
+                    AdditionalProjectReferences = { ApiProviderProjectName },
                 },
                 SolutionTransforms =
                 {
-                    (solution, projectId) => ApplySolutionTransforms(solution, projectId, apiProviderSource, LanguageNames.CSharp),
+                    (solution, projectId) => ApplySolutionTransforms(solution, projectId),
                 },
             };
 
@@ -91,10 +96,21 @@ End Namespace";
                 TestState =
                 {
                     Sources = { apiConsumerSource },
+                    AdditionalProjects =
+                    {
+                        [ApiProviderProjectName] =
+                        {
+                            Sources =
+                            {
+                                (VisualBasicApiProviderFileName, apiProviderSource + VisualBasicRestrictedInternalsVisibleToAttribute),
+                            },
+                        },
+                    },
+                    AdditionalProjectReferences = { ApiProviderProjectName },
                 },
                 SolutionTransforms =
                 {
-                    (solution, projectId) => ApplySolutionTransforms(solution, projectId, apiProviderSource, LanguageNames.VisualBasic),
+                    (solution, projectId) => ApplySolutionTransforms(solution, projectId),
                 },
             };
 
@@ -102,31 +118,9 @@ End Namespace";
             await test.RunAsync();
         }
 
-        private static Solution ApplySolutionTransforms(
-            Solution solution,
-            ProjectId apiConsumerProjectId,
-            string apiProviderSource,
-            string language)
+        private static Solution ApplySolutionTransforms(Solution solution, ProjectId apiConsumerProjectId)
         {
-            var restrictedInternalsVisibleToAttribute = language == LanguageNames.CSharp
-                ? CSharpRestrictedInternalsVisibleToAttribute
-                : VisualBasicRestrictedInternalsVisibleToAttribute;
-            var compilationOptions = language == LanguageNames.CSharp
-                ? s_csharpCompilationOptions
-                : s_visualBasicCompilationOptions;
-            var fileName = language == LanguageNames.CSharp
-                ? CSharpApiProviderFileName
-                : VisualBasicApiProviderFileName;
-
-            var metadataReferences = solution.Projects.Single().MetadataReferences;
-            solution = solution.WithProjectAssemblyName(apiConsumerProjectId, ApiConsumerProjectName);
-            var apiProducerProject = solution
-                .AddProject(ApiProviderProjectName, ApiProviderProjectName, language)
-                .WithCompilationOptions(compilationOptions)
-                .WithMetadataReferences(metadataReferences)
-                .AddDocument(fileName, apiProviderSource + restrictedInternalsVisibleToAttribute)
-                .Project;
-            return apiProducerProject.Solution.AddProjectReference(apiConsumerProjectId, new ProjectReference(apiProducerProject.Id));
+            return solution.WithProjectAssemblyName(apiConsumerProjectId, ApiConsumerProjectName);
         }
 
         [Fact]
