@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 {
     internal abstract partial class AbstractResolveConflictMarkerCodeFixProvider
     {
-        private class ConflictMarkerFixAllProvider : DocumentBasedFixAllProvider
+        private class ConflictMarkerFixAllProvider : RoslynDocumentBasedFixAllProvider
         {
             private readonly AbstractResolveConflictMarkerCodeFixProvider _codeFixProvider;
 

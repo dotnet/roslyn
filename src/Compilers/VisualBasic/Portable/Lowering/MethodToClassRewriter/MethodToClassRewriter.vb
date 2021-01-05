@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                VisitFieldSymbol(node.FieldSymbol),
                                node.IsLValue,
                                node.SuppressVirtualCalls,
-                               node.ConstantsInProgressOpt,
+                               constantsInProgressOpt:=Nothing,
                                VisitType(node.Type))
         End Function
 
