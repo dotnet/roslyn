@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// <see cref="Formatter.Format(SyntaxNode, ISyntaxFormattingService, OptionSet, CancellationToken)"/> on the document(s)
         /// included in the Fix All scope.
         /// </summary>
-        private sealed class FixAll : DocumentBasedFixAllProvider
+        private sealed class FixAll : RoslynDocumentBasedFixAllProvider
         {
             private readonly AbstractFormattingCodeFixProvider _formattingCodeFixProvider;
 

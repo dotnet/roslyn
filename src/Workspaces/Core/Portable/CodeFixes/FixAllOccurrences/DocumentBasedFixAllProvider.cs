@@ -17,14 +17,49 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    /// <summary>
-    /// Provides a base class to write a <see cref="FixAllProvider"/> that fixes documents independently.
-    /// </summary>
-    internal abstract class AbstractDocumentBasedFixAllProvider : AbstractDefaultFixAllProvider
+    /// <remarks>
+    /// This type provides suitable logic for fixing large solutions in an efficient manner.  Projects are serially
+    /// processed, with all the documents in the project being processed in parallel.  Diagnostics are computed for the
+    /// project and then appropriately bucketed by document.  These are then passed to <see
+    /// cref="FixAllAsync(FixAllContext, Document, ImmutableArray{Diagnostic})"/> for implementors to process.
+    /// </remarks>
+    public abstract class DocumentBasedFixAllProvider : FixAllProvider
     {
-        protected abstract Task<Document?> FixAllAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics);
+        protected DocumentBasedFixAllProvider()
+        {
+        }
 
-        protected override async Task<Solution?> FixAllContextsAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
+        /// <summary>
+        /// Fix all the <paramref name="diagnostics"/> present in <paramref name="document"/>.  The document returned
+        /// will only be examined for its content (e.g. it's <see cref="SyntaxTree"/> or <see cref="SourceText"/>.  No
+        /// other aspects of (like it's properties), or changes to the <see cref="Project"/> or <see cref="Solution"/>
+        /// it points at will be considered.
+        /// </summary>
+        /// <param name="fixAllContext">The context for the Fix All operation.</param>
+        /// <param name="document">The document to fix.</param>
+        /// <param name="diagnostics">The diagnostics to fix in the document.</param>
+        /// <returns>
+        /// <para>The new <see cref="Document"/> representing the content fixed document.</para>
+        /// <para>-or-</para>
+        /// <para><see langword="null"/>, if no changes were made to the document.</para>
+        /// </returns>
+        protected abstract Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics);
+
+        public sealed override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
+            => base.GetSupportedFixAllScopes();
+
+        /// <summary>
+        /// Produce a suitable title for the fix-all <see cref="CodeAction"/> this type creates in <see
+        /// cref="GetFixAsync(FixAllContext)"/>.  Override this if customizing that title is desired.
+        /// </summary>
+        protected virtual string GetFixAllTitle(FixAllContext fixAllContext)
+            => FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
+
+        public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+            => DefaultFixAllProviderHelpers.GetFixAsync(
+                FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext), fixAllContext, FixAllContextsAsync);
+
+        private async Task<Solution?> FixAllContextsAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts)
         {
             var progressTracker = originalFixAllContext.GetProgressTracker();
             progressTracker.Description = this.GetFixAllTitle(originalFixAllContext);
@@ -59,15 +94,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return currentSolution;
         }
 
-        private static string GetName(FixAllContext fixAllContext)
-            => fixAllContext.Document?.Name ?? fixAllContext.Project.Name;
-
         /// <summary>
         /// Determines all the diagnostics we should be fixing for the given <paramref name="fixAllContext"/>.
         /// </summary>
         private static async Task<ImmutableArray<Diagnostic>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgressTracker progressTracker)
         {
-            using var _ = progressTracker.ItemCompletedScope(string.Format(WorkspaceExtensionsResources._0_Computing_diagnostics, GetName(fixAllContext)));
+            using var _ = progressTracker.ItemCompletedScope();
 
             return fixAllContext.Document != null
                 ? await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false)
@@ -85,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var cancellationToken = fixAllContext.CancellationToken;
 
-            using var _1 = progressTracker.ItemCompletedScope(string.Format(WorkspaceExtensionsResources._0_Computing_fixes_for_1_diagnostics, GetName(fixAllContext), diagnostics.Length));
+            using var _1 = progressTracker.ItemCompletedScope();
             using var _2 = ArrayBuilder<Task<(DocumentId, (SyntaxNode? node, SourceText? text))>>.GetInstance(out var tasks);
 
             var docIdToNewRootOrText = new Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)>();
@@ -142,12 +174,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Dictionary<DocumentId, (SyntaxNode? node, SourceText? text)> docIdToNewRootOrText)
         {
             var cancellationToken = fixAllContext.CancellationToken;
-
-            var description = fixAllContext.Document != null
-                    ? string.Format(WorkspaceExtensionsResources._0_Applying_fixes, GetName(fixAllContext))
-                    : string.Format(WorkspaceExtensionsResources._0_Applying_fixes_to_1_documents, GetName(fixAllContext), docIdToNewRootOrText.Count);
-
-            using var _1 = progressTracker.ItemCompletedScope(description);
+            using var _1 = progressTracker.ItemCompletedScope();
 
             if (docIdToNewRootOrText.Count > 0)
             {

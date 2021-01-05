@@ -128,25 +128,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Document? triggerDocument,
             Project triggerProject)
         {
-            var diagnosticId = string.Join(",", diagnosticIds);
+            var diagnosticId = diagnosticIds.First();
 
-            switch (fixAllScope)
+            return fixAllScope switch
             {
-                case FixAllScope.Custom:
-                    return string.Format(WorkspaceExtensionsResources.Fix_all_0, diagnosticId);
-
-                case FixAllScope.Document:
-                    return string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, diagnosticId, triggerDocument!.Name);
-
-                case FixAllScope.Project:
-                    return string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, diagnosticId, triggerProject.Name);
-
-                case FixAllScope.Solution:
-                    return string.Format(WorkspaceExtensionsResources.Fix_all_0_in_Solution, diagnosticId);
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(fixAllScope);
-            }
+                FixAllScope.Custom => string.Format(WorkspaceExtensionsResources.Fix_all_0, diagnosticId),
+                FixAllScope.Document => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, diagnosticId, triggerDocument!.Name),
+                FixAllScope.Project => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, diagnosticId, triggerProject.Name),
+                FixAllScope.Solution => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_Solution, diagnosticId),
+                _ => throw ExceptionUtilities.UnexpectedValue(fixAllScope),
+            };
         }
     }
 }

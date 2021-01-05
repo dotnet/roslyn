@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Helper class for "Fix all occurrences" code fix providers.
     /// </summary>
-    internal sealed class BatchFixAllProvider : AbstractDefaultFixAllProvider
+    internal sealed class BatchFixAllProvider : FixAllProvider
     {
         public static readonly FixAllProvider Instance = new BatchFixAllProvider();
 
@@ -27,10 +27,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
         }
 
-        private static string GetName(FixAllContext fixAllContext)
-            => fixAllContext.Document?.Name ?? fixAllContext.Project.Name;
+        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+            => DefaultFixAllProviderHelpers.GetFixAsync(
+                FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext), fixAllContext, FixAllContextsAsync);
 
-        protected sealed override async Task<Solution?> FixAllContextsAsync(
+        private async Task<Solution?> FixAllContextsAsync(
             FixAllContext originalFixAllContext,
             ImmutableArray<FixAllContext> fixAllContexts)
         {
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // Finally, merge in all text changes into the solution.  We can't do this per-project as we have to have
             // process *all* diagnostics in the solution to find the changes made to all documents.
-            using (progressTracker.ItemCompletedScope(WorkspaceExtensionsResources.Applying_fix_all))
+            using (progressTracker.ItemCompletedScope())
             {
                 if (docIdToTextMerger.Count == 0)
                     return null;
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgressTracker progressTracker)
         {
-            using var _ = progressTracker.ItemCompletedScope(string.Format(WorkspaceExtensionsResources._0_Computing_diagnostics, GetName(fixAllContext)));
+            using var _ = progressTracker.ItemCompletedScope();
 
             var documentToDiagnostics = await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false);
 
@@ -104,6 +105,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Dictionary<DocumentId, TextChangeMerger> docIdToTextMerger,
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentToDiagnostics)
         {
+            using var _ = progressTracker.ItemCompletedScope();
+
             // First, order the diagnostics so we process them in a consistent manner and get the same results given the
             // same input solution.
             var orderedDiagnostics = documentToDiagnostics.SelectMany(kvp => kvp.Value)
@@ -111,8 +114,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                                           .OrderBy(d => d.Location.SourceTree!.FilePath)
                                                           .ThenBy(d => d.Location.SourceSpan.Start)
                                                           .ToImmutableArray();
-
-            using var _ = progressTracker.ItemCompletedScope(string.Format(WorkspaceExtensionsResources._0_Computing_fixes_for_1_diagnostics, GetName(fixAllContext), orderedDiagnostics.Length));
 
             // Now determine all the document changes caused from these diagnostics.
             var allChangedDocumentsInDiagnosticsOrder =

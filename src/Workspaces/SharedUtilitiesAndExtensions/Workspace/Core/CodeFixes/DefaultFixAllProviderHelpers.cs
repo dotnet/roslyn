@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,30 +12,24 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
+    using FixAllContexts = Func<FixAllContext, ImmutableArray<FixAllContext>, Task<Solution?>>;
+
     /// <summary>
     /// Default implementation of a <see cref="FixAllProvider"/> that efficiently handles the dispatch logic for fixing
     /// entire solutions.
     /// </summary>
-    internal abstract class AbstractDefaultFixAllProvider : FixAllProvider
+    internal static class DefaultFixAllProviderHelpers
     {
-        /// <summary>
-        /// Gets an appropriate title to show in user facing UI (for example, the title of a progress bar).
-        /// </summary>
-        protected virtual string GetFixAllTitle(FixAllContext fixAllContext)
-            => FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
-
-        public sealed override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-            => base.GetSupportedFixAllScopes();
-
-        public sealed override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+        public static async Task<CodeAction?> GetFixAsync(
+            string title, FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
         {
             Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.Solution);
 
             var solution = fixAllContext.Scope switch
             {
-                FixAllScope.Document => await GetDocumentFixesAsync(fixAllContext).ConfigureAwait(false),
-                FixAllScope.Project => await GetProjectFixesAsync(fixAllContext).ConfigureAwait(false),
-                FixAllScope.Solution => await GetSolutionFixesAsync(fixAllContext).ConfigureAwait(false),
+                FixAllScope.Document => await GetDocumentFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
+                FixAllScope.Project => await GetProjectFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
+                FixAllScope.Solution => await GetSolutionFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
                 _ => throw ExceptionUtilities.UnexpectedValue(fixAllContext.Scope),
             };
 
@@ -45,19 +39,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 #pragma warning disable RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
 
             return CodeAction.Create(
-                GetFixAllTitle(fixAllContext),
-                c => Task.FromResult(solution));
+                title, c => Task.FromResult(solution));
 
 #pragma warning disable RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
         }
 
-        private Task<Solution?> GetDocumentFixesAsync(FixAllContext fixAllContext)
-            => FixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext));
+        private static Task<Solution?> GetDocumentFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
+            => fixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext));
 
-        private Task<Solution?> GetProjectFixesAsync(FixAllContext fixAllContext)
-            => FixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext.WithDocument(null)));
+        private static Task<Solution?> GetProjectFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
+            => fixAllContextsAsync(fixAllContext, ImmutableArray.Create(fixAllContext.WithDocument(null)));
 
-        private Task<Solution?> GetSolutionFixesAsync(FixAllContext fixAllContext)
+        private static Task<Solution?> GetSolutionFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
         {
             var solution = fixAllContext.Solution;
             var dependencyGraph = solution.GetProjectDependencyGraph();
@@ -77,16 +70,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var sortedProjects = dependencyGraph.GetTopologicallySortedProjects()
                                                 .Select(id => solution.GetRequiredProject(id))
                                                 .Where(p => p.Language == fixAllContext.Project.Language);
-            return FixAllContextsAsync(
+            return fixAllContextsAsync(
                 fixAllContext,
                 sortedProjects.SelectAsArray(p => fixAllContext.WithScope(FixAllScope.Project).WithProject(p).WithDocument(null)));
         }
-
-        /// <summary>
-        /// All fix-alls funnel into this method.  For doc-fix-all or project-fix-all call into this with just their
-        /// single <see cref="FixAllContext"/> in <paramref name="fixAllContexts"/>.  For solution-fix-all, <paramref
-        /// name="fixAllContexts"/> will contain a context for each project in the solution.
-        /// </summary>
-        protected abstract Task<Solution?> FixAllContextsAsync(FixAllContext originalFixAllContext, ImmutableArray<FixAllContext> fixAllContexts);
     }
 }

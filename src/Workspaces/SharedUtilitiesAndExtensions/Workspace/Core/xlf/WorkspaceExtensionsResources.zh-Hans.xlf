@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-HANS" original="../WorkspaceExtensionsResources.resx">
     <body>
-      <trans-unit id="Applying_fix_all">
-        <source>Applying 'fix all'</source>
-        <target state="new">Applying 'fix all'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0">
         <source>Compilation is required to accomplish the task but is not supported by project {0}.</source>
         <target state="translated">必须进行编译才能完成该任务，但项目 {0} 不支持此操作。</target>
@@ -50,26 +45,6 @@
       <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">
         <source>Warning: Declaration changes scope and may change meaning.</source>
         <target state="translated">警告: 声明更改了作用域，并且可能更改含义。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_Applying_fixes">
-        <source>{0}: Applying fixes</source>
-        <target state="new">{0}: Applying fixes</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_Applying_fixes_to_1_documents">
-        <source>{0}: Applying fixes to {1} document(s)</source>
-        <target state="new">{0}: Applying fixes to {1} document(s)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_Computing_diagnostics">
-        <source>{0}: Computing diagnostics</source>
-        <target state="new">{0}: Computing diagnostics</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_Computing_fixes_for_1_diagnostics">
-        <source>{0}: Computing fixes for {1} diagnostic(s)</source>
-        <target state="new">{0}: Computing fixes for {1} diagnostic(s)</target>
         <note />
       </trans-unit>
     </body>
