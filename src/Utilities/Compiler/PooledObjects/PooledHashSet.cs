@@ -7,9 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 
-#pragma warning disable CA1710 // Rename Microsoft.CodeAnalysis.PooledHashSet<T> to end in 'Collection'.
 #pragma warning disable CA1000 // Do not declare static members on generic types
-#pragma warning disable CA2237 // Add [Serializable] to PooledHashSet as this type implements ISerializable
 
 namespace Analyzer.Utilities.PooledObjects
 {
