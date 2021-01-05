@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: phase. The first phase makes some initial inferences of bounds, whereas
             // SPEC: the second phase fixes type parameters to specific types and infers further
             // SPEC: bounds. The second phase may have to be repeated a number of times.
-            InferTypeArgsFirstPhase(binder, ref useSiteDiagnostics);
+            InferTypeArgsFirstPhase(ref useSiteDiagnostics);
             bool success = InferTypeArgsSecondPhase(binder, ref useSiteDiagnostics);
             return new MethodTypeInferenceResult(success, GetResults());
         }
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The first phase
         //
 
-        private void InferTypeArgsFirstPhase(Binder binder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private void InferTypeArgsFirstPhase(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(!_formalParameterTypes.IsDefault);
             Debug.Assert(!_arguments.IsDefault);
@@ -560,11 +560,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeWithAnnotations target = _formalParameterTypes[arg];
                 ExactOrBoundsKind kind = GetRefKind(arg).IsManagedReference() || target.Type.IsPointerOrFunctionPointer() ? ExactOrBoundsKind.Exact : ExactOrBoundsKind.LowerBound;
 
-                MakeExplicitParameterTypeInferences(binder, argument, target, kind, ref useSiteDiagnostics);
+                MakeExplicitParameterTypeInferences(argument, target, kind, ref useSiteDiagnostics);
             }
         }
 
-        private void MakeExplicitParameterTypeInferences(Binder binder, BoundExpression argument, TypeWithAnnotations target, ExactOrBoundsKind kind, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private void MakeExplicitParameterTypeInferences(BoundExpression argument, TypeWithAnnotations target, ExactOrBoundsKind kind, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC: * If Ei is an anonymous function, an explicit type parameter
             // SPEC:   inference is made from Ei to Ti.
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ExplicitParameterTypeInference(argument, target, ref useSiteDiagnostics);
             }
             else if (argument.Kind != BoundKind.TupleLiteral ||
-                !MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, kind, ref useSiteDiagnostics))
+                !MakeExplicitParameterTypeInferences((BoundTupleLiteral)argument, target, kind, ref useSiteDiagnostics))
             {
                 // Either the argument is not a tuple literal, or we were unable to do the inference from its elements, let's try to infer from argument type
                 if (IsReallyAType(argument.Type))
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool MakeExplicitParameterTypeInferences(Binder binder, BoundTupleLiteral argument, TypeWithAnnotations target, ExactOrBoundsKind kind, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool MakeExplicitParameterTypeInferences(BoundTupleLiteral argument, TypeWithAnnotations target, ExactOrBoundsKind kind, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // try match up element-wise to the destination tuple (or underlying type)
             // Example:
@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var sourceArgument = sourceArguments[i];
                 var destType = destTypes[i];
-                MakeExplicitParameterTypeInferences(binder, sourceArgument, destType, kind, ref useSiteDiagnostics);
+                MakeExplicitParameterTypeInferences(sourceArgument, destType, kind, ref useSiteDiagnostics);
             }
 
             return true;

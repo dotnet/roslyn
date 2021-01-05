@@ -953,9 +953,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol disposeMethod = null;
             if (enumeratorInfoOpt.NeedsDisposal)
             {
-                if (enumeratorInfoOpt.DisposeMethod is object)
+                if (enumeratorInfoOpt.PatternDisposeInfo is { Method: var method })
                 {
-                    disposeMethod = enumeratorInfoOpt.DisposeMethod;
+                    disposeMethod = method;
                 }
                 else
                 {
@@ -967,8 +967,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new ForEachStatementInfo(
                 enumeratorInfoOpt.IsAsync,
-                enumeratorInfoOpt.GetEnumeratorMethod.GetPublicSymbol(),
-                enumeratorInfoOpt.MoveNextMethod.GetPublicSymbol(),
+                enumeratorInfoOpt.GetEnumeratorInfo.Method.GetPublicSymbol(),
+                enumeratorInfoOpt.MoveNextInfo.Method.GetPublicSymbol(),
                 currentProperty: ((PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter?.AssociatedSymbol).GetPublicSymbol(),
                 disposeMethod.GetPublicSymbol(),
                 enumeratorInfoOpt.ElementType.GetPublicSymbol(),

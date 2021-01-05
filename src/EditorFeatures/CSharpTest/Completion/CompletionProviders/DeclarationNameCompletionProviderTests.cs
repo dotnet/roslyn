@@ -1634,7 +1634,7 @@ public class Class1
             await VerifyItemExistsAsync(markup, "nullables");
         }
 
-        [WorkItem(1220195, "https://github.com/dotnet/roslyn/issues/23590")]
+        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeIsNullableStructInLocalWithNullableTypeName()
         {
@@ -1654,7 +1654,7 @@ public class Class1
             await VerifyItemExistsAsync(markup, "vs");
         }
 
-        [WorkItem(1220195, "https://github.com/dotnet/roslyn/issues/23590")]
+        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeIsNullableStructInLocalWithQuestionMark()
         {
@@ -1674,7 +1674,7 @@ public class Class1
             await VerifyItemExistsAsync(markup, "vs");
         }
 
-        [WorkItem(1220195, "https://github.com/dotnet/roslyn/issues/23590")]
+        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeIsNullableReferenceInLocal()
         {
@@ -1694,7 +1694,7 @@ public class Class1
             await VerifyItemExistsAsync(markup, "vs");
         }
 
-        [WorkItem(1220195, "https://github.com/dotnet/roslyn/issues/23590")]
+        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeIsNullableStructInParameterWithNullableTypeName()
         {
@@ -1713,7 +1713,7 @@ public class Class1
             await VerifyItemExistsAsync(markup, "vs");
         }
 
-        [WorkItem(1220195, "https://github.com/dotnet/roslyn/issues/23590")]
+        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeIsNullableStructInParameterWithQuestionMark()
         {
@@ -1730,7 +1730,7 @@ public class Class1
             await VerifyItemExistsAsync(markup, "vs");
         }
 
-        [WorkItem(1220195, "https://github.com/dotnet/roslyn/issues/23590")]
+        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeIsNullableReferenceInParameter()
         {

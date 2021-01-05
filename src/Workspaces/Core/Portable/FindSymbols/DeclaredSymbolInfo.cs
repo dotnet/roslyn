@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public byte ParameterCount => GetParameterCount(_flags);
         public byte TypeParameterCount => GetTypeParameterCount(_flags);
         public bool IsNestedType => GetIsNestedType(_flags);
+        public bool IsPartial => GetIsPartial(_flags);
 
         /// <summary>
         /// The names directly referenced in source that this type inherits from.
@@ -90,6 +91,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             string nameSuffix,
             string containerDisplayName,
             string fullyQualifiedContainerName,
+            bool isPartial,
             DeclaredSymbolInfoKind kind,
             Accessibility accessibility,
             TextSpan span,
@@ -114,7 +116,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ((uint)accessibility << 4) |
                 ((uint)parameterCount << 8) |
                 ((uint)typeParameterCount << 12) |
-                ((isNestedType ? 1u : 0u) << 16);
+                ((isNestedType ? 1u : 0u) << 16) |
+                ((isPartial ? 1u : 0u) << 17);
         }
 
         [return: NotNullIfNotNull("name")]
@@ -135,6 +138,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static bool GetIsNestedType(uint flags)
             => ((flags >> 16) & 1) == 1;
+
+        private static bool GetIsPartial(uint flags)
+            => ((flags >> 17) & 1) == 1;
 
         internal void WriteTo(ObjectWriter writer)
         {
@@ -173,6 +179,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 nameSuffix: nameSuffix,
                 containerDisplayName: containerDisplayName,
                 fullyQualifiedContainerName: fullyQualifiedContainerName,
+                isPartial: GetIsPartial(flags),
                 kind: GetKind(flags),
                 accessibility: GetAccessibility(flags),
                 span: span,
