@@ -51,6 +51,149 @@ public class C
             Assert.True(publicProperty.SetMethod.IsInitOnly);
         }
 
+        [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
+        public void TestCSharp8_ConsumptionInObjectInitializer(bool useMetadataImage)
+        {
+            string lib_cs = @"
+public class C
+{
+    public string Property { get; init; }
+    public string Property2 { get; }
+}
+";
+            var lib = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+
+            string source = @"
+public class D
+{
+    void M()
+    {
+        _ = new C() { Property = string.Empty, Property2 = string.Empty };
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8,
+                references: new[] { useMetadataImage ? lib.EmitToImageReference() : lib.ToMetadataReference() });
+            comp.VerifyEmitDiagnostics(
+                // (6,23): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = new C() { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "Property").WithArguments("init-only setters", "9.0").WithLocation(6, 23),
+                // (6,48): error CS0200: Property or indexer 'C.Property2' cannot be assigned to -- it is read only
+                //         _ = new C() { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Property2").WithArguments("C.Property2").WithLocation(6, 48)
+                );
+        }
+
+        [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
+        public void TestCSharp8_ConsumptionInNestedObjectInitializer(bool useMetadataImage)
+        {
+            string lib_cs = @"
+public class C
+{
+    public string Property { get; init; }
+    public string Property2 { get; }
+}
+public class Container
+{
+    public C contained;
+}
+";
+            var lib = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+
+            string source = @"
+public class D
+{
+    void M(C c)
+    {
+        _ = new Container() { contained = { Property = string.Empty, Property2 = string.Empty } };
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8,
+                references: new[] { useMetadataImage ? lib.EmitToImageReference() : lib.ToMetadataReference() });
+            comp.VerifyEmitDiagnostics(
+                // (6,45): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = new Container() { contained = { Property = string.Empty, Property2 = string.Empty } };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "Property").WithArguments("init-only setters", "9.0").WithLocation(6, 45),
+                // (6,70): error CS0200: Property or indexer 'C.Property2' cannot be assigned to -- it is read only
+                //         _ = new Container() { contained = { Property = string.Empty, Property2 = string.Empty } };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Property2").WithArguments("C.Property2").WithLocation(6, 70)
+                );
+        }
+
+        [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
+        public void TestCSharp8_ConsumptionInWithExpression(bool useMetadataImage)
+        {
+            string lib_cs = @"
+public record C
+{
+    public string Property { get; init; }
+    public string Property2 { get; }
+}
+";
+            var lib = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+
+            string source = @"
+public class D
+{
+    void M(C c)
+    {
+        _ = c with { Property = string.Empty, Property2 = string.Empty };
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8,
+                references: new[] { useMetadataImage ? lib.EmitToImageReference() : lib.ToMetadataReference() });
+            comp.VerifyEmitDiagnostics(
+                // (6,15): error CS8400: Feature 'records' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = c with { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "with").WithArguments("records", "9.0").WithLocation(6, 15),
+                // (6,22): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = c with { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "Property").WithArguments("init-only setters", "9.0").WithLocation(6, 22),
+                // (6,47): error CS0200: Property or indexer 'C.Property2' cannot be assigned to -- it is read only
+                //         _ = c with { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Property2").WithArguments("C.Property2").WithLocation(6, 47)
+                );
+        }
+
+        [Theory, CombinatorialData, WorkItem(50245, "https://github.com/dotnet/roslyn/issues/50245")]
+        public void TestCSharp8_ConsumptionWithDynamicArgument(bool useMetadataImage)
+        {
+            string lib_cs = @"
+public class C
+{
+    public string Property { get; init; }
+    public string Property2 { get; }
+    public C(int i) { }
+}
+";
+            var lib = CreateCompilation(new[] { lib_cs, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+
+            string source = @"
+public class D
+{
+    void M(dynamic d)
+    {
+        _ = new C(d) { Property = string.Empty, Property2 = string.Empty };
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8,
+                references: new[] { useMetadataImage ? lib.EmitToImageReference() : lib.ToMetadataReference() });
+            comp.VerifyEmitDiagnostics(
+                // (6,24): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         _ = new C(d) { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "Property").WithArguments("init-only setters", "9.0").WithLocation(6, 24),
+                // (6,49): error CS0200: Property or indexer 'C.Property2' cannot be assigned to -- it is read only
+                //         _ = new C(d) { Property = string.Empty, Property2 = string.Empty };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Property2").WithArguments("C.Property2").WithLocation(6, 49)
+                );
+        }
+
         [Fact]
         public void TestInitNotModifier()
         {
