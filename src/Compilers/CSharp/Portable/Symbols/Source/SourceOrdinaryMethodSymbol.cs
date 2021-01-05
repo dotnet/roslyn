@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol containingType,
             Binder bodyBinder,
             MethodDeclarationSyntax syntax,
-            bool isNullableEnabled,
+            bool isNullableAnalysisEnabled,
             DiagnosticBag diagnostics)
         {
             var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? MethodKind.Ordinary
                 : MethodKind.ExplicitInterfaceImplementation;
 
-            return new SourceOrdinaryMethodSymbol(containingType, explicitInterfaceType, name, location, syntax, methodKind, isNullableEnabled, diagnostics);
+            return new SourceOrdinaryMethodSymbol(containingType, explicitInterfaceType, name, location, syntax, methodKind, isNullableAnalysisEnabled, diagnostics);
         }
 
         private SourceOrdinaryMethodSymbol(
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             MethodDeclarationSyntax syntax,
             MethodKind methodKind,
-            bool isNullableEnabled,
+            bool isNullableAnalysisEnabled,
             DiagnosticBag diagnostics) :
             base(containingType,
                  name,
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
                  isPartial: syntax.Modifiers.IndexOf(SyntaxKind.PartialKeyword) < 0,
                  hasBody: syntax.Body != null || syntax.ExpressionBody != null,
-                 isNullableEnabled: isNullableEnabled,
+                 isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                  diagnostics)
         {
             _explicitInterfaceType = explicitInterfaceType;

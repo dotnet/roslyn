@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static SourceConstructorSymbol CreateConstructorSymbol(
             SourceMemberContainerTypeSymbol containingType,
             ConstructorDeclarationSyntax syntax,
-            bool isNullableEnabled,
+            bool isNullableAnalysisEnabled,
             DiagnosticBag diagnostics)
         {
             var methodKind = syntax.Modifiers.Any(SyntaxKind.StaticKeyword) ? MethodKind.StaticConstructor : MethodKind.Constructor;
-            return new SourceConstructorSymbol(containingType, syntax.Identifier.GetLocation(), syntax, methodKind, isNullableEnabled, diagnostics);
+            return new SourceConstructorSymbol(containingType, syntax.Identifier.GetLocation(), syntax, methodKind, isNullableAnalysisEnabled, diagnostics);
         }
 
         private SourceConstructorSymbol(
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
              Location location,
              ConstructorDeclarationSyntax syntax,
              MethodKind methodKind,
-            bool isNullableEnabled,
+            bool isNullableAnalysisEnabled,
              DiagnosticBag diagnostics) :
              base(containingType, location, syntax, SyntaxFacts.HasYieldOperations(syntax))
         {
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool modifierErrors;
             var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, hasBody, location, diagnostics, out modifierErrors);
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableEnabled);
+            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (syntax.Identifier.ValueText != containingType.Name)
             {

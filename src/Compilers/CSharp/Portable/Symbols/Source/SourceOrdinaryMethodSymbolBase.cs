@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExtensionMethod,
             bool isPartial,
             bool hasBody,
-            bool isNullableEnabled,
+            bool isNullableAnalysisEnabled,
             DiagnosticBag diagnostics) :
             base(containingType,
                  syntax.GetReference(),
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var isMetadataVirtualIgnoringModifiers = methodKind == MethodKind.ExplicitInterfaceImplementation; //explicit impls must be marked metadata virtual
 
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod: isExtensionMethod, isNullableAnalysisEnabled: isNullableEnabled, isMetadataVirtualIgnoringModifiers: isMetadataVirtualIgnoringModifiers);
+            this.MakeFlags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod: isExtensionMethod, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isMetadataVirtualIgnoringModifiers: isMetadataVirtualIgnoringModifiers);
 
             _typeParameters = MakeTypeParameters(syntax, diagnostics);
 

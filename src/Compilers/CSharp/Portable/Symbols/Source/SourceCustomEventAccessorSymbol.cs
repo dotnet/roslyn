@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AccessorDeclarationSyntax syntax,
             EventSymbol explicitlyImplementedEventOpt,
             string aliasQualifierOpt,
-            bool isNullableEnabled,
+            bool isNullableAnalysisEnabled,
             DiagnosticBag diagnostics)
             : base(@event,
                    syntax.GetReference(),
                    ImmutableArray.Create(syntax.Keyword.GetLocation()), explicitlyImplementedEventOpt, aliasQualifierOpt,
                    isAdder: syntax.Kind() == SyntaxKind.AddAccessorDeclaration,
                    isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
-                   isNullableEnabled: isNullableEnabled)
+                   isNullableAnalysisEnabled: isNullableAnalysisEnabled)
         {
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.Kind() == SyntaxKind.AddAccessorDeclaration || syntax.Kind() == SyntaxKind.RemoveAccessorDeclaration);

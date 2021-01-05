@@ -50,13 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            bool isNullableEnabled = IsNullableEnabled(compilation, CompilationUnit);
+            bool isNullableAnalysisEnabled = IsNullableAnalysisEnabled(compilation, CompilationUnit);
             this.MakeFlags(
                 MethodKind.Ordinary,
                 DeclarationModifiers.Static | DeclarationModifiers.Private | (hasAwait ? DeclarationModifiers.Async : DeclarationModifiers.None),
                 returnsVoid: !hasAwait && !hasReturnWithExpression,
                 isExtensionMethod: false,
-                isNullableAnalysisEnabled: isNullableEnabled,
+                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 isMetadataVirtualIgnoringModifiers: false);
 
             _parameters = ImmutableArray.Create(SynthesizedParameterSymbol.Create(this,
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public SyntaxNode ReturnTypeSyntax => CompilationUnit.Members.First(m => m.Kind() == SyntaxKind.GlobalStatement);
 
-        private static bool IsNullableEnabled(CSharpCompilation compilation, CompilationUnitSyntax syntax)
+        private static bool IsNullableAnalysisEnabled(CSharpCompilation compilation, CompilationUnitSyntax syntax)
         {
             foreach (var member in syntax.Members)
             {

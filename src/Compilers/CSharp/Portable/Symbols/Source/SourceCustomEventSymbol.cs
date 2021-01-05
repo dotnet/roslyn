@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            return new SourceCustomEventAccessorSymbol(this, syntaxOpt, explicitlyImplementedEventOpt, aliasQualifierOpt, isNullableEnabled: compilation.IsNullableAnalysisEnabledIn(syntaxOpt), diagnostics);
+            return new SourceCustomEventAccessorSymbol(this, syntaxOpt, explicitlyImplementedEventOpt, aliasQualifierOpt, isNullableAnalysisEnabled: compilation.IsNullableAnalysisEnabledIn(syntaxOpt), diagnostics);
         }
     }
 }

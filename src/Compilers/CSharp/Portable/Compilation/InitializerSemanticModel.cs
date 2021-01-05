@@ -284,6 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SymbolKind.Field:
                 case SymbolKind.Property:
+                    Debug.Assert(MemberSymbol.ContainingType is SourceMemberContainerTypeSymbol);
                     return MemberSymbol.ContainingType is SourceMemberContainerTypeSymbol type &&
                         type.IsNullableEnabledForConstructorsAndInitializers(useStatic: MemberSymbol.IsStatic);
                 case SymbolKind.Parameter:

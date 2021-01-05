@@ -2367,6 +2367,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var location = symbol.Locations[0];
+            // The symbol may be from a distinct syntax tree - perhaps the
+            // symbol was returned from LookupSymbols() for instance.
             if (location.SourceTree != this.SyntaxTree)
             {
                 return symbol;

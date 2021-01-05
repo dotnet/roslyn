@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string aliasQualifierOpt,
             bool isAdder,
             bool isIterator,
-            bool isNullableEnabled)
+            bool isNullableAnalysisEnabled)
             : base(@event.containingType, syntaxReference, locations, isIterator)
         {
             _event = @event;
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 @event.Modifiers,
                 returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
                 isExtensionMethod: false,
-                isNullableAnalysisEnabled: isNullableEnabled,
+                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 isMetadataVirtualIgnoringModifiers: @event.IsExplicitInterfaceImplementation);
 
             _name = GetOverriddenAccessorName(@event, isAdder) ?? name;

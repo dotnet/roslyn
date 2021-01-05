@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        usesInit: false,
                        isAutoPropertyAccessor: true,
                        isExplicitInterfaceImplementation: false,
-                       isNullableEnabled: false,
+                       isNullableAnalysisEnabled: false,
                        diagnostics)
             {
             }

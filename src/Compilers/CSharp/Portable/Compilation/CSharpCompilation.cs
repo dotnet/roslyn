@@ -193,11 +193,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null;
 
+        /// <summary>
+        /// Returns true if nullable analysis is enabled in the text span represented by the syntax node.
+        /// </summary>
+        /// <remarks>
+        /// This overload is used for member symbols during binding, or for cases other
+        /// than symbols such as attribute arguments and parameter defaults.
+        /// </remarks>
         internal bool IsNullableAnalysisEnabledIn(SyntaxNode syntax)
         {
             return IsNullableAnalysisEnabledIn((CSharpSyntaxTree)syntax.SyntaxTree, syntax.Span);
         }
 
+        /// <summary>
+        /// Returns true if nullable analysis is enabled in the text span.
+        /// </summary>
+        /// <remarks>
+        /// This overload is used for member symbols during binding, or for cases other
+        /// than symbols such as attribute arguments and parameter defaults.
+        /// </remarks>
         internal bool IsNullableAnalysisEnabledIn(CSharpSyntaxTree tree, TextSpan span)
         {
             return GetNullableAnalysisValue() ??
@@ -205,6 +219,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (Options.NullableContextOptions & NullableContextOptions.Warnings) != 0;
         }
 
+        /// <summary>
+        /// Returns true if nullable analysis is enabled for the method. For constructors, the
+        /// region considered may include other constructors and field and property initializers.
+        /// </summary>
+        /// <remarks>
+        /// This overload is intended for callers that rely on symbols rather than syntax. The overload
+        /// uses the cached value calculated during binding (from potentially several spans)
+        /// from <see cref="IsNullableAnalysisEnabledIn(CSharpSyntaxTree, TextSpan)"/>.
+        /// </remarks>
         internal bool IsNullableAnalysisEnabledIn(MethodSymbol method)
         {
             return GetNullableAnalysisValue() ??

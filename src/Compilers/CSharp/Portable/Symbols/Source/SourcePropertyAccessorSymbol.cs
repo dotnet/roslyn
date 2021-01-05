@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool hasBody = syntax.Body is object;
             bool hasExpressionBody = syntax.ExpressionBody is object;
-            bool isNullableEnabled = containingType.DeclaringCompilation.IsNullableAnalysisEnabledIn(syntax);
+            bool isNullableAnalysisEnabled = containingType.DeclaringCompilation.IsNullableAnalysisEnabledIn(syntax);
             CheckForBlockAndExpressionBody(syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
             return new SourcePropertyAccessorSymbol(
                 containingType,
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.Keyword.IsKind(SyntaxKind.InitKeyword),
                 isAutoPropertyAccessor,
                 isExplicitInterfaceImplementation,
-                isNullableEnabled: isNullableEnabled,
+                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 diagnostics);
         }
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 explicitInterfaceImplementations:
                 out explicitInterfaceImplementations);
 
-            bool isNullableEnabled = containingType.DeclaringCompilation.IsNullableAnalysisEnabledIn(syntax);
+            bool isNullableAnalysisEnabled = containingType.DeclaringCompilation.IsNullableAnalysisEnabledIn(syntax);
             return new SourcePropertyAccessorSymbol(
                 containingType,
                 name,
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.Expression.GetLocation(),
                 syntax,
                 isExplicitInterfaceImplementation,
-                isNullableEnabled: isNullableEnabled,
+                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 diagnostics);
         }
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 usesInit,
                 isAutoPropertyAccessor: true,
                 isExplicitInterfaceImplementation: false,
-                isNullableEnabled: false,
+                isNullableAnalysisEnabled: false,
                 diagnostics);
         }
 
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             ArrowExpressionClauseSyntax syntax,
             bool isExplicitInterfaceImplementation,
-            bool isNullableEnabled,
+            bool isNullableAnalysisEnabled,
             DiagnosticBag diagnostics) :
             base(containingType, syntax.GetReference(), location, isIterator: false)
         {
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // ReturnsVoid property is overridden in this class so
             // returnsVoid argument to MakeFlags is ignored.
-            this.MakeFlags(MethodKind.PropertyGet, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableEnabled,
+            this.MakeFlags(MethodKind.PropertyGet, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: true, diagnostics: diagnostics);
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool usesInit,
             bool isAutoPropertyAccessor,
             bool isExplicitInterfaceImplementation,
-            bool isNullableEnabled,
+            bool isNullableAnalysisEnabled,
             DiagnosticBag diagnostics)
             : base(containingType,
                    syntax.GetReference(),
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // ReturnsVoid property is overridden in this class so
             // returnsVoid argument to MakeFlags is ignored.
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableEnabled,
+            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: hasBody || hasExpressionBody || isAutoPropertyAccessor, diagnostics);
