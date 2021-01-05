@@ -4082,14 +4082,14 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             Assert.True(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
 
             // Invalid SARIF version.
-            string[] InvalidSarifVersions = new string[] { @"C:\MyFolder\MyBinary.xml,version=1.0.0", @"C:\MyFolder\MyBinary.xml,version=2.1.0", @"C:\MyFolder\MyBinary.xml,version=42" };
+            string[] invalidSarifVersions = new string[] { @"C:\MyFolder\MyBinary.xml,version=1.0.0", @"C:\MyFolder\MyBinary.xml,version=2.1.0", @"C:\MyFolder\MyBinary.xml,version=42" };
 
-            foreach (string InvalidSarifVersion in InvalidSarifVersions)
+            foreach (string invalidSarifVersion in invalidSarifVersions)
             {
-                parsedArgs = DefaultParse(new[] { $"/errorlog:{InvalidSarifVersion}", "a.cs" }, baseDirectory);
+                parsedArgs = DefaultParse(new[] { $"/errorlog:{invalidSarifVersion}", "a.cs" }, baseDirectory);
                 parsedArgs.Errors.Verify(
                     // error CS2046: Command-line syntax error: 'C:\MyFolder\MyBinary.xml,version=42' is not a valid value for the '/errorlog:' option. The value must be of the form '<file>[,version={1|1.0|2|2.1}]'.
-                    Diagnostic(ErrorCode.ERR_BadSwitchValue).WithArguments(InvalidSarifVersion, "/errorlog:", CSharpCommandLineParser.ErrorLogOptionFormat));
+                    Diagnostic(ErrorCode.ERR_BadSwitchValue).WithArguments(invalidSarifVersion, "/errorlog:", CSharpCommandLineParser.ErrorLogOptionFormat));
                 Assert.Null(parsedArgs.ErrorLogOptions);
                 Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
             }
