@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                              DiagnosticCategory.Style,
                                              DiagnosticSeverity.Hidden,
                                              isEnabledByDefault: true,
+                                             helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId),
                                              customTags: DiagnosticCustomTags.Unnecessary.Concat(EnforceOnBuildValues.RemoveUnnecessaryImports.ToCustomTag()).ToArray());
 
                 _classificationIdDescriptor =
@@ -76,6 +77,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                              DiagnosticCategory.Style,
                                              DiagnosticSeverity.Hidden,
                                              isEnabledByDefault: true,
+                                             helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId),
                                              customTags: EnforceOnBuildValues.RemoveUnnecessaryImports.ToCustomTag());
 
                 _unnecessaryGeneratedCodeClassificationIdDescriptor =
@@ -85,6 +87,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                              DiagnosticCategory.Style,
                                              DiagnosticSeverity.Hidden,
                                              isEnabledByDefault: true,
+                                             helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId),
                                              customTags: DiagnosticCustomTags.UnnecessaryAndNotConfigurable);
 
                 _generatedCodeClassificationIdDescriptor =
@@ -94,6 +97,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                              DiagnosticCategory.Style,
                                              DiagnosticSeverity.Hidden,
                                              isEnabledByDefault: true,
+                                             helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId),
                                              customTags: DiagnosticCustomTags.NotConfigurable);
 #pragma warning restore RS0030 // Do not used banned APIs
             }
