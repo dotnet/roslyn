@@ -210,7 +210,7 @@ scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
                 // Working around an AzDo file permissions bug.
                 // We want this to happen at the end so we can be agnostic about whether ilasm was already in the directory, or was linked in from the .duplicate directory.
                 builder.AppendLine();
-                builder.AppendLine("find $scriptroot -name ilasm | xargs chmod 755");
+                builder.AppendLine(@"find $scriptroot -name ilasm -exec chmod 755 {} +");
             }
 
             static string getGroupDirectory(string relativePath)
