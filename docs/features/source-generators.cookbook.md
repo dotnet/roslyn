@@ -620,7 +620,7 @@ public class MyGenerator : ISourceGenerator
 }
 ```
 
-### Unit Test generators
+### Unit Testing of Generators
 
 **User scenario**: As a generator author, I want to be able to unit test my generators to make development easier and ensure correctness.
 
