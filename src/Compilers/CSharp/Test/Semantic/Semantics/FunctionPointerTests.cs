@@ -1357,12 +1357,64 @@ unsafe class C
     }
 }");
 
-            // This should be inferrable with variant conversions, tracked by https://github.com/dotnet/roslyn/issues/39865
-            comp.VerifyDiagnostics(
-                // (9,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<T, void>, delegate*<T, void>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         M1(p1, p2);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<T, void>, delegate*<T, void>)").WithLocation(9, 9)
-            );
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            AssertEx.Equal("void C.M1<System.String>(delegate*<System.String, System.Void> param1, delegate*<System.String, System.Void> param2)",
+                           model.GetSymbolInfo(m1Invocation).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitutionVariantParameterSubstitutions_UpperBounds_Parameter()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M1<T>(delegate*<delegate*<T, void>, void> param1, delegate*<delegate*<T, void>, void> param2) {}
+    public void M2()
+    {
+        delegate*<delegate*<string, void>, void> p1 = null;
+        delegate*<delegate*<object, void>, void> p2 = null;
+        M1(p1, p2);
+    }
+}");
+
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            AssertEx.Equal("void C.M1<System.Object>(delegate*<delegate*<System.Object, System.Void>, System.Void> param1, delegate*<delegate*<System.Object, System.Void>, System.Void> param2)",
+                           model.GetSymbolInfo(m1Invocation).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitutionVariantParameterSubstitutions_UpperBounds_Return()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M1<T>(delegate*<delegate*<T>, void> param1, delegate*<delegate*<T>, void> param2) {}
+    public void M2()
+    {
+        delegate*<delegate*<string>, void> p1 = null;
+        delegate*<delegate*<object>, void> p2 = null;
+        M1(p1, p2);
+    }
+}");
+
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            AssertEx.Equal("void C.M1<System.String>(delegate*<delegate*<System.String>, System.Void> param1, delegate*<delegate*<System.String>, System.Void> param2)",
+                           model.GetSymbolInfo(m1Invocation).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -1441,12 +1493,64 @@ unsafe class C
     }
 }");
 
-            // This should be inferrable with variant conversions, tracked by https://github.com/dotnet/roslyn/issues/39865
-            comp.VerifyDiagnostics(
-                // (9,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<T>, delegate*<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         M1(p1, p2);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<T>, delegate*<T>)").WithLocation(9, 9)
-            );
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            AssertEx.Equal("void C.M1<System.Object>(delegate*<System.Object> param1, delegate*<System.Object> param2)",
+                           model.GetSymbolInfo(m1Invocation).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitutionVariantReturnSubstitutions_LowerBounds_Parameter()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M1<T>(delegate*<delegate*<T, void>> param1, delegate*<delegate*<T, void>> param2) {}
+    public void M2()
+    {
+        delegate*<delegate*<string, void>> p1 = null;
+        delegate*<delegate*<object, void>> p2 = null;
+        M1(p1, p2);
+    }
+}");
+
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            AssertEx.Equal("void C.M1<System.String>(delegate*<delegate*<System.String, System.Void>> param1, delegate*<delegate*<System.String, System.Void>> param2)",
+                           model.GetSymbolInfo(m1Invocation).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitutionVariantReturnSubstitutions_LowerBounds_Return()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe class C
+{
+    public void M1<T>(delegate*<delegate*<T>> param1, delegate*<delegate*<T>> param2) {}
+    public void M2()
+    {
+        delegate*<delegate*<string>> p1 = null;
+        delegate*<delegate*<object>> p2 = null;
+        M1(p1, p2);
+    }
+}");
+
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            AssertEx.Equal("void C.M1<System.Object>(delegate*<delegate*<System.Object>> param1, delegate*<delegate*<System.Object>> param2)",
+                           model.GetSymbolInfo(m1Invocation).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -1563,7 +1667,6 @@ unsafe class D : C<delegate*<void>>
     }
 }");
 
-            // Some of these errors should become CS0306 after variant conversions are implemented, tracked by https://github.com/dotnet/roslyn/issues/39865
             comp.VerifyDiagnostics(
                 // (3,14): error CS0306: The type 'delegate*<void>' may not be used as a type argument
                 // unsafe class D : C<delegate*<void>>
@@ -1651,7 +1754,6 @@ unsafe class C
     }
 }");
 
-            // These should all work: https://github.com/dotnet/roslyn/issues/39865
             comp.VerifyDiagnostics(
                 // (10,9): error CS0411: The type arguments for method 'C.SubstitutedStatic2<TStatic>(TStatic, TStatic)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         SubstitutedStatic2(ptr1, ptr2);
@@ -2067,6 +2169,84 @@ unsafe class C
             };
 
             AssertEx.Equal(expectedTypes, invocationTypes);
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInferenceInParameter()
+        {
+            var verifier = CompileAndVerify(@"
+unsafe
+{
+    Test(0, &converter);
+
+    static string converter(int v) => string.Empty;
+    static void Test<T1, T2>(T1 t1, delegate*<T1, T2> func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldftn      ""string <Program>$.<<Main>$>g__converter|0_0(int)""
+  IL_0007:  call       ""void <Program>$.<<Main>$>g__Test|0_1<int, string>(int, delegate*<int, string>)""
+  IL_000c:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInferenceInParameter_ImplicitReferenceConversionOnParameter()
+        {
+            var verifier = CompileAndVerify(@"
+unsafe
+{
+    Test(string.Empty, &converter);
+
+    static string converter(object o) => string.Empty;
+    static void Test<T1, T2>(T1 t1, delegate*<T1, T2> func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldsfld     ""string string.Empty""
+  IL_0005:  ldftn      ""string <Program>$.<<Main>$>g__converter|0_0(object)""
+  IL_000b:  call       ""void <Program>$.<<Main>$>g__Test|0_1<string, string>(string, delegate*<string, string>)""
+  IL_0010:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
+        public void FunctionPointerInferenceInReturn()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe
+{
+    Test(0, &converter);
+
+    static int converter(string v) => 0;
+    static void Test<T1, T2>(T2 t2, delegate*<T1, T2> func) {}
+}
+", options: TestOptions.UnsafeReleaseExe);
+
+            // It might seem like this should have the same behavior as FunctionPointerInferenceInParameter. However, this is not how method group resolution works.
+            // We don't look at return types when resolving a method group, which means that we can't use T2 to narrow down the candidates. We therefore can't
+            // find any information about T1, and resolution fails. FunctionPointerInferenceInParameter, on the other hand, has a bound for T1: int. That bound
+            // is then used as an input to method group resolution, and we can narrow down to string converter(int v). The return type of that method can then be
+            // used as a bound to infer T2.
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0411: The type arguments for method 'Test<T1, T2>(T2, delegate*<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //     Test(0, &converter);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Test<T1, T2>(T2, delegate*<T1, T2>)").WithLocation(4, 5),
+                // (7,17): warning CS8321: The local function 'Test' is declared but never used
+                //     static void Test<T1, T2>(T2 t2, delegate*<T1, T2> func) {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Test").WithArguments("Test").WithLocation(7, 17)
+            );
         }
 
         [Fact]

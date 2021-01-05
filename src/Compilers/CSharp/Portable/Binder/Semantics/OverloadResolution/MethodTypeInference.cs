@@ -501,10 +501,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _exactBounds[methodTypeParameterIndex] != null;
         }
 
-        private NamedTypeSymbol GetFixedDelegate(NamedTypeSymbol delegateType)
+        private TypeSymbol GetFixedDelegateOrFunctionPointer(TypeSymbol delegateType)
         {
             Debug.Assert((object)delegateType != null);
-            Debug.Assert(delegateType.IsDelegateType());
+            Debug.Assert(delegateType.IsDelegateType() || delegateType is FunctionPointerTypeSymbol);
 
             // We have a delegate where the input types use no unfixed parameters.  Create
             // a substitution context; we can substitute unfixed parameters for themselves
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeMap typeMap = new TypeMap(_constructedContainingTypeOfMethod, _methodTypeParameters, fixedArguments.ToImmutableAndFree());
-            return typeMap.SubstituteNamedType(delegateType);
+            return typeMap.SubstituteType(delegateType).Type;
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression argument = _arguments[arg];
                 TypeWithAnnotations target = _formalParameterTypes[arg];
-                ExactOrBoundsKind kind = GetRefKind(arg).IsManagedReference() || target.Type.IsPointerOrFunctionPointer() ? ExactOrBoundsKind.Exact : ExactOrBoundsKind.LowerBound;
+                ExactOrBoundsKind kind = GetRefKind(arg).IsManagedReference() || target.Type.IsPointerType() ? ExactOrBoundsKind.Exact : ExactOrBoundsKind.LowerBound;
 
                 MakeExplicitParameterTypeInferences(argument, target, kind, ref useSiteDiagnostics);
             }
@@ -861,26 +861,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: type or expression tree type then all the parameter types of T are
             // SPEC: input types of E with type T.
 
-            var delegateType = formalParameterType.GetDelegateType();
-            if ((object)delegateType == null)
+            var delegateOrFunctionPointerType = formalParameterType.GetDelegateOrFunctionPointerType();
+            if ((object)delegateOrFunctionPointerType == null)
             {
                 return false; // No input types.
             }
 
-            if (argument.Kind != BoundKind.UnboundLambda && argument.Kind != BoundKind.MethodGroup)
+            if (argument.Kind is not (BoundKind.UnboundLambda or BoundKind.MethodGroup or BoundKind.UnconvertedAddressOfOperator))
             {
                 return false; // No input types.
             }
 
-            var delegateParameters = delegateType.DelegateParameters();
-            if (delegateParameters.IsDefaultOrEmpty)
+            var parameters = delegateOrFunctionPointerType.DelegateOrFunctionPointerParameters();
+            if (parameters.IsDefaultOrEmpty)
             {
                 return false;
             }
 
-            foreach (var delegateParameter in delegateParameters)
+            foreach (var parameter in parameters)
             {
-                if (delegateParameter.Type.ContainsTypeParameter(typeParameter))
+                if (parameter.Type.ContainsTypeParameter(typeParameter))
                 {
                     return true;
                 }
@@ -915,30 +915,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: type or expression tree type then the return type of T is an output type
             // SPEC: of E with type T.
 
-            var delegateType = formalParameterType.GetDelegateType();
-            if ((object)delegateType == null)
+            var delegateOrFunctionPointerType = formalParameterType.GetDelegateOrFunctionPointerType();
+            if ((object)delegateOrFunctionPointerType == null)
             {
                 return false;
             }
 
-            if (argument.Kind != BoundKind.UnboundLambda && argument.Kind != BoundKind.MethodGroup)
+            if (argument.Kind is not (BoundKind.UnboundLambda or BoundKind.MethodGroup or BoundKind.UnconvertedAddressOfOperator))
             {
                 return false;
             }
 
-            MethodSymbol delegateInvoke = delegateType.DelegateInvokeMethod;
-            if ((object)delegateInvoke == null || delegateInvoke.HasUseSiteError)
+            MethodSymbol method = delegateOrFunctionPointerType switch
+            {
+                NamedTypeSymbol n => n.DelegateInvokeMethod,
+                FunctionPointerTypeSymbol f => f.Signature,
+                _ => throw ExceptionUtilities.UnexpectedValue(delegateOrFunctionPointerType)
+            };
+
+            if ((object)method == null || method.HasUseSiteError)
             {
                 return false;
             }
 
-            var delegateReturnType = delegateInvoke.ReturnType;
-            if ((object)delegateReturnType == null)
+            var returnType = method.ReturnType;
+            if ((object)returnType == null)
             {
                 return false;
             }
 
-            return delegateReturnType.ContainsTypeParameter(typeParameter);
+            return returnType.ContainsTypeParameter(typeParameter);
         }
 
         private bool HasUnfixedParamInOutputType(BoundExpression argument, TypeSymbol formalParameterType)
@@ -1281,44 +1287,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   yields a single method with return type U then a lower-bound
             // SPEC:   inference is made from U to Tb.
 
-            if (source.Kind != BoundKind.MethodGroup)
+            if (source.Kind is not (BoundKind.MethodGroup or BoundKind.UnconvertedAddressOfOperator))
             {
                 return false;
             }
 
-            var delegateType = target.GetDelegateType();
-            if ((object)delegateType == null)
+            var delegateOrFunctionPointerType = target.GetDelegateOrFunctionPointerType();
+            if ((object)delegateOrFunctionPointerType == null)
             {
                 return false;
             }
 
             // this part of the code is only called if the targetType has an unfixed type argument in the output 
             // type, which is not the case for invalid delegate invoke methods.
-            var delegateInvokeMethod = delegateType.DelegateInvokeMethod;
-            Debug.Assert((object)delegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
-                         "This method should only be called for valid delegate types");
+            var (method, isFunctionPointerResolution) = delegateOrFunctionPointerType switch
+            {
+                NamedTypeSymbol n => (n.DelegateInvokeMethod, false),
+                FunctionPointerTypeSymbol f => (f.Signature, true),
+                _ => throw ExceptionUtilities.UnexpectedValue(delegateOrFunctionPointerType),
+            };
+            Debug.Assert(method is { HasUseSiteError: false },
+                         "This method should only be called for valid delegate or function pointer types");
 
-            TypeWithAnnotations delegateReturnType = delegateInvokeMethod.ReturnTypeWithAnnotations;
-            if (!delegateReturnType.HasType || delegateReturnType.SpecialType == SpecialType.System_Void)
+            TypeWithAnnotations sourceReturnType = method.ReturnTypeWithAnnotations;
+            if (!sourceReturnType.HasType || sourceReturnType.SpecialType == SpecialType.System_Void)
             {
                 return false;
             }
 
             // At this point we are in the second phase; we know that all the input types are fixed.
 
-            var fixedDelegateParameters = GetFixedDelegate(delegateType).DelegateParameters();
-            if (fixedDelegateParameters.IsDefault)
+            var fixedParameters = GetFixedDelegateOrFunctionPointer(delegateOrFunctionPointerType).DelegateOrFunctionPointerParameters();
+            if (fixedParameters.IsDefault)
             {
                 return false;
             }
 
-            var returnType = MethodGroupReturnType(binder, (BoundMethodGroup)source, fixedDelegateParameters, delegateInvokeMethod.RefKind, ref useSiteDiagnostics);
+            CallingConventionInfo callingConventionInfo = isFunctionPointerResolution
+                ? new CallingConventionInfo(method.CallingConvention, ((FunctionPointerMethodSymbol)method).GetCallingConventionModifiers())
+                : default;
+            BoundMethodGroup originalMethodGroup = source as BoundMethodGroup ?? ((BoundUnconvertedAddressOfOperator)source).Operand;
+
+            var returnType = MethodGroupReturnType(binder, originalMethodGroup, fixedParameters, method.RefKind, isFunctionPointerResolution, ref useSiteDiagnostics, in callingConventionInfo);
             if (returnType.IsDefault || returnType.IsVoidType())
             {
                 return false;
             }
 
-            LowerBoundInference(returnType, delegateReturnType, ref useSiteDiagnostics);
+            LowerBoundInference(returnType, sourceReturnType, ref useSiteDiagnostics);
             return true;
         }
 
@@ -1326,15 +1342,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder, BoundMethodGroup source,
             ImmutableArray<ParameterSymbol> delegateParameters,
             RefKind delegateRefKind,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            bool isFunctionPointerResolution,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            in CallingConventionInfo callingConventionInfo)
         {
             var analyzedArguments = AnalyzedArguments.GetInstance();
-            Conversions.GetDelegateArguments(source.Syntax, analyzedArguments, delegateParameters, binder.Compilation);
+            Conversions.GetDelegateOrFunctionPointerArguments(source.Syntax, analyzedArguments, delegateParameters, binder.Compilation);
 
             var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteDiagnostics: ref useSiteDiagnostics,
                 isMethodGroupConversion: true, returnRefKind: delegateRefKind,
                 // Since we are trying to infer the return type, it is not an input to resolving the method group
-                returnType: null);
+                returnType: null,
+                isFunctionPointerResolution: isFunctionPointerResolution, callingConventionInfo: in callingConventionInfo);
 
             TypeWithAnnotations type = default;
 
@@ -1739,6 +1758,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (LowerBoundFunctionPointerTypeInference(source.Type, target.Type, ref useSiteDiagnostics))
+            {
+                return;
+            }
+
             // SPEC: * Otherwise, no inferences are made.
         }
 
@@ -2067,6 +2091,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             targetTypeArguments.Free();
         }
 
+#nullable enable
+        private bool LowerBoundFunctionPointerTypeInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (source is not FunctionPointerTypeSymbol { Signature: { } sourceSignature } || target is not FunctionPointerTypeSymbol { Signature: { } targetSignature })
+            {
+                return false;
+            }
+
+            if (sourceSignature.ParameterCount != targetSignature.ParameterCount)
+            {
+                return false;
+            }
+
+            if (sourceSignature.RefKind != targetSignature.RefKind)
+            {
+                return false;
+            }
+
+            if (sourceSignature.ParameterRefKinds.IsDefault
+                ? !targetSignature.ParameterRefKinds.IsDefault
+                : !sourceSignature.ParameterRefKinds.SequenceEqual(targetSignature.ParameterRefKinds))
+            {
+                return false;
+            }
+
+            // Reference parameters are treated as "input" variance by default, and reference return types are treated as out variance by default.
+            // If they have a ref kind or are not reference types, then they are treated as invariant.
+            for (int i = 0; i < sourceSignature.ParameterCount; i++)
+            {
+                var sourceParam = sourceSignature.Parameters[i];
+                var targetParam = targetSignature.Parameters[i];
+
+                if ((sourceParam.Type.IsReferenceType || sourceParam.Type.IsFunctionPointer()) && sourceParam.RefKind == RefKind.None)
+                {
+                    UpperBoundInference(sourceParam.TypeWithAnnotations, targetParam.TypeWithAnnotations, ref useSiteDiagnostics);
+                }
+                else
+                {
+                    ExactInference(sourceParam.TypeWithAnnotations, targetParam.TypeWithAnnotations, ref useSiteDiagnostics);
+                }
+            }
+
+            if ((sourceSignature.ReturnType.IsReferenceType || sourceSignature.ReturnType.IsFunctionPointer()) && sourceSignature.RefKind == RefKind.None)
+            {
+                LowerBoundInference(sourceSignature.ReturnTypeWithAnnotations, targetSignature.ReturnTypeWithAnnotations, ref useSiteDiagnostics);
+            }
+            else
+            {
+                ExactInference(sourceSignature.ReturnTypeWithAnnotations, targetSignature.ReturnTypeWithAnnotations, ref useSiteDiagnostics);
+            }
+
+            return true;
+        }
+#nullable disable
+
         ////////////////////////////////////////////////////////////////////////////////
         //
         // Upper-bound inferences
@@ -2107,7 +2186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            Debug.Assert(source.Type.IsReferenceType);
+            Debug.Assert(source.Type.IsReferenceType || source.Type.IsFunctionPointer());
 
             // NOTE: spec would ask us to do the following checks, but since the value types
             //       are trivially handled as exact inference in the callers, we do not have to.
@@ -2120,6 +2199,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: * Otherwise... cases for constructed types
 
             if (UpperBoundConstructedInference(source, target, ref useSiteDiagnostics))
+            {
+                return;
+            }
+
+            if (UpperBoundFunctionPointerTypeInference(source.Type, target.Type, ref useSiteDiagnostics))
             {
                 return;
             }
@@ -2364,6 +2448,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             targetTypeArguments.Free();
         }
 
+#nullable enable
+        private bool UpperBoundFunctionPointerTypeInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (source is not FunctionPointerTypeSymbol { Signature: { } sourceSignature } || target is not FunctionPointerTypeSymbol { Signature: { } targetSignature })
+            {
+                return false;
+            }
+
+            if (sourceSignature.ParameterCount != targetSignature.ParameterCount)
+            {
+                return false;
+            }
+
+            if (sourceSignature.RefKind != targetSignature.RefKind)
+            {
+                return false;
+            }
+
+            if (sourceSignature.ParameterRefKinds.IsDefault
+                ? !targetSignature.ParameterRefKinds.IsDefault
+                : !sourceSignature.ParameterRefKinds.SequenceEqual(targetSignature.ParameterRefKinds))
+            {
+                return false;
+            }
+
+            // Reference parameters are treated as "input" variance by default, and reference return types are treated as out variance by default.
+            // If they have a ref kind or are not reference types, then they are treated as invariant.
+            for (int i = 0; i < sourceSignature.ParameterCount; i++)
+            {
+                var sourceParam = sourceSignature.Parameters[i];
+                var targetParam = targetSignature.Parameters[i];
+
+                if ((sourceParam.Type.IsReferenceType || sourceParam.Type.IsFunctionPointer()) && sourceParam.RefKind == RefKind.None)
+                {
+                    LowerBoundInference(sourceParam.TypeWithAnnotations, targetParam.TypeWithAnnotations, ref useSiteDiagnostics);
+                }
+                else
+                {
+                    ExactInference(sourceParam.TypeWithAnnotations, targetParam.TypeWithAnnotations, ref useSiteDiagnostics);
+                }
+            }
+
+            if ((sourceSignature.ReturnType.IsReferenceType || sourceSignature.ReturnType.IsFunctionPointer()) && sourceSignature.RefKind == RefKind.None)
+            {
+                UpperBoundInference(sourceSignature.ReturnTypeWithAnnotations, targetSignature.ReturnTypeWithAnnotations, ref useSiteDiagnostics);
+            }
+            else
+            {
+                ExactInference(sourceSignature.ReturnTypeWithAnnotations, targetSignature.ReturnTypeWithAnnotations, ref useSiteDiagnostics);
+            }
+
+            return true;
+        }
+#nullable disable
+
         ////////////////////////////////////////////////////////////////////////////////
         //
         // Fixing
@@ -2589,7 +2728,7 @@ OuterBreak:
                 }
             }
 
-            var fixedDelegate = GetFixedDelegate(target);
+            var fixedDelegate = (NamedTypeSymbol)GetFixedDelegateOrFunctionPointer(target);
             var fixedDelegateParameters = fixedDelegate.DelegateParameters();
             // Optimization:
             // Similarly, if we have an entirely fixed delegate and an explicitly typed
