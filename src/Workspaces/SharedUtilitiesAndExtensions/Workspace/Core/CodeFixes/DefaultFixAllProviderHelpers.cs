@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
     /// <summary>
     /// Default implementation of a <see cref="FixAllProvider"/> that efficiently handles the dispatch logic for fixing
-    /// entire solutions.
+    /// entire solutions.  Used by <see cref="BatchFixAllProvider"/> and <see cref="DocumentBasedFixAllProvider"/>.
     /// </summary>
     internal static class DefaultFixAllProviderHelpers
     {
