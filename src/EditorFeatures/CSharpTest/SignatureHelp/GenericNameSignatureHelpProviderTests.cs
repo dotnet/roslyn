@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
@@ -847,6 +848,45 @@ class C
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task DeclaringGenericTypeWithDocCommentList()
+        {
+            var markup = @"
+/// <summary>
+/// List:
+/// <list>
+/// <item>
+/// <description>
+/// Item 1.
+/// </description>
+/// </item>
+/// </list>
+/// </summary>
+class G<S, T> { };
+
+class C
+{
+    void Goo()
+    {
+        [|G<int, $$|]>
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("G<S, T>", "List:\r\n\r\nItem 1.",
+                classificationTypeNames: new List<string>
+                {
+                    ClassificationTypeNames.Text,
+                    ClassificationTypeNames.WhiteSpace,
+                    ClassificationTypeNames.WhiteSpace,
+                    ClassificationTypeNames.WhiteSpace,
+                    ClassificationTypeNames.Text,
+                    ClassificationTypeNames.WhiteSpace
+                }));
+
             await TestAsync(markup, expectedOrderedItems);
         }
     }
