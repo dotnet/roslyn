@@ -427,6 +427,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override bool IsNullableAnalysisEnabled() => false;
+
         private sealed class ScriptEntryPoint : SynthesizedEntryPointSymbol
         {
             private readonly TypeWithAnnotations _returnType;
