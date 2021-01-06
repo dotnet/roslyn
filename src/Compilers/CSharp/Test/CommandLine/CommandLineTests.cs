@@ -9807,7 +9807,7 @@ public class Program
 
             if (expectedInfoCount == 0)
             {
-                Assert.DoesNotContain("info", output, StringComparison.Ordinal);
+                Assert.DoesNotContain("info", output.Split('\n').First(), StringComparison.Ordinal);
             }
             else
             {
@@ -12949,8 +12949,7 @@ class C
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: generator);
 
-            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
-            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource } } } });
+            ValidateWrittenSources(new() { { generatedDir.Path, new() { { "generatedSource.cs", generatedSource } } } });
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
@@ -12972,15 +12971,14 @@ class C
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { generator1 });
 
-            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator1);
-            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource1 } } } });
+            ValidateWrittenSources(new() { { generatedDir.Path, new() { { "generatedSource.cs", generatedSource1 } } } });
 
             var generatedSource2 = "public class D { }";
             var generator2 = new SingleFileArtifactProducer(generatedSource2, "generatedSource.cs");
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { generator2 });
 
-            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource2 } } } });
+            ValidateWrittenSources(new() { { generatedDir.Path, new() { { "generatedSource.cs", generatedSource2 } } } });
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
@@ -12988,11 +12986,11 @@ class C
         }
 
         [Theory]
-        [InlineData("partial class D {}", "file1.cs", "partial class E {}", "file2.cs")] // different files, different names
-        [InlineData("partial class D {}", "file1.cs", "partial class E {}", "file1.cs")] // different files, same names
-        [InlineData("partial class D {}", "file1.cs", "partial class D {}", "file2.cs")] // same files, different names
-        [InlineData("partial class D {}", "file1.cs", "partial class D {}", "file1.cs")] // same files, same names
-        [InlineData("partial class D {}", "file1.cs", "", "file2.cs")] // empty second file
+        [InlineData("partial class D {}", "gen1\\file1.cs", "partial class E {}", "gen2\\file2.cs")] // different files, different names
+        [InlineData("partial class D {}", "gen1\\file1.cs", "partial class E {}", "gen2\\file1.cs")] // different files, same names
+        [InlineData("partial class D {}", "gen1\\file1.cs", "partial class D {}", "gen2\\file2.cs")] // same files, different names
+        [InlineData("partial class D {}", "gen1\\file1.cs", "partial class D {}", "gen2\\file1.cs")] // same files, same names
+        [InlineData("partial class D {}", "gen1\\file1.cs", "", "gen2\\file2.cs")] // empty second file
         public void ArtifactProducer_WriteGeneratedSources_MultipleFiles(string source1, string source1Name, string source2, string source2Name)
         {
             var dir = Temp.CreateDirectory();
@@ -13007,13 +13005,10 @@ class C
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { generator, generator2 });
 
-            var generator1Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
-            var generator2Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator2);
-
             ValidateWrittenSources(new()
             {
-                { Path.Combine(generatedDir.Path, generator1Prefix), new() { { source1Name, source1 } } },
-                { Path.Combine(generatedDir.Path, generator2Prefix), new() { { source2Name, source2 } } }
+                { Path.Combine(generatedDir.Path, "gen1"), new() { { Path.GetFileName(source1Name), source1 } } },
+                { Path.Combine(generatedDir.Path, "gen2"), new() { { Path.GetFileName(source2Name), source2 } } }
             });
 
             // Clean up temp files
@@ -13130,11 +13125,12 @@ key = value");
         public void ArtifactProducersRunRegardlessOfLanguageVersion(LanguageVersion version)
         {
             var dir = Temp.CreateDirectory();
+            var generatedDir = dir.CreateDirectory("generated");
             var src = dir.CreateFile("temp.cs").WriteAllText(@"class C {}");
             var generator = new CallbackArtifactProducer(i => { }, e => throw null);
 
-            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:" + version.ToDisplayString() }, analyzers: new[] { generator }, expectedWarningCount: 1, expectedErrorCount: 1, expectedExitCode: 0);
-            Assert.Contains("CS8785: Generator 'CallbackGenerator' failed to generate source.", output);
+            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path,  "/langversion:" + version.ToDisplayString() }, analyzers: new[] { generator }, expectedWarningCount: 1, expectedErrorCount: 0, expectedExitCode: 0);
+            Assert.Contains("warning AD0001: Analyzer 'Roslyn.Test.Utilities.TestGenerators.CallbackArtifactProducer' threw an exception of type 'System.NullReferenceException' with message 'Object reference not set to an instance of an object.'", output);
         }
 
         #endregion
