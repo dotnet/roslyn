@@ -109,15 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static bool ShouldTriggerInArgumentLists(OptionSet options)
-        {
-            var isTriggerInArgumentListOptionEnabled = options.GetOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp);
-            if (isTriggerInArgumentListOptionEnabled.HasValue)
-            {
-                return isTriggerInArgumentListOptionEnabled.Value;
-            }
-
-            return true;
-        }
+            => options.GetOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp);
 
         private static async Task<bool?> IsTriggerOnDotAsync(Document document, int characterPosition, CancellationToken cancellationToken)
         {
