@@ -77,7 +77,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     message = "Unexpected difference past end of the file";
                 }
-
                 Debug.Assert(false, message);
             }
         }
@@ -98,7 +97,6 @@ namespace Microsoft.CodeAnalysis
                     return i;
                 }
             }
-
             return (n1 == n2) ? -1 : n + 1;
         }
 

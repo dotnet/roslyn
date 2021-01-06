@@ -222,7 +222,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                     s.Kind != SymbolKind.Namespace &&
                                     s.Kind != SymbolKind.NamedType);
                             }
-
                             break;
 
                         default:
@@ -420,7 +419,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             {
                                 return null;
                             }
-
                             continue;
                         }
 
@@ -475,7 +473,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 // End of indexer parameter list
                                 return;
                             }
-
                             inBrackets = false;
                             break;
                         case '*':
@@ -486,7 +483,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 // End of parameter type name
                                 return;
                             }
-
                             break;
                     }
                 }

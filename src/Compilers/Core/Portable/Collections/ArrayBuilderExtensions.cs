@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
             }
-
             return false;
         }
 
@@ -33,7 +32,6 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
             }
-
             return false;
         }
 
@@ -46,7 +44,6 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
             }
-
             return true;
         }
 
@@ -59,7 +56,6 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
             }
-
             return true;
         }
 
@@ -212,7 +208,6 @@ namespace Microsoft.CodeAnalysis
             {
                 getNested(item)?.FreeAll(getNested);
             }
-
             builder.Free();
         }
 #nullable enable

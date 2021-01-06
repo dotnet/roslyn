@@ -76,7 +76,6 @@ namespace Roslyn.Utilities
             {
                 builder.AddRange(_many);
             }
-
             builder.Add(one);
             return new OneOrMany<T>(builder.ToImmutableAndFree());
         }

@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
             {
                 throw new ArgumentOutOfRangeException(nameof(capacity));
             }
-
             _capacity = capacity;
             _cache = new Dictionary<K, CacheValue>(capacity);
             _nodeList = new LinkedList<K>();
@@ -73,7 +72,6 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
                         copy[index++] = new KeyValuePair<K, V>(key,
                                                                _cache[key].Value);
                     }
-
                     return copy;
                 }
             }
@@ -138,7 +136,6 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
                 {
                     UnsafeEvictLastNode();
                 }
-
                 UnsafeAddNodeToTop(key, value);
             }
         }
