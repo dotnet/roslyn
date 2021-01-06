@@ -195,6 +195,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
 
+        internal static SyntaxNode? GetDefaultValueSyntaxForIsNullableAnalysisEnabled(ParameterSyntax? parameterSyntax) =>
+            parameterSyntax?.Default?.Value;
+
         private ConstantValue DefaultSyntaxValue
         {
             get
@@ -211,10 +214,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var completedOnThisThread = state.NotePartComplete(CompletionPart.EndDefaultSyntaxValue);
                     Debug.Assert(completedOnThisThread);
 
-                    if (binder is not null && parameterEqualsValue is not null && !_lazyDefaultSyntaxValue.IsBad)
+                    if (parameterEqualsValue is not null)
                     {
-                        NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, diagnostics);
-                        VerifyParamDefaultValueMatchesAttributeIfAny(_lazyDefaultSyntaxValue, parameterEqualsValue.Value.Syntax, diagnostics);
+                        if (binder is not null &&
+                            GetDefaultValueSyntaxForIsNullableAnalysisEnabled(CSharpSyntaxNode) is { } valueSyntax)
+                        {
+                            NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, valueSyntax, diagnostics);
+                        }
+                        if (!_lazyDefaultSyntaxValue.IsBad)
+                        {
+                            VerifyParamDefaultValueMatchesAttributeIfAny(_lazyDefaultSyntaxValue, parameterEqualsValue.Value.Syntax, diagnostics);
+                        }
                     }
 
                     AddDeclarationDiagnostics(diagnostics);
@@ -248,7 +258,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void NullableAnalyzeParameterDefaultValueFromAttributes()
         {
-            if (!NullableWalker.NeedsAnalysis(DeclaringCompilation))
+            var parameterSyntax = this.CSharpSyntaxNode;
+            if (parameterSyntax == null)
+            {
+                // If there is no syntax at all for the parameter, it means we are in a situation like
+                // a property setter whose 'value' parameter has a default value from attributes.
+                // There isn't a sensible use for this in the language, so we just bail in such scenarios.
+                return;
+            }
+
+            // The syntax span used to determine whether the attribute value is in a nullable-enabled
+            // context is larger than necessary - it includes the entire attribute list rather than the specific
+            // default value attribute which is used in AttributeSemanticModel.IsNullableAnalysisEnabled().
+            var attributes = parameterSyntax.AttributeLists.Node;
+            if (attributes is null || !NullableWalker.NeedsAnalysis(DeclaringCompilation, attributes))
             {
                 return;
             }
@@ -256,15 +279,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var defaultValue = DefaultValueFromAttributes;
             if (defaultValue == null || defaultValue.IsBad)
             {
-                return;
-            }
-
-            var parameterSyntax = this.CSharpSyntaxNode;
-            if (parameterSyntax == null)
-            {
-                // If there is no syntax at all for the parameter, it means we are in a situation like
-                // a property setter whose 'value' parameter has a default value from attributes.
-                // There isn't a sensible use for this in the language, so we just bail in such scenarios.
                 return;
             }
 
@@ -283,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 new BoundLiteral(parameterSyntax, defaultValue, Type));
 
             var diagnostics = DiagnosticBag.GetInstance();
-            NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, diagnostics);
+            NullableWalker.AnalyzeIfNeeded(binder, parameterEqualsValue, parameterSyntax, diagnostics);
             AddDeclarationDiagnostics(diagnostics);
             diagnostics.Free();
         }

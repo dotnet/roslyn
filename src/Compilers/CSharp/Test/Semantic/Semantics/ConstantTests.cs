@@ -2788,6 +2788,38 @@ float.PositiveInfinity --> Infinity
         }
 
         [Fact]
+        [WorkItem(50127, "https://github.com/dotnet/roslyn/issues/50127")]
+        public void DeterministicCycleReporting()
+        {
+            var source =
+@"enum C
+{
+    A = F,
+    B = A + C + D + E,
+    C = E,
+    D = B,
+    E = B,
+    F = G,
+    G = F,
+}";
+
+            var expected = new[] {
+                // (4,5): error CS0110: The evaluation of the constant value for 'C.B' involves a circular definition
+                //     B = A + C + D + E,
+                Diagnostic(ErrorCode.ERR_CircConstValue, "B").WithArguments("C.B").WithLocation(4, 5),
+                // (8,5): error CS0110: The evaluation of the constant value for 'C.F' involves a circular definition
+                //     F = G,
+                Diagnostic(ErrorCode.ERR_CircConstValue, "F").WithArguments("C.F").WithLocation(8, 5)
+                };
+
+            for (int i = 0; i < 100; i++)
+            {
+                var compilation = CreateCompilation(source);
+                compilation.GetDeclarationDiagnostics().Verify(expected);
+            }
+        }
+
+        [Fact]
         public void TestConstantEvalAcrossCompilations()
         {
             var source1 =

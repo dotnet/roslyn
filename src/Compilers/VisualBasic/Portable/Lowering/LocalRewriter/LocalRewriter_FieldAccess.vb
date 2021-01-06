@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return MakeTupleFieldAccess(node.Syntax, node.FieldSymbol, rewrittenReceiver, node.ConstantValueOpt, node.IsLValue)
             End If
 
-            Return node.Update(rewrittenReceiver, node.FieldSymbol, node.IsLValue, node.SuppressVirtualCalls, node.ConstantsInProgressOpt, node.Type)
+            Return node.Update(rewrittenReceiver, node.FieldSymbol, node.IsLValue, node.SuppressVirtualCalls, constantsInProgressOpt:=Nothing, node.Type)
         End Function
 
         ''' <summary>

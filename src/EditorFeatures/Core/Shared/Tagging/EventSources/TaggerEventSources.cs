@@ -32,6 +32,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         public static ITaggerEventSource OnCaretPositionChanged(ITextView textView, ITextBuffer subjectBuffer, TaggerDelay delay)
             => new CaretPositionChangedEventSource(textView, subjectBuffer, delay);
 
+        public static ITaggerEventSource OnCompletionClosed(
+            IIntellisenseSessionStack sessionStack,
+            TaggerDelay delay)
+        {
+            return new CompletionClosedEventSource(sessionStack, delay);
+        }
+
         public static ITaggerEventSource OnTextChanged(ITextBuffer subjectBuffer, TaggerDelay delay)
         {
             Contract.ThrowIfNull(subjectBuffer);
