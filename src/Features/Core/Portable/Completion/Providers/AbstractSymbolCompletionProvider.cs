@@ -131,7 +131,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
             List<ProjectId> totalProjects,
             bool preselect,
-            Lazy<ImmutableArray<ITypeSymbol>> inferredTypes,
             TelemetryCounter telemetryCounter)
         {
             // We might get symbol w/o name but CanBeReferencedByName is still set to true, 
@@ -160,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     foreach (var symbol in symbolGroup)
                     {
                         var syntaxContext = contextLookup(symbol);
-                        if (ShouldIncludeInTargetTypedCompletionList(symbol, inferredTypes.Value, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
+                        if (ShouldIncludeInTargetTypedCompletionList(symbol, syntaxContext.InferredTypes, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
                         {
                             item = item.AddTag(WellKnownTags.TargetTypeMatch);
                             break;
@@ -275,20 +274,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 using (var telemetryCounter = new TelemetryCounter(ShouldCollectTelemetryForTargetTypeCompletion && IsTargetTypeCompletionFilterExperimentEnabled(document.Project.Solution.Workspace)))
                 {
                     var syntaxContext = await GetOrCreateContextAsync(document, position, cancellationToken).ConfigureAwait(false);
-                    var inferredTypes = new Lazy<ImmutableArray<ITypeSymbol>>(() =>
-                    {
-                        var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
-                        return typeInferenceService.InferTypes(syntaxContext.SemanticModel, position, cancellationToken);
-                    });
 
-                    var regularItems = await GetItemsWorkerAsync(completionContext, syntaxContext, document, position, inferredTypes, options, preselect: false, telemetryCounter, cancellationToken).ConfigureAwait(false);
+                    var regularItems = await GetItemsWorkerAsync(completionContext, syntaxContext, document, position, options, preselect: false, telemetryCounter, cancellationToken).ConfigureAwait(false);
                     completionContext.AddItems(regularItems);
 
                     // We may or may not want to provide preselected items based on context. For example, C# avoids provide providing preselected items when
                     // triggered via text insertion in an argument list.
-                    if (await ShouldProvidePreselectedItemsAsync(completionContext, syntaxContext, document, position, inferredTypes, options).ConfigureAwait(false))
+                    if (await ShouldProvidePreselectedItemsAsync(completionContext, syntaxContext, document, position, options).ConfigureAwait(false))
                     {
-                        var preselectedItems = await GetItemsWorkerAsync(completionContext, syntaxContext, document, position, inferredTypes, options, preselect: true, telemetryCounter, cancellationToken).ConfigureAwait(false);
+                        var preselectedItems = await GetItemsWorkerAsync(completionContext, syntaxContext, document, position, options, preselect: true, telemetryCounter, cancellationToken).ConfigureAwait(false);
                         completionContext.AddItems(preselectedItems);
                     }
                 }
@@ -302,22 +296,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// <summary>
         /// The decision for whether to provide preselected items can be contextual, e.g. based on trigger character and syntax location
         /// </summary>
-        protected virtual Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options)
+        protected virtual Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, OptionSet options)
             => SpecializedTasks.True;
 
         private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
             CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position,
-            Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options, bool preselect,
-            TelemetryCounter telemetryCounter, CancellationToken cancellationToken)
+            OptionSet options, bool preselect, TelemetryCounter telemetryCounter, CancellationToken cancellationToken)
         {
             var relatedDocumentIds = GetRelatedDocumentIds(document, position);
-
             options = GetUpdatedRecommendationOptions(options, document.Project.Language);
 
             if (relatedDocumentIds.IsEmpty)
             {
                 var itemsForCurrentDocument = await GetSymbolsAsync(position, preselect, syntaxContext, options, cancellationToken).ConfigureAwait(false);
-                return CreateItems(completionContext, itemsForCurrentDocument, _ => syntaxContext, invalidProjectMap: null, totalProjects: null, preselect, inferredTypes, telemetryCounter);
+                return CreateItems(completionContext, itemsForCurrentDocument, _ => syntaxContext, invalidProjectMap: null, totalProjects: null, preselect, telemetryCounter);
             }
 
             var contextAndSymbolLists = await GetPerContextSymbolsAsync(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
@@ -325,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(symbolToContextMap, contextAndSymbolLists);
             var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
 
-            return CreateItems(completionContext, symbolToContextMap.Keys, symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects, preselect, inferredTypes, telemetryCounter);
+            return CreateItems(completionContext, symbolToContextMap.Keys, symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects, preselect, telemetryCounter);
         }
 
         private static ImmutableArray<DocumentId> GetRelatedDocumentIds(Document document, int position)

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 context.SemanticModel, position, context.Workspace, options, cancellationToken);
         }
 
-        protected override async Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options)
+        protected override async Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, OptionSet options)
         {
             var sourceText = await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
             if (ShouldTriggerInArgumentLists(sourceText, options))

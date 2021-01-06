@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var recommender = context.GetLanguageService<IRecommendationService>();
             var typeInferrer = context.GetLanguageService<ITypeInferenceService>();
 
-            var inferredTypes = typeInferrer.InferTypes(context.SemanticModel, position, cancellationToken)
-                .Where(t => t.SpecialType != SpecialType.System_Void)
-                .ToSet();
+            var inferredTypes = context.InferredTypes.Where(t => t.SpecialType != SpecialType.System_Void).ToSet();
             if (inferredTypes.Count == 0)
             {
                 return ImmutableArray<ISymbol>.Empty;
