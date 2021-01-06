@@ -3,10 +3,10 @@ parameters:
     type: string
     default: 'Debug'
   - name: oop64bit
-    type: bool
+    type: boolean
     default: true
   - name: lspEditor
-    type: bool
+    type: boolean
     default: false
 
 steps:
