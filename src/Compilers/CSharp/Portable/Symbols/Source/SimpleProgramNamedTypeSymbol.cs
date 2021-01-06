@@ -217,7 +217,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                               instanceInitializers: ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>>.Empty,
                                               indexerDeclarations: ImmutableArray<SyntaxReference>.Empty,
                                               staticInitializersSyntaxLength: 0,
-                                              instanceInitializersSyntaxLength: 0);
+                                              instanceInitializersSyntaxLength: 0,
+                                              isNullableEnabledForInstanceConstructorsAndFields: false,
+                                              isNullableEnabledForStaticConstructorsAndFields: false);
         }
 
         public override bool IsImplicitlyDeclared => false;
