@@ -3,6 +3,7 @@
 
 # User-specific files
 *.suo
+*.svclog
 *.user
 *.userprefs
 *.sln.docstates

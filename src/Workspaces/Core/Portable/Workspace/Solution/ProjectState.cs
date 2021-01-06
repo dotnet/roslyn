@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis
             return _lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(sourceFilePath);
         }
 
-        private sealed class WorkspaceAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
+        internal sealed class WorkspaceAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
         {
             private readonly ProjectState _projectState;
 
@@ -301,6 +301,12 @@ namespace Microsoft.CodeAnalysis
             {
                 // TODO: correctly find the file path, since it looks like we give this the document's .Name under the covers if we don't have one
                 return new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(textFile.Path));
+            }
+
+            public AnalyzerConfigOptions GetOptionsForSourcePath(string path)
+            {
+                // TODO: correctly find the file path, since it looks like we give this the document's .Name under the covers if we don't have one
+                return new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(path));
             }
 
             private sealed class WorkspaceAnalyzerConfigOptions : AnalyzerConfigOptions
