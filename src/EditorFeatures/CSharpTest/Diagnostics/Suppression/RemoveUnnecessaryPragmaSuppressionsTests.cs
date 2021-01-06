@@ -1284,7 +1284,6 @@ class Class
 }");
         }
 
-
         public sealed class NonLocalDiagnosticsAnalyzerTests : RemoveUnnecessaryInlineSuppressionsTests
         {
             public NonLocalDiagnosticsAnalyzerTests(ITestOutputHelper logger)
@@ -1297,7 +1296,6 @@ class Class
                 public const string DiagnosticId = "NonLocalDiagnosticId";
                 public static readonly DiagnosticDescriptor Descriptor =
                     new(DiagnosticId, "NonLocalDiagnosticTitle", "NonLocalDiagnosticMessage", "NonLocalDiagnosticCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
-
 
                 public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
 
