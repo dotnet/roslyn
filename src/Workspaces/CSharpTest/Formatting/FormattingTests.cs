@@ -9780,5 +9780,61 @@ class A
     }
 }", changedOptionSet: changingOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(49725, "https://github.com/dotnet/roslyn/discussions/49725")]
+        public async Task NewLinesForBraces_RecordWithInitializer_Default()
+        {
+            await AssertFormatAsync(
+                @"
+record R(int X);
+class C {
+    void Goo(R r) {
+        var r2 = r with
+        {
+            X = 0
+        };
+    }
+}",
+                @"
+record R(int X);
+class C {
+    void Goo(R r) {
+        var r2 = r with {
+            X = 0
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(49725, "https://github.com/dotnet/roslyn/discussions/49725")]
+        public async Task NewLinesForBraces_RecordWithInitializer_NonDefault()
+        {
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
+            };
+            await AssertFormatAsync(
+                @"
+record R(int X);
+class C {
+    void Goo(R r) {
+        var r2 = r with {
+            X = 0
+        };
+    }
+}",
+                @"
+record R(int X);
+class C {
+    void Goo(R r) {
+        var r2 = r with
+        {
+            X = 0
+        };
+    }
+}", changedOptionSet: changingOptions);
+        }
     }
 }
