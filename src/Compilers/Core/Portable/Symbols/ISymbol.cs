@@ -58,36 +58,34 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         string MetadataName { get; }
 
-#nullable disable // Skipped for now https://github.com/dotnet/roslyn/issues/39166
         /// <summary>
         /// Gets the <see cref="ISymbol"/> for the immediately containing symbol.
         /// </summary>
-        ISymbol ContainingSymbol { get; }
+        ISymbol? ContainingSymbol { get; }
 
         /// <summary>
         /// Gets the <see cref="IAssemblySymbol"/> for the containing assembly. Returns null if the
         /// symbol is shared across multiple assemblies.
         /// </summary>
-        IAssemblySymbol ContainingAssembly { get; }
+        IAssemblySymbol? ContainingAssembly { get; }
 
         /// <summary>
         /// Gets the <see cref="IModuleSymbol"/> for the containing module. Returns null if the
         /// symbol is shared across multiple modules.
         /// </summary>
-        IModuleSymbol ContainingModule { get; }
+        IModuleSymbol? ContainingModule { get; }
 
         /// <summary>
         /// Gets the <see cref="INamedTypeSymbol"/> for the containing type. Returns null if the
         /// symbol is not contained within a type.
         /// </summary>
-        INamedTypeSymbol ContainingType { get; }
+        INamedTypeSymbol? ContainingType { get; }
 
         /// <summary>
         /// Gets the <see cref="INamespaceSymbol"/> for the nearest enclosing namespace. Returns null if the
         /// symbol isn't contained in a namespace.
         /// </summary>
-        INamespaceSymbol ContainingNamespace { get; }
-#nullable enable
+        INamespaceSymbol? ContainingNamespace { get; }
 
         /// <summary>
         /// Gets a value indicating whether the symbol is the original definition. Returns false

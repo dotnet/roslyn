@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -363,7 +364,7 @@ namespace Microsoft.CodeAnalysis
                     _builder = builder;
                 }
 
-                private ReferenceGenerator GetReferenceGenerator(ISymbol typeParameterContext)
+                private ReferenceGenerator GetReferenceGenerator(ISymbol? typeParameterContext)
                 {
                     if (_referenceGenerator == null || _referenceGenerator.TypeParameterContext != typeParameterContext)
                     {
@@ -1275,6 +1276,7 @@ namespace Microsoft.CodeAnalysis
                                         parameters.Clear();
                                     }
 
+                                    Debug.Assert(propertySymbol.ContainingSymbol is not null);
                                     if (ParseParameterList(id, ref index, compilation, propertySymbol.ContainingSymbol, parameters)
                                         && AllParametersMatch(propertySymbol.Parameters, parameters))
                                     {
@@ -1367,9 +1369,11 @@ namespace Microsoft.CodeAnalysis
 
             private static ITypeParameterSymbol GetNthTypeParameter(INamedTypeSymbol typeSymbol, int n)
             {
+                Debug.Assert(n >= 0);
                 var containingTypeParameterCount = GetTypeParameterCount(typeSymbol.ContainingType);
                 if (n < containingTypeParameterCount)
                 {
+                    Debug.Assert(typeSymbol.ContainingType is not null);
                     return GetNthTypeParameter(typeSymbol.ContainingType, n);
                 }
 
@@ -1377,7 +1381,7 @@ namespace Microsoft.CodeAnalysis
                 return typeSymbol.TypeParameters[index];
             }
 
-            private static int GetTypeParameterCount(INamedTypeSymbol typeSymbol)
+            private static int GetTypeParameterCount(INamedTypeSymbol? typeSymbol)
             {
                 if (typeSymbol == null)
                 {
