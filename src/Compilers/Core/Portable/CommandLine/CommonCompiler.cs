@@ -1307,7 +1307,7 @@ namespace Microsoft.CodeAnalysis
 
             void createArtifactStream(string hint, Action<Stream> callback)
             {
-                CreateFileStream(diagnostics, hint, Arguments.GeneratedArtifactsOutputDirectory, out var path, out var fileStream);
+                CreateFileStream(diagnostics, Arguments.GeneratedArtifactsOutputDirectory, hint, out var path, out var fileStream);
                 if (fileStream is not null)
                 {
                     using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);

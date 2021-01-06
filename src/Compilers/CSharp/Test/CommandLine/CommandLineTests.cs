@@ -12932,6 +12932,213 @@ key7 = value7");
 
         #endregion
 
+        #region Artifact Producer tests
+
+        [Fact]
+        public void ArtifactProducer_WriteGeneratedSources()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileArtifactProducer(generatedSource, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: generator);
+
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource } } } });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void ArtifactProducer_OverwriteGeneratedSources()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource1 = "class D { } class E { }";
+            var generator1 = new SingleFileArtifactProducer(generatedSource1, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { generator1 });
+
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator1);
+            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource1 } } } });
+
+            var generatedSource2 = "public class D { }";
+            var generator2 = new SingleFileArtifactProducer(generatedSource2, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { generator2 });
+
+            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource2 } } } });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Theory]
+        [InlineData("partial class D {}", "file1.cs", "partial class E {}", "file2.cs")] // different files, different names
+        [InlineData("partial class D {}", "file1.cs", "partial class E {}", "file1.cs")] // different files, same names
+        [InlineData("partial class D {}", "file1.cs", "partial class D {}", "file2.cs")] // same files, different names
+        [InlineData("partial class D {}", "file1.cs", "partial class D {}", "file1.cs")] // same files, same names
+        [InlineData("partial class D {}", "file1.cs", "", "file2.cs")] // empty second file
+        public void ArtifactProducer_WriteGeneratedSources_MultipleFiles(string source1, string source1Name, string source2, string source2Name)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generator = new SingleFileArtifactProducer(source1, source1Name);
+            var generator2 = new SingleFileArtifactProducer2(source2, source2Name);
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { generator, generator2 });
+
+            var generator1Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+            var generator2Prefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator2);
+
+            ValidateWrittenSources(new()
+            {
+                { Path.Combine(generatedDir.Path, generator1Prefix), new() { { source1Name, source1 } } },
+                { Path.Combine(generatedDir.Path, generator2Prefix), new() { { source2Name, source2 } } }
+            });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void ArtifactProducer_DoNotWriteGeneratedSources_When_No_Directory_Supplied()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileArtifactProducer(generatedSource, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { generator });
+            ValidateWrittenSources(new() { { generatedDir.Path, new() } });
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void ArtifactProducer_Error_When_GeneratedDir_NotExist()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+
+            var generatedDirPath = Path.Combine(dir.Path, "noexist");
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileArtifactProducer(generatedSource, "generatedSource.cs");
+
+            var output = VerifyOutput(dir, src, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDirPath, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { generator });
+            Assert.Contains("CS0016:", output);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void ArtifactProducer_Error_When_NoDirectoryArgumentGiven()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var output = VerifyOutput(dir, src, expectedErrorCount: 2, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:", "/langversion:preview", "/out:embed.exe" });
+            Assert.Contains("error CS2006: Command-line syntax error: Missing '<text>' for '/generatedartifactsout:' option", output);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void ArtifactProducer_ReportedWrittenFiles_To_TouchedFilesLogger()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileArtifactProducer(generatedSource, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, $"/touchedfiles:{dir.Path}/touched", "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { generator });
+
+            var touchedFiles = Directory.GetFiles(dir.Path, "touched*");
+            Assert.Equal(2, touchedFiles.Length);
+
+            string[] writtenText = File.ReadAllLines(Path.Combine(dir.Path, "touched.write"));
+            Assert.Equal(2, writtenText.Length);
+            Assert.EndsWith("EMBED.EXE", writtenText[0], StringComparison.OrdinalIgnoreCase);
+            Assert.EndsWith("GENERATEDSOURCE.CS", writtenText[1], StringComparison.OrdinalIgnoreCase);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44087")]
+        public void ArtifactProducersAndAnalyzerConfig()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText(@"
+[*.cs]
+key = value");
+
+            var generator = new SingleFileArtifactProducer("public class D {}", "generated.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path }, analyzers: new[] { generator });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ArtifactProducersRunRegardlessOfLanguageVersion(LanguageVersion version)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"class C {}");
+            var generator = new CallbackArtifactProducer(i => { }, e => throw null);
+
+            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:" + version.ToDisplayString() }, analyzers: new[] { generator }, expectedWarningCount: 1, expectedErrorCount: 1, expectedExitCode: 0);
+            Assert.Contains("CS8785: Generator 'CallbackGenerator' failed to generate source.", output);
+        }
+
+        #endregion
+
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         private sealed class FieldAnalyzer : DiagnosticAnalyzer
         {

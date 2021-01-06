@@ -391,6 +391,12 @@ namespace Microsoft.CodeAnalysis
             return Path.Combine(type.Assembly.GetName().Name ?? string.Empty, type.FullName!);
         }
 
+        internal static string GetFilePathPrefixForGenerator(ArtifactProducer producer)
+        {
+            var type = producer.GetType();
+            return Path.Combine(type.Assembly.GetName().Name ?? string.Empty, type.FullName!);
+        }
+
         internal abstract CommonMessageProvider MessageProvider { get; }
 
         internal abstract GeneratorDriver FromState(GeneratorDriverState state);
