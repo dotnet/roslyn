@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
@@ -12,17 +11,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         /// <summary>
         /// Includes prefix, signature, suffix.
         /// </summary>
-        public readonly string Signature;
+        public readonly string? Signature;
 
         /// <summary>
         /// The method xml documentation.
         /// </summary>
-        public readonly string MethodDocumentation;
+        public readonly string? MethodDocumentation;
 
         /// <summary>
         /// The (currently selected/expected) parameter documentation. This can be null.
         /// </summary>
-        public readonly string ParameterDocumentation;
+        public readonly string? ParameterDocumentation;
 
         /// <summary>
         /// The currently selected parameter index. For some reason it can be null.
@@ -35,12 +34,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         /// Anonymous Types:
         ///     'a is new { string Name, int Age }
         /// </summary>
-        public readonly string Description;
+        public readonly string? Description;
 
         /// <summary>
         /// Includes prefix, signature, suffix in pretty-printed form (i.e. when the signature wraps).
         /// </summary>
-        public readonly string PrettyPrintedSignature;
+        public readonly string? PrettyPrintedSignature;
 
         /// <summary>
         /// Whether this item is expected to be selected.
@@ -51,17 +50,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         /// <summary>
         /// The classification spans for the method documentation
         /// </summary>
-        public readonly IEnumerable<string> ClassificationTypeNames;
+        public readonly IEnumerable<string>? ClassificationTypeNames;
 
         public SignatureHelpTestItem(
-            string signature,
-            string methodDocumentation = null,
-            string parameterDocumentation = null,
+            string? signature,
+            string? methodDocumentation = null,
+            string? parameterDocumentation = null,
             int? currentParameterIndex = null,
-            string description = null,
-            string prettyPrintedSignature = null,
+            string? description = null,
+            string? prettyPrintedSignature = null,
             bool isSelected = false,
-            IEnumerable<string> classificationTypeNames = null)
+            IEnumerable<string>? classificationTypeNames = null)
         {
             this.Signature = signature;
             this.MethodDocumentation = methodDocumentation;
