@@ -1208,6 +1208,156 @@ class C
         }
 
         [Fact]
+        public void SwitchExpressionWithLambda1()
+        {
+            string source = WithWindowsLineBreaks(@"
+using System;
+
+class C
+{
+    static string M(object o)
+    {
+        return o switch
+        {
+            int i => new Func<string>(() => $""Number: {i} + {o} == {i + (int)o}"")(),
+            _ => ""Don't know""
+        };
+    }
+}
+");
+
+            // we just want this to compile without crashing/asserting
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("C.M",
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""M"" parameterNames=""o"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""30"" offset=""0"" />
+          <slot kind=""30"" offset=""20"" />
+          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <closure offset=""0"" />
+          <closure offset=""20"" />
+          <lambda offset=""83"" closure=""1"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0xd"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xe"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1e"" startLine=""8"" startColumn=""18"" endLine=""12"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x47"" hidden=""true"" document=""1"" />
+        <entry offset=""0x49"" hidden=""true"" document=""1"" />
+        <entry offset=""0x4b"" startLine=""10"" startColumn=""22"" endLine=""10"" endColumn=""84"" document=""1"" />
+        <entry offset=""0x5f"" startLine=""11"" startColumn=""18"" endLine=""11"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x67"" hidden=""true"" document=""1"" />
+        <entry offset=""0x6a"" startLine=""8"" startColumn=""9"" endLine=""12"" endColumn=""11"" document=""1"" />
+        <entry offset=""0x6b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x6f"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x71"">
+        <namespace name=""System"" />
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x71"" attributes=""0"" />
+        <scope startOffset=""0xe"" endOffset=""0x6f"">
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0xe"" il_end=""0x6f"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void SwitchExpressionWithLambda2()
+        {
+            string source = WithWindowsLineBreaks(@"
+using System;
+
+class C
+{
+    static string M(object o)
+    {
+        return o switch
+        {
+            int i when new Func<string>(() => $""Number: {i} + {o} == {i + (int)o}"")() != null => $""Definitely a number: {i}"",
+            int i => new Func<string>(() => $""Number: {i} + {o} == {i + (int)o}"")(),
+            _ => ""Don't know""
+        };
+    }
+}
+");
+
+            // we just want this to compile without crashing/asserting
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("C.M",
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""M"" parameterNames=""o"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""30"" offset=""0"" />
+          <slot kind=""30"" offset=""20"" />
+          <slot kind=""temp"" />
+          <slot kind=""35"" offset=""20"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <closure offset=""0"" />
+          <closure offset=""20"" />
+          <lambda offset=""85"" closure=""1"" />
+          <lambda offset=""210"" closure=""1"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0xd"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xe"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""8"" startColumn=""18"" endLine=""13"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x41"" startLine=""10"" startColumn=""19"" endLine=""10"" endColumn=""94"" document=""1"" />
+        <entry offset=""0x54"" hidden=""true"" document=""1"" />
+        <entry offset=""0x56"" startLine=""10"" startColumn=""98"" endLine=""10"" endColumn=""125"" document=""1"" />
+        <entry offset=""0x6e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7c"" startLine=""11"" startColumn=""22"" endLine=""11"" endColumn=""84"" document=""1"" />
+        <entry offset=""0x90"" startLine=""12"" startColumn=""18"" endLine=""12"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x98"" hidden=""true"" document=""1"" />
+        <entry offset=""0x9b"" startLine=""8"" startColumn=""9"" endLine=""13"" endColumn=""11"" document=""1"" />
+        <entry offset=""0x9c"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa1"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xa4"">
+        <namespace name=""System"" />
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0xa4"" attributes=""0"" />
+        <scope startOffset=""0xe"" endOffset=""0xa1"">
+          <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0xe"" il_end=""0xa1"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
         public void UsingStatement1()
         {
             string source = WithWindowsLineBreaks(@"
