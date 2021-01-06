@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
@@ -46,8 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override async Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options)
         {
-            var sourceText = await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
-            if (ShouldTriggerInArgumentLists(sourceText, options))
+            if (ShouldTriggerInArgumentLists(options))
             {
                 // Avoid preselection & hard selection when triggered via insertion in an argument list.
                 // If an item is hard selected, then a user trying to type MethodCall() will get
@@ -68,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
-            return ShouldTriggerInArgumentLists(text, options)
+            return ShouldTriggerInArgumentLists(options)
                 ? CompletionUtilities.IsTriggerCharacterOrArgumentListCharacter(text, characterPosition, options)
                 : CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
@@ -83,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return result.Value;
                 }
 
-                if (ShouldTriggerInArgumentLists(document.Project.Solution.Workspace, await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)))
+                if (ShouldTriggerInArgumentLists(await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)))
                 {
                     result = await IsTriggerInArgumentListAsync(document, caretPosition - 1, cancellationToken).ConfigureAwait(false);
                     if (result.HasValue)
@@ -110,28 +108,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return true;
         }
 
-        private bool ShouldTriggerInArgumentLists(SourceText text, OptionSet options)
-            => Workspace.TryGetWorkspace(text.Container, out var workspace) &&
-                ShouldTriggerInArgumentLists(workspace, options);
-
-        private bool? _shouldTriggerCompletionInArgumentListsExperiment = null;
-
-        private bool ShouldTriggerInArgumentLists(Workspace workspace, OptionSet options)
+        private static bool ShouldTriggerInArgumentLists(OptionSet options)
         {
             var isTriggerInArgumentListOptionEnabled = options.GetOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp);
-            if (isTriggerInArgumentListOptionEnabled != null)
+            if (isTriggerInArgumentListOptionEnabled.HasValue)
             {
                 return isTriggerInArgumentListOptionEnabled.Value;
             }
 
-            if (_shouldTriggerCompletionInArgumentListsExperiment == null)
-            {
-                var experimentationService = workspace.Services.GetService<IExperimentationService>();
-                _shouldTriggerCompletionInArgumentListsExperiment =
-                    experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TriggerCompletionInArgumentLists);
-            }
-
-            return _shouldTriggerCompletionInArgumentListsExperiment.Value;
+            return true;
         }
 
         private static async Task<bool?> IsTriggerOnDotAsync(Document document, int characterPosition, CancellationToken cancellationToken)
