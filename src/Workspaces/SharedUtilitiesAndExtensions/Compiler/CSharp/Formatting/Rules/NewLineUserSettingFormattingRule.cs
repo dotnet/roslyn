@@ -315,8 +315,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // with { - Record with initializer
             if (currentToken.Kind() == SyntaxKind.OpenBraceToken &&
                 (currentToken.Parent.Kind() == SyntaxKind.ObjectInitializerExpression ||
-                currentToken.Parent.Kind() == SyntaxKind.CollectionInitializerExpression) ||
-                currentToken.Parent.Kind() == SyntaxKind.WithInitializerExpression)
+                currentToken.Parent.Kind() == SyntaxKind.CollectionInitializerExpression ||
+                currentToken.Parent.Kind() == SyntaxKind.WithInitializerExpression))
             {
                 if (_options.NewLinesForBracesInObjectCollectionArrayInitializers)
                 {
