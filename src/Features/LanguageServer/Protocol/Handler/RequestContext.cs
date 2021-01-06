@@ -24,18 +24,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache,
             IDocumentChangeTracker? documentChangeTracker)
         {
-            // This method asks the solution provider for a solution, and then updates it based on the state of the world
-            // as we know it. You may look at this and think "why doesn't the solution provider keep track of the state
-            // then it can just provide the right solutions" and at first glance that is appealing, but there are two big
-            // benefits to this queue tracking documents separately:
-            //
-            // 1. Since this queue manages the execution of handlers, we can ensure that the document state tracker
-            //    is only used from mutating request handlers, or outside of any handlers, and therefore we know
-            //    that calls to it cannot overlap, and it doesn't have to worry about threading.
-            //
-            // 2. We specifically only want the updated solution at the start of a request. If the solution provider
-            //    handed out "the right" solution, then a request could ask it for something at the start of processing
-            //    and at the end of processing, and get different results each time.
+            // Go through each registered workspace, find the solution that contains the document that
+            // this request is for, and then updates it based on the state of the world as we know it, based on the
+            // text content in the document change tracker.
 
             // Assume the first workspace registered is the main one
             var workspaceSolution = lspWorkspaceRegistrationService.GetAllRegistrations().First().CurrentSolution;
