@@ -142,7 +142,7 @@ class Program
             var expectedToolTip = new ContainerElement(
                 ContainerElementStyle.Wrapped,
                 new ClassifiedTextElement(
-                    new ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0005"),
+                    new ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0005", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri("https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005", UriKind.Absolute)), "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005"),
                     new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
                     new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                     new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpAnalyzersResources.Using_directive_is_unnecessary)));
