@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable disable
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 {
@@ -47,6 +48,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         /// </summary>
         public readonly bool IsSelected;
 
+        /// <summary>
+        /// The classification spans for the method documentation
+        /// </summary>
+        public readonly IEnumerable<string> ClassificationTypeNames;
+
         public SignatureHelpTestItem(
             string signature,
             string methodDocumentation = null,
@@ -54,7 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             int? currentParameterIndex = null,
             string description = null,
             string prettyPrintedSignature = null,
-            bool isSelected = false)
+            bool isSelected = false,
+            IEnumerable<string> classificationTypeNames = null)
         {
             this.Signature = signature;
             this.MethodDocumentation = methodDocumentation;
@@ -63,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             this.Description = description;
             this.PrettyPrintedSignature = prettyPrintedSignature;
             this.IsSelected = isSelected;
+            this.ClassificationTypeNames = classificationTypeNames;
         }
     }
 }

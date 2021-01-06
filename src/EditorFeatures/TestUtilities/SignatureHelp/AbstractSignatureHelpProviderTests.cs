@@ -12,6 +12,7 @@ using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -20,6 +21,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -241,6 +243,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             if (expectedTestItem.Description != null)
             {
                 Assert.Equal(expectedTestItem.Description, ToString(actualSignatureHelpItem.DescriptionParts));
+            }
+
+            // Always get and realise the classified spans, even if no expected spans are passed in, to at least validate that
+            // exceptions aren't thrown
+            var classifiedSpans = actualSignatureHelpItem.DocumentationFactory(CancellationToken.None).ToClassifiedSpans().ToList();
+            if (expectedTestItem.ClassificationTypeNames != null)
+            {
+                Assert.Equal(string.Join(", ", expectedTestItem.ClassificationTypeNames), string.Join(", ", classifiedSpans.Select(s => s.ClassificationType)));
             }
         }
 
