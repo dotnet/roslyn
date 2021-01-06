@@ -217,7 +217,7 @@
       "nugetKind": [ "Shipping", "NonShipping" ],
       "version": "3.10.*",
       "packageFeeds": "default",
-      "channels": [ "dev16.10p1" ],
+      "channels": [ "dev16.10", "dev16.10p1" ],
       "vsBranch": "main",
       "vsMajorVersion": 16
     },
