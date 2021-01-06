@@ -189,4 +189,7 @@
   <data name="FeatureName_AssetSynchronization" xml:space="preserve">
     <value>Asset synchronization</value>
   </data>
+  <data name="FeatureName_SolutionAssetProvider" xml:space="preserve">
+    <value>Asset provider</value>
+  </data>
 </root>

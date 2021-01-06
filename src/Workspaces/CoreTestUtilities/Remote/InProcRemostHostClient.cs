@@ -109,15 +109,19 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             => _inprocServices.RegisterService(serviceName, serviceCreator);
 
         public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget) where T : class
-            => new BrokeredServiceConnection<T>(
+        {
+            var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(T), isRemoteHost64Bit: IntPtr.Size == 8, isRemoteHostServerGC: GCSettings.IsServerGC);
+            var callbackDispatcher = (descriptor.ClientInterface != null) ? _callbackDispatchers.GetDispatcher(typeof(T)) : null;
+
+            return new BrokeredServiceConnection<T>(
+                descriptor,
                 callbackTarget,
-                _callbackDispatchers,
+                callbackDispatcher,
                 _inprocServices.ServiceBrokerClient,
                 _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage,
                 _workspaceServices.GetRequiredService<IErrorReportingService>(),
-                shutdownCancellationService: null,
-                isRemoteHost64Bit: IntPtr.Size == 8,
-                isRemoteHostServerGC: GCSettings.IsServerGC);
+                shutdownCancellationService: null);
+        }
 
         public override async Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
@@ -270,7 +274,6 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteDependentTypeFinderService.Factory());
                 RegisterRemoteBrokeredService(new RemoteGlobalNotificationDeliveryService.Factory());
                 RegisterRemoteBrokeredService(new RemoteCodeLensReferencesService.Factory());
-                RegisterService(WellKnownServiceHubService.RemoteLanguageServer, (s, p, o) => new RemoteLanguageServer(s, p));
             }
 
             public void Dispose()
@@ -298,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
             public void RegisterRemoteBrokeredService(BrokeredServiceBase.IFactory serviceFactory)
             {
-                var moniker = ServiceDescriptors.GetServiceDescriptor(serviceFactory.ServiceType, isRemoteHost64Bit: IntPtr.Size == 8, isRemoteHostServerGC: GCSettings.IsServerGC).Moniker;
+                var moniker = ServiceDescriptors.Instance.GetServiceDescriptorForServiceFactory(serviceFactory.ServiceType).Moniker;
                 _remoteBrokeredServicesMap.Add(moniker, serviceFactory);
             }
 

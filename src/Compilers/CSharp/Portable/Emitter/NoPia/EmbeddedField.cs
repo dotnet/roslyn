@@ -10,17 +10,15 @@ using Microsoft.CodeAnalysis.Emit;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeGen;
 
+#if !DEBUG
+using FieldSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.FieldSymbol;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedField : EmbeddedTypesManager.CommonEmbeddedField
     {
-        public EmbeddedField(EmbeddedType containingType,
-#if DEBUG
-            FieldSymbolAdapter
-#else
-            FieldSymbol
-#endif
-                underlyingField) :
+        public EmbeddedField(EmbeddedType containingType, FieldSymbolAdapter underlyingField) :
             base(containingType, underlyingField)
         {
         }

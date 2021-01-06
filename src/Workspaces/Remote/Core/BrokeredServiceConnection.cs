@@ -50,27 +50,23 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly IRemoteServiceCallbackDispatcher? _callbackDispatcher;
 
         public BrokeredServiceConnection(
+            ServiceDescriptor serviceDescriptor,
             object? callbackTarget,
-            RemoteServiceCallbackDispatcherRegistry callbackDispatchers,
+            IRemoteServiceCallbackDispatcher? callbackDispatcher,
             ServiceBrokerClient serviceBrokerClient,
             SolutionAssetStorage solutionAssetStorage,
             IErrorReportingService? errorReportingService,
-            IRemoteHostClientShutdownCancellationService? shutdownCancellationService,
-            bool isRemoteHost64Bit,
-            bool isRemoteHostServerGC)
+            IRemoteHostClientShutdownCancellationService? shutdownCancellationService)
         {
+            Contract.ThrowIfFalse((callbackDispatcher == null) == (serviceDescriptor.ClientInterface == null));
+
+            _serviceDescriptor = serviceDescriptor;
             _serviceBrokerClient = serviceBrokerClient;
             _solutionAssetStorage = solutionAssetStorage;
             _errorReportingService = errorReportingService;
             _shutdownCancellationService = shutdownCancellationService;
-
-            _serviceDescriptor = ServiceDescriptors.GetServiceDescriptor(typeof(TService), isRemoteHost64Bit, isRemoteHostServerGC);
-
-            if (_serviceDescriptor.ClientInterface != null)
-            {
-                _callbackDispatcher = callbackDispatchers.GetDispatcher(typeof(TService));
-                _callbackHandle = _callbackDispatcher.CreateHandle(callbackTarget);
-            }
+            _callbackDispatcher = callbackDispatcher;
+            _callbackHandle = callbackDispatcher?.CreateHandle(callbackTarget) ?? default;
         }
 
         public override void Dispose()
@@ -271,6 +267,12 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        /// <param name="service">The service instance.</param>
+        /// <param name="invocation">A callback to asynchronously write data. The callback is required to complete the
+        /// <see cref="PipeWriter"/> except in cases where the callback throws an exception.</param>
+        /// <param name="reader">A callback to asynchronously read data. The callback is allowed, but not required, to
+        /// complete the <see cref="PipeReader"/>.</param>
+        /// <param name="cancellationToken">A cancellation token the operation will observe.</param>
         internal static async ValueTask<TResult> InvokeStreamingServiceAsync<TResult>(
             TService service,
             Func<TService, PipeWriter, CancellationToken, ValueTask> invocation,
@@ -304,6 +306,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }, mustNotCancelToken);
 
+            // Create a separate cancellation token for the reader, which we keep open until after the call to invoke
+            // completes. If we close the reader before cancellation is processed by the remote call, it might block
+            // (deadlock) while writing to a stream which is no longer processing data.
+            using var readerCancellationSource = new CancellationTokenSource();
+
+            // Make sure the reader is cancelled if the writer completes abnormally
+            readerCancellationSource.CancelOnAbnormalCompletion(writerTask);
+
             var readerTask = Task.Run(
                 async () =>
                 {
@@ -311,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     try
                     {
-                        return await reader(pipe.Reader, cancellationToken).ConfigureAwait(false);
+                        return await reader(pipe.Reader, readerCancellationSource.Token).ConfigureAwait(false);
                     }
                     catch (Exception e) when ((exception = e) == null)
                     {
@@ -321,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         await pipe.Reader.CompleteAsync(exception).ConfigureAwait(false);
                     }
-                }, mustNotCancelToken);
+                }, readerCancellationSource.Token);
 
             await Task.WhenAll(writerTask, readerTask).ConfigureAwait(false);
 
@@ -347,7 +357,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             // report telemetry event:
-            Logger.Log(FunctionId.FeatureNotAvailable, $"{ServiceDescriptors.GetServiceName(typeof(TService))}: {exception.GetType()}: {exception.Message}");
+            Logger.Log(FunctionId.FeatureNotAvailable, $"{_serviceDescriptor.Moniker}: {exception.GetType()}: {exception.Message}");
 
             return FatalError.ReportAndCatch(exception);
         }
@@ -385,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             string message;
             Exception? internalException = null;
-            var featureName = ServiceDescriptors.GetFeatureName(typeof(TService));
+            var featureName = _serviceDescriptor.GetFeatureDisplayName();
 
             if (IsRemoteIOException(exception))
             {

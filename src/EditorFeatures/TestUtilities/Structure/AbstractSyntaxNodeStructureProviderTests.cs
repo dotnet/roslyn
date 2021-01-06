@@ -7,7 +7,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 using Xunit;
 
@@ -40,11 +40,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             }
 
             var outliner = CreateProvider();
-            var actualRegions = ArrayBuilder<BlockSpan>.GetInstance();
-            outliner.CollectBlockSpans(document, node, actualRegions, CancellationToken.None);
+            using var actualRegions = TemporaryArray<BlockSpan>.Empty;
+            var optionProvider = new BlockStructureOptionProvider(
+                document.Project.Solution.Options,
+                isMetadataAsSource: document.Project.Solution.Workspace.Kind == CodeAnalysis.WorkspaceKind.MetadataAsSource);
+            outliner.CollectBlockSpans(node, ref actualRegions.AsRef(), optionProvider, CancellationToken.None);
 
             // TODO: Determine why we get null outlining spans.
-            return actualRegions.ToImmutableAndFree();
+            return actualRegions.ToImmutableAndClear();
         }
     }
 }

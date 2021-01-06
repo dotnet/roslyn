@@ -9,6 +9,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return false;
             }
 
-            if (ch == '}' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp))
+            if (ch == '}' && !options.GetOption(BraceCompletionOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp))
             {
                 return false;
             }
@@ -255,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         {
             // User does not want auto-formatting (either in general, or for close braces in
             // specific).  So we only smart indent close braces when typed.
-            return !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace) ||
+            return !options.GetOption(BraceCompletionOptions.AutoFormattingOnCloseBrace) ||
                    !options.GetOption(FeatureOnOffOptions.AutoFormattingOnTyping);
         }
 

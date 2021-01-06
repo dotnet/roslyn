@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #If DEBUG Then
-    Partial Friend NotInheritable Class TypeParameterSymbolAdapter
+    Partial Friend Class TypeParameterSymbolAdapter
         Inherits SymbolAdapter
 #Else
     Partial Friend Class TypeParameterSymbol
@@ -22,54 +22,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements IGenericMethodParameter
         Implements IGenericTypeParameter
 
-#If DEBUG Then
-        Friend ReadOnly Property AdaptedTypeParameterSymbol As TypeParameterSymbol
-
-        Friend Sub New(underlyingTypeParameterSymbol As TypeParameterSymbol)
-            AdaptedTypeParameterSymbol = underlyingTypeParameterSymbol
-        End Sub
-
-        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
-            Get
-                Return AdaptedTypeParameterSymbol
-            End Get
-        End Property
-#Else
-        Friend ReadOnly Property AdaptedTypeParameterSymbol As TypeParameterSymbol
-            Get
-                Return Me
-            End Get
-        End Property
-#End If
-
-    End Class
-
-    Partial Friend Class TypeParameterSymbol
-#If DEBUG Then
-        Private _lazyAdapter As TypeParameterSymbolAdapter
-
-        Protected Overrides Function GetCciAdapterImpl() As SymbolAdapter
-            Return GetCciAdapter()
-        End Function
-
-        Friend Shadows Function GetCciAdapter() As TypeParameterSymbolAdapter
-            If _lazyAdapter Is Nothing Then
-                Return InterlockedOperations.Initialize(_lazyAdapter, New TypeParameterSymbolAdapter(Me))
-            End If
-
-            Return _lazyAdapter
-        End Function
-#Else
-        Friend Shadows Function GetCciAdapter() As TypeParameterSymbol
-            return Me
-        End Function
-#End If
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class TypeParameterSymbolAdapter
-#End If
         Private ReadOnly Property ITypeReferenceIsEnum As Boolean Implements ITypeReference.IsEnum
             Get
                 Return False
@@ -313,14 +265,53 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return DirectCast(AdaptedTypeParameterSymbol.ContainingSymbol, NamedTypeSymbol).GetCciAdapter()
             End Get
         End Property
-
-#If DEBUG Then
     End Class
 
     Partial Friend Class TypeParameterSymbol
+#If DEBUG Then
+        Private _lazyAdapter As TypeParameterSymbolAdapter
+
+        Protected Overrides Function GetCciAdapterImpl() As SymbolAdapter
+            Return GetCciAdapter()
+        End Function
+
+        Friend Shadows Function GetCciAdapter() As TypeParameterSymbolAdapter
+            If _lazyAdapter Is Nothing Then
+                Return InterlockedOperations.Initialize(_lazyAdapter, New TypeParameterSymbolAdapter(Me))
+            End If
+
+            Return _lazyAdapter
+        End Function
+#Else
+        Friend ReadOnly Property AdaptedTypeParameterSymbol As TypeParameterSymbol
+            Get
+                Return Me
+            End Get
+        End Property
+
+        Friend Shadows Function GetCciAdapter() As TypeParameterSymbol
+            Return Me
+        End Function
 #End If
+
         Friend Overrides Function GetUnificationUseSiteDiagnosticRecursive(owner As Symbol, ByRef checkedTypes As HashSet(Of TypeSymbol)) As DiagnosticInfo
             Return Nothing
         End Function
     End Class
+
+#If DEBUG Then
+    Partial Friend NotInheritable Class TypeParameterSymbolAdapter
+        Friend ReadOnly Property AdaptedTypeParameterSymbol As TypeParameterSymbol
+
+        Friend Sub New(underlyingTypeParameterSymbol As TypeParameterSymbol)
+            AdaptedTypeParameterSymbol = underlyingTypeParameterSymbol
+        End Sub
+
+        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
+            Get
+                Return AdaptedTypeParameterSymbol
+            End Get
+        End Property
+    End Class
+#End If
 End Namespace

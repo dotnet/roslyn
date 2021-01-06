@@ -649,6 +649,9 @@ Do you want to continue?</value>
   <data name="Unknown_error_occurred" xml:space="preserve">
     <value>Unknown error occurred</value>
   </data>
+  <data name="No_valid_location_to_insert_method_call" xml:space="preserve">
+    <value>No valid location to insert method call.</value>
+  </data>
   <data name="Available" xml:space="preserve">
     <value>Available</value>
   </data>
@@ -2809,5 +2812,20 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="The_assembly_0_containing_type_1_references_NET_Framework" xml:space="preserve">
     <value>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</value>
+  </data>
+  <data name="Error_creating_instance_of_CodeFixProvider" xml:space="preserve">
+    <value>Error creating instance of CodeFixProvider</value>
+  </data>
+  <data name="Error_creating_instance_of_CodeFixProvider_0" xml:space="preserve">
+    <value>Error creating instance of CodeFixProvider '{0}'</value>
+  </data>
+  <data name="Removal_of_document_not_supported" xml:space="preserve">
+    <value>Removal of document not supported</value>
+  </data>
+  <data name="in_0_1_2" xml:space="preserve">
+    <value>in {0} ({1} - {2})</value>
+  </data>
+  <data name="_0_dash_1" xml:space="preserve">
+    <value>{0} - {1}</value>
   </data>
 </root>

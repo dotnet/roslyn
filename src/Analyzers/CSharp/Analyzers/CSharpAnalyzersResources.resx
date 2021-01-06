@@ -299,4 +299,10 @@
   <data name="new_expression_can_be_simplified" xml:space="preserve">
     <value>'new' expression can be simplified</value>
   </data>
+  <data name="Discard_can_be_removed" xml:space="preserve">
+    <value>Discard can be removed</value>
+  </data>
+  <data name="Remove_unnessary_discard" xml:space="preserve">
+    <value>Remove unnecessary discard</value>
+  </data>
 </root>

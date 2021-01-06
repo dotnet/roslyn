@@ -29,6 +29,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             => typeof(DeclarationNameCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(48310, "https://github.com/dotnet/roslyn/issues/48310")]
+        public async Task TreatRecordPositionalParameterAsProperty()
+        {
+            var markup = @"
+public class MyClass
+{
+}
+
+public record R(MyClass $$
+";
+            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.PropertyPublic);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NameWithOnlyType1()
         {
             var markup = @"
@@ -1618,6 +1632,121 @@ public class Class1
 }
 ";
             await VerifyItemExistsAsync(markup, "nullables");
+        }
+
+        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeIsNullableStructInLocalWithNullableTypeName()
+        {
+            var markup = @"
+using System;
+
+public struct ImmutableArray<T> : System.Collections.Generic.IEnumerable<T> { }
+
+public class Class1
+{
+  public void Method()
+  {
+      Nullable<ImmutableArray<int>> $$
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "vs");
+        }
+
+        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeIsNullableStructInLocalWithQuestionMark()
+        {
+            var markup = @"
+using System.Collections.Immutable;
+
+public struct ImmutableArray<T> : System.Collections.Generic.IEnumerable<T> { }
+
+public class Class1
+{
+  public void Method()
+  {
+      ImmutableArray<int>? $$
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "vs");
+        }
+
+        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeIsNullableReferenceInLocal()
+        {
+            var markup = @"
+#nullable enable
+
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method()
+  {
+      IEnumerable<int>? $$
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "vs");
+        }
+
+        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeIsNullableStructInParameterWithNullableTypeName()
+        {
+            var markup = @"
+using System;
+
+public struct ImmutableArray<T> : System.Collections.Generic.IEnumerable<T> { }
+
+public class Class1
+{
+  public void Method(Nullable<ImmutableArray<int>> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "vs");
+        }
+
+        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeIsNullableStructInParameterWithQuestionMark()
+        {
+            var markup = @"
+public struct ImmutableArray<T> : System.Collections.Generic.IEnumerable<T> { }
+
+public class Class1
+{
+  public void Method(ImmutableArray<int>? $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "vs");
+        }
+
+        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeIsNullableReferenceInParameter()
+        {
+            var markup = @"
+#nullable enable
+
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method(IEnumerable<int>? $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "vs");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

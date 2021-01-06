@@ -36,65 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.IGenericTypeInstanceReference,
         Cci.ISpecializedNestedTypeReference
     {
-#if DEBUG
-        internal NamedTypeSymbolAdapter(NamedTypeSymbol underlyingNamedTypeSymbol)
-        {
-            AdaptedNamedTypeSymbol = underlyingNamedTypeSymbol;
-
-            if (underlyingNamedTypeSymbol is NativeIntegerTypeSymbol)
-            {
-                // Emit should use underlying symbol only.
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        internal sealed override Symbol AdaptedSymbol => AdaptedNamedTypeSymbol;
-#endif 
-
-        internal NamedTypeSymbol AdaptedNamedTypeSymbol
-#if DEBUG
-        { get; }
-#else
-        => this;
-#endif 
-    }
-
-    internal partial class NamedTypeSymbol
-    {
-#if DEBUG
-        private NamedTypeSymbolAdapter _lazyAdapter;
-
-        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
-#endif
-        internal new
-#if DEBUG
-            NamedTypeSymbolAdapter
-#else
-            NamedTypeSymbol
-#endif
-            GetCciAdapter()
-        {
-#if DEBUG
-            if (_lazyAdapter is null)
-            {
-                return InterlockedOperations.Initialize(ref _lazyAdapter, new NamedTypeSymbolAdapter(this));
-            }
-
-            return _lazyAdapter;
-#else
-            return this;
-#endif
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        NamedTypeSymbolAdapter
-#else
-        NamedTypeSymbol
-#endif
-    {
-
         bool Cci.ITypeReference.IsEnum
         {
             get { return AdaptedNamedTypeSymbol.TypeKind == TypeKind.Enum; }
@@ -370,31 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
-    }
 
-    internal partial class NamedTypeSymbol
-    {
-        internal virtual IEnumerable<EventSymbol> GetEventsToEmit()
-        {
-            CheckDefinitionInvariant();
-
-            foreach (var m in this.GetMembers())
-            {
-                if (m.Kind == SymbolKind.Event)
-                {
-                    yield return (EventSymbol)m;
-                }
-            }
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        NamedTypeSymbolAdapter
-#else
-        NamedTypeSymbol
-#endif
-    {
         IEnumerable<Cci.MethodImplementation> Cci.ITypeDefinition.GetExplicitImplementationOverrides(EmitContext context)
         {
             CheckDefinitionInvariant();
@@ -511,20 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
-    }
 
-    internal partial class NamedTypeSymbol
-    {
-        internal abstract IEnumerable<FieldSymbol> GetFieldsToEmit();
-    }
-
-    internal partial class
-#if DEBUG
-        NamedTypeSymbolAdapter
-#else
-        NamedTypeSymbol
-#endif
-    {
         IEnumerable<Cci.IGenericTypeParameter> Cci.ITypeDefinition.GenericParameters
         {
             get
@@ -574,60 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     typeRef);
             }
         }
-    }
 
-    internal partial class NamedTypeSymbol
-    {
-        /// <summary>
-        /// Gets the set of interfaces to emit on this type. This set can be different from the set returned by Interfaces property.
-        /// </summary>
-        internal abstract ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit();
-
-        protected ImmutableArray<NamedTypeSymbol> CalculateInterfacesToEmit()
-        {
-            Debug.Assert(this.IsDefinition);
-            Debug.Assert(this.ContainingModule is SourceModuleSymbol);
-
-            ArrayBuilder<NamedTypeSymbol> builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            HashSet<NamedTypeSymbol> seen = null;
-            InterfacesVisit(this, builder, ref seen);
-            return builder.ToImmutableAndFree();
-        }
-
-        /// <summary>
-        /// Add the type to the builder and then recurse on its interfaces.
-        /// </summary>
-        /// <remarks>
-        /// Pre-order depth-first search.
-        /// </remarks>
-        private static void InterfacesVisit(NamedTypeSymbol namedType, ArrayBuilder<NamedTypeSymbol> builder, ref HashSet<NamedTypeSymbol> seen)
-        {
-            // It's not clear how important the order of these interfaces is, but Dev10
-            // maintains pre-order depth-first/declaration order, so we probably should as well.
-            // That's why we're not using InterfacesAndTheirBaseInterfaces - it's an unordered set.
-            foreach (NamedTypeSymbol @interface in namedType.InterfacesNoUseSiteDiagnostics())
-            {
-                if (seen == null)
-                {
-                    // Don't allocate until we see at least one interface.
-                    seen = new HashSet<NamedTypeSymbol>(Symbols.SymbolEqualityComparer.CLRSignature);
-                }
-                if (seen.Add(@interface))
-                {
-                    builder.Add(@interface);
-                    InterfacesVisit(@interface, builder, ref seen);
-                }
-            }
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        NamedTypeSymbolAdapter
-#else
-        NamedTypeSymbol
-#endif
-    {
         bool Cci.ITypeDefinition.IsAbstract
         {
             get
@@ -636,27 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AdaptedNamedTypeSymbol.IsMetadataAbstract;
             }
         }
-    }
 
-    internal partial class NamedTypeSymbol
-    {
-        internal virtual bool IsMetadataAbstract
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return this.IsAbstract || this.IsStatic;
-            }
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        NamedTypeSymbolAdapter
-#else
-        NamedTypeSymbol
-#endif
-    {
         bool Cci.ITypeDefinition.IsBeforeFieldInit
         {
             get
@@ -765,27 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AdaptedNamedTypeSymbol.IsMetadataSealed;
             }
         }
-    }
 
-    internal partial class NamedTypeSymbol
-    {
-        internal virtual bool IsMetadataSealed
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return this.IsSealed || this.IsStatic;
-            }
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        NamedTypeSymbolAdapter
-#else
-        NamedTypeSymbol
-#endif
-    {
         IEnumerable<Cci.IMethodDefinition> Cci.ITypeDefinition.GetMethods(EmitContext context)
         {
             CheckDefinitionInvariant();
@@ -817,39 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
-    }
 
-    internal partial class NamedTypeSymbol
-    {
-        /// <summary>
-        /// To represent a gap in interface's v-table null value should be returned in the appropriate position,
-        /// unless the gap has a symbol (happens if it is declared in source, for example).
-        /// </summary>
-        internal virtual IEnumerable<MethodSymbol> GetMethodsToEmit()
-        {
-            CheckDefinitionInvariant();
-
-            foreach (var m in this.GetMembers())
-            {
-                if (m.Kind == SymbolKind.Method)
-                {
-                    var method = (MethodSymbol)m;
-                    if (method.ShouldEmit())
-                    {
-                        yield return method;
-                    }
-                }
-            }
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        NamedTypeSymbolAdapter
-#else
-        NamedTypeSymbol
-#endif
-    {
         IEnumerable<Cci.INestedTypeDefinition> Cci.ITypeDefinition.GetNestedTypes(EmitContext context)
         {
             CheckDefinitionInvariant();
@@ -898,31 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
-    }
 
-    internal partial class NamedTypeSymbol
-    {
-        internal virtual IEnumerable<PropertySymbol> GetPropertiesToEmit()
-        {
-            CheckDefinitionInvariant();
-
-            foreach (var m in this.GetMembers())
-            {
-                if (m.Kind == SymbolKind.Property)
-                {
-                    yield return (PropertySymbol)m;
-                }
-            }
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        NamedTypeSymbolAdapter
-#else
-        NamedTypeSymbol
-#endif
-    {
         bool Cci.ITypeDefinition.HasDeclarativeSecurity
         {
             get
@@ -1123,4 +878,158 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
     }
+
+    internal partial class NamedTypeSymbol
+    {
+#if DEBUG
+        private NamedTypeSymbolAdapter _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+
+        internal new NamedTypeSymbolAdapter GetCciAdapter()
+        {
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new NamedTypeSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+        }
+#else
+        internal NamedTypeSymbol AdaptedNamedTypeSymbol => this;
+
+        internal new NamedTypeSymbol GetCciAdapter()
+        {
+            return this;
+        }
+#endif
+
+        internal virtual IEnumerable<EventSymbol> GetEventsToEmit()
+        {
+            CheckDefinitionInvariant();
+
+            foreach (var m in this.GetMembers())
+            {
+                if (m.Kind == SymbolKind.Event)
+                {
+                    yield return (EventSymbol)m;
+                }
+            }
+        }
+
+        internal abstract IEnumerable<FieldSymbol> GetFieldsToEmit();
+
+        /// <summary>
+        /// Gets the set of interfaces to emit on this type. This set can be different from the set returned by Interfaces property.
+        /// </summary>
+        internal abstract ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit();
+
+        protected ImmutableArray<NamedTypeSymbol> CalculateInterfacesToEmit()
+        {
+            Debug.Assert(this.IsDefinition);
+            Debug.Assert(this.ContainingModule is SourceModuleSymbol);
+
+            ArrayBuilder<NamedTypeSymbol> builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            HashSet<NamedTypeSymbol> seen = null;
+            InterfacesVisit(this, builder, ref seen);
+            return builder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Add the type to the builder and then recurse on its interfaces.
+        /// </summary>
+        /// <remarks>
+        /// Pre-order depth-first search.
+        /// </remarks>
+        private static void InterfacesVisit(NamedTypeSymbol namedType, ArrayBuilder<NamedTypeSymbol> builder, ref HashSet<NamedTypeSymbol> seen)
+        {
+            // It's not clear how important the order of these interfaces is, but Dev10
+            // maintains pre-order depth-first/declaration order, so we probably should as well.
+            // That's why we're not using InterfacesAndTheirBaseInterfaces - it's an unordered set.
+            foreach (NamedTypeSymbol @interface in namedType.InterfacesNoUseSiteDiagnostics())
+            {
+                if (seen == null)
+                {
+                    // Don't allocate until we see at least one interface.
+                    seen = new HashSet<NamedTypeSymbol>(Symbols.SymbolEqualityComparer.CLRSignature);
+                }
+                if (seen.Add(@interface))
+                {
+                    builder.Add(@interface);
+                    InterfacesVisit(@interface, builder, ref seen);
+                }
+            }
+        }
+
+        internal virtual bool IsMetadataAbstract
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return this.IsAbstract || this.IsStatic;
+            }
+        }
+
+        internal virtual bool IsMetadataSealed
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return this.IsSealed || this.IsStatic;
+            }
+        }
+
+        /// <summary>
+        /// To represent a gap in interface's v-table null value should be returned in the appropriate position,
+        /// unless the gap has a symbol (happens if it is declared in source, for example).
+        /// </summary>
+        internal virtual IEnumerable<MethodSymbol> GetMethodsToEmit()
+        {
+            CheckDefinitionInvariant();
+
+            foreach (var m in this.GetMembers())
+            {
+                if (m.Kind == SymbolKind.Method)
+                {
+                    var method = (MethodSymbol)m;
+                    if (method.ShouldEmit())
+                    {
+                        yield return method;
+                    }
+                }
+            }
+        }
+
+        internal virtual IEnumerable<PropertySymbol> GetPropertiesToEmit()
+        {
+            CheckDefinitionInvariant();
+
+            foreach (var m in this.GetMembers())
+            {
+                if (m.Kind == SymbolKind.Property)
+                {
+                    yield return (PropertySymbol)m;
+                }
+            }
+        }
+    }
+
+#if DEBUG
+    internal partial class NamedTypeSymbolAdapter
+    {
+        internal NamedTypeSymbolAdapter(NamedTypeSymbol underlyingNamedTypeSymbol)
+        {
+            AdaptedNamedTypeSymbol = underlyingNamedTypeSymbol;
+
+            if (underlyingNamedTypeSymbol is NativeIntegerTypeSymbol)
+            {
+                // Emit should use underlying symbol only.
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedNamedTypeSymbol;
+        internal NamedTypeSymbol AdaptedNamedTypeSymbol { get; }
+    }
+#endif
 }

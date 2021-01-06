@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../EditorFeaturesResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../EditorFeaturesResources.resx">
     <body>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
@@ -37,16 +37,6 @@
         <target state="translated">是否仍要继续? 这可能会导致代码损坏。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
-        <source>Error creating instance of CodeFixProvider</source>
-        <target state="translated">创建 CodeFixProvider 实例时出错</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
-        <source>Error creating instance of CodeFixProvider '{0}'</source>
-        <target state="translated">创建 CodeFixProvider“{0}”的实例时出错</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">未导入命名空间中的项</target>
@@ -79,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
-        <target state="new">Inline Hints</target>
+        <target state="translated">内联提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -122,11 +112,6 @@
         <target state="translated">标点</target>
         <note />
       </trans-unit>
-      <trans-unit id="Removal_of_document_not_supported">
-        <source>Removal of document not supported</source>
-        <target state="translated">不支持删除文档</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">重命名文件(类型与文件名不匹配)(_F)</target>
@@ -144,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Split_comment">
         <source>Split comment</source>
-        <target state="new">Split comment</target>
+        <target state="translated">拆分注释</target>
         <note />
       </trans-unit>
       <trans-unit id="String_Escape_Character">
@@ -259,7 +244,7 @@
       </trans-unit>
       <trans-unit id="User_Types_Records">
         <source>User Types - Records</source>
-        <target state="new">User Types - Records</target>
+        <target state="translated">用户类型 - 记录</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Structures">
@@ -1206,12 +1191,12 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Removing_0_from_1_with_content_colon">
         <source>Removing '{0}' from '{1}' with content:</source>
-        <target state="translated">将“{0}”连带内容从“{1}”删除。</target>
+        <target state="translated">将“{0}”连带内容从“{1}”删除:</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation">
         <source>'{0}' does not support the '{1}' operation. However, it may contain nested '{2}'s (see '{2}.{3}') that support this operation.</source>
-        <target state="translated">'“{0}”不支持“{1}”操作。但是，它可能包含支持此操作的嵌套“{2}”(参见“{2}.{3}”)。</target>
+        <target state="translated">“{0}”不支持“{1}”操作。但是，它可能包含支持此操作的嵌套“{2}”(参见“{2}.{3}”)。</target>
         <note />
       </trans-unit>
       <trans-unit id="Brace_Completion">
@@ -1286,17 +1271,17 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="_0_references">
         <source>'{0}' references</source>
-        <target state="translated">'“{0}”引用</target>
+        <target state="translated">“{0}”引用</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_implementations">
         <source>'{0}' implementations</source>
-        <target state="translated">'“{0}”实现</target>
+        <target state="translated">“{0}”实现</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_declarations">
         <source>'{0}' declarations</source>
-        <target state="translated">'“{0}”声明</target>
+        <target state="translated">“{0}”声明</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Rename_Conflict">

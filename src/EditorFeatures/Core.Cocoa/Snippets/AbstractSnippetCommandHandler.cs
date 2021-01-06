@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -32,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         ICommandHandler<InsertSnippetCommandArgs>
     {
         protected readonly IExpansionServiceProvider ExpansionServiceProvider;
-        protected readonly IExpansionManager expansionManager;
+        protected readonly IExpansionManager ExpansionManager;
 
         public string DisplayName => FeaturesResources.Snippets;
 
@@ -40,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             : base(threadingContext)
         {
             this.ExpansionServiceProvider = expansionServiceProvider;
-            this.expansionManager = expansionManager;
+            this.ExpansionManager = expansionManager;
         }
 
         protected abstract AbstractSnippetExpansionClient GetSnippetExpansionClient(ITextView textView, ITextBuffer subjectBuffer);
@@ -247,7 +245,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             var currentText = subjectBuffer.AsTextContainer().CurrentText;
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var endPositionInSubjectBuffer = textView.GetCaretPoint(subjectBuffer);
             if (endPositionInSubjectBuffer == null)

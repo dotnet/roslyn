@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../VBFeaturesResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../VBFeaturesResources.resx">
     <body>
       <trans-unit id="Add_Await">
         <source>Add Await</source>
@@ -29,12 +29,12 @@
       </trans-unit>
       <trans-unit id="Change_to_DirectCast">
         <source>Change to 'DirectCast'</source>
-        <target state="new">Change to 'DirectCast'</target>
+        <target state="translated">更改为 "DirectCast"</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_to_TryCast">
         <source>Change to 'TryCast'</source>
-        <target state="new">Change to 'TryCast'</target>
+        <target state="translated">更改为 "TryCast"</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_0">
@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Remove_shared_keyword_from_module_member">
         <source>Remove 'Shared' keyword from Module member</source>
-        <target state="new">Remove 'Shared' keyword from Module member</target>
+        <target state="translated">从模块成员中删除 "Shared" 关键字</target>
         <note>{Locked="Shared"} "Shared" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -199,7 +199,7 @@
       </trans-unit>
       <trans-unit id="Mid_statement">
         <source>Mid statement</source>
-        <target state="translated">Mid 语句。</target>
+        <target state="translated">Mid 语句</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_Incorrect_Function_Return_Type">

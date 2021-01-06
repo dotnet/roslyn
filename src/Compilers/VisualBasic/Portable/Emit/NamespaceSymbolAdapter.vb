@@ -13,26 +13,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #End If
         Implements Cci.INamespace
 
-#If DEBUG Then
-        Friend ReadOnly Property AdaptedNamespaceSymbol As NamespaceSymbol
-
-        Friend Sub New(underlyingNamespaceSymbol As NamespaceSymbol)
-            AdaptedNamespaceSymbol = underlyingNamespaceSymbol
-        End Sub
-
-        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
+        Private ReadOnly Property INamedEntity_Name As String Implements INamedEntity.Name
             Get
-                Return AdaptedNamespaceSymbol
+                Return AdaptedNamespaceSymbol.MetadataName
             End Get
         End Property
-#Else
-        Friend ReadOnly Property AdaptedNamespaceSymbol As NamespaceSymbol
+
+        Private ReadOnly Property INamespaceSymbol_ContainingNamespace As Cci.INamespace Implements Cci.INamespace.ContainingNamespace
             Get
-                Return Me
+                Return AdaptedNamespaceSymbol.ContainingNamespace?.GetCciAdapter()
             End Get
         End Property
-#End If
 
+        Private Function INamespaceSymbol_GetInternalSymbol() As CodeAnalysis.Symbols.INamespaceSymbolInternal Implements Cci.INamespace.GetInternalSymbol
+            Return AdaptedNamespaceSymbol
+        End Function
     End Class
 
     Partial Friend Class NamespaceSymbol
@@ -51,31 +46,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return _lazyAdapter
         End Function
 #Else
+        Friend ReadOnly Property AdaptedNamespaceSymbol As NamespaceSymbol
+            Get
+                Return Me
+            End Get
+        End Property
+
         Friend Shadows Function GetCciAdapter() As NamespaceSymbol
-            return Me
+            Return Me
         End Function
 #End If
+    End Class
 
 #If DEBUG Then
-    End Class
-
     Partial Friend Class NamespaceSymbolAdapter
-#End If
+        Friend ReadOnly Property AdaptedNamespaceSymbol As NamespaceSymbol
 
-        Private ReadOnly Property INamedEntity_Name As String Implements INamedEntity.Name
+        Friend Sub New(underlyingNamespaceSymbol As NamespaceSymbol)
+            AdaptedNamespaceSymbol = underlyingNamespaceSymbol
+        End Sub
+
+        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
             Get
-                Return AdaptedNamespaceSymbol.MetadataName
+                Return AdaptedNamespaceSymbol
             End Get
         End Property
-
-        Private ReadOnly Property INamespaceSymbol_ContainingNamespace As Cci.INamespace Implements Cci.INamespace.ContainingNamespace
-            Get
-                Return AdaptedNamespaceSymbol.ContainingNamespace?.GetCciAdapter()
-            End Get
-        End Property
-
-        Private Function INamespaceSymbol_GetInternalSymbol() As CodeAnalysis.Symbols.INamespaceSymbolInternal Implements Cci.INamespace.GetInternalSymbol
-            Return AdaptedNamespaceSymbol
-        End Function
     End Class
+#End If
 End Namespace

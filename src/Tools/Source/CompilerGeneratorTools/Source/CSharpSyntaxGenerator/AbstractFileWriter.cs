@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace CSharpSyntaxGenerator
 {
@@ -17,6 +18,7 @@ namespace CSharpSyntaxGenerator
         private readonly Tree _tree;
         private readonly IDictionary<string, string> _parentMap;
         private readonly ILookup<string, string> _childMap;
+
         private readonly IDictionary<string, Node> _nodeMap;
         private readonly IDictionary<string, TreeType> _typeMap;
 
@@ -24,7 +26,7 @@ namespace CSharpSyntaxGenerator
         private int _indentLevel;
         private bool _needIndent = true;
 
-        protected AbstractFileWriter(TextWriter writer, Tree tree)
+        protected AbstractFileWriter(TextWriter writer, Tree tree, CancellationToken cancellationToken)
         {
             _writer = writer;
             _tree = tree;
@@ -33,11 +35,14 @@ namespace CSharpSyntaxGenerator
             _parentMap = tree.Types.ToDictionary(n => n.Name, n => n.Base);
             _parentMap.Add(tree.Root, null);
             _childMap = tree.Types.ToLookup(n => n.Base, n => n.Name);
+
+            CancellationToken = cancellationToken;
         }
 
         protected IDictionary<string, string> ParentMap { get { return _parentMap; } }
         protected ILookup<string, string> ChildMap { get { return _childMap; } }
         protected Tree Tree { get { return _tree; } }
+        protected CancellationToken CancellationToken { get; }
 
         #region Output helpers
 
@@ -68,6 +73,8 @@ namespace CSharpSyntaxGenerator
 
         protected void WriteLine(string msg)
         {
+            CancellationToken.ThrowIfCancellationRequested();
+
             if (msg != "")
             {
                 WriteIndentIfNeeded();
@@ -269,15 +276,6 @@ namespace CSharpSyntaxGenerator
                 return "@" + name;
             }
             return name;
-        }
-
-        protected string StripNode()
-            => (_tree.Root.EndsWith("Node", StringComparison.Ordinal)) ? _tree.Root[0..^4] : _tree.Root;
-
-        protected string StripRoot(string name)
-        {
-            var root = StripNode();
-            return name.EndsWith(root, StringComparison.Ordinal) ? name[0..^root.Length] : name;
         }
 
         protected static string StripPost(string name, string post)

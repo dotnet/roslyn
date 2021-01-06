@@ -23,61 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif 
         IPropertyDefinition
     {
-#if DEBUG
-        internal PropertySymbolAdapter(PropertySymbol underlyingPropertySymbol)
-        {
-            AdaptedPropertySymbol = underlyingPropertySymbol;
-
-            if (underlyingPropertySymbol is NativeIntegerPropertySymbol)
-            {
-                // Emit should use underlying symbol only.
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        internal sealed override Symbol AdaptedSymbol => AdaptedPropertySymbol;
-        internal PropertySymbol AdaptedPropertySymbol { get; }
-#else
-        internal PropertySymbol AdaptedPropertySymbol => this;
-#endif
-    }
-
-    internal partial class PropertySymbol
-    {
-#if DEBUG
-        private PropertySymbolAdapter _lazyAdapter;
-
-        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
-#endif
-        internal new
-#if DEBUG
-            PropertySymbolAdapter
-#else
-            PropertySymbol
-#endif
-            GetCciAdapter()
-        {
-#if DEBUG
-            if (_lazyAdapter is null)
-            {
-                return InterlockedOperations.Initialize(ref _lazyAdapter, new PropertySymbolAdapter(this));
-            }
-
-            return _lazyAdapter;
-#else
-            return this;
-#endif
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        PropertySymbolAdapter
-#else
-        PropertySymbol
-#endif
-    {
-
         #region IPropertyDefinition Members
 
         IEnumerable<IMethodReference> IPropertyDefinition.GetAccessors(EmitContext context)
@@ -148,27 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AdaptedPropertySymbol.HasRuntimeSpecialName;
             }
         }
-    }
 
-    internal partial class PropertySymbol
-    {
-        internal virtual bool HasRuntimeSpecialName
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return false;
-            }
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        PropertySymbolAdapter
-#else
-        PropertySymbol
-#endif
-    {
         bool IPropertyDefinition.IsSpecialName
         {
             get
@@ -358,4 +283,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
     }
+
+    internal partial class PropertySymbol
+    {
+#if DEBUG
+        private PropertySymbolAdapter _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+
+        internal new PropertySymbolAdapter GetCciAdapter()
+        {
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new PropertySymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+        }
+#else
+        internal PropertySymbol AdaptedPropertySymbol => this;
+
+        internal new PropertySymbol GetCciAdapter()
+        {
+            return this;
+        }
+#endif 
+
+        internal virtual bool HasRuntimeSpecialName
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return false;
+            }
+        }
+    }
+
+#if DEBUG
+    internal partial class PropertySymbolAdapter
+    {
+        internal PropertySymbolAdapter(PropertySymbol underlyingPropertySymbol)
+        {
+            AdaptedPropertySymbol = underlyingPropertySymbol;
+
+            if (underlyingPropertySymbol is NativeIntegerPropertySymbol)
+            {
+                // Emit should use underlying symbol only.
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedPropertySymbol;
+        internal PropertySymbol AdaptedPropertySymbol { get; }
+    }
+#endif
 }

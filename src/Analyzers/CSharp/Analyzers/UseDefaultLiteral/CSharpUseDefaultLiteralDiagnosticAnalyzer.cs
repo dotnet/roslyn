@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
     {
         public CSharpUseDefaultLiteralDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseDefaultLiteralDiagnosticId,
+                   EnforceOnBuildValues.UseDefaultLiteral,
                    CSharpCodeStyleOptions.PreferSimpleDefaultExpression,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Simplify_default_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),

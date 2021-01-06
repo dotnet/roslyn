@@ -930,7 +930,7 @@
     [async] using var x = ..., y = ...;
   -->
   <Node Name="BoundUsingLocalDeclarations" Base="BoundMultipleLocalDeclarationsBase">
-    <Field Name="DisposeMethodOpt" Type="MethodSymbol?" Null="Allow"/>
+    <Field Name="PatternDisposeInfoOpt" Type="MethodArgumentInfo?"/>
     <Field Name="IDisposableConversion" Type="Conversion"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
   </Node>
@@ -1100,7 +1100,7 @@
     <Field Name="IDisposableConversion" Type="Conversion" />
     <Field Name="Body" Type="BoundStatement"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
-    <Field Name="DisposeMethodOpt" Type="MethodSymbol?"/>
+    <Field Name="PatternDisposeInfoOpt" Type="MethodArgumentInfo?"/>
   </Node>
 
   <Node Name="BoundFixedStatement" Base="BoundStatement">
@@ -1585,14 +1585,12 @@
     <Field Name="Expanded" Type="bool"/>
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+    <Field Name="DefaultArguments" Type="BitVector" />
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <!--The set of method symbols from which this call's method was chosen.
         Only kept in the tree if the call was an error and overload resolution
         was unable to choose a best method.-->
     <Field Name="OriginalMethodsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
-    
-    <!-- BinderOpt is added as a temporary solution for IOperation implementation and should probably be removed in the future -->
-    <Field Name="BinderOpt" Type="Binder?"/>
   </Node>
 
   <Node Name="BoundEventAssignmentOperator" Base="BoundExpression">
@@ -1651,12 +1649,10 @@
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+    <Field Name="DefaultArguments" Type="BitVector" />
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
     <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?"/>
     <Field Name="WasTargetTyped" Type="bool"/>
-
-    <!-- BinderOpt is added as a temporary solution for IOperation implementation and should probably be removed in the future -->
-    <Field Name="BinderOpt" Type="Binder?"/>
   </Node>
   
 
@@ -1739,14 +1735,11 @@
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+    <Field Name="DefaultArguments" Type="BitVector" />
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
 
     <!-- Used by IOperation to reconstruct the receiver for this expression. -->
     <Field Name="ReceiverType" Type="TypeSymbol" Null="disallow"/>
-    
-    <!-- Binder is a temporary solution for IOperation implementation and should probably be removed in the future -->
-    <!-- Tracked by https://github.com/dotnet/roslyn/issues/20787 -->
-    <Field Name="Binder" Type="Binder"/>
   </Node>
 
   <Node Name="BoundDynamicObjectInitializerMember" Base="BoundExpression">
@@ -1771,9 +1764,9 @@
     <Field Name="ImplicitReceiverOpt" Type="BoundExpression?" />
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+    <Field Name="DefaultArguments" Type="BitVector" />
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
-    <Field Name="BinderOpt" Type="Binder?" />
   </Node>
 
   <Node Name="BoundDynamicCollectionElementInitializer" Base="BoundDynamicInvocableBase">
@@ -1928,11 +1921,7 @@
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
-
-    <!-- BinderOpt and UseSetterForDefaultArgumentGeneration are added as a temporary solution for IOperation implementation and should probably be removed in the future -->
-    <!-- Tracked by https://github.com/dotnet/roslyn/issues/20787 -->
-    <Field Name="BinderOpt" Type="Binder?"/>
-    <Field Name="UseSetterForDefaultArgumentGeneration" Type="bool"/>
+    <Field Name="DefaultArguments" Type="BitVector" />
     <!--The set of indexer symbols from which this call's indexer was chosen.
         Only kept in the tree if the call was an error and overload resolution
         was unable to choose a best indexer.-->
@@ -2014,6 +2003,7 @@
          from the literal parts of the input. The odd numbered positions are the string inserts. When a
          width or format string are provided, the corresponding insert will be a BoundStringInsert -->
     <Field Name="Parts" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
   </Node>
 
   <Node Name="BoundStringInsert" Base="BoundExpression">
@@ -2022,9 +2012,14 @@
     <Field Name="Format" Type="BoundLiteral?"/>
   </Node>
   
+    <!-- An 'is pattern'. The fields DecisionDag, WhenTrueLabel, and WhenFalseLabel represent the inner pattern
+         after removing any outer 'not's, so consumers (such as lowering and definite assignment of the local in
+         'is not Type t') will need to compensate for negated patterns. IsNegated is set if Pattern is the negated
+         form of the inner pattern represented by DecisionDag. -->
   <Node Name="BoundIsPatternExpression" Base="BoundExpression">
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+    <Field Name="IsNegated" Type="bool"/>
     <Field Name="DecisionDag" Type="BoundDecisionDag" Null="disallow" SkipInVisitor="true"/>
     <Field Name="WhenTrueLabel" Type="LabelSymbol" Null="disallow"/>
     <Field Name="WhenFalseLabel" Type="LabelSymbol" Null="disallow"/>

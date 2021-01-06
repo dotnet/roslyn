@@ -5580,4 +5580,35 @@
   <data name="WRN_AttributeNotSupportedInVB_Title" xml:space="preserve">
     <value>Attribute is not supported in VB</value>
   </data>
+  <data name="WRN_GeneratorFailedDuringGeneration" xml:space="preserve">
+    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
+    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
+  </data>
+  <data name="WRN_GeneratorFailedDuringGeneration_Description" xml:space="preserve">
+    <value>Generator threw the following exception:
+'{0}'.</value>
+    <comment>{0} is the string representation of the exception that was thrown.</comment>
+  </data>
+  <data name="WRN_GeneratorFailedDuringGeneration_Title" xml:space="preserve">
+    <value>Generator failed to generate source.</value>
+  </data>
+  <data name="WRN_GeneratorFailedDuringInitialization" xml:space="preserve">
+    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
+    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
+  </data>
+  <data name="WRN_GeneratorFailedDuringInitialization_Description" xml:space="preserve">
+    <value>Generator threw the following exception:
+'{0}'.</value>
+    <comment>{0} is the string representation of the exception that was thrown.</comment>
+  </data>
+  <data name="WRN_GeneratorFailedDuringInitialization_Title" xml:space="preserve">
+    <value>Generator failed to initialize.</value>
+  </data>
+  <data name="WRN_AnalyzerReferencesFramework" xml:space="preserve">
+    <value>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</value>
+    <comment>{1} is the type that was loaded, {0} is the containing assembly.</comment>
+  </data>
+  <data name="WRN_AnalyzerReferencesFramework_Title" xml:space="preserve">
+    <value>The loaded assembly references .NET Framework, which is not supported.</value>
+  </data>
 </root>

@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality
 
         protected AbstractRemoveRedundantEqualityDiagnosticAnalyzer(ISyntaxFacts syntaxFacts)
             : base(IDEDiagnosticIds.RemoveRedundantEqualityDiagnosticId,
+                   EnforceOnBuildValues.RemoveRedundantEquality,
                    option: null,
                    new LocalizableResourceString(nameof(AnalyzersResources.Remove_redundant_equality), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {

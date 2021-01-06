@@ -8,61 +8,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #If DEBUG Then
-    Partial Friend NotInheritable Class EventSymbolAdapter
+    Partial Friend Class EventSymbolAdapter
         Inherits SymbolAdapter
 #Else
     Partial Friend Class EventSymbol
 #End If
         Implements Cci.IEventDefinition
-
-#If DEBUG Then
-        Friend ReadOnly Property AdaptedEventSymbol As EventSymbol
-
-        Friend Sub New(underlyingEventSymbol As EventSymbol)
-            AdaptedEventSymbol = underlyingEventSymbol
-        End Sub
-
-        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
-            Get
-                Return AdaptedEventSymbol
-            End Get
-        End Property
-#Else
-        Friend ReadOnly Property AdaptedEventSymbol As EventSymbol
-            Get
-                Return Me
-            End Get
-        End Property
-#End If
-
-    End Class
-
-    Partial Friend Class EventSymbol
-#If DEBUG Then
-        Private _lazyAdapter As EventSymbolAdapter
-
-        Protected Overrides Function GetCciAdapterImpl() As SymbolAdapter
-            Return GetCciAdapter()
-        End Function
-
-        Friend Shadows Function GetCciAdapter() As EventSymbolAdapter
-            If _lazyAdapter Is Nothing Then
-                Return InterlockedOperations.Initialize(_lazyAdapter, New EventSymbolAdapter(Me))
-            End If
-
-            Return _lazyAdapter
-        End Function
-#Else
-        Friend Shadows Function GetCciAdapter() As EventSymbol
-            return Me
-        End Function
-#End If
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class EventSymbolAdapter
-#End If
 
         Private Iterator Function IEventDefinitionAccessors(context As EmitContext) As IEnumerable(Of Cci.IMethodReference) Implements Cci.IEventDefinition.GetAccessors
             CheckDefinitionInvariant()
@@ -112,25 +63,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
 
         End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class EventSymbol
-#End If
-
-        Friend Overridable ReadOnly Property HasRuntimeSpecialName As Boolean
-            Get
-                CheckDefinitionInvariant()
-                Return False
-            End Get
-        End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class EventSymbolAdapter
-#End If
 
         Private ReadOnly Property IEventDefinitionIsSpecialName As Boolean Implements Cci.IEventDefinition.IsSpecialName
             Get
@@ -192,5 +124,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     End Class
 
+    Partial Friend Class EventSymbol
+#If DEBUG Then
+        Private _lazyAdapter As EventSymbolAdapter
+
+        Protected Overrides Function GetCciAdapterImpl() As SymbolAdapter
+            Return GetCciAdapter()
+        End Function
+
+        Friend Shadows Function GetCciAdapter() As EventSymbolAdapter
+            If _lazyAdapter Is Nothing Then
+                Return InterlockedOperations.Initialize(_lazyAdapter, New EventSymbolAdapter(Me))
+            End If
+
+            Return _lazyAdapter
+        End Function
+#Else
+        Friend ReadOnly Property AdaptedEventSymbol As EventSymbol
+            Get
+                Return Me
+            End Get
+        End Property
+
+        Friend Shadows Function GetCciAdapter() As EventSymbol
+            Return Me
+        End Function
+#End If
+
+        Friend Overridable ReadOnly Property HasRuntimeSpecialName As Boolean
+            Get
+                CheckDefinitionInvariant()
+                Return False
+            End Get
+        End Property
+    End Class
+
+#If DEBUG Then
+    Partial Friend NotInheritable Class EventSymbolAdapter
+        Friend ReadOnly Property AdaptedEventSymbol As EventSymbol
+
+        Friend Sub New(underlyingEventSymbol As EventSymbol)
+            AdaptedEventSymbol = underlyingEventSymbol
+        End Sub
+
+        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
+            Get
+                Return AdaptedEventSymbol
+            End Get
+        End Property
+    End Class
+#End If
 End Namespace
 

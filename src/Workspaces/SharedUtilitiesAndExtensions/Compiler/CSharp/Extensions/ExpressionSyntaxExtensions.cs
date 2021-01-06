@@ -809,6 +809,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                     return OperatorPrecedence.AssignmentAndLambdaExpression;
 
+                case SyntaxKind.SwitchExpression:
+                    return OperatorPrecedence.Switch;
+
                 default:
                     return OperatorPrecedence.None;
             }

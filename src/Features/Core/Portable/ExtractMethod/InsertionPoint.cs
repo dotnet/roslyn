@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -16,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     internal class InsertionPoint
     {
         private readonly SyntaxAnnotation _annotation;
-        private readonly Lazy<SyntaxNode> _context;
+        private readonly Lazy<SyntaxNode?> _context;
 
         public static async Task<InsertionPoint> CreateAsync(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
         {
@@ -41,19 +39,19 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public SyntaxNode GetRoot()
             => SemanticDocument.Root;
 
-        public SyntaxNode GetContext()
+        public SyntaxNode? GetContext()
             => _context.Value;
 
         public InsertionPoint With(SemanticDocument document)
             => new(document, _annotation);
 
-        private Lazy<SyntaxNode> CreateLazyContextNode()
+        private Lazy<SyntaxNode?> CreateLazyContextNode()
             => new(ComputeContextNode, isThreadSafe: true);
 
-        private SyntaxNode ComputeContextNode()
+        private SyntaxNode? ComputeContextNode()
         {
             var root = SemanticDocument.Root;
-            return root.GetAnnotatedNodesAndTokens(_annotation).Single().AsNode();
+            return root.GetAnnotatedNodesAndTokens(_annotation).SingleOrDefault().AsNode();
         }
     }
 }

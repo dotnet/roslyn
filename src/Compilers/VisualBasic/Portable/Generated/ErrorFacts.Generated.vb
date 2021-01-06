@@ -170,7 +170,10 @@
                      ERRID.WRN_UnableToLoadAnalyzer,
                      ERRID.WRN_AttributeIgnoredWhenPublicSigning,
                      ERRID.WRN_Experimental,
-                     ERRID.WRN_AttributeNotSupportedInVB
+                     ERRID.WRN_AttributeNotSupportedInVB,
+                     ERRID.WRN_GeneratorFailedDuringInitialization,
+                     ERRID.WRN_GeneratorFailedDuringGeneration,
+                     ERRID.WRN_AnalyzerReferencesFramework
                     Return True
                 Case Else
                     Return False

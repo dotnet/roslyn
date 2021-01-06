@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expanded: false,
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: ImmutableArray<int>.Empty,
+                        defaultArguments: BitVector.Empty,
                         resultKind: LookupResultKind.Viable,
-                        binderOpt: null,
                         type: objectType)
                     { WasCompilerGenerated = true })
                 { WasCompilerGenerated = true };

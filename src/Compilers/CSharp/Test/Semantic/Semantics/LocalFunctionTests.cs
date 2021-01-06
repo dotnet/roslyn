@@ -7,7 +7,6 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -2632,18 +2631,21 @@ class Program
 {
     static void Main(string[] args)
     {
-        void CallerMemberName([CallerMemberName] int s = 2)
+        void CallerMemberName([CallerMemberName] int s = 2) // 1
         {
             Console.WriteLine(s);
         }
-        CallerMemberName();
+        CallerMemberName(); // 2
     }
 }
 ";
             CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (9,32): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
-                //         void CallerMemberName([CallerMemberName] int s = 2)
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(9, 32));
+                //         void CallerMemberName([CallerMemberName] int s = 2) // 1
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(9, 32),
+                // (13,9): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         CallerMemberName(); // 2
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "CallerMemberName()").WithArguments("string", "int").WithLocation(13, 9));
         }
 
         [WorkItem(10708, "https://github.com/dotnet/roslyn/issues/10708")]
@@ -4280,6 +4282,72 @@ class C
                 //             return 2;
                 Diagnostic(ErrorCode.ERR_ParamUnassigned, "return 2;").WithArguments("x").WithLocation(17, 13)
                 );
+        }
+
+        [Fact]
+        [WorkItem(49500, "https://github.com/dotnet/roslyn/issues/49500")]
+        public void OutParam_Extern_01()
+        {
+            var src = @"
+using System.Runtime.InteropServices;
+
+class C
+{
+    void M()
+    {
+        int x;
+        local(out x);
+        x.ToString();
+
+        [DllImport(""a"")]
+        static extern void local(out int x);
+    }
+
+    [DllImport(""a"")]
+    static extern void Method(out int x);
+}";
+            VerifyDiagnostics(src);
+        }
+
+        [Fact]
+        [WorkItem(49500, "https://github.com/dotnet/roslyn/issues/49500")]
+        public void OutParam_Extern_02()
+        {
+            var src = @"
+using System.Runtime.InteropServices;
+
+class C
+{
+    void M()
+    {
+        local1(out _);
+        local2(out _);
+        local3(out _);
+
+        [DllImport(""a"")]
+        static extern void local1(out int x) { } // 1
+
+        static void local2(out int x) { } // 2
+
+        static void local3(out int x); // 3, 4
+    }
+
+    [DllImport(""a"")]
+    static extern void Method(out int x);
+}";
+            VerifyDiagnostics(src,
+                // (13,28): error CS0179: 'local1(out int)' cannot be extern and declare a body
+                //         static extern void local1(out int x) { } // 1
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "local1").WithArguments("local1(out int)").WithLocation(13, 28),
+                // (15,21): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         static void local2(out int x) { } // 2
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "local2").WithArguments("x").WithLocation(15, 21),
+                // (17,21): error CS8112: Local function 'local3(out int)' must declare a body because it is not marked 'static extern'.
+                //         static void local3(out int x); // 3, 4
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "local3").WithArguments("local3(out int)").WithLocation(17, 21),
+                // (17,21): error CS0177: The out parameter 'x' must be assigned to before control leaves the current method
+                //         static void local3(out int x); // 3, 4
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "local3").WithArguments("x").WithLocation(17, 21));
         }
 
         [Fact]

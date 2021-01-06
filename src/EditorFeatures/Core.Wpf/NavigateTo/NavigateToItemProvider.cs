@@ -113,11 +113,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             }
 
             var searchCurrentDocument = (callback.Options as INavigateToOptions2)?.SearchCurrentDocument ?? false;
-            var searcher = new Searcher(
+
+            var roslynCallback = new NavigateToItemProviderCallback(_displayFactory, callback);
+            var searcher = new NavigateToSearcher(
                 _workspace.CurrentSolution,
                 _asyncListener,
-                _displayFactory,
-                callback,
+                roslynCallback,
                 searchValue,
                 searchCurrentDocument,
                 kinds,

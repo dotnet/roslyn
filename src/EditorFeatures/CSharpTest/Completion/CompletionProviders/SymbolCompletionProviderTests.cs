@@ -10758,5 +10758,419 @@ class C
                 markup, "",
                 matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter });
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonForMethod()
+        {
+            var markup = @"
+class Program
+{
+    private void Bar()
+    {
+        F$$
+    }
+    
+    private void Foo(int i)
+    {
+    }
+
+    private void Foo(int i, int c)
+    {
+    }
+}";
+            var expected = @"
+class Program
+{
+    private void Bar()
+    {
+        Foo();
+    }
+    
+    private void Foo(int i)
+    {
+    }
+
+    private void Foo(int i, int c)
+    {
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonInNestedMethod()
+        {
+            var markup = @"
+class Program
+{
+    private void Bar()
+    {
+        Foo(F$$);
+    }
+    
+    private int Foo(int i)
+    {
+        return 1;
+    }
+}";
+            var expected = @"
+class Program
+{
+    private void Bar()
+    {
+        Foo(Foo(););
+    }
+    
+    private int Foo(int i)
+    {
+        return 1;
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonForDelegateInferredType()
+        {
+            var markup = @"
+using System;
+class Program
+{
+    private void Bar()
+    {
+        Bar2(F$$);
+    }
+    
+    private void Foo()
+    {
+    }
+
+    void Bar2(Action t) { }
+}";
+            var expected = @"
+using System;
+class Program
+{
+    private void Bar()
+    {
+        Bar2(Foo;);
+    }
+    
+    private void Foo()
+    {
+    }
+
+    void Bar2(Action t) { }
+}";
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonForConstructor()
+        {
+            var markup = @"
+class Program
+{
+    private static void Bar()
+    {
+        var o = new P$$
+    }
+}";
+            var expected = @"
+class Program
+{
+    private static void Bar()
+    {
+        var o = new Program();
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: ';');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonForTypeUnderNonObjectCreationContext()
+        {
+            var markup = @"
+class Program
+{
+    private static void Bar()
+    {
+        var o = P$$
+    }
+}";
+            var expected = @"
+class Program
+{
+    private static void Bar()
+    {
+        var o = Program;
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: ';');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonForAliasConstructor()
+        {
+            var markup = @"
+using String2 = System.String;
+namespace Bar1
+{
+    class Program
+    {
+        private static void Bar()
+        {
+            var o = new S$$
+        }
+    }
+}";
+            var expected = @"
+using String2 = System.String;
+namespace Bar1
+{
+    class Program
+    {
+        private static void Bar()
+        {
+            var o = new String2();
+        }
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "String2", expected, commitChar: ';');
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumMemberAfterPatternMatch()
+        {
+            var markup =
+@"namespace N
+{
+	enum RankedMusicians
+	{
+		BillyJoel,
+		EveryoneElse
+	}
+
+	class C
+	{
+		void M(RankedMusicians m)
+		{
+			if (m is RankedMusicians.$$
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "BillyJoel");
+            await VerifyItemExistsAsync(markup, "EveryoneElse");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumMemberAfterPatternMatchWithDeclaration()
+        {
+            var markup =
+@"namespace N
+{
+	enum RankedMusicians
+	{
+		BillyJoel,
+		EveryoneElse
+	}
+
+	class C
+	{
+		void M(RankedMusicians m)
+		{
+			if (m is RankedMusicians.$$ r)
+            {
+            }
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "BillyJoel");
+            await VerifyItemExistsAsync(markup, "EveryoneElse");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumMemberAfterPropertyPatternMatch()
+        {
+            var markup =
+@"namespace N
+{
+	enum RankedMusicians
+	{
+		BillyJoel,
+		EveryoneElse
+	}
+
+	class C
+	{
+        public RankedMusicians R;
+
+		void M(C m)
+		{
+			if (m is { R: RankedMusicians.$$
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "BillyJoel");
+            await VerifyItemExistsAsync(markup, "EveryoneElse");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ChildClassAfterPatternMatch()
+        {
+            var markup =
+@"namespace N
+{
+	public class D { public class E { } }
+
+	class C
+	{
+		void M(object m)
+		{
+			if (m is D.$$
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "E");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumMemberAfterBinaryExpression()
+        {
+            var markup =
+@"namespace N
+{
+	enum RankedMusicians
+	{
+		BillyJoel,
+		EveryoneElse
+	}
+
+	class C
+	{
+		void M(RankedMusicians m)
+		{
+			if (m == RankedMusicians.$$
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "BillyJoel");
+            await VerifyItemExistsAsync(markup, "EveryoneElse");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumMemberAfterBinaryExpressionWithDeclaration()
+        {
+            var markup =
+@"namespace N
+{
+	enum RankedMusicians
+	{
+		BillyJoel,
+		EveryoneElse
+	}
+
+	class C
+	{
+		void M(RankedMusicians m)
+		{
+			if (m == RankedMusicians.$$ r)
+            {
+            }
+		}
+	}
+}";
+            // VerifyItemExistsAsync also tests with the item typed.
+            await VerifyItemExistsAsync(markup, "BillyJoel");
+            await VerifyItemExistsAsync(markup, "EveryoneElse");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+        }
+
+        [WorkItem(49609, "https://github.com/dotnet/roslyn/issues/49609")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ObsoleteOverloadsAreSkippedIfNonObsoleteOverloadIsAvailable()
+        {
+            var markup =
+@"
+public class C
+{
+    [System.Obsolete]
+    public void M() { }
+
+    public void M(int i) { }
+    
+    public void Test()
+    {
+        this.$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 1 {FeaturesResources.overload})");
+        }
+
+        [WorkItem(49609, "https://github.com/dotnet/roslyn/issues/49609")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task FirstObsoleteOverloadIsUsedIfAllOverloadsAreObsolete()
+        {
+            var markup =
+@"
+public class C
+{
+    [System.Obsolete]
+    public void M() { }
+
+    [System.Obsolete]
+    public void M(int i) { }
+    
+    public void Test()
+    {
+        this.$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"[{CSharpFeaturesResources.deprecated}] void C.M() (+ 1 {FeaturesResources.overload})");
+        }
+
+        [WorkItem(49609, "https://github.com/dotnet/roslyn/issues/49609")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task IgnoreCustomObsoleteAttribute()
+        {
+            var markup =
+@"
+public class ObsoleteAttribute: System.Attribute
+{
+}
+
+public class C
+{
+    [Obsolete]
+    public void M() { }
+
+    public void M(int i) { }
+    
+    public void Test()
+    {
+        this.$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M() (+ 1 {FeaturesResources.overload})");
+        }
     }
 }

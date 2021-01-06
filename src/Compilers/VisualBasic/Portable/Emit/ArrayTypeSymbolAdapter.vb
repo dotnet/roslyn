@@ -9,61 +9,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #If DEBUG Then
-    Partial Friend NotInheritable Class ArrayTypeSymbolAdapter
+    Partial Friend Class ArrayTypeSymbolAdapter
         Inherits SymbolAdapter
 #Else
     Partial Friend Class ArrayTypeSymbol
 #End If
         Implements Cci.IArrayTypeReference
-
-#If DEBUG Then
-        Friend ReadOnly Property AdaptedArrayTypeSymbol As ArrayTypeSymbol
-
-        Friend Sub New(underlyingArrayTypeSymbol As ArrayTypeSymbol)
-            AdaptedArrayTypeSymbol = underlyingArrayTypeSymbol
-        End Sub
-
-        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
-            Get
-                Return AdaptedArrayTypeSymbol
-            End Get
-        End Property
-#Else
-        Friend ReadOnly Property AdaptedArrayTypeSymbol As ArrayTypeSymbol
-            Get
-                Return Me
-            End Get
-        End Property
-#End If
-
-    End Class
-
-    Partial Friend Class ArrayTypeSymbol
-#If DEBUG Then
-        Private _lazyAdapter As ArrayTypeSymbolAdapter
-
-        Protected Overrides Function GetCciAdapterImpl() As SymbolAdapter
-            Return GetCciAdapter()
-        End Function
-
-        Friend Shadows Function GetCciAdapter() As ArrayTypeSymbolAdapter
-            If _lazyAdapter Is Nothing Then
-                Return InterlockedOperations.Initialize(_lazyAdapter, New ArrayTypeSymbolAdapter(Me))
-            End If
-
-            Return _lazyAdapter
-        End Function
-#Else
-        Friend Shadows Function GetCciAdapter() As ArrayTypeSymbol
-            return Me
-        End Function
-#End If
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class ArrayTypeSymbolAdapter
-#End If
 
         Private Function IArrayTypeReferenceGetElementType(context As EmitContext) As Cci.ITypeReference Implements Cci.IArrayTypeReference.GetElementType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
@@ -185,4 +136,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
     End Class
+
+    Partial Friend Class ArrayTypeSymbol
+#If DEBUG Then
+        Private _lazyAdapter As ArrayTypeSymbolAdapter
+
+        Protected Overrides Function GetCciAdapterImpl() As SymbolAdapter
+            Return GetCciAdapter()
+        End Function
+
+        Friend Shadows Function GetCciAdapter() As ArrayTypeSymbolAdapter
+            If _lazyAdapter Is Nothing Then
+                Return InterlockedOperations.Initialize(_lazyAdapter, New ArrayTypeSymbolAdapter(Me))
+            End If
+
+            Return _lazyAdapter
+        End Function
+#Else
+        Friend ReadOnly Property AdaptedArrayTypeSymbol As ArrayTypeSymbol
+            Get
+                Return Me
+            End Get
+        End Property
+
+        Friend Shadows Function GetCciAdapter() As ArrayTypeSymbol
+            Return Me
+        End Function
+#End If
+    End Class
+
+#If DEBUG Then
+    Partial Friend NotInheritable Class ArrayTypeSymbolAdapter
+        Friend ReadOnly Property AdaptedArrayTypeSymbol As ArrayTypeSymbol
+
+        Friend Sub New(underlyingArrayTypeSymbol As ArrayTypeSymbol)
+            AdaptedArrayTypeSymbol = underlyingArrayTypeSymbol
+        End Sub
+
+        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
+            Get
+                Return AdaptedArrayTypeSymbol
+            End Get
+        End Property
+    End Class
+#End If
 End Namespace

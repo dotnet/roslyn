@@ -7,18 +7,15 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Collections.Generic;
 
+#if !DEBUG
+using EventSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.EventSymbol;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedEvent : EmbeddedTypesManager.CommonEmbeddedEvent
     {
-        public EmbeddedEvent(
-#if DEBUG
-            EventSymbolAdapter
-#else
-            EventSymbol
-#endif
-                underlyingEvent,
-            EmbeddedMethod adder, EmbeddedMethod remover) :
+        public EmbeddedEvent(EventSymbolAdapter underlyingEvent, EmbeddedMethod adder, EmbeddedMethod remover) :
             base(underlyingEvent, adder, remover, null)
         {
         }

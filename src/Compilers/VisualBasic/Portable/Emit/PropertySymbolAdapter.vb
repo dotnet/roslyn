@@ -10,61 +10,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #If DEBUG Then
-    Partial Friend NotInheritable Class PropertySymbolAdapter
+    Partial Friend Class PropertySymbolAdapter
         Inherits SymbolAdapter
 #Else
     Partial Friend Class PropertySymbol
 #End If
         Implements IPropertyDefinition
 
-#If DEBUG Then
-        Friend ReadOnly Property AdaptedPropertySymbol As PropertySymbol
-
-        Friend Sub New(underlyingPropertySymbol As PropertySymbol)
-            AdaptedPropertySymbol = underlyingPropertySymbol
-        End Sub
-
-        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
-            Get
-                Return AdaptedPropertySymbol
-            End Get
-        End Property
-#Else
-        Friend ReadOnly Property AdaptedPropertySymbol As PropertySymbol
-            Get
-                Return Me
-            End Get
-        End Property
-#End If
-
-    End Class
-
-    Partial Friend Class PropertySymbol
-#If DEBUG Then
-        Private _lazyAdapter As PropertySymbolAdapter
-
-        Protected Overrides Function GetCciAdapterImpl() As SymbolAdapter
-            Return GetCciAdapter()
-        End Function
-
-        Friend Shadows Function GetCciAdapter() As PropertySymbolAdapter
-            If _lazyAdapter Is Nothing Then
-                Return InterlockedOperations.Initialize(_lazyAdapter, New PropertySymbolAdapter(Me))
-            End If
-
-            Return _lazyAdapter
-        End Function
-#Else
-        Friend Shadows Function GetCciAdapter() As PropertySymbol
-            return Me
-        End Function
-#End If
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class PropertySymbolAdapter
-#End If
         Private Iterator Function IPropertyDefinitionAccessors(context As EmitContext) As IEnumerable(Of IMethodReference) Implements IPropertyDefinition.GetAccessors
             CheckDefinitionInvariant()
 
@@ -106,25 +58,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return AdaptedPropertySymbol.HasRuntimeSpecialName
             End Get
         End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class PropertySymbol
-#End If
-
-        Friend Overridable ReadOnly Property HasRuntimeSpecialName As Boolean
-            Get
-                CheckDefinitionInvariant()
-                Return False
-            End Get
-        End Property
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class PropertySymbolAdapter
-#End If
 
         Private ReadOnly Property IPropertyDefinitionIsSpecialName As Boolean Implements IPropertyDefinition.IsSpecialName
             Get
@@ -246,4 +179,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
     End Class
+
+    Partial Friend Class PropertySymbol
+#If DEBUG Then
+        Private _lazyAdapter As PropertySymbolAdapter
+
+        Protected Overrides Function GetCciAdapterImpl() As SymbolAdapter
+            Return GetCciAdapter()
+        End Function
+
+        Friend Shadows Function GetCciAdapter() As PropertySymbolAdapter
+            If _lazyAdapter Is Nothing Then
+                Return InterlockedOperations.Initialize(_lazyAdapter, New PropertySymbolAdapter(Me))
+            End If
+
+            Return _lazyAdapter
+        End Function
+#Else
+        Friend ReadOnly Property AdaptedPropertySymbol As PropertySymbol
+            Get
+                Return Me
+            End Get
+        End Property
+
+        Friend Shadows Function GetCciAdapter() As PropertySymbol
+            Return Me
+        End Function
+#End If
+
+        Friend Overridable ReadOnly Property HasRuntimeSpecialName As Boolean
+            Get
+                CheckDefinitionInvariant()
+                Return False
+            End Get
+        End Property
+    End Class
+
+#If DEBUG Then
+    Partial Friend NotInheritable Class PropertySymbolAdapter
+        Friend ReadOnly Property AdaptedPropertySymbol As PropertySymbol
+
+        Friend Sub New(underlyingPropertySymbol As PropertySymbol)
+            AdaptedPropertySymbol = underlyingPropertySymbol
+        End Sub
+
+        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
+            Get
+                Return AdaptedPropertySymbol
+            End Get
+        End Property
+    End Class
+#End If
 End Namespace

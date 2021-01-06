@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
     internal sealed class CannotChangeSignatureAnalyzedContext : ChangeSignatureAnalyzedContext
     {
-        public readonly CannotChangeSignatureReason CannotChangeSignatureReason;
+        public readonly ChangeSignatureFailureKind CannotChangeSignatureReason;
 
-        public CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason reason)
+        public CannotChangeSignatureAnalyzedContext(ChangeSignatureFailureKind reason)
         {
             CannotChangeSignatureReason = reason;
         }

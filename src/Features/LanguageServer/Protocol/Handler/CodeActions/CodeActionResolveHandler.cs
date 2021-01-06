@@ -130,20 +130,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var changedAdditionalDocuments = projectChanges.SelectMany(pc => pc.GetChangedAdditionalDocuments());
 
                     // Changed documents
-                    await AddTextDocumentEdits(
-                        textDocumentEdits, applyChangesOperation, solution, changedDocuments,
+                    await AddTextDocumentEditsAsync(
+                        textDocumentEdits, changedDocuments,
                         applyChangesOperation.ChangedSolution.GetDocument, solution.GetDocument, textDiffService,
                         cancellationToken).ConfigureAwait(false);
 
                     // Changed analyzer config documents
-                    await AddTextDocumentEdits(
-                        textDocumentEdits, applyChangesOperation, solution, changedAnalyzerConfigDocuments,
+                    await AddTextDocumentEditsAsync(
+                        textDocumentEdits, changedAnalyzerConfigDocuments,
                         applyChangesOperation.ChangedSolution.GetAnalyzerConfigDocument, solution.GetAnalyzerConfigDocument,
                         textDiffService: null, cancellationToken).ConfigureAwait(false);
 
                     // Changed additional documents
-                    await AddTextDocumentEdits(
-                        textDocumentEdits, applyChangesOperation, solution, changedAdditionalDocuments,
+                    await AddTextDocumentEditsAsync(
+                        textDocumentEdits, changedAdditionalDocuments,
                         applyChangesOperation.ChangedSolution.GetAdditionalDocument, solution.GetAdditionalDocument,
                         textDiffService: null, cancellationToken).ConfigureAwait(false);
                 }
@@ -161,10 +161,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Arguments = new object[] { data }
             };
 
-            static async Task AddTextDocumentEdits<T>(
+            static async Task AddTextDocumentEditsAsync<T>(
                 ArrayBuilder<TextDocumentEdit> textDocumentEdits,
-                ApplyChangesOperation applyChangesOperation,
-                Solution solution,
                 IEnumerable<DocumentId> changedDocuments,
                 Func<DocumentId, T?> getNewDocumentFunc,
                 Func<DocumentId, T?> getOldDocumentFunc,

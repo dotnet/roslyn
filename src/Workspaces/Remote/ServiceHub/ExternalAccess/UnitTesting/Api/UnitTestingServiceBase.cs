@@ -15,6 +15,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
+    [Obsolete]
     internal abstract class UnitTestingServiceBase : ServiceBase
     {
         protected UnitTestingServiceBase(

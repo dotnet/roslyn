@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.SnippetFunctions
@@ -18,8 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
         private readonly string _fieldName;
         private readonly string _fullyQualifiedName;
 
-        public AbstractSnippetFunctionSimpleTypeName(AbstractSnippetExpansionClient snippetExpansionClient, ITextView textView, ITextBuffer subjectBuffer, string fieldName, string fullyQualifiedName)
-            : base(snippetExpansionClient, textView, subjectBuffer)
+        public AbstractSnippetFunctionSimpleTypeName(AbstractSnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer, string fieldName, string fullyQualifiedName)
+            : base(snippetExpansionClient, subjectBuffer)
         {
             _fieldName = fieldName;
             _fullyQualifiedName = fullyQualifiedName;
@@ -50,14 +49,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.Snippe
             hasCurrentValue = true;
         }
 
-        private bool TryGetDocumentWithFullyQualifiedTypeName(Document document, out TextSpan updatedTextSpan, out Document documentWithFullyQualifiedTypeName)
+        private bool TryGetDocumentWithFullyQualifiedTypeName(Document document, out TextSpan updatedTextSpan, [NotNullWhen(returnValue: true)] out Document? documentWithFullyQualifiedTypeName)
         {
             documentWithFullyQualifiedTypeName = null;
             updatedTextSpan = default;
 
-            var surfaceBufferFieldSpan = snippetExpansionClient.ExpansionSession.GetFieldSpan(_fieldName);
+            Contract.ThrowIfNull(_snippetExpansionClient.ExpansionSession);
 
-            if (!snippetExpansionClient.TryGetSubjectBufferSpan(surfaceBufferFieldSpan, out var subjectBufferFieldSpan))
+            var surfaceBufferFieldSpan = _snippetExpansionClient.ExpansionSession.GetFieldSpan(_fieldName);
+
+            if (!_snippetExpansionClient.TryGetSubjectBufferSpan(surfaceBufferFieldSpan, out var subjectBufferFieldSpan))
             {
                 return false;
             }

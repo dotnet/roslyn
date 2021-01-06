@@ -27,8 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private readonly IDiagnosticService? _diagnosticService;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
-        private readonly Workspace _workspace;
         private readonly ILspSolutionProvider _solutionProvider;
+
+        protected readonly Workspace Workspace;
 
         /// <summary>
         /// Created when <see cref="ActivateAsync"/> is called.
@@ -75,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             string? diagnosticsClientName)
         {
             _requestHandlerProvider = requestHandlerProvider;
-            _workspace = workspace;
+            Workspace = workspace;
             _diagnosticService = diagnosticService;
             _listenerProvider = listenerProvider;
             _solutionProvider = solutionProvider;
@@ -87,9 +88,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// </summary>
         protected internal abstract VSServerCapabilities GetCapabilities();
 
-        public Task<Connection> ActivateAsync(CancellationToken token)
+        public async Task<Connection> ActivateAsync(CancellationToken cancellationToken)
         {
-            Contract.ThrowIfTrue(_languageServer?.Running == true, "The language server has not yet shutdown.");
+            if (_languageServer is not null)
+            {
+                Contract.ThrowIfFalse(_languageServer.HasShutdownStarted, "The language server has not yet been asked to shutdown.");
+
+                await _languageServer.DisposeAsync().ConfigureAwait(false);
+            }
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
             _languageServer = new InProcLanguageServer(
@@ -97,13 +103,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 serverStream,
                 serverStream,
                 _requestHandlerProvider,
-                _workspace,
+                Workspace,
                 _diagnosticService,
                 _listenerProvider,
                 _solutionProvider,
                 clientName: _diagnosticsClientName);
 
-            return Task.FromResult(new Connection(clientStream, clientStream));
+            return new Connection(clientStream, clientStream);
         }
 
         /// <summary>

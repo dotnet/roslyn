@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
         private static DiagnosticDescriptor CreateDisposeObjectsBeforeLosingScopeRule(bool isEnabledByDefault)
             => CreateDescriptor(
                 IDEDiagnosticIds.DisposeObjectsBeforeLosingScopeDiagnosticId,
+                EnforceOnBuildValues.DisposeObjectsBeforeLosingScope,
                 title: new LocalizableResourceString(nameof(FeaturesResources.Dispose_objects_before_losing_scope), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 messageFormat: new LocalizableResourceString(nameof(FeaturesResources.Disposable_object_created_by_0_is_never_disposed), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 description: new LocalizableResourceString(nameof(FeaturesResources.UseRecommendedDisposePatternDescription), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
@@ -57,6 +58,7 @@ namespace Microsoft.CodeAnalysis.DisposeAnalysis
         private static DiagnosticDescriptor CreateUseRecommendedDisposePatternRule(bool isEnabledByDefault)
             => CreateDescriptor(
                 IDEDiagnosticIds.UseRecommendedDisposePatternDiagnosticId,
+                EnforceOnBuildValues.UseRecommendedDisposePattern,
                 title: new LocalizableResourceString(nameof(FeaturesResources.Use_recommended_dispose_pattern), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 messageFormat: new LocalizableResourceString(nameof(FeaturesResources.Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 description: new LocalizableResourceString(nameof(FeaturesResources.UseRecommendedDisposePatternDescription), FeaturesResources.ResourceManager, typeof(FeaturesResources)),

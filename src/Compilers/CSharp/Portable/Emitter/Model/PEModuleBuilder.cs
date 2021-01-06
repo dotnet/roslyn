@@ -405,19 +405,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return SpecializedCollections.EmptyEnumerable<Cci.INamespaceTypeDefinition>();
             }
 
+            return Compilation.AnonymousTypeManager.GetAllCreatedTemplates()
 #if DEBUG
-            return iterator();
+                   .Select(type => type.GetCciAdapter())
 
-            IEnumerable<Cci.INamespaceTypeDefinition> iterator()
-            {
-                foreach (NamedTypeSymbol type in Compilation.AnonymousTypeManager.GetAllCreatedTemplates())
-                {
-                    yield return type.GetCciAdapter();
-                }
-            }
-#else
-            return Compilation.AnonymousTypeManager.GetAllCreatedTemplates();
 #endif
+                   ;
         }
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
@@ -1686,28 +1679,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypeDefinitions(EmitContext context)
         {
+            return GetAdditionalTopLevelTypes(context.Diagnostics)
 #if DEBUG
-
-            foreach (NamedTypeSymbol type in GetAdditionalTopLevelTypes(context.Diagnostics))
-            {
-                yield return type.GetCciAdapter();
-            }
-#else
-            return GetAdditionalTopLevelTypes(context.Diagnostics);
+                   .Select(type => type.GetCciAdapter())
 #endif
+                   ;
         }
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetEmbeddedTypeDefinitions(EmitContext context)
         {
+            return GetEmbeddedTypes(context.Diagnostics)
 #if DEBUG
-
-            foreach (NamedTypeSymbol type in GetEmbeddedTypes(context.Diagnostics))
-            {
-                yield return type.GetCciAdapter();
-            }
-#else
-            return GetEmbeddedTypes(context.Diagnostics);
+                   .Select(type => type.GetCciAdapter())
 #endif
+                   ;
         }
     }
 }

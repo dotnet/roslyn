@@ -23,38 +23,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw ExceptionUtilities.Unreachable
         End Function
 
-#If DEBUG Then
-        Friend MustOverride ReadOnly Property AdaptedSymbol As Symbol
-
-        Public NotOverridable Overrides Function ToString() As String
-            Return AdaptedSymbol.ToString()
-        End Function
-
-        Public NotOverridable Overrides Function Equals(obj As Object) As Boolean
-            ' It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            Throw Roslyn.Utilities.ExceptionUtilities.Unreachable
-        End Function
-
-        Public NotOverridable Overrides Function GetHashCode() As Integer
-            ' It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            Throw Roslyn.Utilities.ExceptionUtilities.Unreachable
-        End Function
-#Else
-        Friend ReadOnly Property AdaptedSymbol As Symbol
-            Get
-                Return Me
-            End Get
-        End Property
-#End If
-
         Private Function IReferenceGetInternalSymbol() As CodeAnalysis.Symbols.ISymbolInternal Implements Cci.IReference.GetInternalSymbol
             Return AdaptedSymbol
         End Function
 
-#If DEBUG Then
+        Friend Overridable Sub IReferenceDispatch(visitor As Cci.MetadataVisitor) _
+            Implements Cci.IReference.Dispatch
+
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
+        Private Function IReferenceGetAttributes(context As EmitContext) As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IReference.GetAttributes
+            Return AdaptedSymbol.GetCustomAttributesToEmit(DirectCast(context.Module, PEModuleBuilder).CompilationState)
+        End Function
     End Class
 
     Partial Friend Class Symbol
+#If DEBUG Then
         Friend Function GetCciAdapter() As SymbolAdapter
             Return GetCciAdapterImpl()
         End Function
@@ -63,6 +48,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw ExceptionUtilities.Unreachable
         End Function
 #Else
+        Friend ReadOnly Property AdaptedSymbol As Symbol
+            Get
+                Return Me
+            End Get
+        End Property
+
         Friend Function GetCciAdapter() As Symbol
             Return Me
         End Function
@@ -71,23 +62,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function ISymbolInternalGetCciAdapter() As Cci.IReference Implements CodeAnalysis.Symbols.ISymbolInternal.GetCciAdapter
             Return GetCciAdapter()
         End Function
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class SymbolAdapter
-#End If
-
-        Friend Overridable Sub IReferenceDispatch(visitor As Cci.MetadataVisitor) _
-            Implements Cci.IReference.Dispatch
-
-            Throw ExceptionUtilities.Unreachable
-        End Sub
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class Symbol
-#End If
 
         ''' <summary>
         ''' Return whether the symbol is either the original definition
@@ -97,25 +71,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function IsDefinitionOrDistinct() As Boolean
             Return Me.IsDefinition OrElse Not Me.Equals(Me.OriginalDefinition)
         End Function
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class SymbolAdapter
-        Friend Function IsDefinitionOrDistinct() As Boolean
-            Return AdaptedSymbol.IsDefinitionOrDistinct()
-        End Function
-#End If
-
-        Private Function IReferenceGetAttributes(context As EmitContext) As IEnumerable(Of Cci.ICustomAttribute) Implements Cci.IReference.GetAttributes
-            Return AdaptedSymbol.GetCustomAttributesToEmit(DirectCast(context.Module, PEModuleBuilder).CompilationState)
-        End Function
-
-#If DEBUG Then
-    End Class
-
-    Partial Friend Class Symbol
-#End If
 
         Friend Overridable Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
             Return GetCustomAttributesToEmit(compilationState, emittingAssemblyAttributesInNetModule:=False)
@@ -191,10 +146,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #If DEBUG Then
     Partial Friend Class SymbolAdapter
+        Friend MustOverride ReadOnly Property AdaptedSymbol As Symbol
+
+        Public NotOverridable Overrides Function ToString() As String
+            Return AdaptedSymbol.ToString()
+        End Function
+
+        Public NotOverridable Overrides Function Equals(obj As Object) As Boolean
+            ' It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            Throw Roslyn.Utilities.ExceptionUtilities.Unreachable
+        End Function
+
+        Public NotOverridable Overrides Function GetHashCode() As Integer
+            ' It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            Throw Roslyn.Utilities.ExceptionUtilities.Unreachable
+        End Function
+
         <Conditional("DEBUG")>
         Protected Friend Sub CheckDefinitionInvariant()
             AdaptedSymbol.CheckDefinitionInvariant()
         End Sub
+
+        Friend Function IsDefinitionOrDistinct() As Boolean
+            Return AdaptedSymbol.IsDefinitionOrDistinct()
+        End Function
     End Class
 #End If
 

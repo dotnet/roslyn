@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -110,6 +110,7 @@ namespace RunTests
                 var commandLineArguments = GetCommandLineArguments(assemblyInfo);
                 var resultsFilePath = GetResultsFilePath(assemblyInfo);
                 var resultsDir = Path.GetDirectoryName(resultsFilePath);
+                var htmlResultsFilePath = Options.IncludeHtml ? GetResultsFilePath(assemblyInfo, "html") : null;
                 var processResultList = new List<ProcessResult>();
                 ProcessInfo? procDumpProcessInfo = null;
 
@@ -194,15 +195,18 @@ namespace RunTests
                         // Delete the output file.
                         File.Delete(resultsFilePath);
                         resultsFilePath = null;
+                        htmlResultsFilePath = null;
                     }
                 }
 
                 Logger.Log($"Command line {assemblyInfo.DisplayName}: {Options.DotnetFilePath} {commandLineArguments}");
                 var standardOutput = string.Join(Environment.NewLine, xunitProcessResult.OutputLines) ?? "";
                 var errorOutput = string.Join(Environment.NewLine, xunitProcessResult.ErrorLines) ?? "";
+
                 var testResultInfo = new TestResultInfo(
                     exitCode: xunitProcessResult.ExitCode,
                     resultsFilePath: resultsFilePath,
+                    htmlResultsFilePath: htmlResultsFilePath,
                     elapsed: span,
                     standardOutput: standardOutput,
                     errorOutput: errorOutput);

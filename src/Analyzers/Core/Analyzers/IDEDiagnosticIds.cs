@@ -151,6 +151,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string RemoveRedundantEqualityDiagnosticId = "IDE0100";
 
+        public const string RemoveUnnecessaryDiscardDesignationDiagnosticId = "IDE0110";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
