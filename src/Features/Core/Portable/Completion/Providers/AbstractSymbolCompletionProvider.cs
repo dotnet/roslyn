@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -53,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             if (!_isTargetTypeCompletionFilterExperimentEnabled.HasValue)
             {
-                var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
                 _isTargetTypeCompletionFilterExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter);
             }
 
@@ -128,8 +126,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CompletionContext completionContext,
             IEnumerable<ISymbol> symbols,
             Func<ISymbol, SyntaxContext> contextLookup,
-            Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
-            List<ProjectId> totalProjects,
+            Dictionary<ISymbol, List<ProjectId>>? invalidProjectMap,
+            List<ProjectId>? totalProjects,
             bool preselect,
             TelemetryCounter telemetryCounter)
         {
@@ -185,16 +183,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string insertionText,
             List<ISymbol> symbols,
             SyntaxContext context,
-            Dictionary<ISymbol, List<ProjectId>> invalidProjectMap,
-            List<ProjectId> totalProjects,
+            Dictionary<ISymbol, List<ProjectId>>? invalidProjectMap,
+            List<ProjectId>? totalProjects,
             bool preselect)
         {
             Contract.ThrowIfNull(symbols);
 
-            SupportedPlatformData supportedPlatformData = null;
+            SupportedPlatformData? supportedPlatformData = null;
             if (invalidProjectMap != null)
             {
-                List<ProjectId> invalidProjects = null;
+                List<ProjectId>? invalidProjects = null;
                 foreach (var symbol in symbols)
                 {
                     if (invalidProjectMap.TryGetValue(symbol, out invalidProjects))
@@ -216,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected virtual CompletionItem CreateItem(
             CompletionContext completionContext, string displayText, string displayTextSuffix, string insertionText,
-            List<ISymbol> symbols, SyntaxContext context, bool preselect, SupportedPlatformData supportedPlatformData)
+            List<ISymbol> symbols, SyntaxContext context, bool preselect, SupportedPlatformData? supportedPlatformData)
         {
             return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
@@ -323,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static ImmutableArray<DocumentId> GetRelatedDocumentIds(Document document, int position)
         {
             var relatedDocumentIds = document.GetLinkedDocumentIds();
-            var relatedDocuments = relatedDocumentIds.Concat(document.Id).Select(document.Project.Solution.GetDocument);
+            var relatedDocuments = relatedDocumentIds.Concat(document.Id).Select(document.Project.Solution.GetRequiredDocument);
             lock (s_cacheGate)
             {
                 // Invalidate the cache if it's for a different position or a different set of Documents.
@@ -392,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var perContextSymbols = ArrayBuilder<(DocumentId documentId, SyntaxContext syntaxContext, ImmutableArray<ISymbol> symbols)>.GetInstance();
             foreach (var relatedDocumentId in relatedDocuments)
             {
-                var relatedDocument = document.Project.Solution.GetDocument(relatedDocumentId);
+                var relatedDocument = document.Project.Solution.GetRequiredDocument(relatedDocumentId);
                 var context = await GetOrCreateContextAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false);
 
                 if (IsCandidateProject(context, cancellationToken))
