@@ -12,7 +12,7 @@ parameters:
     default: false
 
 steps:
-  - template: eng/pipelines/checkout-windows-task.yml
+  - template: checkout-windows-task.yml
 
   - task: PowerShell@2
     displayName: Build and Test
