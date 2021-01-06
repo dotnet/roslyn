@@ -195,8 +195,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var attributeConstructor = boundAttribute.Constructor;
 
             RoslynDebug.Assert((object)attributeType != null);
+            Debug.Assert(boundAttribute.Syntax.Kind() == SyntaxKind.Attribute);
 
-            NullableWalker.AnalyzeIfNeeded(this, boundAttribute, diagnostics);
+            NullableWalker.AnalyzeIfNeeded(this, boundAttribute, boundAttribute.Syntax, diagnostics);
 
             bool hasErrors = boundAttribute.HasAnyErrors;
 

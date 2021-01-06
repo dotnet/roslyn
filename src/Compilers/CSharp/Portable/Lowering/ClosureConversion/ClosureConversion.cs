@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 prologue.Add(new BoundAssignmentOperator(syntax,
                     new BoundLocal(syntax, framePointer, null, frameType),
-                    new BoundObjectCreationExpression(syntax: syntax, constructor: constructor, binderOpt: null),
+                    new BoundObjectCreationExpression(syntax: syntax, constructor: constructor),
                     frameType));
             }
 
@@ -1059,7 +1059,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.ArgsToParamsOpt,
                     node.DefaultArguments,
                     node.ResultKind,
-                    node.BinderOpt,
                     type);
             }
 

@@ -13,14 +13,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceConstructorSymbol : SourceConstructorSymbolBase
     {
         private readonly bool _isExpressionBodied;
+        private readonly bool _hasThisInitializer;
 
         public static SourceConstructorSymbol CreateConstructorSymbol(
             SourceMemberContainerTypeSymbol containingType,
             ConstructorDeclarationSyntax syntax,
+            bool isNullableAnalysisEnabled,
             DiagnosticBag diagnostics)
         {
             var methodKind = syntax.Modifiers.Any(SyntaxKind.StaticKeyword) ? MethodKind.StaticConstructor : MethodKind.Constructor;
-            return new SourceConstructorSymbol(containingType, syntax.Identifier.GetLocation(), syntax, methodKind, diagnostics);
+            return new SourceConstructorSymbol(containingType, syntax.Identifier.GetLocation(), syntax, methodKind, isNullableAnalysisEnabled, diagnostics);
         }
 
         private SourceConstructorSymbol(
@@ -28,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
              Location location,
              ConstructorDeclarationSyntax syntax,
              MethodKind methodKind,
+            bool isNullableAnalysisEnabled,
              DiagnosticBag diagnostics) :
              base(containingType, location, syntax, SyntaxFacts.HasYieldOperations(syntax))
         {
@@ -35,9 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isExpressionBodied = !hasBlockBody && syntax.ExpressionBody != null;
             bool hasBody = hasBlockBody || _isExpressionBodied;
 
+            _hasThisInitializer = syntax.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer;
+
             bool modifierErrors;
             var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, hasBody, location, diagnostics, out modifierErrors);
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false);
+            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (syntax.Identifier.ValueText != containingType.Name)
             {
@@ -158,6 +163,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return _isExpressionBodied;
             }
+        }
+
+        internal override bool IsNullableAnalysisEnabled()
+        {
+            return _hasThisInitializer ?
+                flags.IsNullableAnalysisEnabled :
+                ((SourceMemberContainerTypeSymbol)ContainingType).IsNullableEnabledForConstructorsAndInitializers(IsStatic);
         }
 
         protected override bool AllowRefOrOut

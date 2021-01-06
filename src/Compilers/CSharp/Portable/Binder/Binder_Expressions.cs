@@ -4067,7 +4067,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argsToParamsOpt: argsToParamsOpt,
                         defaultArguments: defaultArguments,
                         resultKind: LookupResultKind.Viable,
-                        binderOpt: this,
                         type: constructorReturnType,
                         hasErrors: hasErrors)
                     { WasCompilerGenerated = initializerArgumentListOpt == null };
@@ -4121,6 +4120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return constructor.ContainingType is SourceNamedTypeSymbol sourceType &&
                 sourceType.IsRecord &&
+                constructor is not SynthesizedRecordConstructor &&
                 SynthesizedRecordCopyCtor.HasCopyConstructorSignature(constructor);
         }
 
@@ -4740,7 +4740,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultArguments,
                 resultKind,
                 implicitReceiver.Type,
-                binder: this,
                 type: boundMember.Type,
                 hasErrors: hasErrors);
         }
@@ -5090,7 +5089,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundCall.DefaultArguments,
                     boundCall.InvokedAsExtensionMethod,
                     boundCall.ResultKind,
-                    binderOpt: boundCall.BinderOpt,
                     boundCall.Type,
                     boundCall.HasAnyErrors)
                 { WasCompilerGenerated = true };
@@ -5295,7 +5293,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constantValueOpt,
                     boundInitializerOpt,
                     wasTargetTyped,
-                    this,
                     type,
                     hasError);
 
@@ -5454,7 +5451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var creation = (BoundObjectCreationExpression)classCreation;
                         return creation.Update(creation.Constructor, creation.ConstructorsGroup, creation.Arguments, creation.ArgumentNamesOpt,
                                                creation.ArgumentRefKindsOpt, creation.Expanded, creation.ArgsToParamsOpt, creation.DefaultArguments, creation.ConstantValueOpt,
-                                               creation.InitializerExpressionOpt, creation.BinderOpt, interfaceType);
+                                               creation.InitializerExpressionOpt, interfaceType);
 
                     case BoundKind.BadExpression:
                         var bad = (BoundBadExpression)classCreation;
@@ -7809,7 +7806,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isExpanded,
                     argsToParams,
                     defaultArguments: default,
-                    this,
                     property.Type,
                     gotError);
             }
