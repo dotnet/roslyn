@@ -20,7 +20,7 @@
       <trans-unit id="Action">
         <source>Action</source>
         <target state="new">Action</target>
-        <note />
+        <note>Action to perform on an unused reference, such as remove or keep</note>
       </trans-unit>
       <trans-unit id="Add">
         <source>_Add</source>
@@ -68,8 +68,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_project_references">
-        <source>Analyzing project references.</source>
-        <target state="new">Analyzing project references.</target>
+        <source>Analyzing project references...</source>
+        <target state="new">Analyzing project references...</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply">
@@ -973,8 +973,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Updating_project_references">
-        <source>Updating project references.</source>
-        <target state="new">Updating project references.</target>
+        <source>Updating project references...</source>
+        <target state="new">Updating project references...</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_severity">
