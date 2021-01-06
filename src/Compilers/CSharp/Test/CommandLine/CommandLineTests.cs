@@ -12462,6 +12462,8 @@ dotnet_diagnostic.{diagnosticId}.severity = {severityString}");
                 analyzers: new[] { analyzer });
         }
 
+        #region Source Generator tests
+
         [Fact]
         public void SourceGenerators_EmbeddedSources()
         {
@@ -12927,6 +12929,8 @@ key7 = value7");
             var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:" + version.ToDisplayString() }, generators: new[] { generator }, expectedWarningCount: 1, expectedErrorCount: 1, expectedExitCode: 0);
             Assert.Contains("CS8785: Generator 'CallbackGenerator' failed to generate source.", output);
         }
+
+        #endregion
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         private sealed class FieldAnalyzer : DiagnosticAnalyzer
