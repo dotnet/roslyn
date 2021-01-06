@@ -11,9 +11,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
     Friend Class MockSymbolNavigationService
         Implements ISymbolNavigationService
 
-        Public _triedNavigationToSymbol As Boolean = False
-        Public _triedSymbolNavigationNotify As Boolean = False
-        Public _wouldNavigateToSymbol As Boolean = False
+        Public _triedNavigationToSymbol As Boolean
+        Public _triedSymbolNavigationNotify As Boolean
+        Public _wouldNavigateToSymbol As Boolean
 
         Public Function TryNavigateToSymbol(symbol As ISymbol, project As Project, Optional options As OptionSet = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Boolean Implements ISymbolNavigationService.TryNavigateToSymbol
             _triedNavigationToSymbol = True

@@ -27,6 +27,7 @@
       "Microsoft.NETCore.Compilers": "arcade",
       "Microsoft.CodeAnalysis.Debugging": "arcade",
       "Microsoft.CodeAnalysis.PooledObjects": "arcade",
+      "Microsoft.CodeAnalysis.Collections": "arcade",
       "Microsoft.CodeAnalysis.Features": "arcade",
 
       "Microsoft.CodeAnalysis.EditorFeatures": "vssdk",
@@ -81,6 +82,7 @@
       "Microsoft.NETCore.Compilers" : "arcade",
       "Microsoft.CodeAnalysis.Debugging" : "arcade",
       "Microsoft.CodeAnalysis.PooledObjects" : "arcade",
+      "Microsoft.CodeAnalysis.Collections": "arcade",
       "Microsoft.CodeAnalysis.Features" : "arcade",
 
       "Microsoft.CodeAnalysis.EditorFeatures" : "arcade",
@@ -207,7 +209,7 @@
       "nugetKind": [ "Shipping", "NonShipping" ],
       "version": "3.9.*",
       "packageFeeds": "default",
-      "channels": [ "dev16.9p2" ],
+      "channels": [ "dev16.9p3" ],
       "vsBranch": "rel/d16.9",
       "vsMajorVersion": 16
     },
@@ -215,7 +217,7 @@
       "nugetKind": ["Shipping", "NonShipping"],
       "version": "3.9.*",
       "packageFeeds": "default",
-      "channels": [ "dev16.9", "dev16.9p3" ],
+      "channels": [ "dev16.9", "dev16.9p4" ],
       "vsBranch": "main",
       "vsMajorVersion": 16
     },

@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
     {
         protected AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(LocalizableString title, string language)
             : base(diagnosticId: IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId,
+                  EnforceOnBuildValues.ConvertTypeOfToNameOf,
                   option: null,
                   language: language,
                   title: title)

@@ -335,6 +335,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">讀取檔案 '{0}' 時發生錯誤: {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
+        <source>Error creating instance of CodeFixProvider</source>
+        <target state="new">Error creating instance of CodeFixProvider</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
+        <source>Error creating instance of CodeFixProvider '{0}'</source>
+        <target state="new">Error creating instance of CodeFixProvider '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Example">
         <source>Example:</source>
         <target state="translated">範例:</target>
@@ -1830,6 +1840,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">將不會更新中繼資料中所找到的相關方法簽章。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Removal_of_document_not_supported">
+        <source>Removal of document not supported</source>
+        <target state="new">Removal of document not supported</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_async_modifier">
         <source>Remove 'async' modifier</source>
         <target state="translated">移除 'async' 修飾元</target>
@@ -2098,6 +2113,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="_0_cannot_be_null_or_whitespace">
         <source>'{0}' cannot be null or whitespace.</source>
         <target state="translated">'{0}' 不得為 Null 或空白字元。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_dash_1">
+        <source>{0} - {1}</source>
+        <target state="new">{0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -2470,6 +2490,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">泛型多載</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="in_0_1_2">
+        <source>in {0} ({1} - {2})</source>
+        <target state="new">in {0} ({1} - {2})</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source_attribute">
