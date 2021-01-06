@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
     /// The base type for artifact producers that can programmatically generate additional non-code files during a
-    /// compilation.  Artifact generators only run when a compiler is invoked with the <c>generatedfilesout</c>
+    /// compilation.  Artifact generators only run when a compiler is invoked with the <c>generatedartifactsout</c>
     /// parameter.
     /// </summary>
     /// <remarks>
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Writes out an artifact with the contents of <paramref name="source"/>.  The artifact will be written out with utf8 encoding.
         /// </summary>
         /// <param name="fileName">The file name to generate this artifact into.  Will be concatenated with the
-        /// generatedartifactsout path provided to the compiler.</param>
+        /// <c>generatedartifactsout</c> path provided to the compiler.</param>
         /// <param name="source">The text to generate</param>
         protected void WriteArtifact(string fileName, string source)
         {
