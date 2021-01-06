@@ -9788,8 +9788,10 @@ class A
             await AssertFormatAsync(
                 @"
 record R(int X);
-class C {
-    void Goo(R r) {
+class C
+{
+    void Goo(R r)
+    {
         var r2 = r with
         {
             X = 0
@@ -9798,8 +9800,10 @@ class C {
 }",
                 @"
 record R(int X);
-class C {
-    void Goo(R r) {
+class C
+{
+    void Goo(R r)
+    {
         var r2 = r with {
             X = 0
         };
@@ -9818,8 +9822,10 @@ class C {
             await AssertFormatAsync(
                 @"
 record R(int X);
-class C {
-    void Goo(R r) {
+class C
+{
+    void Goo(R r)
+    {
         var r2 = r with {
             X = 0
         };
@@ -9827,8 +9833,10 @@ class C {
 }",
                 @"
 record R(int X);
-class C {
-    void Goo(R r) {
+class C
+{
+    void Goo(R r)
+    {
         var r2 = r with
         {
             X = 0
