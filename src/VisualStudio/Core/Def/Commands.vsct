@@ -20,10 +20,6 @@
         <Parent guid="guidRoslynGrpId" id="cmdidAnalyzerFolderContextMenu"/>
       </Group>
 
-      <Group guid="guidRoslynGrpId" id="grpRoslynReferenceCommands" priority="0x000">
-        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_REFERENCEROOT"/>
-      </Group>
-
       <Group guid="guidRoslynGrpId" id="grpErrorListContextMenu" priority="0x0A01">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ERRORLIST"/>
       </Group>
@@ -65,10 +61,6 @@
       </Group>
 
       <Group guid="guidRoslynGrpId" id="grpSetActiveRuleSet">
-      </Group>
-
-      <Group guid="guidRoslynGrpId" id="grpDiagnosticSeverity" priority="0x000">
-        <Parent guid="guidRoslynGrpId" id="cmdidDiagnosticContextMenu"/>
       </Group>
     </Groups>
 
@@ -407,10 +399,9 @@
         </Strings>
       </Button>
 
-      <Button guid="guidRoslynGrpId" id="cmdidRemoveUnusedReferences" priority="0x0100" type="Button">
-        <Parent guid="guidRoslynGrpId" id="grpRoslynReferenceCommands"/>
+      <Button guid="guidRoslynGrpId" id="cmdidRemoveUnusedReferences" priority="0x0300" type="Button">
+        <Parent guid="guidReferenceContext" id="cmdAddReferenceGroup"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>TextChanges</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <CommandFlag>DefaultDisabled</CommandFlag>
         <Strings>
@@ -518,8 +509,12 @@
       <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_NAVIGATETOLOCATION"/>
     </CommandPlacement>
 
-    <CommandPlacement guid="guidRoslynGrpId" id="cmdidRemoveUnusedReferences" priority="0x0425">
-      <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_BUILD" />
+    <CommandPlacement guid="guidRoslynGrpId" id="cmdidRemoveUnusedReferences" priority="0xF200">
+      <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_ADD" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="guidRoslynGrpId" id="cmdidRemoveUnusedReferences" priority="0xF200">
+      <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_REFROOT_ADD" />
     </CommandPlacement>
   </CommandPlacements>
 
@@ -606,7 +601,6 @@
       <IDSymbol name="cmdidRunCodeAnalysisForProject"  value="0x0201" />
 
       <IDSymbol name="cmdidRemoveUnusedReferences" value="0x202" />
-      <IDSymbol name="grpRoslynReferenceCommands" value="0x203" />
     </GuidSymbol>
 
     <GuidSymbol name="guidCSharpInteractiveCommandSet" value="{1492db0a-85a2-4e43-bf0d-ce55b89a8cc6}">
@@ -621,6 +615,11 @@
 
       <IDSymbol name="cmdidVisualBasicInteractiveToolWindow" value="0x0001" />
       <IDSymbol name="cmdidResetInteractiveFromProject" value="0x0002"/>
+    </GuidSymbol>
+
+    <!--guidReferenceContext is aka: ShellMainMenu_guid -->
+    <GuidSymbol name="guidReferenceContext" value="{D309F791-903F-11D0-9EFC-00A0C911004F}">
+      <IDSymbol name="cmdAddReferenceGroup" value="0x450" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>
