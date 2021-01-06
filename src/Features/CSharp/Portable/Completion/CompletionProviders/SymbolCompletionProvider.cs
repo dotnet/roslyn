@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -120,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // don't want to trigger after a number.  All other cases after dot are ok.
-            var tree = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = tree.FindToken(characterPosition);
             if (token.Kind() == SyntaxKind.DotToken)
             {
@@ -139,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return null;
             }
 
-            var tree = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = tree.FindToken(characterPosition);
 
             if (!token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier))
