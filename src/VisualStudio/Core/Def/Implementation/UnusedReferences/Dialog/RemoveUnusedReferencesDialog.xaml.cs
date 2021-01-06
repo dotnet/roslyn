@@ -17,11 +17,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         public string Apply => ServicesVSResources.Apply;
         public string Cancel => ServicesVSResources.Cancel;
 
-        public RemoveUnusedReferencesDialog(FrameworkElement element)
+        public RemoveUnusedReferencesDialog(FrameworkElement tableControl)
         {
             InitializeComponent();
 
-            TablePanel.Child = element;
+            TablePanel.Child = tableControl;
         }
 
         private void ApplyButton_Click(object sender, RoutedEventArgs e)
