@@ -146,12 +146,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim value As ConstantValue
 
             If Me.Type.SpecialType = SpecialType.System_DateTime Then
-                value = GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+                value = GetConstantValue(ConstantFieldsInProgress.Empty)
                 If value IsNot Nothing AndAlso value.Discriminator = ConstantValueTypeDiscriminator.DateTime Then
                     Return AttributeDescription.DateTimeConstantAttribute
                 End If
             ElseIf Me.Type.SpecialType = SpecialType.System_Decimal Then
-                value = GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+                value = GetConstantValue(ConstantFieldsInProgress.Empty)
                 If value IsNot Nothing AndAlso value.Discriminator = ConstantValueTypeDiscriminator.Decimal Then
                     Return AttributeDescription.DecimalConstantAttribute
                 End If
@@ -201,11 +201,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property IsConst As Boolean
             Get
-                Return (_flags And FieldAttributes.Literal) <> 0 OrElse GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty) IsNot Nothing
+                Return (_flags And FieldAttributes.Literal) <> 0 OrElse GetConstantValue(ConstantFieldsInProgress.Empty) IsNot Nothing
             End Get
         End Property
 
-        Friend Overrides Function GetConstantValue(inProgress As SymbolsInProgress(Of FieldSymbol)) As ConstantValue
+        Friend Overrides Function GetConstantValue(inProgress As ConstantFieldsInProgress) As ConstantValue
             If _lazyConstantValue Is Microsoft.CodeAnalysis.ConstantValue.Unset Then
                 Dim value As ConstantValue = Nothing
 
@@ -378,7 +378,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 If fieldUseSiteErrorInfo Is Nothing Then
 
                     ' report use site errors for invalid constant values 
-                    Dim constantValue = GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+                    Dim constantValue = GetConstantValue(ConstantFieldsInProgress.Empty)
                     If constantValue IsNot Nothing AndAlso
                         constantValue.IsBad Then
                         fieldUseSiteErrorInfo = New DiagnosticInfo(MessageProvider.Instance,

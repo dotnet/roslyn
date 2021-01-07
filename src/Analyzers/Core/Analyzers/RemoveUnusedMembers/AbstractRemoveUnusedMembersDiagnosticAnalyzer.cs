@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         // IDE0051: "Remove unused members" (Symbol is declared but never referenced)
         private static readonly DiagnosticDescriptor s_removeUnusedMembersRule = CreateDescriptor(
             IDEDiagnosticIds.RemoveUnusedMembersDiagnosticId,
+            EnforceOnBuildValues.RemoveUnusedMembers,
             new LocalizableResourceString(nameof(AnalyzersResources.Remove_unused_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_is_unused), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: true);
@@ -34,6 +35,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
         private static readonly DiagnosticDescriptor s_removeUnreadMembersRule = CreateDescriptor(
             IDEDiagnosticIds.RemoveUnreadMembersDiagnosticId,
+            EnforceOnBuildValues.RemoveUnreadMembers,
             new LocalizableResourceString(nameof(AnalyzersResources.Remove_unread_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
             isUnnecessary: true);

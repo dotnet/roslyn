@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If constantsInProgress IsNot Nothing Then
                     result = Me.FieldSymbol.GetConstantValue(constantsInProgress)
                 Else
-                    result = Me.FieldSymbol.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+                    result = Me.FieldSymbol.GetConstantValue(ConstantFieldsInProgress.Empty)
                 End If
 
 #If DEBUG Then

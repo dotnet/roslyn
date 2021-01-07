@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Exception Regions
 
-            var baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(CancellationToken.None).ConfigureAwait(false);
+            var baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(validator.Workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
 
             AssertEx.Equal(new[]
             {
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Exception Regions
 
-            var baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(CancellationToken.None).ConfigureAwait(false);
+            var baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(validator.Workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
 
             // Note that the spans correspond to the base snapshot (V2). 
             AssertEx.Equal(new[]
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Exception Regions - not available in out-of-sync documents as we need the content of the base document to calculate them
 
-            var baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(CancellationToken.None).ConfigureAwait(false);
+            var baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(validator.Workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
 
             AssertEx.Equal(new[]
             {
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // document got synchronized:
             validator.EditSession.DebuggingSession.LastCommittedSolution.Test_SetDocumentState(docs[0], CommittedSolution.DocumentState.MatchesBuildOutput);
 
-            baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(CancellationToken.None).ConfigureAwait(false);
+            baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(validator.Workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
 
             AssertEx.Equal(new[]
             {
@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Exception Regions
 
-            var baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(CancellationToken.None).ConfigureAwait(false);
+            var baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(validator.Workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
 
             // Note that the spans correspond to the base snapshot (V2). 
             AssertEx.Equal(new[]
@@ -816,7 +816,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Exception Regions
 
-            var baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(CancellationToken.None).ConfigureAwait(false);
+            var baseExceptionRegions = await validator.EditSession.GetBaseActiveExceptionRegionsAsync(validator.Workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
 
             AssertEx.Equal(new[]
             {

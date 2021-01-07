@@ -6591,4 +6591,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_UnreadRecordParameter_Title" xml:space="preserve">
     <value>Parameter is unread. Did you forget to use it to initialize the property with that name?</value>
   </data>
+  <data name="ERR_RecordAmbigCtor" xml:space="preserve">
+    <value>The primary constructor conflicts with the synthesized copy constructor.</value>
+  </data>
+  <data name="WRN_DoNotCompareFunctionPointers" xml:space="preserve">
+    <value>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</value>
+  </data>
+  <data name="WRN_DoNotCompareFunctionPointers_Title" xml:space="preserve">
+    <value>Do not compare function pointer values</value>
+  </data>
 </root>
