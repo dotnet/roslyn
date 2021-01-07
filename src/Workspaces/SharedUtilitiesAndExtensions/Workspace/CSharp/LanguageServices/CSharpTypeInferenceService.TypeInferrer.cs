@@ -1522,21 +1522,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ConstantPatternSyntax constantPattern => GetTypes(constantPattern.Expression),
                     RecursivePatternSyntax recursivePattern => GetTypesForRecursivePattern(recursivePattern),
-                    _ => GetPatternTypesFromOperation(pattern),
-                };
-
-                IEnumerable<TypeInferenceInfo> GetPatternTypesFromOperation(PatternSyntax pattern)
-                {
-                    if (this.SemanticModel.GetOperation(pattern, CancellationToken) is IPatternOperation patternOperation)
-                    {
-                        var resultType = patternOperation.NarrowedType.IsErrorType()
+                    _ when SemanticModel.GetOperation(pattern, CancellationToken) is IPatternOperation patternOperation =>
+                        CreateResult(patternOperation.NarrowedType.IsErrorType()
                             ? patternOperation.InputType
-                            : patternOperation.NarrowedType;
-                        return CreateResult(resultType);
-                    }
-
-                    return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-                }
+                            : patternOperation.NarrowedType),
+                    _ => SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>()
+                };
             }
 
             private IEnumerable<TypeInferenceInfo> GetTypesForRecursivePattern(RecursivePatternSyntax recursivePattern)
