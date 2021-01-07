@@ -2230,7 +2230,7 @@ unsafe
     static string converter(int v) => string.Empty;
     static void Test<T1, T2>(T1 t1, delegate*<T1, T2> func) {}
 }
-", options: TestOptions.UnsafeReleaseExe);
+", options: TestOptions.UnsafeReleaseExe, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
@@ -2255,7 +2255,7 @@ unsafe
     static string converter(object o) => string.Empty;
     static void Test<T1, T2>(T1 t1, delegate*<T1, T2> func) {}
 }
-", options: TestOptions.UnsafeReleaseExe);
+", options: TestOptions.UnsafeReleaseExe, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
