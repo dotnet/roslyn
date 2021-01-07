@@ -779,7 +779,7 @@
       </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
         <source>The primary constructor conflicts with the synthesized copy constructor.</source>
-        <target state="new">The primary constructor conflicts with the synthesized copy constructor.</target>
+        <target state="translated">Le constructeur principal est en conflit avec le constructeur de copie synthétisée.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -974,12 +974,12 @@
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
         <source>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</source>
-        <target state="new">Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</target>
+        <target state="translated">La comparaison des pointeurs de fonction peut donner un résultat inattendu, car les pointeurs vers la même fonction peuvent être distincts.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers_Title">
         <source>Do not compare function pointer values</source>
-        <target state="new">Do not compare function pointer values</target>
+        <target state="translated">Ne pas comparer les valeurs des pointeurs de fonction</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
