@@ -86,9 +86,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild ExpressionValueIsUnused = /*IDE0058*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild MakeStructFieldsWritable = /*IDE0064*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ConvertSwitchStatementToExpression = /*IDE0066*/ EnforceOnBuild.WhenExplicitlyEnabled;
-        public const EnforceOnBuild DisposeObjectsBeforeLosingScope = /*IDE0067*/ EnforceOnBuild.WhenExplicitlyEnabled;
-        public const EnforceOnBuild UseRecommendedDisposePattern = /*IDE0068*/ EnforceOnBuild.WhenExplicitlyEnabled;
-        public const EnforceOnBuild DisposableFieldsShouldBeDisposed = /*IDE0069*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild PopulateSwitchExpression = /*IDE0072*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild Regex = /*RE0001*/ EnforceOnBuild.WhenExplicitlyEnabled;
 
