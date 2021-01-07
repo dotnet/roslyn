@@ -160,7 +160,7 @@ namespace BuildValidator
 
                 // TODO: Check compilation version using the PEReader
 
-                var compilation = buildConstructor.CreateCompilation(reader, file.Name);
+                var compilation = buildConstructor.CreateCompilation(reader, Path.GetFileNameWithoutExtension(file.Name));
                 return CompilationDiff.Create(file, compilation);
             }
             catch (Exception e)

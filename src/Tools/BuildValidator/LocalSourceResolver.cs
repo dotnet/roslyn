@@ -39,7 +39,7 @@ namespace BuildValidator
             if (File.Exists(name))
             {
                 using var fileStream = File.OpenRead(name);
-                var sourceText = SourceText.From(fileStream, encoding: encoding);
+                var sourceText = SourceText.From(fileStream, encoding: encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256);
                 return sourceText;
             }
 
@@ -48,6 +48,12 @@ namespace BuildValidator
 
         private static DirectoryInfo GetSourceDirectory()
         {
+            bool useSimpleProgram = true;
+            if (useSimpleProgram)
+            {
+                return new DirectoryInfo(@"C:\Users\rikki\src\simple-rebuild");
+            }
+
             var assemblyLocation = typeof(LocalSourceResolver).Assembly.Location;
             var srcDir = Directory.GetParent(assemblyLocation);
 

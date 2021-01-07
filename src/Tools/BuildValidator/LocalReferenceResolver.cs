@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -30,7 +31,8 @@ namespace BuildValidator
         {
             _logger = loggerFactory.CreateLogger<LocalReferenceResolver>();
             _indexDirectories.Add(GetArtifactsDirectory());
-            _indexDirectories.Add(GetNugetCacheDirectory());
+            //_indexDirectories.Add(GetNugetCacheDirectory());
+            _indexDirectories.Add(GetRefAssembliesDirectory());
         }
 
         public static DirectoryInfo GetNugetCacheDirectory()
@@ -44,12 +46,29 @@ namespace BuildValidator
             return new DirectoryInfo(nugetPackageDirectory);
         }
 
+        public static DirectoryInfo GetRefAssembliesDirectory()
+        {
+            // PROTOTYPE
+            return new DirectoryInfo(@"C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref");
+        }
+
+        public string GetReferencePath(MetadataReferenceInfo referenceInfo)
+        {
+            if (_cache.TryGetValue(referenceInfo.Mvid, out var value))
+            {
+                return value;
+            }
+
+            _logger.LogTrace($"Cache miss for reference {referenceInfo}");
+            throw new Exception("PROTOTYPE");
+        }
+
         public ImmutableArray<MetadataReference> ResolveReferences(IEnumerable<MetadataReferenceInfo> references)
         {
             var referenceArray = references.ToImmutableArray();
             CacheNames(referenceArray);
 
-            var files = referenceArray.Select(r => _cache[r.Mvid]);
+            var files = referenceArray.Select(r => GetReferencePath(r));
 
             var metadataReferences = files.Select(f => MetadataReference.CreateFromFile(f)).Cast<MetadataReference>().ToImmutableArray();
             return metadataReferences;
@@ -97,6 +116,7 @@ namespace BuildValidator
             if (uncached.Any())
             {
                 _logger.LogDebug($"Unable to find files for the following metadata references: {uncached}");
+                // PROTOTYPE: should probably throw an exception here because we're guaranteed to fail to look up a filename for an assembly reference's MVID later on
             }
         }
 
@@ -121,6 +141,12 @@ namespace BuildValidator
 
         public static DirectoryInfo GetArtifactsDirectory()
         {
+            bool useSimpleProject = true;
+            if (useSimpleProject)
+            {
+                return new DirectoryInfo(@"C:\Users\rikki\src\simple-rebuild\bin\Release\netcoreapp3.1");
+            }
+
             var assemblyLocation = typeof(LocalReferenceResolver).Assembly.Location;
             var binDir = Directory.GetParent(assemblyLocation);
 

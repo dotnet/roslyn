@@ -7,7 +7,9 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace BuildValidator
 {
@@ -44,16 +46,18 @@ namespace BuildValidator
         {
             using var peStream = new MemoryStream();
 
-            var emitResult = producedCompilation.Emit(peStream);
+            var emitResult = producedCompilation.Emit(peStream: peStream, options: new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded, pdbChecksumAlgorithm: HashAlgorithmName.SHA256));
+
+            using var peFileStream = File.Create(@"C:\Users\rikki\Desktop\scratch\compare-simple\right\simple-rebuild.dll");
+            peStream.WriteTo(peFileStream);
+
             if (emitResult.Success)
             {
-                using var originalStream = assemblyFile.OpenRead();
-                var originalBytes = new byte[originalStream.Length];
-                originalStream.Read(originalBytes, 0, (int)originalStream.Length);
-
+                var originalBytes = File.ReadAllBytes(assemblyFile.FullName);
                 var newBytes = peStream.ToArray();
 
-                return new CompilationDiff(assemblyFile.FullName, newBytes.SequenceEqual(originalBytes));
+                var bytesEqual = originalBytes.SequenceEqual(newBytes);
+                return new CompilationDiff(assemblyFile.FullName, bytesEqual);
             }
             else
             {

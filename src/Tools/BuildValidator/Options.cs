@@ -36,6 +36,7 @@ namespace BuildValidator
                     case "/ignorecompilerversion":
                         options.IgnoreCompilerVersion = true;
                         break;
+
                 }
             }
 

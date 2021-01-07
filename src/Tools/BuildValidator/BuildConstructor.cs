@@ -65,14 +65,14 @@ namespace BuildValidator
             return _referenceResolver.ResolveReferences(referenceInfos);
         }
 
-        private ImmutableArray<SourceText> GetSources(CompilationOptionsReader pdbReader, Encoding encoding)
+        private ImmutableArray<(string filename, SourceText sourceText)> GetSources(CompilationOptionsReader pdbReader, Encoding encoding)
         {
-            var builder = ImmutableArray.CreateBuilder<SourceText>();
+            var builder = ImmutableArray.CreateBuilder<(string filename, SourceText sourceText)>();
 
             foreach (var srcFile in pdbReader.GetSourceFileNames())
             {
                 var text = _sourceResolver.ResolveSource(srcFile, encoding);
-                builder.Add(text);
+                builder.Add((srcFile, text));
             }
 
             return builder.ToImmutable();
@@ -87,7 +87,7 @@ namespace BuildValidator
 
             return CSharpCompilation.Create(
                 assemblyName,
-                syntaxTrees: sources.Select(s => CSharpSyntaxTree.ParseText(s, options: parseOptions)).ToImmutableArray(),
+                syntaxTrees: sources.Select(s => CSharpSyntaxTree.ParseText(s.sourceText, options: parseOptions, path: s.filename)).ToImmutableArray(),
                 references: metadataReferences,
                 options: compilationOptions);
         }
@@ -116,12 +116,12 @@ namespace BuildValidator
 
             var preprocessorSymbols = define == null
                 ? ImmutableArray<string>.Empty
-                : define.Split(';').ToImmutableArray();
+                : define.Split(',').ToImmutableArray();
 
             var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(langVersion)
                 .WithPreprocessorSymbols(preprocessorSymbols);
 
-            var (optimizationLevel, _) = GetOptimizationLevel(optimization);
+            var (optimizationLevel, plus) = GetOptimizationLevel(optimization);
 
             var nullableOptions = nullable is null
                 ? NullableContextOptions.Disable
@@ -179,7 +179,7 @@ namespace BuildValidator
 
             return VisualBasicCompilation.Create(
                 assemblyName,
-                syntaxTrees: sources.Select(s => VisualBasicSyntaxTree.ParseText(s, options: compilationOptions.ParseOptions)).ToImmutableArray(),
+                syntaxTrees: sources.Select(s => VisualBasicSyntaxTree.ParseText(s.sourceText, options: compilationOptions.ParseOptions, path: s.filename)).ToImmutableArray(),
                 references: metadataReferences,
                 options: compilationOptions);
         }
