@@ -3106,7 +3106,7 @@ class Program
         [InlineData("Color.Green orWrittenWrong ", false)]
         [InlineData("not ")]
         [InlineData("not Re")]
-        public async Task TestPatterns_Is_ConstUnaryAndBinaryPattern(string isPattern, bool shouldInferColor = true)
+        public async Task TestEnumInPatterns_Is_ConstUnaryAndBinaryPattern(string isPattern, bool shouldInferColor = true)
         {
             var markup = @$"
 class C
@@ -3134,12 +3134,13 @@ class C
         [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         [InlineData("")]
         [InlineData("Col")]
+        [InlineData("Color.R")]
         [InlineData("Red")]
         [InlineData("Color.Green or ")]
         [InlineData("Color.Green or Re")]
         [InlineData("not ")]
         [InlineData("not Re")]
-        public async Task TestPatterns_Is_PropertyPattern(string partialWritten)
+        public async Task TestEnumInPatterns_Is_PropertyPattern(string partialWritten)
         {
             var markup = @$"
 public enum Color
@@ -3163,31 +3164,7 @@ class C
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestPatterns_Is_PropertyPattern_NotAfterEnumDot()
-        {
-            var markup = @$"
-public enum Color
-{{
-    Red,
-    Green,
-}}
-
-class C
-{{
-    public Color Color {{ get; }}
-
-    public void M()
-    {{
-        var isRed = this is {{ Color: Color.R[||]
-    }}
-}}
-";
-            await TestAsync(markup, "global::Color", TestMode.Position);
-        }
-
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestPatterns_SwitchStatement_PropertyPattern()
+        public async Task TestEnumInPatterns_SwitchStatement_PropertyPattern()
         {
             var markup = @"
 public enum Color
@@ -3213,7 +3190,7 @@ class C
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestPatterns_SwitchExpression_PropertyPattern()
+        public async Task TestEnumInPatterns_SwitchExpression_PropertyPattern()
         {
             var markup = @"
 public enum Color
