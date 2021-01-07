@@ -335,5 +335,30 @@ class A
 
             Await VerifyTypeHints(input)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        Public Async Function TestWithTargetTypeNewInMethodArgument() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void M(string s) { }
+
+    void Main(string[] args) 
+    {
+        M(new{|string :|}())
+        {
+        }
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input)
+        End Function
     End Class
 End Namespace
