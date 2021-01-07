@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();
-            var typeInferrer = context.GetLanguageService<ITypeInferenceService>();
 
             var inferredTypes = context.InferredTypes.Where(t => t.SpecialType != SpecialType.System_Void).ToSet();
             if (inferredTypes.Count == 0)
