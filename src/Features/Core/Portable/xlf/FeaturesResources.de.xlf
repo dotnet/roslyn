@@ -275,31 +275,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Verbleibende Elemente als Eigenschaften erstellen und zuweisen</target>
         <note />
       </trans-unit>
-      <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
-        <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
-        <target state="translated">Ein Typ, der System.IDisposable implementiert, deklariert Felder, die Typen aufweisen, die ebenfalls IDisposable implementieren. Die Dispose-Methode des Felds wird nicht von der Dispose-Methode des deklarierenden Typs aufgerufen. Wenn Sie für das Zuordnen und Freigeben nicht verwalteter Ressourcen zuständig sind, die von diesem Feld belegt werden, rufen Sie zum Beheben eines Verstoßes gegen diese Regel Dispose für Felder auf, die Typen aufweisen, welche IDisposable implementieren.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disposable_field_0_is_never_disposed">
-        <source>Disposable field '{0}' is never disposed</source>
-        <target state="translated">Das löschbare Feld "{0}" wird niemals gelöscht.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disposable_fields_should_be_disposed">
-        <source>Disposable fields should be disposed</source>
-        <target state="translated">Verwerfbare Felder verwerfen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disposable_object_created_by_0_is_never_disposed">
-        <source>Disposable object created by '{0}' is never disposed</source>
-        <target state="translated">Das von "{0}" erstellte löschbare Objekt wird niemals gelöscht.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Dispose_objects_before_losing_scope">
-        <source>Dispose objects before losing scope</source>
-        <target state="translated">Objekte verwerfen, bevor Bereich verloren geht</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
         <source>Do not change this code. Put cleanup code in '{0}' method</source>
         <target state="translated">Ändern Sie diesen Code nicht. Fügen Sie Bereinigungscode in der Methode "{0}" ein.</target>
@@ -2005,11 +1980,6 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Durch Aktualisieren von "{0}" im Kontext einer aktiven Anweisung wird verhindert, dass die Debugsitzung fortgesetzt wird.</target>
         <note />
       </trans-unit>
-      <trans-unit id="UseRecommendedDisposePatternDescription">
-        <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="translated">Verwenden Sie das empfohlene Dispose-Muster, um sicherzustellen, dass löschbare Objekte für den lokalen Bereich in allen Pfaden gelöscht werden. Schließen Sie die Erstellung nach Möglichkeit in einer using-Anweisung oder einer using-Deklaration ein. Verwenden Sie andernfalls ein try-finally-Muster mit einer vor dem try-Bereich deklarierten dedizierten lokalen Variablen und einem Dispose-Aufruf ohne Bedingung für den Nicht-NULL-Wert im finally-Bereich, beispielsweise "x?.Dispose()". Wenn das Objekt explizit innerhalb des try-Bereichs gelöscht oder der Dispose-Besitz auf ein anderes Objekt oder eine andere Methode übertragen wird, weisen Sie der lokalen Variablen gleich nach einem solchen Vorgang NULL zu, um einen doppelten Löschvorgang in "finally" zu vermeiden.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Blocktextkörper für Lambdaausdrücke verwenden</target>
@@ -2024,16 +1994,6 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <source>Use interpolated verbatim string</source>
         <target state="translated">Interpolierte ausführliche Zeichenfolge verwenden</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Use_recommended_dispose_pattern">
-        <source>Use recommended dispose pattern</source>
-        <target state="translated">Empfohlenes Dispose-Muster verwenden</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
-        <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
-        <target state="translated">Verwenden Sie das empfohlene Dispose-Muster, um sicherzustellen, dass das von "{0}" erstellte Objekt in allen Pfaden gelöscht wird: using-Anweisung/-Deklaration oder try/finally.</target>
-        <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
