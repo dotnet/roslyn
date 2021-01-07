@@ -145,7 +145,7 @@ End Class"
                 expectedToolTip = New ContainerElement(
                     ContainerElementStyle.Wrapped,
                     New ClassifiedTextElement(
-                        New ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0049"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0049", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri("https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0049", UriKind.Absolute)), "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0049"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, WorkspacesResources.Name_can_be_simplified)))
