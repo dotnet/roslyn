@@ -80,6 +80,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                 }
             }
 
+            if (node is ImplicitObjectCreationExpressionSyntax { Parent: ArgumentSyntax } implicitNew)
+            {
+                var type = semanticModel.GetTypeInfo(implicitNew, cancellationToken).Type;
+                if (IsValidType(type))
+                {
+                    return (type, new TextSpan(implicitNew.NewKeyword.Span.End, 0));
+                }
+            }
+
             return null;
         }
 
