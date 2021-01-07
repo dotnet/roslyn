@@ -1226,7 +1226,6 @@ class C
 }
 ");
 
-            // we just want this to compile without crashing/asserting
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.M",
 @"<symbols>
@@ -1299,7 +1298,6 @@ class C
 }
 ");
 
-            // we just want this to compile without crashing/asserting
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.M",
 @"<symbols>
@@ -1350,6 +1348,147 @@ class C
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0xa4"" attributes=""0"" />
         <scope startOffset=""0xe"" endOffset=""0xa1"">
           <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0xe"" il_end=""0xa1"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void SwitchExpressionWithLambda3()
+        {
+            string source = WithWindowsLineBreaks(@"
+using System;
+
+class C
+{
+    static string M(object o)
+    {
+        return new Func<string>(() => o.ToString())() switch
+        {
+            ""goo"" => o.ToString(),
+            _ => ""Don't know""
+        };
+    }
+}
+");
+
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("C.M",
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""M"" parameterNames=""o"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""30"" offset=""0"" />
+          <slot kind=""temp"" />
+          <slot kind=""35"" offset=""57"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <closure offset=""0"" />
+          <lambda offset=""41"" closure=""0"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0xd"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xe"" startLine=""8"" startColumn=""9"" endLine=""12"" endColumn=""11"" document=""1"" />
+        <entry offset=""0x23"" startLine=""8"" startColumn=""55"" endLine=""12"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x24"" hidden=""true"" document=""1"" />
+        <entry offset=""0x33"" startLine=""10"" startColumn=""22"" endLine=""10"" endColumn=""34"" document=""1"" />
+        <entry offset=""0x41"" startLine=""11"" startColumn=""18"" endLine=""11"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x49"" hidden=""true"" document=""1"" />
+        <entry offset=""0x4c"" startLine=""8"" startColumn=""9"" endLine=""12"" endColumn=""11"" document=""1"" />
+        <entry offset=""0x4d"" hidden=""true"" document=""1"" />
+        <entry offset=""0x51"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x53"">
+        <namespace name=""System"" />
+        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x53"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void SwitchExpressionWithLambda4()
+        {
+            string source = WithWindowsLineBreaks(@"
+using System;
+
+class C
+{
+    static string M(object o)
+    {
+        return o switch
+        {
+            string s => new Func<string>(() => string.Concat(""s"", s))(),
+            int i => new Func<string>(() => i.ToString() + i switch
+            {
+                1 => new Func<string>(() => string.Concat(""One"", i))(),
+                _ => ""Don't know""
+            })(),
+            _ => ""Don't know""
+        };
+    }
+}
+");
+
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("C.M",
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""M"" parameterNames=""o"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""30"" offset=""174"" />
+          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <closure offset=""174"" />
+          <lambda offset=""86"" closure=""0"" />
+          <lambda offset=""157"" closure=""0"" />
+          <lambda offset=""241"" closure=""0"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa"" startLine=""8"" startColumn=""18"" endLine=""17"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xb"" hidden=""true"" document=""1"" />
+        <entry offset=""0x33"" hidden=""true"" document=""1"" />
+        <entry offset=""0x35"" hidden=""true"" document=""1"" />
+        <entry offset=""0x37"" startLine=""10"" startColumn=""25"" endLine=""10"" endColumn=""72"" document=""1"" />
+        <entry offset=""0x4b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x4d"" startLine=""11"" startColumn=""22"" endLine=""15"" endColumn=""17"" document=""1"" />
+        <entry offset=""0x61"" startLine=""16"" startColumn=""18"" endLine=""16"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x69"" hidden=""true"" document=""1"" />
+        <entry offset=""0x6c"" startLine=""8"" startColumn=""9"" endLine=""17"" endColumn=""11"" document=""1"" />
+        <entry offset=""0x6d"" hidden=""true"" document=""1"" />
+        <entry offset=""0x71"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x73"">
+        <namespace name=""System"" />
+        <scope startOffset=""0x1"" endOffset=""0x71"">
+          <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x71"" attributes=""0"" />
         </scope>
       </scope>
     </method>
