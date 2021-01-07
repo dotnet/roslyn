@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.NamespaceSync
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SyncNamespace), Shared]
-    internal class CSharpNamespaceSyncCodeFixProvider : CodeFixProvider
+    internal sealed class CSharpNamespaceSyncCodeFixProvider : CodeFixProvider
     {
 
         [ImportingConstructor]

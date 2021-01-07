@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferNamespaceMatchFolderStructure),
             defaultValue: s_trueWithSuggestionEnforcement,
             storageLocations: new OptionStorageLocation2[] {
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_namespace_match_folder_structure_preference", s_trueWithSuggestionEnforcement),
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_namespace_match_folder_structure", s_trueWithSuggestionEnforcement),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferNamespaceMatchFolderStructure)}")});
 #if false
 
@@ -283,6 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "TextEditor.CSharp.Specific.UseImplicitTypeWherePossible");
 
 #endif
+
         static CSharpCodeStyleOptions()
         {
             // Note that the static constructor executes after all the static field initializers for the options have executed,

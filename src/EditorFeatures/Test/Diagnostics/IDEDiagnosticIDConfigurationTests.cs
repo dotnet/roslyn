@@ -952,10 +952,10 @@ No editorconfig based code style option
 csharp_style_prefer_not_pattern = true
 
 # IDE0085, PreferNamespaceMatchFolderStructure
-cshar_namespace_match_folder_structure_preference = true
+csharp_namespace_match_folder_structure_preference = true
 
 # IDE0090, ImplicitObjectCreationWhenTypeIsApparent
-csharp_style_implicit_object_creation_when_type_is_apparent = true
+csharp_style_namespace_match_folder_structure = true
 
 # IDE0110
 No editorconfig based code style option
