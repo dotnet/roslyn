@@ -13133,7 +13133,7 @@ key = value");
             var src = dir.CreateFile("temp.cs").WriteAllText(@"class C {}");
             var generator = new CallbackArtifactProducer(i => { }, e => throw null);
 
-            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path,  "/langversion:" + version.ToDisplayString() }, analyzers: new[] { generator }, expectedWarningCount: 1, expectedErrorCount: 0, expectedExitCode: 0);
+            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:" + version.ToDisplayString() }, analyzers: new[] { generator }, expectedWarningCount: 1, expectedErrorCount: 0, expectedExitCode: 0);
             Assert.Contains("warning AD0001: Analyzer 'Roslyn.Test.Utilities.TestGenerators.CallbackArtifactProducer' threw an exception of type 'System.NullReferenceException' with message 'Object reference not set to an instance of an object.'", output);
         }
 
