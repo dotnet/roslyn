@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspSolutionProvider solutionProvider,
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             DefaultCapabilitiesProvider defaultCapabilitiesProvider)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, solutionProvider, ClientName)
+            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, ClientName)
         {
             _globalOptionService = globalOptionService;
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;

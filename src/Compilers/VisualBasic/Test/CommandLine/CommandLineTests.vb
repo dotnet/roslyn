@@ -4590,6 +4590,18 @@ End Class
             Assert.Null(parsedArgs.ErrorLogOptions)
             Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
 
+            parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml,version=1.0.0", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_BadSwitchValue).WithArguments("C:\MyFolder\MyBinary.xml,version=1.0.0", "errorlog", CommandLineParser.ErrorLogOptionFormat))
+            Assert.Null(parsedArgs.ErrorLogOptions)
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
+            parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml,version=2.1.0", "a.cs"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_BadSwitchValue).WithArguments("C:\MyFolder\MyBinary.xml,version=2.1.0", "errorlog", CommandLineParser.ErrorLogOptionFormat))
+            Assert.Null(parsedArgs.ErrorLogOptions)
+            Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics)
+
             ' Invalid errorlog qualifier.
             parsedArgs = DefaultParse({"/errorlog:C:\MyFolder\MyBinary.xml,invalid=42", "a.cs"}, baseDirectory)
             parsedArgs.Errors.Verify(

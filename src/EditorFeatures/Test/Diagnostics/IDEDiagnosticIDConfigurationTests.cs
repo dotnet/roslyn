@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
                     foreach (var descriptor in analyzer.SupportedDiagnostics)
                     {
                         var diagnosticId = descriptor.Id;
+                        ValidateHelpLinkForDiagnostic(diagnosticId, descriptor.HelpLinkUri);
 
                         if (!diagnosticId.StartsWith(diagnosticIdPrefix) ||
                             !int.TryParse(diagnosticId.Substring(startIndex: diagnosticIdPrefix.Length), out _))
@@ -67,6 +68,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
 
             diagnosticIdAndOptions.Sort();
             return diagnosticIdAndOptions.ToImmutableArray();
+        }
+
+        private static void ValidateHelpLinkForDiagnostic(string diagnosticId, string helpLinkUri)
+        {
+            if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
+                or "IDE1007" or "IDE1008" or "RemoveUnnecessaryImportsFixable"
+                or "RE0001") // Tracked by https://github.com/dotnet/roslyn/issues/48530
+            {
+                Assert.True(helpLinkUri == string.Empty, $"Expected empty help link for {diagnosticId}");
+                return;
+            }
+
+            if (diagnosticId == "IDE0005_gen")
+            {
+                diagnosticId = "IDE0005";
+            }
+
+            if (helpLinkUri != $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")
+            {
+                Assert.True(false, $"Invalid help link for {diagnosticId}");
+            }
         }
 
         private static Dictionary<string, string> GetExpectedMap(string expected, out string[] expectedLines)
@@ -334,15 +356,6 @@ dotnet_diagnostic.IDE0065.severity = %value%
 # IDE0066
 dotnet_diagnostic.IDE0066.severity = %value%
 
-# IDE0067
-dotnet_diagnostic.IDE0067.severity = %value%
-
-# IDE0068
-dotnet_diagnostic.IDE0068.severity = %value%
-
-# IDE0069
-dotnet_diagnostic.IDE0069.severity = %value%
-
 # IDE0070
 dotnet_diagnostic.IDE0070.severity = %value%
 
@@ -509,15 +522,6 @@ dotnet_diagnostic.IDE0059.severity = %value%
 
 # IDE0060
 dotnet_diagnostic.IDE0060.severity = %value%
-
-# IDE0067
-dotnet_diagnostic.IDE0067.severity = %value%
-
-# IDE0068
-dotnet_diagnostic.IDE0068.severity = %value%
-
-# IDE0069
-dotnet_diagnostic.IDE0069.severity = %value%
 
 # IDE0070
 dotnet_diagnostic.IDE0070.severity = %value%
@@ -900,15 +904,6 @@ csharp_using_directive_placement = outside_namespace
 # IDE0066, PreferSwitchExpression
 csharp_style_prefer_switch_expression = true
 
-# IDE0067
-No editorconfig based code style option
-
-# IDE0068
-No editorconfig based code style option
-
-# IDE0069
-No editorconfig based code style option
-
 # IDE0070
 No editorconfig based code style option
 
@@ -1117,15 +1112,6 @@ visual_basic_style_unused_value_assignment_preference = unused_local_variable
 
 # IDE0060, UnusedParameters
 dotnet_code_quality_unused_parameters = all
-
-# IDE0067
-No editorconfig based code style option
-
-# IDE0068
-No editorconfig based code style option
-
-# IDE0069
-No editorconfig based code style option
 
 # IDE0070
 No editorconfig based code style option
