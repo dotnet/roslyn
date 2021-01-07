@@ -334,15 +334,6 @@ dotnet_diagnostic.IDE0065.severity = %value%
 # IDE0066
 dotnet_diagnostic.IDE0066.severity = %value%
 
-# IDE0067
-dotnet_diagnostic.IDE0067.severity = %value%
-
-# IDE0068
-dotnet_diagnostic.IDE0068.severity = %value%
-
-# IDE0069
-dotnet_diagnostic.IDE0069.severity = %value%
-
 # IDE0070
 dotnet_diagnostic.IDE0070.severity = %value%
 
@@ -509,15 +500,6 @@ dotnet_diagnostic.IDE0059.severity = %value%
 
 # IDE0060
 dotnet_diagnostic.IDE0060.severity = %value%
-
-# IDE0067
-dotnet_diagnostic.IDE0067.severity = %value%
-
-# IDE0068
-dotnet_diagnostic.IDE0068.severity = %value%
-
-# IDE0069
-dotnet_diagnostic.IDE0069.severity = %value%
 
 # IDE0070
 dotnet_diagnostic.IDE0070.severity = %value%
@@ -900,15 +882,6 @@ csharp_using_directive_placement = outside_namespace
 # IDE0066, PreferSwitchExpression
 csharp_style_prefer_switch_expression = true
 
-# IDE0067
-No editorconfig based code style option
-
-# IDE0068
-No editorconfig based code style option
-
-# IDE0069
-No editorconfig based code style option
-
 # IDE0070
 No editorconfig based code style option
 
@@ -1117,15 +1090,6 @@ visual_basic_style_unused_value_assignment_preference = unused_local_variable
 
 # IDE0060, UnusedParameters
 dotnet_code_quality_unused_parameters = all
-
-# IDE0067
-No editorconfig based code style option
-
-# IDE0068
-No editorconfig based code style option
-
-# IDE0069
-No editorconfig based code style option
 
 # IDE0070
 No editorconfig based code style option
