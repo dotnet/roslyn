@@ -1354,14 +1354,22 @@ unsafe class C
         delegate*<string, void> p1 = null;
         delegate*<object, void> p2 = null;
         M1(p1, p2);
+
+        delegate*<int*, void> p3 = null;
+        delegate*<void*, void> p4 = null;
+        M1(p3, p4);
     }
 }");
 
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (13,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<T, void>, delegate*<T, void>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(p3, p4);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<T, void>, delegate*<T, void>)").WithLocation(13, 9)
+            );
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
 
             AssertEx.Equal("void C.M1<System.String>(delegate*<System.String, System.Void> param1, delegate*<System.String, System.Void> param2)",
                            model.GetSymbolInfo(m1Invocation).Symbol.ToTestDisplayString());
@@ -1379,14 +1387,22 @@ unsafe class C
         delegate*<delegate*<string, void>, void> p1 = null;
         delegate*<delegate*<object, void>, void> p2 = null;
         M1(p1, p2);
+
+        delegate*<delegate*<int*, void>, void> p3 = null;
+        delegate*<delegate*<void*, void>, void> p4 = null;
+        M1(p3, p4);
     }
 }");
 
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (13,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<delegate*<T, void>, void>, delegate*<delegate*<T, void>, void>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(p3, p4);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<delegate*<T, void>, void>, delegate*<delegate*<T, void>, void>)").WithLocation(13, 9)
+            );
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
 
             AssertEx.Equal("void C.M1<System.Object>(delegate*<delegate*<System.Object, System.Void>, System.Void> param1, delegate*<delegate*<System.Object, System.Void>, System.Void> param2)",
                            model.GetSymbolInfo(m1Invocation).Symbol.ToTestDisplayString());
@@ -1404,14 +1420,22 @@ unsafe class C
         delegate*<delegate*<string>, void> p1 = null;
         delegate*<delegate*<object>, void> p2 = null;
         M1(p1, p2);
+
+        delegate*<delegate*<int*>, void> p3 = null;
+        delegate*<delegate*<void*>, void> p4 = null;
+        M1(p3, p4);
     }
 }");
 
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (13,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<delegate*<T>, void>, delegate*<delegate*<T>, void>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(p3, p4);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<delegate*<T>, void>, delegate*<delegate*<T>, void>)").WithLocation(13, 9)
+            );
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
 
             AssertEx.Equal("void C.M1<System.String>(delegate*<delegate*<System.String>, System.Void> param1, delegate*<delegate*<System.String>, System.Void> param2)",
                            model.GetSymbolInfo(m1Invocation).Symbol.ToTestDisplayString());
@@ -1490,14 +1514,22 @@ unsafe class C
         delegate*<string> p1 = null;
         delegate*<object> p2 = null;
         M1(p1, p2);
+
+        delegate*<int*> p3 = null;
+        delegate*<void*> p4 = null;
+        M1(p3, p4);
     }
 }");
 
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (13,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<T>, delegate*<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(p3, p4);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<T>, delegate*<T>)").WithLocation(13, 9)
+            );
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
 
             AssertEx.Equal("void C.M1<System.Object>(delegate*<System.Object> param1, delegate*<System.Object> param2)",
                            model.GetSymbolInfo(m1Invocation).Symbol.ToTestDisplayString());
@@ -1515,14 +1547,22 @@ unsafe class C
         delegate*<delegate*<string, void>> p1 = null;
         delegate*<delegate*<object, void>> p2 = null;
         M1(p1, p2);
+
+        delegate*<delegate*<int*, void>> p3 = null;
+        delegate*<delegate*<void*, void>> p4 = null;
+        M1(p3, p4);
     }
 }");
 
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (13,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<delegate*<T, void>>, delegate*<delegate*<T, void>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(p3, p4);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<delegate*<T, void>>, delegate*<delegate*<T, void>>)").WithLocation(13, 9)
+            );
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
 
             AssertEx.Equal("void C.M1<System.String>(delegate*<delegate*<System.String, System.Void>> param1, delegate*<delegate*<System.String, System.Void>> param2)",
                            model.GetSymbolInfo(m1Invocation).Symbol.ToTestDisplayString());
@@ -1540,14 +1580,22 @@ unsafe class C
         delegate*<delegate*<string>> p1 = null;
         delegate*<delegate*<object>> p2 = null;
         M1(p1, p2);
+
+        delegate*<delegate*<int*>> p3 = null;
+        delegate*<delegate*<void*>> p4 = null;
+        M1(p3, p4);
     }
 }");
 
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (13,9): error CS0411: The type arguments for method 'C.M1<T>(delegate*<delegate*<T>>, delegate*<delegate*<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M1(p3, p4);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(delegate*<delegate*<T>>, delegate*<delegate*<T>>)").WithLocation(13, 9)
+            );
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var m1Invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
 
             AssertEx.Equal("void C.M1<System.Object>(delegate*<delegate*<System.Object>> param1, delegate*<delegate*<System.Object>> param2)",
                            model.GetSymbolInfo(m1Invocation).Symbol.ToTestDisplayString());
