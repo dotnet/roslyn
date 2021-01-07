@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
                     foreach (var descriptor in analyzer.SupportedDiagnostics)
                     {
                         var diagnosticId = descriptor.Id;
+                        ValidateHelpLinkForDiagnostic(diagnosticId, descriptor.HelpLinkUri);
 
                         if (!diagnosticId.StartsWith(diagnosticIdPrefix) ||
                             !int.TryParse(diagnosticId.Substring(startIndex: diagnosticIdPrefix.Length), out _))
@@ -67,6 +68,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
 
             diagnosticIdAndOptions.Sort();
             return diagnosticIdAndOptions.ToImmutableArray();
+        }
+
+        private static void ValidateHelpLinkForDiagnostic(string diagnosticId, string helpLinkUri)
+        {
+            if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
+                or "IDE1007" or "IDE1008" or "RemoveUnnecessaryImportsFixable"
+                or "RE0001") // Tracked by https://github.com/dotnet/roslyn/issues/48530
+            {
+                Assert.True(helpLinkUri == string.Empty, $"Expected empty help link for {diagnosticId}");
+                return;
+            }
+
+            if (diagnosticId == "IDE0005_gen")
+            {
+                diagnosticId = "IDE0005";
+            }
+
+            if (helpLinkUri != $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")
+            {
+                Assert.True(false, $"Invalid help link for {diagnosticId}");
+            }
         }
 
         private static Dictionary<string, string> GetExpectedMap(string expected, out string[] expectedLines)
