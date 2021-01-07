@@ -1523,6 +1523,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ConstantPatternSyntax constantPattern => GetTypes(constantPattern.Expression),
                     RecursivePatternSyntax recursivePattern => GetTypesForRecursivePattern(recursivePattern),
                     _ when SemanticModel.GetOperation(pattern, CancellationToken) is IPatternOperation patternOperation =>
+                        // In cases like this: c is Color.Green or $$
+                        // "pattern" is a DeclarationPatternSyntax and Color.Green is assumed to be the narrowed type.
+                        // If the narrowed type can not be resolved, we fall back to the input type of the pattern, which
+                        // is a good default for any related case.
                         CreateResult(patternOperation.NarrowedType.IsErrorType()
                             ? patternOperation.InputType
                             : patternOperation.NarrowedType),
