@@ -5,13 +5,13 @@
 using System.Threading.Tasks;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync.NamespaceFileSyncDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync.NamespaceSyncDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.CSharp.CodeFixes.NamespaceSync.CSharpNamespaceSyncCodeFixProvider>;
 using System.IO;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.NamespaceFileSync
 {
-    public class NamespaceFileSyncTests
+    public class NamespaceSyncTests
     {
         private static readonly string Directory = Path.Combine("Test", "Directory");
         private const string RootNamespace = "Test";

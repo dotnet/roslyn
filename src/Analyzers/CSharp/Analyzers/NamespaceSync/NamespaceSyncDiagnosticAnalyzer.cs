@@ -3,25 +3,25 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class NamespaceFileSyncDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class NamespaceSyncDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private static readonly LocalizableResourceString s_localizableTitle = new LocalizableResourceString(
-          nameof(CSharpAnalyzersResources.Namespace_named_incorrectly), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
+          nameof(CSharpAnalyzersResources.Namespace_does_not_match_folder_structure), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
         private static readonly LocalizableResourceString s_localizableInsideMessage = new LocalizableResourceString(
             nameof(CSharpAnalyzersResources.Namespace_0_does_not_match_folder_structure_expected_1), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
         public const string RootNamespaceOption = "build_property.RootNamespace";
         public const string ProjectDirOption = "build_property.ProjectDir";
 
-        public NamespaceFileSyncDiagnosticAnalyzer()
+        public NamespaceSyncDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.NamespaceSyncAnalyzerDiagnosticId,
-                   CSharpCodeStyleOptions.PreferNamespaceMatchFolderStructure,
-                   LanguageNames.CSharp,
-                   title: s_localizableTitle,
-                   messageFormat: s_localizableInsideMessage)
+                EnforceOnBuild.Recommended,
+                (IPerLanguageOption?)null,
+                s_localizableTitle,
+                s_localizableInsideMessage)
         {
         }
 
@@ -61,22 +61,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
             }
 
             if (context.Node is NamespaceDeclarationSyntax namespaceDecl &&
-                IsFileAndNamespaceValid(namespaceDecl, rootNamespace, projectDir, out var targetNamespace) &&
-                IsNamespaceSyncSupported(namespaceDecl, context.SemanticModel))
+                IsFileAndNamespaceMismatch(namespaceDecl, rootNamespace, projectDir, out var targetNamespace) &&
+                IsFixSupported(context.SemanticModel, namespaceDecl, context.CancellationToken))
             {
-                ReportDiagnostics(context, this.Descriptor, namespaceDecl, ReportDiagnostic.Warn, targetNamespace);
+                ReportDiagnostics(context, this.Descriptor, namespaceDecl, targetNamespace);
             }
         }
 
-        private static bool IsNamespaceSyncSupported(NamespaceDeclarationSyntax namespaceDeclaration, SemanticModel semanticModel)
+        private static bool IsFixSupported(SemanticModel semanticModel, NamespaceDeclarationSyntax namespaceDeclaration, CancellationToken cancellationToken)
         {
-            var root = namespaceDeclaration.SyntaxTree.GetRoot();
+            var root = namespaceDeclaration.SyntaxTree.GetRoot(cancellationToken);
 
             // It should not be nested in other namespaces
-            var namespaceDeclCount = namespaceDeclaration
+            if (namespaceDeclaration
                 .AncestorsAndSelf().OfType<NamespaceDeclarationSyntax>()
-                .Count();
-            if (namespaceDeclCount > 1)
+                .Any())
             {
                 return false;
             }
@@ -90,7 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
                 return false;
             }
 
-            // It should not contain partial classes with more than one instance in the semantic model
+            // It should not contain partial classes with more than one instance in the semantic model. The
+            // fixer does not support this scenario.
             var containsPartialType = ContainsPartialTypeWithMultipleDeclarations(namespaceDeclaration, semanticModel);
             if (containsPartialType)
             {
@@ -98,8 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
             }
 
             // The current namespace should be valid
-            // TODO : can this cause a loop? This condition was used by the service before,
-            // but now could possibly add an Error severity as an analyzer
             var isCurrentNamespaceInvalid = namespaceDeclaration.Name
                 .GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error);
             if (isCurrentNamespaceInvalid)
@@ -130,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
             return false;
         }
 
-        private static bool IsFileAndNamespaceValid(
+        private static bool IsFileAndNamespaceMismatch(
             NamespaceDeclarationSyntax namespaceDeclaration,
             string rootNamespace,
             string projectDir,
@@ -164,19 +162,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
 
         private static void ReportDiagnostics(
            SyntaxNodeAnalysisContext context, DiagnosticDescriptor descriptor,
-           NamespaceDeclarationSyntax namespaceDeclaration, ReportDiagnostic reportDiagnostic,
-           string targetNamespace)
+           NamespaceDeclarationSyntax namespaceDeclaration, string targetNamespace)
         {
-            var properties = new Dictionary<string, string>()
-                { { "TargetNamespace", targetNamespace } }
-                .ToImmutableDictionary();
-
-            context.ReportDiagnostic(DiagnosticHelper.Create(
+            context.ReportDiagnostic(Diagnostic.Create(
                 descriptor,
                 namespaceDeclaration.Name.GetLocation(),
-                reportDiagnostic,
                 additionalLocations: null,
-                properties: properties,
+                properties: ImmutableDictionary<string, string?>.Empty.Add("TargetNamespace", targetNamespace),
                 messageArgs: new[] { namespaceDeclaration.Name.ToString(), targetNamespace }));
         }
     }
