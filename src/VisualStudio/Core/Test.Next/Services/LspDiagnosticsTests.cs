@@ -379,7 +379,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             {
                 var protocol = workspace.ExportProvider.GetExportedValue<LanguageServerProtocol>();
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
-                var solutionProvider = workspace.ExportProvider.GetExportedValue<ILspSolutionProvider>();
+                var lspWorkspaceRegistrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
 
                 var languageServer = new InProcLanguageServer(
                     languageClient: new TestLanguageClient(),
@@ -389,7 +389,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     workspace,
                     mockDiagnosticService,
                     listenerProvider,
-                    solutionProvider,
+                    lspWorkspaceRegistrationService,
                     clientName: null);
                 return languageServer;
             }

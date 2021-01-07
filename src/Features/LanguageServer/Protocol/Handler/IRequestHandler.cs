@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal interface IRequestHandler<RequestType, ResponseType> : IRequestHandler
     {
         /// <summary>
-        /// Gets the TestDocumentIdentifier from the request, if the request provides one.
+        /// Gets the <see cref="TextDocumentIdentifier"/> from the request, if the request provides one.
         /// </summary>
         TextDocumentIdentifier? GetTextDocumentIdentifier(RequestType request);
 
