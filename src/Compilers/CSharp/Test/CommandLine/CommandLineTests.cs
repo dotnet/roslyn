@@ -12990,11 +12990,11 @@ class C
         }
 
         [Theory]
-        [InlineData("partial class D {}", "gen1\\file1.cs", "partial class E {}", "gen2\\file2.cs")] // different files, different names
-        [InlineData("partial class D {}", "gen1\\file1.cs", "partial class E {}", "gen2\\file1.cs")] // different files, same names
-        [InlineData("partial class D {}", "gen1\\file1.cs", "partial class D {}", "gen2\\file2.cs")] // same files, different names
-        [InlineData("partial class D {}", "gen1\\file1.cs", "partial class D {}", "gen2\\file1.cs")] // same files, same names
-        [InlineData("partial class D {}", "gen1\\file1.cs", "", "gen2\\file2.cs")] // empty second file
+        [InlineData("partial class D {}", "file1.cs", "partial class E {}", "file2.cs")] // different files, different names
+        [InlineData("partial class D {}", "file1.cs", "partial class E {}", "file1.cs")] // different files, same names
+        [InlineData("partial class D {}", "file1.cs", "partial class D {}", "file2.cs")] // same files, different names
+        [InlineData("partial class D {}", "file1.cs", "partial class D {}", "file1.cs")] // same files, same names
+        [InlineData("partial class D {}", "file1.cs", "", "file2.cs")] // empty second file
         public void ArtifactProducer_WriteGeneratedSources_MultipleFiles(string source1, string source1Name, string source2, string source2Name)
         {
             var dir = Temp.CreateDirectory();
@@ -13004,15 +13004,15 @@ class C
 }");
             var generatedDir = dir.CreateDirectory("generated");
 
-            var generator = new SingleFileArtifactProducer(source1, source1Name);
-            var generator2 = new SingleFileArtifactProducer2(source2, source2Name);
+            var generator = new SingleFileArtifactProducer(source1, Path.Combine("gen1", source1Name));
+            var generator2 = new SingleFileArtifactProducer2(source2, Path.Combine("gen2", source2Name));
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { generator, generator2 });
 
             ValidateWrittenSources(new()
             {
-                { Path.Combine(generatedDir.Path, "gen1"), new() { { Path.GetFileName(source1Name), source1 } } },
-                { Path.Combine(generatedDir.Path, "gen2"), new() { { Path.GetFileName(source2Name), source2 } } }
+                { Path.Combine(generatedDir.Path, "gen1"), new() { { source1Name, source1 } } },
+                { Path.Combine(generatedDir.Path, "gen2"), new() { { source2Name, source2 } } }
             });
 
             // Clean up temp files
