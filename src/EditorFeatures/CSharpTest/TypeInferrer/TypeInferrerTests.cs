@@ -3129,5 +3129,112 @@ class C
                 : "global::System.Object";
             await TestAsync(markup, expectedType, TestMode.Position);
         }
+
+        [Theory]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [InlineData("")]
+        [InlineData("Col")]
+        [InlineData("Red")]
+        [InlineData("Color.Green or ")]
+        [InlineData("Color.Green or Re")]
+        [InlineData("not ")]
+        [InlineData("not Re")]
+        public async Task TestPatterns_Is_PropertyPattern(string partialWritten)
+        {
+            var markup = @$"
+public enum Color
+{{
+    Red,
+    Green,
+}}
+
+class C
+{{
+    public Color Color {{ get; }}
+
+    public void M()
+    {{
+        var isRed = this is {{ Color: {partialWritten}[||]
+    }}
+}}
+";
+            await TestAsync(markup, "global::Color", TestMode.Position);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestPatterns_Is_PropertyPattern_NotAfterEnumDot()
+        {
+            var markup = @$"
+public enum Color
+{{
+    Red,
+    Green,
+}}
+
+class C
+{{
+    public Color Color {{ get; }}
+
+    public void M()
+    {{
+        var isRed = this is {{ Color: Color.R[||]
+    }}
+}}
+";
+            await TestAsync(markup, "global::Color", TestMode.Position);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestPatterns_SwitchStatement_PropertyPattern()
+        {
+            var markup = @"
+public enum Color
+{
+    Red,
+    Green,
+}
+
+class C
+{
+    public Color Color { get; }
+
+    public void M()
+    {
+        switch (this)
+        {
+            case { Color: [||]
+    }
+}
+";
+            await TestAsync(markup, "global::Color", TestMode.Position);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestPatterns_SwitchExpression_PropertyPattern()
+        {
+            var markup = @"
+public enum Color
+{
+    Red,
+    Green,
+}
+
+class C
+{
+    public Color Color { get; }
+
+    public void M()
+    {
+        var isRed = this switch
+        {
+            { Color: [||]
+    }
+}
+";
+            await TestAsync(markup, "global::Color", TestMode.Position);
+        }
     }
 }
