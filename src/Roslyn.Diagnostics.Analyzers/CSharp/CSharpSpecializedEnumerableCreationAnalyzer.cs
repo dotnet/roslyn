@@ -61,16 +61,13 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
             private bool ShouldAnalyzeExpression(SyntaxNode expression, SemanticModel semanticModel)
             {
-                switch (expression.Kind())
+                return (expression.Kind()) switch
                 {
-                    case SyntaxKind.ArrayCreationExpression:
-                    case SyntaxKind.ImplicitArrayCreationExpression:
-                        return ShouldAnalyzeArrayCreationExpression(expression, semanticModel);
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        return true;
-                    default:
-                        return false;
-                }
+                    SyntaxKind.ArrayCreationExpression
+                    or SyntaxKind.ImplicitArrayCreationExpression => ShouldAnalyzeArrayCreationExpression(expression, semanticModel),
+                    SyntaxKind.SimpleMemberAccessExpression => true,
+                    _ => false,
+                };
             }
 
             private static void AnalyzeArrayCreationExpression(ArrayCreationExpressionSyntax arrayCreationExpression, Action<Diagnostic> addDiagnostic)

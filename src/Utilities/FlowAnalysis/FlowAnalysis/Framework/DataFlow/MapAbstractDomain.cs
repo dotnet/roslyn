@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 var key = kvp.Key;
                 var value = kvp.Value;
-                if (!newValue.TryGetValue(key, out TValue otherValue))
+                if (!newValue.TryGetValue(key, out var otherValue))
                 {
                     FireNonMonotonicAssertIfNeeded(assertMonotonicity);
                     return 1;
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var result = new DictionaryAnalysisData<TKey, TValue>(value1);
             foreach (var entry in value2)
             {
-                if (result.TryGetValue(entry.Key, out TValue value))
+                if (result.TryGetValue(entry.Key, out var value))
                 {
                     value = ValueDomain.Merge(value, entry.Value);
 

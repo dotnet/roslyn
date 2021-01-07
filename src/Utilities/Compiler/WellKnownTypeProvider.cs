@@ -257,33 +257,22 @@ namespace Analyzer.Utilities
             ////    || IsCombiningChar(cat)
             ////    || IsFormattingChar(cat);
 
-            switch (cat)
+            return cat switch
             {
                 // Letter
-                case UnicodeCategory.UppercaseLetter:
-                case UnicodeCategory.LowercaseLetter:
-                case UnicodeCategory.TitlecaseLetter:
-                case UnicodeCategory.ModifierLetter:
-                case UnicodeCategory.OtherLetter:
-                case UnicodeCategory.LetterNumber:
-
-                // DecimalDigit
-                case UnicodeCategory.DecimalDigitNumber:
-
-                // ConnectingChar
-                case UnicodeCategory.ConnectorPunctuation:
-
-                // CombiningChar
-                case UnicodeCategory.NonSpacingMark:
-                case UnicodeCategory.SpacingCombiningMark:
-
-                // FormattingChar
-                case UnicodeCategory.Format:
-                    return true;
-
-                default:
-                    return false;
-            }
+                UnicodeCategory.UppercaseLetter
+                or UnicodeCategory.LowercaseLetter
+                or UnicodeCategory.TitlecaseLetter
+                or UnicodeCategory.ModifierLetter
+                or UnicodeCategory.OtherLetter
+                or UnicodeCategory.LetterNumber
+                or UnicodeCategory.DecimalDigitNumber
+                or UnicodeCategory.ConnectorPunctuation
+                or UnicodeCategory.NonSpacingMark
+                or UnicodeCategory.SpacingCombiningMark
+                or UnicodeCategory.Format => true,
+                _ => false,
+            };
         }
 
         private static bool IsSubsetOfCollection<T>(ImmutableArray<T> set1, ICollection<T> set2)
