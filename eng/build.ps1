@@ -417,8 +417,9 @@ function TestUsingRunTests() {
       Copy-Item -Path (Join-Path $TempDir "servicehub\logs") -Destination (Join-Path $LogDir "servicehub") -Recurse
 
       if ($lspEditor) {
-        Write-Host "Copying LSP logs to $LogDir"
+        Write-Host "Copying LSP and telemetry logs to $LogDir"
         Copy-Item -Path (Join-Path $TempDir "VisualStudio\LSP") -Destination (Join-Path $LogDir "LSP") -Recurse
+        Copy-Item -Path (Join-Path $TempDir "VSTelemetryLog") -Destination (Join-Path $LogDir "Telemetry") -Recurse
       }
     }
   }
@@ -559,7 +560,6 @@ function Setup-IntegrationTestRun() {
 
   $env:ROSLYN_OOP64BIT = "$oop64bit"
   $env:ROSLYN_LSPEDITOR = "$lspEditor"
-  $env:LogLevel = "Verbose"
 }
 
 function Prepare-TempDir() {

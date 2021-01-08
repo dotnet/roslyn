@@ -35,6 +35,7 @@
     <NuGetPackageToIncludeInVsix Include="System.Runtime.CompilerServices.Unsafe" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Extensions" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="System.IO.Pipelines" PkgDefEntry="BindingRedirect" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
@@ -60,6 +61,7 @@
     <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="System.IO.Pipelines" Version="$(SystemIOPipelinesVersion)" />
   </ItemGroup>
 
   <!--

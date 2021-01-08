@@ -10,6 +10,8 @@ using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Text;
@@ -31,13 +33,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
             }
 
             public bool SupportsCodeFixes(ITextBuffer textBuffer)
-                => SupportsCodeFixesWorker(GetContainedDocumentId(textBuffer));
+            {
+                // Disable code fix entry points when running under the LSP editor.
+                // The LSP client will handle displaying lightbulbs.
+                if (textBuffer.IsInLspEditorContext())
+                {
+                    return false;
+                }
+
+                return SupportsCodeFixesWorker(GetContainedDocumentId(textBuffer));
+            }
 
             public bool SupportsRefactorings(ITextBuffer textBuffer)
-                => SupportsRefactoringsWorker(GetContainedDocumentId(textBuffer));
+            {
+                // Disable code fix entry points when running under the LSP editor.
+                // The LSP client will handle displaying lightbulbs.
+                if (textBuffer.IsInLspEditorContext())
+                {
+                    return false;
+                }
+
+                return SupportsRefactoringsWorker(GetContainedDocumentId(textBuffer));
+            }
 
             public bool SupportsRename(ITextBuffer textBuffer)
             {
+                // Disable rename entry points when running under the LSP editor.
+                // The LSP client will handle the rename request.
+                if (textBuffer.IsInLspEditorContext())
+                {
+                    return false;
+                }
+
                 var sourceTextContainer = textBuffer.AsTextContainer();
                 if (Workspace.TryGetWorkspace(sourceTextContainer, out var workspace))
                 {

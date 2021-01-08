@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
         public void SimpleGoToImplementation()
         {
             var project = new ProjectUtils.Project(ProjectName);

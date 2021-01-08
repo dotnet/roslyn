@@ -71,7 +71,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         // TODO: Enable this once the GoToDefinition tests are merged
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
         public void GoToImplementationFromMetadataAsSource()
         {
             var project = new ProjectUtils.Project(ProjectName);

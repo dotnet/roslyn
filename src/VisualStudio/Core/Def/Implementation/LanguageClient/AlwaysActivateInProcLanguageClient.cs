@@ -54,7 +54,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var serverCapabilities = new VSServerCapabilities();
 
             // If the LSP editor feature flag is enabled advertise support for LSP features here so they are available locally and remote.
-            if (Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(VisualStudioWorkspaceContextService.LspEditorFeatureFlagName))
+            bool shouldUseLspEditor = Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(VisualStudioWorkspaceContextService.LspEditorFeatureFlagName);
+            if (shouldUseLspEditor)
             {
                 serverCapabilities = _defaultCapabilitiesProvider.GetCapabilities();
             }
@@ -65,7 +66,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 OpenClose = true,
             };
             serverCapabilities.SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
-            serverCapabilities.DisableGoToWorkspaceSymbols = true;
+
+            // When using the lsp editor, set this to false to allow LSP to power goto.
+            // Otherwise set to true to disable LSP for goto
+            serverCapabilities.DisableGoToWorkspaceSymbols = !shouldUseLspEditor;
             serverCapabilities.WorkspaceSymbolProvider = true;
 
             return serverCapabilities;

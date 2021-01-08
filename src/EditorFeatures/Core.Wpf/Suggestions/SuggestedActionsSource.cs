@@ -178,11 +178,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return null;
                 }
 
-                if (range.Snapshot.TextBuffer.IsInLspEditorContext())
-                {
-                    return null;
-                }
-
                 if (_workspaceStatusService != null)
                 {
                     using (operationContext?.AddScope(allowCancellation: true, description: EditorFeaturesWpfResources.Gathering_Suggestions_Waiting_for_the_solution_to_fully_load))

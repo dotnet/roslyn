@@ -27,9 +27,39 @@ namespace Roslyn.VisualStudio.IntegrationTests.LanguageServerProtocol
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
-        public void GoToDefinitionLSP()
+        public void GoToDefinitionWithMultipleLSP()
         {
-            Assert.True(false);
+            SetUpEditor(
+@"partial class /*Marker*/ $$PartialClass { }
+
+partial class PartialClass { int i = 0; }");
+
+            VisualStudio.Editor.GoToDefinition("Class1.cs");
+
+            const string programReferencesCaption = "'PartialClass' references";
+            VisualStudio.Editor.WaitForActiveWindow(programReferencesCaption);
+            var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
+
+            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
+            Assert.Equal(expected: programReferencesCaption, actual: activeWindowCaption);
+
+            Assert.Collection(
+                results,
+                new Action<Reference>[]
+                {
+                    reference =>
+                    {
+                        Assert.Equal(expected: "partial class /*Marker*/ PartialClass { }", actual: reference.Code);
+                        Assert.Equal(expected: 0, actual: reference.Line);
+                        Assert.Equal(expected: 25, actual: reference.Column);
+                    },
+                    reference =>
+                    {
+                        Assert.Equal(expected: "partial class PartialClass { int i = 0; }", actual: reference.Code);
+                        Assert.Equal(expected: 2, actual: reference.Line);
+                        Assert.Equal(expected: 14, actual: reference.Column);
+                    }
+                });
         }
     }
 }
