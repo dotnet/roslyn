@@ -349,7 +349,7 @@ class A
 
     void Main(string[] args) 
     {
-        M(new{|string :|}())
+        M(new{| string:|}())
         {
         }
     }

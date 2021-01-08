@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        protected abstract (ITypeSymbol type, TextSpan span)? TryGetTypeHint(
+        protected abstract TypeHint? TryGetTypeHint(
             SemanticModel semanticModel, SyntaxNode node,
             bool displayAllOverride,
             bool forImplicitVariableTypes,
@@ -60,23 +60,19 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 if (hintOpt == null)
                     continue;
 
-                var (type, span) = hintOpt.Value;
+                var (type, span, prefix, suffix) = hintOpt;
 
                 using var _2 = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var finalParts);
-                var parts = type.ToDisplayParts(s_minimalTypeStyle);
+                finalParts.AddRange(prefix);
 
+                var parts = type.ToDisplayParts(s_minimalTypeStyle);
                 AddParts(anonymousTypeService, finalParts, parts, semanticModel, span.Start);
 
                 // If we have nothing to show, then don't bother adding this hint.
-                if (finalParts.Sum(p => p.ToString().Length) == 0)
+                if (!finalParts.Any(p => !string.IsNullOrWhiteSpace(p.ToString())))
                     continue;
 
-                if (span.Length == 0)
-                {
-                    // if this is a hint that is placed in-situ (i.e. it's not overwriting text like 'var'), then place
-                    // a space after it to make things feel less cramped.
-                    finalParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " "));
-                }
+                finalParts.AddRange(suffix);
 
                 result.Add(new InlineHint(
                     span, finalParts.ToTaggedText(),
