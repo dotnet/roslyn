@@ -764,14 +764,18 @@ namespace Microsoft.CodeAnalysis
                         generatorDriver = new TrackedGeneratorDriver(generatorDriver.GeneratorDriver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics, cancellationToken));
                     }
 
-                    var transformers = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetTransformers()).ToImmutableArray();
-                    var plugins = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetPlugins()).ToImmutableArray();
+                    ImmutableArray<Diagnostic> transformerDiagnostics = default;
 
-                    var loader = this.ProjectState.LanguageServices.WorkspaceServices.GetRequiredService<IAnalyzerService>().GetLoader();
+                    if (!compilation.GetParseDiagnostics().HasAnyErrors())
+                    {
+                        var transformers = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetTransformers()).ToImmutableArray();
+                        var plugins = this.ProjectState.AnalyzerReferences.SelectMany(a => a.GetPlugins()).ToImmutableArray();
 
-                    var runTransformers = compilationFactory.GetRunTransformersDelegate(transformers, plugins, this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider, loader);
-                    ImmutableArray<Diagnostic> transformerDiagnostics;
-                    (compilation, transformerDiagnostics) = runTransformers(compilation);
+                        var loader = this.ProjectState.LanguageServices.WorkspaceServices.GetRequiredService<IAnalyzerService>().GetLoader();
+
+                        var runTransformers = compilationFactory.GetRunTransformersDelegate(transformers, plugins, this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider, loader);
+                        (compilation, transformerDiagnostics) = runTransformers(compilation);
+                    }
 
                     RecordAssemblySymbols(compilation, metadataReferenceToProjectId);
 
