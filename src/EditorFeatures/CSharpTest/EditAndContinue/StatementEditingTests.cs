@@ -236,7 +236,7 @@ var (a1, a3) = (1, () => { return 8; });
 
         #endregion
 
-        #region Switch
+        #region Switch Statement
 
         [Fact]
         public void Switch1()
@@ -305,6 +305,70 @@ switch(shape)
                 "Delete [case Point p:]@26",
                 "Delete [p]@37",
                 "Delete [return 0;]@40");
+        }
+
+        #endregion
+
+        #region Switch Expression
+
+        [Fact]
+        public void MethodUpdate_UpdateSwitchExpression1()
+        {
+            var src1 = @"
+class C
+{
+    static int F(int a) => a switch { 0 => 0, _ => 1 };
+}";
+            var src2 = @"
+class C
+{
+    static int F(int a) => a switch { 0 => 0, _ => 2 };
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [static int F(int a) => a switch { 0 => 0, _ => 1 };]@18 -> [static int F(int a) => a switch { 0 => 0, _ => 2 };]@18");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void MethodUpdate_UpdateSwitchExpression2()
+        {
+            var src1 = @"
+class C
+{
+    static int F(int a) => a switch { 0 => 0, _ => 1 };
+}";
+            var src2 = @"
+class C
+{
+    static int F(int a) => a switch { 1 => 0, _ => 2 };
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [static int F(int a) => a switch { 0 => 0, _ => 1 };]@18 -> [static int F(int a) => a switch { 1 => 0, _ => 2 };]@18");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void MethodUpdate_UpdateSwitchExpression3()
+        {
+            var src1 = @"
+class C
+{
+    static int F(int a) => a switch { 0 => 0, _ => 1 };
+}";
+            var src2 = @"
+class C
+{
+    static int F(int a) => a switch { 0 => 0, 1 => 1, _ => 2 };
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [static int F(int a) => a switch { 0 => 0, _ => 1 };]@18 -> [static int F(int a) => a switch { 0 => 0, 1 => 1, _ => 2 };]@18");
+
+            edits.VerifyRudeDiagnostics();
         }
 
         #endregion

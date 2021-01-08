@@ -6207,66 +6207,6 @@ class C
         }
 
         [Fact]
-        public void MethodUpdate_UpdateSwitchExpression1()
-        {
-            var src1 = @"
-class C
-{
-    static int F(int a) => a switch { 0 => 0, _ => 1 };
-}";
-            var src2 = @"
-class C
-{
-    static int F(int a) => a switch { 0 => 0, _ => 2 };
-}";
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifyEdits("Update [static int F(int a) => a switch { 0 => 0, _ => 1 };]@18 -> [static int F(int a) => a switch { 0 => 0, _ => 2 };]@18");
-
-            edits.VerifyRudeDiagnostics();
-        }
-
-        [Fact]
-        public void MethodUpdate_UpdateSwitchExpression2()
-        {
-            var src1 = @"
-class C
-{
-    static int F(int a) => a switch { 0 => 0, _ => 1 };
-}";
-            var src2 = @"
-class C
-{
-    static int F(int a) => a switch { 1 => 0, _ => 2 };
-}";
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifyEdits("Update [static int F(int a) => a switch { 0 => 0, _ => 1 };]@18 -> [static int F(int a) => a switch { 1 => 0, _ => 2 };]@18");
-
-            edits.VerifyRudeDiagnostics();
-        }
-
-        [Fact]
-        public void MethodUpdate_UpdateSwitchExpression3()
-        {
-            var src1 = @"
-class C
-{
-    static int F(int a) => a switch { 0 => 0, _ => 1 };
-}";
-            var src2 = @"
-class C
-{
-    static int F(int a) => a switch { 0 => 0, 1 => 1, _ => 2 };
-}";
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifyEdits("Update [static int F(int a) => a switch { 0 => 0, _ => 1 };]@18 -> [static int F(int a) => a switch { 0 => 0, 1 => 1, _ => 2 };]@18");
-
-            edits.VerifyRudeDiagnostics();
-        }
-
-        [Fact]
         public void MethodUpdate_UpdateStackAllocInLambda1()
         {
             var src1 = "unsafe class C { void M() { F(1, () => { int* a = stackalloc int[10]; }); } }";
