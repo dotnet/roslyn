@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -85,6 +86,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
 
             LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
+
+            var workspaceRegistrationSerivce = this.ComponentModel.GetService<ILspWorkspaceRegistrationService>();
+            workspaceRegistrationSerivce.Register(this.Workspace);
+            workspaceRegistrationSerivce.Register(miscellaneousFilesWorkspace);
         }
 
         protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)

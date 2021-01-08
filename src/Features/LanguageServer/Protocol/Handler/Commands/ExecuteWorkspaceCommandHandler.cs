@@ -38,7 +38,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return requestHandlerDictionary.ToImmutable();
         }
 
-        public virtual TextDocumentIdentifier? GetTextDocumentIdentifier(ExecuteCommandParams request) => null;
+        public virtual TextDocumentIdentifier? GetTextDocumentIdentifier(ExecuteCommandParams request)
+        {
+            var executeCommandHandler = FindCommandHandler(request);
+
+            return executeCommandHandler.GetTextDocumentIdentifier(request);
+        }
 
         /// <summary>
         /// Handles an <see cref="LSP.Methods.WorkspaceExecuteCommand"/>
@@ -46,13 +51,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public Task<object> HandleRequestAsync(LSP.ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
         {
+            var executeCommandHandler = FindCommandHandler(request);
+
+            return executeCommandHandler.HandleRequestAsync(request, context, cancellationToken);
+        }
+
+        private IExecuteWorkspaceCommandHandler FindCommandHandler(ExecuteCommandParams request)
+        {
             var commandName = request.Command;
             if (string.IsNullOrEmpty(commandName) || !_executeCommandHandlers.TryGetValue(commandName, out var executeCommandHandler))
             {
                 throw new ArgumentException(string.Format("Command name ({0}) is invalid", commandName));
             }
 
-            return executeCommandHandler.Value.HandleRequestAsync(request, context, cancellationToken);
+            return executeCommandHandler.Value;
         }
     }
 }
