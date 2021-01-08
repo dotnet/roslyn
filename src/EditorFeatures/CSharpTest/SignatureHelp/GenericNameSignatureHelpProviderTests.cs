@@ -851,6 +851,7 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
+        [WorkItem(50114, "https://github.com/dotnet/roslyn/issues/50114")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task DeclaringGenericTypeWithDocCommentList()
         {
