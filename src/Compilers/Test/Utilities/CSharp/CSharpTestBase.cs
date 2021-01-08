@@ -1095,7 +1095,7 @@ namespace System.Runtime.CompilerServices
 
             if (options == null)
             {
-                bool hasTopLevelStatements = syntaxTrees.Any(s => s.GetRoot().DescendantNodes().OfType<GlobalStatementSyntax>().Any());
+                bool hasTopLevelStatements = syntaxTrees.Any(s => s.GetRoot().ChildNodes().OfType<GlobalStatementSyntax>().Any());
 
                 options = hasTopLevelStatements ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
             }
