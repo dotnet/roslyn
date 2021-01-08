@@ -2,22 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
@@ -36,13 +31,15 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             _diagnosticAnalyzerService = diagnosticAnalyzerService;
         }
 
-        protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
-            Document document,
-            SyntaxToken token,
-            CancellationToken cancellationToken)
+        protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(QuickInfoContext context)
         {
-            return GetQuickinfoForPragmaWarning(document, token) ??
-                (await GetQuickInfoForSuppressMessageAttributeAsync(document, token, cancellationToken).ConfigureAwait(false));
+            if (context is not QuickInfoContextWithDocument contextWithDocument)
+            {
+                return null;
+            }
+
+            return GetQuickinfoForPragmaWarning(contextWithDocument.Document, contextWithDocument.Token) ??
+                (await GetQuickInfoForSuppressMessageAttributeAsync(contextWithDocument.Document, contextWithDocument.Token, contextWithDocument.CancellationToken).ConfigureAwait(false));
         }
 
         private QuickInfoItem? GetQuickinfoForPragmaWarning(Document document, SyntaxToken token)

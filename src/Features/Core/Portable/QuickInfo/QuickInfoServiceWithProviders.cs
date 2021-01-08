@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -48,6 +49,18 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
         public override async Task<QuickInfoItem?> GetQuickInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
+            var context = await QuickInfoContext.CreateAsync(document, position, cancellationToken).ConfigureAwait(false);
+            return await GetQuickInfoAsync(context).ConfigureAwait(false);
+        }
+
+        public async Task<QuickInfoItem?> GetQuickInfoAsync(SemanticModel semanticModel, int position, HostLanguageServices languageServices, CancellationToken cancellationToken)
+        {
+            var context = await QuickInfoContext.CreateAsync(semanticModel, position, languageServices, cancellationToken).ConfigureAwait(false);
+            return await GetQuickInfoAsync(context).ConfigureAwait(false);
+        }
+
+        private async Task<QuickInfoItem?> GetQuickInfoAsync(QuickInfoContext context)
+        {
             var extensionManager = _workspace.Services.GetRequiredService<IExtensionManager>();
 
             // returns the first non-empty quick info found (based on provider order)
@@ -57,8 +70,6 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 {
                     if (!extensionManager.IsDisabled(provider))
                     {
-                        var context = new QuickInfoContext(document, position, cancellationToken);
-
                         var info = await provider.GetQuickInfoAsync(context).ConfigureAwait(false);
                         if (info != null)
                         {

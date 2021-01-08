@@ -12,19 +12,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     {
         public override async Task<QuickInfoItem?> GetQuickInfoAsync(QuickInfoContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var cancellationToken = context.CancellationToken;
+            var info = await GetQuickInfoCoreAsync(context).ConfigureAwait(false);
 
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var token = await tree.GetTouchingTokenAsync(position, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
-
-            var info = await GetQuickInfoAsync(document, token, position, cancellationToken).ConfigureAwait(false);
-
+            var token = context.Token;
             if (info == null && ShouldCheckPreviousToken(token))
             {
                 var previousToken = token.GetPreviousToken();
-                info = await GetQuickInfoAsync(document, previousToken, position, cancellationToken).ConfigureAwait(false);
+                info = await GetQuickInfoCoreAsync(context.With(previousToken)).ConfigureAwait(false);
             }
 
             return info;
@@ -33,21 +27,18 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         protected virtual bool ShouldCheckPreviousToken(SyntaxToken token)
             => true;
 
-        private async Task<QuickInfoItem?> GetQuickInfoAsync(
-            Document document,
-            SyntaxToken token,
-            int position,
-            CancellationToken cancellationToken)
+        private async Task<QuickInfoItem?> GetQuickInfoCoreAsync(QuickInfoContext context)
         {
+            var token = context.Token;
             if (token != default &&
-                token.Span.IntersectsWith(position))
+                token.Span.IntersectsWith(context.Position))
             {
-                return await BuildQuickInfoAsync(document, token, cancellationToken).ConfigureAwait(false);
+                return await BuildQuickInfoAsync(context).ConfigureAwait(false);
             }
 
             return null;
         }
 
-        protected abstract Task<QuickInfoItem?> BuildQuickInfoAsync(Document document, SyntaxToken token, CancellationToken cancellationToken);
+        protected abstract Task<QuickInfoItem?> BuildQuickInfoAsync(QuickInfoContext context);
     }
 }
