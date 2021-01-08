@@ -1700,7 +1700,7 @@ record C(int X)
         Console.WriteLine(c2.X);
     }
 }";
-            var verifier = CompileAndVerify(src, expectedOutput: @"1
+            CompileAndVerify(src, expectedOutput: @"1
 11").VerifyDiagnostics();
         }
 
