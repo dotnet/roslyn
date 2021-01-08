@@ -1326,7 +1326,7 @@ Block[B4] - Exit
         [Fact, WorkItem(1198816, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
         public void ImplicitObjectCreationUnconverted_ArrayIndex()
         {
-            var comp = CreateCompilation("_ = new int[/*<bind>*/new(bad)/*</bind>*/];", options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation("_ = new int[/*<bind>*/new(bad)/*</bind>*/];");
 
             var expectedDiagnostics = new DiagnosticDescription[] { 
                 // (1,27): error CS0103: The name 'bad' does not exist in the current context
