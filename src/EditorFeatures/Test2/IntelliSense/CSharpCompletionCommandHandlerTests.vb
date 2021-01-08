@@ -1821,8 +1821,8 @@ class C
 
                 state.SendTypeChars("F")
                 Await state.AssertSelectedCompletionItem(displayText:="Fo", isHardSelected:=True)
-                state.SendTypeChars(".")
-                Assert.Contains("(Fo.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                state.SendTypeChars(":")
+                Assert.Contains("(Fo:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 

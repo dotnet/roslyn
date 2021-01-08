@@ -1947,65 +1947,6 @@ namespace BB
             await VerifyProviderCommitAsync(markup, "ToInt", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [InlineData('.')]
-        [InlineData(';')]
-        public async Task TestCommitWithCustomizedCharForMethodForDelegateContext(char commitChar)
-        {
-            var markup = @"
-public class C
-{
-}
-namespace AA
-{
-    public static class Ext
-    {
-        public static int ToInt(this C c)
-            => 1;
-    }
-}
-
-namespace BB
-{
-    public class B
-    {
-        public void M()
-        {
-            var c = new C();
-            c.$$
-        }
-    }
-}";
-
-            var expected = $@"
-using AA;
-
-public class C
-{{
-}}
-namespace AA
-{{
-    public static class Ext
-    {{
-        public static int ToInt(this C c)
-            => 1;
-    }}
-}}
-
-namespace BB
-{{
-    public class B
-    {{
-        public void M()
-        {{
-            var c = new C();
-            c.ToInt(){commitChar}
-        }}
-    }}
-}}";
-            await VerifyProviderCommitAsync(markup, "ToInt", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
-        }
-
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestTimeBox()
         {
