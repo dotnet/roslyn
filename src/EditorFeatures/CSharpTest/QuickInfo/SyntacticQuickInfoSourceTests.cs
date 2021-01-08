@@ -272,7 +272,8 @@ if (true)
             int position)
         {
             var provider = CreateProvider();
-            Assert.Null(await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None)));
+            var context = await QuickInfoContext.CreateAsync(document, position, CancellationToken.None);
+            Assert.Null(await provider.GetQuickInfoAsync(context));
         }
 
         protected override async Task AssertContentIsAsync(
@@ -283,7 +284,8 @@ if (true)
             string expectedDocumentationComment = null)
         {
             var provider = CreateProvider();
-            var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None));
+            var context = await QuickInfoContext.CreateAsync(document, position, CancellationToken.None);
+            var info = await provider.GetQuickInfoAsync(context);
             Assert.NotNull(info);
             Assert.NotEqual(0, info.RelatedSpans.Length);
 
