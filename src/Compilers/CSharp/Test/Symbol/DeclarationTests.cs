@@ -318,6 +318,10 @@ public class B
             Assert.Equal(1, countedTree.AccessCount);
         }
 
+        /// <remarks>
+        /// When using this type, make sure to pass an explicit CompilationOptions to CreateCompilation, as the check
+        /// to see whether the syntax tree has top-level statements will increment the counter.
+        /// </remarks>
         private class CountedSyntaxTree : CSharpSyntaxTree
         {
             private class Reference : SyntaxReference
