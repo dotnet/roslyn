@@ -101,21 +101,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return isConvertible;
             }
 
-            typeConvertibilityCache[type] = IsTypeImplicitlyConvertible(semanticModel.Compilation, type, inferredTypes);
+            typeConvertibilityCache[type] = CompletionUtilities.IsTypeImplicitlyConvertible(semanticModel.Compilation, type, inferredTypes);
             return typeConvertibilityCache[type];
-        }
-
-        private static bool IsTypeImplicitlyConvertible(Compilation compilation, ITypeSymbol sourceType, ImmutableArray<ITypeSymbol> targetTypes)
-        {
-            foreach (var targetType in targetTypes)
-            {
-                if (compilation.ClassifyCommonConversion(sourceType, targetType).IsImplicit)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         /// <summary>
