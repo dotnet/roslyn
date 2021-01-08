@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             QueryTranslationState state = new QueryTranslationState();
-            state.fromExpression = MakeMemberAccessValue(boundFromExpression, diagnostics);
+            state.fromExpression = CheckValue(MakeMemberAccessValue(boundFromExpression, diagnostics), BindValueKind.RValueOrType, diagnostics);
 
             var x = state.rangeVariable = state.AddRangeVariable(this, fromClause.Identifier, diagnostics);
             for (int i = node.Body.Clauses.Count - 1; i >= 0; i--)

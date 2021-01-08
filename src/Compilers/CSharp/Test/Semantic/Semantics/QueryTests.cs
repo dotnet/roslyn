@@ -2852,7 +2852,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
   Expression: 
     IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'select y')
       Children(2):
-          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'from y in Main')
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Main')
             Children(1):
                 IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Main')
                   Children(1):
@@ -4124,7 +4124,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
   Expression: 
     IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'select 3')
       Children(2):
-          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'from c in NSAlias')
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'NSAlias')
             Children(1):
                 IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'NSAlias')
           IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: '3')
@@ -4134,15 +4134,15 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0119: 'ConsoleApp' is a namespace, which is not valid in the given context
+                // file.cs(13,35): error CS0119: 'ParentNamespace.ConsoleApp' is a namespace, which is not valid in the given context
                 //                 var x = from c in ConsoleApp select 3;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleApp").WithArguments("ConsoleApp", "namespace").WithLocation(13, 35),
-                // CS0119: 'ParentNamespace.ConsoleApp' is a namespace, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleApp").WithArguments("ParentNamespace.ConsoleApp", "namespace").WithLocation(13, 35),
+                // file.cs(14,35): error CS0119: 'ParentNamespace.ConsoleApp' is a namespace, which is not valid in the given context
                 //                 var y = from c in ParentNamespace.ConsoleApp select 3;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "ParentNamespace.ConsoleApp").WithArguments("ParentNamespace.ConsoleApp", "namespace").WithLocation(14, 35),
-                // CS0119: 'NSAlias' is a namespace, which is not valid in the given context
+                // file.cs(15,45): error CS0119: 'ParentNamespace.ConsoleApp' is a namespace, which is not valid in the given context
                 //                 var z = /*<bind>*/from c in NSAlias select 3/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "NSAlias").WithArguments("NSAlias", "namespace").WithLocation(15, 45)
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "NSAlias").WithArguments("ParentNamespace.ConsoleApp", "namespace").WithLocation(15, 45)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -4441,6 +4441,94 @@ class Program
                 //         var query6 = from d in T select 6;
                 Diagnostic(ErrorCode.ERR_QueryNoProvider, "T").WithArguments("T", "Select").WithLocation(17, 32)
                 );
+        }
+
+        [Fact, WorkItem(50316, "https://github.com/dotnet/roslyn/issues/50316")]
+        public void SetOnlyProperty()
+        {
+            var comp = CreateCompilation(@"
+using System.Collections.Generic;
+using System.Linq;
+
+var c = new C();
+var test = from i in c.Prop
+           select i;
+
+public class C {
+    public IEnumerable<int> Prop
+    {
+        set {}
+    }
+}
+", options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (6,22): error CS0154: The property or indexer 'C.Prop' cannot be used in this context because it lacks the get accessor
+                // var test = from i in c.Prop
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c.Prop").WithArguments("C.Prop").WithLocation(6, 22)
+            );
+        }
+
+        [Fact, WorkItem(50316, "https://github.com/dotnet/roslyn/issues/50316")]
+        public void DefaultIndexedPropertyParameters_IndexerCall()
+        {
+            var comp = CreateCompilation(@"
+using System.Collections.Generic;
+using System.Linq;
+
+var c = new C();
+var test = from i in c[1]
+           select i;
+
+public class C {
+    public IEnumerable<int> this[int i1, object o = null]
+    {
+        get => null;
+        set {}
+    }
+}
+", options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(50316, "https://github.com/dotnet/roslyn/issues/50316")]
+        public void DefaultIndexedPropertyParameters_PropertyGroup()
+        {
+            var vb = CreateVisualBasicCompilation(@"
+Imports System.Collections.Generic
+Imports System.Runtime.InteropServices
+ 
+<ComImport>
+<Guid(""1F9C3731-6AA1-498A-AFA0-359828FCF0CE"")>
+Public Interface I
+    Property X(Optional i as Integer = 0) As IEnumerable(Of Integer)
+End Interface
+
+Public Class A
+    Implements I
+
+    Public Property X(Optional i as Integer = 0) As IEnumerable(Of Integer) Implements I.X
+        Get
+            Return Nothing
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+");
+
+            vb.VerifyDiagnostics();
+
+            var comp = CreateCompilation(@"
+using System.Linq;
+
+I i = new A();
+var test = from @int in i.X
+           select @int;
+", references: new[] { vb.EmitToImageReference() }, options: TestOptions.ReleaseExe);
+
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

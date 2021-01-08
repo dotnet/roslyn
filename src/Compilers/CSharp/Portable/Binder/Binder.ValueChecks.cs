@@ -82,6 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             RefAssignable = 8 << ValueKindInsignificantBits,
 
+            /// <summary>
+            /// Expression can be a type
+            /// </summary>
+            Type = 16 << ValueKindInsignificantBits,
+
             ///////////////////
             // The rest are just combinations of the above.
             //
@@ -92,6 +97,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Basically an RValue, but could be treated differently for the purpose of error reporting
             /// </summary>
             RValueOrMethodGroup = RValue + 1,
+
+            /// <summary>
+            /// Expression is the from expression of a query operation
+            /// and may be an RValue or a type (that could implement the
+            /// query pattern).
+            /// </summary>
+            RValueOrType = RValue | Type,
 
             /// <summary>
             /// Expression can be an LHS of a compound assignment
@@ -402,6 +414,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (RequiresRValueOnly(valueKind))
             {
                 return CheckNotNamespaceOrType(expr, diagnostics);
+            }
+
+            if ((valueKind & ValueKindSignificantBitsMask) == BindValueKind.RValueOrType)
+            {
+                if (expr is BoundNamespaceExpression namespaceExpr)
+                {
+                    Error(diagnostics, ErrorCode.ERR_BadSKunknown, expr.Syntax, namespaceExpr.NamespaceSymbol, MessageID.IDS_SK_NAMESPACE.Localize());
+                    return false;
+                }
+
+                return true;
             }
 
             // constants/literals are strictly RValues
