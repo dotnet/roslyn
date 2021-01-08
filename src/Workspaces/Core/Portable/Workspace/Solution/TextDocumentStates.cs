@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
 
         public TextDocumentStates(IEnumerable<DocumentInfo> infos, Func<DocumentInfo, TState> stateConstructor)
             : this(infos.Select(info => info.Id).ToImmutableArray(),
-                    infos.ToImmutableDictionary(info => info.Id, stateConstructor))
+                   infos.ToImmutableDictionary(info => info.Id, stateConstructor))
         {
         }
 
