@@ -144,13 +144,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var relatedDocumentIds = document.Project.Solution.GetRelatedDocumentIds(document.Id).Concat(document.Id);
             var options = document.Project.Solution.Workspace.Options;
             var totalSymbols = await base.GetPerContextSymbolsAsync(document, position, options, relatedDocumentIds, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var typeConvertibilityCache = new Dictionary<ITypeSymbol, bool>(SymbolEqualityComparer.Default);
+
             foreach (var (documentId, syntaxContext, symbols) in totalSymbols)
             {
-                var bestSymbols = symbols.WhereAsArray(
-                    s => kind != null && s.Kind == kind && s.Name == name && isGeneric == (s.GetArity() > 0));
+                var bestSymbols = symbols.Where(
+                    s => kind != null && s.Kind == kind && s.Name == name && isGeneric == (s.GetArity() > 0)).ToList();
 
                 if (bestSymbols.Any())
                 {
+                    if (IsTargetTypeCompletionFilterExperimentEnabled(document.Project.Solution.Workspace))
+                    {
+                        if (TryFindFirstSymbolMatchesTargetTypes(_ => syntaxContext, bestSymbols, typeConvertibilityCache, out var index) && index > 0)
+                        {
+                            // This would ensure a symbol matches target types to be used for description (if any).
+                            var firstMatch = bestSymbols[index];
+                            bestSymbols.RemoveAt(index);
+                            bestSymbols.Insert(0, firstMatch);
+                        }
+                    }
+
                     return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols, document, syntaxContext.SemanticModel, cancellationToken).ConfigureAwait(false);
                 }
             }

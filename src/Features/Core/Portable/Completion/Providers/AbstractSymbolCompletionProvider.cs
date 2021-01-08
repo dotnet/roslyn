@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected virtual CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols)
             => CompletionItemRules.Default;
 
-        private bool IsTargetTypeCompletionFilterExperimentEnabled(Workspace workspace)
+        protected bool IsTargetTypeCompletionFilterExperimentEnabled(Workspace workspace)
         {
             if (!_isTargetTypeCompletionFilterExperimentEnabled.HasValue)
             {
@@ -132,32 +132,55 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             foreach (var symbolGroup in symbolGroups)
             {
+                var includeItemInTargetTypedCompletion = false;
                 var arbitraryFirstContext = contextLookup(symbolGroup.First());
-                var item = CreateItem(
-                    completionContext, symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText,
-                    symbolGroup.ToList(), arbitraryFirstContext, invalidProjectMap, totalProjects, preselect);
+                var symbolList = symbolGroup.ToList();
 
                 if (IsTargetTypeCompletionFilterExperimentEnabled(arbitraryFirstContext.Workspace))
                 {
                     var tick = Environment.TickCount;
 
-                    foreach (var symbol in symbolGroup)
+                    includeItemInTargetTypedCompletion = TryFindFirstSymbolMatchesTargetTypes(contextLookup, symbolList, typeConvertibilityCache, out var index);
+                    if (includeItemInTargetTypedCompletion && index > 0)
                     {
-                        var syntaxContext = contextLookup(symbol);
-                        if (ShouldIncludeInTargetTypedCompletionList(symbol, syntaxContext.InferredTypes, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
-                        {
-                            item = item.AddTag(WellKnownTags.TargetTypeMatch);
-                            break;
-                        }
+                        // This would ensure a symbol matches target types to be used for description if there's any,
+                        // assuming the default implementation of GetDescriptionWorkerAsync is used.
+                        var firstMatch = symbolList[index];
+                        symbolList.RemoveAt(index);
+                        symbolList.Insert(0, firstMatch);
                     }
 
                     telemetryCounter.AddTick(Environment.TickCount - tick);
+                }
+
+                var item = CreateItem(
+                    completionContext, symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText,
+                    symbolList, arbitraryFirstContext, invalidProjectMap, totalProjects, preselect);
+
+                if (includeItemInTargetTypedCompletion)
+                {
+                    item = item.AddTag(WellKnownTags.TargetTypeMatch);
                 }
 
                 itemListBuilder.Add(item);
             }
 
             return itemListBuilder.ToImmutable();
+        }
+
+        protected static bool TryFindFirstSymbolMatchesTargetTypes(Func<ISymbol, SyntaxContext> contextLookup, List<ISymbol> symbolList, Dictionary<ITypeSymbol, bool> typeConvertibilityCache, out int index)
+        {
+            for (index = 0; index < symbolList.Count; ++index)
+            {
+                var symbol = symbolList[index];
+                var syntaxContext = contextLookup(symbol);
+                if (ShouldIncludeInTargetTypedCompletionList(symbol, syntaxContext.InferredTypes, syntaxContext.SemanticModel, syntaxContext.Position, typeConvertibilityCache))
+                {
+                    break;
+                }
+            }
+
+            return index < symbolList.Count;
         }
 
         /// <summary>
