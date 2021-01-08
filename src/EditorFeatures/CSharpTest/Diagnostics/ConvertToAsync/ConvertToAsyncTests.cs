@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ConvertToAs
         EmptyDiagnosticAnalyzer,
         CSharpConvertToAsyncMethodCodeFixProvider>;
 
-    public class ChangeToAsyncTests
+    public class ConvertToAsyncTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToAsync)]
         public async Task CantAwaitAsyncVoid()
