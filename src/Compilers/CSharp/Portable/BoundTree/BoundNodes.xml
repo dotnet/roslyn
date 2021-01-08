@@ -117,7 +117,7 @@
   <!-- The implicit collection in an object or collection initializer expression. -->
   <Node Name="BoundObjectOrCollectionValuePlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="IsNew" Type="bool" Null="NotApplicable"/>
+    <Field Name="IsNewInstance" Type="bool" Null="NotApplicable"/>
   </Node>
 
   <!-- only used by codegen -->

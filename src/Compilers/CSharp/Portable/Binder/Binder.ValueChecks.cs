@@ -1179,7 +1179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // bad: { ... = { InitOnlyProperty = ... } }
                 if (receiver is BoundObjectOrCollectionValuePlaceholder placeholder)
                 {
-                    return placeholder.IsNew;
+                    return placeholder.IsNewInstance;
                 }
 
                 // bad: other.InitOnlyProperty = ...

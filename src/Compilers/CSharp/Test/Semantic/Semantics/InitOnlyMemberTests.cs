@@ -4170,9 +4170,12 @@ public abstract class ClassITest28 //: ITest28
             string source = @"
 class UsePia
 {
+    public ITest28 Property2 { get; init; }
+
     public static void Main()
     {
-        var x1 = new ITest28();
+        var x1 = new ITest28() { Property = 42 };
+        var x2 = new UsePia() { Property2 = { Property = 43 } };
     }
 }";
 
@@ -4180,7 +4183,11 @@ class UsePia
                 new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
                 options: TestOptions.DebugExe);
 
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (9,47): error CS8852: Init-only property or indexer 'ITest28.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //         var x2 = new UsePia() { Property2 = { Property = 43 } };
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("ITest28.Property").WithLocation(9, 47)
+                );
         }
     }
 }
