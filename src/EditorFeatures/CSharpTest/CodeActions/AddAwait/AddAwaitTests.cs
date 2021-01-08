@@ -905,7 +905,8 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpressionWithConversionInNonAsyncFunction()
         {
-            var code = @"using System.Threading.Tasks;
+
+            await TestMissingAsync(@"using System.Threading.Tasks;
 
 class TestClass
 {
@@ -919,9 +920,7 @@ class TestClass
     {
         return Task.FromResult(result: 1);
     }
-}";
-
-            await TestInRegularAndScriptAsync(code, code);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
@@ -1041,7 +1040,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -1059,6 +1058,30 @@ class TestClass
     {
         return Task.FromResult(result: 1);
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public async Task TestAssignmentExpression3_1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Func<Task> lambda = async () => {
+            int myInt = [|MyIntMethodAsync()|];
+            return Task.CompletedTask;
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
 }",
 @"using System;
 using System.Threading.Tasks;
@@ -1067,8 +1090,8 @@ class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        Func<Task> lambda = () => {
-            int myInt = [|await MyIntMethodAsync()|];
+        Func<Task> lambda = async () => {
+            int myInt = await MyIntMethodAsync();
             return Task.CompletedTask;
         };
     }
@@ -1083,7 +1106,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -1100,6 +1123,29 @@ class TestClass
     {
         return Task.FromResult(result: 1);
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public async Task TestAssignmentExpression4_1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Action lambda = async () => {
+            int myInt = [|MyIntMethodAsync()|];
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
 }",
 @"using System;
 using System.Threading.Tasks;
@@ -1108,8 +1154,8 @@ class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        Action lambda = () => {
-            int myInt = [|await MyIntMethodAsync()|];
+        Action lambda = async () => {
+            int myInt = await MyIntMethodAsync();
         };
     }
 
@@ -1203,7 +1249,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression7()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -1220,6 +1266,29 @@ class TestClass
     {
         return Task.FromResult(result: 1);
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public async Task TestAssignmentExpression7_1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Action @delegate = async delegate {
+            int myInt = [|MyIntMethodAsync()|];
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
 }",
 @"using System;
 using System.Threading.Tasks;
@@ -1228,8 +1297,8 @@ class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        Action @delegate = delegate {
-            int myInt = [|await MyIntMethodAsync()|];
+        Action @delegate = async delegate {
+            int myInt = await MyIntMethodAsync();
         };
     }
 
@@ -1243,7 +1312,7 @@ class TestClass
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
         public async Task TestAssignmentExpression8()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -1261,6 +1330,30 @@ class TestClass
     {
         return Task.FromResult(result: 1);
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)]
+        public async Task TestAssignmentExpression8_1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class TestClass
+{
+    private async Task MyTestMethod1Async()
+    {
+        Func<Task> @delegate = async delegate {
+            int myInt = [|MyIntMethodAsync()|];
+            return Task.CompletedTask;
+        };
+    }
+
+    private Task<int> MyIntMethodAsync()
+    {
+        return Task.FromResult(result: 1);
+    }
 }",
 @"using System;
 using System.Threading.Tasks;
@@ -1269,7 +1362,7 @@ class TestClass
 {
     private async Task MyTestMethod1Async()
     {
-        Func<Task> @delegate = delegate {
+        Func<Task> @delegate = async delegate {
             int myInt = [|await MyIntMethodAsync()|];
             return Task.CompletedTask;
         };

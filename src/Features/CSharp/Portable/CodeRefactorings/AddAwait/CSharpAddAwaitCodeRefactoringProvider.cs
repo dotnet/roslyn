@@ -29,5 +29,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddAwait
 
         protected override string GetTitleWithConfigureAwait()
             => CSharpFeaturesResources.Add_await_and_ConfigureAwaitFalse;
+
+        protected override bool IsInAsyncContext(SyntaxNode node)
+        {
+            foreach (var current in node.Ancestors())
+            {
+                switch (current.Kind())
+                {
+                    case SyntaxKind.ParenthesizedLambdaExpression:
+                    case SyntaxKind.SimpleLambdaExpression:
+                    case SyntaxKind.AnonymousMethodExpression:
+                        return ((AnonymousFunctionExpressionSyntax)current).AsyncKeyword != default;
+                    case SyntaxKind.MethodDeclaration:
+                        return ((MethodDeclarationSyntax)current).Modifiers.Any(SyntaxKind.AsyncKeyword);
+                }
+            }
+
+            return false;
+        }
     }
 }

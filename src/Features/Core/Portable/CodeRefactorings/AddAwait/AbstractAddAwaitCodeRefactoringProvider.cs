@@ -28,9 +28,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
         protected abstract string GetTitle();
         protected abstract string GetTitleWithConfigureAwait();
 
+        protected abstract bool IsInAsyncContext(SyntaxNode node);
+
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, _, cancellationToken) = context;
+            var (document, span, cancellationToken) = context;
+
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var node = root.FindNode(span);
+            if (!IsInAsyncContext(node))
+                return;
 
             var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
