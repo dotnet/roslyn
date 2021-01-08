@@ -100,18 +100,18 @@ namespace Microsoft.CodeAnalysis.Remote
             // Use local pipe to avoid blocking the current thread on networking IO.
             var localPipe = new Pipe(PipeOptionsWithUnlimitedWriterBuffer);
 
-            Exception? exception = null;
-
             // start a task on a thread pool thread copying from the RPC pipe to a local pipe:
             var copyTask = Task.Run(async () =>
             {
+                Exception? exception = null;
+
                 try
                 {
                     await pipeReader.CopyToAsync(localPipe.Writer, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e)
+                catch (Exception e) when ((exception = e) == null) // capture, but don't catch the exception
                 {
-                    exception = e;
+                    throw ExceptionUtilities.Unreachable;
                 }
                 finally
                 {
@@ -128,8 +128,6 @@ namespace Microsoft.CodeAnalysis.Remote
             catch (EndOfStreamException)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
-                throw exception ?? ExceptionUtilities.Unreachable;
             }
             finally
             {
@@ -137,6 +135,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 // reader and/or writer while they are still in use.
                 await copyTask.ConfigureAwait(false);
             }
+
+            // The stream ended unexpectedly before we read all the data from the local pipe.
+            // copyTask should have completed with an exception and that should have thrown when we awaited the task.
+            throw ExceptionUtilities.Unreachable;
         }
 
         public static ImmutableArray<(Checksum, object)> ReadData(Stream stream, int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
