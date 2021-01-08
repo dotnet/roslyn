@@ -113,6 +113,9 @@ public class D
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8,
                 references: new[] { useMetadataImage ? lib.EmitToImageReference() : lib.ToMetadataReference() });
             comp.VerifyEmitDiagnostics(
+                // (6,45): error CS8852: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //         _ = new Container() { contained = { Property = string.Empty, Property2 = string.Empty } };
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "Property").WithArguments("C.Property").WithLocation(6, 45),
                 // (6,45): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         _ = new Container() { contained = { Property = string.Empty, Property2 = string.Empty } };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "Property").WithArguments("init-only setters", "9.0").WithLocation(6, 45),
@@ -188,6 +191,9 @@ public class D
                 // (6,9): error CS8852: Init-only property or indexer 'C.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
                 //         c.Property = string.Empty;
                 Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "c.Property").WithArguments("C.Property").WithLocation(6, 9),
+                // (6,9): error CS8400: Feature 'init-only setters' is not available in C# 8.0. Please use language version 9.0 or greater.
+                //         c.Property = string.Empty;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "c.Property").WithArguments("init-only setters", "9.0").WithLocation(6, 9),
                 // (7,9): error CS0200: Property or indexer 'C.Property2' cannot be assigned to -- it is read only
                 //         c.Property2 = string.Empty;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "c.Property2").WithArguments("C.Property2").WithLocation(7, 9)
