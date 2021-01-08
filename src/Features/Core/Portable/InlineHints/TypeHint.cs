@@ -35,12 +35,6 @@ namespace Microsoft.CodeAnalysis.InlineHints
         public ImmutableArray<SymbolDisplayPart> Prefix { get; }
         public ImmutableArray<SymbolDisplayPart> Suffix { get; }
 
-        public void Deconstruct(out ITypeSymbol type, out TextSpan span)
-        {
-            type = Type;
-            span = Span;
-        }
-
         public void Deconstruct(out ITypeSymbol type, out TextSpan span, out ImmutableArray<SymbolDisplayPart> prefix, out ImmutableArray<SymbolDisplayPart> suffix)
         {
             type = Type;
