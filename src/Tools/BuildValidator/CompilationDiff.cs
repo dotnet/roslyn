@@ -42,14 +42,19 @@ namespace BuildValidator
             OriginalPath = originalPath;
         }
 
-        public static CompilationDiff Create(FileInfo assemblyFile, Compilation producedCompilation)
+        public static CompilationDiff Create(FileInfo assemblyFile, Compilation producedCompilation, IMethodSymbol? debugEntryPoint)
         {
             using var peStream = new MemoryStream();
 
-            using var win32ResourceStream = producedCompilation.CreateDefaultWin32Resources(true, true, null, null);
+            using var win32ResourceStream = producedCompilation.CreateDefaultWin32Resources(
+                true,
+                noManifest: producedCompilation.Options.OutputKind == OutputKind.DynamicallyLinkedLibrary,
+                null,
+                null);
             var emitResult = producedCompilation.Emit(
                 peStream: peStream,
                 win32Resources: win32ResourceStream,
+                debugEntryPoint: debugEntryPoint,
                 options: new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded, highEntropyVirtualAddressSpace: true));
 
             Directory.CreateDirectory(Path.Combine(TestData.DebugDirectory, "original"));

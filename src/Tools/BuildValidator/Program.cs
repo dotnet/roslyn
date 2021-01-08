@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
@@ -14,6 +15,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 namespace BuildValidator
 {
@@ -55,30 +57,40 @@ namespace BuildValidator
                 loggerFactory.AddConsole();
             }
 
-            s_logger = loggerFactory.CreateLogger<Program>();
+            try
+            {
+                s_logger = loggerFactory.CreateLogger<Program>();
 
-            var sourceResolver = new LocalSourceResolver(loggerFactory);
-            var referenceResolver = new LocalReferenceResolver(loggerFactory);
+                var sourceResolver = new LocalSourceResolver(loggerFactory);
+                var referenceResolver = new LocalReferenceResolver(loggerFactory);
 
-            var buildConstructor = new BuildConstructor(referenceResolver, sourceResolver);
+                var buildConstructor = new BuildConstructor(referenceResolver, sourceResolver);
 
-            var artifactsDir = LocalReferenceResolver.GetArtifactsDirectory();
-            var thisCompilerVersion = options.IgnoreCompilerVersion
-                ? null
-                : typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+                var artifactsDir = LocalReferenceResolver.GetArtifactsDirectory();
+                var thisCompilerVersion = options.IgnoreCompilerVersion
+                    ? null
+                    : typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
 
-            var filesToValidate = TestData
-                .BinaryNames
-                .Select(x => Path.Combine(TestData.ArtifactsDirectory, x))
-                .Select(x => new FileInfo(x))
-                .ToList();
+                var filesToValidate = TestData
+                    .BinaryNames
+                    .Select(x => Path.Combine(TestData.ArtifactsDirectory, x))
+                    .Select(x => new FileInfo(x))
+                    .ToList();
 
-            ValidateFiles(filesToValidate, buildConstructor, thisCompilerVersion);
+                ValidateFiles(filesToValidate, buildConstructor, thisCompilerVersion);
+                Console.Out.Flush();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
         }
 
         private static void ValidateFiles(IEnumerable<FileInfo> files, BuildConstructor buildConstructor, string? thisCompilerVersion)
         {
             var assembliesCompiled = new List<CompilationDiff>();
+            var sb = new StringBuilder();
 
             foreach (var file in files)
             {
@@ -86,13 +98,13 @@ namespace BuildValidator
 
                 if (compilationDiff is null)
                 {
+                    Console.WriteLine("ERROR!!!");
+                    sb.AppendLine($"Ignoring {file.FullName}");
                     continue;
                 }
 
                 assembliesCompiled.Add(compilationDiff);
             }
-
-            var sb = new StringBuilder();
 
             sb.AppendLine("====================");
             sb.AppendLine("Summary:");
@@ -124,12 +136,15 @@ namespace BuildValidator
             }
             sb.AppendLine("====================");
 
-            s_logger.LogInformation(sb.ToString());
+            //s_logger.LogInformation(sb.ToString());
+
+            // PROTOTYPE: the logger won't output strings about 1/2 of the time. Forget indirection, just
+            // use the Console.
+            Console.WriteLine(sb.ToString());
         }
 
         private static CompilationDiff? ValidateFile(FileInfo file, BuildConstructor buildConstructor, string? thisCompilerVersion)
         {
-
             if (s_ignorePatterns.Any(r => r.IsMatch(file.FullName)))
             {
                 s_logger.LogTrace($"Ignoring {file.FullName}");
@@ -162,11 +177,35 @@ namespace BuildValidator
 
                 // TODO: Check compilation version using the PEReader
 
-                var compilation = buildConstructor.CreateCompilation(reader, Path.GetFileNameWithoutExtension(file.Name));
-                return CompilationDiff.Create(file, compilation);
+                var compilation = buildConstructor.CreateCompilation(
+                    reader,
+                    peReader,
+                    Path.GetFileNameWithoutExtension(file.Name));
+                return CompilationDiff.Create(file, compilation, GetDebugEntryPoint());
+
+                IMethodSymbol? GetDebugEntryPoint()
+                {
+                    var optionsReader = new CompilationOptionsReader(reader, peReader);
+                    if (optionsReader.GetMainTypeName() is { } mainTypeName &&
+                        optionsReader.GetMainMethodName() is { } mainMethodName)
+                    {
+                        var typeSymbol = compilation.GetTypeByMetadataName(mainTypeName);
+                        if (typeSymbol is object)
+                        {
+                            var methodSymbols = typeSymbol
+                                .GetMembers()
+                                .OfType<IMethodSymbol>()
+                                .Where(x => x.Name == mainMethodName);
+                            return methodSymbols.FirstOrDefault();
+                        }
+                    }
+
+                    return null;
+                }
             }
             catch (Exception e)
             {
+                Console.WriteLine(e.Message);
                 s_logger.LogError(e, file.FullName);
                 return CompilationDiff.Create(file, e);
             }
@@ -174,6 +213,7 @@ namespace BuildValidator
             {
                 pdbReaderProvider?.Dispose();
             }
+
         }
 
         private static void PrintHelp()

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
 
 namespace BuildValidator
@@ -20,13 +21,15 @@ namespace BuildValidator
         public static readonly Guid SourceLinkGuid = new Guid("CC110556-A091-4D38-9FEC-25AB9A351A6A");
 
         private readonly MetadataReader _metadataReader;
+        private readonly PEReader _peReader;
 
         private MetadataCompilationOptions? _compilationOptions;
         private ImmutableArray<MetadataReferenceInfo> _metadataReferenceInfo;
 
-        public CompilationOptionsReader(MetadataReader metadataReader)
+        public CompilationOptionsReader(MetadataReader metadataReader, PEReader peReader)
         {
             _metadataReader = metadataReader;
+            _peReader = peReader;
         }
 
         public MetadataCompilationOptions GetCompilationOptions()
@@ -51,7 +54,41 @@ namespace BuildValidator
             return _metadataReferenceInfo;
         }
 
-        public OutputKind GetOutputKind() => OutputKind.DynamicallyLinkedLibrary;
+        public OutputKind GetOutputKind() =>
+            (_metadataReader.DebugMetadataHeader is { } header && !header.EntryPoint.IsNil)
+            ? OutputKind.ConsoleApplication
+            : OutputKind.DynamicallyLinkedLibrary;
+
+        public string? GetMainTypeName() => GetMainMethodInfo() is { } tuple
+            ? tuple.MainTypeName
+            : null;
+
+        public string? GetMainMethodName() => GetMainMethodInfo() is { } tuple
+            ? tuple.MainMethodName
+            : null;
+
+        private (string MainTypeName, string MainMethodName)? GetMainMethodInfo()
+        {
+            if (!(_metadataReader.DebugMetadataHeader is { } header) ||
+                header.EntryPoint.IsNil)
+            {
+                return null;
+            }
+
+            var mdReader = _peReader.GetMetadataReader();
+            var methodDefinition = mdReader.GetMethodDefinition(header.EntryPoint);
+            var methodName = mdReader.GetString(methodDefinition.Name);
+            var typeHandle = methodDefinition.GetDeclaringType();
+            var typeDefinition = mdReader.GetTypeDefinition(typeHandle);
+            var typeName = mdReader.GetString(typeDefinition.Name);
+            if (!typeDefinition.Namespace.IsNil)
+            {
+                var namespaceName = mdReader.GetString(typeDefinition.Namespace);
+                typeName = namespaceName + "." + typeName;
+            }
+
+            return (typeName, methodName);
+        }
 
         public IEnumerable<string> GetSourceFileNames()
         {

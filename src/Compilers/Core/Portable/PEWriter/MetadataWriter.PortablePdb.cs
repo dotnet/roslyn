@@ -877,6 +877,9 @@ namespace Microsoft.Cci
             var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             WriteValue(CompilationOptionNames.RuntimeVersion, runtimeVersion);
 
+            var sourceFiles = string.Join(";", module.CommonCompilation.SyntaxTrees.Select(x => x.FilePath));
+            WriteValue(CompilationOptionNames.SourceFiles, sourceFiles);
+
             module.CommonCompilation.SerializePdbEmbeddedCompilationOptions(builder);
 
             _debugMetadataOpt.AddCustomDebugInformation(

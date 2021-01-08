@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -34,9 +35,9 @@ namespace BuildValidator
             _sourceResolver = sourceResolver;
         }
 
-        public Compilation CreateCompilation(MetadataReader metadataReader, string name)
+        public Compilation CreateCompilation(MetadataReader metadataReader, PEReader peReader, string name)
         {
-            var pdbReader = new CompilationOptionsReader(metadataReader);
+            var pdbReader = new CompilationOptionsReader(metadataReader, peReader);
             var pdbCompilationOptions = pdbReader.GetCompilationOptions();
 
             if (pdbCompilationOptions.Length == 0)
@@ -67,9 +68,12 @@ namespace BuildValidator
 
         private ImmutableArray<(string filename, SourceText sourceText)> GetSources(CompilationOptionsReader pdbReader, Encoding encoding)
         {
+            var pdbCompilationOptions = pdbReader.GetCompilationOptions();
+            var sourceFileNames = pdbCompilationOptions.GetUniqueOption("source-files").Split(';', StringSplitOptions.RemoveEmptyEntries);
+
             var builder = ImmutableArray.CreateBuilder<(string filename, SourceText sourceText)>();
 
-            foreach (var srcFile in pdbReader.GetSourceFileNames())
+            foreach (var srcFile in sourceFileNames)
             {
                 var text = _sourceResolver.ResolveSource(srcFile, encoding);
                 builder.Add((srcFile, text));
@@ -81,7 +85,7 @@ namespace BuildValidator
         #region CSharp
         private Compilation CreateCSharpCompilation(CompilationOptionsReader pdbReader, string assemblyName)
         {
-            var (compilationOptions, parseOptions, encoding) = CreateCSharpCompilationOptions(pdbReader);
+            var (compilationOptions, parseOptions, encoding) = CreateCSharpCompilationOptions(pdbReader, assemblyName);
             var metadataReferences = CreateMetadataReferences(pdbReader);
             var sources = GetSources(pdbReader, encoding);
 
@@ -92,7 +96,7 @@ namespace BuildValidator
                 options: compilationOptions);
         }
 
-        private static (CSharpCompilationOptions, CSharpParseOptions, Encoding) CreateCSharpCompilationOptions(CompilationOptionsReader pdbReader)
+        private static (CSharpCompilationOptions, CSharpParseOptions, Encoding) CreateCSharpCompilationOptions(CompilationOptionsReader pdbReader, string assemblyName)
         {
             var pdbCompilationOptions = pdbReader.GetCompilationOptions();
 
@@ -130,8 +134,11 @@ namespace BuildValidator
             var compilationOptions = new CSharpCompilationOptions(
                 pdbReader.GetOutputKind(),
                 reportSuppressedDiagnostics: false,
-                moduleName: null,
-                mainTypeName: null,
+
+                // PROTOTYPE: can't rely on the implicity moduleName here. In the case of .NET Core EXE the output name will
+                // end with .dll but the inferred name will be .exe
+                moduleName: assemblyName + ".dll",
+                mainTypeName: pdbReader.GetMainTypeName(),
                 scriptClassName: null,
                 usings: null,
                 optimizationLevel,
@@ -155,6 +162,7 @@ namespace BuildValidator
                 publicSign: false,
                 metadataImportOptions: MetadataImportOptions.Public,
                 nullableContextOptions: nullableOptions);
+            compilationOptions.DebugPlusMode = plus;
 
             return (compilationOptions, parseOptions, encoding);
         }

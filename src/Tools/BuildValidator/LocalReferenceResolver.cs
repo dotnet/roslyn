@@ -31,8 +31,11 @@ namespace BuildValidator
         {
             _logger = loggerFactory.CreateLogger<LocalReferenceResolver>();
             _indexDirectories.Add(GetArtifactsDirectory());
-            //_indexDirectories.Add(GetNugetCacheDirectory());
-            _indexDirectories.Add(GetRefAssembliesDirectory());
+            _indexDirectories.Add(GetNugetCacheDirectory());
+            foreach (var directoryInfo in GetRefAssembliesDirectories())
+            {
+                _indexDirectories.Add(directoryInfo);
+            }
         }
 
         public static DirectoryInfo GetNugetCacheDirectory()
@@ -46,10 +49,14 @@ namespace BuildValidator
             return new DirectoryInfo(nugetPackageDirectory);
         }
 
-        public static DirectoryInfo GetRefAssembliesDirectory()
+        public static DirectoryInfo[] GetRefAssembliesDirectories()
         {
             // PROTOTYPE
-            return new DirectoryInfo(@"C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref");
+            return new[]
+            {
+                new DirectoryInfo(@"C:\Program Files\dotnet\packs\Microsoft.AspNetCore.App.Ref"),
+                new DirectoryInfo(@"C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref")
+            };
         }
 
         public string GetReferencePath(MetadataReferenceInfo referenceInfo)

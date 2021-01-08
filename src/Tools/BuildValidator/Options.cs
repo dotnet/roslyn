@@ -47,11 +47,24 @@ namespace BuildValidator
 
     internal static class TestData
     {
+        /*
         internal static string SourceDirectory => @"p:\temp\simple-rebuild";
         internal static string ArtifactsDirectory => @"p:\temp\simple-rebuild\bin\Release\netcoreapp3.1";
         internal static IEnumerable<string> BinaryNames => new[]
         {
             "simple-rebuild.dll"
+        };
+        internal static string DebugDirectory => @"p:\temp\hw";
+        */
+
+        internal static string SourceDirectory => @"p:\runfo";
+        internal static string ArtifactsDirectory => @"P:\runfo\";
+        internal static IEnumerable<string> BinaryNames => new[]
+        {
+            @"DevOps.Status\bin\Debug\netcoreapp3.1\DevOps.Util.dll",
+            @"DevOps.Status\bin\Debug\netcoreapp3.1\DevOps.Util.DotNet.dll",
+            @"DevOps.Status\bin\Debug\netcoreapp3.1\DevOps.Status.dll",
+            @"DevOps.Status\bin\Debug\netcoreapp3.1\DevOps.Status.Views.dll",
         };
         internal static string DebugDirectory => @"p:\temp\hw";
     }
