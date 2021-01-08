@@ -67,9 +67,11 @@ namespace BuildValidator
                 ? null
                 : typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
 
-            var filesToValidate = artifactsDir.EnumerateFiles("*.exe", SearchOption.AllDirectories)
-                .Concat(artifactsDir.EnumerateFiles("*.dll", SearchOption.AllDirectories))
-                .Distinct(FileNameEqualityComparer.Instance);
+            var filesToValidate = TestData
+                .BinaryNames
+                .Select(x => Path.Combine(TestData.ArtifactsDirectory, x))
+                .Select(x => new FileInfo(x))
+                .ToList();
 
             ValidateFiles(filesToValidate, buildConstructor, thisCompilerVersion);
         }

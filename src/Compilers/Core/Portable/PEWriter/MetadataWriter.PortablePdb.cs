@@ -872,10 +872,7 @@ namespace Microsoft.Cci
 
             var optimizationLevel = module.CommonCompilation.Options.OptimizationLevel;
             var debugPlusMode = module.CommonCompilation.Options.DebugPlusMode;
-            if (optimizationLevel != OptimizationLevel.Debug || debugPlusMode)
-            {
-                WriteValue(CompilationOptionNames.Optimization, optimizationLevel.ToPdbSerializedString(debugPlusMode));
-            }
+            WriteValue(CompilationOptionNames.Optimization, optimizationLevel.ToPdbSerializedString(debugPlusMode));
 
             var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             WriteValue(CompilationOptionNames.RuntimeVersion, runtimeVersion);

@@ -51,7 +51,7 @@ namespace BuildValidator
             bool useSimpleProgram = true;
             if (useSimpleProgram)
             {
-                return new DirectoryInfo(@"C:\Users\rikki\src\simple-rebuild");
+                return new DirectoryInfo(TestData.SourceDirectory);
             }
 
             var assemblyLocation = typeof(LocalSourceResolver).Assembly.Location;

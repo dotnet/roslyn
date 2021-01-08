@@ -144,7 +144,7 @@ namespace BuildValidator
             bool useSimpleProject = true;
             if (useSimpleProject)
             {
-                return new DirectoryInfo(@"C:\Users\rikki\src\simple-rebuild\bin\Release\netcoreapp3.1");
+                return new DirectoryInfo(TestData.ArtifactsDirectory);
             }
 
             var assemblyLocation = typeof(LocalReferenceResolver).Assembly.Location;

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.IO;
 
 namespace BuildValidator
@@ -42,5 +43,16 @@ namespace BuildValidator
 
             return options;
         }
+    }
+
+    internal static class TestData
+    {
+        internal static string SourceDirectory => @"p:\temp\simple-rebuild";
+        internal static string ArtifactsDirectory => @"p:\temp\simple-rebuild\bin\Release\netcoreapp3.1";
+        internal static IEnumerable<string> BinaryNames => new[]
+        {
+            "simple-rebuild.dll"
+        };
+        internal static string DebugDirectory => @"p:\temp\hw";
     }
 }

@@ -46,9 +46,26 @@ namespace BuildValidator
         {
             using var peStream = new MemoryStream();
 
-            var emitResult = producedCompilation.Emit(peStream: peStream, options: new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded, pdbChecksumAlgorithm: HashAlgorithmName.SHA256));
+            using var win32ResourceStream = producedCompilation.CreateDefaultWin32Resources(true, true, null, null);
+            var emitResult = producedCompilation.Emit(
+                peStream: peStream,
+                win32Resources: win32ResourceStream,
+                options: new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded, highEntropyVirtualAddressSpace: true));
 
-            using var peFileStream = File.Create(@"C:\Users\rikki\Desktop\scratch\compare-simple\right\simple-rebuild.dll");
+            Directory.CreateDirectory(Path.Combine(TestData.DebugDirectory, "original"));
+            Directory.CreateDirectory(Path.Combine(TestData.DebugDirectory, "rebuild"));
+            var assemblyFileName = Path.GetFileName(assemblyFile.FullName);
+            File.Copy(
+                assemblyFile.FullName,
+                Path.Combine(TestData.DebugDirectory, "original", assemblyFileName),
+                overwrite: true);
+
+            var dest = Path.Combine(TestData.DebugDirectory, "rebuild", assemblyFileName);
+            if (File.Exists(dest))
+            {
+                File.Delete(dest);
+            }
+            using var peFileStream = File.Create(dest);
             peStream.WriteTo(peFileStream);
 
             if (emitResult.Success)

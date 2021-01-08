@@ -5,7 +5,7 @@
   <Import Project="$(RepositoryEngineeringDir)targets\GenerateCompilerExecutableBindingRedirects.targets" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net5.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <!-- https://github.com/dotnet/runtime/issues/1713 -->
@@ -16,11 +16,13 @@
   </PropertyGroup>
 
   <ItemGroup Label="Project References">
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0-5.20519.18" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="3.8.0-5.20519.18" />
-    <!--<ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />-->
-    <!--<ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />-->
-    <!--<ProjectReference Include="..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />-->
+  <!--
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0-5.final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="3.8.0-5.final" />
+    -->
+    <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
   </ItemGroup>
 
   <ItemGroup>
