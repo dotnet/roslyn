@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
             var solution = workspace.CurrentSolution;
-            var documentId = solution.Projects.Single().State.AnalyzerConfigDocumentStates.Single().Key;
+            var documentId = solution.Projects.Single().State.AnalyzerConfigDocumentStates.Ids.Single();
             var text = SourceText.From("new text");
 
             var newSolution1 = solution.WithAnalyzerConfigDocumentText(documentId, text, PreservationMode.PreserveIdentity);
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
             var solution = workspace.CurrentSolution;
-            var documentId = solution.Projects.Single().State.AnalyzerConfigDocumentStates.Single().Key;
+            var documentId = solution.Projects.Single().State.AnalyzerConfigDocumentStates.Ids.Single();
             var textAndVersion = TextAndVersion.Create(SourceText.From("new text"), VersionStamp.Default);
 
             var newSolution1 = solution.WithAnalyzerConfigDocumentText(documentId, textAndVersion, PreservationMode.PreserveIdentity);
@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
             var solution = workspace.CurrentSolution;
-            var documentId = solution.Projects.Single().State.AnalyzerConfigDocumentStates.Single().Key;
+            var documentId = solution.Projects.Single().State.AnalyzerConfigDocumentStates.Ids.Single();
             var loader = new TestTextLoader("new text");
 
             var newSolution1 = solution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, PreservationMode.PreserveIdentity);

@@ -72,11 +72,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var serializer = projectState.LanguageServices.WorkspaceServices.GetService<ISerializerService>();
             var projectStateChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
-            // Order the documents by FilePath.  Default ordering in the RemoteWorkspace is
-            // to be ordered by Guid (which is not consistent across VS sessions).
-            var textChecksumsTasks = projectState.DocumentStates.OrderBy(d => d.Value.FilePath, StringComparer.Ordinal).Select(async d =>
+            var textChecksumsTasks = projectState.DocumentStates.Values.Select(async state =>
             {
-                var documentStateChecksum = await d.Value.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                var documentStateChecksum = await state.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
                 return documentStateChecksum.Text;
             });
 

@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis
             return
                 documentId != null &&
                 this.ContainsProject(documentId.ProjectId) &&
-                this.GetProjectState(documentId.ProjectId)!.ContainsDocument(documentId);
+                this.GetProjectState(documentId.ProjectId)!.DocumentStates.Contains(documentId);
         }
 
         /// <summary>
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis
             return
                 documentId != null &&
                 this.ContainsProject(documentId.ProjectId) &&
-                this.GetProjectState(documentId.ProjectId)!.ContainsAdditionalDocument(documentId);
+                this.GetProjectState(documentId.ProjectId)!.AdditionalDocumentStates.Contains(documentId);
         }
 
         /// <summary>
@@ -335,29 +335,17 @@ namespace Microsoft.CodeAnalysis
             return
                 documentId != null &&
                 this.ContainsProject(documentId.ProjectId) &&
-                this.GetProjectState(documentId.ProjectId)!.ContainsAnalyzerConfigDocument(documentId);
+                this.GetProjectState(documentId.ProjectId)!.AnalyzerConfigDocumentStates.Contains(documentId);
         }
 
         private DocumentState GetRequiredDocumentState(DocumentId documentId)
-        {
-            var state = GetProjectState(documentId.ProjectId)!.GetDocumentState(documentId);
-            Contract.ThrowIfNull(state);
-            return state;
-        }
+            => GetRequiredProjectState(documentId.ProjectId).DocumentStates.GetRequiredValue(documentId);
 
         private TextDocumentState GetRequiredAdditionalDocumentState(DocumentId documentId)
-        {
-            var state = GetProjectState(documentId.ProjectId)!.GetAdditionalDocumentState(documentId);
-            Contract.ThrowIfNull(state);
-            return state;
-        }
+            => GetRequiredProjectState(documentId.ProjectId).AdditionalDocumentStates.GetRequiredValue(documentId);
 
         private AnalyzerConfigDocumentState GetRequiredAnalyzerConfigDocumentState(DocumentId documentId)
-        {
-            var state = GetProjectState(documentId.ProjectId)!.GetAnalyzerConfigDocumentState(documentId);
-            Contract.ThrowIfNull(state);
-            return state;
-        }
+            => GetRequiredProjectState(documentId.ProjectId).AnalyzerConfigDocumentStates.GetRequiredValue(documentId);
 
         internal DocumentState? GetDocumentState(SyntaxTree? syntaxTree, ProjectId? projectId)
         {
@@ -371,7 +359,7 @@ namespace Microsoft.CodeAnalysis
                     var projectState = GetProjectState(documentId.ProjectId);
                     if (projectState != null)
                     {
-                        var document = projectState.GetDocumentState(documentId);
+                        var document = projectState.DocumentStates.GetValue(documentId);
                         if (document != null)
                         {
                             // does this document really have the syntax tree?
@@ -905,7 +893,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the project documents in the order by the specified document ids.
         /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
         /// </summary>
-        public SolutionState WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
+        public SolutionState WithProjectDocumentsOrder(ProjectId projectId, ImmutableArray<DocumentId> documentIds)
         {
             if (projectId == null)
             {
@@ -1121,7 +1109,7 @@ namespace Microsoft.CodeAnalysis
         public SolutionState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
         {
             return RemoveDocumentsFromMultipleProjects(documentIds,
-                (projectState, documentId) => projectState.GetAnalyzerConfigDocumentState(documentId)!,
+                (projectState, documentId) => projectState.AnalyzerConfigDocumentStates.GetRequiredValue(documentId),
                 (oldProject, documentIds, _) =>
                 {
                     var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
@@ -1135,7 +1123,7 @@ namespace Microsoft.CodeAnalysis
         public SolutionState RemoveDocuments(ImmutableArray<DocumentId> documentIds)
         {
             return RemoveDocumentsFromMultipleProjects(documentIds,
-                (projectState, documentId) => projectState.GetDocumentState(documentId)!,
+                (projectState, documentId) => projectState.DocumentStates.GetRequiredValue(documentId),
                 (projectState, documentIds, documentStates) => (projectState.RemoveDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveDocumentsAction(documentStates)));
         }
 
@@ -1190,7 +1178,7 @@ namespace Microsoft.CodeAnalysis
         public SolutionState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
         {
             return RemoveDocumentsFromMultipleProjects(documentIds,
-                (projectState, documentId) => projectState.GetAdditionalDocumentState(documentId)!,
+                (projectState, documentId) => projectState.AdditionalDocumentStates.GetRequiredValue(documentId),
                 (projectState, documentIds, documentStates) => (projectState.RemoveAdditionalDocuments(documentIds), new CompilationAndGeneratorDriverTranslationAction.RemoveAdditionalDocumentsAction(documentStates)));
         }
 
@@ -1413,9 +1401,7 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            var oldDocument = oldProject.GetDocumentState(newDocument.Id);
-            Contract.ThrowIfNull(oldDocument);
-
+            var oldDocument = oldProject.DocumentStates.GetRequiredValue(newDocument.Id);
             var newFilePathToDocumentIdsMap = CreateFilePathToDocumentIdsMapWithFilePath(newDocument.Id, oldDocument.FilePath, newDocument.FilePath);
 
             return ForkProject(
@@ -1432,8 +1418,7 @@ namespace Microsoft.CodeAnalysis
             // This method shouldn't have been called if the document has not changed.
             Debug.Assert(oldProject != newProject);
 
-            var oldDocument = oldProject.GetAdditionalDocumentState(newDocument.Id);
-            Contract.ThrowIfNull(oldDocument);
+            var oldDocument = oldProject.AdditionalDocumentStates.GetRequiredValue(newDocument.Id);
 
             return ForkProject(
                 newProject,
@@ -1706,7 +1691,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                var doc = GetProjectState(documentId.ProjectId)?.GetDocumentState(documentId);
+                var doc = GetProjectState(documentId.ProjectId)?.DocumentStates.GetValue(documentId);
                 if (doc != null)
                 {
                     if (!doc.TryGetText(out var existingText) || existingText != text)
@@ -1770,11 +1755,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns the generated document states for source generated documents.
         /// </summary>
-        public Task<ImmutableArray<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(ProjectState project, CancellationToken cancellationToken)
+        public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(ProjectState project, CancellationToken cancellationToken)
         {
             return project.SupportsCompilation
                 ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, cancellationToken)
-                : SpecializedTasks.EmptyImmutableArray<SourceGeneratedDocumentState>();
+                : new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
         }
 
         /// <summary>
