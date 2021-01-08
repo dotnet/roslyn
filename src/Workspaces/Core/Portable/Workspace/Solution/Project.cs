@@ -256,7 +256,11 @@ namespace Microsoft.CodeAnalysis
 
             return ImmutableHashMapExtensions.GetOrAdd(ref _idToAnalyzerConfigDocumentMap, documentId, s_createAnalyzerConfigDocumentFunction, this);
         }
-        public async ValueTask<IEnumerable<SourceGeneratedDocument>> GetSourceGeneratedDocumentsAsync(CancellationToken cancellationToken = default)
+
+        /// <summary>
+        /// Gets all source generated documents in this project.
+        /// </summary>
+        public async ValueTask<ImmutableArray<SourceGeneratedDocument>> GetSourceGeneratedDocumentsAsync(CancellationToken cancellationToken = default)
         {
             var generatedDocumentStates = await _solution.State.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<SourceGeneratedDocument>.GetInstance(generatedDocumentStates.Length, out var builder);
