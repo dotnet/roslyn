@@ -827,6 +827,11 @@
         <target state="translated">Pokaż wskazówki dla literałów</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_target_typed_new_types">
+        <source>Show hints for target typed new types</source>
+        <target state="new">Show hints for target typed new types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_variables_with_inferred_types">
         <source>Show hints for variables with inferred types</source>
         <target state="translated">Pokaż wskazówki dla zmiennych z wnioskowanymi typami</target>

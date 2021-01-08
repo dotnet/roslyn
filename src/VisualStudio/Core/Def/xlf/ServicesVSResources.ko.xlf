@@ -827,6 +827,11 @@
         <target state="translated">리터럴에 대한 힌트 표시</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_target_typed_new_types">
+        <source>Show hints for target typed new types</source>
+        <target state="new">Show hints for target typed new types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_variables_with_inferred_types">
         <source>Show hints for variables with inferred types</source>
         <target state="translated">유추된 형식의 변수에 대한 힌트 표시</target>

@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
             bool displayAllOverride,
             bool forImplicitVariableTypes,
             bool forLambdaParameterTypes,
+            bool forTargetTypedNewTypes,
             CancellationToken cancellationToken)
         {
             if (forImplicitVariableTypes || displayAllOverride)
@@ -80,12 +81,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                 }
             }
 
-            if (node is ImplicitObjectCreationExpressionSyntax implicitNew)
+            if (forTargetTypedNewTypes || displayAllOverride)
             {
-                var type = semanticModel.GetTypeInfo(implicitNew, cancellationToken).Type;
-                if (IsValidType(type))
+                if (node is ImplicitObjectCreationExpressionSyntax implicitNew)
                 {
-                    return new(type, new TextSpan(implicitNew.NewKeyword.Span.End, 0), leadingSpace: true);
+                    var type = semanticModel.GetTypeInfo(implicitNew, cancellationToken).Type;
+                    if (IsValidType(type))
+                    {
+                        return new(type, new TextSpan(implicitNew.NewKeyword.Span.End, 0), leadingSpace: true);
+                    }
                 }
             }
 

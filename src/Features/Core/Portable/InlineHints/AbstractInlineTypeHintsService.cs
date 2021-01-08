@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             bool displayAllOverride,
             bool forImplicitVariableTypes,
             bool forLambdaParameterTypes,
+            bool forTargetTypedNewTypes,
             CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
             var forImplicitVariableTypes = enabledForTypes && options.GetOption(InlineHintsOptions.ForImplicitVariableTypes);
             var forLambdaParameterTypes = enabledForTypes && options.GetOption(InlineHintsOptions.ForLambdaParameterTypes);
+            var forTargetTypedNewTypes = enabledForTypes && options.GetOption(InlineHintsOptions.ForTargetTypedNewTypes);
             if (!forImplicitVariableTypes && !forLambdaParameterTypes && !displayAllOverride)
                 return ImmutableArray<InlineHint>.Empty;
 
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     displayAllOverride,
                     forImplicitVariableTypes,
                     forLambdaParameterTypes,
+                    forTargetTypedNewTypes,
                     cancellationToken);
                 if (hintOpt == null)
                     continue;

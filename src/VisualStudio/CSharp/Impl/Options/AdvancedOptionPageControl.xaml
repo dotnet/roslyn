@@ -248,6 +248,9 @@
                         <CheckBox x:Uid="ShowHintsForLambdaParameterTypes"
                                   x:Name="ShowHintsForLambdaParameterTypes"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_lambda_parameter_types}" />
+                        <CheckBox x:Uid="ShowHintsForTargetTypedNewTypes"
+                                  x:Name="ShowHintsForTargetTypedNewTypes"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_target_typed_new_types}" />
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
