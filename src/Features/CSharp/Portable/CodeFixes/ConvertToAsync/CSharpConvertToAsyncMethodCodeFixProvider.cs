@@ -13,10 +13,10 @@ using Microsoft.CodeAnalysis.CodeFixes.Async;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
+namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ConvertToAsync
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertToAsync), Shared]
-    internal class CSharpConvertToAsyncMethodCodeFixProvider : AbstractChangeToAsyncCodeFixProvider
+    internal class CSharpConvertToAsyncMethodCodeFixProvider : AbstractConvertToAsyncCodeFixProvider
     {
         /// <summary>
         /// Cannot await void.
@@ -29,10 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         {
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(CS4008); }
-        }
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS4008);
 
         protected override async Task<string> GetDescriptionAsync(
             Diagnostic diagnostic,
