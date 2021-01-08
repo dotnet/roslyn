@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                 }
             }
 
-            if (node is ImplicitObjectCreationExpressionSyntax { Parent: ArgumentSyntax } implicitNew)
+            if (node is ImplicitObjectCreationExpressionSyntax implicitNew)
             {
                 var type = semanticModel.GetTypeInfo(implicitNew, cancellationToken).Type;
                 if (IsValidType(type))
