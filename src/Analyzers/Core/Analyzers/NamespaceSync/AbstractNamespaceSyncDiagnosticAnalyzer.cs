@@ -27,8 +27,20 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
         {
         }
 
+        /// <summary>
+        /// Gets the language specific syntax facts
+        /// </summary>
         protected abstract ISyntaxFacts GetSyntaxFacts();
+        
+        /// <summary>
+        /// Returns true if the namespace declaration contains one or more partial types with multiple declarations.
+        /// </summary>
+        /// <returns></returns>
         protected abstract bool ContainsPartialTypeWithMultipleDeclarations(TNamespaceSyntax namespaceDeclaration, SemanticModel semanticModel);
+
+        /// <summary>
+        /// Gets the syntax representing the name of a namespace declaration
+        /// </summary>
         protected abstract SyntaxNode GetNameSyntax(TNamespaceSyntax namespaceDeclaration);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -56,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
                     IsFixSupported(context.SemanticModel, namespaceDecl, context.CancellationToken))
                 {
                     var nameSyntax = GetNameSyntax(namespaceDecl);
-                    ReportDiagnostics(context, Descriptor, nameSyntax.GetLocation(), targetNamespace, currentNamespace);
+                    AbstractNamespaceSyncDiagnosticAnalyzer<TNamespaceSyntax>.ReportDiagnostics(context, Descriptor, nameSyntax.GetLocation(), targetNamespace, currentNamespace);
                 }
             }
         }
@@ -133,7 +145,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
             return true;
         }
 
-        private void ReportDiagnostics(
+        private string GetNamespaceName(TNamespaceSyntax namespaceSyntax, string rootNamespace)
+        {
+            var namespaceNameSyntax = GetNameSyntax(namespaceSyntax);
+            var syntaxFacts = GetSyntaxFacts();
+            return syntaxFacts.GetDisplayName(namespaceNameSyntax, DisplayNameOptions.IncludeNamespaces, rootNamespace);
+        }
+
+        private static void ReportDiagnostics(
            SyntaxNodeAnalysisContext context, DiagnosticDescriptor descriptor,
            Location location, string targetNamespace, string originalNamespace)
         {
@@ -143,13 +162,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
                 additionalLocations: null,
                 properties: ImmutableDictionary<string, string?>.Empty.Add("TargetNamespace", targetNamespace),
                 messageArgs: new[] { originalNamespace, targetNamespace }));
-        }
-
-        private string GetNamespaceName(TNamespaceSyntax namespaceSyntax, string rootNamespace)
-        {
-            var namespaceNameSyntax = GetNameSyntax(namespaceSyntax);
-            var syntaxFacts = GetSyntaxFacts();
-            return syntaxFacts.GetDisplayName(namespaceNameSyntax, DisplayNameOptions.IncludeNamespaces, rootNamespace);
         }
     }
 }
