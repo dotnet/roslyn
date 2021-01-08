@@ -50,7 +50,7 @@ record Point { }
             var src3 = @"
 record Point(int x, int y);
 ";
-            var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // error CS8805: Program using top-level statements must be an executable.
                 Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
@@ -82,7 +82,7 @@ record Point(int x, int y);
                 // class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 20)
             );
-            comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(src2, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
                 // record Point { }
@@ -94,7 +94,7 @@ record Point(int x, int y);
                 // record Point { }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "Point").WithArguments("<invalid-global-code>.Point").WithLocation(2, 8)
             );
-            comp = CreateCompilation(src3, parseOptions: TestOptions.Regular8);
+            comp = CreateCompilation(src3, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // error CS8805: Program using top-level statements must be an executable.
                 Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
@@ -112,7 +112,7 @@ record Point(int x, int y);
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Point").WithArguments("Point").WithLocation(2, 8)
             );
 
-            comp = CreateCompilation(src1);
+            comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // error CS8805: Program using top-level statements must be an executable.
                 Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
