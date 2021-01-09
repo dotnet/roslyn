@@ -47,6 +47,11 @@
         <target state="translated">避免在 "SuppressMessageAttribute" 中使用旧格式目标</target>
         <note />
       </trans-unit>
+      <trans-unit id="Avoid_multiple_blank_lines">
+        <source>Avoid multiple blank lines</source>
+        <target state="new">Avoid multiple blank lines</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Avoid_unnecessary_value_assignments_in_your_code_as_these_likely_indicate_redundant_value_computations_If_the_value_computation_is_not_redundant_and_you_intend_to_retain_the_assignmentcomma_then_change_the_assignment_target_to_a_local_variable_whose_name_starts_with_an_underscore_and_is_optionally_followed_by_an_integercomma_such_as___comma__1_comma__2_comma_etc">
         <source>Avoid unnecessary value assignments in your code, as these likely indicate redundant value computations. If the value computation is not redundant and you intend to retain the assignment, then change the assignment target to a local variable whose name starts with an underscore and is optionally followed by an integer, such as '_', '_1', '_2', etc. These are treated as special discard symbol names.</source>
         <target state="translated">请避免在代码中使用不必要的值赋值，因为这些值极有可能指示冗余的值计算。如果值计算不是冗余的，并且打算保留该赋值，请将分配目标更改为名称以下划线开头或在下划线后面跟一个整数的局部变量(如 "_"、"_1"、"_2" 等)。这些被视为特殊丢弃符号名。</target>

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
         public CSharpConsecutiveBracePlacementDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConsecutiveBracePlacementDiagnosticId,
                    EnforceOnBuild.WhenExplicitlyEnabled,
-                   CSharpCodeStyleOptions.RequireNoBlankLinesBetweenConsecutiveBraces,
+                   CSharpCodeStyleOptions.DisallowBlankLinesBetweenConsecutiveBraces,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Consecutive_braces_must_not_have_a_blank_between_them), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
 
         private void AnalyzeTree(SyntaxTreeAnalysisContext context)
         {
-            var option = context.GetOption(CSharpCodeStyleOptions.RequireNoBlankLinesBetweenConsecutiveBraces);
+            var option = context.GetOption(CSharpCodeStyleOptions.DisallowBlankLinesBetweenConsecutiveBraces);
             if (!option.Value)
                 return;
 

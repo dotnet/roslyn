@@ -348,6 +348,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             storageLocations: new OptionStorageLocation2[]{
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferSystemHashCode") });
 
+        internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> DisallowMultipleBlankLines = CreateOption(
+            CodeStyleOptionGroups.NewLinePreferences, nameof(DisallowMultipleBlankLines),
+            defaultValue: TrueWithSilentEnforcement,
+            "dotnet_style_disallow_multiple_blank_lines",
+            "TextEditor.%LANGUAGE%.Specific.DisallowMultipleBlankLines");
+
         static CodeStyleOptions2()
         {
             // Note that the static constructor executes after all the static field initializers for the options have executed,
@@ -405,5 +411,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static readonly OptionGroup Field = new(CompilerExtensionsResources.Field_preferences, priority: 7);
         public static readonly OptionGroup Parameter = new(CompilerExtensionsResources.Parameter_preferences, priority: 8);
         public static readonly OptionGroup Suppressions = new(CompilerExtensionsResources.Suppression_preferences, priority: 9);
+        public static readonly OptionGroup NewLinePreferences = new(CompilerExtensionsResources.New_line_preferences, priority: 10);
     }
 }

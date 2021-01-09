@@ -633,7 +633,7 @@
   <data name="Require_new_line_for_embedded_statements" xml:space="preserve">
     <value>Require new line for embedded statements</value>
   </data>
-  <data name="Require_no_blank_lines_between_consecutive_braces" xml:space="preserve">
-    <value>Require no blank lines between consecutive braces</value>
+  <data name="Disallow_blank_lines_between_consecutive_braces" xml:space="preserve">
+    <value>Disallow blank lines between consecutive braces</value>
   </data>
 </root>

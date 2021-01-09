@@ -32,6 +32,11 @@
         <target state="translated">Правила форматирования C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="Disallow_blank_lines_between_consecutive_braces">
+        <source>Disallow blank lines between consecutive braces</source>
+        <target state="new">Disallow blank lines between consecutive braces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
         <target state="translated">Отменить</target>
@@ -125,11 +130,6 @@
       <trans-unit id="Require_new_line_for_embedded_statements">
         <source>Require new line for embedded statements</source>
         <target state="new">Require new line for embedded statements</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Require_no_blank_lines_between_consecutive_braces">
-        <source>Require no blank lines between consecutive braces</source>
-        <target state="new">Require no blank lines between consecutive braces</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">

@@ -27,6 +27,11 @@
         <target state="translated">Corregir todas las repeticiones de</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_extra_blank_lines">
+        <source>Remove extra blank lines</source>
+        <target state="new">Remove extra blank lines</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_assignment">
         <source>Remove redundant assignment</source>
         <target state="translated">Quitar asignación redundante</target>

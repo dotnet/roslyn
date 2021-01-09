@@ -334,4 +334,7 @@
   <data name="Use_increment_operator" xml:space="preserve">
     <value>Use '++' operator</value>
   </data>
+  <data name="Avoid_multiple_blank_lines" xml:space="preserve">
+    <value>Avoid multiple blank lines</value>
+  </data>
 </root>

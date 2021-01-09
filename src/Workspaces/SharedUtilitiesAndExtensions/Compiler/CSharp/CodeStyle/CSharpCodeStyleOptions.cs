@@ -272,15 +272,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(RequireNewLineForEmbeddedStatements),
             defaultValue: CodeStyleOption2<bool>.Default,
             storageLocations: new OptionStorageLocation2[] {
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_require_new_line_for_embedded_Statements", CodeStyleOption2<bool>.Default),
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_require_new_line_for_embedded_Statements", CodeStyleOption2<bool>.Default),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(RequireNewLineForEmbeddedStatements)}")});
 
-        public static Option2<CodeStyleOption2<bool>> RequireNoBlankLinesBetweenConsecutiveBraces { get; } = CreateOption(
-            CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(RequireNoBlankLinesBetweenConsecutiveBraces),
-            defaultValue: CodeStyleOption2<bool>.Default,
+        public static Option2<CodeStyleOption2<bool>> DisallowBlankLinesBetweenConsecutiveBraces { get; } = CreateOption(
+            CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(DisallowBlankLinesBetweenConsecutiveBraces),
+            defaultValue: CodeStyleOptions2.TrueWithSilentEnforcement,
             storageLocations: new OptionStorageLocation2[] {
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_require_no_blank_line_between_consecutive_braces", CodeStyleOption2<bool>.Default),
-                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(RequireNoBlankLinesBetweenConsecutiveBraces)}")});
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_disallow_blank_lines_between_consecutive_braces", CodeStyleOptions2.TrueWithSilentEnforcement),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(DisallowBlankLinesBetweenConsecutiveBraces)}")});
 
 #if false
 
@@ -341,6 +341,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly OptionGroup CodeBlockPreferences = new(CSharpCompilerExtensionsResources.Code_block_preferences, priority: 6);
         public static readonly OptionGroup ExpressionLevelPreferences = new(CompilerExtensionsResources.Expression_level_preferences, priority: 7);
         public static readonly OptionGroup UsingDirectivePreferences = new(CSharpCompilerExtensionsResources.using_directive_preferences, priority: 8);
-        public static readonly OptionGroup NewLinePreferences = new(CSharpCompilerExtensionsResources.New_line_preferences, priority: 9);
+        public static readonly OptionGroup NewLinePreferences = new(CompilerExtensionsResources.New_line_preferences, priority: 9);
     }
 }

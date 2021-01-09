@@ -27,6 +27,11 @@
         <target state="translated">次の場所のすべての出現箇所を修正します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_extra_blank_lines">
+        <source>Remove extra blank lines</source>
+        <target state="new">Remove extra blank lines</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_redundant_assignment">
         <source>Remove redundant assignment</source>
         <target state="translated">冗長な代入を削除します</target>

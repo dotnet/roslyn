@@ -26,6 +26,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)MakeStructFieldsWritable\CSharpMakeStructFieldsWritableCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MisplacedUsingDirectives\MisplacedUsingDirectivesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveBracePlacement\CSharpBracePlacementCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\MultipleBlankLines\CSharpMultipleBlankLinesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\CSharpOrderModifiersCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\CSharpPopulateSwitchExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\CSharpPopulateSwitchStatementCodeFixProvider.cs" />
