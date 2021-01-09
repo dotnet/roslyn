@@ -628,6 +628,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         removeOptions |= SyntaxRemoveOptions.KeepLeadingTrivia;
                     }
                 }
+
                 editor.RemoveNode(node, removeOptions);
             }
 

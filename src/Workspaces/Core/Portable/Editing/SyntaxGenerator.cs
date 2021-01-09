@@ -1738,6 +1738,7 @@ namespace Microsoft.CodeAnalysis.Editing
             {
                 throw new ArgumentNullException(nameof(elements));
             }
+
             if (elements.Count() <= 1)
             {
                 throw new ArgumentException("Tuples must have at least two elements.", nameof(elements));
