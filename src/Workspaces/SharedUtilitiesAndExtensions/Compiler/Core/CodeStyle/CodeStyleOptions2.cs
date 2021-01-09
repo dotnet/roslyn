@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> DisallowMultipleBlankLines = CreateOption(
             CodeStyleOptionGroups.NewLinePreferences, nameof(DisallowMultipleBlankLines),
-            defaultValue: TrueWithSilentEnforcement,
+            defaultValue: CodeStyleOption2<bool>.Default,
             "dotnet_style_disallow_multiple_blank_lines",
             "TextEditor.%LANGUAGE%.Specific.DisallowMultipleBlankLines");
 

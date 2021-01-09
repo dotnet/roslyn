@@ -1372,7 +1372,7 @@ class Customer2
 }}
 ";
 
-        private static readonly string s_require_new_line_for_embedded_statements = $@"
+        private static readonly string s_disallow_embedded_statements_on_same_line = $@"
 class Class1
 {{
     void Method(int a, int b)
@@ -1423,6 +1423,40 @@ class Class2
             DoWork();
         }}
 
+    }}
+//]
+}}
+";
+
+        private static readonly string s_disallow_multiple_blank_lines = $@"
+class Class1
+{{
+//[
+    // {ServicesVSResources.Require_colon}
+    void Method()
+    {{
+        if (true)
+        {{
+            DoWork();
+        }}
+
+        return;
+    }}
+//]
+}}
+class Class2
+{{
+//[
+    // {ServicesVSResources.Over_colon}
+    void Method()
+    {{
+        if (true)
+        {{
+            DoWork();
+        }}
+
+
+        return;
     }}
 //]
 }}
@@ -1851,8 +1885,9 @@ class C2
             AddParameterOptions(optionStore, parameterPreferencesGroupTitle);
 
             // New line preferences.
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, CSharpVSResources.Require_new_line_for_embedded_statements, s_require_new_line_for_embedded_statements, s_require_new_line_for_embedded_statements, this, optionStore, newLinePreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.DisallowEmbeddedStatementsOnSameLine, CSharpVSResources.Disallow_embedded_statements_on_same_line, s_disallow_embedded_statements_on_same_line, s_disallow_embedded_statements_on_same_line, this, optionStore, newLinePreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.DisallowBlankLinesBetweenConsecutiveBraces, CSharpVSResources.Disallow_blank_lines_between_consecutive_braces, s_disallow_blank_line_between_consecutive_braces, s_disallow_blank_line_between_consecutive_braces, this, optionStore, newLinePreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.DisallowMultipleBlankLines, ServicesVSResources.Disallow_multiple_blank_lines, s_disallow_multiple_blank_lines, s_disallow_multiple_blank_lines, this, optionStore, newLinePreferencesGroupTitle));
         }
 
         private void AddParenthesesOptions(OptionStore optionStore)

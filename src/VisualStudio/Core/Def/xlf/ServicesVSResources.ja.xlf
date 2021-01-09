@@ -187,6 +187,11 @@
         <target state="translated">現在のパラメーター</target>
         <note />
       </trans-unit>
+      <trans-unit id="Disallow_multiple_blank_lines">
+        <source>Disallow multiple blank lines</source>
+        <target state="new">Disallow multiple blank lines</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
         <source>Display all hints while pressing Alt+F1</source>
         <target state="translated">Alt+F1 を押しながらすべてのヒントを表示する</target>

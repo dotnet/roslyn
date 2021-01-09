@@ -187,6 +187,11 @@
         <target state="translated">目前的參數</target>
         <note />
       </trans-unit>
+      <trans-unit id="Disallow_multiple_blank_lines">
+        <source>Disallow multiple blank lines</source>
+        <target state="new">Disallow multiple blank lines</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
         <source>Display all hints while pressing Alt+F1</source>
         <target state="translated">按 Alt+F1 時顯示所有提示</target>

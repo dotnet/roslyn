@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.WrapEmbeddedSt
             {
                 TestCode = source,
                 FixedCode = source,
-                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.DisallowEmbeddedStatementsOnSameLine, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.WrapEmbeddedSt
             {
                 TestCode = source,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.DisallowEmbeddedStatementsOnSameLine, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.WrapEmbeddedSt
             await new VerifyCS.Test
             {
                 TestCode = source,
-                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, false, NotificationOption2.Suggestion } }
+                Options = { { CSharpCodeStyleOptions.DisallowEmbeddedStatementsOnSameLine, false, NotificationOption2.Suggestion } }
             }.RunAsync();
         }
 
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.WrapEmbeddedSt
             {
                 TestCode = source,
                 FixedCode = source,
-                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.DisallowEmbeddedStatementsOnSameLine, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.WrapEmbeddedSt
             {
                 TestCode = source,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.DisallowEmbeddedStatementsOnSameLine, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.WrapEmbeddedSt
             {
                 TestCode = source,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.DisallowEmbeddedStatementsOnSameLine, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -184,7 +184,7 @@ class TestClass
             {
                 TestCode = source,
                 FixedCode = source,
-                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.DisallowEmbeddedStatementsOnSameLine, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -212,7 +212,7 @@ class TestClass
             {
                 TestCode = source,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.DisallowEmbeddedStatementsOnSameLine, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -239,7 +239,7 @@ class TestClass
             {
                 TestCode = source,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.DisallowEmbeddedStatementsOnSameLine, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -274,7 +274,7 @@ class TestClass
             {
                 TestCode = source,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.DisallowEmbeddedStatementsOnSameLine, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
             }.RunAsync();
         }
 
@@ -303,7 +303,7 @@ class TestClass
             {
                 TestCode = source,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
+                Options = { { CSharpCodeStyleOptions.DisallowEmbeddedStatementsOnSameLine, CodeStyleOptions2.TrueWithSuggestionEnforcement } }
             }.RunAsync();
         }
     }

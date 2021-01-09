@@ -37,6 +37,11 @@
         <target state="new">Disallow blank lines between consecutive braces</target>
         <note />
       </trans-unit>
+      <trans-unit id="Disallow_embedded_statements_on_same_line">
+        <source>Disallow embedded statements on same line</source>
+        <target state="new">Disallow embedded statements on same line</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
         <target state="translated">捨棄</target>
@@ -125,11 +130,6 @@
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
         <target state="translated">移除不必要的 Using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Require_new_line_for_embedded_statements">
-        <source>Require new line for embedded statements</source>
-        <target state="new">Require new line for embedded statements</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">

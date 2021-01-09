@@ -630,8 +630,8 @@
     <value>Add missing using directives on paste</value>
     <comment>'using' is a C# keyword and should not be localized</comment>
   </data>
-  <data name="Require_new_line_for_embedded_statements" xml:space="preserve">
-    <value>Require new line for embedded statements</value>
+  <data name="Disallow_embedded_statements_on_same_line" xml:space="preserve">
+    <value>Disallow embedded statements on same line</value>
   </data>
   <data name="Disallow_blank_lines_between_consecutive_braces" xml:space="preserve">
     <value>Disallow blank lines between consecutive braces</value>

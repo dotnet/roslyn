@@ -603,6 +603,32 @@ Class Customer2
 //]
 End Class"
 
+        Private Shared ReadOnly s_disallow_multiple_blank_lines As String = $"
+Class Customer1
+//[
+    ' {ServicesVSResources.Require_colon}
+    Sub Method()
+        If True Then
+            DoWork()
+        End If
+
+        Return
+    End Sub
+//]
+End Class
+Class Customer2
+//[
+    ' {ServicesVSResources.Over_colon}
+    Sub Method()
+        If True Then
+            DoWork()
+        End If
+
+
+        Return
+    End Sub
+//]End Class"
+
 #Region "unused parameters"
 
         Private Shared ReadOnly s_avoidUnusedParametersNonPublicMethods As String = $"
@@ -716,6 +742,7 @@ End Class
             Dim nothingPreferencesGroupTitle = BasicVSResources.nothing_checking_colon
             Dim fieldPreferencesGroupTitle = ServicesVSResources.Modifier_preferences_colon
             Dim parameterPreferencesGroupTitle = ServicesVSResources.Parameter_preferences_colon
+            Dim newLinePreferencesGroupTitle = ServicesVSResources.New_line_preferences_experimental_colon
 
             ' qualify with Me. group
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.QualifyFieldAccess, BasicVSResources.Qualify_field_access_with_Me, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, Me, optionStore, qualifyGroupTitle, qualifyMemberAccessPreferences))
@@ -757,6 +784,9 @@ End Class
 
             ' Parameter preferences
             AddParameterOptions(optionStore, parameterPreferencesGroupTitle)
+
+            ' New line preferences
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.DisallowMultipleBlankLines, ServicesVSResources.Disallow_multiple_blank_lines, s_disallow_multiple_blank_lines, s_disallow_multiple_blank_lines, Me, optionStore, fieldPreferencesGroupTitle))
         End Sub
 
         Private Sub AddParenthesesOptions(optionStore As OptionStore)
