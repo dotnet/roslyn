@@ -122,6 +122,16 @@
         <target state="translated">不要な using の削除</target>
         <note />
       </trans-unit>
+      <trans-unit id="Require_new_line_for_embedded_statements">
+        <source>Require new line for embedded statements</source>
+        <target state="new">Require new line for embedded statements</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Require_no_blank_lines_between_consecutive_braces">
+        <source>Require no blank lines between consecutive braces</source>
+        <target state="new">Require no blank lines between consecutive braces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
         <source>Show hints for 'new' expressions</source>
         <target state="translated">'new' 式のヒントを表示する</target>

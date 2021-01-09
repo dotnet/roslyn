@@ -1605,7 +1605,4 @@ I agree to all of the foregoing:</value>
   <data name="Require_colon" xml:space="preserve">
     <value>Require:</value>
   </data>
-  <data name="Require_new_line_for_embedded_statements" xml:space="preserve">
-    <value>Require new line for embedded statements</value>
-  </data>
 </root>

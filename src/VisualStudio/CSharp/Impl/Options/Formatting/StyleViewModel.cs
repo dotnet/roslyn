@@ -1398,6 +1398,36 @@ class Class2
 }}
 ";
 
+        private static readonly string s_require_no_blank_line_between_consecutive_braces = $@"
+class Class1
+{{
+//[
+    // {ServicesVSResources.Require_colon}
+    void Method()
+    {{
+        if (true)
+        {{
+            DoWork();
+        }}
+    }}
+//]
+}}
+class Class2
+{{
+//[
+    // {ServicesVSResources.Over_colon}
+    void Method()
+    {{
+        if (true)
+        {{
+            DoWork();
+        }}
+
+    }}
+//]
+}}
+";
+
         #endregion
 
         #region arithmetic binary parentheses
@@ -1821,7 +1851,8 @@ class C2
             AddParameterOptions(optionStore, parameterPreferencesGroupTitle);
 
             // New line preferences.
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, ServicesVSResources.Require_new_line_for_embedded_statements, s_require_new_line_for_embedded_statements, s_require_new_line_for_embedded_statements, this, optionStore, newLinePreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, CSharpVSResources.Require_new_line_for_embedded_statements, s_require_new_line_for_embedded_statements, s_require_new_line_for_embedded_statements, this, optionStore, newLinePreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.RequireNoBlankLinesBetweenConsecutiveBraces, CSharpVSResources.Require_no_blank_lines_between_consecutive_braces, s_require_no_blank_line_between_consecutive_braces, s_require_no_blank_line_between_consecutive_braces, this, optionStore, newLinePreferencesGroupTitle));
         }
 
         private void AddParenthesesOptions(OptionStore optionStore)
