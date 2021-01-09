@@ -4,20 +4,28 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
 {
-    internal abstract class AbstractMultipleBlankLinesCodeFixProvider : CodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    internal class MultipleBlankLinesCodeFixProvider : CodeFixProvider
     {
-        protected abstract bool IsEndOfLine(SyntaxTrivia trivia);
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public MultipleBlankLinesCodeFixProvider()
+        {
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.MultipleBlankLinesDiagnosticId);
@@ -32,19 +40,20 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
             return Task.CompletedTask;
         }
 
-        private Task<Document> UpdateDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        private static Task<Document> UpdateDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
             => FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
 
-        private async Task<Document> FixAllAsync(
+        private static async Task<Document> FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
+            var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             using var _ = PooledDictionary<SyntaxToken, SyntaxToken>.GetInstance(out var replacements);
             foreach (var diagnostic in diagnostics)
             {
                 var token = root.FindToken(diagnostic.AdditionalLocations[0].SourceSpan.Start);
-                var leadingTrivia = UpdateLeadingTrivia(token.LeadingTrivia);
+                var leadingTrivia = UpdateLeadingTrivia(syntaxKinds, token.LeadingTrivia);
                 replacements.Add(token, token.WithLeadingTrivia(leadingTrivia));
             }
 
@@ -53,7 +62,7 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private SyntaxTriviaList UpdateLeadingTrivia(SyntaxTriviaList triviaList)
+        private static SyntaxTriviaList UpdateLeadingTrivia(ISyntaxKindsService syntaxKinds, SyntaxTriviaList triviaList)
         {
             using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var builder);
 
@@ -65,7 +74,7 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
                 builder.Add(trivia);
 
                 // If it's not an end of line, just keep going.
-                if (!IsEndOfLine(trivia))
+                if (trivia.RawKind != syntaxKinds.EndOfLineTrivia)
                 {
                     currentStart++;
                     continue;
@@ -74,7 +83,7 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
                 // We have a newlines.  Walk forward to get to the last newline in this sequence.
                 var currentEnd = currentStart + 1;
                 while (currentEnd < triviaList.Count &&
-                       IsEndOfLine(triviaList, currentEnd))
+                       IsEndOfLine(syntaxKinds, triviaList, currentEnd))
                 {
                     currentEnd++;
                 }
@@ -126,13 +135,13 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
             return new SyntaxTriviaList(builder.ToImmutable());
         }
 
-        private bool IsEndOfLine(SyntaxTriviaList triviaList, int index)
+        private static bool IsEndOfLine(ISyntaxKindsService syntaxKinds, SyntaxTriviaList triviaList, int index)
         {
             if (index >= triviaList.Count)
                 return false;
 
             var trivia = triviaList[index];
-            return IsEndOfLine(trivia);
+            return trivia.RawKind == syntaxKinds.EndOfLineTrivia;
         }
 
         public override FixAllProvider? GetFixAllProvider()

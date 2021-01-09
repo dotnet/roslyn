@@ -5,7 +5,7 @@
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
     Microsoft.CodeAnalysis.VisualBasic.NewLines.MultipleBlankLines.VisualBasicMultipleBlankLinesDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.VisualBasic.NewLines.MultipleBlankLines.VisualBasicMultipleBlankLinesCodeFixProvider)
+    Microsoft.CodeAnalysis.NewLines.MultipleBlankLines.MultipleBlankLinesCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NewLines.MultipleBlankLines
     Public Class MultipleBlankLinesTests

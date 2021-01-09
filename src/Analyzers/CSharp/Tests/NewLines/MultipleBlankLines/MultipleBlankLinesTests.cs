@@ -6,13 +6,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.NewLines.MultipleBlankLines;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.NewLines.MultipleBlankLines;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.MultipleBlankLines
 {
     using Verify = CSharpCodeFixVerifier<
         CSharpMultipleBlankLinesDiagnosticAnalyzer,
-        CSharpMultipleBlankLinesCodeFixProvider>;
+        MultipleBlankLinesCodeFixProvider>;
 
     public class MultipleBlankLinesTests
     {
