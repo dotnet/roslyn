@@ -17,11 +17,6 @@ namespace Microsoft.CodeAnalysis.InlineHints
         {
         }
 
-        private static ImmutableArray<SymbolDisplayPart> CreateSpaceSymbolPartArray(bool hasSpace)
-            => hasSpace
-                ? ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Space, symbol: null, " "))
-                : ImmutableArray<SymbolDisplayPart>.Empty;
-
         private TypeHint(ITypeSymbol type, TextSpan span, ImmutableArray<SymbolDisplayPart> prefix, ImmutableArray<SymbolDisplayPart> suffix)
         {
             Type = type;
@@ -34,6 +29,11 @@ namespace Microsoft.CodeAnalysis.InlineHints
         public TextSpan Span { get; }
         public ImmutableArray<SymbolDisplayPart> Prefix { get; }
         public ImmutableArray<SymbolDisplayPart> Suffix { get; }
+
+        private static ImmutableArray<SymbolDisplayPart> CreateSpaceSymbolPartArray(bool hasSpace)
+            => hasSpace
+                ? ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Space, symbol: null, " "))
+                : ImmutableArray<SymbolDisplayPart>.Empty;
 
         public void Deconstruct(out ITypeSymbol type, out TextSpan span, out ImmutableArray<SymbolDisplayPart> prefix, out ImmutableArray<SymbolDisplayPart> suffix)
         {
