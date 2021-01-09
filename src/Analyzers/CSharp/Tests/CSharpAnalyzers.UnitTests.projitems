@@ -9,6 +9,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveBracePlacement\ConsecutiveBracePlacementTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryDiscardDesignation\RemoveUnnecessaryDiscardDesignationTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AddAccessibilityModifiersTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\AddBracesFixAllTests.cs" />
@@ -106,6 +107,5 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\" />
-    <Folder Include="$(MSBuildThisFileDirectory)NewLines\" />
   </ItemGroup>
 </Project>

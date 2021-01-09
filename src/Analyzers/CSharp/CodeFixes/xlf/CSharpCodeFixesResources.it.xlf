@@ -27,6 +27,11 @@
         <target state="translated">Rimuovi istruzioni using non necessarie</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_blank_lines_between_braces">
+        <source>Remove blank line between braces</source>
+        <target state="new">Remove blank line between braces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unreachable_code">
         <source>Remove unreachable code</source>
         <target state="translated">Rimuovi il codice non eseguibile</target>

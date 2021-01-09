@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.WrapEmbeddedStatement
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Embedded_statements_must_be_on_their_own_line), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
-
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

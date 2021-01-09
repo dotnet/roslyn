@@ -275,6 +275,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_require_new_line_for_embedded_Statements", CodeStyleOption2<bool>.Default),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(RequireNewLineForEmbeddedStatements)}")});
 
+        public static Option2<CodeStyleOption2<bool>> RequireNoBlankLinesBetweenConsecutiveBraces { get; } = CreateOption(
+            CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(RequireNoBlankLinesBetweenConsecutiveBraces),
+            defaultValue: CodeStyleOption2<bool>.Default,
+            storageLocations: new OptionStorageLocation2[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_require_no_blank_line_between_consecutive_braces", CodeStyleOption2<bool>.Default),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(RequireNoBlankLinesBetweenConsecutiveBraces)}")});
+
 #if false
 
         public static readonly Option2<CodeStyleOption2<bool>> VarElsewhere = CreateOption(

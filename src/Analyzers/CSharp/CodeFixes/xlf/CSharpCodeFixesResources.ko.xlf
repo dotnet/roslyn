@@ -27,6 +27,11 @@
         <target state="translated">불필요한 Using 제거</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_blank_lines_between_braces">
+        <source>Remove blank line between braces</source>
+        <target state="new">Remove blank line between braces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unreachable_code">
         <source>Remove unreachable code</source>
         <target state="translated">접근할 수 없는 코드 제거</target>

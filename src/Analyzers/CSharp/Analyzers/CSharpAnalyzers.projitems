@@ -19,6 +19,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\CSharpAddRequiredPatternParenthesesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeofToNameof\CSharpConvertTypeOfToNameOfDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveBracePlacement\CSharpConsecutiveBracePlacementDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\CSharpRemoveRedundantEqualityDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryDiscardDesignation\CSharpRemoveUnnecessaryDiscardDesignationDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\CSharpRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer.cs" />
@@ -107,8 +108,5 @@
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)NewLines\" />
   </ItemGroup>
 </Project>
