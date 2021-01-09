@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InlineHints
 {
-    internal class TypeHint
+    internal readonly struct TypeHint
     {
         public TypeHint(ITypeSymbol type, TextSpan span, bool leadingSpace = false, bool trailingSpace = false)
             : this(type, span,
