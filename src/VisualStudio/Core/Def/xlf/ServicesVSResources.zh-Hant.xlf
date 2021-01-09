@@ -572,6 +572,11 @@
         <target state="translated">新的型別名稱:</target>
         <note />
       </trans-unit>
+      <trans-unit id="New_line_preferences_experimental_colon">
+        <source>New line preferences (experimental):</source>
+        <target state="new">New line preferences (experimental):</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Non_public_methods">
         <source>Non-public methods</source>
         <target state="translated">非公用方法</target>
@@ -725,6 +730,16 @@
       <trans-unit id="Repository">
         <source>Repository</source>
         <target state="translated">存放庫</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Require_colon">
+        <source>Require:</source>
+        <target state="new">Require:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Require_new_line_for_embedded_statements">
+        <source>Require new line for embedded statements</source>
+        <target state="new">Require new line for embedded statements</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">

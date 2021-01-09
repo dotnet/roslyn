@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
@@ -1373,6 +1374,32 @@ class Customer2
 }}
 ";
 
+        private static readonly string s_require_new_line_for_embedded_statements = $@"
+class Class1
+{{
+    void Method(int a, int b)
+    {{
+//[
+        // {ServicesVSResources.Require_colon}
+        if (a > b)
+            return true;
+//]
+        return false;
+    }}
+}}
+class Class2
+{{
+    void Method(int a, int b)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        if (a > b) return true;
+//]
+        return false;
+    }}
+}}
+";
+
         #endregion
 
         #region arithmetic binary parentheses
@@ -1697,6 +1724,7 @@ class C2
             var patternMatchingPreferencesGroupTitle = CSharpVSResources.Pattern_matching_preferences_colon;
             var variablePreferencesGroupTitle = ServicesVSResources.Variable_preferences_colon;
             var parameterPreferencesGroupTitle = ServicesVSResources.Parameter_preferences_colon;
+            var newLinePreferencesGroupTitle = ServicesVSResources.New_line_preferences_experimental_colon;
 
             var usingDirectivePlacementPreferences = new List<CodeStylePreference>
             {
@@ -1793,6 +1821,9 @@ class C2
 
             // Parameter preferences
             AddParameterOptions(optionStore, parameterPreferencesGroupTitle);
+
+            // New line preferences.
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpFormattingOptions2.RequireNewLineForEmbeddedStatements, ServicesVSResources.Require_new_line_for_embedded_statements, s_require_new_line_for_embedded_statements, s_require_new_line_for_embedded_statements, this, optionStore, newLinePreferencesGroupTitle));
         }
 
         private void AddParenthesesOptions(OptionStore optionStore)
