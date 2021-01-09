@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(RequireNewLineForEmbeddedStatements),
             defaultValue: CodeStyleOption2<bool>.Default,
             storageLocations: new OptionStorageLocation2[] {
-                EditorConfigStorageLocation.ForBoolOption("csharp_require_new_line_for_embedded_Statements"),
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_require_new_line_for_embedded_Statements", CodeStyleOption2<bool>.Default),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(RequireNewLineForEmbeddedStatements)}")});
 
 #if false
