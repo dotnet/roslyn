@@ -135,6 +135,9 @@ class GeneratedClass { }
 
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
             Assert.NotEqual(compilation, outputCompilation);
+
+            var generatedClass = outputCompilation.GlobalNamespace.GetTypeMembers("GeneratedClass").Single();
+            Assert.True(generatedClass.Locations.Single().IsInSource);
         }
 
         [Fact]
