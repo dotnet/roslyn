@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 AddParts(anonymousTypeService, finalParts, parts, semanticModel, span.Start);
 
                 // If we have nothing to show, then don't bother adding this hint.
-                if (!finalParts.Any(p => !string.IsNullOrWhiteSpace(p.ToString())))
+                if (finalParts.All(p => string.IsNullOrWhiteSpace(p.ToString())))
                     continue;
 
                 finalParts.AddRange(suffix);
