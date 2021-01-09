@@ -87,11 +87,11 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForLambdaParameterTypes"));
 
-        public static readonly PerLanguageOption2<bool> ForTargetTypedNewTypes =
+        public static readonly PerLanguageOption2<bool> ForImplicitObjectCreation =
             new(nameof(InlineHintsOptions),
-                nameof(ForTargetTypedNewTypes),
+                nameof(ForImplicitObjectCreation),
                 defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForTargetTypedNewTypes"));
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForImplicitObjectCreation"));
     }
 
     [ExportOptionProvider, Shared]
@@ -113,6 +113,6 @@ namespace Microsoft.CodeAnalysis.InlineHints
             InlineHintsOptions.EnabledForTypes,
             InlineHintsOptions.ForImplicitVariableTypes,
             InlineHintsOptions.ForLambdaParameterTypes,
-            InlineHintsOptions.ForTargetTypedNewTypes);
+            InlineHintsOptions.ForImplicitObjectCreation);
     }
 }

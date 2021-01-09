@@ -817,6 +817,11 @@
         <target state="translated">顯示所有其他項目的提示</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_implicit_object_creation">
+        <source>Show hints for implicit object creation</source>
+        <target state="new">Show hints for implicit object creation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
         <target state="translated">顯示 Lambda 參數類型的提示</target>
@@ -825,11 +830,6 @@
       <trans-unit id="Show_hints_for_literals">
         <source>Show hints for literals</source>
         <target state="translated">顯示常值的提示</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_hints_for_target_typed_new_types">
-        <source>Show hints for target typed new types</source>
-        <target state="new">Show hints for target typed new types</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_variables_with_inferred_types">

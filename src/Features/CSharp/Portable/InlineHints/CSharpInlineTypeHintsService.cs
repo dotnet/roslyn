@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
             bool displayAllOverride,
             bool forImplicitVariableTypes,
             bool forLambdaParameterTypes,
-            bool forTargetTypedNewTypes,
+            bool forImplicitObjectCreation,
             CancellationToken cancellationToken)
         {
             if (forImplicitVariableTypes || displayAllOverride)
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                 }
             }
 
-            if (forTargetTypedNewTypes || displayAllOverride)
+            if (forImplicitObjectCreation || displayAllOverride)
             {
                 if (node is ImplicitObjectCreationExpressionSyntax implicitNew)
                 {
