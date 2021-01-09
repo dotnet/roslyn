@@ -39,11 +39,11 @@ jobs:
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
-    testRunName: 'Test Windows Desktop Spanish Debug 32'
-    jobName: Test_Windows_Desktop_Spanish_Debug_32
-    buildJobName: Build_Windows_Debug
-    testArtifactName: Transport_Artifacts_Windows_Debug
-    configuration: Debug
+    testRunName: 'Test Windows Desktop Spanish Release 32'
+    jobName: Test_Windows_Desktop_Spanish_Release_32
+    buildJobName: Build_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
+    configuration: Release
     testArguments: -testDesktop -test32
     queueName: 'BuildPool.Windows.10.Amd64.ES.VS2017.Open'
 
