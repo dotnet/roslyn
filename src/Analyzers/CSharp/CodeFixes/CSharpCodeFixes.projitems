@@ -64,9 +64,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpIsAndCastCheckCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseSimpleUsingStatement\UseSimpleUsingStatementCodeFixProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)WrapEmbeddedStatements\CSharpWrapEmbeddedStatementCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\WrapEmbeddedStatements\CSharpWrapEmbeddedStatementCodeFixProvider.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)NewLines\" />
   </ItemGroup>
 </Project>

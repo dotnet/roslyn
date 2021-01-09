@@ -4,11 +4,11 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.WrapEmbeddedStatement;
+using Microsoft.CodeAnalysis.CSharp.NewLines.WrapEmbeddedStatement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.WrapEmbeddedStatement
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.WrapEmbeddedStatement
 {
     using VerifyCS = CSharpCodeFixVerifier<
         CSharpWrapEmbeddedStatementDiagnosticAnalyzer,

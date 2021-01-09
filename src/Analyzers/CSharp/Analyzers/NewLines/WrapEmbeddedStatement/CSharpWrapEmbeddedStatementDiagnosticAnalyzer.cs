@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.WrapEmbeddedStatement
+namespace Microsoft.CodeAnalysis.CSharp.NewLines.WrapEmbeddedStatement
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpWrapEmbeddedStatementDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer

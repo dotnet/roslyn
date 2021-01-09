@@ -24,7 +24,7 @@ using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 using Microsoft.CodeAnalysis.Options;
 #endif
 
-namespace Microsoft.CodeAnalysis.CSharp.WrapEmbeddedStatement
+namespace Microsoft.CodeAnalysis.CSharp.NewLines.WrapEmbeddedStatement
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal sealed class CSharpWrapEmbeddedStatementCodeFixProvider : CodeFixProvider

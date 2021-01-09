@@ -99,12 +99,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseVarTestExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\ValidateFormatStringTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)WrapEmbeddedStatement\WrapEmbeddedStatementTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\WrapEmbeddedStatement\WrapEmbeddedStatementTests.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\" />
+    <Folder Include="$(MSBuildThisFileDirectory)NewLines\" />
   </ItemGroup>
 </Project>
