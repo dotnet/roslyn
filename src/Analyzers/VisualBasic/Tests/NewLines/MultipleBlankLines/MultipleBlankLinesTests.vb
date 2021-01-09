@@ -45,17 +45,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NewLines.MultipleB
         <Fact>
         Public Async Function TestTwoBlankLineAtTopOfFile_NotWithOptionOff() As Task
             Dim code =
-"[||]
-
-' comment"
-            Dim fixedCode =
 "
+
 ' comment"
 
             Await New VerifyVB.Test() With
             {
                 .TestCode = code,
-                .FixedCode = fixedCode
+                .FixedCode = code
             }.RunAsync()
         End Function
 
