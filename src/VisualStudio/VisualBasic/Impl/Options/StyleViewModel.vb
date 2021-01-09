@@ -786,7 +786,7 @@ End Class
             AddParameterOptions(optionStore, parameterPreferencesGroupTitle)
 
             ' New line preferences
-            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.DisallowMultipleBlankLines, ServicesVSResources.Disallow_multiple_blank_lines, s_disallow_multiple_blank_lines, s_disallow_multiple_blank_lines, Me, optionStore, fieldPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.DisallowMultipleBlankLines, ServicesVSResources.Disallow_multiple_blank_lines, s_disallow_multiple_blank_lines, s_disallow_multiple_blank_lines, Me, optionStore, newLinePreferencesGroupTitle))
         End Sub
 
         Private Sub AddParenthesesOptions(optionStore As OptionStore)
