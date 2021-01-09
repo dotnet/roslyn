@@ -13,12 +13,6 @@ using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-#if CODE_STYLE
-    using FormattingOptionsEx = CodeStyleFormattingOptions;
-#else
-    using FormattingOptionsEx = FormattingOptions;
-#endif
-
     internal static class FormattingOptions2
     {
         private static readonly ImmutableArray<IOption2>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
@@ -27,14 +21,14 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private static PerLanguageOption2<T> CreatePerLanguageOption<T>(OptionGroup group, string name, T defaultValue, params OptionStorageLocation2[] storageLocations)
         {
-            var option = new PerLanguageOption2<T>(nameof(FormattingOptionsEx), group, name, defaultValue, storageLocations);
+            var option = new PerLanguageOption2<T>(nameof(FormattingOptions), group, name, defaultValue, storageLocations);
             s_allOptionsBuilder.Add(option);
             return option;
         }
 
         private static Option2<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, params OptionStorageLocation2[] storageLocations)
         {
-            var option = new Option2<T>(nameof(FormattingOptionsEx), group, name, defaultValue, storageLocations);
+            var option = new Option2<T>(nameof(FormattingOptions), group, name, defaultValue, storageLocations);
             s_allOptionsBuilder.Add(option);
             return option;
         }
@@ -60,9 +54,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             storageLocations: EditorConfigStorageLocation.ForInt32Option("indent_size"));
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
-        public static PerLanguageOption2<FormattingOptionsEx.IndentStyle> SmartIndent { get; } = CreatePerLanguageOption(
+        public static PerLanguageOption2<FormattingOptions.IndentStyle> SmartIndent { get; } = CreatePerLanguageOption(
             FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent),
-            defaultValue: FormattingOptionsEx.IndentStyle.Smart);
+            defaultValue: FormattingOptions.IndentStyle.Smart);
 
         public static PerLanguageOption2<string> NewLine { get; } = CreatePerLanguageOption(
             FormattingOptionGroups.NewLine, nameof(NewLine),
@@ -86,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// indentation).
         /// </summary>
         internal static Option2<int> PreferredWrappingColumn { get; } = new Option2<int>(
-            nameof(FormattingOptionsEx),
+            nameof(FormattingOptions),
             FormattingOptionGroups.NewLine,
             nameof(PreferredWrappingColumn),
             defaultValue: 120);

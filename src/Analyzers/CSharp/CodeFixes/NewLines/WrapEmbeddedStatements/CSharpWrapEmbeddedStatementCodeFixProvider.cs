@@ -18,12 +18,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.NewLines.WrapEmbeddedStatement
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
