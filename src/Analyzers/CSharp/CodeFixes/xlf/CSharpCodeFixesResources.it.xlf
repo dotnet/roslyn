@@ -17,6 +17,11 @@
         <target state="translated">Passa le variabili catturate come argomenti</target>
         <note />
       </trans-unit>
+      <trans-unit id="Place_statement_on_following_line">
+        <source>Place statement on following line</source>
+        <target state="new">Place statement on following line</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_Unnecessary_Usings">
         <source>Remove Unnecessary Usings</source>
         <target state="translated">Rimuovi istruzioni using non necessarie</target>

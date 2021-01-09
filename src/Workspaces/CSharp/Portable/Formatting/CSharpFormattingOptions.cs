@@ -149,5 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         /// <inheritdoc cref="CSharpFormattingOptions2.NewLineForClausesInQuery"/>
         public static Option<bool> NewLineForClausesInQuery { get; } = (Option<bool>)CSharpFormattingOptions2.NewLineForClausesInQuery!;
+
+        /// <inheritdoc cref="CSharpFormattingOptions2.RequireNewLineForEmbeddedStatements"/>
+        internal static Option<bool> RequireNewLineForEmbeddedStatements { get; } = (Option<bool>)CSharpFormattingOptions2.RequireNewLineForEmbeddedStatements!;
     }
 }

@@ -407,6 +407,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 EditorConfigStorageLocation.ForBoolOption("csharp_new_line_between_query_expression_clauses"),
                 new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.NewLineForClausesInQuery")});
 
+        public static Option2<bool> RequireNewLineForEmbeddedStatements { get; } = CreateOption(
+            CSharpFormattingOptionGroups.NewLine, nameof(NewLineForClausesInQuery),
+            defaultValue: false,
+            storageLocations: new OptionStorageLocation2[] {
+                EditorConfigStorageLocation.ForBoolOption("csharp_require_new_line_for_embedded_Statements"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(RequireNewLineForEmbeddedStatements)}")});
+
         static CSharpFormattingOptions2()
         {
             // Note that the static constructor executes after all the static field initializers for the options have executed,

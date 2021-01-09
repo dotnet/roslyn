@@ -305,4 +305,7 @@
   <data name="Remove_unnessary_discard" xml:space="preserve">
     <value>Remove unnecessary discard</value>
   </data>
+  <data name="Embedded_statements_must_be_on_their_own_line" xml:space="preserve">
+    <value>Embedded statements must be on their own line</value>
+  </data>
 </root>

@@ -135,4 +135,7 @@
   <data name="Convert_typeof_to_nameof" xml:space="preserve">
     <value>Convert 'typeof' to 'nameof'</value>
   </data>
+  <data name="Place_statement_on_following_line" xml:space="preserve">
+    <value>Place statement on following line</value>
+  </data>
 </root>

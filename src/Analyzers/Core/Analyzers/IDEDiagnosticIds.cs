@@ -154,6 +154,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string RemoveUnnecessaryDiscardDesignationDiagnosticId = "IDE0110";
 
+        // 2000 range for experimental formatting enforcement
+        public const string WrapEmbeddedStatementDiagnosticId = "IDE2000";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

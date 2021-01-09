@@ -5,7 +5,7 @@
 namespace Microsoft.CodeAnalysis.Formatting
 {
 #if CODE_STYLE
-    internal static class FormattingOptions
+    internal static class CodeStyleFormattingOptions
 #else
     public static partial class FormattingOptions
 #endif

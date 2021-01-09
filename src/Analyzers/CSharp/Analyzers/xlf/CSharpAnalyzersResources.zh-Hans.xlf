@@ -32,6 +32,11 @@
         <target state="translated">可删除放弃项</target>
         <note />
       </trans-unit>
+      <trans-unit id="Embedded_statements_must_be_on_their_own_line">
+        <source>Embedded statements must be on their own line</source>
+        <target state="new">Embedded statements must be on their own line</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="translated">索引可以简化</target>

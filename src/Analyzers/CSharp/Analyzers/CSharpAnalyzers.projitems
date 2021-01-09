@@ -103,6 +103,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseSimpleUsingStatement\UseSimpleUsingStatementDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\CSharpUseThrowExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\CSharpValidateFormatStringDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WrapEmbeddedStatement\CSharpWrapEmbeddedStatementDiagnosticAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
