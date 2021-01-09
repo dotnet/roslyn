@@ -144,4 +144,7 @@
     <comment>{0}: A type name
 {1}: A member name</comment>
   </data>
+  <data name="New_line_preferences" xml:space="preserve">
+    <value>New line preferences</value>
+  </data>
 </root>

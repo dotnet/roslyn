@@ -268,6 +268,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_style_implicit_object_creation_when_type_is_apparent",
             "TextEditor.CSharp.Specific.ImplicitObjectCreationWhenTypeIsApparent");
 
+        public static Option2<CodeStyleOption2<bool>> RequireNewLineForEmbeddedStatements { get; } = CreateOption(
+            CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(RequireNewLineForEmbeddedStatements),
+            defaultValue: CodeStyleOption2<bool>.Default,
+            storageLocations: new OptionStorageLocation2[] {
+                EditorConfigStorageLocation.ForBoolOption("csharp_require_new_line_for_embedded_Statements"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(RequireNewLineForEmbeddedStatements)}")});
+
 #if false
 
         public static readonly Option2<CodeStyleOption2<bool>> VarElsewhere = CreateOption(
@@ -302,6 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferDeconstructedVariableDeclaration;
             yield return PreferIndexOperator;
             yield return PreferRangeOperator;
+            yield return RequireNewLineForEmbeddedStatements;
         }
 
         public static IEnumerable<Option2<CodeStyleOption2<ExpressionBodyPreference>>> GetExpressionBodyOptions()
@@ -326,5 +334,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly OptionGroup CodeBlockPreferences = new(CSharpCompilerExtensionsResources.Code_block_preferences, priority: 6);
         public static readonly OptionGroup ExpressionLevelPreferences = new(CompilerExtensionsResources.Expression_level_preferences, priority: 7);
         public static readonly OptionGroup UsingDirectivePreferences = new(CSharpCompilerExtensionsResources.using_directive_preferences, priority: 8);
+        public static readonly OptionGroup NewLinePreferences = new(CSharpCompilerExtensionsResources.New_line_preferences, priority: 9);
     }
 }

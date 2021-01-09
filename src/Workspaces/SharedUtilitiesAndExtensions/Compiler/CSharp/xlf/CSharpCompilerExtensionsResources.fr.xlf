@@ -17,6 +17,11 @@
         <target state="translated">Membres expression-bodied</target>
         <note />
       </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="new">New line preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Null_checking_preferences">
         <source>Null-checking preferences</source>
         <target state="translated">Préférences de vérification de valeur Null</target>

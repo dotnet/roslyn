@@ -11,8 +11,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
@@ -1823,7 +1821,7 @@ class C2
             AddParameterOptions(optionStore, parameterPreferencesGroupTitle);
 
             // New line preferences.
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpFormattingOptions2.RequireNewLineForEmbeddedStatements, ServicesVSResources.Require_new_line_for_embedded_statements, s_require_new_line_for_embedded_statements, s_require_new_line_for_embedded_statements, this, optionStore, newLinePreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, ServicesVSResources.Require_new_line_for_embedded_statements, s_require_new_line_for_embedded_statements, s_require_new_line_for_embedded_statements, this, optionStore, newLinePreferencesGroupTitle));
         }
 
         private void AddParenthesesOptions(OptionStore optionStore)

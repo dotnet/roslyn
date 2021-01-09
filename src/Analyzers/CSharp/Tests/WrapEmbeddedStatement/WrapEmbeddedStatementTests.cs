@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.WrapEmbeddedStatement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Xunit;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.WrapEmbeddedStatement
             {
                 TestCode = source,
                 FixedCode = source,
-                Options = { { CSharpFormattingOptions2.RequireNewLineForEmbeddedStatements, true } }
+                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, true } }
             }.RunAsync();
         }
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.WrapEmbeddedStatement
             {
                 TestCode = source,
                 FixedCode = fixedCode,
-                Options = { { CSharpFormattingOptions2.RequireNewLineForEmbeddedStatements, true } }
+                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, true } }
             }.RunAsync();
         }
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.WrapEmbeddedStatement
             await new VerifyCS.Test
             {
                 TestCode = source,
-                Options = { { CSharpFormattingOptions2.RequireNewLineForEmbeddedStatements, false } }
+                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, false } }
             }.RunAsync();
         }
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.WrapEmbeddedStatement
             {
                 TestCode = source,
                 FixedCode = source,
-                Options = { { CSharpFormattingOptions2.RequireNewLineForEmbeddedStatements, true } }
+                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, true } }
             }.RunAsync();
         }
 
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.WrapEmbeddedStatement
             {
                 TestCode = source,
                 FixedCode = fixedCode,
-                Options = { { CSharpFormattingOptions2.RequireNewLineForEmbeddedStatements, true } }
+                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, true } }
             }.RunAsync();
         }
 
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.WrapEmbeddedStatement
             {
                 TestCode = source,
                 FixedCode = fixedCode,
-                Options = { { CSharpFormattingOptions2.RequireNewLineForEmbeddedStatements, true } }
+                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, true } }
             }.RunAsync();
         }
 
@@ -183,7 +183,7 @@ class TestClass
             {
                 TestCode = source,
                 FixedCode = source,
-                Options = { { CSharpFormattingOptions2.RequireNewLineForEmbeddedStatements, true } }
+                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, true } }
             }.RunAsync();
         }
 
@@ -211,7 +211,7 @@ class TestClass
             {
                 TestCode = source,
                 FixedCode = fixedCode,
-                Options = { { CSharpFormattingOptions2.RequireNewLineForEmbeddedStatements, true } }
+                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, true } }
             }.RunAsync();
         }
 
@@ -238,7 +238,7 @@ class TestClass
             {
                 TestCode = source,
                 FixedCode = fixedCode,
-                Options = { { CSharpFormattingOptions2.RequireNewLineForEmbeddedStatements, true } }
+                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, true } }
             }.RunAsync();
         }
 
@@ -273,7 +273,7 @@ class TestClass
             {
                 TestCode = source,
                 FixedCode = fixedCode,
-                Options = { { CSharpFormattingOptions2.RequireNewLineForEmbeddedStatements, true } }
+                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, true } }
             }.RunAsync();
         }
 
@@ -302,7 +302,7 @@ class TestClass
             {
                 TestCode = source,
                 FixedCode = fixedCode,
-                Options = { { CSharpFormattingOptions2.RequireNewLineForEmbeddedStatements, true } }
+                Options = { { CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements, true } }
             }.RunAsync();
         }
     }

@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.WrapEmbeddedStatement
         public CSharpWrapEmbeddedStatementDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.WrapEmbeddedStatementDiagnosticId,
                    EnforceOnBuild.WhenExplicitlyEnabled,
-                   CSharpFormattingOptions2.RequireNewLineForEmbeddedStatements,
+                   CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Embedded_statements_must_be_on_their_own_line), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp.WrapEmbeddedStatement
 
         private void AnalyzeTree(SyntaxTreeAnalysisContext context)
         {
-            var option = context.GetOption(CSharpFormattingOptions2.RequireNewLineForEmbeddedStatements);
-            if (!option)
+            var option = context.GetOption(CSharpCodeStyleOptions.RequireNewLineForEmbeddedStatements);
+            if (!option.Value)
                 return;
 
-            Recurse(context, context.Tree.GetRoot(context.CancellationToken));
+            Recurse(context, option.Notification.Severity, context.Tree.GetRoot(context.CancellationToken));
         }
 
-        private void Recurse(SyntaxTreeAnalysisContext context, SyntaxNode node)
+        private void Recurse(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode node)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.WrapEmbeddedStatement
             // fixer will fix up all statements, but we don't want to clutter things with lots of diagnostics on the
             // same line.
             if (node is StatementSyntax statement &&
-                CheckStatementSyntax(context, statement))
+                CheckStatementSyntax(context, severity, statement))
             {
                 return;
             }
@@ -61,20 +61,22 @@ namespace Microsoft.CodeAnalysis.CSharp.WrapEmbeddedStatement
             foreach (var child in node.ChildNodesAndTokens())
             {
                 if (child.IsNode)
-                    Recurse(context, child.AsNode()!);
+                    Recurse(context, severity, child.AsNode()!);
             }
         }
 
-        private bool CheckStatementSyntax(SyntaxTreeAnalysisContext context, StatementSyntax statement)
+        private bool CheckStatementSyntax(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, StatementSyntax statement)
         {
             if (!StatementNeedsWrapping(statement))
                 return false;
 
             var additionalLocations = ImmutableArray.Create(statement.GetLocation());
-            context.ReportDiagnostic(Diagnostic.Create(
+            context.ReportDiagnostic(DiagnosticHelper.Create(
                 this.Descriptor,
                 statement.GetFirstToken().GetLocation(),
-                additionalLocations));
+                severity,
+                additionalLocations,
+                properties: null));
             return true;
         }
 
