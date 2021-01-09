@@ -1086,22 +1086,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (setMethod.IsInitOnly)
                     {
-                        bool hasInitError = false;
                         if (!isAllowedInitOnlySet(receiver))
                         {
                             Error(diagnostics, ErrorCode.ERR_AssignmentInitOnly, node, propertySymbol);
-                            hasInitError = true;
+                            return false;
                         }
 
                         if (setMethod.DeclaringCompilation != this.Compilation)
                         {
                             // an error would have already been reported on declaring an init-only setter
-                            hasInitError |= !CheckFeatureAvailability(node, MessageID.IDS_FeatureInitOnlySetters, diagnostics);
-                        }
-
-                        if (hasInitError)
-                        {
-                            return false;
+                            CheckFeatureAvailability(node, MessageID.IDS_FeatureInitOnlySetters, diagnostics);
                         }
                     }
 
