@@ -3,18 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Xml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
@@ -138,6 +136,67 @@ class GeneratedClass { }
 
             var generatedClass = outputCompilation.GlobalNamespace.GetTypeMembers("GeneratedClass").Single();
             Assert.True(generatedClass.Locations.Single().IsInSource);
+        }
+
+        [Fact]
+        public void Analyzer_Is_Run()
+        {
+            var source = @"
+class C { }
+";
+
+            var generatorSource = @"
+class GeneratedClass { }
+";
+
+            var parseOptions = TestOptions.Regular;
+            var analyzer = new Analyzer_Is_Run_Analyzer();
+
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            compilation.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(0, analyzer.GeneratedClassCount);
+
+            SingleFileTestGenerator testGenerator = new SingleFileTestGenerator(generatorSource);
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
+            outputCompilation.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.GeneratedClassCount);
+        }
+
+        private class Analyzer_Is_Run_Analyzer : DiagnosticAnalyzer
+        {
+            public int GeneratedClassCount;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(Handle, SymbolKind.NamedType);
+            }
+
+            private void Handle(SymbolAnalysisContext context)
+            {
+                switch (context.Symbol.ToTestDisplayString())
+                {
+                    case "GeneratedClass":
+                        Interlocked.Increment(ref GeneratedClassCount);
+                        break;
+                    case "C":
+                    case "System.Runtime.CompilerServices.IsExternalInit":
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
         }
 
         [Fact]
