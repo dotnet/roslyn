@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
 {
     public class DeclarationNameCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        internal const string Span = @"
+        private const string Span = @"
 namespace System
 {
     public readonly ref struct Span<T>
@@ -201,6 +201,129 @@ namespace System
             }
             throw new Exception(""add a case for: "" + typeof(T));
         }
+    }
+}";
+
+        private const string IAsyncEnumerable = @"
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    using System.Threading.Tasks;
+
+    public sealed class AsyncMethodBuilderAttribute : Attribute
+    {
+        public AsyncMethodBuilderAttribute(Type builderType) { }
+        public Type BuilderType { get; }
+    }
+
+    public struct AsyncValueTaskMethodBuilder
+    {
+        public ValueTask Task => default;
+
+        public static AsyncValueTaskMethodBuilder Create() => default;
+        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : INotifyCompletion
+            where TStateMachine : IAsyncStateMachine {}
+
+        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : ICriticalNotifyCompletion
+            where TStateMachine : IAsyncStateMachine {}
+        public void SetException(Exception exception) {}
+        public void SetResult() {}
+        public void SetStateMachine(IAsyncStateMachine stateMachine) {}
+        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {}
+    }
+
+    public readonly struct ValueTaskAwaiter : ICriticalNotifyCompletion, INotifyCompletion
+    {
+        public bool IsCompleted => default;
+
+        public void GetResult() { }
+        public void OnCompleted(Action continuation) { }
+        public void UnsafeOnCompleted(Action continuation) { }
+    }
+
+    public readonly struct ValueTaskAwaiter<TResult> : ICriticalNotifyCompletion, INotifyCompletion
+    {
+        public bool IsCompleted => default;
+        public TResult GetResult() => default;
+        public void OnCompleted(Action continuation) { }
+        public void UnsafeOnCompleted(Action continuation) { }
+    }
+}
+
+namespace System.Threading.Tasks
+{
+    using System.Runtime.CompilerServices;
+
+    [AsyncMethodBuilder(typeof(AsyncValueTaskMethodBuilder))]
+    public readonly struct ValueTask : IEquatable<ValueTask>
+    {
+        public ValueTask(Task task) {}
+        public ValueTask(IValueTaskSource source, short token) {}
+
+        public bool IsCompleted => default;
+        public bool IsCompletedSuccessfully => default;
+        public bool IsFaulted => default;
+        public bool IsCanceled => default;
+
+        public Task AsTask() => default;
+        public ConfiguredValueTaskAwaitable ConfigureAwait(bool continueOnCapturedContext) => default;
+        public override bool Equals(object obj) => default;
+        public bool Equals(ValueTask other) => default;
+        public ValueTaskAwaiter GetAwaiter() => default;
+        public override int GetHashCode() => default;
+        public ValueTask Preserve() => default;
+
+        public static bool operator ==(ValueTask left, ValueTask right) => default;
+        public static bool operator !=(ValueTask left, ValueTask right) => default;
+    }
+
+    [AsyncMethodBuilder(typeof(AsyncValueTaskMethodBuilder<>))]
+    public readonly struct ValueTask<TResult> : IEquatable<ValueTask<TResult>>
+    {
+        public ValueTask(TResult result) {}
+        public ValueTask(Task<TResult> task) {}
+        public ValueTask(IValueTaskSource<TResult> source, short token) {}
+
+        public bool IsFaulted => default;
+        public bool IsCompletedSuccessfully => default;
+        public bool IsCompleted => default;
+        public bool IsCanceled => default;
+        public TResult Result => default;
+
+        public Task<TResult> AsTask() => default;
+        public ConfiguredValueTaskAwaitable<TResult> ConfigureAwait(bool continueOnCapturedContext) => default;
+
+        public bool Equals(ValueTask<TResult> other) => default;
+        public override bool Equals(object obj) => default;
+        public ValueTaskAwaiter<TResult> GetAwaiter() => default;
+        public override int GetHashCode() => default;
+        public ValueTask<TResult> Preserve() => default;
+        public override string ToString() => default;
+        public static bool operator ==(ValueTask<TResult> left, ValueTask<TResult> right) => default;
+        public static bool operator !=(ValueTask<TResult> left, ValueTask<TResult> right) => default;
+    }
+}
+
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator();
+    }
+
+    public interface IAsyncEnumerator<out T> : IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+        T Current { get; }
     }
 }";
 
@@ -1401,6 +1524,77 @@ class MyOwnCollection<T>
     }
 }
 ";
+            await VerifyItemExistsAsync(markup, "myClasses");
+        }
+
+        [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PluralizeValidGetAsyncEnumerator()
+        {
+            var markup = @"
+using System.Threading.Tasks;
+
+class MyClass
+{
+    public void M(MyOwnCollection<MyClass> $$) { }
+}
+
+
+class MyOwnCollection<T>
+{
+    public MyEnumerator GetAsyncEnumerator()
+    {
+        return new MyEnumerator();
+    }
+
+    public class MyEnumerator
+    {
+        public T Current { get; }
+        
+        public Task<bool> MoveNextAsync() { return Task.FromResult(false); }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "myClasses");
+        }
+
+        [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PluralizeForUnimplementedIEnumerable()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+class MyClass
+{
+    public void M(MyOwnCollection<MyClass> $$) { }
+}
+
+
+class MyOwnCollection<T> : IEnumerable<T>
+{
+}
+";
+            await VerifyItemExistsAsync(markup, "myClasses");
+        }
+
+        [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PluralizeForUnimplementedIAsyncEnumerable()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+class MyClass
+{
+    public void M(MyOwnCollection<MyClass> $$) { }
+}
+
+
+class MyOwnCollection<T> : IAsyncEnumerable<T>
+{
+}
+" + IAsyncEnumerable;
             await VerifyItemExistsAsync(markup, "myClasses");
         }
 

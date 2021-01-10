@@ -189,9 +189,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     ?.ReturnType?.GetMembers(WellKnownMemberNames.CurrentPropertyName)
                     .OfType<IPropertySymbol>().FirstOrDefault(p => p.GetMethod != null)?.Type;
 
-                // This can happen for an un-implemented IEnumerable.
-                collectionType ??= namedType.GetAllInterfacesIncludingThis().FirstOrDefault(
-                        t => t.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)?.TypeArguments[0];
+                // This can happen for an un-implemented IEnumerable or IAsyncEnumerable.
+                collectionType ??= namedType.AllInterfaces.FirstOrDefault(
+                        t => t.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T ||
+                             Equals(t.OriginalDefinition, compilation.IAsyncEnumerableOfTType()))?.TypeArguments[0];
 
                 if (collectionType is not null)
                 {
