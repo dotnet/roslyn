@@ -62,6 +62,11 @@
         <target state="translated">コードに未使用のパラメーターを指定しないでください。パラメーターを削除できない場合は、パラメーターの名前をアンダースコアの後にオプションで整数が続く名前 ('_'、'_1'、'_2' など) に変更してください。これらは、特別なディスカード シンボル名として扱われます。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
+        <source>Blank line required between block and subsequent statement</source>
+        <target state="new">Blank line required between block and subsequent statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
         <source>Changes to expression trees may result in behavior changes at runtime</source>
         <target state="translated">式ツリーを変更すると、実行時の動作が変わる可能性があります</target>

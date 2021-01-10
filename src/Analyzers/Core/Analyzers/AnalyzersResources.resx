@@ -337,4 +337,7 @@
   <data name="Avoid_multiple_blank_lines" xml:space="preserve">
     <value>Avoid multiple blank lines</value>
   </data>
+  <data name="Blank_line_required_between_block_and_subsequent_statement" xml:space="preserve">
+    <value>Blank line required between block and subsequent statement</value>
+  </data>
 </root>

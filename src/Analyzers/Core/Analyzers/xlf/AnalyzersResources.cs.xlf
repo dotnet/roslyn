@@ -62,6 +62,11 @@
         <target state="translated">Vyhněte se v kódu nepoužitým parametrům. Pokud parametr nelze odebrat, změňte jeho název tak, aby začínal podtržítkem, za kterým volitelně následuje celé číslo, například _, _1, _2 atd. Tyto řetězce se považují za názvy speciálních symbolů pro vyřazení.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
+        <source>Blank line required between block and subsequent statement</source>
+        <target state="new">Blank line required between block and subsequent statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
         <source>Changes to expression trees may result in behavior changes at runtime</source>
         <target state="translated">Změny ve stromech výrazů můžou způsobit změny chování za běhu.</target>

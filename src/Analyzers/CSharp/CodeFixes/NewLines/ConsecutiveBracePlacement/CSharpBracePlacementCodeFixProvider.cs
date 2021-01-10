@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpConsecutiveBracePlacementCodeFixProvider()
         {
-            ReadOnlyMemory<char> c;
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds

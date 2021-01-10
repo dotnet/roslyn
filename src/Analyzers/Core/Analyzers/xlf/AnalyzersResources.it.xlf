@@ -62,6 +62,11 @@
         <target state="translated">Evitare parametri inutilizzati nel codice. Se non è possibile rimuovere il parametro, modificarne il nome in modo che inizi con un carattere di sottolineatura e, facoltativamente, sia seguito da un numero intero, ad esempio '_', '_1', '_2' e così via. Questi vengono considerati come nomi di simboli speciali di rimozione.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
+        <source>Blank line required between block and subsequent statement</source>
+        <target state="new">Blank line required between block and subsequent statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
         <source>Changes to expression trees may result in behavior changes at runtime</source>
         <target state="translated">Le modifiche apportate agli alberi delle espressioni possono causare modifiche di comportamento in fase di esecuzione</target>

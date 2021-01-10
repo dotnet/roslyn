@@ -46,9 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxGeneratorInternal SyntaxGeneratorInternal => CSharpSyntaxGeneratorInternal.Instance;
 
-        internal override SyntaxTrivia EndOfLine(string text)
-            => SyntaxFactory.EndOfLine(text);
-
         internal override SyntaxTrivia Whitespace(string text)
             => SyntaxFactory.Whitespace(text);
 

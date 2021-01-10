@@ -62,6 +62,11 @@
         <target state="translated">请避免在代码中使用未使用的参数。如果无法删除该参数，请更改其名称，使其以下划线开头，也可在下划线后面跟一个整数(如 "_"、"_1"、"_2" 等)。这些被视为特殊丢弃符号名。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
+        <source>Blank line required between block and subsequent statement</source>
+        <target state="new">Blank line required between block and subsequent statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
         <source>Changes to expression trees may result in behavior changes at runtime</source>
         <target state="translated">对表达式树的更改可能导致运行时的行为改变</target>

@@ -62,6 +62,11 @@
         <target state="translated">Избегайте неиспользуемых параметров в коде. Если удалить параметр невозможно, измените его имя так, чтобы оно начиналось с символа подчеркивания, за которым при необходимости следует целое число, например, "_", "_1", "_2" и т. д. Эти имена считаются особыми пустыми именами символов.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
+        <source>Blank line required between block and subsequent statement</source>
+        <target state="new">Blank line required between block and subsequent statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
         <source>Changes to expression trees may result in behavior changes at runtime</source>
         <target state="translated">Изменения в деревьях выражений могут привести к изменениям поведения во время выполнения.</target>

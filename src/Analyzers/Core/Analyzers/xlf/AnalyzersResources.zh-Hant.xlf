@@ -62,6 +62,11 @@
         <target state="translated">請避免在您的程式碼中使用參數。如果無法移除參數，請變更其名稱，使其以底線開頭，並可選擇在後面接著整數，例如 '_'、'_1'、'_2' 等。這些會視為特殊的捨棄符號名稱。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
+        <source>Blank line required between block and subsequent statement</source>
+        <target state="new">Blank line required between block and subsequent statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
         <source>Changes to expression trees may result in behavior changes at runtime</source>
         <target state="translated">變更運算式樹狀架構可能會導致執行階段的行為變更</target>

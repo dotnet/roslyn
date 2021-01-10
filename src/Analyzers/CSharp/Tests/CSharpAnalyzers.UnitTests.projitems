@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveBracePlacement\ConsecutiveBracePlacementTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveStatementPlacement\ConsecutiveStatementPlacementTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\MultipleBlankLines\MultipleBlankLinesTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryDiscardDesignation\RemoveUnnecessaryDiscardDesignationTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AddAccessibilityModifiersTests.cs" />

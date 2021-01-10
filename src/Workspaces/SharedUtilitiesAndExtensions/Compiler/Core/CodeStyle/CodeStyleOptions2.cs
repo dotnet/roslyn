@@ -354,6 +354,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             "dotnet_style_disallow_multiple_blank_lines",
             "TextEditor.%LANGUAGE%.Specific.DisallowMultipleBlankLines");
 
+        internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> DisallowStatementImmediatelyAfterBlock = CreateOption(
+            CodeStyleOptionGroups.NewLinePreferences, nameof(DisallowStatementImmediatelyAfterBlock),
+            defaultValue: CodeStyleOption2<bool>.Default,
+            "dotnet_style_disallow_statement_immediately_after_block",
+            "TextEditor.%LANGUAGE%.Specific.DisallowStatementImmediatelyAfterBlock");
+
         static CodeStyleOptions2()
         {
             // Note that the static constructor executes after all the static field initializers for the options have executed,

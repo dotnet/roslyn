@@ -62,6 +62,11 @@
         <target state="translated">Kodunuzda kullanılmayan parametreler bulundurmamaya çalışın. Parametre kaldırılamıyorsa adını, bir alt çizgiyle başlayacak ve ardından isteğe bağlı olarak bir tamsayı gelecek ('_', '_1', '_2' gibi) şekilde değiştirin. Bu değerler özel atılabilir sembol adı olarak işlenir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
+        <source>Blank line required between block and subsequent statement</source>
+        <target state="new">Blank line required between block and subsequent statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
         <source>Changes to expression trees may result in behavior changes at runtime</source>
         <target state="translated">İfade ağaçlarında yapılan değişiklikler çalışma zamanında davranış değişikliklerine neden olabilir</target>

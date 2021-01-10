@@ -62,6 +62,11 @@
         <target state="translated">Evite parâmetros não usados no seu código. Se o parâmetro não puder ser removido, altere o nome para que ele comece com um sublinhado e seja seguido opcionalmente por um inteiro, como '_', '_1', '_2' etc. Esses nomes são tratados como nomes de símbolo de descarte especiais.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
+        <source>Blank line required between block and subsequent statement</source>
+        <target state="new">Blank line required between block and subsequent statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changes_to_expression_trees_may_result_in_behavior_changes_at_runtime">
         <source>Changes to expression trees may result in behavior changes at runtime</source>
         <target state="translated">Alterações nas árvores de expressão podem resultar em alterações de comportamento no tempo de execução</target>
