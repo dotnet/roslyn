@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A mapping from local variables to the index of their slot in a flow analysis local state.
         /// </summary>
-        protected PooledDictionary<VariableIdentifier, int> _variableSlot = PooledDictionary<VariableIdentifier, int>.GetInstance();
+        protected readonly PooledDictionary<VariableIdentifier, int> _variableSlot = PooledDictionary<VariableIdentifier, int>.GetInstance();
 
         /// <summary>
         /// A mapping from the local variable slot to the symbol for the local variable itself.  This
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// that the variable in <see cref="VariableIdentifier.Symbol"/> is a root, i.e. not nested within another
         /// tracked variable. Slots &lt; 0 are illegal.
         /// </summary>
-        protected VariableIdentifier[] variableBySlot = new VariableIdentifier[1];
+        protected readonly ArrayBuilder<VariableIdentifier> variableBySlot = ArrayBuilder<VariableIdentifier>.GetInstance(1, default);
 
         /// <summary>
         /// Variable slots are allocated to local variables sequentially and never reused.  This is
@@ -87,7 +87,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void Free()
         {
-            _variableSlot.Free();
+            // PROTOTYPE:
+            //_variableSlot.Free();
             base.Free();
         }
 
@@ -157,9 +158,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 slot = nextVariableSlot++;
                 _variableSlot.Add(identifier, slot);
-                if (slot >= variableBySlot.Length)
+                while (slot >= variableBySlot.Count)
                 {
-                    Array.Resize(ref this.variableBySlot, slot * 2);
+                    variableBySlot.Add(default);
                 }
 
                 variableBySlot[slot] = identifier;
@@ -314,14 +315,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             while (true)
             {
-                ref var varInfo = ref variableBySlot[slot];
-                if (varInfo.ContainingSlot == 0)
+                int containingSlot = variableBySlot[slot].ContainingSlot;
+                if (containingSlot == 0)
                 {
                     return slot;
                 }
                 else
                 {
-                    slot = varInfo.ContainingSlot;
+                    slot = containingSlot;
                 }
             }
         }

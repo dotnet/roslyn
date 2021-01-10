@@ -34,20 +34,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal sealed class VariableState
         {
-            // Consider referencing the collections directly from the original NullableWalker
-            // rather than copying the collections. (Items are added to the collections
-            // but never replaced so the collections are lazily populated but otherwise immutable.)
-            internal readonly ImmutableDictionary<VariableIdentifier, int> VariableSlot;
-            internal readonly ImmutableArray<VariableIdentifier> VariableBySlot;
-            internal readonly ImmutableDictionary<Symbol, TypeWithAnnotations> VariableTypes;
+            internal readonly PooledDictionary<VariableIdentifier, int> VariableSlot;
+            internal readonly ArrayBuilder<VariableIdentifier> VariableBySlot;
+            internal readonly PooledDictionary<Symbol, TypeWithAnnotations> VariableTypes;
 
             // The nullable state of all variables captured at the point where the function or lambda appeared.
             internal readonly LocalState VariableNullableStates;
 
             internal VariableState(
-                ImmutableDictionary<VariableIdentifier, int> variableSlot,
-                ImmutableArray<VariableIdentifier> variableBySlot,
-                ImmutableDictionary<Symbol, TypeWithAnnotations> variableTypes,
+                PooledDictionary<VariableIdentifier, int> variableSlot,
+                ArrayBuilder<VariableIdentifier> variableBySlot,
+                PooledDictionary<Symbol, TypeWithAnnotations> variableTypes,
                 LocalState variableNullableStates)
             {
                 VariableSlot = variableSlot;
@@ -138,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The inferred type at the point of declaration of var locals and parameters.
         /// </summary>
-        private PooledDictionary<Symbol, TypeWithAnnotations> _variableTypes = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<Symbol, TypeWithAnnotations>();
+        private readonly PooledDictionary<Symbol, TypeWithAnnotations> _variableTypes = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<Symbol, TypeWithAnnotations>();
 
         /// <summary>
         /// Binder for symbol being analyzed.
@@ -373,7 +370,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _awaitablePlaceholdersOpt?.Free();
             _methodGroupReceiverMapOpt?.Free();
-            _variableTypes.Free();
+            // PROTOTYPE:
+            //_variableTypes.Free();
             _placeholderLocalsOpt?.Free();
             base.Free();
         }
@@ -411,18 +409,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (initialState != null)
             {
                 _hasInitialState = true;
-                var variableBySlot = initialState.VariableBySlot;
-                nextVariableSlot = variableBySlot.Length;
-                foreach (var (variable, slot) in initialState.VariableSlot)
-                {
-                    Debug.Assert(slot < nextVariableSlot);
-                    _variableSlot.Add(variable, slot);
-                }
-                this.variableBySlot = variableBySlot.ToArray();
-                foreach (var (key, value) in initialState.VariableTypes)
-                {
-                    _variableTypes.Add(key, value);
-                }
+                CopyDictionary(initialState.VariableSlot, _variableSlot);
+                CopyList(initialState.VariableBySlot, variableBySlot);
+                CopyDictionary(initialState.VariableTypes, _variableTypes);
+                nextVariableSlot = variableBySlot.Count;
                 this.State = initialState.VariableNullableStates.Clone();
             }
             else
@@ -1274,7 +1264,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var analyzedNullabilities = ImmutableDictionary.CreateBuilder<BoundExpression, (NullabilityInfo, TypeSymbol?)>(EqualityComparer<BoundExpression>.Default, NullabilityInfoTypeComparer.Instance);
             var newSnapshotBuilder = new SnapshotManager.Builder();
-            var (walker, initialState, symbol) = originalSnapshots.RestoreWalkerToAnalyzeNewNode(position, node, binder, analyzedNullabilities, newSnapshotBuilder);
+            var (initialState, symbol) = originalSnapshots.GetSnapshot(position);
+            var walker = new NullableWalker(
+                binder.Compilation,
+                symbol,
+                useConstructorExitWarnings: false,
+                useDelegateInvokeParameterTypes: false,
+                delegateInvokeMethodOpt: null,
+                node,
+                binder,
+                binder.Conversions,
+                initialState,
+                returnTypesOpt: null,
+                analyzedNullabilities,
+                newSnapshotBuilder,
+                isSpeculative: true);
             try
             {
                 Analyze(walker, symbol, diagnostics: null, initialState, snapshotBuilderOpt: newSnapshotBuilder);
@@ -1481,9 +1485,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SharedWalkerState SaveSharedState()
         {
             return new SharedWalkerState(
-                _variableSlot.ToImmutableDictionary(),
-                ImmutableArray.Create(variableBySlot, start: 0, length: nextVariableSlot),
-                _variableTypes.ToImmutableDictionary(),
+                _variableSlot,
+                variableBySlot,
+                _variableTypes,
                 CurrentSymbol);
         }
 
@@ -2732,10 +2736,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldState = this.State;
             this.State = state;
 
-            var oldVariableSlot = _variableSlot;
-            var oldVariableTypes = _variableTypes;
-            var oldVariableBySlot = variableBySlot;
-            var oldNextVariableSlot = nextVariableSlot;
+            PooledDictionary<VariableIdentifier, int>? oldVariableSlot = null;
+            PooledDictionary<Symbol, TypeWithAnnotations>? oldVariableTypes = null;
+            ArrayBuilder<VariableIdentifier>? oldVariableBySlot = null;
+            int oldNextVariableSlot = nextVariableSlot;
 
             // As an optimization, if the entire method is simple enough,
             // we'll reset the set of variable slots and types after analyzing the nested function,
@@ -2749,18 +2753,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // those nodes that might be invalidated if we drop the associated slots or types.
             if (_isSimpleMethod)
             {
-                _variableSlot = PooledDictionary<VariableIdentifier, int>.GetInstance();
-                foreach (var pair in oldVariableSlot)
-                {
-                    _variableSlot.Add(pair.Key, pair.Value);
-                }
-                _variableTypes = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<Symbol, TypeWithAnnotations>();
-                foreach (var pair in oldVariableTypes)
-                {
-                    _variableTypes.Add(pair.Key, pair.Value);
-                }
-                variableBySlot = new VariableIdentifier[oldVariableBySlot.Length];
-                Array.Copy(oldVariableBySlot, variableBySlot, oldVariableBySlot.Length);
+                oldVariableSlot = PooledDictionary<VariableIdentifier, int>.GetInstance();
+                CopyDictionary(_variableSlot, oldVariableSlot);
+                oldVariableTypes = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<Symbol, TypeWithAnnotations>();
+                CopyDictionary(_variableTypes, oldVariableTypes);
+                oldVariableBySlot = ArrayBuilder<VariableIdentifier>.GetInstance(variableBySlot.Count);
+                CopyList(variableBySlot, oldVariableBySlot);
             }
 
             var previousSlot = _snapshotBuilderOpt?.EnterNewWalker(lambdaOrFunctionSymbol) ?? -1;
@@ -2807,11 +2805,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_isSimpleMethod)
             {
                 nextVariableSlot = oldNextVariableSlot;
-                variableBySlot = oldVariableBySlot;
-                _variableTypes.Free();
-                _variableTypes = oldVariableTypes;
-                _variableSlot.Free();
-                _variableSlot = oldVariableSlot;
+                CopyList(oldVariableBySlot!, variableBySlot);
+                oldVariableBySlot!.Free();
+                CopyDictionary(oldVariableTypes!, _variableTypes);
+                oldVariableTypes!.Free();
+                CopyDictionary(oldVariableSlot!, _variableSlot);
+                oldVariableSlot!.Free();
             }
 
             this.State = oldState;
@@ -2819,6 +2818,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             _useDelegateInvokeParameterTypes = oldUseDelegateInvokeParameterTypes;
             _delegateInvokeMethod = oldDelegateInvokeMethod;
             this.CurrentSymbol = oldSymbol;
+        }
+
+        private static void CopyDictionary<TKey, TValue>(Dictionary<TKey, TValue> source, Dictionary<TKey, TValue> destination)
+            where TKey : notnull
+        {
+            destination.Clear();
+            foreach (var pair in source)
+            {
+                destination.Add(pair.Key, pair.Value);
+            }
+        }
+
+        private static void CopyList<T>(ArrayBuilder<T> source, ArrayBuilder<T> destination)
+        {
+            destination.Clear();
+            destination.AddRange(source);
         }
 
         protected override void VisitLocalFunctionUse(
@@ -5829,9 +5844,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private VariableState GetVariableState(Optional<LocalState> localState)
         {
             return new VariableState(
-                _variableSlot.ToImmutableDictionary(),
-                ImmutableArray.Create(variableBySlot, start: 0, length: nextVariableSlot),
-                _variableTypes.ToImmutableDictionary(_variableTypes.Comparer, TypeWithAnnotations.EqualsComparer.ConsiderEverythingComparer),
+                _variableSlot,
+                variableBySlot,
+                _variableTypes,
                 localState.HasValue ? localState.Value : this.State.Clone());
         }
 
