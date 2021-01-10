@@ -349,5 +349,27 @@ class C
     end sub
 end class")
         End Function
+
+        <Fact>
+        Public Async Function TestIfFollowedByIf() As Task
+            Await TestWithOptionOn("
+class C
+    sub M()
+        if (true)
+        [|end if|]
+        if (true)
+        end if
+    end sub
+end class", "
+class C
+    sub M()
+        if (true)
+        end if
+
+        if (true)
+        end if
+    end sub
+end class")
+        End Function
     End Class
 End Namespace
