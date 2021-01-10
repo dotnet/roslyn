@@ -13,8 +13,28 @@ using Microsoft.CodeAnalysis;
 
 namespace BuildValidator
 {
+    internal readonly struct SourceFileInfo
+    {
+        internal string SourceFilePath { get; }
+        internal string HashAlgorithm { get; }
+        internal byte[] Hash { get; }
+        internal string SourceFileName => Path.GetFileName(SourceFilePath);
+
+        internal SourceFileInfo(
+            string sourceFilePath,
+            string hashAlgorithm,
+            byte[] hash)
+        {
+            SourceFilePath = sourceFilePath;
+            HashAlgorithm = hashAlgorithm;
+            Hash = hash;
+        }
+    }
+
     internal class CompilationOptionsReader
     {
+        public static readonly Guid HashAlgorithmSha1 = unchecked(new Guid((int)0xff1816ec, (short)0xaa5e, 0x4d10, 0x87, 0xf7, 0x6f, 0x49, 0x63, 0x83, 0x34, 0x60));
+        public static readonly Guid HashAlgorithmSha256 = unchecked(new Guid((int)0x8829d00f, 0x11b8, 0x4213, 0x87, 0x8b, 0x77, 0x0e, 0x85, 0x97, 0xac, 0x16));
         public static readonly Guid MetadataReferenceInfoGuid = new Guid("7E4D4708-096E-4C5C-AEDA-CB10BA6A740D");
         public static readonly Guid CompilationOptionsGuid = new Guid("B5FEEC05-8CD0-4A83-96DA-466284BB4BD8");
         public static readonly Guid EmbeddedSourceGuid = new Guid("0E8A571B-6926-466E-B4AD-8AB04611F5FE");
@@ -23,7 +43,7 @@ namespace BuildValidator
         private readonly MetadataReader _metadataReader;
         private readonly PEReader _peReader;
 
-        private MetadataCompilationOptions? _compilationOptions;
+        private MetadataCompilationOptions? _metadataCompilationOptions;
         private ImmutableArray<MetadataReferenceInfo> _metadataReferenceInfo;
 
         public CompilationOptionsReader(MetadataReader metadataReader, PEReader peReader)
@@ -32,15 +52,15 @@ namespace BuildValidator
             _peReader = peReader;
         }
 
-        public MetadataCompilationOptions GetCompilationOptions()
+        public MetadataCompilationOptions GetMetadataCompilationOptions()
         {
-            if (_compilationOptions is null)
+            if (_metadataCompilationOptions is null)
             {
                 var optionsBlob = GetCustomDebugInformationBlobReader(CompilationOptionsGuid);
-                _compilationOptions = new MetadataCompilationOptions(ParseCompilationOptions(optionsBlob));
+                _metadataCompilationOptions = new MetadataCompilationOptions(ParseCompilationOptions(optionsBlob));
             }
 
-            return _compilationOptions;
+            return _metadataCompilationOptions;
         }
 
         public ImmutableArray<MetadataReferenceInfo> GetMetadataReferences()
@@ -90,12 +110,40 @@ namespace BuildValidator
             return (typeName, methodName);
         }
 
-        public IEnumerable<string> GetSourceFileNames()
+        public IEnumerable<SourceFileInfo> GetSourceFileInfos()
         {
+            var map = new Dictionary<string, (string, byte[])>();
+
             foreach (var documentHandle in _metadataReader.Documents)
             {
                 var document = _metadataReader.GetDocument(documentHandle);
-                yield return _metadataReader.GetString(document.Name);
+                var name = _metadataReader.GetString(document.Name);
+                var hashAlgorithmGuid = _metadataReader.GetGuid(document.HashAlgorithm);
+                string hashAlgorithm;
+                if (hashAlgorithmGuid == HashAlgorithmSha1)
+                {
+                    hashAlgorithm = "SHA1";
+                }
+                else if (hashAlgorithmGuid == HashAlgorithmSha256)
+                {
+                    hashAlgorithm = "SHA256A";
+                }
+                else
+                {
+                    hashAlgorithm = $"Unknown {hashAlgorithmGuid}";
+                }
+                var hash = _metadataReader.GetBlobBytes(document.Hash);
+                map[name] = (hashAlgorithm, hash);
+            }
+
+            // PROTOTYPE: Cannot use Documents directly for return because it is not stored in compilation order.
+            var sourceFilePaths = GetMetadataCompilationOptions()
+                .GetUniqueOption("source-files")
+                .Split(';', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var sourceFilePath in sourceFilePaths)
+            {
+                var entry = map[sourceFilePath];
+                yield return new SourceFileInfo(sourceFilePath, entry.Item1, entry.Item2);
             }
         }
 

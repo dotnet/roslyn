@@ -29,18 +29,25 @@ namespace BuildValidator
             _logger.LogInformation($"Source Base Directory: {_baseDirectory}");
         }
 
-        public SourceText ResolveSource(string name, Encoding encoding)
+        public SourceText ResolveSource(SourceFileInfo sourceFileInfo, Encoding encoding)
         {
+            var name = sourceFileInfo.SourceFilePath;
             if (!File.Exists(name))
             {
                 _logger.LogTrace($"{name} doesn't exist, adding base directory");
                 name = Path.Combine(_baseDirectory.FullName, name);
             }
+
             if (File.Exists(name))
             {
                 using var fileStream = File.OpenRead(name);
                 var sourceText = SourceText.From(fileStream, encoding: encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256);
-                return sourceText;
+                if (sourceText.GetChecksum().AsSpan().SequenceEqual(sourceFileInfo.Hash))
+                {
+                    return sourceText;
+                }
+
+                throw new Exception($"File has incorrect hash {name}");
             }
 
             throw new FileNotFoundException(name);

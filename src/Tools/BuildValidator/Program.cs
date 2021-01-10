@@ -26,7 +26,6 @@ namespace BuildValidator
     /// </summary>
     class Program
     {
-        private static ILogger? s_logger;
         private static readonly Regex[] s_ignorePatterns = new Regex[]
         {
             new Regex(@"\\runtimes?\\"),
@@ -54,17 +53,16 @@ namespace BuildValidator
 
             if (options.ConsoleOutput)
             {
-                loggerFactory.AddConsole();
+                loggerFactory.AddProvider(new DemoLoggerProvider());
             }
 
             try
             {
-                s_logger = loggerFactory.CreateLogger<Program>();
-
+                var logger = loggerFactory.CreateLogger<Program>();
                 var sourceResolver = new LocalSourceResolver(loggerFactory);
                 var referenceResolver = new LocalReferenceResolver(loggerFactory);
 
-                var buildConstructor = new BuildConstructor(referenceResolver, sourceResolver);
+                var buildConstructor = new BuildConstructor(referenceResolver, sourceResolver, logger);
 
                 var artifactsDir = LocalReferenceResolver.GetArtifactsDirectory();
                 var thisCompilerVersion = options.IgnoreCompilerVersion
@@ -77,7 +75,7 @@ namespace BuildValidator
                     .Select(x => new FileInfo(x))
                     .ToList();
 
-                ValidateFiles(filesToValidate, buildConstructor, thisCompilerVersion);
+                ValidateFiles(filesToValidate, buildConstructor, thisCompilerVersion, logger);
                 Console.Out.Flush();
             }
             catch (Exception ex)
@@ -87,14 +85,14 @@ namespace BuildValidator
             }
         }
 
-        private static void ValidateFiles(IEnumerable<FileInfo> files, BuildConstructor buildConstructor, string? thisCompilerVersion)
+        private static void ValidateFiles(IEnumerable<FileInfo> files, BuildConstructor buildConstructor, string? thisCompilerVersion, ILogger logger)
         {
             var assembliesCompiled = new List<CompilationDiff>();
             var sb = new StringBuilder();
 
             foreach (var file in files)
             {
-                var compilationDiff = ValidateFile(file, buildConstructor, thisCompilerVersion);
+                var compilationDiff = ValidateFile(file, buildConstructor, thisCompilerVersion, logger);
 
                 if (compilationDiff is null)
                 {
@@ -136,18 +134,14 @@ namespace BuildValidator
             }
             sb.AppendLine("====================");
 
-            //s_logger.LogInformation(sb.ToString());
-
-            // PROTOTYPE: the logger won't output strings about 1/2 of the time. Forget indirection, just
-            // use the Console.
-            Console.WriteLine(sb.ToString());
+            logger.LogInformation(sb.ToString());
         }
 
-        private static CompilationDiff? ValidateFile(FileInfo file, BuildConstructor buildConstructor, string? thisCompilerVersion)
+        private static CompilationDiff? ValidateFile(FileInfo file, BuildConstructor buildConstructor, string? thisCompilerVersion, ILogger logger)
         {
             if (s_ignorePatterns.Any(r => r.IsMatch(file.FullName)))
             {
-                s_logger.LogTrace($"Ignoring {file.FullName}");
+                logger.LogTrace($"Ignoring {file.FullName}");
                 return null;
             }
 
@@ -167,11 +161,12 @@ namespace BuildValidator
 
                 if (!pdbOpened || pdbReaderProvider is null)
                 {
-                    s_logger.LogError($"Could not find pdb for {file.FullName}");
+                    logger.LogError($"Could not find pdb for {file.FullName}");
                     return null;
                 }
 
-                s_logger.LogInformation($"Compiling {file.FullName} with pdb {pdbPath ?? "[embedded]"}");
+                logger.LogInformation($"Verifying {file.FullName} with pdb {pdbPath ?? "[embedded]"}");
+                using var _ = logger.BeginScope("");
 
                 var reader = pdbReaderProvider.GetMetadataReader();
 
@@ -181,7 +176,10 @@ namespace BuildValidator
                     reader,
                     peReader,
                     Path.GetFileNameWithoutExtension(file.Name));
-                return CompilationDiff.Create(file, compilation, GetDebugEntryPoint());
+
+                var compilationDiff = CompilationDiff.Create(file, compilation, GetDebugEntryPoint());
+                logger.LogInformation(compilationDiff?.AreEqual == true ? "Verification succeeded" : "Verification failed");
+                return compilationDiff;
 
                 IMethodSymbol? GetDebugEntryPoint()
                 {
@@ -206,7 +204,7 @@ namespace BuildValidator
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                s_logger.LogError(e, file.FullName);
+                logger.LogError(e, file.FullName);
                 return CompilationDiff.Create(file, e);
             }
             finally
