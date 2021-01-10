@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
     internal sealed class ConsecutiveStatementPlacementCodeFixProvider : CodeFixProvider
     {
         [ImportingConstructor]
