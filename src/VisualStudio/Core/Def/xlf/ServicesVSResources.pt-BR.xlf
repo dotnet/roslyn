@@ -192,6 +192,11 @@
         <target state="new">Disallow multiple blank lines</target>
         <note />
       </trans-unit>
+      <trans-unit id="Disallow_statement_immediately_after_block">
+        <source>Disallow statement immediately after block</source>
+        <target state="new">Disallow statement immediately after block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
         <source>Display all hints while pressing Alt+F1</source>
         <target state="translated">Exibir todas as dicas ao pressionar Alt+F1</target>

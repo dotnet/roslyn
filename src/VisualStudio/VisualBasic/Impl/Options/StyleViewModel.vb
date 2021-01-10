@@ -605,29 +605,55 @@ End Class"
 
         Private Shared ReadOnly s_disallow_multiple_blank_lines As String = $"
 Class Customer1
-//[
-    ' {ServicesVSResources.Require_colon}
     Sub Method()
+//[
+        ' {ServicesVSResources.Require_colon}
         If True Then
             DoWork()
         End If
 
         Return
-    End Sub
 //]
+    End Sub
 End Class
 Class Customer2
-//[
-    ' {ServicesVSResources.Over_colon}
     Sub Method()
+//[
+        ' {ServicesVSResources.Over_colon}
         If True Then
             DoWork()
         End If
 
 
         Return
+//]
     End Sub
-//]End Class"
+End Class"
+
+        Private Shared ReadOnly s_disallow_statement_immediately_after_block As String = $"
+Class Customer1
+    Sub Method()
+//[
+        ' {ServicesVSResources.Require_colon}
+        If True Then
+            DoWork()
+        End If
+
+        Return
+//]
+    End Sub
+End Class
+Class Customer2
+    Sub Method()
+//[
+        ' {ServicesVSResources.Over_colon}
+        If True Then
+            DoWork()
+        End If
+        Return
+//]
+    End Sub
+End Class"
 
 #Region "unused parameters"
 
@@ -787,6 +813,7 @@ End Class
 
             ' New line preferences
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.DisallowMultipleBlankLines, ServicesVSResources.Disallow_multiple_blank_lines, s_disallow_multiple_blank_lines, s_disallow_multiple_blank_lines, Me, optionStore, newLinePreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.DisallowStatementImmediatelyAfterBlock, ServicesVSResources.Disallow_statement_immediately_after_block, s_disallow_statement_immediately_after_block, s_disallow_statement_immediately_after_block, Me, optionStore, newLinePreferencesGroupTitle))
         End Sub
 
         Private Sub AddParenthesesOptions(optionStore As OptionStore)
