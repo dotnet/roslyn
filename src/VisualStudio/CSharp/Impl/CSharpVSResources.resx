@@ -192,8 +192,8 @@
   <data name="Place_open_brace_on_new_line_for_methods_local_functions" xml:space="preserve">
     <value>Place open brace on new line for methods and local functions</value>
   </data>
-  <data name="Place_open_brace_on_new_line_for_object_collection_and_array_initializers" xml:space="preserve">
-    <value>Place open brace on new line for object, collection and array initializers</value>
+  <data name="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers" xml:space="preserve">
+    <value>Place open brace on new line for object, collection, array, and with initializers</value>
   </data>
   <data name="Place_open_brace_on_new_line_for_types" xml:space="preserve">
     <value>Place open brace on new line for types</value>

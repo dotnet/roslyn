@@ -87,6 +87,11 @@
         <target state="translated">서식을 지정하는 동안 추가 코드 정리 수행</target>
         <note />
       </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
+        <source>Place open brace on new line for object, collection, array, and with initializers</source>
+        <target state="new">Place open brace on new line for object, collection, array, and with initializers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
         <target state="translated">형식이 명백한 경우 암시적 개체 만들기 선호</target>
@@ -265,11 +270,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_methods_local_functions">
         <source>Place open brace on new line for methods and local functions</source>
         <target state="translated">메서드 및 로컬 함수의 여는 중괄호를 새 줄에 배치합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_and_array_initializers">
-        <source>Place open brace on new line for object, collection and array initializers</source>
-        <target state="translated">개체, 컬렉션 및 배열 이니셜라이저의 여는 중괄호를 새 줄에 배치</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_types">

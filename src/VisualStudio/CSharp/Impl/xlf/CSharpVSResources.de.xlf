@@ -87,6 +87,11 @@
         <target state="translated">Zusätzliche Codebereinigung während der Formatierung durchführen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
+        <source>Place open brace on new line for object, collection, array, and with initializers</source>
+        <target state="new">Place open brace on new line for object, collection, array, and with initializers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
         <target state="translated">Implizite Objekterstellung bevorzugen, wenn der Typ offensichtlich ist</target>
@@ -265,11 +270,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_methods_local_functions">
         <source>Place open brace on new line for methods and local functions</source>
         <target state="translated">Öffnende geschweifte Klammer in neuer Zeile für Methoden und lokale Funktionen einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_and_array_initializers">
-        <source>Place open brace on new line for object, collection and array initializers</source>
-        <target state="translated">Öffnende geschweifte Klammer für Objekt-, Sammlungs- und Arrayinitialisierer in neue Zeile einfügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_types">
