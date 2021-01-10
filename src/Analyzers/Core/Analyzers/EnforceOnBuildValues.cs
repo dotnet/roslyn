@@ -88,6 +88,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild ConvertSwitchStatementToExpression = /*IDE0066*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild PopulateSwitchExpression = /*IDE0072*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild Regex = /*RE0001*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild WrapEmbeddedStatement = /*IDE2000*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild ConsecutiveBracePlacement = /*IDE2001*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild MultipleBlankLines = /*IDE2002*/ EnforceOnBuild.WhenExplicitlyEnabled;
 
         /* EnforceOnBuild.Never */
         // TODO: Allow enforcing simplify names and related diagnostics on build once we validate their performance charactericstics.

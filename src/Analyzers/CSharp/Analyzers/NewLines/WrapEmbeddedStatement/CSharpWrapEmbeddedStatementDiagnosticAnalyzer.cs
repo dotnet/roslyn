@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.WrapEmbeddedStatement
     {
         public CSharpWrapEmbeddedStatementDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.WrapEmbeddedStatementDiagnosticId,
-                   EnforceOnBuild.WhenExplicitlyEnabled,
+                   EnforceOnBuildValues.WrapEmbeddedStatement,
                    CSharpCodeStyleOptions.DisallowEmbeddedStatementsOnSameLine,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(

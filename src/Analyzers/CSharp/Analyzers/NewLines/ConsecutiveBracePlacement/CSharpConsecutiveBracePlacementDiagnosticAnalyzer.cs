@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
     {
         public CSharpConsecutiveBracePlacementDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConsecutiveBracePlacementDiagnosticId,
-                   EnforceOnBuild.WhenExplicitlyEnabled,
+                   EnforceOnBuildValues.ConsecutiveBracePlacement,
                    CSharpCodeStyleOptions.DisallowBlankLinesBetweenConsecutiveBraces,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(

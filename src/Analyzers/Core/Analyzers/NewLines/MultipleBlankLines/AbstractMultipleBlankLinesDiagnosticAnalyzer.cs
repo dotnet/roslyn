@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
     {
         protected AbstractMultipleBlankLinesDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.MultipleBlankLinesDiagnosticId,
-                   EnforceOnBuild.WhenExplicitlyEnabled,
+                   EnforceOnBuildValues.MultipleBlankLines,
                    CodeStyleOptions2.DisallowMultipleBlankLines,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
