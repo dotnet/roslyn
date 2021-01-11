@@ -10,30 +10,23 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal readonly struct TypeHint
     {
-        public TypeHint(ITypeSymbol type, TextSpan span, bool leadingSpace = false, bool trailingSpace = false)
-            : this(type, span,
-                  prefix: CreateSpaceSymbolPartArray(leadingSpace),
-                  suffix: CreateSpaceSymbolPartArray(trailingSpace))
-        {
-        }
-
-        private TypeHint(ITypeSymbol type, TextSpan span, ImmutableArray<SymbolDisplayPart> prefix, ImmutableArray<SymbolDisplayPart> suffix)
-        {
-            Type = type;
-            Span = span;
-            Prefix = prefix;
-            Suffix = suffix;
-        }
+        private static readonly ImmutableArray<SymbolDisplayPart> s_spaceArray = ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Space, symbol: null, " "));
 
         public ITypeSymbol Type { get; }
         public TextSpan Span { get; }
         public ImmutableArray<SymbolDisplayPart> Prefix { get; }
         public ImmutableArray<SymbolDisplayPart> Suffix { get; }
 
+        public TypeHint(ITypeSymbol type, TextSpan span, bool leadingSpace = false, bool trailingSpace = false)
+        {
+            Type = type;
+            Span = span;
+            Prefix = CreateSpaceSymbolPartArray(leadingSpace);
+            Suffix = CreateSpaceSymbolPartArray(trailingSpace);
+        }
+
         private static ImmutableArray<SymbolDisplayPart> CreateSpaceSymbolPartArray(bool hasSpace)
-            => hasSpace
-                ? ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Space, symbol: null, " "))
-                : ImmutableArray<SymbolDisplayPart>.Empty;
+            => hasSpace ? s_spaceArray : ImmutableArray<SymbolDisplayPart>.Empty;
 
         public void Deconstruct(out ITypeSymbol type, out TextSpan span, out ImmutableArray<SymbolDisplayPart> prefix, out ImmutableArray<SymbolDisplayPart> suffix)
         {
