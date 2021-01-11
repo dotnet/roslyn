@@ -78,6 +78,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string MakeStructFieldsWritable = nameof(MakeStructFieldsWritable);
         public const string AddExplicitCast = nameof(AddExplicitCast);
         public const string RemoveIn = nameof(RemoveIn);
-        public const string SimplifyLinqExpressions = nameof(SimplifyLinqExpressions);
+        public const string SimplifyLinqExpression = nameof(SimplifyLinqExpression);
     }
 }

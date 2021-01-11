@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
     internal abstract class AbstractSimplifyLinqExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
-           => ImmutableArray.Create(IDEDiagnosticIds.SimplifyLinqExpressionsDiagnosticId);
+           => ImmutableArray.Create(IDEDiagnosticIds.SimplifyLinqExpressionDiagnosticId);
 
         internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
 

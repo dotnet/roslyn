@@ -147,6 +147,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseNotPatternDiagnosticId = "IDE0083";
         public const string UseIsNotExpressionDiagnosticId = "IDE0084";
+        public const string SimplifyLinqExpressionDiagnosticId = "IDE0085";
 
         public const string UseImplicitObjectCreationDiagnosticId = "IDE0090";
 
@@ -154,7 +155,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string RemoveUnnecessaryDiscardDesignationDiagnosticId = "IDE0110";
 
-        public const string SimplifyLinqExpressionsDiagnosticId = "IDE0085";
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

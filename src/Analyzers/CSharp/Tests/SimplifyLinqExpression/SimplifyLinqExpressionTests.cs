@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpressi
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpSimplifyLinqExpressionDiagnosticAnalyzer(), new CSharpSimplifyLinqExpressionCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestEnumerableTypeSingle()
 
         {
@@ -66,7 +66,7 @@ class Test
             await TestInRegularAndScriptAsync(source, fixedSource);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestEnumerableTypeSingOrDefault()
 
         {
@@ -110,7 +110,7 @@ class Test
 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestEnumerableTypeFirst()
 
         {
@@ -154,7 +154,7 @@ class Test
 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestEnumerableTypeFirstOrDefault()
 
         {
@@ -198,7 +198,7 @@ class Test
 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestEnumerableTypeLast()
 
         {
@@ -242,7 +242,7 @@ class Test
 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestEnumerableTypeLastOrDefault()
 
         {
@@ -286,7 +286,7 @@ class Test
 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestEnumerableTypeAny()
 
         {
@@ -330,7 +330,7 @@ class Test
 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestEnumerableTypeCount()
 
         {
@@ -374,7 +374,7 @@ class Test
 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestEnumerableFromQueryType()
 
         {
@@ -407,7 +407,7 @@ class Test
             await TestInRegularAndScriptAsync(source, fixedSource);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestEnumerableListType()
 
         {
@@ -432,7 +432,7 @@ class Test
             await TestInRegularAndScriptAsync(source, fixedSource);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestComplexLambda()
 
         {
@@ -484,7 +484,7 @@ class Test
 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestOutsideFunctionCallLambda()
 
         {
@@ -521,7 +521,7 @@ class Test
             await TestInRegularAndScriptAsync(source, fixedSource);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestQueryable()
 
         {
@@ -541,7 +541,7 @@ namespace demo
             await TestMissingInRegularAndScriptAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestComplicatedLambda()
 
         {
@@ -569,7 +569,7 @@ class Test
 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestNestedEnumerable()
 
         {
@@ -605,7 +605,7 @@ class Test
 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestNestedEnumerable2()
 
         {
@@ -641,7 +641,7 @@ class Test
 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestParentheticalLambda()
 
         {
@@ -677,7 +677,7 @@ class Test
 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestParentheticalLambda2()
 
         {
@@ -713,7 +713,7 @@ class Test
 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestParentheticalLambda3()
 
         {
@@ -749,7 +749,7 @@ class Test
 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestUserDefinedWhere()
 
         {
@@ -786,7 +786,7 @@ namespace demo
             await TestMissingInRegularAndScriptAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestArgumentsInSecondCall()
 
         {
@@ -805,7 +805,7 @@ namespace demo
             await TestMissingInRegularAndScriptAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestUnsupportedFunction()
 
         {
@@ -824,7 +824,7 @@ namespace demo
             await TestMissingInRegularAndScriptAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestSelectFunction()
 
         {
@@ -843,7 +843,7 @@ namespace demo
             await TestMissingInRegularAndScriptAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpressions)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestExpressionTreeInput()
 
         {
