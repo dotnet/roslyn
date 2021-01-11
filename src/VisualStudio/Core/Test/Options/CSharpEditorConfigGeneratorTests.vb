@@ -86,6 +86,10 @@ dotnet_code_quality_unused_parameters = all
 # Suppression preferences
 dotnet_remove_unnecessary_suppression_exclusions = none
 
+# New line preferences
+dotnet_style_allow_multiple_blank_lines = true
+dotnet_style_allow_statement_immediately_after_block = true
+
 #### C# Coding Conventions ####
 
 # var preferences
@@ -135,6 +139,10 @@ csharp_style_unused_value_expression_statement_preference = discard_variable
 
 # 'using' directive preferences
 csharp_using_directive_placement = outside_namespace
+
+# New line preferences
+csharp_style_allow_blank_lines_between_consecutive_braces = true
+csharp_style_allow_embedded_statements_on_same_line = true
 
 #### C# Formatting Rules ####
 
@@ -305,6 +313,10 @@ dotnet_code_quality_unused_parameters = all
 # Suppression preferences
 dotnet_remove_unnecessary_suppression_exclusions = none
 
+# New line preferences
+dotnet_style_allow_multiple_blank_lines = true
+dotnet_style_allow_statement_immediately_after_block = true
+
 #### C# Coding Conventions ####
 
 # var preferences
@@ -354,6 +366,10 @@ csharp_style_unused_value_expression_statement_preference = discard_variable
 
 # 'using' directive preferences
 csharp_using_directive_placement = outside_namespace
+
+# New line preferences
+csharp_style_allow_blank_lines_between_consecutive_braces = true
+csharp_style_allow_embedded_statements_on_same_line = true
 
 #### C# Formatting Rules ####
 

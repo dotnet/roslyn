@@ -87,6 +87,10 @@ dotnet_code_quality_unused_parameters = all
 # Suppression preferences
 dotnet_remove_unnecessary_suppression_exclusions = none
 
+# New line preferences
+dotnet_style_allow_multiple_blank_lines = true
+dotnet_style_allow_statement_immediately_after_block = true
+
 #### VB Coding Conventions ####
 
 # Modifier preferences
@@ -218,6 +222,10 @@ dotnet_code_quality_unused_parameters = all
 
 # Suppression preferences
 dotnet_remove_unnecessary_suppression_exclusions = none
+
+# New line preferences
+dotnet_style_allow_multiple_blank_lines = true
+dotnet_style_allow_statement_immediately_after_block = true
 
 #### VB Coding Conventions ####
 
