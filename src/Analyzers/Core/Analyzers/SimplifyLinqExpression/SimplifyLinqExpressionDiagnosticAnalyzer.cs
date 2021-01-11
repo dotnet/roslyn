@@ -79,11 +79,12 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
             }
 
             if (context.Operation is not IInvocationOperation invocation ||
-                invocation.Arguments.Length != 1 ||
-                invocation.Arguments.Single() is not IArgumentOperation argument)
+                invocation.Arguments.Length != 1)
             {
                 return;
             }
+            
+            var argument = invocation.Arguments.Single();
 
             if (linqMethods.Any(m => m.Equals(invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default)) &&
                 argument.Children.FirstOrDefault() is IInvocationOperation whereInvocation &&
