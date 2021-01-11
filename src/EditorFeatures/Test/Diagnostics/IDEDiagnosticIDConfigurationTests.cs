@@ -415,6 +415,18 @@ dotnet_diagnostic.IDE1007.severity = %value%
 
 # IDE1008
 dotnet_diagnostic.IDE1008.severity = %value%
+
+# IDE2000
+dotnet_diagnostic.IDE2000.severity = %value%
+
+# IDE2001
+dotnet_diagnostic.IDE2001.severity = %value%
+
+# IDE2002
+dotnet_diagnostic.IDE2002.severity = %value%
+
+# IDE2003
+dotnet_diagnostic.IDE2003.severity = %value%
 ";
 
             VerifyConfigureSeverityCore(expected, LanguageNames.CSharp);
@@ -564,6 +576,12 @@ dotnet_diagnostic.IDE1007.severity = %value%
 
 # IDE1008
 dotnet_diagnostic.IDE1008.severity = %value%
+
+# IDE2000
+dotnet_diagnostic.IDE2000.severity = %value%
+
+# IDE2003
+dotnet_diagnostic.IDE2003.severity = %value%
 ";
             VerifyConfigureSeverityCore(expected, LanguageNames.VisualBasic);
         }
@@ -963,6 +981,18 @@ No editorconfig based code style option
 
 # IDE1008
 No editorconfig based code style option
+
+# IDE2000, AllowMultipleBlankLines
+dotnet_style_allow_multiple_blank_lines = true
+
+# IDE2001, AllowEmbeddedStatementsOnSameLine
+csharp_style_allow_embedded_statements_on_same_line = true
+
+# IDE2002, AllowBlankLinesBetweenConsecutiveBraces
+csharp_style_allow_blank_lines_between_consecutive_braces = true
+
+# IDE2003, AllowStatementImmediatelyAfterBlock
+dotnet_style_allow_statement_immediately_after_block = true
 ";
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.CSharp);
@@ -1154,6 +1184,12 @@ No editorconfig based code style option
 
 # IDE1008
 No editorconfig based code style option
+
+# IDE2000, AllowMultipleBlankLines
+dotnet_style_allow_multiple_blank_lines = true
+
+# IDE2003, AllowStatementImmediatelyAfterBlock
+dotnet_style_allow_statement_immediately_after_block = true
 ";
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.VisualBasic);
