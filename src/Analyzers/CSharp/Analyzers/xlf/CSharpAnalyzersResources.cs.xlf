@@ -92,11 +92,6 @@
         <target state="translated">Odebrat nepotřebnou proměnnou typu discard</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_Linq_expression">
-        <source>Simplify LINQ expression</source>
-        <target state="new">Simplify LINQ expression</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_default_expression">
         <source>Simplify 'default' expression</source>
         <target state="translated">Zjednodušit výraz default</target>

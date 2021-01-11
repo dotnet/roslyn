@@ -382,21 +382,27 @@ class Test
 using System;
 using System.Linq;
 using System.Collections.Generic;
- 
+
 class Test
 {
-    private static IEnumerable<int> test1 = from value in Enumerable.Range(0, 10) select value;
-    private var test2 = [||]test1.Where(x => x==1).First();
+    static void M()
+    {
+        IEnumerable<int> test1 = from value in Enumerable.Range(0, 10) select value;
+        var test2 = [||]test1.Where(x => x == 1).First();
+    }
 }";
             var fixedSource = @"
 using System;
 using System.Linq;
 using System.Collections.Generic;
- 
+
 class Test
 {
-    private static IEnumerable<int> test1 = from value in Enumerable.Range(0, 10) select value;
-    private var test2 = test1.First(x => x==1);
+    static void M()
+    {
+        IEnumerable<int> test1 = from value in Enumerable.Range(0, 10) select value;
+        var test2 = test1.First(x => x == 1);
+    }
 }";
             await TestInRegularAndScriptAsync(source, fixedSource);
         }
@@ -406,26 +412,22 @@ class Test
 
         {
             var source = @"
-using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Linq;
 
 class Test
 {
-    private static IEnumerable<string> _test1 = new List<string> { 'hello', 'world', '!' };
-    private bool _test2 = [||]_test1.Where(x => x.Equals('!')).Any();
+    private static IEnumerable<string> _test1 = new List<string> { ""hello"", ""world"", ""!"" };
+    private bool _test2 = [||]_test1.Where(x => x.Equals(""!"")).Any();
 }";
             var fixedSource = @"
-using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Linq;
 
 class Test
 {
-    private static IEnumerable<string> _test1 = new List<string> { 'hello', 'world', '!' };
-    private bool _test2 = _test1.Any(x => x.Equals('!'));
+    private static IEnumerable<string> _test1 = new List<string> { ""hello"", ""world"", ""!"" };
+    private bool _test2 = _test1.Any(x => x.Equals(""!""));
 }";
             await TestInRegularAndScriptAsync(source, fixedSource);
         }
@@ -498,7 +500,7 @@ class Test
         return true;
     }
 
-    static IEnumerable<string> test = new List<string> { 'hello', 'world', '!' };
+    static IEnumerable<string> test = new List<string> { ""hello"", ""world"", ""!"" };
     int result = [||]test.Where(x => FooTest(x)).Count();
 }";
             var fixedSource = @"
@@ -513,7 +515,7 @@ class Test
         return true;
     }
 
-    static IEnumerable<string> test = new List<string> { 'hello', 'world', '!' };
+    static IEnumerable<string> test = new List<string> { ""hello"", ""world"", ""!"" };
     int result = test.Count(x => FooTest(x));
 }";
             await TestInRegularAndScriptAsync(source, fixedSource);
@@ -547,21 +549,21 @@ namespace demo
 using System;
 using System.Linq;
 using System.Collections.Generic;
- 
+
 class Test
 {
-    IEnumerable<string> test = new List<string> { 'hello', 'world', '!' };
-    var test5 = [||]test.Where(a => a.Where(s => s.Equals('hello').FirstOrDefault()).Equals('hello')).FirstOrDefault();
+    static IEnumerable<string> test = new List<string> { ""hello"", ""world"", ""!"" };
+    string test5 = [||]test.Where(a => a.Where(s => s.Equals(""hello"")).FirstOrDefault().Equals(""hello"")).FirstOrDefault();
 }";
             var fixedSource = @"
 using System;
 using System.Linq;
 using System.Collections.Generic;
- 
+
 class Test
 {
-    IEnumerable<string> test = new List<string> { 'hello', 'world', '!' };
-    var test5 = test.FirstOrDefault(a => a.Where(s => s.Equals('hello').FirstOrDefault()).Equals('hello'));
+    static IEnumerable<string> test = new List<string> { ""hello"", ""world"", ""!"" };
+    string test5 = test.FirstOrDefault(a => a.Where(s => s.Equals(""hello"")).FirstOrDefault().Equals(""hello""));
 }";
             await TestInRegularAndScriptAsync(source, fixedSource);
 
@@ -584,7 +586,6 @@ class Test
         IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
         [||]Enumerable.Where(test, (x => x == 1)).Single();
     }
-
 }";
             var fixedSource = @"
 using System;
@@ -599,7 +600,6 @@ class Test
         IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
         Enumerable.Single(test, (x => x == 1));
     }
-
 }";
             await TestInRegularAndScriptAsync(source, fixedSource);
 
@@ -622,7 +622,6 @@ class Test
         IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
         [||]Enumerable.Where(test, (x => x == 1)).First();
     }
-
 }";
             var fixedSource = @"
 using System;
@@ -637,7 +636,6 @@ class Test
         IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
         Enumerable.First(test, (x => x == 1));
     }
-
 }";
             await TestInRegularAndScriptAsync(source, fixedSource);
 
@@ -660,7 +658,6 @@ class Test
         IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
         [||]test.Where((x) => x == 1).Single();
     }
-
 }";
             var fixedSource = @"
 using System;
@@ -675,7 +672,6 @@ class Test
         IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
         test.Single((x) => x == 1);
     }
-
 }";
             await TestInRegularAndScriptAsync(source, fixedSource);
 
@@ -698,7 +694,6 @@ class Test
         IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
         [||]test.Where((x, index) => (x- index) == 1).Single();
     }
-
 }";
             var fixedSource = @"
 using System;
@@ -713,7 +708,6 @@ class Test
         IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
         test.Single((x, index) => (x- index) == 1);
     }
-
 }";
             await TestInRegularAndScriptAsync(source, fixedSource);
 
@@ -736,7 +730,6 @@ class Test
         IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
         [||]test.Where((int x) => x == 1).First();
     }
-
 }";
             var fixedSource = @"
 using System;
@@ -751,7 +744,6 @@ class Test
         IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
         test.First((int x) => x == 1);
     }
-
 }";
             await TestInRegularAndScriptAsync(source, fixedSource);
 
@@ -772,7 +764,7 @@ namespace demo
         public class TestClass4
         {
             private string test;
-            public TestClass4() => test = 'hello';
+            public TestClass4() => test = ""hello"";
 
             public TestClass4 Where(Func<string, bool> input)
             {
@@ -806,8 +798,8 @@ namespace demo
 {
     class Test
     {
-        static IEnumerable<string> test1 = new List<string> { 'hello', 'world', '!' };
-        bool test2 = [||]test1.Where(x => x == '!').Any(x => x.Length == 1);
+        static IEnumerable<string> test1 = new List<string> { ""hello"", ""world"", ""!"" };
+        bool test2 = [||]test1.Where(x => x == ""!"").Any(x => x.Length == 1);
     }
 }";
             await TestMissingInRegularAndScriptAsync(source);
@@ -865,17 +857,17 @@ class Test
 {
     void Main()
     {
-        string[] places = { 'Beach', 'Pool', 'Store', 'House',
-                   'Car', 'Salon', 'Mall', 'Mountain'};
+        string[] places = { ""Beach"", ""Pool"", ""Store"", ""House"",
+                   ""Car"", ""Salon"", ""Mall"", ""Mountain""};
 
         IQueryable<String> queryableData = companies.AsQueryable<string>();
-        ParameterExpression pe = Expression.Parameter(typeof(string), 'place');
+        ParameterExpression pe = Expression.Parameter(typeof(string), ""place"");
 
-        Expression left = Expression.Call(pe, typeof(string).GetMethod('ToLower', System.Type.EmptyTypes));
-        Expression right = Expression.Constant('coho winery');
+        Expression left = Expression.Call(pe, typeof(string).GetMethod(""ToLower"", System.Type.EmptyTypes));
+        Expression right = Expression.Constant(""coho winery"");
         Expression e1 = Expression.Equal(left, right);
 
-        left = Expression.Property(pe, typeof(string).GetProperty('Length'));
+        left = Expression.Property(pe, typeof(string).GetProperty(""Length""));
         right = Expression.Constant(16, typeof(int));
         Expression e2 = Expression.GreaterThan(left, right);
 

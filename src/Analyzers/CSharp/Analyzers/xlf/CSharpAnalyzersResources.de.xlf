@@ -92,11 +92,6 @@
         <target state="translated">Nicht benötigtes discard-Element entfernen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_Linq_expression">
-        <source>Simplify LINQ expression</source>
-        <target state="new">Simplify LINQ expression</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_default_expression">
         <source>Simplify 'default' expression</source>
         <target state="translated">"default"-Ausdruck vereinfachen</target>
