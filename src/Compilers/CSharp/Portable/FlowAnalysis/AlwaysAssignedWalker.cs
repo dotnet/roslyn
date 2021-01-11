@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var i in _endOfRegionState.Assigned.TrueBits())
                 {
-                    if (i >= variableBySlot.Count)
+                    if (i >= variableBySlot.Length)
                     {
                         continue;
                     }

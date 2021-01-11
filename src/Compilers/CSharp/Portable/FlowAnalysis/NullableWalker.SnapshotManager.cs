@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Snapshot incrementalSnapshot = GetSnapshotForPosition(position);
                 var sharedState = _walkerSharedStates[incrementalSnapshot.SharedStateIndex];
-                var variableState = new VariableState(sharedState.VariableSlot, sharedState.VariableBySlot, sharedState.VariableTypes, incrementalSnapshot.VariableState.Clone());
+                var variableState = new VariableState(sharedState.Variables, incrementalSnapshot.VariableState.Clone());
                 return (variableState, sharedState.Symbol);
             }
 
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var snapshot = GetSnapshotForPosition(symbol.IdentifierToken.SpanStart);
                 var sharedState = _walkerSharedStates[snapshot.SharedStateIndex];
-                if (sharedState.VariableTypes.TryGetValue(symbol, out var updatedType))
+                if (sharedState.Variables.TryGetType(symbol, out var updatedType))
                 {
                     return updatedType;
                 }
@@ -253,20 +253,12 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
         /// </summary>
         internal struct SharedWalkerState
         {
-            internal readonly PooledDictionary<VariableIdentifier, int> VariableSlot;
-            internal readonly ArrayBuilder<VariableIdentifier> VariableBySlot;
-            internal readonly PooledDictionary<Symbol, TypeWithAnnotations> VariableTypes;
+            internal readonly Variables Variables;
             internal readonly Symbol Symbol;
 
-            internal SharedWalkerState(
-                PooledDictionary<VariableIdentifier, int> variableSlot,
-                ArrayBuilder<VariableIdentifier> variableBySlot,
-                PooledDictionary<Symbol, TypeWithAnnotations> variableTypes,
-                Symbol symbol)
+            internal SharedWalkerState(Variables variables, Symbol symbol)
             {
-                VariableSlot = variableSlot;
-                VariableBySlot = variableBySlot;
-                VariableTypes = variableTypes;
+                Variables = variables;
                 Symbol = symbol;
             }
         }

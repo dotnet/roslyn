@@ -34,28 +34,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal sealed class VariableState
         {
-            internal readonly PooledDictionary<VariableIdentifier, int> VariableSlot;
-            internal readonly ArrayBuilder<VariableIdentifier> VariableBySlot;
-            internal readonly PooledDictionary<Symbol, TypeWithAnnotations> VariableTypes;
+            internal readonly Variables Variables;
 
             // The nullable state of all variables captured at the point where the function or lambda appeared.
             internal readonly LocalState VariableNullableStates;
 
-            internal VariableState(
-                PooledDictionary<VariableIdentifier, int> variableSlot,
-                ArrayBuilder<VariableIdentifier> variableBySlot,
-                PooledDictionary<Symbol, TypeWithAnnotations> variableTypes,
-                LocalState variableNullableStates)
+            internal VariableState(Variables variables, LocalState variableNullableStates)
             {
-                VariableSlot = variableSlot;
-                VariableBySlot = variableBySlot;
-                VariableTypes = variableTypes;
+                Variables = variables;
                 VariableNullableStates = variableNullableStates;
             }
 
             internal VariableState Clone()
             {
-                return new VariableState(VariableSlot, VariableBySlot, VariableTypes, VariableNullableStates.Clone());
+                return new VariableState(Variables, VariableNullableStates.Clone());
             }
         }
 
@@ -120,22 +112,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly struct VisitArgumentResult
         {
             public readonly VisitResult VisitResult;
-            public readonly Optional<LocalState> StateForLambda;
+            public readonly VariableState? StateForLambda;
 
             public TypeWithState RValueType => VisitResult.RValueType;
             public TypeWithAnnotations LValueType => VisitResult.LValueType;
 
-            public VisitArgumentResult(VisitResult visitResult, Optional<LocalState> stateForLambda)
+            public VisitArgumentResult(VisitResult visitResult, VariableState? stateForLambda)
             {
                 VisitResult = visitResult;
                 StateForLambda = stateForLambda;
             }
         }
 
-        /// <summary>
-        /// The inferred type at the point of declaration of var locals and parameters.
-        /// </summary>
-        private readonly PooledDictionary<Symbol, TypeWithAnnotations> _variableTypes = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<Symbol, TypeWithAnnotations>();
+        private readonly Variables _variables;
 
         /// <summary>
         /// Binder for symbol being analyzed.
@@ -370,8 +359,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _awaitablePlaceholdersOpt?.Free();
             _methodGroupReceiverMapOpt?.Free();
-            // PROTOTYPE:
-            //_variableTypes.Free();
             _placeholderLocalsOpt?.Free();
             base.Free();
         }
@@ -390,11 +377,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)>.Builder? analyzedNullabilityMapOpt,
             SnapshotManager.Builder? snapshotBuilderOpt,
             bool isSpeculative = false)
-            // Members of variables are tracked up to a fixed depth, to avoid cycles. The
-            // maxSlotDepth value is arbitrary but large enough to allow most scenarios.
-            : base(compilation, symbol, node, EmptyStructTypeCache.CreatePrecise(), trackUnassignments: true, maxSlotDepth: 5)
+            : base(compilation, symbol, node, EmptyStructTypeCache.CreatePrecise(), trackUnassignments: true)
         {
             Debug.Assert(!useDelegateInvokeParameterTypes || delegateInvokeMethodOpt is object);
+
+            _variables = initialState?.Variables ?? new Variables();
             _binder = binder;
             _conversions = (Conversions)conversions.WithNullability(true);
             _useConstructorExitWarnings = useConstructorExitWarnings;
@@ -409,10 +396,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (initialState != null)
             {
                 _hasInitialState = true;
-                CopyDictionary(initialState.VariableSlot, _variableSlot);
-                CopyList(initialState.VariableBySlot, variableBySlot);
-                CopyDictionary(initialState.VariableTypes, _variableTypes);
-                nextVariableSlot = variableBySlot.Count;
                 this.State = initialState.VariableNullableStates.Clone();
             }
             else
@@ -501,6 +484,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
             return true;
+        }
+
+        protected override bool TryGetVariable(VariableIdentifier identifier, out int slot)
+        {
+            return _variables.TryGetValue(identifier, out slot);
+        }
+
+        protected override int AddVariable(VariableIdentifier identifier)
+        {
+            return _variables.Add(identifier);
         }
 
         protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
@@ -1435,7 +1428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (getFinalNullableState)
                 {
                     Debug.Assert(!walker.IsConditionalState);
-                    finalNullableState = walker.GetVariableState(walker.State);
+                    finalNullableState = new VariableState(walker._variables, walker.State);
                 }
             }
             finally
@@ -1477,18 +1470,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    state.TryAdd(key, new Data(walker._variableSlot.Count, requiresAnalysis));
+                    state.TryAdd(key, new Data(walker._variables.Count - 1, requiresAnalysis));
                 }
             }
         }
 
         private SharedWalkerState SaveSharedState()
         {
-            return new SharedWalkerState(
-                _variableSlot,
-                variableBySlot,
-                _variableTypes,
-                CurrentSymbol);
+            return new SharedWalkerState(_variables, CurrentSymbol);
         }
 
         private void TakeIncrementalSnapshot(BoundNode? node)
@@ -1539,7 +1528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
 
             int oldNext = state.Capacity;
-            state.EnsureCapacity(nextVariableSlot);
+            state.EnsureCapacity(_variables.Count);
             Populate(ref state, oldNext);
         }
 
@@ -1564,7 +1553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!state.Reachable)
                 return NullableFlowState.NotNull;
 
-            var variable = variableBySlot[slot];
+            var variable = _variables[slot];
             var symbol = variable.Symbol;
 
             switch (symbol.Kind)
@@ -1572,7 +1561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Local:
                     {
                         var local = (LocalSymbol)symbol;
-                        if (!_variableTypes.TryGetValue(local, out TypeWithAnnotations localType))
+                        if (!_variables.TryGetType(local, out TypeWithAnnotations localType))
                         {
                             localType = local.TypeWithAnnotations;
                         }
@@ -1581,7 +1570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Parameter:
                     {
                         var parameter = (ParameterSymbol)symbol;
-                        if (!_variableTypes.TryGetValue(parameter, out TypeWithAnnotations parameterType))
+                        if (!_variables.TryGetType(parameter, out TypeWithAnnotations parameterType))
                         {
                             parameterType = parameter.TypeWithAnnotations;
                         }
@@ -2302,7 +2291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbol NominalSlotType(int slot)
         {
-            return variableBySlot[slot].Symbol.GetTypeOrReturnType().Type;
+            return _variables[slot].Symbol.GetTypeOrReturnType().Type;
         }
 
         /// <summary>
@@ -2327,9 +2316,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(targetSlot > 0);
 
             // Reset the state of any members of the target.
-            for (int slot = targetSlot + 1; slot < nextVariableSlot; slot++)
+            for (int slot = targetSlot + 1; slot < _variables.Count; slot++)
             {
-                var variable = variableBySlot[slot];
+                var variable = _variables[slot];
                 if (variable.ContainingSlot != targetSlot)
                     continue;
 
@@ -2348,9 +2337,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(valueSlot > 0);
 
             // Clone the state for members that have been set on the value.
-            for (int slot = valueSlot + 1; slot < nextVariableSlot; slot++)
+            for (int slot = valueSlot + 1; slot < _variables.Count; slot++)
             {
-                var variable = variableBySlot[slot];
+                var variable = _variables[slot];
                 if (variable.ContainingSlot != valueSlot)
                 {
                     continue;
@@ -2363,7 +2352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalState TopState()
         {
-            var state = LocalState.ReachableState(capacity: nextVariableSlot);
+            var state = LocalState.ReachableState(capacity: _variables.Count);
             Populate(ref state, start: 1);
             return state;
         }
@@ -2376,7 +2365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override LocalState ReachableBottomState()
         {
             // Create a reachable state in which all variables are known to be non-null.
-            return LocalState.ReachableState(capacity: nextVariableSlot);
+            return LocalState.ReachableState(capacity: _variables.Count);
         }
 
         private void EnterParameters()
@@ -2426,7 +2415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void EnterParameter(ParameterSymbol parameter, TypeWithAnnotations parameterType)
         {
-            _variableTypes[parameter] = parameterType;
+            _variables.SetType(parameter, parameterType);
             int slot = GetOrCreateSlot(parameter);
 
             Debug.Assert(!IsConditionalState);
@@ -2694,7 +2683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var state = TopState();
             for (int slot = 1; slot < localFunctionState.StartingState.Capacity; slot++)
             {
-                var symbol = variableBySlot[RootSlot(slot)].Symbol;
+                var symbol = _variables[_variables.RootSlot(slot)].Symbol;
                 if (Symbol.IsCaptured(symbol, localFunc))
                 {
                     state[slot] = localFunctionState.StartingState[slot];
@@ -2736,10 +2725,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldState = this.State;
             this.State = state;
 
-            PooledDictionary<VariableIdentifier, int>? oldVariableSlot = null;
-            PooledDictionary<Symbol, TypeWithAnnotations>? oldVariableTypes = null;
-            ArrayBuilder<VariableIdentifier>? oldVariableBySlot = null;
-            int oldNextVariableSlot = nextVariableSlot;
+            ArrayBuilder<(VariableIdentifier, int)>? oldVariableSlot = null;
+            ArrayBuilder<(Symbol, TypeWithAnnotations)>? oldVariableTypes = null;
 
             // As an optimization, if the entire method is simple enough,
             // we'll reset the set of variable slots and types after analyzing the nested function,
@@ -2753,12 +2740,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // those nodes that might be invalidated if we drop the associated slots or types.
             if (_isSimpleMethod)
             {
-                oldVariableSlot = PooledDictionary<VariableIdentifier, int>.GetInstance();
-                CopyDictionary(_variableSlot, oldVariableSlot);
-                oldVariableTypes = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<Symbol, TypeWithAnnotations>();
-                CopyDictionary(_variableTypes, oldVariableTypes);
-                oldVariableBySlot = ArrayBuilder<VariableIdentifier>.GetInstance(variableBySlot.Count);
-                CopyList(variableBySlot, oldVariableBySlot);
+                oldVariableSlot = ArrayBuilder<(VariableIdentifier, int)>.GetInstance();
+                oldVariableTypes = ArrayBuilder<(Symbol, TypeWithAnnotations)>.GetInstance();
+                _variables.Save(oldVariableSlot, oldVariableTypes);
             }
 
             var previousSlot = _snapshotBuilderOpt?.EnterNewWalker(lambdaOrFunctionSymbol) ?? -1;
@@ -2804,12 +2788,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_isSimpleMethod)
             {
-                nextVariableSlot = oldNextVariableSlot;
-                CopyList(oldVariableBySlot!, variableBySlot);
-                oldVariableBySlot!.Free();
-                CopyDictionary(oldVariableTypes!, _variableTypes);
+                _variables.Restore(oldVariableSlot!, oldVariableTypes!);
                 oldVariableTypes!.Free();
-                CopyDictionary(oldVariableSlot!, _variableSlot);
                 oldVariableSlot!.Free();
             }
 
@@ -2818,22 +2798,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _useDelegateInvokeParameterTypes = oldUseDelegateInvokeParameterTypes;
             _delegateInvokeMethod = oldDelegateInvokeMethod;
             this.CurrentSymbol = oldSymbol;
-        }
-
-        private static void CopyDictionary<TKey, TValue>(Dictionary<TKey, TValue> source, Dictionary<TKey, TValue> destination)
-            where TKey : notnull
-        {
-            destination.Clear();
-            foreach (var pair in source)
-            {
-                destination.Add(pair.Key, pair.Value);
-            }
-        }
-
-        private static void CopyList<T>(ArrayBuilder<T> source, ArrayBuilder<T> destination)
-        {
-            destination.Clear();
-            destination.AddRange(source);
         }
 
         protected override void VisitLocalFunctionUse(
@@ -3001,7 +2965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 type = valueType.ToAnnotatedTypeWithAnnotations(compilation);
-                _variableTypes[local] = type;
+                _variables.SetType(local, type);
 
                 if (node.DeclaredTypeOpt != null)
                 {
@@ -5366,7 +5330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private VisitArgumentResult VisitArgumentEvaluate(BoundExpression argument, RefKind refKind, FlowAnalysisAnnotations annotations)
         {
             Debug.Assert(!IsConditionalState);
-            var savedState = (argument.Kind == BoundKind.Lambda) ? this.State.Clone() : default(Optional<LocalState>);
+            var savedState = (argument.Kind == BoundKind.Lambda) ? new VariableState(_variables, this.State.Clone()) : null;
             // Note: DoesNotReturnIf is ineffective on ref/out parameters
 
             switch (refKind)
@@ -5615,7 +5579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                         {
                             var varType = worstCaseParameterWithState.ToAnnotatedTypeWithAnnotations(compilation);
-                            _variableTypes[local.LocalSymbol] = varType;
+                            _variables.SetType(local.LocalSymbol, varType);
                             lValueType = varType;
                         }
                         else if (argument is BoundDiscardExpression discard)
@@ -5841,15 +5805,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (arguments, conversions);
         }
 
-        private VariableState GetVariableState(Optional<LocalState> localState)
-        {
-            return new VariableState(
-                _variableSlot,
-                variableBySlot,
-                _variableTypes,
-                localState.HasValue ? localState.Value : this.State.Clone());
-        }
-
         private (ParameterSymbol? Parameter, TypeWithAnnotations Type, FlowAnalysisAnnotations Annotations, bool isExpandedParamsArgument) GetCorrespondingParameter(
             int argumentOrdinal,
             ImmutableArray<ParameterSymbol> parametersOpt,
@@ -6006,14 +5961,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return builder.ToImmutableAndFree();
 
-            BoundExpression getArgumentForMethodTypeInference(BoundExpression argument, TypeWithAnnotations argumentType, Optional<LocalState> lambdaState)
+            BoundExpression getArgumentForMethodTypeInference(BoundExpression argument, TypeWithAnnotations argumentType, VariableState? lambdaState)
             {
                 if (argument.Kind == BoundKind.Lambda)
                 {
+                    Debug.Assert(lambdaState is { });
                     // MethodTypeInferrer must infer nullability for lambdas based on the nullability
                     // from flow analysis rather than the declared nullability. To allow that, we need
                     // to re-bind lambdas in MethodTypeInferrer.
-                    return getUnboundLambda((BoundLambda)argument, GetVariableState(lambdaState));
+                    return getUnboundLambda((BoundLambda)argument, lambdaState);
                 }
                 if (!argumentType.HasType)
                 {
@@ -6682,7 +6638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Gets the conversion node for passing to <see cref="VisitConversion(BoundConversion, BoundExpression, Conversion, TypeWithAnnotations, TypeWithState, bool, bool, bool, AssignmentKind, ParameterSymbol, bool, bool, bool, Optional{LocalState}, bool, Location)"/>,
+        /// Gets the conversion node for passing to <see cref="VisitConversion(BoundConversion, BoundExpression, Conversion, TypeWithAnnotations, TypeWithState, bool, bool, bool, AssignmentKind, ParameterSymbol, bool, bool, bool, VariableState, bool, Location)"/>,
         /// if one should be passed.
         /// </summary>
         private static BoundConversion? GetConversionIfApplicable(BoundExpression? conversionOpt, BoundExpression convertedNode)
@@ -6718,7 +6674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reportTopLevelWarnings = true,
             bool reportRemainingWarnings = true,
             bool extensionMethodThisArgument = false,
-            Optional<LocalState> stateForLambda = default,
+            VariableState? stateForLambda = null,
             bool trackMembers = false,
             Location? diagnosticLocationOpt = null)
         {
@@ -7531,7 +7487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitLambda(BoundLambda node, NamedTypeSymbol? delegateTypeOpt, Optional<LocalState> initialState = default)
+        private void VisitLambda(BoundLambda node, NamedTypeSymbol? delegateTypeOpt, VariableState? initialState = null)
         {
             Debug.Assert(delegateTypeOpt?.IsDelegateType() != false);
 
@@ -7545,7 +7501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzeLocalFunctionOrLambda(
                 node,
                 node.Symbol,
-                initialState.HasValue ? initialState.Value : State.Clone(),
+                initialState?.VariableNullableStates ?? State.Clone(),
                 delegateInvokeMethod,
                 useDelegateInvokeParameterTypes);
         }
@@ -7894,7 +7850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         VisitArgumentOutboundAssignmentsAndPostConditions(
                             variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetRValueAnnotations(parameter),
-                            new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default),
+                            new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: null),
                             notNullParametersOpt: null, compareExchangeInfoOpt: default);
                     }
                 }
@@ -7932,7 +7888,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // when the LHS is a var declaration, we can just visit the right part to infer the type
                             valueType = operandType = VisitRvalueWithState(rightPart);
-                            _variableTypes[local.LocalSymbol] = operandType.ToAnnotatedTypeWithAnnotations(compilation);
+                            _variables.SetType(local.LocalSymbol, operandType.ToAnnotatedTypeWithAnnotations(compilation));
                         }
                         else
                         {
@@ -8304,14 +8260,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeWithAnnotations GetDeclaredLocalResult(LocalSymbol local)
         {
-            return _variableTypes.TryGetValue(local, out TypeWithAnnotations type) ?
+            return _variables.TryGetType(local, out TypeWithAnnotations type) ?
                 type :
                 local.TypeWithAnnotations;
         }
 
         private TypeWithAnnotations GetDeclaredParameterResult(ParameterSymbol parameter)
         {
-            return _variableTypes.TryGetValue(parameter, out TypeWithAnnotations type) ?
+            return _variables.TryGetType(parameter, out TypeWithAnnotations type) ?
                 type :
                 parameter.TypeWithAnnotations;
         }
@@ -8743,7 +8699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // foreach (var variable in collection)
                             destinationType = sourceState.ToAnnotatedTypeWithAnnotations(compilation);
-                            _variableTypes[iterationVariable] = destinationType;
+                            _variables.SetType(iterationVariable, destinationType);
                             resultForType = destinationType.ToTypeWithState();
                         }
                         else
@@ -9704,14 +9660,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             string? nameForSlot(int slot)
             {
-                if (slot < 0)
-                    return null;
-                VariableIdentifier id = this.variableBySlot[slot];
-                var name = id.Symbol?.Name;
-                if (name == null)
-                    return null;
-                return nameForSlot(id.ContainingSlot) is string containingSlotName
-                    ? containingSlotName + "." + name : name;
+                VariableIdentifier id = this._variables[slot];
+                var name = id.Symbol.Name;
+                int containingSlot = id.ContainingSlot;
+                return containingSlot > 0 ?
+                    nameForSlot(containingSlot) + "." + name :
+                    name;
             }
         }
 
