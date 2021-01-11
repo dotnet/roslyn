@@ -125,28 +125,40 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var stream = localPipe.Reader.AsStream(leaveOpen: false);
                 return ReadData(stream, scopeId, checksums, serializerService, cancellationToken);
             }
-            catch (EndOfStreamException)
+            catch (EndOfStreamException e) when (IsExpectedEndOfStreamException(e, exception, cancellationToken))
             {
-                // The local pipe is only closed in the 'finally' block of 'copyTask'. If the reader fails with an
-                // EndOfStreamException, we known 'copyTask' has already completed its work.
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (exception is not null)
-                {
-                    // An exception occurred while attempting to copy data to the local pipe. Throw the exception that
-                    // occurred during that copy operation.
-                    throw exception;
-                }
-
-                // The reader attempted to read more data than was copied to the local pipe. Rethrow the exception to
-                // reveal the faulty read stack.
-                throw;
+                throw exception ?? ExceptionUtilities.Unreachable;
             }
             finally
             {
                 // Make sure to complete the copy and pipes before returning, otherwise the caller could complete the
                 // reader and/or writer while they are still in use.
                 await copyTask.ConfigureAwait(false);
+            }
+
+            // Local functions
+            static bool IsExpectedEndOfStreamException(EndOfStreamException e, Exception? copyException, CancellationToken cancellationToken)
+            {
+                // The local pipe is only closed in the 'finally' block of 'copyTask'. If the reader fails with an
+                // EndOfStreamException, we known 'copyTask' has already completed its work.
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    // The writer closed early due to a cancellation request.
+                    return true;
+                }
+
+                if (copyException is not null)
+                {
+                    // An exception occurred while attempting to copy data to the local pipe. Catch and throw the
+                    // exception that occurred during that copy operation.
+                    return true;
+                }
+
+                // The reader attempted to read more data than was copied to the local pipe. Avoid catching the
+                // exception to reveal the faulty read stack in telemetry.
+                return false;
             }
         }
 
