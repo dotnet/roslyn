@@ -14,7 +14,7 @@ using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 
 namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
 {
-    internal abstract class SimplifyLinqExpressionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal abstract class AbstractSimplifyLinqExpressionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private readonly ImmutableArray<string> _nonEnumerableReturningLinqMethodNames =
             ImmutableArray.Create(
