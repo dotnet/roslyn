@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable disable
 
         private MethodBodySemanticModel(
-            Symbol owner,
+            MethodSymbol owner,
             Binder rootBinder,
             CSharpSyntaxNode syntax,
             SyntaxTreeSemanticModel containingSemanticModelOpt = null,
@@ -307,6 +307,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots)
         {
             NullableWalker.AnalyzeWithoutRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots);
+        }
+
+        protected override bool IsNullableAnalysisEnabled()
+        {
+            return Compilation.IsNullableAnalysisEnabledIn((MethodSymbol)MemberSymbol);
         }
     }
 }

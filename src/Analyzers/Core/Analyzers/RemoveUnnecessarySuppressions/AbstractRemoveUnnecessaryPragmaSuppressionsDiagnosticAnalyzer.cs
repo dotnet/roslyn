@@ -460,16 +460,46 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             {
                 var analyzers = analyzersBuilder.ToImmutable();
 
-                var syntaxDiagnostics = await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel.SyntaxTree, analyzers, cancellationToken).ConfigureAwait(false);
+                var analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel.SyntaxTree, analyzers, cancellationToken).ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
-                reportedDiagnostics.AddRange(syntaxDiagnostics);
+                if (analysisResult.SyntaxDiagnostics.TryGetValue(semanticModel.SyntaxTree, out var diagnostics))
+                {
+                    AddAllDiagnostics(diagnostics, reportedDiagnostics);
+                }
 
-                var semanticDiagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, filterSpan: null, analyzers, cancellationToken).ConfigureAwait(false);
+                analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel, filterSpan: null, analyzers, cancellationToken).ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
-                reportedDiagnostics.AddRange(semanticDiagnostics);
+                if (analysisResult.SemanticDiagnostics.TryGetValue(semanticModel.SyntaxTree, out diagnostics))
+                {
+                    AddAllDiagnostics(diagnostics, reportedDiagnostics);
+                }
+
+                AddAllCompilationDiagnosticsForTree(analysisResult, semanticModel.SyntaxTree, reportedDiagnostics);
             }
 
             return (reportedDiagnostics.ToImmutable(), unhandledIds.ToImmutable());
+
+            static void AddAllDiagnostics(ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> diagnostics, ArrayBuilder<Diagnostic> reportedDiagnostics)
+            {
+                foreach (var perAnalyzerDiagnostics in diagnostics.Values)
+                {
+                    reportedDiagnostics.AddRange(perAnalyzerDiagnostics);
+                }
+            }
+
+            static void AddAllCompilationDiagnosticsForTree(AnalysisResult analysisResult, SyntaxTree tree, ArrayBuilder<Diagnostic> reportedDiagnostics)
+            {
+                foreach (var perAnalyzerDiagnostics in analysisResult.CompilationDiagnostics.Values)
+                {
+                    foreach (var diagnostic in perAnalyzerDiagnostics)
+                    {
+                        if (diagnostic.Location.SourceTree == tree)
+                        {
+                            reportedDiagnostics.Add(diagnostic);
+                        }
+                    }
+                }
+            }
         }
 
         private static async Task ProcessReportedDiagnosticsAsync(

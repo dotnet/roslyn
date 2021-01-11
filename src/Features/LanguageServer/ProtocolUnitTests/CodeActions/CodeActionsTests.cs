@@ -248,10 +248,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 
         private static Document GetDocument(Workspace workspace, LSP.TextDocumentIdentifier textDocument)
         {
-            var exportProvider = ((TestWorkspace)workspace).ExportProvider.GetExportedValue<ILspSolutionProvider>();
-            var result = Assert.IsType<TestLspSolutionProvider>(exportProvider);
-
-            return result.GetDocument(textDocument);
+            return workspace.CurrentSolution.GetDocument(textDocument);
         }
     }
 }

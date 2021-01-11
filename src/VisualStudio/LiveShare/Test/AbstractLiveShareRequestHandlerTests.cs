@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
     {
         private static readonly TestComposition s_composition = LiveShareTestCompositions.Features.AddParts(
             typeof(MockDocumentNavigationServiceFactory),
-            typeof(TestLspSolutionProvider));
+            typeof(TestLspWorkspaceRegistrationService));
 
         private class MockHostProtocolConverter : IHostProtocolConverter
         {
