@@ -3934,7 +3934,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GetCommonExpressionType(
             symbolReference As VisualBasicSyntaxNode,
             symbols As ImmutableArray(Of Symbol),
-            constantFieldsInProgress As SymbolsInProgress(Of FieldSymbol)
+            constantFieldsInProgress As ConstantFieldsInProgress
         ) As TypeSymbol
             Dim commonType As TypeSymbol = Nothing
             Dim commonName As String = Nothing
@@ -3980,7 +3980,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GetExpressionType(
             symbolReference As VisualBasicSyntaxNode,
             s As Symbol,
-            constantFieldsInProgress As SymbolsInProgress(Of FieldSymbol),
+            constantFieldsInProgress As ConstantFieldsInProgress,
             diagnostics As DiagnosticBag
         ) As TypeSymbol
             Select Case s.Kind

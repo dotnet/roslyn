@@ -1165,8 +1165,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                      boundForEachStatement.EnumeratorInfo.NeedToDispose,
                                                      knownToImplementIDisposable:=boundForEachStatement.EnumeratorInfo.NeedToDispose AndAlso
                                                                                   boundForEachStatement.EnumeratorInfo.IsOrInheritsFromOrImplementsIDisposable,
-                                                     disposeMethod:=Nothing,
-                                                     isPatternDispose:=False,
+                                                     patternDisposeMethod:=Nothing,
                                                      statementInfo.CurrentConversion,
                                                      statementInfo.ElementConversion,
                                                      If(getEnumeratorArguments.IsDefaultOrEmpty, Nothing,

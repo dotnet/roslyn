@@ -237,7 +237,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argsToParamsOpt: default(ImmutableArray<int>),
                     defaultArguments: default(BitVector),
                     resultKind: resultKind,
-                    binderOpt: null,
                     type: type);
             }
             else
@@ -254,7 +253,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default(ImmutableArray<int>),
                     default(BitVector),
                     node.ResultKind,
-                    node.BinderOpt,
                     node.Type);
             }
 
@@ -554,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static ImmutableArray<IArgumentOperation> MakeArgumentsInEvaluationOrder(
             CSharpOperationFactory operationFactory,
-            Binder binder,
+            CSharpCompilation compilation,
             SyntaxNode syntax,
             ImmutableArray<BoundExpression> arguments,
             Symbol methodOrIndexer,
@@ -598,8 +596,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return argumentsBuilder.ToImmutableAndFree();
             }
 
-            Debug.Assert(binder != null);
-
             return BuildArgumentsInEvaluationOrder(
                 operationFactory,
                 syntax,
@@ -608,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 defaultArguments,
                 arguments,
-                binder);
+                compilation);
         }
 
         // temporariesBuilder will be null when factory is null.
@@ -757,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
             ImmutableArray<BoundExpression> arguments,
-            Binder binder)
+            CSharpCompilation compilation)
         {
             ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
 
@@ -796,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Set loop variable so the value for next iteration will be the index of the first non param-array argument after param-array argument(s).
                     a = firstNonParamArrayArgumentIndex - 1;
 
-                    argument = CreateParamArrayArgument(syntax, parameter.Type, paramArray.ToImmutableAndFree(), null, binder);
+                    argument = CreateParamArrayArgument(syntax, parameter.Type, paramArray.ToImmutableAndFree(), compilation, localRewriter: null);
                 }
 
                 argumentsInEvaluationBuilder.Add(operationFactory.CreateArgumentOperation(kind, parameter.GetPublicSymbol(), argument));
@@ -809,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(lastParam.IsParams);
 
                 // Create an empty array for omitted param array argument.
-                BoundExpression argument = CreateParamArrayArgument(syntax, lastParam.Type, ImmutableArray<BoundExpression>.Empty, null, binder);
+                BoundExpression argument = CreateParamArrayArgument(syntax, lastParam.Type, ImmutableArray<BoundExpression>.Empty, compilation, localRewriter: null);
                 ArgumentKind kind = ArgumentKind.ParamArray;
 
                 argumentsInEvaluationBuilder.Add(operationFactory.CreateArgumentOperation(kind, lastParam.GetPublicSymbol(), argument));
@@ -914,23 +910,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argsToParamsOpt: default(ImmutableArray<int>),
                         defaultArguments: default(BitVector),
                         resultKind: LookupResultKind.Viable,
-                        binderOpt: null,
                         type: arrayEmpty.ReturnType);
                 }
             }
 
-            return CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, this, null);
+            return CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, _compilation, this);
         }
 
         private static BoundExpression CreateParamArrayArgument(SyntaxNode syntax,
             TypeSymbol paramArrayType,
             ImmutableArray<BoundExpression> arrayArgs,
-            LocalRewriter? localRewriter,
-            Binder? binder)
+            CSharpCompilation compilation,
+            LocalRewriter? localRewriter)
         {
-            Debug.Assert(localRewriter == null ^ binder == null);
 
-            TypeSymbol int32Type = (localRewriter != null ? localRewriter._compilation : binder!.Compilation).GetSpecialType(SpecialType.System_Int32);
+            TypeSymbol int32Type = compilation.GetSpecialType(SpecialType.System_Int32);
             BoundExpression arraySize = MakeLiteral(syntax, ConstantValue.Create(arrayArgs.Length), int32Type, localRewriter);
 
             return new BoundArrayCreation(

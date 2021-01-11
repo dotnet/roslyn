@@ -1505,6 +1505,31 @@ BC30652: Reference required to assembly 'UseSiteError_sourceA, Version=0.0.0.0, 
                     ~~~
 </expected>)
         End Sub
+
+        <Fact>
+        <WorkItem(50163, "https://github.com/dotnet/roslyn/issues/50163")>
+        Public Sub LongDependencyChain()
+            Dim text As New StringBuilder()
+
+            text.AppendLine(
+"
+Enum Test
+    Item0 = 1
+")
+            For i As Integer = 1 To 2000
+                text.AppendLine()
+                text.AppendFormat("    Item{1} = Item{0} + 1", i - 1, i)
+            Next
+
+            text.AppendLine(
+"
+End Enum
+")
+
+            Dim comp = CreateCompilation(text.ToString())
+            Dim item2000 = comp.GetMember(Of FieldSymbol)("Test.Item2000")
+            Assert.Equal(2001, item2000.ConstantValue)
+        End Sub
     End Class
 
 End Namespace

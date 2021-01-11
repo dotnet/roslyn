@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -114,8 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement? rewrittenBody = VisitStatement(node.Body);
             Debug.Assert(rewrittenBody is { });
 
-            MethodSymbol getEnumeratorMethod = enumeratorInfo.GetEnumeratorMethod;
-            TypeSymbol enumeratorType = getEnumeratorMethod.ReturnType;
+            MethodArgumentInfo getEnumeratorInfo = enumeratorInfo.GetEnumeratorInfo;
+            TypeSymbol enumeratorType = getEnumeratorInfo.Method.ReturnType;
             TypeSymbol elementType = enumeratorInfo.ElementType;
 
             // E e
@@ -124,13 +125,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Reference to e.
             BoundLocal boundEnumeratorVar = MakeBoundLocal(forEachSyntax, enumeratorVar, enumeratorType);
 
+            var receiver = ConvertReceiverForInvocation(forEachSyntax, rewrittenExpression, getEnumeratorInfo.Method, enumeratorInfo.CollectionConversion, enumeratorInfo.CollectionType);
+
+            // If the GetEnumerator call is an extension method, then the first argument is the receiver. We want to replace
+            // the first argument with our converted receiver and pass null as the receiver instead.
+            if (getEnumeratorInfo.Method.IsExtensionMethod)
+            {
+                var builder = ArrayBuilder<BoundExpression>.GetInstance(getEnumeratorInfo.Arguments.Length);
+                builder.Add(receiver);
+                builder.AddRange(getEnumeratorInfo.Arguments, 1, getEnumeratorInfo.Arguments.Length - 1);
+                getEnumeratorInfo = getEnumeratorInfo with { Arguments = builder.ToImmutableAndFree() };
+
+                receiver = null;
+            }
+
             // ((C)(x)).GetEnumerator();  OR  (x).GetEnumerator();  OR  async variants (which fill-in arguments for optional parameters)
-            BoundExpression enumeratorVarInitValue = SynthesizeCall(
-                enumeratorInfo.Binder,
-                forEachSyntax,
-                ConvertReceiverForInvocation(forEachSyntax, rewrittenExpression, getEnumeratorMethod, enumeratorInfo.CollectionConversion, enumeratorInfo.CollectionType),
-                getEnumeratorMethod,
-                allowExtensionAndOptionalParameters: isAsync || getEnumeratorMethod.IsExtensionMethod);
+            BoundExpression enumeratorVarInitValue = SynthesizeCall(getEnumeratorInfo, forEachSyntax, receiver,
+                allowExtensionAndOptionalParameters: isAsync || getEnumeratorInfo.Method.IsExtensionMethod,
+                // C# 8 shipped allowing the CancellationToken of `IAsyncEnumerable.GetAsyncEnumerator` to be non-optional.
+                // https://github.com/dotnet/roslyn/issues/50182 tracks making this an error and breaking the scenario.
+                assertParametersAreOptional: false);
 
             // E e = ((C)(x)).GetEnumerator();
             BoundStatement enumeratorVarDecl = MakeLocalDeclaration(forEachSyntax, enumeratorVar, enumeratorVarInitValue);
@@ -145,8 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenOperand: BoundCall.Synthesized(
                         syntax: forEachSyntax,
                         receiverOpt: boundEnumeratorVar,
-                        method: enumeratorInfo.CurrentPropertyGetter,
-                        binder: null),
+                        method: enumeratorInfo.CurrentPropertyGetter),
                     conversion: enumeratorInfo.CurrentConversion,
                     rewrittenType: elementType,
                     @checked: node.Checked),
@@ -169,10 +182,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rewrittenBodyBlock = CreateBlockDeclaringIterationVariables(iterationVariables, iterationVarDecl, rewrittenBody, forEachSyntax);
             BoundExpression rewrittenCondition = SynthesizeCall(
-                    binder: enumeratorInfo.Binder,
+                    methodArgumentInfo: enumeratorInfo.MoveNextInfo,
                     syntax: forEachSyntax,
                     receiver: boundEnumeratorVar,
-                    method: enumeratorInfo.MoveNextMethod,
                     allowExtensionAndOptionalParameters: isAsync);
             if (isAsync)
             {
@@ -248,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol? idisposableTypeSymbol = null;
             bool isImplicit = false;
-            MethodSymbol? disposeMethod = enumeratorInfo.DisposeMethod; // pattern-based
+            MethodSymbol? disposeMethod = enumeratorInfo.PatternDisposeInfo?.Method; // pattern-based
 
             if (disposeMethod is null)
             {
@@ -270,16 +282,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                location: enumeratorInfo.Location);
 
             BoundBlock finallyBlockOpt;
-            if (isImplicit || !(enumeratorInfo.DisposeMethod is null))
+            if (isImplicit || !(enumeratorInfo.PatternDisposeInfo is null))
             {
                 Conversion receiverConversion = enumeratorType.IsStructType() ?
                     Conversion.Boxing :
                     Conversion.ImplicitReference;
 
                 BoundExpression receiver;
-                if (enumeratorInfo.DisposeMethod is null)
+                BoundExpression disposeCall;
+                var disposeInfo = enumeratorInfo.PatternDisposeInfo;
+                if (disposeInfo is null)
                 {
                     Debug.Assert(idisposableTypeSymbol is { });
+                    disposeInfo = MethodArgumentInfo.CreateParameterlessMethod(disposeMethod);
                     receiver = ConvertReceiverForInvocation(forEachSyntax, boundEnumeratorVar, disposeMethod, receiverConversion, idisposableTypeSymbol);
                 }
                 else
@@ -288,11 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // ((IDisposable)e).Dispose() or e.Dispose() or await ((IAsyncDisposable)e).DisposeAsync() or await e.DisposeAsync()
-                BoundExpression disposeCall = MakeCallWithNoExplicitArgument(
-                    enumeratorInfo.Binder,
-                    forEachSyntax,
-                    receiver,
-                    disposeMethod);
+                disposeCall = MakeCallWithNoExplicitArgument(disposeInfo, forEachSyntax, receiver);
 
                 BoundStatement disposeCallStatement;
                 var disposeAwaitableInfoOpt = enumeratorInfo.DisposeAwaitableInfo;
@@ -377,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement disposableVarDecl = MakeLocalDeclaration(forEachSyntax, disposableVar, disposableVarInitValue);
 
                 // d.Dispose()
-                BoundExpression disposeCall = BoundCall.Synthesized(syntax: forEachSyntax, receiverOpt: boundDisposableVar, method: disposeMethod, binder: null);
+                BoundExpression disposeCall = BoundCall.Synthesized(syntax: forEachSyntax, receiverOpt: boundDisposableVar, method: disposeMethod);
                 BoundStatement disposeCallStatement = new BoundExpressionStatement(forEachSyntax, expression: disposeCall);
 
                 // if (d != null) d.Dispose();
@@ -486,16 +497,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return receiver;
         }
 
-        private BoundExpression SynthesizeCall(Binder binder, CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method, bool allowExtensionAndOptionalParameters)
+        private BoundExpression SynthesizeCall(MethodArgumentInfo methodArgumentInfo, CSharpSyntaxNode syntax, BoundExpression? receiver, bool allowExtensionAndOptionalParameters, bool assertParametersAreOptional = true)
         {
             if (allowExtensionAndOptionalParameters)
             {
                 // Generate a call with zero explicit arguments, but with implicit arguments for optional and params parameters.
-                return MakeCallWithNoExplicitArgument(binder, syntax, receiver, method);
+                return MakeCallWithNoExplicitArgument(methodArgumentInfo, syntax, receiver, assertParametersAreOptional);
             }
 
             // Generate a call with literally zero arguments
-            return BoundCall.Synthesized(syntax, receiver, method, arguments: ImmutableArray<BoundExpression>.Empty, binder: null);
+            Debug.Assert(methodArgumentInfo.Arguments.IsEmpty);
+            return BoundCall.Synthesized(syntax, receiver, methodArgumentInfo.Method, arguments: ImmutableArray<BoundExpression>.Empty);
         }
 
         /// <summary>
@@ -558,8 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax: forEachSyntax,
                     receiverOpt: boundArrayVar,
                     indexerGet,
-                    boundPositionVar,
-                    binder: null),
+                    boundPositionVar),
                 conversion: node.ElementConversion,
                 rewrittenType: node.IterationVariableType.Type,
                 @checked: node.Checked);
@@ -577,8 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression arrayLength = BoundCall.Synthesized(
                 syntax: forEachSyntax,
                 receiverOpt: boundArrayVar,
-                lengthGet,
-                binder: null);
+                lengthGet);
 
             // p < a.Length
             BoundExpression exitCondition = new BoundBinaryOperator(
@@ -901,7 +911,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: intType));
 
                 // a.GetUpperBound(dimension)
-                BoundExpression currentDimensionUpperBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, getUpperBoundMethod, dimensionArgument, binder: null);
+                BoundExpression currentDimensionUpperBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, getUpperBoundMethod, dimensionArgument);
 
                 // int q_dimension = a.GetUpperBound(dimension);
                 upperVarDecl[dimension] = MakeLocalDeclaration(forEachSyntax, upperVar[dimension], currentDimensionUpperBound);
@@ -958,7 +968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: intType));
 
                 // a.GetLowerBound(dimension)
-                BoundExpression currentDimensionLowerBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, getLowerBoundMethod, dimensionArgument, binder: null);
+                BoundExpression currentDimensionLowerBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, getLowerBoundMethod, dimensionArgument);
 
                 // int p_dimension = a.GetLowerBound(dimension);
                 BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar[dimension], currentDimensionLowerBound);

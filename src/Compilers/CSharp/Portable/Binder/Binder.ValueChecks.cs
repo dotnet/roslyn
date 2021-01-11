@@ -201,8 +201,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     parameters = parameters.RemoveAt(parameters.Length - 1);
                 }
+
+                BitVector defaultArguments = default;
                 Debug.Assert(parameters.Length == indexerAccess.Indexer.Parameters.Length);
-                BindDefaultArguments(indexerAccess.Syntax, parameters, argumentsBuilder, refKindsBuilderOpt, ref argsToParams, out var defaultArguments, indexerAccess.Expanded, enableCallerInfo: true, diagnostics);
+
+                // If OriginalIndexersOpt is set, there was an overload resolution failure, and we don't want to make guesses about the default
+                // arguments that will end up being reflected in the SemanticModel/IOperation
+                if (indexerAccess.OriginalIndexersOpt.IsDefault)
+                {
+                    BindDefaultArguments(indexerAccess.Syntax, parameters, argumentsBuilder, refKindsBuilderOpt, ref argsToParams, out defaultArguments, indexerAccess.Expanded, enableCallerInfo: true, diagnostics);
+                }
 
                 indexerAccess = indexerAccess.Update(
                     indexerAccess.ReceiverOpt,
@@ -213,7 +221,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     indexerAccess.Expanded,
                     argsToParams,
                     defaultArguments,
-                    indexerAccess.BinderOpt,
                     indexerAccess.Type);
 
                 refKindsBuilderOpt?.Free();
@@ -1077,11 +1084,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (setMethod.IsInitOnly &&
-                        !isAllowedInitOnlySet(receiver))
+                    if (setMethod.IsInitOnly)
                     {
-                        Error(diagnostics, ErrorCode.ERR_AssignmentInitOnly, node, propertySymbol);
-                        return false;
+                        if (!isAllowedInitOnlySet(receiver))
+                        {
+                            Error(diagnostics, ErrorCode.ERR_AssignmentInitOnly, node, propertySymbol);
+                            return false;
+                        }
+
+                        if (setMethod.DeclaringCompilation != this.Compilation)
+                        {
+                            // an error would have already been reported on declaring an init-only setter
+                            CheckFeatureAvailability(node, MessageID.IDS_FeatureInitOnlySetters, diagnostics);
+                        }
                     }
 
                     var accessThroughType = this.GetAccessThroughType(receiver);

@@ -24,9 +24,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public WorkspacePullDiagnosticHandler(
-            ILspSolutionProvider solutionProvider,
             IXamlPullDiagnosticService xamlPullDiagnosticService)
-            : base(solutionProvider, xamlPullDiagnosticService)
+            : base(xamlPullDiagnosticService)
         { }
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceDocumentDiagnosticsParams request) => null;

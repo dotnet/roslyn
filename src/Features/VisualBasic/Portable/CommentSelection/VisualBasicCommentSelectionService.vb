@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommentSelection
 
         Public Overrides ReadOnly Property SingleLineCommentString As String = "'"
 
-        Public Overrides ReadOnly Property SupportsBlockComment As Boolean = False
+        Public Overrides ReadOnly Property SupportsBlockComment As Boolean
 
         Public Overrides ReadOnly Property BlockCommentEndString As String
             Get
