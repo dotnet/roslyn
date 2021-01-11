@@ -163,12 +163,12 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     if (firstInterpolationToken.RawKind == startToken.RawKind && lastInterpolationToken.RawKind == endToken.RawKind)
                     {
                         // If the piece like $"foo {a} goo: ",
-                        // we get the sub string between the first two caracters (whitch represent intepolation startToken)
+                        // we get the sub string between the first two characters (which represent intepolation startToken)
                         // and the last one that represent interpolation endToken 
                         // objective here is to transform the non-StringOrCharacterLiteral to a string literal
                         var pieceString = piece.ToString();
-                        var textWithoutInterpolationTokens = pieceString.Substring(2, ((pieceString.Length - 1) - 2));
-                        // Then we generate new InterpolatedStringTextToken from the new string litéral 
+                        var textWithoutInterpolationTokens = pieceString[2..^1];
+                        // Then we generate new InterpolatedStringTextToken from the new string literal 
                         // and we add it in the content list
                         content.Add(generator.InterpolatedStringText(generator.InterpolatedStringTextToken(textWithoutInterpolationTokens)));
                     }
