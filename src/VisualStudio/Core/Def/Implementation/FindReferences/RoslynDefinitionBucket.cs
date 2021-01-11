@@ -96,6 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         {
                             inline.SetValue(TextElement.FontWeightProperty, FontWeights.Bold);
                         }
+
                         return inlines;
 
                     case StandardTableKeyNames2.DefinitionIcon:

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -32,11 +30,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override async Task<ImmutableArray<ISymbol>> GetPreselectedSymbolsAsync(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var recommender = context.GetLanguageService<IRecommendationService>();
-            var typeInferrer = context.GetLanguageService<ITypeInferenceService>();
 
-            var inferredTypes = typeInferrer.InferTypes(context.SemanticModel, position, cancellationToken)
-                .Where(t => t.SpecialType != SpecialType.System_Void)
-                .ToSet();
+            var inferredTypes = context.InferredTypes.Where(t => t.SpecialType != SpecialType.System_Void).ToSet();
             if (inferredTypes.Count == 0)
             {
                 return ImmutableArray<ISymbol>.Empty;
@@ -54,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return symbols.WhereAsArray(s => inferredTypes.Contains(GetSymbolType(s), SymbolEqualityComparer.Default) && !IsInstrinsic(s));
         }
 
-        private static ITypeSymbol GetSymbolType(ISymbol symbol)
+        private static ITypeSymbol? GetSymbolType(ISymbol symbol)
         {
             if (symbol is IMethodSymbol method)
             {
@@ -72,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             List<ISymbol> symbols,
             SyntaxContext context,
             bool preselect,
-            SupportedPlatformData supportedPlatformData)
+            SupportedPlatformData? supportedPlatformData)
         {
             var rules = GetCompletionItemRules(symbols, context, preselect);
             var matchPriority = preselect ? ComputeSymbolMatchPriority(symbols[0]) : MatchPriority.Default;

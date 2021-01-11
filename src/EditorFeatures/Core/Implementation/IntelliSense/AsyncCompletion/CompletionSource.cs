@@ -351,6 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     {
                         excludedCommitCharacters = excludedCommitCharacters.Union(excludedCommitCharactersBefore).ToImmutableArray();
                     }
+
                     session.Properties[ExcludedCommitCharacters] = excludedCommitCharacters;
                 }
             }

@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.Editing
                             declaration = EnumDeclaration(
                                 type.Name,
                                 accessibility: type.DeclaredAccessibility,
-                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
+                                members: type.GetMembers().Where(s => s.Kind == SymbolKind.Field).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Delegate:
                             var invoke = type.GetMembers("Invoke").First() as IMethodSymbol;
@@ -1738,6 +1738,7 @@ namespace Microsoft.CodeAnalysis.Editing
             {
                 throw new ArgumentNullException(nameof(elements));
             }
+
             if (elements.Count() <= 1)
             {
                 throw new ArgumentException("Tuples must have at least two elements.", nameof(elements));

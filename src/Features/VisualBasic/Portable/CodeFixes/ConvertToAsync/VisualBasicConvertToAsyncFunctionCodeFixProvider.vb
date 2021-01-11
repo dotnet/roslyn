@@ -12,10 +12,10 @@ Imports Microsoft.CodeAnalysis.CodeFixes.Async
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
+Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ConvertToAsync
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.ConvertToAsync), [Shared]>
     Friend Class VisualBasicConvertToAsyncFunctionCodeFixProvider
-        Inherits AbstractChangeToAsyncCodeFixProvider
+        Inherits AbstractConvertToAsyncCodeFixProvider
 
         Friend Const BC37001 As String = "BC37001" ' error BC37001: 'Blah' Does not return a Task and is not awaited consider changing to an Async Function.
 
