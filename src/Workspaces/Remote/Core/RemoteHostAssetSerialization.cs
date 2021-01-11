@@ -127,9 +127,20 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (EndOfStreamException)
             {
+                // The local pipe is only closed in the 'finally' block of 'copyTask'. If the reader fails with an
+                // EndOfStreamException, we known 'copyTask' has already completed its work.
                 cancellationToken.ThrowIfCancellationRequested();
 
-                throw exception ?? ExceptionUtilities.Unreachable;
+                if (exception is not null)
+                {
+                    // An exception occurred while attempting to copy data to the local pipe. Throw the exception that
+                    // occurred during that copy operation.
+                    throw exception;
+                }
+
+                // The reader attempted to read more data than was copied to the local pipe. Rethrow the exception to
+                // reveal the faulty read stack.
+                throw;
             }
             finally
             {
