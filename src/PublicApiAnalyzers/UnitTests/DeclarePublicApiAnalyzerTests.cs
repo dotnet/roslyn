@@ -1304,6 +1304,71 @@ C<T>.Nested.Nested() -> void
                 );
         }
 
+        [Fact]
+        public async Task ImplicitContainingType_TClass()
+        {
+            var source = @"
+#nullable enable
+public class C<T> where T : class
+{
+    public struct Nested { }
+
+    public Nested field;
+    public C<T>.Nested field2;
+}
+";
+
+            var shippedText = @"#nullable enable
+C<T>
+C<T>.C() -> void
+C<T>.Nested
+C<T>.Nested.Nested() -> void
+~C<T>.field -> C<T>.Nested
+C<T>.field2 -> C<T!>.Nested";
+
+            var unshippedText = @"";
+
+            // Note: although the code is entirely nullable-enabled, the compiler uses a containing type that is
+            // `C<T~>` so there is an oblivious symbol. This only happens when the type parameter is constrained
+            // such that it could be annotated in C# 8 (`T?` would have been allowed).
+            //
+            // One recourse is to use a suppression around such APIs:
+            // #pragma warning disable RS0041 // uses oblivious reference types
+            //
+            // Another recourse is to make the containing type explicit: `C<T>.Nested`
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                // /0/Test0.cs(7,19): warning RS0041: Symbol 'field' uses some oblivious reference types.
+                GetCSharpResultAt(7, 19, DeclarePublicApiAnalyzer.ObliviousApiRule, "field")
+                );
+        }
+
+        [Fact]
+        public async Task ImplicitContainingType_TOpen()
+        {
+            var source = @"
+#nullable enable
+public class C<T>
+{
+    public struct Nested { }
+
+    public Nested field;
+    public Nested field2;
+}
+";
+
+            var shippedText = @"#nullable enable
+C<T>
+C<T>.C() -> void
+C<T>.Nested
+C<T>.Nested.Nested() -> void
+C<T>.field -> C<T>.Nested
+C<T>.field2 -> C<T>.Nested";
+
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
         #endregion
 
         #region Fix tests
