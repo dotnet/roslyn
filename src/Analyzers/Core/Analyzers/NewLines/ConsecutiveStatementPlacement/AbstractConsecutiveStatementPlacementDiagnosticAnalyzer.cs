@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
         protected AbstractConsecutiveStatementPlacementDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConsecutiveStatementPlacementBlockDiagnosticId,
                    EnforceOnBuildValues.ConsecutiveStatementPlacement,
-                   CodeStyleOptions2.DisallowStatementImmediatelyAfterBlock,
+                   CodeStyleOptions2.AllowStatementImmediatelyAfterBlock,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(AnalyzersResources.Blank_line_required_between_block_and_subsequent_statement), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
         {
             var cancellationToken = context.CancellationToken;
             var tree = context.Tree;
-            var option = context.GetOption(CodeStyleOptions2.DisallowStatementImmediatelyAfterBlock, tree.Options.Language);
-            if (!option.Value)
+            var option = context.GetOption(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, tree.Options.Language);
+            if (option.Value)
                 return;
 
             Recurse(context, option.Notification.Severity, tree.GetRoot(cancellationToken), cancellationToken);

@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NewLines.MultipleB
                 .TestCode = testCode,
                 .FixedCode = fixedCode
             }
-            test.Options.Add(CodeStyleOptions2.DisallowMultipleBlankLines, CodeStyleOptions2.TrueWithSilentEnforcement)
+            test.Options.Add(CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOptions2.FalseWithSilentEnforcement)
 
             Await test.RunAsync()
         End Function

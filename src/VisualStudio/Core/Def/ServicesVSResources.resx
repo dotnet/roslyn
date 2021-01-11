@@ -1605,10 +1605,10 @@ I agree to all of the foregoing:</value>
   <data name="Require_colon" xml:space="preserve">
     <value>Require:</value>
   </data>
-  <data name="Disallow_multiple_blank_lines" xml:space="preserve">
-    <value>Disallow multiple blank lines</value>
+  <data name="Allow_multiple_blank_lines" xml:space="preserve">
+    <value>Allow multiple blank lines</value>
   </data>
-  <data name="Disallow_statement_immediately_after_block" xml:space="preserve">
-    <value>Disallow statement immediately after block</value>
+  <data name="Allow_statement_immediately_after_block" xml:space="preserve">
+    <value>Allow statement immediately after block</value>
   </data>
 </root>

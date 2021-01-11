@@ -57,6 +57,16 @@
         <target state="translated">Permitir:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_multiple_blank_lines">
+        <source>Allow multiple blank lines</source>
+        <target state="new">Allow multiple blank lines</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_statement_immediately_after_block">
+        <source>Allow statement immediately after block</source>
+        <target state="new">Allow statement immediately after block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">Sempre para esclarecimento</target>
@@ -185,16 +195,6 @@
       <trans-unit id="Current_parameter">
         <source>Current parameter</source>
         <target state="translated">Parâmetro atual</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disallow_multiple_blank_lines">
-        <source>Disallow multiple blank lines</source>
-        <target state="new">Disallow multiple blank lines</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disallow_statement_immediately_after_block">
-        <source>Disallow statement immediately after block</source>
-        <target state="new">Disallow statement immediately after block</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_all_hints_while_pressing_Alt_F1">

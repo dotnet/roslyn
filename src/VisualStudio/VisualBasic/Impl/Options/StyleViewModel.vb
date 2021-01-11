@@ -603,7 +603,22 @@ Class Customer2
 //]
 End Class"
 
-        Private Shared ReadOnly s_disallow_multiple_blank_lines As String = $"
+        Private Shared ReadOnly s_allow_multiple_blank_lines_true As String = $"
+Class Customer2
+    Sub Method()
+//[
+        ' {ServicesVSResources.Allow_colon}
+        If True Then
+            DoWork()
+        End If
+
+
+        Return
+//]
+    End Sub
+End Class"
+
+        Private Shared ReadOnly s_allow_multiple_blank_lines_false As String = $"
 Class Customer1
     Sub Method()
 //[
@@ -630,7 +645,20 @@ Class Customer2
     End Sub
 End Class"
 
-        Private Shared ReadOnly s_disallow_statement_immediately_after_block As String = $"
+        Private Shared ReadOnly s_allow_statement_immediately_after_block_true As String = $"
+Class Customer2
+    Sub Method()
+//[
+        ' {ServicesVSResources.Allow_colon}
+        If True Then
+            DoWork()
+        End If
+        Return
+//]
+    End Sub
+End Class"
+
+        Private Shared ReadOnly s_allow_statement_immediately_after_block_false As String = $"
 Class Customer1
     Sub Method()
 //[
@@ -812,8 +840,8 @@ End Class
             AddParameterOptions(optionStore, parameterPreferencesGroupTitle)
 
             ' New line preferences
-            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.DisallowMultipleBlankLines, ServicesVSResources.Disallow_multiple_blank_lines, s_disallow_multiple_blank_lines, s_disallow_multiple_blank_lines, Me, optionStore, newLinePreferencesGroupTitle))
-            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.DisallowStatementImmediatelyAfterBlock, ServicesVSResources.Disallow_statement_immediately_after_block, s_disallow_statement_immediately_after_block, s_disallow_statement_immediately_after_block, Me, optionStore, newLinePreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.AllowMultipleBlankLines, ServicesVSResources.Allow_multiple_blank_lines, s_allow_multiple_blank_lines_true, s_allow_multiple_blank_lines_false, Me, optionStore, newLinePreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, ServicesVSResources.Allow_statement_immediately_after_block, s_allow_statement_immediately_after_block_true, s_allow_statement_immediately_after_block_true, Me, optionStore, newLinePreferencesGroupTitle))
         End Sub
 
         Private Sub AddParenthesesOptions(optionStore As OptionStore)

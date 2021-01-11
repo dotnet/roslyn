@@ -1372,7 +1372,21 @@ class Customer2
 }}
 ";
 
-        private static readonly string s_disallow_embedded_statements_on_same_line = $@"
+        private static readonly string s_allow_embedded_statements_on_same_line_true = $@"
+class Class2
+{{
+    void Method(int a, int b)
+    {{
+//[
+        // {ServicesVSResources.Allow_colon}
+        if (a > b) return true;
+//]
+        return false;
+    }}
+}}
+";
+
+        private static readonly string s_allow_embedded_statements_on_same_line_false = $@"
 class Class1
 {{
     void Method(int a, int b)
@@ -1398,7 +1412,24 @@ class Class2
 }}
 ";
 
-        private static readonly string s_disallow_blank_line_between_consecutive_braces = $@"
+        private static readonly string s_allow_blank_line_between_consecutive_braces_true = $@"
+class Class2
+{{
+//[
+    // {ServicesVSResources.Allow_colon}
+    void Method()
+    {{
+        if (true)
+        {{
+            DoWork();
+        }}
+
+    }}
+//]
+}}
+";
+
+        private static readonly string s_allow_blank_line_between_consecutive_braces_false = $@"
 class Class1
 {{
 //[
@@ -1428,7 +1459,26 @@ class Class2
 }}
 ";
 
-        private static readonly string s_disallow_multiple_blank_lines = $@"
+        private static readonly string s_allow_multiple_blank_lines_true = $@"
+class Class2
+{{
+    void Method()
+    {{
+//[
+        // {ServicesVSResources.Allow_colon}
+        if (true)
+        {{
+            DoWork();
+        }}
+
+
+        return;
+//]
+    }}
+}}
+";
+
+        private static readonly string s_allow_multiple_blank_lines_false = $@"
 class Class1
 {{
     void Method()
@@ -1460,8 +1510,26 @@ class Class2
 //]
     }}
 }}
+";
 
-"; private static readonly string s_disallow_statement_immediately_after_block = $@"
+        private static readonly string s_allow_statement_immediately_after_block_true = $@"
+class Class2
+{{
+    void Method()
+    {{
+//[
+        // {ServicesVSResources.Allow_colon}
+        if (true)
+        {{
+            DoWork();
+        }}
+        return;
+//]
+    }}
+}}
+";
+
+        private static readonly string s_allow_statement_immediately_after_block_false = $@"
 class Class1
 {{
     void Method()
@@ -1916,10 +1984,10 @@ class C2
             AddParameterOptions(optionStore, parameterPreferencesGroupTitle);
 
             // New line preferences.
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.DisallowMultipleBlankLines, ServicesVSResources.Disallow_multiple_blank_lines, s_disallow_multiple_blank_lines, s_disallow_multiple_blank_lines, this, optionStore, newLinePreferencesGroupTitle));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.DisallowEmbeddedStatementsOnSameLine, CSharpVSResources.Disallow_embedded_statements_on_same_line, s_disallow_embedded_statements_on_same_line, s_disallow_embedded_statements_on_same_line, this, optionStore, newLinePreferencesGroupTitle));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.DisallowBlankLinesBetweenConsecutiveBraces, CSharpVSResources.Disallow_blank_lines_between_consecutive_braces, s_disallow_blank_line_between_consecutive_braces, s_disallow_blank_line_between_consecutive_braces, this, optionStore, newLinePreferencesGroupTitle));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.DisallowStatementImmediatelyAfterBlock, ServicesVSResources.Disallow_statement_immediately_after_block, s_disallow_statement_immediately_after_block, s_disallow_statement_immediately_after_block, this, optionStore, newLinePreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.AllowMultipleBlankLines, ServicesVSResources.Allow_multiple_blank_lines, s_allow_multiple_blank_lines_true, s_allow_multiple_blank_lines_false, this, optionStore, newLinePreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CSharpVSResources.Allow_embedded_statements_on_same_line, s_allow_embedded_statements_on_same_line_true, s_allow_embedded_statements_on_same_line_false, this, optionStore, newLinePreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CSharpVSResources.Allow_blank_lines_between_consecutive_braces, s_allow_blank_line_between_consecutive_braces_true, s_allow_blank_line_between_consecutive_braces_false, this, optionStore, newLinePreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, ServicesVSResources.Allow_statement_immediately_after_block, s_allow_statement_immediately_after_block_true, s_allow_statement_immediately_after_block_false, this, optionStore, newLinePreferencesGroupTitle));
         }
 
         private void AddParenthesesOptions(OptionStore optionStore)

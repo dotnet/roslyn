@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NewLines.Consecuti
                 .FixedCode = fixedCode
                 }
 
-            test.Options.Add(CodeStyleOptions2.DisallowStatementImmediatelyAfterBlock, CodeStyleOptions2.TrueWithSuggestionEnforcement)
+            test.Options.Add(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOptions2.FalseWithSuggestionEnforcement)
             Await test.RunAsync()
         End Function
 

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.WrapEmbeddedStatement
         public CSharpWrapEmbeddedStatementDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.WrapEmbeddedStatementDiagnosticId,
                    EnforceOnBuildValues.WrapEmbeddedStatement,
-                   CSharpCodeStyleOptions.DisallowEmbeddedStatementsOnSameLine,
+                   CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Embedded_statements_must_be_on_their_own_line), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.WrapEmbeddedStatement
 
         private void AnalyzeTree(SyntaxTreeAnalysisContext context)
         {
-            var option = context.GetOption(CSharpCodeStyleOptions.DisallowEmbeddedStatementsOnSameLine);
-            if (!option.Value)
+            var option = context.GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine);
+            if (option.Value)
                 return;
 
             Recurse(context, option.Notification.Severity, context.Tree.GetRoot(context.CancellationToken));

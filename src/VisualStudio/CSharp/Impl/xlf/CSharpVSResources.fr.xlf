@@ -7,6 +7,16 @@
         <target state="translated">Ajouter les directives using manquantes au moment du collage</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Allow_blank_lines_between_consecutive_braces">
+        <source>Allow blank lines between consecutive braces</source>
+        <target state="new">Allow blank lines between consecutive braces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_embedded_statements_on_same_line">
+        <source>Allow embedded statements on same line</source>
+        <target state="new">Allow embedded statements on same line</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
         <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
         <target state="translated">Appliquer toutes les règles de mise en forme de C# (indentation, enveloppement, espacement)</target>
@@ -30,16 +40,6 @@
       <trans-unit id="CSharp_Formatting_Rules">
         <source>C# Formatting Rules</source>
         <target state="translated">Règles de formatage C#</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disallow_blank_lines_between_consecutive_braces">
-        <source>Disallow blank lines between consecutive braces</source>
-        <target state="new">Disallow blank lines between consecutive braces</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disallow_embedded_statements_on_same_line">
-        <source>Disallow embedded statements on same line</source>
-        <target state="new">Disallow embedded statements on same line</target>
         <note />
       </trans-unit>
       <trans-unit id="Discard">

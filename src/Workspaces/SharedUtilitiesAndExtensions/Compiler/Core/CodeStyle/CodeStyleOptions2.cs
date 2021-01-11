@@ -348,17 +348,17 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             storageLocations: new OptionStorageLocation2[]{
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferSystemHashCode") });
 
-        internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> DisallowMultipleBlankLines = CreateOption(
-            CodeStyleOptionGroups.NewLinePreferences, nameof(DisallowMultipleBlankLines),
-            defaultValue: CodeStyleOption2<bool>.Default,
-            "dotnet_style_disallow_multiple_blank_lines",
-            "TextEditor.%LANGUAGE%.Specific.DisallowMultipleBlankLines");
+        internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> AllowMultipleBlankLines = CreateOption(
+            CodeStyleOptionGroups.NewLinePreferences, nameof(AllowMultipleBlankLines),
+            defaultValue: TrueWithSilentEnforcement,
+            "dotnet_style_allow_multiple_blank_lines",
+            "TextEditor.%LANGUAGE%.Specific.AllowMultipleBlankLines");
 
-        internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> DisallowStatementImmediatelyAfterBlock = CreateOption(
-            CodeStyleOptionGroups.NewLinePreferences, nameof(DisallowStatementImmediatelyAfterBlock),
-            defaultValue: CodeStyleOption2<bool>.Default,
-            "dotnet_style_disallow_statement_immediately_after_block",
-            "TextEditor.%LANGUAGE%.Specific.DisallowStatementImmediatelyAfterBlock");
+        internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> AllowStatementImmediatelyAfterBlock = CreateOption(
+            CodeStyleOptionGroups.NewLinePreferences, nameof(AllowStatementImmediatelyAfterBlock),
+            defaultValue: TrueWithSilentEnforcement,
+            "dotnet_style_allow_statement_immediately_after_block",
+            "TextEditor.%LANGUAGE%.Specific.AllowStatementImmediatelyAfterBlock");
 
         static CodeStyleOptions2()
         {

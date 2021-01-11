@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
         protected AbstractMultipleBlankLinesDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.MultipleBlankLinesDiagnosticId,
                    EnforceOnBuildValues.MultipleBlankLines,
-                   CodeStyleOptions2.DisallowMultipleBlankLines,
+                   CodeStyleOptions2.AllowMultipleBlankLines,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(AnalyzersResources.Avoid_multiple_blank_lines), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
 
         private void AnalyzeTree(SyntaxTreeAnalysisContext context)
         {
-            var option = context.GetOption(CodeStyleOptions2.DisallowMultipleBlankLines, context.Tree.Options.Language);
-            if (!option.Value)
+            var option = context.GetOption(CodeStyleOptions2.AllowMultipleBlankLines, context.Tree.Options.Language);
+            if (option.Value)
                 return;
 
             var tree = context.Tree;
