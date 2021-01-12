@@ -110,8 +110,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             // TODO: load context from an rsp file.
 
             // Now send the reference paths we've collected to the repl.
-            // The SetPathsAsync method is not available through an Interface.
-            // Execute the method only if the cast to a concrete InteractiveEvaluator succeeds.
             await evaluator.SetPathsAsync(referenceSearchPaths, sourceSearchPaths, projectDirectory).ConfigureAwait(true);
 
             var editorOptions = _editorOptionsFactoryService.GetOptions(interactiveWindow.CurrentLanguageBuffer);

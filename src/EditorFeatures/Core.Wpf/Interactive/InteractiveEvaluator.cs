@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         /// Includes both command buffers as well as language buffers.
         /// Does not include the current buffer unless it has been submitted.
         /// </remarks>
-        private readonly List<ITextBuffer> _submittedBuffers = new List<ITextBuffer>();
+        private readonly List<ITextBuffer> _submittedBuffers = new();
 
         #endregion
 
@@ -94,15 +94,15 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _session.Dispose();
             _workspace.Dispose();
 
-            var interactiveWindow = _lazyInteractiveWindow;
-            if (interactiveWindow != null)
+            if (_lazyInteractiveWindow != null)
             {
-                interactiveWindow.SubmissionBufferAdded -= SubmissionBufferAdded;
+                _lazyInteractiveWindow.SubmissionBufferAdded -= SubmissionBufferAdded;
             }
         }
 
         private void ProcessInitialized(InteractiveHostPlatformInfo platformInfo, InteractiveHostOptions options, RemoteExecutionResult result)
         {
+            // Capture and clear exising submission buffers. Independent of other operations that occur on restart.
             _ = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();

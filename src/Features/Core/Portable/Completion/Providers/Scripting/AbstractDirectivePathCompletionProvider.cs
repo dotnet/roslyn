@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public sealed override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
-            var lineStart = text.FindContainingLineStart(caretPosition);
+            var lineStart = text.Lines.GetLineFromPosition(caretPosition).Start;
 
             // check if the line starts with {whitespace}#{whitespace}{DirectiveName}{whitespace}"
 

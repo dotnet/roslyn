@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         /// <summary>
         /// Buffers that need to be associated with a submission project once the process initialization completes.
         /// </summary>
-        private readonly List<(ITextBuffer buffer, string name)> _pendingBuffers = new List<(ITextBuffer, string)>();
+        private readonly List<(ITextBuffer buffer, string name)> _pendingBuffers = new();
 
         #endregion
 
@@ -344,17 +344,13 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private static SourceReferenceResolver CreateSourceReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
             => new SourceFileResolver(searchPaths, baseDirectory);
 
-        public async Task SetPathsAsync(ImmutableArray<string> referenceSearchPaths, ImmutableArray<string> sourceSearchPaths, string workingDirectory)
+        public Task SetPathsAsync(ImmutableArray<string> referenceSearchPaths, ImmutableArray<string> sourceSearchPaths, string workingDirectory)
         {
-            try
+            return _taskQueue.ScheduleTask(nameof(ExecuteCodeAsync), async () =>
             {
-                var result = await Host.SetPathsAsync(referenceSearchPaths.ToArray(), sourceSearchPaths.ToArray(), workingDirectory).ConfigureAwait(false);
+                var result = await Host.SetPathsAsync(referenceSearchPaths, sourceSearchPaths, workingDirectory).ConfigureAwait(false);
                 UpdatePathsNoLock(result);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
+            }, _shutdownCancellationSource.Token);
         }
 
         private void UpdatePathsNoLock(RemoteExecutionResult result)

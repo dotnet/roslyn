@@ -32,20 +32,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (workspace is InteractiveWindowWorkspace interactiveWorkspace)
                 {
                     var window = interactiveWorkspace.Window;
-                    var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-                    if (ShouldDisplayCommandCompletions(tree, position, cancellationToken))
+                    if (window != null)
                     {
-                        var commands = window.GetInteractiveCommands();
-                        if (commands != null)
+                        var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+                        if (ShouldDisplayCommandCompletions(tree, position, cancellationToken))
                         {
-                            foreach (var command in commands.GetCommands())
+                            var commands = window.GetInteractiveCommands();
+                            if (commands != null)
                             {
-                                foreach (var commandName in command.Names)
+                                foreach (var command in commands.GetCommands())
                                 {
-                                    var completion = GetCompletionString(commandName);
-                                    context.AddItem(CommonCompletionItem.Create(
-                                        completion, displayTextSuffix: "", CompletionItemRules.Default, description: command.Description.ToSymbolDisplayParts(), glyph: Glyph.Intrinsic));
+                                    foreach (var commandName in command.Names)
+                                    {
+                                        var completion = GetCompletionString(commandName);
+                                        context.AddItem(CommonCompletionItem.Create(
+                                            completion, displayTextSuffix: "", CompletionItemRules.Default, description: command.Description.ToSymbolDisplayParts(), glyph: Glyph.Intrinsic));
+                                    }
                                 }
                             }
                         }
