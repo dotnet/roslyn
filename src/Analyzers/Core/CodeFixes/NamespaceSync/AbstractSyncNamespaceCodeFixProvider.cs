@@ -60,6 +60,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceSync
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var newSolution = await renameActionSet.UpdateSolutionAsync(documentWithNoFolders.Project.Solution, cancellationToken).ConfigureAwait(false);
+            Debug.Assert(newSolution != document.Project.Solution);
+
             return newSolution.GetRequiredDocument(document.Id);
         }
 

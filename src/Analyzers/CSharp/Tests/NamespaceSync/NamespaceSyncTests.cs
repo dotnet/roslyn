@@ -86,21 +86,20 @@ namespace {declaredNamespace}
         {
             var folder = CreateFolderPath("B", "C");
             var code =
-$@"
-        namespace [|A.B|]
-        {{
-            class Class1
-            {{
-            }}
-        }}";
+$@"namespace [|A.B|]
+{{
+    class Class1
+    {{
+    }}
+}}";
 
             var expectedSourceOriginal =
 $@"namespace B.C
-        {{
-            class Class1
-            {{
-            }}
-        }}";
+{{
+    class Class1
+    {{
+    }}
+}}";
             await RunTestAsync(
                 fileName: "Class1.cs",
                 fileContents: code,
