@@ -49,16 +49,30 @@ namespace CSharpSyntaxGenerator
             if (s_cachedResult.TryGetTarget(out var cachedResult)
                 && cachedResult.Checksum.SequenceEqual(currentChecksum))
             {
-                AddSources(in context, sources: cachedResult.Sources, currentChecksum, CacheBehavior.None);
+                // Add the previously-cached sources, and leave the cache as it was
+                AddSources(in context, sources: cachedResult.Sources);
                 return;
             }
 
             if (TryGenerateSources(input, inputText, out var sources, out var diagnostics, context.CancellationToken))
             {
-                AddSources(in context, sources, currentChecksum, diagnostics.IsEmpty ? CacheBehavior.Update : CacheBehavior.Clear);
+                AddSources(in context, sources);
+
+                if (diagnostics.IsEmpty)
+                {
+                    // Overwrite the cached result with the new result. This is an opportunistic cache, so as long as
+                    // the write is atomic (which it is for SetTarget) synchronization is unnecessary.
+                    s_cachedResult.SetTarget(new CachedSourceGeneratorResult(currentChecksum, sources));
+                }
+                else
+                {
+                    // Invalidate the cache since we cannot currently cache diagnostics
+                    s_cachedResult.SetTarget(null);
+                }
             }
             else
             {
+                // Invalidate the cache since generation failed
                 s_cachedResult.SetTarget(null);
             }
 
@@ -71,40 +85,12 @@ namespace CSharpSyntaxGenerator
 
         private static void AddSources(
             in GeneratorExecutionContext context,
-            ImmutableArray<(string hintName, SourceText sourceText)> sources,
-            ImmutableArray<byte> inputChecksum,
-            CacheBehavior cacheBehavior)
+            ImmutableArray<(string hintName, SourceText sourceText)> sources)
         {
             foreach (var (hintName, sourceText) in sources)
             {
                 context.AddSource(hintName, sourceText);
             }
-
-            switch (cacheBehavior)
-            {
-                case CacheBehavior.None:
-                    break;
-
-                case CacheBehavior.Clear:
-                    s_cachedResult.SetTarget(null);
-                    break;
-
-                case CacheBehavior.Update:
-                    // Overwrite the cached result with the new result. This is an opportunistic cache, so as long as
-                    // the write is atomic (which it is for a single pointer) synchronization is unnecessary.
-                    s_cachedResult.SetTarget(new CachedSourceGeneratorResult(inputChecksum, sources));
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(cacheBehavior));
-            }
-        }
-
-        private enum CacheBehavior
-        {
-            None,
-            Clear,
-            Update,
         }
 
         private sealed record CachedSourceGeneratorResult(
