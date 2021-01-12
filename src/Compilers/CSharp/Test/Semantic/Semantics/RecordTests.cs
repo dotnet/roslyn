@@ -1483,12 +1483,18 @@ class Program
             var src = @"
 record R(int x)
 {
-    static R() { }
+    static void Main() { }
+
+    static R()
+    {
+        System.Console.Write(""static ctor"");
+    }
 }
 ";
 
-            var comp = CreateCompilation(src);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "static ctor");
         }
 
         [Fact, WorkItem(50170, "https://github.com/dotnet/roslyn/issues/50170")]
