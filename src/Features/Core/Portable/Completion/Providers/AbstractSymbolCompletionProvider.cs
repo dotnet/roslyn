@@ -377,22 +377,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var relatedDocument = document.Project.Solution.GetRequiredDocument(relatedDocumentId);
                 var context = await GetOrCreateContextAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false);
-                var symbols = await GetSymbolsForContextAsync(context, options, preselect, cancellationToken).ConfigureAwait(false);
-                if (!symbols.IsEmpty)
+                var symbols = await TryGetSymbolsForContextAsync(context, options, preselect, cancellationToken).ConfigureAwait(false);
+                if (symbols.HasValue)
                 {
-                    perContextSymbols.Add((relatedDocument.Id, context, symbols));
+                    // Only consider contexts that are in active region
+                    perContextSymbols.Add((relatedDocument.Id, context, symbols.Value));
                 }
             }
 
             return perContextSymbols.ToImmutableAndFree();
         }
 
-        protected async Task<ImmutableArray<ISymbol>> GetSymbolsForContextAsync(SyntaxContext context, OptionSet options, bool preselect, CancellationToken cancellationToken)
+        /// <summary>
+        /// If current context is in active region, returns available symbols. Otherwise, returns null.
+        /// </summary>
+        protected async Task<ImmutableArray<ISymbol>?> TryGetSymbolsForContextAsync(SyntaxContext context, OptionSet options, bool preselect, CancellationToken cancellationToken)
         {
             var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
             return syntaxFacts.IsInInactiveRegion(context.SyntaxTree, context.Position, cancellationToken)
-                ? await GetSymbolsAsync(context.Position, preselect, context, options, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<ISymbol>.Empty;
+                ? null
+                : await GetSymbolsAsync(context.Position, preselect, context, options, cancellationToken).ConfigureAwait(false);
         }
 
         protected static OptionSet GetUpdatedRecommendationOptions(OptionSet options, string language)
