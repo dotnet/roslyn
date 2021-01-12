@@ -70,11 +70,11 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             SemanticModel = semanticModel;
             Position = position;
             Token = token;
-            LanguageServices = languageServices;
+            LanguageServices = languageServices ?? throw new ArgumentNullException(nameof(languageServices));
             CancellationToken = cancellationToken;
         }
 
-        public QuickInfoContext With(SyntaxToken token)
+        public QuickInfoContext WithToken(SyntaxToken token)
             => new(Document, SemanticModel, Position, token, LanguageServices, CancellationToken);
 
         /// <summary>

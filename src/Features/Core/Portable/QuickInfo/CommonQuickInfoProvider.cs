@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             if (info == null && ShouldCheckPreviousToken(token))
             {
                 var previousToken = token.GetPreviousToken();
-                info = await GetQuickInfoCoreAsync(context.With(previousToken)).ConfigureAwait(false);
+                info = await GetQuickInfoCoreAsync(context.WithToken(previousToken)).ConfigureAwait(false);
             }
 
             return info;

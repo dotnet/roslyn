@@ -26,19 +26,19 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         {
         }
 
-        protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(QuickInfoContext context)
+        protected override Task<QuickInfoItem?> BuildQuickInfoAsync(QuickInfoContext context)
         {
             var token = context.Token;
             if (token.Kind() != SyntaxKind.CloseBraceToken)
             {
-                return null;
+                return Task.FromResult<QuickInfoItem?>(null);
             }
 
             // Don't show for interpolations
             if (token.Parent.IsKind(SyntaxKind.Interpolation, out InterpolationSyntax? interpolation) &&
                 interpolation.CloseBraceToken == token)
             {
-                return null;
+                return Task.FromResult<QuickInfoItem?>(null);
             }
 
             // Now check if we can find an open brace.
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             var openBrace = parent.ChildNodesAndTokens().FirstOrDefault(n => n.Kind() == SyntaxKind.OpenBraceToken).AsToken();
             if (openBrace.Kind() != SyntaxKind.OpenBraceToken)
             {
-                return null;
+                return Task.FromResult<QuickInfoItem?>(null);
             }
 
             var spanStart = parent.SpanStart;
@@ -67,9 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             }
 
             // encode document spans that correspond to the text to show
-            var text = await context.SemanticModel.SyntaxTree.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
             var spans = ImmutableArray.Create(TextSpan.FromBounds(spanStart, spanEnd));
-            return QuickInfoItem.Create(token.Span, relatedSpans: spans);
+            return Task.FromResult<QuickInfoItem?>(QuickInfoItem.Create(token.Span, relatedSpans: spans));
         }
 
         private static bool IsScopeBlock(SyntaxNode node)
