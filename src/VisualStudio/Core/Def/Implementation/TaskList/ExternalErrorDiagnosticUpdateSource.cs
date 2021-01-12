@@ -313,6 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 finally
                 {
                     await _postBuildAndErrorListRefreshTaskQueue.LastScheduledTask.ConfigureAwait(false);
+                    DisposeActiveCancellationSourceOnBuildCompleted();
                 }
             }, cancellationToken);
         }
@@ -483,13 +484,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
+        private void DisposeActiveCancellationSourceOnBuildCompleted()
+        {
+            lock (_gate)
+            {
+                // Dispose the active cancellation source only if another build has not already started.
+                if (_stateDoNotAccessDirectly == null)
+                {
+                    CancelAndDisposeActiveCancellationSource_NoLock();
+                }
+            }
+        }
+
+        private void CancelAndDisposeActiveCancellationSource_NoLock()
+        {
+            if (_activeCancellationSourceDoNotAccessDirectly != null)
+            {
+                _activeCancellationSourceDoNotAccessDirectly.Cancel();
+                _activeCancellationSourceDoNotAccessDirectly.Dispose();
+                _activeCancellationSourceDoNotAccessDirectly = null;
+            }
+        }
+
         private (InProgressState state, CancellationToken cancellationToken) GetOrCreateInProgressStateAndToken()
         {
             lock (_gate)
             {
                 if (_stateDoNotAccessDirectly == null)
                 {
-                    _activeCancellationSourceDoNotAccessDirectly?.Cancel();
+                    CancelAndDisposeActiveCancellationSource_NoLock();
                     _activeCancellationSourceDoNotAccessDirectly = CancellationTokenSource.CreateLinkedTokenSource(_disposalToken);
 
                     // We take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
