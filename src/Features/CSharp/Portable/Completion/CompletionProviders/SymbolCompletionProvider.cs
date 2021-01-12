@@ -106,7 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return true;
         }
 
-
         private static bool ShouldTriggerInArgumentLists(OptionSet options)
             => options.GetOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp);
 
