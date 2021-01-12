@@ -239,6 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         return;
                     }
                 }
+
                 this.TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(changeSpan));
             }
 

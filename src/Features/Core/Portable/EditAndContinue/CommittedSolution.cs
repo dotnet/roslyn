@@ -122,34 +122,35 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// If we didn't capture the content before the save we might never be able to find a document
         /// snapshot that matches the PDB.
         /// </summary>
-        public Task OnSourceFileUpdatedAsync(DocumentId documentId, CancellationToken cancellationToken)
-            => GetDocumentAndStateAsync(documentId, cancellationToken, reloadOutOfSyncDocument: true);
+        public Task OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
+            => GetDocumentAndStateAsync(document.Id, document, cancellationToken, reloadOutOfSyncDocument: true);
 
         /// <summary>
-        /// Returns a document snapshot for given <see cref="DocumentId"/> whose content exactly matches
+        /// Returns a document snapshot for given <see cref="Document"/> whose content exactly matches
         /// the source file used to compile the binary currently loaded in the debuggee. Returns null
         /// if it fails to find a document snapshot whose content hash maches the one recorded in the PDB.
         /// 
         /// The result is cached and the next lookup uses the cached value, including failures unless <paramref name="reloadOutOfSyncDocument"/> is true.
         /// </summary>
-        public async Task<(Document? Document, DocumentState State)> GetDocumentAndStateAsync(DocumentId documentId, CancellationToken cancellationToken, bool reloadOutOfSyncDocument = false)
+        public async Task<(Document? Document, DocumentState State)> GetDocumentAndStateAsync(DocumentId documentId, Document? currentDocument, CancellationToken cancellationToken, bool reloadOutOfSyncDocument = false)
         {
+            Contract.ThrowIfFalse(currentDocument == null || documentId == currentDocument.Id);
+
             Document? document;
+            Document? committedDocument;
 
             lock (_guard)
             {
-                document = _solution.GetDocument(documentId);
-                if (document == null)
-                {
-                    return (null, DocumentState.None);
-                }
+                committedDocument = _solution.GetDocument(documentId);
 
                 if (_documentState.TryGetValue(documentId, out var documentState))
                 {
                     switch (documentState)
                     {
                         case DocumentState.MatchesBuildOutput:
-                            return (document, documentState);
+                            // Note: committedDocument is null if we previously validated that a document that is not in
+                            // the committed solution is also not in the PDB. This means the document has been added during debugging.
+                            return (committedDocument, documentState);
 
                         case DocumentState.DesignTimeOnly:
                             return (null, documentState);
@@ -171,6 +172,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                 }
 
+                // Document may have been added to the workspace after the committed solution snapshot was taken,
+                // but the document may have been compiled into the baseline DLL/PDB.
+                document = committedDocument ?? currentDocument;
+                if (document == null)
+                {
+                    // Document has been deleted.
+                    return (null, DocumentState.None);
+                }
+
                 if (!PathUtilities.IsAbsolute(document.FilePath))
                 {
                     return (null, DocumentState.DesignTimeOnly);
@@ -178,6 +188,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceTextVersion = (committedDocument == null) ? await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false) : default;
 
             var (matchingSourceText, pdbHasDocument) = await Task.Run(
                 () => TryGetPdbMatchingSourceText(document.FilePath, sourceText.Encoding, document.Project),
@@ -204,28 +215,49 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (pdbHasDocument == false)
                 {
-                    // Source file is not listed in the PDB (e.g. WPF .g.i.cs files).
+                    // Source file is not listed in the PDB.
+                    // It could either be a newly added document or a design-time-only document (e.g. WPF .g.i.cs files).
+                    // We can't distinguish between newly added document and newly added design-time-only document.
                     matchingDocument = null;
-                    newState = DocumentState.DesignTimeOnly;
-                }
-                else if (matchingSourceText != null)
-                {
-                    if (sourceText.ContentEquals(matchingSourceText))
-                    {
-                        matchingDocument = document;
-                    }
-                    else
-                    {
-                        _solution = _solution.WithDocumentText(documentId, matchingSourceText, PreservationMode.PreserveValue);
-                        matchingDocument = _solution.GetDocument(documentId);
-                    }
-
-                    newState = DocumentState.MatchesBuildOutput;
+                    newState = (committedDocument != null) ? DocumentState.DesignTimeOnly : DocumentState.MatchesBuildOutput;
                 }
                 else
                 {
-                    matchingDocument = null;
-                    newState = DocumentState.OutOfSync;
+                    // Document exists in the PDB but not in the committed solution.
+                    // Add the document to the committed solution with its current (possibly out-of-sync) text.
+                    if (committedDocument == null)
+                    {
+                        _solution = _solution.AddDocument(DocumentInfo.Create(
+                            documentId,
+                            name: document.Name,
+                            folders: document.Folders,
+                            sourceCodeKind: document.SourceCodeKind,
+                            loader: TextLoader.From(TextAndVersion.Create(sourceText, sourceTextVersion, document.Name)),
+                            filePath: document.FilePath,
+                            isGenerated: document.State.Attributes.IsGenerated,
+                            designTimeOnly: document.State.Attributes.DesignTimeOnly,
+                            documentServiceProvider: document.State.Services));
+                    }
+
+                    if (matchingSourceText != null)
+                    {
+                        if (committedDocument != null && sourceText.ContentEquals(matchingSourceText))
+                        {
+                            matchingDocument = document;
+                        }
+                        else
+                        {
+                            _solution = _solution.WithDocumentText(documentId, matchingSourceText, PreservationMode.PreserveValue);
+                            matchingDocument = _solution.GetDocument(documentId);
+                        }
+
+                        newState = DocumentState.MatchesBuildOutput;
+                    }
+                    else
+                    {
+                        matchingDocument = null;
+                        newState = DocumentState.OutOfSync;
+                    }
                 }
 
                 _documentState[documentId] = newState;

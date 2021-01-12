@@ -68,7 +68,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
         {
             var docId = ((TestWorkspace)workspace).Documents.First().Id;
             ((TestWorkspace)workspace).ChangeDocument(docId, SourceText.From(updatedText));
-            UpdateSolutionProvider((TestWorkspace)workspace, workspace.CurrentSolution);
         }
     }
 }

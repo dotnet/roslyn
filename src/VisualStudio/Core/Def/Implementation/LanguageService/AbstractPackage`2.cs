@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.ComponentModelHost;

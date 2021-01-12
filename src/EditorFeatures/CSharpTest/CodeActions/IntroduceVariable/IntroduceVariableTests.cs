@@ -3228,7 +3228,7 @@ b
 c""|];
     }
 }",
-string.Format(FeaturesResources.Introduce_local_for_0, @"$@""a b c"""));
+string.Format(FeaturesResources.Introduce_constant_for_0, @"$@""a b c"""));
         }
 
         [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
@@ -4567,7 +4567,7 @@ class TestClass
 
         [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        public async Task TestNoConstantForInterpolatedStrings1()
+        public async Task TestNoConstantForInterpolatedStrings()
         {
             var code =
     @"using System;
@@ -4595,7 +4595,7 @@ class TestClass
 
         [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        public async Task TestNoConstantForInterpolatedStrings2()
+        public async Task TestConstantForInterpolatedStrings()
         {
             var code =
     @"using System;
@@ -4612,9 +4612,69 @@ class TestClass
     @"using System;
 class TestClass
 {
+    private const string {|Rename:Value|} = $""Text{{s}}"";
+
     static void Test(string[] args)
     {
-        var {|Rename:value|} = $""Text{{s}}"";
+        Console.WriteLine(Value);
+        Console.WriteLine(Value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestConstantForInterpolatedStringsNested()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        Console.WriteLine([|$""{""Level 5""} {""Number 3""}""|]);
+        Console.WriteLine($""{""Level 5""} {""Number 3""}"");
+    }
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    private const string {|Rename:Value|} = $""{""Level 5""} {""Number 3""}"";
+
+    static void Test(string[] args)
+    {
+        Console.WriteLine(Value);
+        Console.WriteLine(Value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestConstantForInterpolatedStringsInvalid()
+        {
+            var code =
+    @"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        Console.WriteLine([|$""Text{0}""|]);
+        Console.WriteLine($""Text{0}"");
+    }
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        var {|Rename:value|} = $""Text{0}"";
         Console.WriteLine(value);
         Console.WriteLine(value);
     }
@@ -4786,6 +4846,44 @@ namespace N
         {
             FormattableString {|Rename:formattable|} = $"""";
             var f = FormattableString.Invariant(formattable);
+        }
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
+        [WorkItem(49720, "https://github.com/dotnet/roslyn/issues/49720")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task HandleIFormattableTargetTyping1()
+        {
+            const string code = @"
+namespace N
+{
+    using System;
+
+    class C
+    {
+        public async Task M()
+        {
+            M([|$""""|]);
+            void M(IFormattable f) {}
+        }
+    }
+}";
+
+            const string expected = @"
+namespace N
+{
+    using System;
+
+    class C
+    {
+        public async Task M()
+        {
+            IFormattable {|Rename:f|} = $"""";
+            M(f);
+            void M(IFormattable f) {}
         }
     }
 }";
@@ -7770,10 +7868,11 @@ public class P
 @"
 public class P
 {
+    private const string {|Rename:V|} = $"""";
+
     public void M(string s)
     {
-        string {|Rename:v|} = $"""";
-        s.Bar(v);
+        s.Bar(V);
     }
 }");
         }

@@ -40,6 +40,7 @@
     <ProjectReference Include="..\IntegrationService\Microsoft.VisualStudio.IntegrationTest.IntegrationService.csproj" />
     <ProjectReference Include="..\TestUtilities\Microsoft.VisualStudio.IntegrationTest.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\TestSourceGenerator\Microsoft.CodeAnalysis.TestSourceGenerator.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal const string WRN_UnableToLoadAnalyzerIdCS = "CS8034";
         internal const string WRN_UnableToLoadAnalyzerIdVB = "BC42378";
         internal const string WRN_AnalyzerReferencesNetFrameworkIdCS = "CS8850";
+        internal const string WRN_AnalyzerReferencesNetFrameworkIdVB = "BC42503";
 
         // Shared with Compiler
         internal const string AnalyzerExceptionDiagnosticId = "AD0001";
@@ -202,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     break;
 
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework:
-                    id = GetLanguageSpecificId(language, WRN_AnalyzerReferencesNetFrameworkId, WRN_AnalyzerReferencesNetFrameworkIdCS, WRN_AnalyzerReferencesNetFrameworkId /*Not supported by VB*/);
+                    id = GetLanguageSpecificId(language, WRN_AnalyzerReferencesNetFrameworkId, WRN_AnalyzerReferencesNetFrameworkIdCS, WRN_AnalyzerReferencesNetFrameworkIdVB);
                     messageFormat = FeaturesResources.The_assembly_0_containing_type_1_references_NET_Framework;
                     message = string.Format(FeaturesResources.The_assembly_0_containing_type_1_references_NET_Framework, fullPath, e.TypeName);
                     break;
@@ -423,6 +424,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
                             }
                         }
+
                         break;
                     case LocationKind.ExternalFile:
                         {
@@ -445,6 +447,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, filePath), "diagnostic");
                             }
                         }
+
                         break;
                     default:
                         throw ExceptionUtilities.Unreachable;

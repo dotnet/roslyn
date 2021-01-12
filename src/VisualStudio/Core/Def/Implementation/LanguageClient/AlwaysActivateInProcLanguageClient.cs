@@ -36,8 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspSolutionProvider solutionProvider)
-            : base(languageServerProtocol, workspace, diagnosticService: null, listenerProvider, solutionProvider, diagnosticsClientName: null)
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService)
+            : base(languageServerProtocol, workspace, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, diagnosticsClientName: null)
         {
             _globalOptionService = globalOptionService;
         }
@@ -48,8 +48,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         protected internal override VSServerCapabilities GetCapabilities()
             => new VSServerCapabilities
             {
-                SupportsDiagnosticRequests = _globalOptionService.GetOption(InternalDiagnosticsOptions.NormalDiagnosticMode) == DiagnosticMode.Pull,
-                // This flag ensures that cntrl+, search locally uses the old editor APIs so that only cntrl+Q search is powered via LSP.
+                TextDocumentSync = new TextDocumentSyncOptions
+                {
+                    Change = TextDocumentSyncKind.Incremental,
+                    OpenClose = true,
+                },
+                SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode),
+                // This flag ensures that ctrl+, search locally uses the old editor APIs so that only ctrl+Q search is powered via LSP.
                 DisableGoToWorkspaceSymbols = true,
                 WorkspaceSymbolProvider = true,
             };

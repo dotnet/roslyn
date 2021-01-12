@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.Notification
 
         public abstract GlobalOperationRegistration Start(string reason);
 
-        public abstract void Cancel(GlobalOperationRegistration registration);
         public abstract void Done(GlobalOperationRegistration registration);
     }
 }

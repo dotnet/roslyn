@@ -2015,8 +2015,7 @@ namespace Microsoft.CodeAnalysis
 
             if (enableHighEntropyVA)
             {
-                // IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA
-                result |= (DllCharacteristics)0x0020;
+                result |= DllCharacteristics.HighEntropyVirtualAddressSpace;
             }
 
             if (configureToExecuteInAppContainer)

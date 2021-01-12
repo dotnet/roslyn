@@ -374,6 +374,19 @@ namespace Microsoft.CodeAnalysis
             return _node != null;
         }
 
+        internal bool All(Func<TNode, bool> predicate)
+        {
+            foreach (var item in this)
+            {
+                if (!predicate(item))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         // for debugging
         private TNode[] Nodes
         {

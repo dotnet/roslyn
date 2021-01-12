@@ -31,5 +31,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
         }
 
         protected override ISyntaxFacts GetSyntaxFacts() => CSharpSyntaxFacts.Instance;
+
+        protected override bool IsValidContainingStatement(StatementSyntax node)
+        {
+            // We don't want to offer this for using declarations because the way they are lifted means all
+            // initialization is done before entering try block. For example
+            // 
+            // using var c = new Disposable() { Goo = 2 };
+            //
+            // is lowered to:
+            //
+            // var __c = new Disposable();
+            // __c.Goo = 2;
+            // var c = __c;
+            // try
+            // {
+            // }
+            // finally
+            // {
+            //     if (c != null)
+            //     {
+            //         ((IDisposable)c).Dispose();
+            //     }
+            // }
+            //
+            // As can be seen, if initializing throws any kind of exception, the newly created instance will not
+            // be disposed properly.
+            return node is not LocalDeclarationStatementSyntax localDecl ||
+                localDecl.UsingKeyword == default;
+        }
     }
 }

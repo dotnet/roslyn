@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
-        public void Serialize(object value, ObjectWriter writer, CancellationToken cancellationToken)
+        public void Serialize(object value, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
             var kind = value.GetWellKnownSynchronizationKind();
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return;
 
                     case WellKnownSynchronizationKind.MetadataReference:
-                        SerializeMetadataReference((MetadataReference)value, writer, cancellationToken);
+                        SerializeMetadataReference((MetadataReference)value, writer, context, cancellationToken);
                         return;
 
                     case WellKnownSynchronizationKind.AnalyzerReference:
@@ -148,11 +148,11 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return;
 
                     case WellKnownSynchronizationKind.SerializableSourceText:
-                        SerializeSourceText((SerializableSourceText)value, writer, cancellationToken);
+                        SerializeSourceText((SerializableSourceText)value, writer, context, cancellationToken);
                         return;
 
                     case WellKnownSynchronizationKind.SourceText:
-                        SerializeSourceText(new SerializableSourceText((SourceText)value), writer, cancellationToken);
+                        SerializeSourceText(new SerializableSourceText((SourceText)value), writer, context, cancellationToken);
                         return;
 
                     case WellKnownSynchronizationKind.OptionSet:

@@ -10,6 +10,7 @@ using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Telemetry;
@@ -17,7 +18,8 @@ using Microsoft.VisualStudio.Telemetry;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     [Export(typeof(VisualStudioProjectFactory))]
-    internal sealed class VisualStudioProjectFactory
+    [Export(typeof(IVsTypeScriptVisualStudioProjectFactory))]
+    internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProjectFactory
     {
         private const string SolutionContextName = "Solution";
         private const string SolutionSessionIdPropertyName = "SolutionSessionID";
@@ -129,6 +131,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _ = Guid.TryParse(sessionIdProperty, out var solutionSessionId);
                 return solutionSessionId;
             }
+        }
+
+        VSTypeScriptVisualStudioProjectWrapper IVsTypeScriptVisualStudioProjectFactory.CreateAndAddToWorkspace(string projectSystemName, string language, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid)
+        {
+            var projectInfo = new VisualStudioProjectCreationInfo
+            {
+                FilePath = projectFilePath,
+                Hierarchy = hierarchy,
+                ProjectGuid = projectGuid,
+            };
+            var visualStudioProject = this.CreateAndAddToWorkspace(projectSystemName, language, projectInfo);
+            return new VSTypeScriptVisualStudioProjectWrapper(visualStudioProject);
         }
     }
 }

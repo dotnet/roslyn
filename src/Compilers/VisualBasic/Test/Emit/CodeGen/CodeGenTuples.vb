@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Text
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -23181,8 +23180,18 @@ End Class"
 
                 Case TupleUnderlyingTypeValue.Distinct
                     Assert.NotEqual(type, underlyingType)
-                    Assert.False(type.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions))
+                    Assert.NotEqual(underlyingType, type)
+
+                    Assert.True(type.Equals(underlyingType, TypeCompareKind.AllIgnoreOptions))
+                    Assert.True(underlyingType.Equals(type, TypeCompareKind.AllIgnoreOptions))
                     Assert.False(type.Equals(underlyingType, TypeCompareKind.ConsiderEverything))
+                    Assert.False(underlyingType.Equals(type, TypeCompareKind.ConsiderEverything))
+
+                    Assert.True(DirectCast(type, Symbol).Equals(underlyingType, TypeCompareKind.AllIgnoreOptions))
+                    Assert.True(DirectCast(underlyingType, Symbol).Equals(type, TypeCompareKind.AllIgnoreOptions))
+                    Assert.False(DirectCast(type, Symbol).Equals(underlyingType, TypeCompareKind.ConsiderEverything))
+                    Assert.False(DirectCast(underlyingType, Symbol).Equals(type, TypeCompareKind.ConsiderEverything))
+
                     VerifyPublicType(underlyingType, expectedValue:=TupleUnderlyingTypeValue.Nothing)
 
                 Case Else

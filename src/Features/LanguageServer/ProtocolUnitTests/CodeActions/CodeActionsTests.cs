@@ -144,7 +144,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             var changedSourceText = currentDocText.WithChanges(new TextChange(new TextSpan(0, 0), "class D { } \n"));
             var docId = workspace.Documents.First().Id;
             workspace.ChangeDocument(docId, changedSourceText);
-            UpdateSolutionProvider(workspace, workspace.CurrentSolution);
             var updatedDocument = GetDocument(workspace, CreateTextDocumentIdentifier(caretLocation.Uri));
 
             await RunCodeActionsAndAssertActionsInCacheAsync(workspace, cache, caretLocation, updatedDocument);
@@ -249,10 +248,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 
         private static Document GetDocument(Workspace workspace, LSP.TextDocumentIdentifier textDocument)
         {
-            var exportProvider = ((TestWorkspace)workspace).ExportProvider.GetExportedValue<ILspSolutionProvider>();
-            var result = Assert.IsType<TestLspSolutionProvider>(exportProvider);
-
-            return result.GetDocument(textDocument);
+            return workspace.CurrentSolution.GetDocument(textDocument);
         }
     }
 }

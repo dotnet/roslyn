@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 {
@@ -77,9 +78,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         {
             Debug.Assert(constructor.Parameters.Length == expressions.Length);
 
-            for (var i = 0; i < constructor.Parameters.Length; i++)
+            // Resolve the constructor into our semantic model's compilation; if the constructor we're looking at is from
+            // another project with a different language.
+            var constructorInCompilation = (IMethodSymbol?)SymbolKey.Create(constructor).Resolve(semanticModel.Compilation).Symbol;
+            Contract.ThrowIfNull(constructorInCompilation);
+
+            for (var i = 0; i < constructorInCompilation.Parameters.Length; i++)
             {
-                var constructorParameter = constructor.Parameters[i];
+                var constructorParameter = constructorInCompilation.Parameters[i];
+                if (constructorParameter == null)
+                    return false;
+
                 var conversion = semanticFacts.ClassifyConversion(semanticModel, expressions[i], constructorParameter.Type);
                 if (!conversion.IsIdentity && !conversion.IsImplicit)
                     return false;

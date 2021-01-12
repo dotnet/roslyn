@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class SyntaxNodeExtensions
     {
+        public static SyntaxNode GetRequiredParent(this SyntaxNode node)
+            => node.Parent ?? throw new InvalidOperationException("Node's parent was null");
+
         public static IEnumerable<SyntaxNodeOrToken> DepthFirstTraversal(this SyntaxNode node)
             => SyntaxNodeOrTokenExtensions.DepthFirstTraversal(node);
 

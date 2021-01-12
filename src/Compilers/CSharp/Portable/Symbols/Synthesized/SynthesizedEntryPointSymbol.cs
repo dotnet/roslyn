@@ -310,8 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 expanded: false,
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
+                defaultArguments: default(BitVector),
                 resultKind: LookupResultKind.Viable,
-                binderOpt: null,
                 type: method.ReturnType)
             { WasCompilerGenerated = true };
         }
@@ -355,8 +355,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         expanded: false,
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: default(ImmutableArray<int>),
+                        defaultArguments: default(BitVector),
                         resultKind: LookupResultKind.Viable,
-                        binderOpt: binder,
                         type: userMain.ReturnType)
                 { WasCompilerGenerated = true };
 
@@ -426,6 +426,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+        internal sealed override bool IsNullableAnalysisEnabled() => false;
 
         private sealed class ScriptEntryPoint : SynthesizedEntryPointSymbol
         {
@@ -500,8 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 scriptLocal,
                                 new BoundObjectCreationExpression(
                                     syntax,
-                                    ctor,
-                                    null)
+                                    ctor)
                                 { WasCompilerGenerated = true },
                                 _containingType)
                             { WasCompilerGenerated = true })
@@ -579,14 +580,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             syntax,
                             ctor,
                             ImmutableArray.Create<BoundExpression>(submissionArrayParameter),
-                            default(ImmutableArray<string>),
-                            default(ImmutableArray<RefKind>),
-                            false,
-                            default(ImmutableArray<int>),
-                            null,
-                            null,
-                            null,
-                            _containingType)
+                            argumentNamesOpt: default(ImmutableArray<string>),
+                            argumentRefKindsOpt: default(ImmutableArray<RefKind>),
+                            expanded: false,
+                            argsToParamsOpt: default(ImmutableArray<int>),
+                            defaultArguments: default(BitVector),
+                            constantValueOpt: null,
+                            initializerExpressionOpt: null,
+                            type: _containingType)
                         { WasCompilerGenerated = true },
                         _containingType)
                     { WasCompilerGenerated = true })

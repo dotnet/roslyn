@@ -3,21 +3,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <SignAssembly>false</SignAssembly>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Management" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Xml" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageReference Include="RestSharp" Version="$(RestSharpVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="System.Security.Principal" Version="$(SystemSecurityPrincipalVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
+    <PackageReference Include="System.Management" Version="$(SystemManagementVersion)" />
     <PackageReference Include="Mono.Options" Version="$(MonoOptionsVersion)" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="$(MicrosoftWin32RegistryVersion)" />
   </ItemGroup>
 </Project>

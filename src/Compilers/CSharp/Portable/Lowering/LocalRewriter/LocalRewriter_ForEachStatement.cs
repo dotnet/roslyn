@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -114,8 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement? rewrittenBody = VisitStatement(node.Body);
             Debug.Assert(rewrittenBody is { });
 
-            MethodSymbol getEnumeratorMethod = enumeratorInfo.GetEnumeratorMethod;
-            TypeSymbol enumeratorType = getEnumeratorMethod.ReturnType;
+            MethodArgumentInfo getEnumeratorInfo = enumeratorInfo.GetEnumeratorInfo;
+            TypeSymbol enumeratorType = getEnumeratorInfo.Method.ReturnType;
             TypeSymbol elementType = enumeratorInfo.ElementType;
 
             // E e
@@ -124,12 +125,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Reference to e.
             BoundLocal boundEnumeratorVar = MakeBoundLocal(forEachSyntax, enumeratorVar, enumeratorType);
 
+            var receiver = ConvertReceiverForInvocation(forEachSyntax, rewrittenExpression, getEnumeratorInfo.Method, enumeratorInfo.CollectionConversion, enumeratorInfo.CollectionType);
+
+            // If the GetEnumerator call is an extension method, then the first argument is the receiver. We want to replace
+            // the first argument with our converted receiver and pass null as the receiver instead.
+            if (getEnumeratorInfo.Method.IsExtensionMethod)
+            {
+                var builder = ArrayBuilder<BoundExpression>.GetInstance(getEnumeratorInfo.Arguments.Length);
+                builder.Add(receiver);
+                builder.AddRange(getEnumeratorInfo.Arguments, 1, getEnumeratorInfo.Arguments.Length - 1);
+                getEnumeratorInfo = getEnumeratorInfo with { Arguments = builder.ToImmutableAndFree() };
+
+                receiver = null;
+            }
+
             // ((C)(x)).GetEnumerator();  OR  (x).GetEnumerator();  OR  async variants (which fill-in arguments for optional parameters)
-            BoundExpression enumeratorVarInitValue = SynthesizeCall(
-                forEachSyntax,
-                ConvertReceiverForInvocation(forEachSyntax, rewrittenExpression, getEnumeratorMethod, enumeratorInfo.CollectionConversion, enumeratorInfo.CollectionType),
-                getEnumeratorMethod,
-                allowExtensionAndOptionalParameters: isAsync || getEnumeratorMethod.IsExtensionMethod);
+            BoundExpression enumeratorVarInitValue = SynthesizeCall(getEnumeratorInfo, forEachSyntax, receiver,
+                allowExtensionAndOptionalParameters: isAsync || getEnumeratorInfo.Method.IsExtensionMethod,
+                // C# 8 shipped allowing the CancellationToken of `IAsyncEnumerable.GetAsyncEnumerator` to be non-optional.
+                // https://github.com/dotnet/roslyn/issues/50182 tracks making this an error and breaking the scenario.
+                assertParametersAreOptional: false);
 
             // E e = ((C)(x)).GetEnumerator();
             BoundStatement enumeratorVarDecl = MakeLocalDeclaration(forEachSyntax, enumeratorVar, enumeratorVarInitValue);
@@ -167,9 +182,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rewrittenBodyBlock = CreateBlockDeclaringIterationVariables(iterationVariables, iterationVarDecl, rewrittenBody, forEachSyntax);
             BoundExpression rewrittenCondition = SynthesizeCall(
+                    methodArgumentInfo: enumeratorInfo.MoveNextInfo,
                     syntax: forEachSyntax,
                     receiver: boundEnumeratorVar,
-                    method: enumeratorInfo.MoveNextMethod,
                     allowExtensionAndOptionalParameters: isAsync);
             if (isAsync)
             {
@@ -245,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol? idisposableTypeSymbol = null;
             bool isImplicit = false;
-            MethodSymbol? disposeMethod = enumeratorInfo.DisposeMethod; // pattern-based
+            MethodSymbol? disposeMethod = enumeratorInfo.PatternDisposeInfo?.Method; // pattern-based
 
             if (disposeMethod is null)
             {
@@ -267,16 +282,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                location: enumeratorInfo.Location);
 
             BoundBlock finallyBlockOpt;
-            if (isImplicit || !(enumeratorInfo.DisposeMethod is null))
+            if (isImplicit || !(enumeratorInfo.PatternDisposeInfo is null))
             {
                 Conversion receiverConversion = enumeratorType.IsStructType() ?
                     Conversion.Boxing :
                     Conversion.ImplicitReference;
 
                 BoundExpression receiver;
-                if (enumeratorInfo.DisposeMethod is null)
+                BoundExpression disposeCall;
+                var disposeInfo = enumeratorInfo.PatternDisposeInfo;
+                if (disposeInfo is null)
                 {
                     Debug.Assert(idisposableTypeSymbol is { });
+                    disposeInfo = MethodArgumentInfo.CreateParameterlessMethod(disposeMethod);
                     receiver = ConvertReceiverForInvocation(forEachSyntax, boundEnumeratorVar, disposeMethod, receiverConversion, idisposableTypeSymbol);
                 }
                 else
@@ -285,10 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // ((IDisposable)e).Dispose() or e.Dispose() or await ((IAsyncDisposable)e).DisposeAsync() or await e.DisposeAsync()
-                BoundExpression disposeCall = MakeCallWithNoExplicitArgument(
-                    forEachSyntax,
-                    receiver,
-                    disposeMethod);
+                disposeCall = MakeCallWithNoExplicitArgument(disposeInfo, forEachSyntax, receiver);
 
                 BoundStatement disposeCallStatement;
                 var disposeAwaitableInfoOpt = enumeratorInfo.DisposeAwaitableInfo;
@@ -482,16 +497,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return receiver;
         }
 
-        private BoundExpression SynthesizeCall(CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method, bool allowExtensionAndOptionalParameters)
+        private BoundExpression SynthesizeCall(MethodArgumentInfo methodArgumentInfo, CSharpSyntaxNode syntax, BoundExpression? receiver, bool allowExtensionAndOptionalParameters, bool assertParametersAreOptional = true)
         {
             if (allowExtensionAndOptionalParameters)
             {
                 // Generate a call with zero explicit arguments, but with implicit arguments for optional and params parameters.
-                return MakeCallWithNoExplicitArgument(syntax, receiver, method);
+                return MakeCallWithNoExplicitArgument(methodArgumentInfo, syntax, receiver, assertParametersAreOptional);
             }
 
             // Generate a call with literally zero arguments
-            return BoundCall.Synthesized(syntax, receiver, method, arguments: ImmutableArray<BoundExpression>.Empty);
+            Debug.Assert(methodArgumentInfo.Arguments.IsEmpty);
+            return BoundCall.Synthesized(syntax, receiver, methodArgumentInfo.Method, arguments: ImmutableArray<BoundExpression>.Empty);
         }
 
         /// <summary>

@@ -18,6 +18,8 @@ jobs:
   timeoutInMinutes: 40
 
   steps:
+    - template: checkout-windows-task.yml
+
     - task: PowerShell@2
       displayName: Restore
       inputs:
@@ -28,7 +30,7 @@ jobs:
       displayName: Build
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -publish -binaryLog 
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -publish -binaryLog -skipDocumentation
 
     - task: PowerShell@2 
       displayName: Prepare Unit Tests

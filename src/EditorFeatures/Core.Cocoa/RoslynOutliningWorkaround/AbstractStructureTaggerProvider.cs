@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             try
             {
                 // Let LSP handle producing tags in the cloud scenario
-                if (documentSnapshotSpan.Document.IsInCloudEnvironmentClientContext())
+                if (documentSnapshotSpan.SnapshotSpan.Snapshot.TextBuffer.IsInLspEditorContext())
                 {
                     return;
                 }
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             try
             {
                 // Let LSP handle producing tags in the cloud scenario
-                if (documentSnapshotSpan.Document.IsInCloudEnvironmentClientContext())
+                if (documentSnapshotSpan.SnapshotSpan.Snapshot.TextBuffer.IsInLspEditorContext())
                 {
                     return;
                 }
