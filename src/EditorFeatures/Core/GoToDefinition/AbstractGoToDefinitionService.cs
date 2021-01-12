@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             _streamingPresenter = streamingPresenter;
         }
 
-        async Task<IEnumerable<INavigableItem>> IGoToDefinitionService.FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
+        async Task<IEnumerable<INavigableItem>?> IGoToDefinitionService.FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
             => await FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
 
         public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
