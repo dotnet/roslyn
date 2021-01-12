@@ -147,13 +147,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseNotPatternDiagnosticId = "IDE0083";
         public const string UseIsNotExpressionDiagnosticId = "IDE0084";
-        public const string SimplifyLinqExpressionDiagnosticId = "IDE0085";
 
         public const string UseImplicitObjectCreationDiagnosticId = "IDE0090";
 
         public const string RemoveRedundantEqualityDiagnosticId = "IDE0100";
 
         public const string RemoveUnnecessaryDiscardDesignationDiagnosticId = "IDE0110";
+
+        public const string SimplifyLinqExpressionDiagnosticId = "IDE0120";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

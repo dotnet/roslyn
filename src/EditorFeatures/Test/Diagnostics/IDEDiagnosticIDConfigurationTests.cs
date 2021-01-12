@@ -395,9 +395,6 @@ dotnet_diagnostic.IDE0082.severity = %value%
 # IDE0083
 dotnet_diagnostic.IDE0083.severity = %value%
 
-# IDE0085
-dotnet_diagnostic.IDE0085.severity = %value%
-
 # IDE0090
 dotnet_diagnostic.IDE0090.severity = %value%
 
@@ -418,6 +415,9 @@ dotnet_diagnostic.IDE1007.severity = %value%
 
 # IDE1008
 dotnet_diagnostic.IDE1008.severity = %value%
+
+# IDE0120
+dotnet_diagnostic.IDE0120.severity = %value%
 ";
 
             VerifyConfigureSeverityCore(expected, LanguageNames.CSharp);
@@ -943,9 +943,6 @@ No editorconfig based code style option
 # IDE0082
 No editorconfig based code style option
 
-# IDE0085
-No editorconfig based code style option
-
 # IDE0083, PreferNotPattern
 csharp_style_prefer_not_pattern = true
 
@@ -953,6 +950,9 @@ csharp_style_prefer_not_pattern = true
 csharp_style_implicit_object_creation_when_type_is_apparent = true
 
 # IDE0110
+No editorconfig based code style option
+
+# IDE0120
 No editorconfig based code style option
 
 # IDE0100

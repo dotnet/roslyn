@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                     return false;
                 }
 
-                linqMethods = linqMethodSymbolsBuilder.ToImmutable() ;
+                linqMethods = linqMethodSymbolsBuilder.ToImmutable();
                 return true;
             }
         }
