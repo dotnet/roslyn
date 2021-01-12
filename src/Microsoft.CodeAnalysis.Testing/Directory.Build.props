@@ -17,6 +17,12 @@
       netstandard2.0/net472: Roslyn 3.x
     -->
     <TestingLibraryTargetFrameworks>netcoreapp3.1;netstandard1.5;netstandard2.0;net452;net46;net472</TestingLibraryTargetFrameworks>
+
+    <!--
+      netcoreapp3.1: Ensures full support for nullable reference types
+      netstandard2.0/net472: Roslyn 3.x, starting with 3.8.0
+    -->
+    <TestingLibrarySourceGeneratorTargetFrameworks>netcoreapp3.1;netstandard2.0;net472</TestingLibrarySourceGeneratorTargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(CopyrightMicrosoft)' != ''">

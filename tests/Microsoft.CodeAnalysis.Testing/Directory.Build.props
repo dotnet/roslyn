@@ -22,6 +22,7 @@
 
   <PropertyGroup>
     <TestTargetFrameworks>netcoreapp3.1;net472;net46;netcoreapp1.1;netcoreapp2.0</TestTargetFrameworks>
+    <SourceGeneratorTestTargetFrameworks>netcoreapp3.1;net472</SourceGeneratorTestTargetFrameworks>
 
     <!-- Workaround dependencies that do not yet support netcoreapp3.1 https://github.com/dotnet/roslyn/issues/45114 -->
     <NoWarn>NU1701;$(NoWarn)</NoWarn>
