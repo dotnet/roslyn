@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <Compile Include="..\Core.Wpf\SignatureHelp\**\*.cs" LinkBase="SignatureHelp" />
+    <Compile Include="..\Core.Wpf\IDebuggerTextView2.cs" Link="IDebuggerTextView2.cs" />
   </ItemGroup>
 
   <ItemGroup>
