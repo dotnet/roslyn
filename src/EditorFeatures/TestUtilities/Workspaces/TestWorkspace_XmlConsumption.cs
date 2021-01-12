@@ -1039,7 +1039,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 references.AddRange(TestBase.PortableRefsMinimal);
             }
 
-            var netcore30 = element.Attribute(CommonReferencesNetCoreApp30Name);
+            var netcore30 = element.Attribute(CommonReferencesNetCoreAppName);
             if (netcore30 != null &&
                 ((bool?)netcore30).HasValue &&
                 ((bool?)netcore30).Value)
