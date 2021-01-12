@@ -1044,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)netcore30).HasValue &&
                 ((bool?)netcore30).Value)
             {
-                references = TargetFrameworkUtil.NetCoreApp30References.ToList();
+                references = TargetFrameworkUtil.NetCoreAppReferences.ToList();
             }
 
             var netstandard20 = element.Attribute(CommonReferencesNetStandard20Name);
