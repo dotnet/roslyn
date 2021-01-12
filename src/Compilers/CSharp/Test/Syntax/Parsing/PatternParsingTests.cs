@@ -9521,7 +9521,7 @@ switch (e)
             UsingStatement($"_ = e is (a) or b;",
                 TestOptions.RegularWithPatternCombinators
             );
-            
+
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);
@@ -9567,7 +9567,7 @@ switch (e)
             }
             EOF();
         }
-        
+
         [Fact]
         public void CompoundPattern_01()
         {
@@ -10669,7 +10669,7 @@ switch (e)
             UsingStatement($"_ = e is (a)42 or b;",
                 TestOptions.RegularWithPatternCombinators
             );
-            
+
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.SimpleAssignmentExpression);
