@@ -16,7 +16,7 @@ namespace CSharpSyntaxGenerator
 {
     public abstract class CachingSourceGenerator : ISourceGenerator
     {
-        private static Tuple<ImmutableArray<byte>, ImmutableArray<(string hintName, SourceText sourceText)>>? s_cachedResult;
+        private static CachedSourceGeneratorResult? s_cachedResult;
 
         protected abstract bool TryGetRelevantInput(in GeneratorExecutionContext context, out AdditionalText? input, out SourceText? inputText);
 
@@ -44,9 +44,9 @@ namespace CSharpSyntaxGenerator
 
             // Read the current cached result once to avoid race conditions
             if (s_cachedResult is { } cachedResult
-                && cachedResult.Item1.SequenceEqual(currentChecksum))
+                && cachedResult.Checksum.SequenceEqual(currentChecksum))
             {
-                AddSources(in context, sources: cachedResult.Item2, currentChecksum, CacheBehavior.None);
+                AddSources(in context, sources: cachedResult.Sources, currentChecksum, CacheBehavior.None);
                 return;
             }
 
@@ -89,7 +89,7 @@ namespace CSharpSyntaxGenerator
                 case CacheBehavior.Update:
                     // Overwrite the cached result with the new result. This is an opportunistic cache, so as long as
                     // the write is atomic (which it is for a single pointer) synchronization is unnecessary.
-                    Volatile.Write(ref s_cachedResult, Tuple.Create(inputChecksum, sources));
+                    Volatile.Write(ref s_cachedResult, new CachedSourceGeneratorResult(inputChecksum, sources));
                     break;
 
                 default:
@@ -103,6 +103,10 @@ namespace CSharpSyntaxGenerator
             Clear,
             Update,
         }
+
+        private sealed record CachedSourceGeneratorResult(
+            ImmutableArray<byte> Checksum,
+            ImmutableArray<(string hintName, SourceText sourceText)> Sources);
     }
 }
 
