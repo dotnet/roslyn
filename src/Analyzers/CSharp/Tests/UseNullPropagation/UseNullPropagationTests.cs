@@ -1120,5 +1120,55 @@ class C
     }
 }");
         }
+
+        [WorkItem(49517, "https://github.com/dotnet/roslyn/issues/49517")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestParenthesizedNull()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        var v = [||]o == null ? (null) : o.ToString();
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        var v = o?.ToString();
+    }
+}");
+        }
+
+        [WorkItem(49517, "https://github.com/dotnet/roslyn/issues/49517")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
+        public async Task TestReversedParenthesizedNull()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        var v = [||]o != null ? o.ToString() : (null);
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(object o)
+    {
+        var v = o?.ToString();
+    }
+}");
+        }
     }
 }
