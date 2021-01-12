@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveStatementPlacement
             => trivia.Kind() == SyntaxKind.WhitespaceTrivia;
 
         protected override bool IsBlockStatement(SyntaxNode node)
-            => node is BlockSyntax || node is SwitchStatementSyntax;
+            => node is BlockSyntax or SwitchStatementSyntax;
 
         protected override Location GetDiagnosticLocation(SyntaxNode block)
             => block.GetLastToken().GetLocation();
