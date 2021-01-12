@@ -3,20 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#endif
 
 namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
 {
     internal abstract class AbstractSimplifyLinqExpressionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        private readonly ImmutableArray<string> _nonEnumerableReturningLinqMethodNames =
+        private static readonly ImmutableArray<string> _nonEnumerableReturningLinqMethodNames =
             ImmutableArray.Create(
                 nameof(Enumerable.First),
                 nameof(Enumerable.Last),
@@ -25,17 +23,13 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 nameof(Enumerable.Count),
                 nameof(Enumerable.SingleOrDefault),
                 nameof(Enumerable.FirstOrDefault),
-                nameof(Enumerable.LastOrDefault)
-            );
+                nameof(Enumerable.LastOrDefault));
 
         public AbstractSimplifyLinqExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.SimplifyLinqExpressionDiagnosticId,
                    EnforceOnBuildValues.SimplifyLinq,
                    option: null,
-                   title: new LocalizableResourceString(
-                       nameOfLocalizableResource: nameof(AnalyzersResources.Simplify_Linq_expression),
-                       resourceManager: AnalyzersResources.ResourceManager,
-                       resourceSource: typeof(AnalyzersResources)))
+                   title: new LocalizableResourceString(nameof(AnalyzersResources.Simplify_Linq_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
         }
 
@@ -47,34 +41,67 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
 
         private void OnCompilationStart(CompilationStartAnalysisContext context)
         {
-            if ((typeof(Enumerable)?.FullName is not string fullyQualifiedName) ||
-                (context.Compilation.GetTypeByMetadataName(fullyQualifiedName) is not INamedTypeSymbol enumerableType))
+            if (!TryGetEnumerableTypeSymbol(context.Compilation, out var enumerableType))
             {
                 return;
             }
 
-            var whereMethodSymbols = enumerableType.GetMembers(nameof(Enumerable.Where)).OfType<IMethodSymbol>().ToImmutableArray();
-            var linqMethodSymbolsBuilder = ArrayBuilder<IMethodSymbol>.GetInstance();
-
-            foreach (var methodName in _nonEnumerableReturningLinqMethodNames)
+            if (!TryGetLinqWhereExtensionMethods(enumerableType, out var whereMethodSymbols))
             {
-                linqMethodSymbolsBuilder.AddRange(enumerableType.GetMembers(methodName).OfType<IMethodSymbol>());
+                return;
             }
 
-            var linqMethodSymbols = linqMethodSymbolsBuilder.ToImmutableAndFree();
-            if (whereMethodSymbols.IsEmpty || linqMethodSymbols.IsEmpty)
+            if (!TryGetLinqMethodsThatDotNotReturnEnumerables(enumerableType, out var linqMethodSymbols))
             {
                 return;
             }
 
             context.RegisterOperationAction(
-                context => AnalyzeInvocationOperation(context, whereMethodSymbols, linqMethodSymbols), OperationKind.Invocation);
+                context => AnalyzeInvocationOperation(context, whereMethodSymbols, linqMethodSymbols),
+                OperationKind.Invocation);
+
+            static bool TryGetEnumerableTypeSymbol(Compilation compilation, [NotNullWhen(true)] out INamedTypeSymbol? enumerableType)
+            {
+                if (typeof(Enumerable)?.FullName is string fullyQualifiedName)
+                {
+                    enumerableType = compilation.GetTypeByMetadataName(fullyQualifiedName);
+                    return enumerableType is not null;
+                }
+
+                enumerableType = null;
+                return false;
+            }
+
+            static bool TryGetLinqWhereExtensionMethods(INamedTypeSymbol enumerableType, out ImmutableArray<IMethodSymbol> whereMethods)
+            {
+                whereMethods = enumerableType.GetMembers(nameof(Enumerable.Where)).OfType<IMethodSymbol>().ToImmutableArray();
+                return !whereMethods.IsEmpty;
+            }
+
+            static bool TryGetLinqMethodsThatDotNotReturnEnumerables(INamedTypeSymbol enumerableType, out ImmutableArray<IMethodSymbol> linqMethods)
+            {
+                using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var linqMethodSymbolsBuilder);
+                foreach (var methodName in _nonEnumerableReturningLinqMethodNames)
+                {
+                    linqMethodSymbolsBuilder.AddRange(enumerableType.GetMembers(methodName).OfType<IMethodSymbol>());
+                }
+
+                if (linqMethodSymbolsBuilder.Count == 0)
+                {
+                    linqMethods = default;
+                    return false;
+                }
+
+                linqMethods = linqMethodSymbolsBuilder.ToImmutable() ;
+                return true;
+            }
         }
 
         public void AnalyzeInvocationOperation(OperationAnalysisContext context, ImmutableArray<IMethodSymbol> whereMethods, ImmutableArray<IMethodSymbol> linqMethods)
         {
             if (context.Operation.Syntax.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
             {
+                // Do not analyze linq methods that contain diagnostics.
                 return;
             }
 
@@ -84,15 +111,19 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 return;
             }
 
-            var argument = invocation.Arguments.Single();
-
-            if (linqMethods.Any(m => m.Equals(invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default)) &&
-                argument.Children.FirstOrDefault() is IInvocationOperation whereInvocation &&
-                whereMethods.Any(m => m.Equals(whereInvocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default)) &&
-                whereInvocation.Arguments.Length == 2)
+            if (invocation.Arguments.Single().Children.FirstOrDefault() is not IInvocationOperation previousInvocationInChain)
             {
-                var memberAccessExpressionLocation = whereInvocation.Syntax.GetLocation();
-                var lambdaExpressionLocation = whereInvocation.Arguments.Last().Syntax.GetLocation();
+                // Invocation is not part of a chain of invocations (i.e. Where(x => x is not null).First())
+                return;
+            }
+
+            // Verify this is 'Where' followed by a non-enumerable returning method
+            if (IsInvocationNonEnumerableReturningLinqMethod(invocation) &&
+                IsWhereLinqMethod(previousInvocationInChain) &&
+                previousInvocationInChain.Arguments.Length == 2)
+            {
+                var memberAccessExpressionLocation = previousInvocationInChain.Syntax.GetLocation();
+                var lambdaExpressionLocation = previousInvocationInChain.Arguments.Last().Syntax.GetLocation();
 
                 context.ReportDiagnostic(
                     DiagnosticHelper.Create(
@@ -102,6 +133,12 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                         additionalLocations: new[] { memberAccessExpressionLocation, lambdaExpressionLocation },
                         properties: null));
             }
+
+            bool IsInvocationNonEnumerableReturningLinqMethod(IInvocationOperation invocation)
+                => linqMethods.Any(m => m.Equals(invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default));
+
+            bool IsWhereLinqMethod(IInvocationOperation invocation)
+                => whereMethods.Any(m => m.Equals(invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default));
         }
     }
 }

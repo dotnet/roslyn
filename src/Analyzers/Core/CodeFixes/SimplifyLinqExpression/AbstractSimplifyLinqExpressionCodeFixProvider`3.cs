@@ -22,6 +22,10 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
     {
         private const string SimplyfyLinqAnnotationKind = "linqTracking";
 
+        protected abstract TSimpleNameSyntax GetName(TInvocationExpressionSyntax invocationExpression);
+        protected abstract TExpressionSyntax GetExpression(TExpressionSyntax invocationExpression);
+        protected abstract SyntaxNode[] GetArguments(SyntaxNode invocationExpression);
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
            => ImmutableArray.Create(IDEDiagnosticIds.SimplifyLinqExpressionDiagnosticId);
 
@@ -111,10 +115,6 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 return (invocation, expression, name, arguments);
             }
         }
-
-        protected abstract TSimpleNameSyntax GetName(TInvocationExpressionSyntax invocationExpression);
-        protected abstract TExpressionSyntax GetExpression(TExpressionSyntax invocationExpression);
-        protected abstract SyntaxNode[] GetArguments(SyntaxNode invocationExpression);
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
