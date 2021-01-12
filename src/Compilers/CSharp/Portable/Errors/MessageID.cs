@@ -117,6 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_ToolName = MessageBase + 12697,
         IDS_LogoLine1 = MessageBase + 12698,
         IDS_LogoLine2 = MessageBase + 12699,
+        IDS_LogoLine3 = MessageBase + 99999,
         IDS_CSCHelp = MessageBase + 12700,
 
         IDS_FeatureUsingStatic = MessageBase + 12701,

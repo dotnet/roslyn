@@ -3,11 +3,12 @@
 <Project>
   <PropertyGroup>
     <Copyright>$(CopyrightMicrosoft)</Copyright>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageLicensePath>$(MSBuildThisFileDirectory)..\..\LICENSE.md</PackageLicensePath>
 
     <RepositoryUrl>https://github.com/postsharp/Caravela.Compiler</RepositoryUrl>
     <PackageTags>PostSharp Caravela</PackageTags>
-    <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\src\NuGet\ThirdPartyNotices.rtf</ThirdPartyNoticesFilePath>
+    <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\THIRD-PARTY-NOTICES.txt</ThirdPartyNoticesFilePath>
 
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
 

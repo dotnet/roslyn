@@ -239,10 +239,11 @@
   </ItemGroup>
 
   <!-- 
-    Add ThirdPartyNotices.rtf to all shipping NuGet packages.
+    Add ThirdPartyNotices and License to all shipping NuGet packages.
   -->
   <ItemGroup Condition="'$(IsPackable)' == 'true' and '$(IsShipping)' == 'true'">
-    <None Include="$(ThirdPartyNoticesFilePath)" PackagePath="ThirdPartyNotices.rtf" Visible="false" Pack="true"/>
+    <None Include="$(ThirdPartyNoticesFilePath)" PackagePath="THIRD-PARTY-NOTICES.txt" Visible="false" Pack="true"/>
+    <None Include="$(PackageLicensePath)" PackagePath="LICENSE.md" Visible="false" Pack="true"/>
   </ItemGroup>
 
   <!--

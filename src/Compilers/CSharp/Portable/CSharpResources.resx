@@ -4606,14 +4606,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Chaining speculative semantic model is not supported. You should create a speculative model from the non-speculative ParentModel.</value>
   </data>
   <data name="IDS_ToolName" xml:space="preserve">
-    <value>Microsoft (R) Visual C# Compiler</value>
+    <value>PostSharp "Caravela" Compiler</value>
   </data>
   <data name="IDS_LogoLine1" xml:space="preserve">
     <value>{0} version {1}</value>
   </data>
   <data name="IDS_LogoLine2" xml:space="preserve">
-    <value>Copyright (C) Microsoft Corporation. All rights reserved.</value>
+    <value>Copyright (c) SharpCrafters s.r.o. All rights reserved.</value>
   </data>
+  <data name="IDS_LogoLine3" xml:space="preserve">
+    <value>Based on the Microsoft (R) Visual C# Compiler. 
+Copyright (C) Microsoft Corporation. All rights reserved.
+See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</value>
+  </data>  
   <data name="IDS_LangVersions" xml:space="preserve">
     <value>Supported language versions:</value>
   </data>
