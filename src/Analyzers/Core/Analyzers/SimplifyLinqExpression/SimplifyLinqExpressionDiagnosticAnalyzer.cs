@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 nameof(Enumerable.LastOrDefault)
             );
 
-        public SimplifyLinqExpressionDiagnosticAnalyzer()
+        public AbstractSimplifyLinqExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.SimplifyLinqExpressionDiagnosticId,
                    EnforceOnBuildValues.SimplifyLinq,
                    option: null,
@@ -83,19 +83,23 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
             {
                 return;
             }
-            
+
             var argument = invocation.Arguments.Single();
 
             if (linqMethods.Any(m => m.Equals(invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default)) &&
                 argument.Children.FirstOrDefault() is IInvocationOperation whereInvocation &&
-                whereMethods.Any(m => m.Equals(whereInvocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default)))
+                whereMethods.Any(m => m.Equals(whereInvocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default)) &&
+                whereInvocation.Arguments.Length == 2)
             {
+                var memberAccessExpressionLocation = whereInvocation.Syntax.GetLocation();
+                var lambdaExpressionLocation = whereInvocation.Arguments.Last().Syntax.GetLocation();
+
                 context.ReportDiagnostic(
                     DiagnosticHelper.Create(
                         Descriptor,
                         invocation.Syntax.GetLocation(),
                         Descriptor.GetEffectiveSeverity(context.Compilation.Options),
-                        additionalLocations: null,
+                        additionalLocations: new[] { memberAccessExpressionLocation, lambdaExpressionLocation },
                         properties: null));
             }
         }

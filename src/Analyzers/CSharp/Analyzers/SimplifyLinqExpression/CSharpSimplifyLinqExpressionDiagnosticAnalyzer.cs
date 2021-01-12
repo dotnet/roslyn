@@ -14,7 +14,7 @@ using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpSimplifyLinqExpressionDiagnosticAnalyzer : SimplifyLinqExpressionDiagnosticAnalyzer
+    internal sealed class CSharpSimplifyLinqExpressionDiagnosticAnalyzer : AbstractSimplifyLinqExpressionDiagnosticAnalyzer
     {
     }
 }

@@ -7,12 +7,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.SimplifyLinqExpression;
 
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal sealed class CSharpSimplifyLinqExpressionCodeFixProvider : AbstractSimplifyLinqExpressionCodeFixProvider
+    internal sealed class CSharpSimplifyLinqExpressionCodeFixProvider : AbstractSimplifyLinqExpressionCodeFixProvider<InvocationExpressionSyntax, SimpleNameSyntax, ExpressionSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -20,13 +21,16 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
         {
         }
 
-        protected override SyntaxNode? GetIdentifierName(SyntaxNode node)
-            => (node.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().First().Expression as MemberAccessExpressionSyntax)?.Name;
+        protected override SyntaxNode[] GetArguments(SyntaxNode argument)
+            // this is handling both the Enumerable.Where(source, filter) case and the source.Where(filter) case
+            => argument.Parent?.Parent?.Parent is ArgumentListSyntax argumentList
+                ? argumentList.Arguments.ToArray()
+                : new[] { argument };
 
-        protected override SyntaxNode[] GetLambdaExpression(SyntaxNode node)
-            => node.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().Skip(1).First().ArgumentList.Arguments.ToArray();
+        protected override ExpressionSyntax GetExpression(ExpressionSyntax expression)
+            => ((MemberAccessExpressionSyntax)((InvocationExpressionSyntax)expression).Expression).Expression;
 
-        protected override SyntaxNode GetMemberAccessExpression(SyntaxNode node)
-            => node.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>().Skip(1).First().Expression;
+        protected override SimpleNameSyntax GetName(InvocationExpressionSyntax invocationExpression)
+            => invocationExpression.Expression.GetRightmostName();
     }
 }
