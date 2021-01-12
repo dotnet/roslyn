@@ -31,9 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         // PERF: Many CompletionProviders derive AbstractSymbolCompletionProvider and therefore
         // compute identical contexts. This actually shows up on the 2-core typing test.
         // Cache the most recent document/position/computed SyntaxContext to reduce repeat computation.
-        private static readonly ConditionalWeakTable<Document, AsyncLazy<SyntaxContext>> s_cachedDocuments = new();
-        private static int s_cachedPosition;
-        private static readonly object s_cacheGate = new();
+        private static readonly ConditionalWeakTable<Document, Tuple<int, AsyncLazy<SyntaxContext>>> s_cachedDocuments = new();
 
         private bool? _isTargetTypeCompletionFilterExperimentEnabled = null;
 
@@ -311,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position,
             OptionSet options, bool preselect, TelemetryCounter telemetryCounter, CancellationToken cancellationToken)
         {
-            var relatedDocumentIds = GetRelatedDocumentIds(document, position);
+            var relatedDocumentIds = document.GetLinkedDocumentIds();
             options = GetUpdatedRecommendationOptions(options, document.Project.Language);
 
             if (relatedDocumentIds.IsEmpty)
@@ -326,29 +324,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
 
             return CreateItems(completionContext, symbolToContextMap.Keys, symbol => symbolToContextMap[symbol], missingSymbolsMap, totalProjects, preselect, telemetryCounter);
-        }
-
-        private static ImmutableArray<DocumentId> GetRelatedDocumentIds(Document document, int position)
-        {
-            var relatedDocumentIds = document.GetLinkedDocumentIds();
-            var relatedDocuments = relatedDocumentIds.Concat(document.Id).Select(document.Project.Solution.GetRequiredDocument);
-            lock (s_cacheGate)
-            {
-                // Invalidate the cache if it's for a different position or a different set of Documents.
-                // It's fairly likely that we'll only have to check the first document, unless someone
-                // specially constructed a Solution with mismatched linked files.
-                if (s_cachedPosition != position ||
-                    !relatedDocuments.All((Document d) => s_cachedDocuments.TryGetValue(d, out _)))
-                {
-                    s_cachedPosition = position;
-                    foreach (var related in relatedDocuments)
-                    {
-                        s_cachedDocuments.Remove(document);
-                    }
-                }
-            }
-
-            return relatedDocumentIds;
         }
 
         protected virtual bool IsExclusive()
@@ -394,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return result;
         }
 
-        protected async Task<ImmutableArray<(DocumentId documentId, SyntaxContext syntaxContext, ImmutableArray<ISymbol> symbols)>> GetPerContextSymbolsAsync(
+        private async Task<ImmutableArray<(DocumentId documentId, SyntaxContext syntaxContext, ImmutableArray<ISymbol> symbols)>> GetPerContextSymbolsAsync(
             Document document, int position, OptionSet options, IEnumerable<DocumentId> relatedDocuments, bool preselect, CancellationToken cancellationToken)
         {
             var perContextSymbols = ArrayBuilder<(DocumentId documentId, SyntaxContext syntaxContext, ImmutableArray<ISymbol> symbols)>.GetInstance();
@@ -402,10 +377,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var relatedDocument = document.Project.Solution.GetRequiredDocument(relatedDocumentId);
                 var context = await GetOrCreateContextAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false);
-
-                if (IsCandidateProject(context, cancellationToken))
+                var symbols = await GetSymbolsForContextAsync(context, options, preselect, cancellationToken).ConfigureAwait(false);
+                if (!symbols.IsEmpty)
                 {
-                    var symbols = await GetSymbolsAsync(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
                     perContextSymbols.Add((relatedDocument.Id, context, symbols));
                 }
             }
@@ -413,10 +387,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return perContextSymbols.ToImmutableAndFree();
         }
 
-        private static bool IsCandidateProject(SyntaxContext context, CancellationToken cancellationToken)
+        protected async Task<ImmutableArray<ISymbol>> GetSymbolsForContextAsync(SyntaxContext context, OptionSet options, bool preselect, CancellationToken cancellationToken)
         {
             var syntaxFacts = context.GetLanguageService<ISyntaxFactsService>();
-            return !syntaxFacts.IsInInactiveRegion(context.SyntaxTree, context.Position, cancellationToken);
+            return syntaxFacts.IsInInactiveRegion(context.SyntaxTree, context.Position, cancellationToken)
+                ? await GetSymbolsAsync(context.Position, preselect, context, options, cancellationToken).ConfigureAwait(false)
+                : ImmutableArray<ISymbol>.Empty;
         }
 
         protected static OptionSet GetUpdatedRecommendationOptions(OptionSet options, string language)
@@ -433,9 +409,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private Task<SyntaxContext> GetOrCreateContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            lock (s_cacheGate)
+            lock (s_cachedDocuments)
             {
-                var lazyContext = s_cachedDocuments.GetValue(document, d => new AsyncLazy<SyntaxContext>(ct => CreateContextAsync(d, position, ct), cacheResult: true));
+                var tuple = s_cachedDocuments.GetValue(document, d => Tuple.Create(position, new AsyncLazy<SyntaxContext>(ct => CreateContextAsync(d, position, ct), cacheResult: true)));
+                if (tuple.Item1 == position)
+                {
+                    return tuple.Item2.GetValueAsync(cancellationToken);
+                }
+
+                var lazyContext = new AsyncLazy<SyntaxContext>(ct => CreateContextAsync(document, position, ct), cacheResult: true);
+                s_cachedDocuments.Remove(document);
+                s_cachedDocuments.Add(document, Tuple.Create(position, lazyContext));
                 return lazyContext.GetValueAsync(cancellationToken);
             }
         }
