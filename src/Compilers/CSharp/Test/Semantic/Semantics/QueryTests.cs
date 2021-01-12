@@ -4503,24 +4503,24 @@ public class C {
         [Fact, WorkItem(50316, "https://github.com/dotnet/roslyn/issues/50316")]
         public void DefaultIndexedPropertyParameters_IndexerCall()
         {
-            var comp = CreateCompilation(@"
+            CompileAndVerify(@"
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 var c = new C();
 var test = from i in c[1]
-           select i;
+           select i + 1;
+Console.WriteLine(string.Join(string.Empty, test));
 
 public class C {
-    public IEnumerable<int> this[int i1, object o = null]
+    public IEnumerable<int> this[int i1, int i2 = 1]
     {
-        get => null;
+        get => new[] { i2 };
         set {}
     }
 }
-", options: TestOptions.ReleaseExe);
-
-            comp.VerifyEmitDiagnostics();
+", expectedOutput: "2");
         }
 
         [Fact, WorkItem(50316, "https://github.com/dotnet/roslyn/issues/50316")]
@@ -4533,15 +4533,15 @@ Imports System.Runtime.InteropServices
 <ComImport>
 <Guid(""1F9C3731-6AA1-498A-AFA0-359828FCF0CE"")>
 Public Interface I
-    Property X(Optional i as Integer = 0) As IEnumerable(Of Integer)
+    Property X(Optional i as Integer = 1) As IEnumerable(Of Integer)
 End Interface
 
 Public Class A
     Implements I
 
-    Public Property X(Optional i as Integer = 0) As IEnumerable(Of Integer) Implements I.X
+    Public Property X(Optional i as Integer = 1) As IEnumerable(Of Integer) Implements I.X
         Get
-            Return Nothing
+            Return New Integer() { i }
         End Get
         Set
         End Set
@@ -4551,15 +4551,15 @@ End Class
 
             vb.VerifyDiagnostics();
 
-            var comp = CreateCompilation(@"
+            CompileAndVerify(@"
+using System;
 using System.Linq;
 
 I i = new A();
 var test = from @int in i.X
-           select @int;
-", references: new[] { vb.EmitToImageReference() }, options: TestOptions.ReleaseExe);
-
-            comp.VerifyEmitDiagnostics();
+           select @int + 1;
+Console.WriteLine(string.Join(string.Empty, test));
+", references: new[] { vb.EmitToImageReference() }, expectedOutput: "2");
         }
     }
 }
