@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
 {
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
         /// Gets the language specific syntax facts
         /// </summary>
         protected abstract ISyntaxFacts GetSyntaxFacts();
-        
+
         /// <summary>
         /// Returns true if the namespace declaration contains one or more partial types with multiple declarations.
         /// </summary>
@@ -52,12 +53,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
 
         protected void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
-            if (!context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(RootNamespaceOption, out var rootNamespace)
-                || rootNamespace is null)
+            // It's ok to not have a rootnamespace property, but if it's there we want to use it correctly
+            if (!context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(RootNamespaceOption, out var rootNamespace))
             {
-                return;
+                rootNamespace = string.Empty;
             }
 
+            // Project directory is a must to correctly get the relative path and construct a namespace
             if (!context.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue(ProjectDirOption, out var projectDir)
                 || string.IsNullOrEmpty(projectDir))
             {
@@ -83,7 +85,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
 
             // It should not be nested in other namespaces
             if (namespaceDeclaration
-                .AncestorsAndSelf().OfType<TNamespaceSyntax>()
+                .Ancestors()
+                .OfType<TNamespaceSyntax>()
                 .Any())
             {
                 return false;
@@ -123,18 +126,17 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
             string projectDir,
             [NotNullWhen(returnValue: true)] out string? targetNamespace)
         {
-            var filePath = Path.Combine(namespaceDeclaration.SyntaxTree.FilePath, ".");
-            if (!filePath.StartsWith(projectDir))
+            if (!PathUtilities.IsChildPath(projectDir, namespaceDeclaration.SyntaxTree.FilePath))
             {
                 // The file does not exist within the project directory
                 targetNamespace = null;
                 return false;
             }
 
-            var relativeFilePath = filePath.Substring(projectDir.Length);
-            var folders = Path
-                .ChangeExtension(relativeFilePath, null)
-                .Split(new[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+            var relativeDirectoryPath = PathUtilities.GetRelativePath(
+                projectDir,
+                PathUtilities.GetDirectoryName(namespaceDeclaration.SyntaxTree.FilePath)!);
+            var folders = relativeDirectoryPath.Split(new[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
 
             var expectedNamespace = PathMetadataUtilities.TryBuildNamespaceFromFolders(folders, GetSyntaxFacts(), rootNamespace);
 
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.NamespaceSync
         {
             var namespaceNameSyntax = GetNameSyntax(namespaceSyntax);
             var syntaxFacts = GetSyntaxFacts();
-            return syntaxFacts.GetDisplayName(namespaceNameSyntax, DisplayNameOptions.IncludeNamespaces, rootNamespace);
+            return syntaxFacts.GetDisplayName(namespaceNameSyntax, DisplayNameOptions.None, rootNamespace);
         }
 
         private static void ReportDiagnostics(

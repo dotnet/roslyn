@@ -9,10 +9,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
+namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceSync
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class NamespaceSyncDiagnosticAnalyzer : AbstractNamespaceSyncDiagnosticAnalyzer<NamespaceDeclarationSyntax>
+    internal sealed class CSharpNamespaceSyncDiagnosticAnalyzer : AbstractNamespaceSyncDiagnosticAnalyzer<NamespaceDeclarationSyntax>
     {
         private static readonly LocalizableResourceString s_localizableTitle = new LocalizableResourceString(
           nameof(CSharpAnalyzersResources.Namespace_does_not_match_folder_structure), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync
         private static readonly LocalizableResourceString s_localizableInsideMessage = new LocalizableResourceString(
             nameof(CSharpAnalyzersResources.Namespace_0_does_not_match_folder_structure_expected_1), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
-        public NamespaceSyncDiagnosticAnalyzer()
+        public CSharpNamespaceSyncDiagnosticAnalyzer()
             : base(s_localizableTitle,
                 s_localizableInsideMessage)
         {

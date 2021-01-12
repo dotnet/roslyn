@@ -5,19 +5,17 @@
 using System.Threading.Tasks;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceFileSync.NamespaceSyncDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.CSharp.Analyzers.NamespaceSync.CSharpNamespaceSyncDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.CSharp.CodeFixes.NamespaceSync.CSharpNamespaceSyncCodeFixProvider>;
 using System.IO;
 
-namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.NamespaceFileSync
+namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.NamespaceSync
 {
     public class NamespaceSyncTests
     {
         private static readonly string Directory = Path.Combine("Test", "Directory");
-        private const string RootNamespace = "Test";
         private static readonly string EditorConfig = @$"
 is_global=true
-build_property.RootNamespace = {RootNamespace}
 build_property.ProjectDir = {Directory}
 ";
 
@@ -86,12 +84,10 @@ namespace {declaredNamespace}
         [Fact]
         public async Task ChangeNamespace_SingleDocumentNoReference()
         {
-            var declaredNamespace = "Foo.Bar";
-
-            var folder = CreateFolderPath(new[] { "B", "C" });
+            var folder = CreateFolderPath("B", "C");
             var code =
 $@"
-        namespace [|{declaredNamespace}|]
+        namespace [|A.B|]
         {{
             class Class1
             {{
@@ -99,7 +95,7 @@ $@"
         }}";
 
             var expectedSourceOriginal =
-$@"namespace {RootNamespace}.B.C
+$@"namespace B.C
         {{
             class Class1
             {{

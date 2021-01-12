@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
@@ -33,12 +35,29 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return rootNamespace;
             }
 
-            if (rootNamespace is null)
+            if (string.IsNullOrEmpty(rootNamespace))
             {
                 return constructedNamespace;
             }
 
             return $"{rootNamespace}.{constructedNamespace}";
+        }
+
+        public static ImmutableArray<string> BuildFoldersFromNamespace(string? @namespace, string? rootNamespace = null)
+        {
+            if (@namespace is null || @namespace == rootNamespace)
+            {
+                return ImmutableArray<string>.Empty;
+            }
+
+            if (rootNamespace is not null && @namespace.StartsWith(rootNamespace + ".", StringComparison.OrdinalIgnoreCase))
+            {
+                // Add 1 to get rid of the starting "." as well
+                @namespace = @namespace.Substring(rootNamespace.Length + 1);
+            }
+
+            var parts = @namespace.Split(NamespaceSeparatorArray, options: StringSplitOptions.RemoveEmptyEntries);
+            return parts.ToImmutableArray();
         }
     }
 }

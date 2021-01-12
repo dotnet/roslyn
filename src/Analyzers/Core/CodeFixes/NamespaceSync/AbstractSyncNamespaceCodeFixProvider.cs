@@ -4,11 +4,15 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceSync
 {
@@ -21,28 +25,42 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceSync
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             context.RegisterCodeFix(
-                CreateCodeAction(cancellationToken => FixAsync(context.Document, cancellationToken)),
+                CreateCodeAction(cancellationToken => FixAsync(context.Document, context.Diagnostics, cancellationToken)),
                 context.Diagnostics);
 
             return Task.CompletedTask;
         }
 
-
-        protected static async Task<Solution> FixAsync(Document document, CancellationToken cancellationToken)
+        protected static async Task<Solution> FixAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
+            var currentDocument = document;
+
+            foreach (var diagnostic in diagnostics)
+            {
+                currentDocument = await FixSingleDiagnosticAsync(currentDocument, diagnostic, cancellationToken).ConfigureAwait(false);
+            }
+
+            return currentDocument.Project.Solution;
+        }
+
+        private static async Task<Document> FixSingleDiagnosticAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        {
+            var targetNamespace = diagnostic.Properties["TargetNamespace"];
+
             // Use the Renamer.RenameDocumentAsync API to sync namespaces in the document. This allows
             // us to keep in line with the sync methodology that we have as a public API and not have 
             // to rewrite or move the complex logic. RenameDocumentAsync is designed to behave the same
             // as the intent of this analyzer/codefix pair.
-            var currentFolders = document.Folders;
+            var targetFolders = PathMetadataUtilities.BuildFoldersFromNamespace(targetNamespace);
             var documentWithNoFolders = document.WithFolders(Array.Empty<string>());
             var renameActionSet = await Renamer.RenameDocumentAsync(
                 documentWithNoFolders,
                 documentWithNoFolders.Name,
-                newDocumentFolders: currentFolders,
+                newDocumentFolders: targetFolders,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            return await renameActionSet.UpdateSolutionAsync(documentWithNoFolders.Project.Solution, cancellationToken).ConfigureAwait(false);
+            var newSolution = await renameActionSet.UpdateSolutionAsync(documentWithNoFolders.Project.Solution, cancellationToken).ConfigureAwait(false);
+            return newSolution.GetRequiredDocument(document.Id);
         }
 
         public override FixAllProvider? GetFixAllProvider()
