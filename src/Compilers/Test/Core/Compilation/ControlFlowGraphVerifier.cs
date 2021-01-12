@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -353,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            var finalGraph = stringBuilder.ToString();
+            Func<string> finalGraph = () => stringBuilder.ToString();
             if (doCaptureVerification)
             {
                 verifyCaptures(finalGraph);
@@ -371,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             referencedCaptureIds.Free();
             return;
 
-            void verifyCaptures(string finalGraph)
+            void verifyCaptures(Func<string> finalGraph)
             {
                 var longLivedIds = PooledHashSet<CaptureId>.GetInstance();
                 var referencedIds = PooledHashSet<CaptureId>.GetInstance();
@@ -394,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 {
                                     foreach (CaptureId id in region.CaptureIds)
                                     {
-                                        Assert.True(currentState.Contains(id), $"Backward branch from [{getBlockId(predecessor.Source)}] to [{getBlockId(block)}] before capture [{id.Value}] is initialized.\n{finalGraph}");
+                                        AssertTrueWithGraph(currentState.Contains(id), $"Backward branch from [{getBlockId(predecessor.Source)}] to [{getBlockId(block)}] before capture [{id.Value}] is initialized.", finalGraph);
                                     }
                                 }
                             }
@@ -407,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         if (operation is IFlowCaptureOperation capture)
                         {
                             assertCaptureReferences(currentState, capture.Value, block, j, longLivedIds, referencedIds, finalGraph);
-                            Assert.True(currentState.Add(capture.Id), $"Operation [{j}] in [{getBlockId(block)}] re-initialized capture [{capture.Id.Value}].\n{finalGraph}");
+                            AssertTrueWithGraph(currentState.Add(capture.Id), $"Operation [{j}] in [{getBlockId(block)}] re-initialized capture [{capture.Id.Value}]", finalGraph);
                         }
                         else
                         {
@@ -448,7 +449,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 regions.Free();
             }
 
-            void verifyLeftRegions(BasicBlock block, PooledHashSet<CaptureId> longLivedIds, PooledHashSet<CaptureId> referencedIds, ArrayBuilder<ControlFlowRegion> regions, string finalGraph)
+            void verifyLeftRegions(BasicBlock block, PooledHashSet<CaptureId> longLivedIds, PooledHashSet<CaptureId> referencedIds, ArrayBuilder<ControlFlowRegion> regions, Func<string> finalGraph)
             {
                 regions.Clear();
 
@@ -516,9 +517,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                             IFlowCaptureReferenceOperation[] referencesAfter = getFlowCaptureReferenceOperationsInRegion(region, block.Ordinal + 1).Where(r => r.Id.Equals(id)).ToArray();
 
-                            Assert.True(referencesAfter.Length > 0 &&
+                            AssertTrueWithGraph(referencesAfter.Length > 0 &&
                                         referencesAfter.All(r => isLongLivedCaptureReferenceSyntax(r.Syntax)),
-                                $"Capture [{id.Value}] is not used in region [{getRegionId(region)}] before leaving it after block [{getBlockId(block)}]\n{finalGraph}");
+                                $"Capture [{id.Value}] is not used in region [{getRegionId(region)}] before leaving it after block [{getBlockId(block)}]", finalGraph);
                         }
                     }
 
@@ -800,7 +801,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             void assertCaptureReferences(
                 PooledHashSet<CaptureId> state, IOperation operation, BasicBlock block, int operationIndex,
-                PooledHashSet<CaptureId> longLivedIds, PooledHashSet<CaptureId> referencedIds, string finalGraph)
+                PooledHashSet<CaptureId> longLivedIds, PooledHashSet<CaptureId> referencedIds, Func<string> finalGraph)
             {
                 foreach (IFlowCaptureReferenceOperation reference in operation.DescendantsAndSelf().OfType<IFlowCaptureReferenceOperation>())
                 {
@@ -812,18 +813,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         longLivedIds.Add(id);
                     }
 
-                    Assert.True(state.Contains(id) || isCaptureFromEnclosingGraph(id) || isEmptySwitchExpressionResult(reference),
-                        $"Operation [{operationIndex}] in [{getBlockId(block)}] uses not initialized capture [{id.Value}].\n{finalGraph}");
+                    AssertTrueWithGraph(state.Contains(id) || isCaptureFromEnclosingGraph(id) || isEmptySwitchExpressionResult(reference),
+                        $"Operation [{operationIndex}] in [{getBlockId(block)}] uses not initialized capture [{id.Value}].", finalGraph);
 
                     // Except for a few specific scenarios, any references to captures should either be long-lived capture references,
                     // or they should come from the enclosing region.
-                    Assert.True(block.EnclosingRegion.CaptureIds.Contains(id) || longLivedIds.Contains(id) ||
+                    AssertTrueWithGraph(block.EnclosingRegion.CaptureIds.Contains(id) || longLivedIds.Contains(id) ||
                                 ((isFirstOperandOfDynamicOrUserDefinedLogicalOperator(reference) ||
                                      isIncrementedNullableForToLoopControlVariable(reference) ||
                                      isConditionalAccessReceiver(reference) ||
                                      isCoalesceAssignmentTarget(reference)) &&
                                  block.EnclosingRegion.EnclosingRegion.CaptureIds.Contains(id)),
-                        $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?\n{finalGraph}");
+                        $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?", finalGraph);
                 }
             }
 
@@ -1555,7 +1556,7 @@ endRegion:
                 }
             }
 
-            void validateLifetimeOfReferences(BasicBlock block, string finalGraph)
+            void validateLifetimeOfReferences(BasicBlock block, Func<string> finalGraph)
             {
                 referencedCaptureIds.Clear();
                 referencedLocalsAndMethods.Clear();
@@ -1595,12 +1596,12 @@ endRegion:
                 if (referencedLocalsAndMethods.Count != 0)
                 {
                     ISymbol symbol = referencedLocalsAndMethods.First();
-                    Assert.True(false, $"{(symbol.Kind == SymbolKind.Local ? "Symbol" : "Method")} without owning region {symbol.ToTestDisplayString()} in [{getBlockId(block)}]\n{finalGraph}");
+                    Assert.True(false, $"{(symbol.Kind == SymbolKind.Local ? "Local" : "Method")} without owning region {symbol.ToTestDisplayString()} in [{getBlockId(block)}]\n{finalGraph()}");
                 }
 
                 if (referencedCaptureIds.Count != 0)
                 {
-                    Assert.True(false, $"Capture [{referencedCaptureIds.First().Value}] without owning region in [{getBlockId(block)}]\n{finalGraph}");
+                    Assert.True(false, $"Capture [{referencedCaptureIds.First().Value}] without owning region in [{getBlockId(block)}]\n{finalGraph()}");
                 }
             }
 
@@ -1654,6 +1655,14 @@ endRegion:
                 var walker = new OperationTreeSerializer(graph, currentRegion, idSuffix, anonymousFunctionsMap, compilation, operation, initialIndent: 8 + indent);
                 walker.Visit(operation);
                 return walker.Builder.ToString();
+            }
+        }
+
+        private static void AssertTrueWithGraph([DoesNotReturnIf(false)]bool value, string message, Func<string> finalGraph)
+        {
+            if (!value)
+            {
+                Assert.True(value, $"{message}\n{finalGraph()}");
             }
         }
 

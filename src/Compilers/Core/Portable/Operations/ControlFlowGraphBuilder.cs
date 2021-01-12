@@ -7008,7 +7008,7 @@ oneMoreTime:
             // a using statement introduces a 'logical' block after declaration, we synthesize one here in order to analyze it like a regular using. Don't include
             // local functions in this block: they still belong in the containing block. We'll visit any local functions in the list after we visit the statements
             // in this block.
-            ArrayBuilder<IOperation> statementsBuilder = ArrayBuilder<IOperation>.GetInstance();
+            ArrayBuilder<IOperation> statementsBuilder = ArrayBuilder<IOperation>.GetInstance(statements.Length);
             ArrayBuilder<IOperation>? localFunctionsBuilder = null;
 
             foreach (var statement in statements)
