@@ -11,7 +11,7 @@
       "preLaunchTask": "build",
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/artifacts/bin/RunTests/Debug/netcoreapp3.1/RunTests.dll",
-      "args": ["--tfm", "net5.0", "--helix", "--html"],
+      "args": ["--tfm", "netcoreapp3.1", "--sequential", "--html"],
       "cwd": "${workspaceFolder}/artifacts/bin/RunTests",
       "stopAtEntry": false,
       "console": "internalConsole"

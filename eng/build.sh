@@ -338,7 +338,7 @@ if [[ "$test_core_clr" == true ]]; then
     runtests_args="$runtests_args --helixQueueName $helix_queue_name"
   fi
 
-  if [[ "$helix" == true || "$ci" == true ]]; then
+  if [[ "$helix" == true ]]; then
     runtests_args="$runtests_args --helix"
   fi
 

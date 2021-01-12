@@ -402,7 +402,7 @@ function TestUsingRunTests() {
     $args += " --sequential"
   }
 
-  if (-not $testVsi -and ($helix -or $ci)) {
+  if ($helix) {
     $args += " --helix"
   }
 
