@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamespaceSync
             // to rewrite or move the complex logic. RenameDocumentAsync is designed to behave the same
             // as the intent of this analyzer/codefix pair.
             var currentFolders = document.Folders;
-            var documentWithNoFolders = document.WithFolders(new string[0]);
+            var documentWithNoFolders = document.WithFolders(Array.Empty<string>());
             var renameActionSet = await Renamer.RenameDocumentAsync(
                 documentWithNoFolders,
                 documentWithNoFolders.Name,
