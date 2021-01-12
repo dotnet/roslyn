@@ -2852,7 +2852,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
   Expression: 
     IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'select y')
       Children(2):
-          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Main')
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'from y in Main')
             Children(1):
                 IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Main')
                   Children(1):
@@ -2939,6 +2939,31 @@ class C
             Assert.Null(info0.OperationInfo.Symbol);
             var infoSelect = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
             Assert.Equal("Select", infoSelect.Symbol.Name);
+        }
+
+        [Fact]
+        public void SelectFromType_TypeParameter()
+        {
+            var comp = CreateCompilation(@"
+using System;
+using System.Collections.Generic;
+ 
+class C
+{
+    static void M<T>() where T : C
+    {
+        var q = from x in T select x;
+    }
+
+    static Func<Func<int, object>, IEnumerable<object>> Select = null;
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (9,27): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                //         var q = from x in T select x;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(9, 27)
+            );
         }
 
         [WorkItem(542624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542624")]
@@ -4124,7 +4149,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
   Expression: 
     IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'select 3')
       Children(2):
-          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'NSAlias')
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'from c in NSAlias')
             Children(1):
                 IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'NSAlias')
           IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: '3')
@@ -4437,6 +4462,12 @@ class Program
                 // (16,22): error CS0120: An object reference is required for the non-static field, method, or property 'Enumerable.Cast<object>(IEnumerable)'
                 //         var query5 = from object d in T select 5;
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "from object d in T").WithArguments("System.Linq.Enumerable.Cast<object>(System.Collections.IEnumerable)").WithLocation(16, 22),
+                // (16,39): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                //         var query5 = from object d in T select 5;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(16, 39),
+                // (17,32): error CS0119: 'T' is a type parameter, which is not valid in the given context
+                //         var query6 = from d in T select 6;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(17, 32),
                 // (17,32): error CS1936: Could not find an implementation of the query pattern for source type 'T'.  'Select' not found.
                 //         var query6 = from d in T select 6;
                 Diagnostic(ErrorCode.ERR_QueryNoProvider, "T").WithArguments("T", "Select").WithLocation(17, 32)
