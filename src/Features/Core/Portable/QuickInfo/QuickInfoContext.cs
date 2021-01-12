@@ -7,18 +7,28 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
     /// <summary>
     /// The context presented to a <see cref="QuickInfoProvider"/> when providing quick info.
     /// </summary>
-    internal abstract class QuickInfoContext
+    internal sealed class QuickInfoContext
     {
         /// <summary>
-        /// The semantic model that quick info was requested within.
+        /// The document that quick info was requested within.
+        /// Can be <see langword="null"/> for quick info scenarios based off a <see cref="Compilation"/>,
+        /// where <see cref="SemanticModel"/> is guaranteed to be non-null.
         /// </summary>
-        public SemanticModel SemanticModel { get; }
+        public Document? Document { get; }
+
+        /// <summary>
+        /// The semantic model that quick info was requested within.
+        /// Can be <see langword="null"/> for quick info scenarios where <see cref="Document.SupportsSemanticModel"/> is <see langword="false"/>
+        /// for the <see cref="Document"/> whose quick info is being requested,
+        /// </summary>
+        public SemanticModel? SemanticModel { get; }
 
         /// <summary>
         /// The caret position where quick info was requested from.
@@ -45,37 +55,43 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
-        protected QuickInfoContext(
-            SemanticModel semanticModel,
+        private QuickInfoContext(
+            Document? document,
+            SemanticModel? semanticModel,
             int position,
             SyntaxToken token,
             HostLanguageServices languageServices,
             CancellationToken cancellationToken)
         {
-            SemanticModel = semanticModel ?? throw new ArgumentNullException(nameof(semanticModel));
+            Contract.ThrowIfFalse(document != null || semanticModel != null);
+            Contract.ThrowIfFalse(semanticModel != null || token == default);
+
+            Document = document;
+            SemanticModel = semanticModel;
             Position = position;
             Token = token;
             LanguageServices = languageServices;
             CancellationToken = cancellationToken;
         }
 
-        public abstract QuickInfoContext With(SyntaxToken token);
+        public QuickInfoContext With(SyntaxToken token)
+            => new(Document, SemanticModel, Position, token, LanguageServices, CancellationToken);
 
         /// <summary>
-        /// Creates a <see cref="QuickInfoContext"/> instance.
+        /// Creates a <see cref="QuickInfoContext"/> instance for a document.
         /// </summary>
         public static async Task<QuickInfoContext> CreateAsync(
             Document document,
             int position,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var token = await semanticModel.SyntaxTree.GetTouchingTokenAsync(position, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
-            return new QuickInfoContextWithDocument(document, semanticModel, position, token, cancellationToken);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var token = semanticModel != null ? await semanticModel.SyntaxTree.GetTouchingTokenAsync(position, cancellationToken, findInsideTrivia: true).ConfigureAwait(false) : default;
+            return new QuickInfoContext(document, semanticModel, position, token, document.Project.LanguageServices, cancellationToken);
         }
 
         /// <summary>
-        /// Creates a <see cref="QuickInfoContext"/> instance.
+        /// Creates a <see cref="QuickInfoContext"/> instance for a non-document, compilation-only context.
         /// </summary>
         public static async Task<QuickInfoContext> CreateAsync(
             SemanticModel semanticModel,
@@ -84,7 +100,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             CancellationToken cancellationToken)
         {
             var token = await semanticModel.SyntaxTree.GetTouchingTokenAsync(position, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
-            return new QuickInfoContextWithoutDocument(semanticModel, position, token, languageServices, cancellationToken);
+            return new QuickInfoContext(document: null, semanticModel, position, token, languageServices, cancellationToken);
         }
     }
 }

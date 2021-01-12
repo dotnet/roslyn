@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -37,22 +38,32 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         private async Task<(SemanticModel model, TokenInformation tokenInformation, SupportedPlatformData? supportedPlatforms)> ComputeQuickInfoDataAsync(
             QuickInfoContext context)
         {
-            if (context is QuickInfoContextWithDocument contextWithDocument)
+            var semanticModel = context.SemanticModel;
+            Debug.Assert(semanticModel != null);
+
+            if (context.Document is { } document)
             {
-                var linkedDocumentIds = contextWithDocument.Document.GetLinkedDocumentIds();
+                // Check linked documents for document-based quick info context.
+                var linkedDocumentIds = document.GetLinkedDocumentIds();
                 if (linkedDocumentIds.Any())
                 {
-                    return await ComputeFromLinkedDocumentsAsync(contextWithDocument, linkedDocumentIds).ConfigureAwait(false);
+                    return await ComputeFromLinkedDocumentsAsync(document, semanticModel, context.Token,
+                        context.LanguageServices, context.Workspace, linkedDocumentIds, context.CancellationToken).ConfigureAwait(false);
                 }
             }
 
-            var tokenInformation = BindToken(context);
-            return (context.SemanticModel, tokenInformation, supportedPlatforms: null);
+            var tokenInformation = BindToken(semanticModel, context.Token, context.LanguageServices, context.Workspace, context.CancellationToken);
+            return (semanticModel, tokenInformation, supportedPlatforms: null);
         }
 
         private async Task<(SemanticModel model, TokenInformation, SupportedPlatformData supportedPlatforms)> ComputeFromLinkedDocumentsAsync(
-            QuickInfoContextWithDocument context,
-            ImmutableArray<DocumentId> linkedDocumentIds)
+            Document document,
+            SemanticModel semanticModel,
+            SyntaxToken token,
+            HostLanguageServices languageServices,
+            Workspace workspace,
+            ImmutableArray<DocumentId> linkedDocumentIds,
+            CancellationToken cancellationToken)
         {
             // Linked files/shared projects: imagine the following when GOO is false
             // #if GOO
@@ -64,18 +75,14 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             // Instead, we need to find the head in which we get the best binding,
             // which in this case is the one with no errors.
 
-            var tokenInformation = BindToken(context);
-
-            var document = context.Document;
-            var token = context.Token;
-            var cancellationToken = context.CancellationToken;
+            var tokenInformation = BindToken(semanticModel, token, languageServices, workspace, cancellationToken);
 
             var candidateProjects = new List<ProjectId>() { document.Project.Id };
             var invalidProjects = new List<ProjectId>();
 
             var candidateResults = new List<(DocumentId docId, SemanticModel model, TokenInformation tokenInformation)>
             {
-                (document.Id, context.SemanticModel, tokenInformation)
+                (document.Id, semanticModel, tokenInformation)
             };
 
             foreach (var linkedDocumentId in linkedDocumentIds)
@@ -88,7 +95,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                     // Not in an inactive region, so this file is a candidate.
                     candidateProjects.Add(linkedDocumentId.ProjectId);
                     var linkedModel = await linkedDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var linkedSymbols = BindToken(linkedModel, linkedToken, context.LanguageServices, context.Workspace, cancellationToken);
+                    var linkedSymbols = BindToken(linkedModel, linkedToken, languageServices, workspace, cancellationToken);
                     candidateResults.Add((linkedDocumentId, linkedModel, linkedSymbols));
                 }
             }
@@ -114,7 +121,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 }
             }
 
-            var supportedPlatforms = new SupportedPlatformData(invalidProjects, candidateProjects, context.Workspace);
+            var supportedPlatforms = new SupportedPlatformData(invalidProjects, candidateProjects, workspace);
 
             return (bestBinding.model, bestBinding.tokenInformation, supportedPlatforms);
         }
@@ -424,9 +431,6 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         protected abstract bool GetBindableNodeForTokenIndicatingPossibleIndexerAccess(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);
 
         protected virtual NullableFlowState GetNullabilityAnalysis(Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => NullableFlowState.None;
-
-        private TokenInformation BindToken(QuickInfoContext context)
-            => BindToken(context.SemanticModel, context.Token, context.LanguageServices, context.Workspace, context.CancellationToken);
 
         private TokenInformation BindToken(
             SemanticModel semanticModel,

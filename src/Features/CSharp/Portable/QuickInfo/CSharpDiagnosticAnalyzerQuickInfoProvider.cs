@@ -33,13 +33,14 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 
         protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(QuickInfoContext context)
         {
-            if (context is not QuickInfoContextWithDocument contextWithDocument)
+            if (context.Document is { } document)
             {
-                return null;
+                return GetQuickinfoForPragmaWarning(document, context.Token) ??
+                   (await GetQuickInfoForSuppressMessageAttributeAsync(document, context.Token, context.CancellationToken).ConfigureAwait(false));
             }
 
-            return GetQuickinfoForPragmaWarning(contextWithDocument.Document, contextWithDocument.Token) ??
-                (await GetQuickInfoForSuppressMessageAttributeAsync(contextWithDocument.Document, contextWithDocument.Token, contextWithDocument.CancellationToken).ConfigureAwait(false));
+            // CONSIDER: Add quick info support for non-document, compilation-only context.
+            return null;
         }
 
         private QuickInfoItem? GetQuickinfoForPragmaWarning(Document document, SyntaxToken token)
