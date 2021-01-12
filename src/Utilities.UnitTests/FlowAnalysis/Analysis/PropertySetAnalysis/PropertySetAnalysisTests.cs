@@ -90,7 +90,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         InterproceduralAnalysisConfiguration.Create(
                             new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
                             dummy,
-                            symbol,
+                            cfg,
                             compilation,
                             InterproceduralAnalysisKind.ContextSensitive,
                             cancellationSource.Token));
@@ -215,7 +215,7 @@ public class OtherClass
         /// when calling its Method() method, OtherClass.OtherMethod() method, or OtherClass.StaticMethod() method.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrack_HazardousIfStringIsNonNull =
-            new PropertySetAnalysisParameters(
+            new(
                 "TestTypeToTrack",
                 new ConstructorMapper(     // Only one constructor, which leaves its AString property as null (not hazardous).
                     ImmutableArray.Create<PropertySetAbstractValueKind>(
@@ -390,13 +390,12 @@ class TestClass
                 (10, 9, "void OtherClass.StaticMethod(TestTypeToTrack staticMethodParameter)", HazardousUsageEvaluationResult.Flagged));
         }
 
-
         /// <summary>
         /// Parameters for PropertySetAnalysis to flag hazardous usage when the TestTypeToTrackWithConstructor.AString property
         /// is not null when calling its Method() method.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrackWithConstructor_HazardousIfStringIsNonNull =
-            new PropertySetAnalysisParameters(
+            new(
                 "TestTypeToTrackWithConstructor",
                 new ConstructorMapper(
                     (IMethodSymbol method, IReadOnlyList<PointsToAbstractValue> argumentPointsToAbstractValues) =>
@@ -517,7 +516,7 @@ class TestClass
         /// calling its Method() method.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrack_HazardousIfEnumIsValue0 =
-            new PropertySetAnalysisParameters(
+            new(
                 "TestTypeToTrack",
                 new ConstructorMapper(     // Only one constructor, which leaves its AnEnum property as Value0 (hazardous).
                     ImmutableArray.Create<PropertySetAbstractValueKind>(
@@ -583,7 +582,7 @@ class TestClass
         /// is Value0 when calling its Method() method.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrackWithConstructor_HazardousIfEnumIsValue0 =
-            new PropertySetAnalysisParameters(
+            new(
                 "TestTypeToTrackWithConstructor",
                 new ConstructorMapper(
                     (IMethodSymbol method, IReadOnlyList<ValueContentAbstractValue> argumentValueContentAbstractValues, IReadOnlyList<PointsToAbstractValue> argumentPointsToAbstractValues) =>
@@ -654,7 +653,7 @@ class TestClass
         /// TestTypeToTrack.AnEnum is Value2 when calling its Method() method.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrack_HazardousIfStringStartsWithTAndValue2 =
-            new PropertySetAnalysisParameters(
+            new(
                 "TestTypeToTrack",
                 new ConstructorMapper(
                     ImmutableArray.Create<PropertySetAbstractValueKind>(   // Order is the same as the PropertyMappers below.
@@ -820,7 +819,7 @@ class TestClass
         /// Parameters for PropertySetAnalysis to flag hazardous usage when both TestTypeToTrack.AnObject is a BitArray.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrackWithConstructor_HazardousIfObjectIsBitArray =
-            new PropertySetAnalysisParameters(
+            new(
                 "TestTypeToTrackWithConstructor",
                 new ConstructorMapper(
                     (IMethodSymbol constructorMethodSymbol, IReadOnlyList<PointsToAbstractValue> argumentPointsToAbstractValues) =>
@@ -830,8 +829,8 @@ class TestClass
                         // Better to compare LocationTypeOpt to INamedTypeSymbol, but for this demonstration, just using MetadataName.
                         PropertySetAbstractValueKind kind;
                         if (argumentPointsToAbstractValues[1].Locations.Any(l =>
-                                l.LocationTypeOpt != null
-                                && l.LocationTypeOpt.MetadataName == "BitArray"))
+                                l.LocationType != null
+                                && l.LocationType.MetadataName == "BitArray"))
                         {
                             kind = PropertySetAbstractValueKind.Flagged;
                         }
@@ -850,8 +849,8 @@ class TestClass
                         // Better to compare LocationTypeOpt to INamedTypeSymbol, but for this demonstration, just using MetadataName.
                         PropertySetAbstractValueKind kind;
                         if (pointsToAbstractValue.Locations.Any(l =>
-                                l.LocationTypeOpt != null
-                                && l.LocationTypeOpt.MetadataName == "BitArray"))
+                                l.LocationType != null
+                                && l.LocationType.MetadataName == "BitArray"))
                         {
                             kind = PropertySetAbstractValueKind.Flagged;
                         }
@@ -943,7 +942,7 @@ class TestClass
         /// with 'A'.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrackWithConstructor_HazardousIfAStringStartsWithA =
-            new PropertySetAnalysisParameters(
+            new(
                 "TestTypeToTrackWithConstructor",
                 new ConstructorMapper(
                     (IMethodSymbol constructorMethodSymbol,
@@ -1030,7 +1029,7 @@ class TestClass
         /// when returning a TestTypeToTrack.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrack_HazardousIfStringIsNonNullOnReturn =
-            new PropertySetAnalysisParameters(
+            new(
                 "TestTypeToTrack",
                 new ConstructorMapper(     // Only one constructor, which leaves its AString property as null (not hazardous).
                     ImmutableArray.Create<PropertySetAbstractValueKind>(
@@ -1134,7 +1133,7 @@ class TestClass
         /// TestTypeToTrack.AnObject are aliases, and the aliased value is not null, when calling its Method() method.
         /// </summary>
         private readonly PropertySetAnalysisParameters TestTypeToTrack_HazardousIfStringObjectIsNonNull =
-            new PropertySetAnalysisParameters(
+            new(
                 "TestTypeToTrack",
                 new ConstructorMapper(     // Only one constructor, which leaves its AString property as null (not hazardous).
                     ImmutableArray.Create<PropertySetAbstractValueKind>(
@@ -1301,12 +1300,16 @@ class TestClass
                 .AddMetadataReferences(projectId, references)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.CodeAnalysisReference)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.WorkspacesReference)
+#if !NETCOREAPP
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemWebReference)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemRuntimeSerialization)
+#endif
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDirectoryServices)
+#if !NETCOREAPP
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXaml)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.PresentationFramework)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemWebExtensions)
+#endif
                 .WithProjectCompilationOptions(projectId, options)
                 .WithProjectParseOptions(projectId, null)
                 .GetProject(projectId);
@@ -1390,7 +1393,7 @@ class TestClass
 
                 if (exprFullText.StartsWith(StartString, StringComparison.Ordinal))
                 {
-                    if (exprFullText.Contains(EndString))
+                    if (exprFullText.Contains(EndString, StringComparison.Ordinal))
                     {
                         if (exprFullText.EndsWith(EndString, StringComparison.Ordinal))
                         {
@@ -1409,7 +1412,7 @@ class TestClass
 
                 if (exprFullText.EndsWith(EndString, StringComparison.Ordinal))
                 {
-                    if (exprFullText.Contains(StartString))
+                    if (exprFullText.Contains(StartString, StringComparison.Ordinal))
                     {
                         if (exprFullText.StartsWith(StartString, StringComparison.Ordinal))
                         {

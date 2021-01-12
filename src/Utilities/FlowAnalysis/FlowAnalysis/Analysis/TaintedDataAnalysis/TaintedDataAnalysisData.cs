@@ -5,6 +5,8 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
+    // TODO: We should delete this type and use the following instead:
+    //      using TaintedDataAnalysisData = DictionaryAnalysisData<AnalysisEntity, TaintedDataAbstractValue>;
     internal sealed class TaintedDataAnalysisData : AnalysisEntityBasedPredicateAnalysisData<TaintedDataAbstractValue>
     {
         public TaintedDataAnalysisData()

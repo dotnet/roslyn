@@ -48,3 +48,12 @@ RS1020 | MicrosoftCodeAnalysisDesign | Disabled | DiagnosticDescriptorCreationAn
 RS1021 | MicrosoftCodeAnalysisDesign | Warning | DiagnosticDescriptorCreationAnalyzer
 RS1022 | MicrosoftCodeAnalysisCorrectness | Warning | DiagnosticAnalyzerApiUsageAnalyzer
 RS1023 | Library | Warning | UpgradeMSBuildWorkspaceAnalyzer
+
+## Release 3.3.0
+
+### New Rules
+Rule ID | Category | Severity | Notes
+--------|----------|----------|-------
+RS1031 | MicrosoftCodeAnalysisDesign | Warning | DiagnosticDescriptorCreationAnalyzer
+RS1032 | MicrosoftCodeAnalysisDesign | Warning | DiagnosticDescriptorCreationAnalyzer
+RS1033 | MicrosoftCodeAnalysisDesign | Warning | DiagnosticDescriptorCreationAnalyzer

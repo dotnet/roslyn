@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         /// </summary>
         private sealed class NullAbstractValueDomain : AbstractValueDomain<NullAbstractValue>
         {
-            public static NullAbstractValueDomain Default = new NullAbstractValueDomain();
+            public static NullAbstractValueDomain Default = new();
 
             private NullAbstractValueDomain() { }
 
@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 {
                     result = NullAbstractValue.MaybeNull;
                 }
-                else if (value1 == NullAbstractValue.Invalid || value1 == NullAbstractValue.Undefined)
+                else if (value1 is NullAbstractValue.Invalid or NullAbstractValue.Undefined)
                 {
                     result = value2;
                 }
-                else if (value2 == NullAbstractValue.Invalid || value2 == NullAbstractValue.Undefined)
+                else if (value2 is NullAbstractValue.Invalid or NullAbstractValue.Undefined)
                 {
                     result = value1;
                 }

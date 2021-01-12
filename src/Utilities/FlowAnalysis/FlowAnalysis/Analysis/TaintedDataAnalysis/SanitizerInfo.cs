@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
@@ -11,7 +12,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// </summary>
     internal sealed class SanitizerInfo : ITaintedDataInfo, IEquatable<SanitizerInfo>
     {
-        public SanitizerInfo(string fullTypeName, bool isInterface, bool isConstructorSanitizing, ImmutableHashSet<string> sanitizingMethods, ImmutableHashSet<string> sanitizingInstanceMethods)
+        public SanitizerInfo(
+            string fullTypeName,
+            bool isInterface,
+            bool isConstructorSanitizing,
+            ImmutableHashSet<(MethodMatcher methodMatcher, ImmutableHashSet<(string IfTaintedParameter, string ThenUnTaintedTarget)>)> sanitizingMethods,
+            ImmutableHashSet<string> sanitizingInstanceMethods)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
             IsInterface = isInterface;
@@ -38,7 +44,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Methods that untaint tainted data.
         /// </summary>
-        public ImmutableHashSet<string> SanitizingMethods { get; }
+        /// <remarks>
+        /// MethodMatcher determines if the outermost tuple applies, based on the method names and arguments.
+        /// (IfTaintedParameter, ThenUnTaintedTarget) determines if the ThenUnTaintedTarget is untainted, based on if the IfTaintedParameter is tainted.
+        ///
+        /// Example:
+        /// (
+        ///   (methodName, argumentOperations) => methodName == "Bar",  // MethodMatcher
+        ///   {
+        ///      ("a", "b")
+        ///   }
+        /// )
+        ///
+        /// will treat the parameter "b" as untainted when parameter "a" is tainted of the "Bar" method.
+        /// </remarks>
+        public ImmutableHashSet<(MethodMatcher MethodMatcher, ImmutableHashSet<(string IfTaintedParameter, string ThenUnTaintedTarget)>)> SanitizingMethods { get; }
 
         /// <summary>
         /// Methods that untaint tainted instance.
@@ -49,6 +69,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Indicates that this <see cref="SanitizerInfo"/> uses <see cref="ValueContentAbstractValue"/>s.
         /// </summary>
         public bool RequiresValueContentAnalysis => false;
+
+        /// <summary>
+        /// Indicates that <see cref="OperationKind.ParameterReference"/> is required.
+        /// </summary>
+        public bool RequiresParameterReferenceAnalysis => false;
+
+        /// <summary>
+        /// Qualified names of the optional dependency types.
+        /// </summary>
+        public ImmutableArray<string> DependencyFullTypeNames => ImmutableArray<string>.Empty;
 
         public override int GetHashCode()
         {

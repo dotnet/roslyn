@@ -66,7 +66,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="derivedClass">Whether to consider derived class.</param>
         public HazardousUsageEvaluator(HazardousUsageEvaluatorKind kind, EvaluationCallback evaluator, bool derivedClass = false)
         {
-            if (kind != HazardousUsageEvaluatorKind.Return && kind != HazardousUsageEvaluatorKind.Initialization && kind != HazardousUsageEvaluatorKind.Argument)
+            if (kind is not HazardousUsageEvaluatorKind.Return and not HazardousUsageEvaluatorKind.Initialization and not HazardousUsageEvaluatorKind.Argument)
             {
                 throw new ArgumentException(
                     "kind must be Return or Initialization or Argument.  Use other constructors for Invocation.",

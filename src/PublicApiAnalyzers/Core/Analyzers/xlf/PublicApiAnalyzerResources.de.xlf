@@ -38,7 +38,7 @@
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiMessage">
-        <source>Symbol '{0}' is missing nullability annotations in the declared API.</source>
+        <source>Symbol '{0}' is missing nullability annotations in the declared API</source>
         <target state="translated">Für das Symbol "{0}" fehlen Anmerkungen zur NULL-Zulässigkeit in der deklarierten API.</target>
         <note />
       </trans-unit>
@@ -63,7 +63,7 @@
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiMessage">
-        <source>Symbol '{0}' is not part of the declared API.</source>
+        <source>Symbol '{0}' is not part of the declared API</source>
         <target state="translated">Das Symbol "{0}" ist nicht Teil der deklarierten API.</target>
         <note />
       </trans-unit>
@@ -73,7 +73,7 @@
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
-        <source>The symbol '{0}' appears more than once in the public API files.</source>
+        <source>The symbol '{0}' appears more than once in the public API files</source>
         <target state="translated">Das Symbol "{0}" wird in den öffentlichen API-Dateien mehrmals aufgeführt.</target>
         <note />
       </trans-unit>
@@ -93,7 +93,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
-        <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</source>
+        <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</source>
         <target state="translated">Der Konstruktor legt die nicht vererbbare Basisklasse als vererbbar fest und macht damit deren geschützte Member verfügbar.</target>
         <note />
       </trans-unit>
@@ -108,7 +108,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiMessage">
-        <source>Symbol '{0}' uses some oblivious reference types.</source>
+        <source>Symbol '{0}' uses some oblivious reference types</source>
         <target state="translated">Das Symbol "{0}" verwendet einige nicht beachtende Verweistypen.</target>
         <note />
       </trans-unit>
@@ -123,8 +123,18 @@
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
-        <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads.</source>
-        <target state="translated">Öffentliche API mit optionalen Parametern muss die meisten Parameter bei den öffentlichen Überladungen aufweisen.</target>
+        <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads</source>
+        <target state="translated">Öffentliche API mit optionalen Parametern muss die meisten Parameter bei den öffentlichen Überladungen aufweisen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingMessage">
+        <source>Public API file '{0}' is missing or not marked as an additional analyzer file</source>
+        <target state="translated">Die öffentliche API-Datei "{0}" fehlt oder ist nicht als zusätzliche Analysedatei gekennzeichnet.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingTitle">
+        <source>Missing shipped or unshipped public API file</source>
+        <target state="translated">Fehlende versandte oder nicht versandte öffentliche API-Datei</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
@@ -178,8 +188,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
-        <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">Alle öffentlichen Typen und Member müssen in "PublicAPI.txt" mit Anmerkungen zur NULL-Zulässigkeit deklariert werden. Dadurch wird die Aufmerksamkeit auf Änderungen an der NULL-Zulässigkeit der API in den Code Reviews und der Versionsgeschichte der Quellcodeverwaltung gelenkt, und Breaking Changes werden verhindert.</target>
+        <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
+        <target state="translated">Für "PublicAPI.txt"-Dateien muss "#nullable enable" festgelegt sein, um Informationen zur NULL-Zulässigkeit nachzuverfolgen. Andernfalls sollte diese Diagnose unterdrückt werden. Bei aktivierter NULL-Zulässigkeit zeichnet "PublicAPI.txt" auf, welche Typen NULL-Werte zulassen (Suffix "?" für den Typ) bzw. keine NULL-Werte zulassen (Suffix "!"). Zudem werden alle APIs verfolgt, die noch immer einen Verweistyp ohne Beachtung verwenden (Präfix "~" in der Zeile).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
@@ -188,8 +198,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
-        <source>Annotate nullability of types and members in the declared API</source>
-        <target state="translated">NULL-Zulässigkeit von Typen und Membern in der deklarierten API anmerken</target>
+        <source>Enable tracking of nullability of reference types in the declared API</source>
+        <target state="translated">Nachverfolgung der NULL-Zulässigkeit von Verweistypen in der deklarierten API aktivieren</target>
         <note />
       </trans-unit>
     </body>

@@ -71,7 +71,7 @@ namespace Test.Utilities.CodeMetrics
         {
             var project = CreateProject(sources, language);
             var compilation = project.GetCompilationAsync(CancellationToken.None).Result!;
-            var diagnostics = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Warning || d.Severity == DiagnosticSeverity.Error);
+            var diagnostics = compilation.GetDiagnostics().Where(d => d.Severity is DiagnosticSeverity.Warning or DiagnosticSeverity.Error);
             if (expectDiagnostics)
             {
                 Assert.True(diagnostics.Any());

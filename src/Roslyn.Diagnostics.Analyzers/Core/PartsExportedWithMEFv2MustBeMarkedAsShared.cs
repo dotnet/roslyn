@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable disable warnings
+
 using System.Collections.Immutable;
 using System.Linq;
 using Analyzer.Utilities;
@@ -20,7 +22,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.PartsExportedWithMEFv2MustBeMarkedAsSharedMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.PartsExportedWithMEFv2MustBeMarkedAsSharedDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
-        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RoslynDiagnosticIds.MissingSharedAttributeRuleId,
+        internal static DiagnosticDescriptor Rule = new(RoslynDiagnosticIds.MissingSharedAttributeRuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessage,
                                                                              DiagnosticCategory.RoslynDiagnosticsReliability,
@@ -56,13 +58,18 @@ namespace Roslyn.Diagnostics.Analyzers
 
                     var exportAttributeApplication = exportAttributes.FirstOrDefault();
 
-                    if (exportAttributeApplication != null)
+                    if (exportAttributeApplication != null &&
+                        !namedTypeAttributes.Any(ad => ad.AttributeClass.Name == "SharedAttribute" &&
+                                                       ad.AttributeClass.ContainingNamespace.Equals(exportAttribute.ContainingNamespace)))
                     {
-                        if (!namedTypeAttributes.Any(ad => ad.AttributeClass.Name == "SharedAttribute" &&
-                                                           ad.AttributeClass.ContainingNamespace.Equals(exportAttribute.ContainingNamespace)))
+                        if (exportAttributeApplication.ApplicationSyntaxReference == null)
+                        {
+                            symbolContext.ReportDiagnostic(symbolContext.Symbol.CreateDiagnostic(Rule, namedType.Name));
+                        }
+                        else
                         {
                             // '{0}' is exported with MEFv2 and hence must be marked as Shared
-                            symbolContext.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
+                            symbolContext.ReportDiagnostic(exportAttributeApplication.ApplicationSyntaxReference.CreateDiagnostic(Rule, symbolContext.CancellationToken, namedType.Name));
                         }
                     }
                 }, SymbolKind.NamedType);

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
@@ -8,6 +9,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// An abstract domain implementation for analyses that store dictionary typed data.
     /// </summary>
     public class MapAbstractDomain<TKey, TValue> : AbstractAnalysisDomain<DictionaryAnalysisData<TKey, TValue>>
+        where TKey : notnull
     {
         public MapAbstractDomain(AbstractValueDomain<TValue> valueDomain)
         {
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         protected AbstractValueDomain<TValue> ValueDomain { get; }
-        public override DictionaryAnalysisData<TKey, TValue> Clone(DictionaryAnalysisData<TKey, TValue> value) => new DictionaryAnalysisData<TKey, TValue>(value);
+        public override DictionaryAnalysisData<TKey, TValue> Clone(DictionaryAnalysisData<TKey, TValue> value) => new(value);
 
         /// <summary>
         /// Compares if the abstract dataflow values in <paramref name="oldValue"/> against the values in <paramref name="newValue"/> to ensure
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 var key = kvp.Key;
                 var value = kvp.Value;
-                if (!newValue.TryGetValue(key, out TValue otherValue))
+                if (!newValue.TryGetValue(key, out var otherValue))
                 {
                     FireNonMonotonicAssertIfNeeded(assertMonotonicity);
                     return 1;
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var result = new DictionaryAnalysisData<TKey, TValue>(value1);
             foreach (var entry in value2)
             {
-                if (result.TryGetValue(entry.Key, out TValue value))
+                if (result.TryGetValue(entry.Key, out var value))
                 {
                     value = ValueDomain.Merge(value, entry.Value);
 
@@ -112,6 +114,33 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 else
                 {
                     result.Add(entry.Key, entry.Value);
+                }
+            }
+
+            return result;
+        }
+
+        internal DictionaryAnalysisData<TKey, TValue> Intersect(
+            DictionaryAnalysisData<TKey, TValue> map1,
+            DictionaryAnalysisData<TKey, TValue> map2,
+            Func<TValue, TValue, TValue> intersect)
+        {
+            var result = new DictionaryAnalysisData<TKey, TValue>();
+            foreach (var kvp in map1)
+            {
+                if (!map2.TryGetValue(kvp.Key, out var value2))
+                {
+                    value2 = ValueDomain.UnknownOrMayBeValue;
+                }
+
+                result.Add(kvp.Key, intersect(kvp.Value, value2));
+            }
+
+            foreach (var key in map2.Keys)
+            {
+                if (!result.ContainsKey(key))
+                {
+                    result.Add(key, ValueDomain.UnknownOrMayBeValue);
                 }
             }
 

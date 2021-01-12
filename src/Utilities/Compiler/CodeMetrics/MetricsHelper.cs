@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable disable warnings
+
 #if HAS_IOPERATION
 
 using System;
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 if (symbol.Kind == SymbolKind.Namespace)
                 {
                     var model = context.GetSemanticModel(declSyntax);
-                    if (model.GetDeclaredSymbol(declSyntax, context.CancellationToken) != (object)symbol)
+                    if (!Equals(model.GetDeclaredSymbol(declSyntax, context.CancellationToken), symbol))
                     {
                         continue;
                     }
@@ -86,11 +88,41 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     // Declaration on a single line, we count it as a separate line.
                     delta = 1;
                 }
+                else
+                {
+                    // Ensure that we do not count the leading and trailing empty new lines.
+                    var additionalNewLines = Math.Max(0, GetNewlineCount(declSyntax.GetLeadingTrivia(), leading: true) + GetNewlineCount(declSyntax.GetTrailingTrivia(), leading: false) - 1);
+                    delta -= additionalNewLines;
+                }
 
                 linesOfCode += delta;
             }
 
             return linesOfCode;
+
+            static int GetNewlineCount(SyntaxTriviaList trivialList, bool leading)
+            {
+                var triviaParts = trivialList.ToFullString().Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).ToImmutableArray();
+                return GetNewlineCount(triviaParts, leading);
+
+                static int GetNewlineCount(ImmutableArray<string> triviaParts, bool leading)
+                {
+                    var index = leading ? 0 : triviaParts.Length - 1;
+                    var loopCondition = leading ? LoopConditionForLeading : (Func<int, int, bool>)LoopConditionForTrailing;
+                    var incrementOrDecrement = leading ? 1 : -1;
+                    var count = 0;
+                    while (loopCondition(index, triviaParts.Length) && string.IsNullOrWhiteSpace(triviaParts[index]))
+                    {
+                        index += incrementOrDecrement;
+                        count++;
+                    }
+
+                    return count;
+
+                    static bool LoopConditionForLeading(int index, int length) => index < length - 1;
+                    static bool LoopConditionForTrailing(int index, int _) => index > 0;
+                }
+            }
         }
 
         internal static async Task<SyntaxNode> GetTopmostSyntaxNodeForDeclarationAsync(SyntaxReference declaration, ISymbol declaredSymbol, CodeMetricsAnalysisContext context)
@@ -204,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                         {
 #if LEGACY_CODE_METRICS_MODE
                             // Legacy mode does not account for code within lambdas/local functions for code metrics.
-                            if (operation.IsWithinLambdaOrLocalFunction())
+                            if (operation.IsWithinLambdaOrLocalFunction(out _))
                             {
                                 continue;
                             }
@@ -289,34 +321,31 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
             static bool isIgnoreableType(INamedTypeSymbol namedType, WellKnownTypeProvider wellKnownTypeProvider)
             {
-                switch (namedType.SpecialType)
+                return namedType.SpecialType switch
                 {
-                    case SpecialType.System_Boolean:
-                    case SpecialType.System_Byte:
-                    case SpecialType.System_Char:
-                    case SpecialType.System_Double:
-                    case SpecialType.System_Int16:
-                    case SpecialType.System_Int32:
-                    case SpecialType.System_Int64:
-                    case SpecialType.System_UInt16:
-                    case SpecialType.System_UInt32:
-                    case SpecialType.System_UInt64:
-                    case SpecialType.System_IntPtr:
-                    case SpecialType.System_UIntPtr:
-                    case SpecialType.System_SByte:
-                    case SpecialType.System_Single:
-                    case SpecialType.System_String:
-                    case SpecialType.System_Object:
-                    case SpecialType.System_ValueType:
-                    case SpecialType.System_Void:
-                        return true;
-
-                    default:
-                        return namedType.IsAnonymousType ||
-                            namedType.GetAttributes().Any(a =>
-                                a.AttributeClass.Equals(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesCompilerGeneratedAttribute)) ||
-                                a.AttributeClass.Equals(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCodeDomCompilerGeneratedCodeAttribute)));
-                }
+                    SpecialType.System_Boolean
+                    or SpecialType.System_Byte
+                    or SpecialType.System_Char
+                    or SpecialType.System_Double
+                    or SpecialType.System_Int16
+                    or SpecialType.System_Int32
+                    or SpecialType.System_Int64
+                    or SpecialType.System_UInt16
+                    or SpecialType.System_UInt32
+                    or SpecialType.System_UInt64
+                    or SpecialType.System_IntPtr
+                    or SpecialType.System_UIntPtr
+                    or SpecialType.System_SByte
+                    or SpecialType.System_Single
+                    or SpecialType.System_String
+                    or SpecialType.System_Object
+                    or SpecialType.System_ValueType
+                    or SpecialType.System_Void => true,
+                    _ => namedType.IsAnonymousType
+                        || namedType.GetAttributes().Any(a =>
+                            a.AttributeClass.Equals(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesCompilerGeneratedAttribute)) ||
+                            a.AttributeClass.Equals(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCodeDomCompilerGeneratedCodeAttribute))),
+                };
             }
         }
 

@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
     /// </summary>
     public class DisposeAbstractValue : CacheBasedEquatable<DisposeAbstractValue>
     {
-        public static readonly DisposeAbstractValue NotDisposable = new DisposeAbstractValue(DisposeAbstractValueKind.NotDisposable);
-        public static readonly DisposeAbstractValue Invalid = new DisposeAbstractValue(DisposeAbstractValueKind.Invalid);
-        public static readonly DisposeAbstractValue NotDisposed = new DisposeAbstractValue(DisposeAbstractValueKind.NotDisposed);
-        public static readonly DisposeAbstractValue Unknown = new DisposeAbstractValue(DisposeAbstractValueKind.Unknown);
+        public static readonly DisposeAbstractValue NotDisposable = new(DisposeAbstractValueKind.NotDisposable);
+        public static readonly DisposeAbstractValue Invalid = new(DisposeAbstractValueKind.Invalid);
+        public static readonly DisposeAbstractValue NotDisposed = new(DisposeAbstractValueKind.NotDisposed);
+        public static readonly DisposeAbstractValue Unknown = new(DisposeAbstractValueKind.Unknown);
 
         private DisposeAbstractValue(DisposeAbstractValueKind kind)
             : this(ImmutableHashSet<IOperation>.Empty, kind)
@@ -56,13 +56,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 case DisposeAbstractValueKind.NotDisposed:
                 case DisposeAbstractValueKind.Invalid:
                 case DisposeAbstractValueKind.Unknown:
-                    Debug.Assert(disposingOrEscapingOperations.Count == 0);
+                    Debug.Assert(disposingOrEscapingOperations.IsEmpty);
                     break;
 
                 case DisposeAbstractValueKind.Escaped:
                 case DisposeAbstractValueKind.Disposed:
                 case DisposeAbstractValueKind.MaybeDisposed:
-                    Debug.Assert(disposingOrEscapingOperations.Count > 0);
+                    Debug.Assert(!disposingOrEscapingOperations.IsEmpty);
                     break;
             }
         }

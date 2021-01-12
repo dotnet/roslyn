@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.PreferIsKindMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.PreferIsKindDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor Rule = new(
             DiagnosticIds.PreferIsKindRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -67,8 +67,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static void HandleBinaryOperation(OperationAnalysisContext context, Dictionary<INamedTypeSymbol, INamedTypeSymbol> containingTypeMap)
         {
             var operation = (IBinaryOperation)context.Operation;
-            if (operation.OperatorKind != BinaryOperatorKind.Equals
-                && operation.OperatorKind != BinaryOperatorKind.NotEquals)
+            if (operation.OperatorKind is not (BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals))
             {
                 return;
             }

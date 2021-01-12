@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -14,7 +13,7 @@ namespace Text.Analyzers
     {
         internal const string RuleId = "CA1704";
 
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(TextAnalyzersResources.IdentifiersShouldBeSpelledCorrectlyTitle), TextAnalyzersResources.ResourceManager, typeof(TextAnalyzersResources));
+        /*private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(TextAnalyzersResources.IdentifiersShouldBeSpelledCorrectlyTitle), TextAnalyzersResources.ResourceManager, typeof(TextAnalyzersResources));
 
         private static readonly LocalizableString s_localizableMessageAssembly = new LocalizableResourceString(nameof(TextAnalyzersResources.IdentifiersShouldBeSpelledCorrectlyMessageAssembly), TextAnalyzersResources.ResourceManager, typeof(TextAnalyzersResources));
         private static readonly LocalizableString s_localizableMessageNamespace = new LocalizableResourceString(nameof(TextAnalyzersResources.IdentifiersShouldBeSpelledCorrectlyMessageNamespace), TextAnalyzersResources.ResourceManager, typeof(TextAnalyzersResources));
@@ -34,150 +33,150 @@ namespace Text.Analyzers
         private static readonly LocalizableString s_localizableMessageMethodTypeParameterMoreMeaningfulName = new LocalizableResourceString(nameof(TextAnalyzersResources.IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameterMoreMeaningfulName), TextAnalyzersResources.ResourceManager, typeof(TextAnalyzersResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(TextAnalyzersResources.IdentifiersShouldBeSpelledCorrectlyDescription), TextAnalyzersResources.ResourceManager, typeof(TextAnalyzersResources));
 
-        internal static DiagnosticDescriptor AssemblyRule = new DiagnosticDescriptor(RuleId,
+        internal static DiagnosticDescriptor AssemblyRule = new(RuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessageAssembly,
                                                                              DiagnosticCategory.Naming,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
-                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704-identifiers-should-be-spelled-correctly",
+                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
                                                                              customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
-        internal static DiagnosticDescriptor NamespaceRule = new DiagnosticDescriptor(RuleId,
+        internal static DiagnosticDescriptor NamespaceRule = new(RuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessageNamespace,
                                                                              DiagnosticCategory.Naming,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
-                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704-identifiers-should-be-spelled-correctly",
+                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
                                                                              customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
-        internal static DiagnosticDescriptor TypeRule = new DiagnosticDescriptor(RuleId,
+        internal static DiagnosticDescriptor TypeRule = new(RuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessageType,
                                                                              DiagnosticCategory.Naming,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
-                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704-identifiers-should-be-spelled-correctly",
+                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
                                                                              customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
-        internal static DiagnosticDescriptor MemberRule = new DiagnosticDescriptor(RuleId,
+        internal static DiagnosticDescriptor MemberRule = new(RuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessageMember,
                                                                              DiagnosticCategory.Naming,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
-                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704-identifiers-should-be-spelled-correctly",
+                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
                                                                              customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
-        internal static DiagnosticDescriptor MemberParameterRule = new DiagnosticDescriptor(RuleId,
+        internal static DiagnosticDescriptor MemberParameterRule = new(RuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessageMemberParameter,
                                                                              DiagnosticCategory.Naming,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
-                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704-identifiers-should-be-spelled-correctly",
+                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
                                                                              customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
-        internal static DiagnosticDescriptor DelegateParameterRule = new DiagnosticDescriptor(RuleId,
+        internal static DiagnosticDescriptor DelegateParameterRule = new(RuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessageDelegateParameter,
                                                                              DiagnosticCategory.Naming,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
-                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704-identifiers-should-be-spelled-correctly",
+                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
                                                                              customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
-        internal static DiagnosticDescriptor TypeTypeParameterRule = new DiagnosticDescriptor(RuleId,
+        internal static DiagnosticDescriptor TypeTypeParameterRule = new(RuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessageTypeTypeParameter,
                                                                              DiagnosticCategory.Naming,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
-                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704-identifiers-should-be-spelled-correctly",
+                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
                                                                              customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
-        internal static DiagnosticDescriptor MethodTypeParameterRule = new DiagnosticDescriptor(RuleId,
+        internal static DiagnosticDescriptor MethodTypeParameterRule = new(RuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessageMethodTypeParameter,
                                                                              DiagnosticCategory.Naming,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
-                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704-identifiers-should-be-spelled-correctly",
+                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
                                                                              customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
-        internal static DiagnosticDescriptor AssemblyMoreMeaningfulNameRule = new DiagnosticDescriptor(RuleId,
+        internal static DiagnosticDescriptor AssemblyMoreMeaningfulNameRule = new(RuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessageAssemblyMoreMeaningfulName,
                                                                              DiagnosticCategory.Naming,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
-                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704-identifiers-should-be-spelled-correctly",
+                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
                                                                              customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
-        internal static DiagnosticDescriptor NamespaceMoreMeaningfulNameRule = new DiagnosticDescriptor(RuleId,
+        internal static DiagnosticDescriptor NamespaceMoreMeaningfulNameRule = new(RuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessageNamespaceMoreMeaningfulName,
                                                                              DiagnosticCategory.Naming,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
-                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704-identifiers-should-be-spelled-correctly",
+                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
                                                                              customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
-        internal static DiagnosticDescriptor TypeMoreMeaningfulNameRule = new DiagnosticDescriptor(RuleId,
+        internal static DiagnosticDescriptor TypeMoreMeaningfulNameRule = new(RuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessageTypeMoreMeaningfulName,
                                                                              DiagnosticCategory.Naming,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
-                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704-identifiers-should-be-spelled-correctly",
+                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
                                                                              customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
-        internal static DiagnosticDescriptor MemberMoreMeaningfulNameRule = new DiagnosticDescriptor(RuleId,
+        internal static DiagnosticDescriptor MemberMoreMeaningfulNameRule = new(RuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessageMemberMoreMeaningfulName,
                                                                              DiagnosticCategory.Naming,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
-                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704-identifiers-should-be-spelled-correctly",
+                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
                                                                              customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
-        internal static DiagnosticDescriptor MemberParameterMoreMeaningfulNameRule = new DiagnosticDescriptor(RuleId,
+        internal static DiagnosticDescriptor MemberParameterMoreMeaningfulNameRule = new(RuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessageMemberParameterMoreMeaningfulName,
                                                                              DiagnosticCategory.Naming,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
-                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704-identifiers-should-be-spelled-correctly",
+                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
                                                                              customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
-        internal static DiagnosticDescriptor DelegateParameterMoreMeaningfulNameRule = new DiagnosticDescriptor(RuleId,
+        internal static DiagnosticDescriptor DelegateParameterMoreMeaningfulNameRule = new(RuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessageDelegateParameterMoreMeaningfulName,
                                                                              DiagnosticCategory.Naming,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
-                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704-identifiers-should-be-spelled-correctly",
+                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
                                                                              customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
-        internal static DiagnosticDescriptor TypeTypeParameterMoreMeaningfulNameRule = new DiagnosticDescriptor(RuleId,
+        internal static DiagnosticDescriptor TypeTypeParameterMoreMeaningfulNameRule = new(RuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessageTypeTypeParameterMoreMeaningfulName,
                                                                              DiagnosticCategory.Naming,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
-                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704-identifiers-should-be-spelled-correctly",
+                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
                                                                              customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
-        internal static DiagnosticDescriptor MethodTypeParameterMoreMeaningfulNameRule = new DiagnosticDescriptor(RuleId,
+        internal static DiagnosticDescriptor MethodTypeParameterMoreMeaningfulNameRule = new(RuleId,
                                                                              s_localizableTitle,
                                                                              s_localizableMessageMethodTypeParameterMoreMeaningfulName,
                                                                              DiagnosticCategory.Naming,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
                                                                              description: s_localizableDescription,
-                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704-identifiers-should-be-spelled-correctly",
-                                                                             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
+                                                                             helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
+                                                                             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);*/
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
         //ImmutableArray.Create(AssemblyRule, NamespaceRule, TypeRule, MemberRule, MemberParameterRule, DelegateParameterRule, TypeTypeParameterRule, MethodTypeParameterRule, AssemblyMoreMeaningfulNameRule, NamespaceMoreMeaningfulNameRule, TypeMoreMeaningfulNameRule, MemberMoreMeaningfulNameRule, MemberParameterMoreMeaningfulNameRule, DelegateParameterMoreMeaningfulNameRule, TypeTypeParameterMoreMeaningfulNameRule, MethodTypeParameterMoreMeaningfulNameRule);

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         /// </summary>
         private class DisposeAbstractValueDomain : AbstractValueDomain<DisposeAbstractValue>
         {
-            public static DisposeAbstractValueDomain Default = new DisposeAbstractValueDomain();
+            public static DisposeAbstractValueDomain Default = new();
             private readonly SetAbstractDomain<IOperation> _disposingOperationsDomain = SetAbstractDomain<IOperation>.Default;
 
             private DisposeAbstractValueDomain() { }

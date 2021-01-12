@@ -15,15 +15,15 @@ using Analyzer.Utilities.Extensions;
 namespace Microsoft.CodeAnalysis.CodeMetrics
 {
     /// <summary>
-    /// Calculates computational complexity metrics based on the number 
+    /// Calculates computational complexity metrics based on the number
     /// of operators and operands found in the code.
     /// </summary>
     /// <remarks>This metric is based off of the Halstead metric.</remarks>
     internal sealed class ComputationalComplexityMetrics
     {
-        internal static readonly ComputationalComplexityMetrics Default = new ComputationalComplexityMetrics(0, 0, 0, 0, 0, ImmutableHashSet<OperationKind>.Empty,
+        internal static readonly ComputationalComplexityMetrics Default = new(0, 0, 0, 0, 0, ImmutableHashSet<OperationKind>.Empty,
             ImmutableHashSet<BinaryOperatorKind>.Empty, ImmutableHashSet<UnaryOperatorKind>.Empty, ImmutableHashSet<CaseKind>.Empty, ImmutableHashSet<ISymbol>.Empty, ImmutableHashSet<object>.Empty);
-        private static readonly object s_nullConstantPlaceholder = new object();
+        private static readonly object s_nullConstantPlaceholder = new();
         private readonly long _symbolUsageCounts;
         private readonly long _constantUsageCounts;
         private readonly ImmutableHashSet<OperationKind> _distinctOperatorKinds;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 return Default;
             }
 
-            // Use incremented count for maintainable code lines for symbol initializers. 
+            // Use incremented count for maintainable code lines for symbol initializers.
             var effectiveLinesOfMaintainableCode = hasSymbolInitializer ? executableLinesOfCode + 1 : executableLinesOfCode;
 
             return new ComputationalComplexityMetrics(executableLinesOfCode, effectiveLinesOfMaintainableCode, operatorUsageCounts, symbolUsageCounts, constantUsageCounts,
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
 #if LEGACY_CODE_METRICS_MODE
                 // Legacy mode does not account for code within lambdas/local functions for code metrics.
-                if (operation.IsWithinLambdaOrLocalFunction())
+                if (operation.IsWithinLambdaOrLocalFunction(out _))
                 {
                     continue;
                 }
@@ -403,12 +403,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
         /// <summary>The number of unique operands found.</summary>
         public long DistinctOperands         //n2
-        {
-            get
-            {
-                return _distinctReferencedSymbols.Count + _distinctReferencedConstants.Count;
-            }
-        }
+            => _distinctReferencedSymbols.Count + _distinctReferencedConstants.Count;
 
         /// <summary>The total number of operator usages found.</summary>
         public long TotalOperators           //N1
@@ -416,30 +411,16 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
         /// <summary>The total number of operand usages found.</summary>
         public long TotalOperands            //N2
-        {
-            get
-            {
-                return _symbolUsageCounts + _constantUsageCounts;
-            }
-        }
+            => _symbolUsageCounts + _constantUsageCounts;
 
-        public long Vocabulary               //n
-        {
-            // n = n1 + n2
-            get { return DistinctOperators + DistinctOperands; }
-        }
+        public long Vocabulary               // n = n1 + n2
+            => DistinctOperators + DistinctOperands;
 
-        public long Length                   //N
-        {
-            // N = N1 + N2
-            get { return TotalOperators + TotalOperands; }
-        }
+        public long Length                   // N = N1 + N2
+            => TotalOperators + TotalOperands;
 
-        public double Volume                //V
-        {
-            // V = N * Log2(n)
-            get { return Length * Math.Max(0.0, Math.Log(Vocabulary, 2)); }
-        }
+        public double Volume                // V = N * Log2(n)
+            => Length * Math.Max(0.0, Math.Log(Vocabulary, 2));
 
         /// <summary>
         /// Count of executable lines of code, i.e. basically IOperations parented by IBlockOperation.

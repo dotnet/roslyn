@@ -5,13 +5,13 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.Analyzers",
-        "version": "3.0.0",
+        "version": "3.3.3",
         "language": "en-US"
       },
       "rules": {
         "RS1001": {
           "id": "RS1001",
-          "shortDescription": "Missing diagnostic analyzer attribute.",
+          "shortDescription": "Missing diagnostic analyzer attribute",
           "fullDescription": "Non-abstract sub-types of DiagnosticAnalyzer should be marked with DiagnosticAnalyzerAttribute(s). The argument to this attribute(s), if any, determine the supported languages for the analyzer. Analyzer types without this attribute will be ignored by the analysis engine.",
           "defaultLevel": "warning",
           "properties": {
@@ -29,7 +29,7 @@
         },
         "RS1004": {
           "id": "RS1004",
-          "shortDescription": "Recommend adding language support to diagnostic analyzer.",
+          "shortDescription": "Recommend adding language support to diagnostic analyzer",
           "fullDescription": "Diagnostic analyzer is marked as supporting only one language, but the analyzer assembly doesn't seem to refer to any language specific CodeAnalysis assemblies, and so is likely to work for more than one language. Consider adding an additional language argument to DiagnosticAnalyzerAttribute.",
           "defaultLevel": "warning",
           "properties": {
@@ -47,7 +47,7 @@
         },
         "RS1007": {
           "id": "RS1007",
-          "shortDescription": "Provide localizable arguments to diagnostic descriptor constructor.",
+          "shortDescription": "Provide localizable arguments to diagnostic descriptor constructor",
           "fullDescription": "If your diagnostic analyzer and it's reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter 'title' (and optionally 'description') to the diagnostic descriptor constructor to ensure that the descriptor is localizable.",
           "defaultLevel": "warning",
           "properties": {
@@ -65,7 +65,7 @@
         },
         "RS1009": {
           "id": "RS1009",
-          "shortDescription": "Only internal implementations of this interface are allowed.",
+          "shortDescription": "Only internal implementations of this interface are allowed",
           "fullDescription": "The author of this interface did not intend to have third party implementations of this interface and reserves the right to change it. Implementing this interface could therefore result in a source or binary compatibility issue with a future version of this interface.",
           "defaultLevel": "error",
           "properties": {
@@ -80,7 +80,7 @@
         },
         "RS1010": {
           "id": "RS1010",
-          "shortDescription": "Create code actions should have a unique EquivalenceKey for FixAll occurrences support.",
+          "shortDescription": "Create code actions should have a unique EquivalenceKey for FixAll occurrences support",
           "fullDescription": "A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.",
           "defaultLevel": "warning",
           "properties": {
@@ -92,13 +92,14 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
         },
         "RS1011": {
           "id": "RS1011",
-          "shortDescription": "Use code actions that have a unique EquivalenceKey for FixAll occurrences support.",
+          "shortDescription": "Use code actions that have a unique EquivalenceKey for FixAll occurrences support",
           "fullDescription": "A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.",
           "defaultLevel": "warning",
           "properties": {
@@ -110,13 +111,14 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
         },
         "RS1015": {
           "id": "RS1015",
-          "shortDescription": "Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor.",
+          "shortDescription": "Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor",
           "fullDescription": "The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.",
           "defaultLevel": "warning",
           "properties": {
@@ -134,8 +136,8 @@
         },
         "RS1016": {
           "id": "RS1016",
-          "shortDescription": "Code fix providers should provide FixAll support.",
-          "fullDescription": "A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.",
+          "shortDescription": "Code fix providers should provide FixAll support",
+          "fullDescription": "A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.",
           "defaultLevel": "warning",
           "properties": {
             "category": "Correctness",
@@ -146,13 +148,14 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
         },
         "RS1017": {
           "id": "RS1017",
-          "shortDescription": "DiagnosticId for analyzers must be a non-null constant.",
+          "shortDescription": "DiagnosticId for analyzers must be a non-null constant",
           "fullDescription": "DiagnosticId for analyzers must be a non-null constant.",
           "defaultLevel": "warning",
           "properties": {
@@ -170,7 +173,7 @@
         },
         "RS1018": {
           "id": "RS1018",
-          "shortDescription": "DiagnosticId for analyzers must be in specified format.",
+          "shortDescription": "DiagnosticId for analyzers must be in specified format",
           "fullDescription": "DiagnosticId for analyzers must be in specified format.",
           "defaultLevel": "warning",
           "properties": {
@@ -188,7 +191,7 @@
         },
         "RS1019": {
           "id": "RS1019",
-          "shortDescription": "DiagnosticId must be unique across analyzers.",
+          "shortDescription": "DiagnosticId must be unique across analyzers",
           "fullDescription": "DiagnosticId must be unique across analyzers.",
           "defaultLevel": "warning",
           "properties": {
@@ -200,13 +203,14 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
         },
         "RS1020": {
           "id": "RS1020",
-          "shortDescription": "Category for analyzers must be from the specified values.",
+          "shortDescription": "Category for analyzers must be from the specified values",
           "fullDescription": "Category for analyzers must be from the specified values.",
           "defaultLevel": "warning",
           "properties": {
@@ -224,7 +228,7 @@
         },
         "RS1021": {
           "id": "RS1021",
-          "shortDescription": "Invalid entry in analyzer category and diagnostic ID range specification file.",
+          "shortDescription": "Invalid entry in analyzer category and diagnostic ID range specification file",
           "fullDescription": "Invalid entry in analyzer category and diagnostic ID range specification file.",
           "defaultLevel": "warning",
           "properties": {
@@ -243,7 +247,7 @@
         "RS1024": {
           "id": "RS1024",
           "shortDescription": "Compare symbols correctly",
-          "fullDescription": "Symbols should be compared for equality, not identity.",
+          "fullDescription": "Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.",
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisCorrectness",
@@ -296,8 +300,8 @@
         },
         "RS1027": {
           "id": "RS1027",
-          "shortDescription": "Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer.",
-          "fullDescription": "Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s).",
+          "shortDescription": "Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer",
+          "fullDescription": "Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s)",
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisCorrectness",
@@ -314,7 +318,7 @@
         },
         "RS1028": {
           "id": "RS1028",
-          "shortDescription": "Provide non-null 'customTags' value to diagnostic descriptor constructor.",
+          "shortDescription": "Provide non-null 'customTags' value to diagnostic descriptor constructor",
           "fullDescription": "The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.",
           "defaultLevel": "warning",
           "properties": {
@@ -332,7 +336,7 @@
         },
         "RS1029": {
           "id": "RS1029",
-          "shortDescription": "Do not use reserved diagnostic IDs.",
+          "shortDescription": "Do not use reserved diagnostic IDs",
           "fullDescription": "DiagnosticId for analyzers should not use reserved IDs.",
           "defaultLevel": "warning",
           "properties": {
@@ -366,9 +370,81 @@
             ]
           }
         },
+        "RS1031": {
+          "id": "RS1031",
+          "shortDescription": "Define diagnostic title correctly",
+          "fullDescription": "The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1032": {
+          "id": "RS1032",
+          "shortDescription": "Define diagnostic message correctly",
+          "fullDescription": "The diagnostic message should not contain any line return character nor any leading or trailing whitespaces and should either be a single sentence without a trailing period or a multi-sentences with a trailing period",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1033": {
+          "id": "RS1033",
+          "shortDescription": "Define diagnostic description correctly",
+          "fullDescription": "The diagnostic description should be one or multiple sentences ending with a punctuation sign and should not have any leading or trailing whitespaces",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1034": {
+          "id": "RS1034",
+          "shortDescription": "Prefer IsKind",
+          "fullDescription": "Prefer IsKind.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "PreferIsKindAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
         "RS2000": {
           "id": "RS2000",
-          "shortDescription": "Add analyzer diagnostic IDs to analyzer release.",
+          "shortDescription": "Add analyzer diagnostic IDs to analyzer release",
           "fullDescription": "All supported analyzer diagnostic IDs should be part of an analyzer release.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
@@ -387,7 +463,7 @@
         },
         "RS2001": {
           "id": "RS2001",
-          "shortDescription": "Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.",
+          "shortDescription": "Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release",
           "fullDescription": "Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
@@ -406,7 +482,7 @@
         },
         "RS2002": {
           "id": "RS2002",
-          "shortDescription": "Do not add removed analyzer diagnostic IDs to unshipped analyzer release.",
+          "shortDescription": "Do not add removed analyzer diagnostic IDs to unshipped analyzer release",
           "fullDescription": "Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
@@ -419,13 +495,14 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
         },
         "RS2003": {
           "id": "RS2003",
-          "shortDescription": "Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.",
+          "shortDescription": "Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file",
           "fullDescription": "Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
@@ -438,13 +515,14 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
         },
         "RS2004": {
           "id": "RS2004",
-          "shortDescription": "Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.",
+          "shortDescription": "Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers",
           "fullDescription": "Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
@@ -463,7 +541,7 @@
         },
         "RS2005": {
           "id": "RS2005",
-          "shortDescription": "Remove duplicate entries for diagnostic ID in the same analyzer release.",
+          "shortDescription": "Remove duplicate entries for diagnostic ID in the same analyzer release",
           "fullDescription": "Remove duplicate entries for diagnostic ID in the same analyzer release.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
@@ -476,13 +554,14 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
         },
         "RS2006": {
           "id": "RS2006",
-          "shortDescription": "Remove duplicate entries for diagnostic ID between analyzer releases.",
+          "shortDescription": "Remove duplicate entries for diagnostic ID between analyzer releases",
           "fullDescription": "Remove duplicate entries for diagnostic ID between analyzer releases.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
@@ -495,13 +574,14 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
         },
         "RS2007": {
           "id": "RS2007",
-          "shortDescription": "Invalid entry in analyzer release file.",
+          "shortDescription": "Invalid entry in analyzer release file",
           "fullDescription": "Invalid entry in analyzer release file.",
           "defaultLevel": "warning",
           "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
@@ -514,6 +594,7 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
@@ -542,13 +623,13 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.CSharp.Analyzers",
-        "version": "3.0.0",
+        "version": "3.3.3",
         "language": "en-US"
       },
       "rules": {
         "RS1002": {
           "id": "RS1002",
-          "shortDescription": "Missing kind argument when registering an analyzer action.",
+          "shortDescription": "Missing kind argument when registering an analyzer action",
           "fullDescription": "You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.",
           "defaultLevel": "warning",
           "properties": {
@@ -565,8 +646,8 @@
         },
         "RS1003": {
           "id": "RS1003",
-          "shortDescription": "Unsupported SymbolKind argument when registering a symbol analyzer action.",
-          "fullDescription": "SymbolKind '{0}' is not supported for symbol analyzer actions.",
+          "shortDescription": "Unsupported SymbolKind argument when registering a symbol analyzer action",
+          "fullDescription": "SymbolKind '{0}' is not supported for symbol analyzer actions",
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisCorrectness",
@@ -582,7 +663,7 @@
         },
         "RS1005": {
           "id": "RS1005",
-          "shortDescription": "ReportDiagnostic invoked with an unsupported DiagnosticDescriptor.",
+          "shortDescription": "ReportDiagnostic invoked with an unsupported DiagnosticDescriptor",
           "fullDescription": "ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine.",
           "defaultLevel": "warning",
           "properties": {
@@ -599,7 +680,7 @@
         },
         "RS1006": {
           "id": "RS1006",
-          "shortDescription": "Invalid type argument for DiagnosticAnalyzer's Register method.",
+          "shortDescription": "Invalid type argument for DiagnosticAnalyzer's Register method",
           "fullDescription": "DiagnosticAnalyzer's language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific 'SyntaxKind' type argument for it's 'TLanguageKindEnumName' type parameter. Otherwise, the registered analyzer action can never be invoked during analysis.",
           "defaultLevel": "warning",
           "properties": {
@@ -616,7 +697,7 @@
         },
         "RS1008": {
           "id": "RS1008",
-          "shortDescription": "Avoid storing per-compilation data into the fields of a diagnostic analyzer.",
+          "shortDescription": "Avoid storing per-compilation data into the fields of a diagnostic analyzer",
           "fullDescription": "Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiated in a compilation start action, registered using 'AnalysisContext.RegisterCompilationStartAction' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.",
           "defaultLevel": "warning",
           "properties": {
@@ -633,8 +714,8 @@
         },
         "RS1012": {
           "id": "RS1012",
-          "shortDescription": "Start action has no registered actions.",
-          "fullDescription": "An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:\u000d\u000a1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.\u000d\u000a2. If required, define and initialize state in the start action.\u000d\u000a3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.\u000d\u000a4. If required, register an end action to report diagnostics based on the final state.\u000d\u000a",
+          "shortDescription": "Start action has no registered actions",
+          "fullDescription": "An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:\u000d\u000a1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.\u000d\u000a2. If required, define and initialize state in the start action.\u000d\u000a3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.\u000d\u000a4. If required, register an end action to report diagnostics based on the final state.",
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisPerformance",
@@ -650,8 +731,8 @@
         },
         "RS1013": {
           "id": "RS1013",
-          "shortDescription": "Start action has no registered non-end actions.",
-          "fullDescription": "An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:\u000d\u000a1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.\u000d\u000a2. If required, define and initialize state in the start action.\u000d\u000a3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.\u000d\u000a4. If required, register an end action to report diagnostics based on the final state.\u000d\u000a",
+          "shortDescription": "Start action has no registered non-end actions",
+          "fullDescription": "An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:\u000d\u000a1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.\u000d\u000a2. If required, define and initialize state in the start action.\u000d\u000a3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.\u000d\u000a4. If required, register an end action to report diagnostics based on the final state.",
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisPerformance",
@@ -695,6 +776,7 @@
               "C#"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
@@ -722,13 +804,13 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.VisualBasic.Analyzers",
-        "version": "3.0.0",
+        "version": "3.3.3",
         "language": "en-US"
       },
       "rules": {
         "RS1002": {
           "id": "RS1002",
-          "shortDescription": "Missing kind argument when registering an analyzer action.",
+          "shortDescription": "Missing kind argument when registering an analyzer action",
           "fullDescription": "You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.",
           "defaultLevel": "warning",
           "properties": {
@@ -745,8 +827,8 @@
         },
         "RS1003": {
           "id": "RS1003",
-          "shortDescription": "Unsupported SymbolKind argument when registering a symbol analyzer action.",
-          "fullDescription": "SymbolKind '{0}' is not supported for symbol analyzer actions.",
+          "shortDescription": "Unsupported SymbolKind argument when registering a symbol analyzer action",
+          "fullDescription": "SymbolKind '{0}' is not supported for symbol analyzer actions",
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisCorrectness",
@@ -762,7 +844,7 @@
         },
         "RS1005": {
           "id": "RS1005",
-          "shortDescription": "ReportDiagnostic invoked with an unsupported DiagnosticDescriptor.",
+          "shortDescription": "ReportDiagnostic invoked with an unsupported DiagnosticDescriptor",
           "fullDescription": "ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine.",
           "defaultLevel": "warning",
           "properties": {
@@ -779,7 +861,7 @@
         },
         "RS1006": {
           "id": "RS1006",
-          "shortDescription": "Invalid type argument for DiagnosticAnalyzer's Register method.",
+          "shortDescription": "Invalid type argument for DiagnosticAnalyzer's Register method",
           "fullDescription": "DiagnosticAnalyzer's language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific 'SyntaxKind' type argument for it's 'TLanguageKindEnumName' type parameter. Otherwise, the registered analyzer action can never be invoked during analysis.",
           "defaultLevel": "warning",
           "properties": {
@@ -796,7 +878,7 @@
         },
         "RS1008": {
           "id": "RS1008",
-          "shortDescription": "Avoid storing per-compilation data into the fields of a diagnostic analyzer.",
+          "shortDescription": "Avoid storing per-compilation data into the fields of a diagnostic analyzer",
           "fullDescription": "Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiated in a compilation start action, registered using 'AnalysisContext.RegisterCompilationStartAction' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.",
           "defaultLevel": "warning",
           "properties": {
@@ -813,8 +895,8 @@
         },
         "RS1012": {
           "id": "RS1012",
-          "shortDescription": "Start action has no registered actions.",
-          "fullDescription": "An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:\u000d\u000a1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.\u000d\u000a2. If required, define and initialize state in the start action.\u000d\u000a3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.\u000d\u000a4. If required, register an end action to report diagnostics based on the final state.\u000d\u000a",
+          "shortDescription": "Start action has no registered actions",
+          "fullDescription": "An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:\u000d\u000a1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.\u000d\u000a2. If required, define and initialize state in the start action.\u000d\u000a3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.\u000d\u000a4. If required, register an end action to report diagnostics based on the final state.",
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisPerformance",
@@ -830,8 +912,8 @@
         },
         "RS1013": {
           "id": "RS1013",
-          "shortDescription": "Start action has no registered non-end actions.",
-          "fullDescription": "An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:\u000d\u000a1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.\u000d\u000a2. If required, define and initialize state in the start action.\u000d\u000a3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.\u000d\u000a4. If required, register an end action to report diagnostics based on the final state.\u000d\u000a",
+          "shortDescription": "Start action has no registered non-end actions",
+          "fullDescription": "An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:\u000d\u000a1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.\u000d\u000a2. If required, define and initialize state in the start action.\u000d\u000a3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.\u000d\u000a4. If required, register an end action to report diagnostics based on the final state.",
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisPerformance",
@@ -858,6 +940,7 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }

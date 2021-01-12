@@ -28,16 +28,24 @@ End Namespace
 ";
 
         private static DiagnosticResult GetCSharpEmptyEnumerableResultAt(int line, int column) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyCS.Diagnostic(SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule).WithLocation(line, column);
+#pragma warning restore RS0030 // Do not used banned APIs
 
         private static DiagnosticResult GetBasicEmptyEnumerableResultAt(int line, int column) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyVB.Diagnostic(SpecializedEnumerableCreationAnalyzer.UseEmptyEnumerableRule).WithLocation(line, column);
+#pragma warning restore RS0030 // Do not used banned APIs
 
         private static DiagnosticResult GetCSharpSingletonEnumerableResultAt(int line, int column) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyCS.Diagnostic(SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule).WithLocation(line, column);
+#pragma warning restore RS0030 // Do not used banned APIs
 
         private static DiagnosticResult GetBasicSingletonEnumerableResultAt(int line, int column) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyVB.Diagnostic(SpecializedEnumerableCreationAnalyzer.UseSingletonEnumerableRule).WithLocation(line, column);
+#pragma warning restore RS0030 // Do not used banned APIs
 
         [Fact]
         public async Task ReturnEmptyArrayCSharp()

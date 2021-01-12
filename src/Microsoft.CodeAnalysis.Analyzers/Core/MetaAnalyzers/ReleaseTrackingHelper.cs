@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
                             expectedHeaderKind = ReleaseTrackingHeaderKind.TableHeaderTitle;
 
                             // Parse the release version.
-                            string versionString = lineText.Substring(ReleasePrefix.Length).Trim();
+                            string versionString = lineText[ReleasePrefix.Length..].Trim();
                             if (!Version.TryParse(versionString, out var version))
                             {
                                 OnInvalidEntry(line, InvalidEntryKind.Header);
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
                     continue;
                 }
 
-                //  New or Removed rule entry: 
+                //  New or Removed rule entry:
                 //      "Rule ID | Category | Severity | Notes"
                 //      "   0    |     1    |    2     |        3           "
                 //
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
                 //
                 // NOTE: Last field 'Helplink' is optional for both cases.
 
-                if (parts.Length < 3 || parts.Length > 6)
+                if (parts.Length is < 3 or > 6)
                 {
                     return true;
                 }
@@ -321,12 +321,11 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
         Other
     }
 
-
 #pragma warning disable CA1815 // Override equals and operator equals on value types
     internal sealed class ReleaseTrackingData
 #pragma warning restore CA1815 // Override equals and operator equals on value types
     {
-        public static readonly ReleaseTrackingData Default = new ReleaseTrackingData();
+        public static readonly ReleaseTrackingData Default = new();
         public ImmutableSortedDictionary<string, ReleaseTrackingDataForRule> ReleaseTrackingDataByRuleIdMap { get; }
         public ImmutableHashSet<Version> Versions { get; }
 
@@ -415,9 +414,9 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
             public static readonly IComparer<Version> Instance = new ReverseComparer();
             private ReverseComparer() { }
 
-            public int Compare(Version x, Version y)
+            public int Compare([AllowNull] Version x, [AllowNull] Version y)
             {
-                return x.CompareTo(y) * -1;
+                return (x?.CompareTo(y)).GetValueOrDefault() * -1;
             }
         }
     }
@@ -472,7 +471,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
             string path, bool isShipped, ReleaseTrackingRuleEntryKind kind)
             : base(ruleId, category, enabledByDefault, defaultSeverity, span, sourceText, path, isShipped, kind)
         {
-            Debug.Assert(kind == ReleaseTrackingRuleEntryKind.New || kind == ReleaseTrackingRuleEntryKind.Removed);
+            Debug.Assert(kind is ReleaseTrackingRuleEntryKind.New or ReleaseTrackingRuleEntryKind.Removed);
         }
     }
 

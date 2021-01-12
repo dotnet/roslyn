@@ -1,17 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
-    public abstract class CodeActionCreateAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer where TLanguageKindEnum : struct
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public sealed class CodeActionCreateAnalyzer : DiagnosticAnalyzer
     {
         internal const string CodeActionMetadataName = "Microsoft.CodeAnalysis.CodeActions.CodeAction";
         internal const string CreateMethodName = "Create";
@@ -19,7 +18,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotUseGenericCodeActionCreateToCreateCodeActionTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotUseGenericCodeActionCreateToCreateCodeActionMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
-        internal static readonly DiagnosticDescriptor DoNotUseCodeActionCreateRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor DoNotUseCodeActionCreateRule = new(
             RoslynDiagnosticIds.DoNotUseCodeActionCreateRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -48,58 +47,21 @@ namespace Roslyn.Diagnostics.Analyzers
                 return;
             }
 
-            var createSymbols = codeActionSymbol.GetMembers(CreateMethodName).Where(m => m is IMethodSymbol);
-            if (createSymbols == null)
+            var createSymbols = codeActionSymbol.GetMembers(CreateMethodName).OfType<IMethodSymbol>();
+            ImmutableHashSet<IMethodSymbol> createSymbolsSet = ImmutableHashSet.CreateRange(createSymbols);
+            if (createSymbolsSet.IsEmpty)
             {
                 return;
             }
 
-            ImmutableHashSet<ISymbol> createSymbolsSet = ImmutableHashSet.CreateRange(createSymbols);
-            context.RegisterCodeBlockStartAction<TLanguageKindEnum>(GetCodeBlockStartedAnalyzer(createSymbolsSet).CreateAnalyzerWithinCodeBlock);
+            context.RegisterOperationAction(context => AnalyzeInvocation(context, createSymbolsSet), OperationKind.Invocation);
         }
 
-        protected abstract AbstractCodeBlockStartedAnalyzer GetCodeBlockStartedAnalyzer(ImmutableHashSet<ISymbol> symbols);
-
-        protected abstract class AbstractCodeBlockStartedAnalyzer
+        private static void AnalyzeInvocation(OperationAnalysisContext context, ImmutableHashSet<IMethodSymbol> symbols)
         {
-            private readonly ImmutableHashSet<ISymbol> _symbols;
-
-            public AbstractCodeBlockStartedAnalyzer(ImmutableHashSet<ISymbol> symbols)
+            if (symbols.Contains(((IInvocationOperation)context.Operation).TargetMethod))
             {
-                _symbols = symbols;
-            }
-
-            protected abstract void GetSyntaxAnalyzer(CodeBlockStartAnalysisContext<TLanguageKindEnum> context, ImmutableHashSet<ISymbol> symbols);
-
-            public void CreateAnalyzerWithinCodeBlock(CodeBlockStartAnalysisContext<TLanguageKindEnum> context)
-            {
-                GetSyntaxAnalyzer(context, _symbols);
-            }
-        }
-
-        protected abstract class AbstractSyntaxAnalyzer
-        {
-            private readonly ImmutableHashSet<ISymbol> _symbols;
-
-            public AbstractSyntaxAnalyzer(ImmutableHashSet<ISymbol> symbols)
-            {
-                _symbols = symbols;
-            }
-
-            private bool IsCodeActionCreate(SyntaxNode expression, SemanticModel semanticModel, CancellationToken cancellationToken)
-            {
-                SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
-                return symbolInfo.Symbol != null && _symbols.Contains(symbolInfo.Symbol);
-            }
-
-            protected void AnalyzeInvocationExpression(SyntaxNode name, SemanticModel semanticModel, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
-            {
-                if (!IsCodeActionCreate(name, semanticModel, cancellationToken))
-                {
-                    return;
-                }
-
-                addDiagnostic(Diagnostic.Create(DoNotUseCodeActionCreateRule, name.Parent.GetLocation()));
+                context.ReportDiagnostic(context.Operation.CreateDiagnostic(DoNotUseCodeActionCreateRule));
             }
         }
     }

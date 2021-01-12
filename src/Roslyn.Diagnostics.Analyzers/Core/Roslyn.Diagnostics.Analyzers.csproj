@@ -6,7 +6,7 @@
       PackageId is used by Restore. If we set it to Roslyn.Diagnostics.Analyzers,
       Restore would conclude that there is a cyclic dependency between us and the Roslyn.Diagnostics.Analyzers package.
     -->
-    <PackageId>*$(MSBuildProjectFullPath)*</PackageId>
+    <PackageId>*$(MSBuildProjectFile)*</PackageId>
     <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
   <ItemGroup>
@@ -16,4 +16,5 @@
   </ItemGroup>
   <Import Project="..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
   <Import Project="..\..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />
+  <Import Project="..\..\Utilities\Refactoring\Refactoring.Utilities.projitems" Label="Shared" />
 </Project>

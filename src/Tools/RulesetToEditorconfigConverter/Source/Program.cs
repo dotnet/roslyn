@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.RulesetToEditorconfig
     {
         public static int Main(string[] args)
         {
-            if (args.Length < 1 || args.Length > 2)
+            if (args.Length is < 1 or > 2)
             {
                 ShowUsage();
                 return 1;

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
@@ -15,9 +16,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             foreach (ControlFlowBranch predecessorBranch in basicBlock.Predecessors)
             {
                 var branchWithInfo = new BranchWithInfo(predecessorBranch);
-                if (predecessorBranch.FinallyRegions.Length > 0)
+                if (!predecessorBranch.FinallyRegions.IsEmpty)
                 {
-                    var lastFinally = predecessorBranch.FinallyRegions[predecessorBranch.FinallyRegions.Length - 1];
+                    var lastFinally = predecessorBranch.FinallyRegions[^1];
                     yield return (predecessorBlock: cfg.Blocks[lastFinally.LastBlockOrdinal], branchWithInfo);
                 }
                 else
@@ -136,6 +137,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return false;
         }
 
+        /// <summary>
+        /// Returns true if the given basic block is the first block of a compiler generated finally region.
+        /// </summary>
+        public static bool IsFirstBlockOfCompilerGeneratedFinally(this BasicBlock basicBlock, ControlFlowGraph cfg)
+        {
+            if (!basicBlock.IsFirstBlockOfRegionKind(ControlFlowRegionKind.Finally, out var finallyRegion))
+            {
+                return false;
+            }
+
+            foreach (var operation in finallyRegion.DescendantOperations(cfg))
+            {
+                if (!operation.IsImplicit)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         internal static ControlFlowRegion? GetInnermostRegionStartedByBlock(this BasicBlock basicBlock, ControlFlowRegionKind regionKind)
         {
             if (basicBlock.EnclosingRegion?.FirstBlockOrdinal != basicBlock.Ordinal)
@@ -167,22 +189,65 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             => Math.Max(basicBlock.FallThroughSuccessor?.Destination?.Ordinal ?? -1,
                         basicBlock.ConditionalSuccessor?.Destination?.Ordinal ?? -1);
 
-        internal static IOperation? GetPreviousOperationInBlock(this BasicBlock basicBlock, IOperation operation)
+        internal static bool DominatesPredecessors(this BasicBlock? basicBlock, ControlFlowGraph cfg)
         {
-            Debug.Assert(operation != null);
-
-            IOperation? previousOperation = null;
-            foreach (var currentOperation in basicBlock.Operations)
+            if (basicBlock == null ||
+                basicBlock.Predecessors.IsEmpty)
             {
-                if (operation == currentOperation)
-                {
-                    return previousOperation;
-                }
-
-                previousOperation = currentOperation;
+                return false;
             }
 
-            return null;
+            using var processedOrdinals = PooledHashSet<int>.GetInstance();
+            using var unprocessedOrdinals = ArrayBuilder<int>.GetInstance();
+            foreach (var predecessor in basicBlock.Predecessors)
+            {
+                var sourceBlock = predecessor.Source;
+                if (!DominatesBlock(sourceBlock, basicBlock, processedOrdinals, unprocessedOrdinals))
+                {
+                    return false;
+                }
+
+                processedOrdinals.Add(sourceBlock.Ordinal);
+            }
+
+            while (unprocessedOrdinals.Count > 0)
+            {
+                var ordinal = unprocessedOrdinals[0];
+                Debug.Assert(ordinal < basicBlock.Ordinal);
+                unprocessedOrdinals.RemoveAt(0);
+
+                if (processedOrdinals.Add(ordinal))
+                {
+                    var sourceBlock = cfg.Blocks[ordinal];
+                    if (!DominatesBlock(sourceBlock, basicBlock, processedOrdinals, unprocessedOrdinals))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+
+            static bool DominatesBlock(BasicBlock sourceBlock, BasicBlock basicBlock, PooledHashSet<int> processedOrdinals, ArrayBuilder<int> unprocessedOrdinals)
+                => DominatesBranch(sourceBlock.ConditionalSuccessor, basicBlock, processedOrdinals, unprocessedOrdinals) &&
+                   DominatesBranch(sourceBlock.FallThroughSuccessor, basicBlock, processedOrdinals, unprocessedOrdinals);
+
+            static bool DominatesBranch(ControlFlowBranch? branch, BasicBlock basicBlock, PooledHashSet<int> processedOrdinals, ArrayBuilder<int> unprocessedOrdinals)
+            {
+                var destinationBlock = branch?.Destination;
+                if (destinationBlock == null ||
+                    destinationBlock == basicBlock)
+                {
+                    return true;
+                }
+
+                if (!processedOrdinals.Contains(destinationBlock.Ordinal))
+                {
+                    unprocessedOrdinals.Add(destinationBlock.Ordinal);
+                }
+
+                return destinationBlock.Ordinal <= basicBlock.Ordinal;
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 
 #pragma warning disable CA1000 // Do not declare static members on generic types
 
@@ -14,6 +15,7 @@ namespace Analyzer.Utilities.PooledObjects
     /// </summary>
 #pragma warning disable CA1710 // Identifiers should have correct suffix
     internal sealed class PooledConcurrentSet<T> : ICollection<T>, IDisposable
+        where T : notnull
 #pragma warning restore CA1710 // Identifiers should have correct suffix
     {
         private readonly PooledConcurrentDictionary<T, byte> _dictionary;
@@ -23,8 +25,8 @@ namespace Analyzer.Utilities.PooledObjects
             _dictionary = dictionary;
         }
 
-        public void Dispose() => Free();
-        public void Free() => _dictionary.Free();
+        public void Dispose() => Free(CancellationToken.None);
+        public void Free(CancellationToken cancellationToken) => _dictionary.Free(cancellationToken);
 
         public static PooledConcurrentSet<T> GetInstance(IEqualityComparer<T>? comparer = null)
         {
@@ -80,9 +82,9 @@ namespace Analyzer.Utilities.PooledObjects
         /// <summary>
         /// Attempts to remove a value from the set.
         /// </summary>
-        /// <param name="value">The value to remove.</param>
+        /// <param name="item">The value to remove.</param>
         /// <returns>true if the value was removed successfully; otherwise false.</returns>
-        public bool Remove(T value) => _dictionary.TryRemove(value, out _);
+        public bool Remove(T item) => _dictionary.TryRemove(item, out _);
 
         /// <summary>
         /// Clears all the elements from the set.
@@ -108,7 +110,7 @@ namespace Analyzer.Utilities.PooledObjects
             return new KeyEnumerator(_dictionary);
         }
 
-        private IEnumerator<T> GetEnumeratorImpl()
+        private IEnumerator<T> GetEnumeratorCore()
         {
             // PERF: Do not use dictionary.Keys here because that creates a snapshot
             // of the collection resulting in a List<T> allocation. Instead, use the
@@ -121,12 +123,12 @@ namespace Analyzer.Utilities.PooledObjects
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
-            return GetEnumeratorImpl();
+            return GetEnumeratorCore();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumeratorImpl();
+            return GetEnumeratorCore();
         }
 
         void ICollection<T>.Add(T item)

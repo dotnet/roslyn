@@ -5,14 +5,14 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers",
-        "version": "3.0.0",
+        "version": "3.3.3",
         "language": "en-US"
       },
       "rules": {
         "HAA0101": {
           "id": "HAA0101",
           "shortDescription": "Array allocation for params parameter",
-          "fullDescription": "This call site is calling into a function with a 'params' parameter. This results in an array allocation",
+          "fullDescription": "This call site is calling into a function with a 'params' parameter. This results in an array allocation.",
           "defaultLevel": "warning",
           "properties": {
             "category": "Performance",
@@ -55,7 +55,7 @@
         "HAA0202": {
           "id": "HAA0202",
           "shortDescription": "Value type to reference type conversion allocation for string concatenation",
-          "fullDescription": "Value type ({0}) is being boxed to a reference type for a string concatenation.",
+          "fullDescription": "Value type ({0}) is being boxed to a reference type for a string concatenation",
           "defaultLevel": "warning",
           "helpUri": "http://msdn.microsoft.com/en-us/library/yz2be5wk.aspx",
           "properties": {
@@ -126,7 +126,7 @@
         "HAA0601": {
           "id": "HAA0601",
           "shortDescription": "Value type to reference type conversion causing boxing allocation",
-          "fullDescription": "Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable",
+          "fullDescription": "Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable.",
           "defaultLevel": "warning",
           "properties": {
             "category": "Performance",
@@ -183,8 +183,17 @@
     },
     {
       "tool": {
+        "name": "Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes",
+        "version": "3.3.3",
+        "language": "en-US"
+      },
+      "rules": {
+      }
+    },
+    {
+      "tool": {
         "name": "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers",
-        "version": "3.0.0",
+        "version": "3.3.3",
         "language": "en-US"
       },
       "rules": {

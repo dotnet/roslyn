@@ -8,13 +8,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ClassIsNotDiagnosticAnalyzerMessage">
-        <source>Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s).</source>
+        <source>Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s)</source>
         <target state="translated">DiagnosticAnalyzer에서 '{0}' 형식을 상속하거나 DiagnosticAnalyzerAttribute를 제거하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ClassIsNotDiagnosticAnalyzerTitle">
-        <source>Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer.</source>
-        <target state="translated">DiagnosticAnalyzerAttribute로 표시된 형식은 DiagnosticAnalyzer에서 상속해야 함</target>
+        <source>Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer</source>
+        <target state="translated">DiagnosticAnalyzerAttribute로 표시된 형식은 DiagnosticAnalyzer에서 상속되어야 함</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyCodeFix">
@@ -23,8 +23,13 @@
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyDescription">
-        <source>Symbols should be compared for equality, not identity.</source>
-        <target state="translated">기호는 ID가 아니라 같은지 비교해야 합니다.</target>
+        <source>Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.</source>
+        <target state="translated">기호는 ID가 아니라 같은지 비교해야 합니다. 'IEqualityComparer'를 허용하는 오버로드를 사용하고 'SymbolEqualityComparer'를 전달하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompareSymbolsCorrectlyDescriptionGetHashCode">
+        <source>Symbols should be compared for equality, not identity. An explicit call to 'GetHashCode' will likely result in the wrong behavior.</source>
+        <target state="translated">기호는 ID가 아니라 같은지 비교해야 합니다. 'GetHashCode'를 명시적으로 호출하면 잘못된 동작이 수행될 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyMessage">
@@ -35,11 +40,6 @@
       <trans-unit id="CompareSymbolsCorrectlyTitle">
         <source>Compare symbols correctly</source>
         <target state="translated">기호를 올바르게 비교</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ConfigureGeneratedCodeAnalysisDescription">
-        <source>Configure generated code analysis</source>
-        <target state="translated">생성된 코드 분석 구성</target>
         <note />
       </trans-unit>
       <trans-unit id="ConfigureGeneratedCodeAnalysisFix">
@@ -63,13 +63,43 @@
         <note />
       </trans-unit>
       <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseMessage">
-        <source>Rule '{0}' is not part of any analyzer release.</source>
+        <source>Rule '{0}' is not part of any analyzer release</source>
         <target state="translated">'{0}' 규칙은 분석기 릴리스에 포함되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclareDiagnosticIdInAnalyzerReleaseTitle">
-        <source>Add analyzer diagnostic IDs to analyzer release.</source>
-        <target state="translated">분석기 진단 ID를 분석기 릴리스에 추가합니다.</target>
+        <source>Add analyzer diagnostic IDs to analyzer release</source>
+        <target state="translated">분석기 릴리스에 분석기 진단 ID 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticDescriptionCorrectlyMessage">
+        <source>The diagnostic description should be one or multiple sentences ending with a punctuation sign and should not have any leading or trailing whitespaces</source>
+        <target state="translated">진단 설명은 문장 부호로 끝나는 하나 이상의 문장이어야 하며 선행 또는 후행 공백이 없어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticDescriptionCorrectlyTitle">
+        <source>Define diagnostic description correctly</source>
+        <target state="translated">진단 설명 올바르게 정의</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticMessageCorrectlyMessage">
+        <source>The diagnostic message should not contain any line return character nor any leading or trailing whitespaces and should either be a single sentence without a trailing period or a multi-sentences with a trailing period</source>
+        <target state="translated">진단 메시지에 줄 바꿈 문자 또는 선행이나 후행 공백을 포함할 수 없으며, 마침표가 없는 단일 문장이거나 마침표가 있는 여러 문장이어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticMessageCorrectlyTitle">
+        <source>Define diagnostic message correctly</source>
+        <target state="translated">진단 메시지 올바르게 정의</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyMessage">
+        <source>The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces</source>
+        <target state="translated">진단 제목에는 마침표, 줄 바꿈 문자 또는 선행이나 후행 공백을 포함할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DefineDiagnosticTitleCorrectlyTitle">
+        <source>Define diagnostic title correctly</source>
+        <target state="translated">진단 제목을 올바르게 정의</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
@@ -93,13 +123,13 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdMessage">
-        <source>'{0}' is a reserved diagnostic ID.</source>
+        <source>'{0}' is a reserved diagnostic ID</source>
         <target state="translated">'{0}'은(는) 예약된 진단 ID입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdTitle">
-        <source>Do not use reserved diagnostic IDs.</source>
-        <target state="translated">예약된 진단 ID를 사용하지 마세요.</target>
+        <source>Do not use reserved diagnostic IDs</source>
+        <target state="translated">예약된 진단 ID를 사용하면 안 됨</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleDescription">
@@ -115,11 +145,6 @@
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleTitle">
         <source>Enable analyzer release tracking</source>
         <target state="translated">분석기 릴리스 추적 사용</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="EnableConcurrentExecutionDescription">
-        <source>Enable concurrent execution</source>
-        <target state="translated">동시 실행 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableConcurrentExecutionFix">
@@ -143,17 +168,17 @@
         <note />
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleMessage">
-        <source>Analyzer release file '{0}' has an invalid entry '{1}'.</source>
+        <source>Analyzer release file '{0}' has an invalid entry '{1}'</source>
         <target state="translated">분석기 릴리스 파일 '{0}'에 잘못된 항목 '{1}'이(가) 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleTitle">
-        <source>Invalid entry in analyzer release file.</source>
+        <source>Invalid entry in analyzer release file</source>
         <target state="translated">분석기 릴리스 파일에 잘못된 항목이 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidHeaderInAnalyzerReleasesFileRuleMessage">
-        <source>Analyzer release file '{0}' has a missing or invalid release header '{1}'.</source>
+        <source>Analyzer release file '{0}' has a missing or invalid release header '{1}'</source>
         <target state="translated">분석기 릴리스 파일 '{0}'에 누락되거나 잘못된 릴리스 헤더 '{1}'이(가) 있습니다.</target>
         <note />
       </trans-unit>
@@ -163,18 +188,18 @@
         <note />
       </trans-unit>
       <trans-unit id="InvalidUndetectedEntryInAnalyzerReleasesFileRuleMessage">
-        <source>Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'.</source>
-        <target state="translated">분석기 릴리스 파일 '{0}'에서 '{1}'에 수동으로 채워야 하는 하나 이상의 '검색되지 않은' 필드가 있는 항목이 있습니다.</target>
+        <source>Analyzer release file '{0}' has an entry with one or more 'Undetected' fields that need to be manually filled in '{1}'</source>
+        <target state="translated">분석기 릴리스 파일 '{0}'에 '{1}'에 수동으로 채워야 하는 하나 이상의 '검색되지 않은' 필드가 있는 항목이 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingAttributeMessage">
-        <source>Missing '{0}' attribute.</source>
+        <source>Missing '{0}' attribute</source>
         <target state="translated">'{0}' 특성이 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingDiagnosticAnalyzerAttributeTitle">
-        <source>Missing diagnostic analyzer attribute.</source>
-        <target state="translated">진단 분석기 특성이 없습니다.</target>
+        <source>Missing diagnostic analyzer attribute</source>
+        <target state="translated">진단 분석기 특성이 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingDiagnosticAnalyzerAttributeDescription">
@@ -188,8 +213,8 @@
         <note />
       </trans-unit>
       <trans-unit id="AddLanguageSupportToAnalyzerTitle">
-        <source>Recommend adding language support to diagnostic analyzer.</source>
-        <target state="translated">진단 분석기에 언어 지원을 추가하는 것이 좋습니다.</target>
+        <source>Recommend adding language support to diagnostic analyzer</source>
+        <target state="translated">진단 분석기에 언어 지원을 추가하는 것이 좋음</target>
         <note />
       </trans-unit>
       <trans-unit id="AddLanguageSupportToAnalyzerDescription">
@@ -208,23 +233,23 @@
         <note />
       </trans-unit>
       <trans-unit id="MissingSymbolKindArgumentToRegisterActionMessage">
-        <source>Specify at least one SymbolKind of interest when registering a symbol analyzer action.</source>
+        <source>Specify at least one SymbolKind of interest when registering a symbol analyzer action</source>
         <target state="translated">기호 분석기 작업을 등록할 때 관심 있는 SymbolKind를 하나 이상 지정하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingSyntaxKindArgumentToRegisterActionMessage">
-        <source>Specify at least one SyntaxKind of interest when registering a syntax node analyzer action.</source>
+        <source>Specify at least one SyntaxKind of interest when registering a syntax node analyzer action</source>
         <target state="translated">구문 노드 분석기 작업을 등록할 때 관심 있는 SyntaxKind를 하나 이상 지정하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingOperationKindArgumentToRegisterActionMessage">
-        <source>Specify at least one OperationKind of interest when registering an operation analyzer action.</source>
+        <source>Specify at least one OperationKind of interest when registering an operation analyzer action</source>
         <target state="translated">작업 분석기 작업을 등록할 때 관심 있는 OperationKind를 하나 이상 지정하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingKindArgumentToRegisterActionTitle">
-        <source>Missing kind argument when registering an analyzer action.</source>
-        <target state="translated">분석기 작업을 등록할 때 지정할 종류 인수가 없습니다.</target>
+        <source>Missing kind argument when registering an analyzer action</source>
+        <target state="translated">분석기 작업을 등록할 때 종류 인수가 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="MissingKindArgumentToRegisterActionDescription">
@@ -233,8 +258,8 @@
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindDescription">
-        <source>Prefer IsKind</source>
-        <target state="new">Prefer IsKind</target>
+        <source>Prefer IsKind.</source>
+        <target state="new">Prefer IsKind.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindFix">
@@ -258,13 +283,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorMessage">
-        <source>Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors.</source>
-        <target state="translated">진단 설명자 생성자에 null이 아닌 'customTags'를 제공하여 진단 설명자의 메타데이터 필터링을 사용하도록 설정하세요.</target>
+        <source>Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors</source>
+        <target state="translated">진단 설명자 생성자에 null이 아닌 'customTags'를 제공하여 진단 설명자의 메타데이터 필터링을 사용하도록 설정하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorTitle">
-        <source>Provide non-null 'customTags' value to diagnostic descriptor constructor.</source>
-        <target state="translated">null이 아닌 'customTags' 값을 진단 설명자 생성자에 제공하세요.</target>
+        <source>Provide non-null 'customTags' value to diagnostic descriptor constructor</source>
+        <target state="translated">null이 아닌 'customTags' 값을 진단 설명자 생성자에 제공</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleDescription">
@@ -273,13 +298,13 @@
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleMessage">
-        <source>Rule '{0}' has duplicate entry between release '{1}' and release '{2}'.</source>
+        <source>Rule '{0}' has duplicate entry between release '{1}' and release '{2}'</source>
         <target state="translated">'{0}' 규칙에서 '{1}' 릴리스 및 '{2}' 릴리스 간에 중복 항목이 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleTitle">
-        <source>Remove duplicate entries for diagnostic ID between analyzer releases.</source>
-        <target state="translated">분석기 릴리스 간에 진단 ID의 중복 항목을 제거합니다.</target>
+        <source>Remove duplicate entries for diagnostic ID between analyzer releases</source>
+        <target state="translated">분석기 릴리스 간에 진단 ID의 중복 항목 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleDescription">
@@ -288,13 +313,13 @@
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleMessage">
-        <source>Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'.</source>
-        <target state="translated">'{0}' 규칙에 분석기 릴리스 파일 '{2}'의 '{1}' 릴리스 항목이 둘 이상 있습니다.</target>
+        <source>Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'</source>
+        <target state="translated">'{0}' 규칙에 분석기 릴리스 파일 '{2}'의 '{1}' 릴리스에 대한 항목이 둘 이상 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDuplicateEntriesForAnalyzerReleaseRuleTitle">
-        <source>Remove duplicate entries for diagnostic ID in the same analyzer release.</source>
-        <target state="translated">동일한 분석기 릴리스에서 진단 ID의 중복 항목을 제거합니다.</target>
+        <source>Remove duplicate entries for diagnostic ID in the same analyzer release</source>
+        <target state="translated">동일한 분석기 릴리스에서 진단 ID의 중복 항목 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdDescription">
@@ -308,7 +333,7 @@
         <note />
       </trans-unit>
       <trans-unit id="RemoveShippedDeletedDiagnosticIdTitle">
-        <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.</source>
+        <source>Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file</source>
         <target state="translated">더 이상 보고되지 않는 제공된 진단 ID는 제공되지 않은 파일의 '제거된 규칙' 테이블에 항목이 있어야 합니다.</target>
         <note />
       </trans-unit>
@@ -318,12 +343,12 @@
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdMessage">
-        <source>Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer.</source>
+        <source>Rule '{0}' is part of the next unshipped analyzer release, but is not a supported diagnostic for any analyzer</source>
         <target state="translated">'{0}' 규칙은 제공되지 않은 다음 분석기 릴리스에 포함되지만 모든 분석기를 지원하는 진단이 아닙니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnshippedDeletedDiagnosticIdTitle">
-        <source>Do not add removed analyzer diagnostic IDs to unshipped analyzer release.</source>
+        <source>Do not add removed analyzer diagnostic IDs to unshipped analyzer release</source>
         <target state="translated">제거된 분석기 진단 ID를 제공되지 않은 분석기 릴리스에 추가하면 안 됩니다.</target>
         <note />
       </trans-unit>
@@ -333,33 +358,33 @@
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdMessage">
-        <source>Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported.</source>
+        <source>Rule '{0}' is marked as removed in the latest analyzer release, but is still being reported</source>
         <target state="translated">'{0}' 규칙이 최신 분석기 릴리스에서 제거된 것으로 표시되었지만 계속 보고됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdTitle">
-        <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.</source>
+        <source>Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers</source>
         <target state="translated">분석기 릴리스 파일에서 제거된 것으로 표시된 진단 ID는 분석기에서 보고되면 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">
-        <source>SymbolKind '{0}' is not supported for symbol analyzer actions.</source>
-        <target state="translated">SymbolKind '{0}'이(가) 기호 분석기 작업에 대해 지원되지 않습니다.</target>
+        <source>SymbolKind '{0}' is not supported for symbol analyzer actions</source>
+        <target state="translated">SymbolKind '{0}'이(가) 기호 분석기 작업에서 지원되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionTitle">
-        <source>Unsupported SymbolKind argument when registering a symbol analyzer action.</source>
-        <target state="translated">기호 분석기 작업을 등록할 때 지원되지 않는 SymbolKind 인수입니다.</target>
+        <source>Unsupported SymbolKind argument when registering a symbol analyzer action</source>
+        <target state="translated">기호 분석기 작업을 등록할 때 지원되지 않는 SymbolKind 인수</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidReportDiagnosticMessage">
-        <source>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor '{0}'.</source>
+        <source>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor '{0}'</source>
         <target state="translated">지원되지 않는 DiagnosticDescriptor '{0}'을(를) 사용하여 호출된 ReportDiagnostic입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidReportDiagnosticTitle">
-        <source>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor.</source>
-        <target state="translated">지원되지 않는 DiagnosticDescriptor를 사용하여 호출된 ReportDiagnostic입니다.</target>
+        <source>ReportDiagnostic invoked with an unsupported DiagnosticDescriptor</source>
+        <target state="translated">지원되지 않는 DiagnosticDescriptor를 사용하여 호출된 ReportDiagnostic</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidReportDiagnosticDescription">
@@ -368,13 +393,13 @@
         <note />
       </trans-unit>
       <trans-unit id="InvalidSyntaxKindTypeArgumentMessage">
-        <source>Type argument '{0}' for type parameter '{1}' of method '{2}' is not a SyntaxKind enum.</source>
-        <target state="translated">'{2}' 메서드의 '{1}' 형식 매개 변수에 대한 '{0}' 형식 인수는 SyntaxKind 열거형이 아닙니다.</target>
+        <source>Type argument '{0}' for type parameter '{1}' of method '{2}' is not a SyntaxKind enum</source>
+        <target state="translated">'{2}' 메서드의 '{1}' 형식 매개 변수에 대한 형식 인수 '{0}'은(는) SyntaxKind 열거형이 아닙니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidSyntaxKindTypeArgumentTitle">
-        <source>Invalid type argument for DiagnosticAnalyzer's Register method.</source>
-        <target state="translated">DiagnosticAnalyzer의 Register 메서드에 대한 형식 인수가 잘못되었습니다.</target>
+        <source>Invalid type argument for DiagnosticAnalyzer's Register method</source>
+        <target state="translated">DiagnosticAnalyzer의 Register 메서드에 대한 형식 인수가 잘못됨</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidSyntaxKindTypeArgumentDescription">
@@ -383,8 +408,8 @@
         <note />
       </trans-unit>
       <trans-unit id="StartActionWithOnlyEndActionTitle">
-        <source>Start action has no registered non-end actions.</source>
-        <target state="translated">시작 작업에 등록된 비종료 작업이 없습니다.</target>
+        <source>Start action has no registered non-end actions</source>
+        <target state="translated">시작 작업에 등록된 비종료 작업이 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="StartActionWithNoRegisteredActionsMessage">
@@ -393,8 +418,8 @@
         <note />
       </trans-unit>
       <trans-unit id="StartActionWithNoRegisteredActionsTitle">
-        <source>Start action has no registered actions.</source>
-        <target state="translated">시작 작업에 등록된 작업이 없습니다.</target>
+        <source>Start action has no registered actions</source>
+        <target state="translated">시작 작업에 등록된 작업이 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="StartActionWithOnlyEndActionMessage">
@@ -407,14 +432,12 @@
 1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.
 2. If required, define and initialize state in the start action.
 3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.
-4. If required, register an end action to report diagnostics based on the final state.
-</source>
-        <target state="translated">분석기 시작 작업을 통해 코드 블록, 컴파일 등의 특정 코드 단위에서 상태 저장 분석을 수행할 수 있습니다. 분석기를 메모리 손실 없이 효율적으로 실행하려면 신중한 설계가 필요합니다. 이러한 분석기를 쓰려면 다음 지침을 사용하세요.
-1. 등록된 시작 작업에 대해 각 코드 단위를 분석하기 위한 private 중첩 형식이 있는 새 범위를 정의합니다.
+4. If required, register an end action to report diagnostics based on the final state.</source>
+        <target state="translated">분석기 시작 작업으로 코드 블록, 컴파일 등의 특정 코드 단위에서 상태 저장 분석을 수행할 수 있습니다. 메모리 누수 없이 분석기를 효율적으로 실행하려면 신중한 설계가 필요합니다. 이러한 분석기를 쓰려면 다음 지침을 따르세요.
+1. 등록된 시작 작업에 대해 각 코드 단위를 분석하기 위한 프라이빗 중첩 형식이 있는 새 범위를 정의합니다.
 2. 필요한 경우 시작 작업에서 상태를 정의하고 초기화합니다.
-3. 시작 작업에서 이 상태를 참조하는 비종료 작업을 하나 이상 등록합니다. 이러한 작업이 필요하지 않은 경우 시작 작업을 비종료 작업으로 바꾸세요. 예를 들어 등록된 작업이 없는 CodeBlockStartAction 또는 등록된 CodeBlockEndAction만 CodeBlockAction으로 바꿀 수 있습니다.
-4. 필요한 경우 종료 작업을 등록하여 최종 상태를 기준으로 진단을 보고합니다.
-</target>
+3. 시작 작업에서 이 상태를 참조하는 비종료 작업을 하나 이상 등록합니다. 이러한 작업이 필요하지 않은 경우 시작 작업을 비종료 작업으로 바꾸는 것이 좋습니다. 예를 들어 등록된 작업이 없는 CodeBlockStartAction 또는 등록된 CodeBlockEndAction만 CodeBlockAction으로 바꿀 수 있습니다.
+4. 필요한 경우 종료 작업을 등록하여 최종 상태를 기준으로 진단을 보고합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseDescription">
@@ -428,8 +451,8 @@
         <note />
       </trans-unit>
       <trans-unit id="UpdateDiagnosticIdInAnalyzerReleaseTitle">
-        <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.</source>
-        <target state="translated">분석기 진단 ID의 최신 항목이 분석기 릴리스에 추가되었는지 확인합니다.</target>
+        <source>Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release</source>
+        <target state="translated">분석기 진단 ID의 최신 항목이 분석기 릴리스에 추가되었는지 확인</target>
         <note />
       </trans-unit>
       <trans-unit id="UpdateEntryForDiagnosticIdInAnalyzerReleaseCodeFixTitle">
@@ -438,13 +461,13 @@
         <note />
       </trans-unit>
       <trans-unit id="UseLocalizableStringsInDescriptorMessage">
-        <source>Consider providing localizable arguments of type '{0}' to diagnostic descriptor constructor to ensure the descriptor is localizable.</source>
-        <target state="translated">'{0}' 형식의 현지화할 수 있는 인수를 진단 설명자 생성자에 제공하여 설명자를 현지화할 수 있는지 확인하세요.</target>
+        <source>Consider providing localizable arguments of type '{0}' to diagnostic descriptor constructor to ensure the descriptor is localizable</source>
+        <target state="translated">'{0}' 형식의 지역화 가능 인수를 진단 설명자 생성자에 제공하여 설명자가 지역화 가능하도록 하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseLocalizableStringsInDescriptorTitle">
-        <source>Provide localizable arguments to diagnostic descriptor constructor.</source>
-        <target state="translated">현지화할 수 있는 인수를 진단 설명자 생성자에 제공하세요.</target>
+        <source>Provide localizable arguments to diagnostic descriptor constructor</source>
+        <target state="translated">지역화 가능 인수를 진단 설명자 생성자에 제공</target>
         <note />
       </trans-unit>
       <trans-unit id="UseLocalizableStringsInDescriptorDescription">
@@ -453,13 +476,13 @@
         <note />
       </trans-unit>
       <trans-unit id="DoNotStorePerCompilationDataOntoFieldsMessage">
-        <source>Avoid storing per-compilation data of type '{0}' into the fields of a diagnostic analyzer.</source>
+        <source>Avoid storing per-compilation data of type '{0}' into the fields of a diagnostic analyzer</source>
         <target state="translated">'{0}' 형식의 컴파일당 데이터를 진단 분석기의 필드에 저장하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotStorePerCompilationDataOntoFieldsTitle">
-        <source>Avoid storing per-compilation data into the fields of a diagnostic analyzer.</source>
-        <target state="translated">컴파일당 데이터를 진단 분석기의 필드에 저장하지 마세요.</target>
+        <source>Avoid storing per-compilation data into the fields of a diagnostic analyzer</source>
+        <target state="translated">컴파일당 데이터를 진단 분석기의 필드에 저장하면 안 됨</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotStorePerCompilationDataOntoFieldsDescription">
@@ -473,13 +496,13 @@
         <note />
       </trans-unit>
       <trans-unit id="InternalImplementationOnlyMessage">
-        <source>Type {0} cannot implement interface {1} because {1} is not available for public implementation.</source>
-        <target state="translated">{1}을(를) 공용 구현할 수 없으므로 {0} 형식은 {1} 인터페이스를 구현할 수 없습니다.</target>
+        <source>Type {0} cannot implement interface {1} because {1} is not available for public implementation</source>
+        <target state="translated">{1}을(를) 공개 구현할 수 없으므로 {0} 형식은 {1} 인터페이스를 구현할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="InternalImplementationOnlyTitle">
-        <source>Only internal implementations of this interface are allowed.</source>
-        <target state="translated">이 인터페이스의 내부 구현만 허용됩니다.</target>
+        <source>Only internal implementations of this interface are allowed</source>
+        <target state="translated">이 인터페이스의 내부 구현만 허용됨</target>
         <note />
       </trans-unit>
       <trans-unit id="CodeActionNeedsEquivalenceKeyDescription">
@@ -488,13 +511,13 @@
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyMessage">
-        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer.</source>
-        <target state="translated">이 수정 도구에서 만들어진 각 종류의 코드 작업에 대해 고유하고 null이 아닌 선택적 매개 변수 '{0}'에 대한 명시적 인수를 제공하세요.</target>
+        <source>Provide an explicit argument for optional parameter '{0}', which is non-null and unique for each kind of code action created by this fixer</source>
+        <target state="translated">이 수정 도구에서 생성된 각 종류의 코드 작업에 대해 고유하고 null이 아닌 선택적 매개 변수 '{0}'의 명시적 인수를 제공하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateCodeActionWithEquivalenceKeyTitle">
-        <source>Create code actions should have a unique EquivalenceKey for FixAll occurrences support.</source>
-        <target state="translated">코드 만들기 작업에는 FixAll 발생 지원을 위한 고유 EquivalenceKey가 있어야 합니다.</target>
+        <source>Create code actions should have a unique EquivalenceKey for FixAll occurrences support</source>
+        <target state="translated">코드 생성 작업에는 FixAll 발생 지원을 위한 고유 EquivalenceKey가 있어야 함</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideCodeActionEquivalenceKeyMessage">
@@ -503,8 +526,8 @@
         <note />
       </trans-unit>
       <trans-unit id="OverrideCodeActionEquivalenceKeyTitle">
-        <source>Use code actions that have a unique EquivalenceKey for FixAll occurrences support.</source>
-        <target state="translated">FixAll 발생 지원을 위한 고유 EquivalenceKey가 있는 코드 작업을 사용하세요.</target>
+        <source>Use code actions that have a unique EquivalenceKey for FixAll occurrences support</source>
+        <target state="translated">FixAll 발생 지원을 위한 고유 EquivalenceKey가 있는 코드 작업 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationDescription">
@@ -523,8 +546,8 @@
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderTitle">
-        <source>Code fix providers should provide FixAll support.</source>
-        <target state="translated">코드 수정 사항 공급자가 FixAll 지원을 제공해야 합니다.</target>
+        <source>Code fix providers should provide FixAll support</source>
+        <target state="translated">코드 수정 공급자가 FixAll 지원을 제공해야 함</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderMessage">
@@ -533,8 +556,8 @@
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
-        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documenation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
-        <target state="translated">사용자가 단일 코드 수정 사항을 사용하여 기본 진단의 여러 인스턴스를 수정할 수 있도록 하려면 CodeFixProvider가 FixAll 지원을 제공해야 합니다. 자세한 내용은 https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md에 있는 문서를 참조하세요.</target>
+        <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</source>
+        <target state="translated">사용자가 단일 코드 수정 사항을 사용하여 기본 진단의 여러 인스턴스를 수정할 수 있도록 하려면 CodeFixProvider가 FixAll 지원을 제공해야 합니다. 자세한 내용은 https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md의 설명서를 참조하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">
@@ -543,13 +566,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorMessage">
-        <source>Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list.</source>
-        <target state="translated">null이 아닌 'helpLinkUri'를 진단 설명자 생성자에 제공하여 이 진단이 오류 목록에 표시될 때 정보를 표시하세요.</target>
+        <source>Consider providing a non-null 'helpLinkUri' to diagnostic descriptor constructor to show information when this diagnostic appears in the error list</source>
+        <target state="translated">null이 아닌 'helpLinkUri'를 진단 설명자 생성자에 제공하여 이 진단이 오류 목록에 나타날 때 정보를 표시하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorTitle">
-        <source>Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor.</source>
-        <target state="translated">null이 아닌 'helpLinkUri' 값을 진단 설명자 생성자에 제공하세요.</target>
+        <source>Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor</source>
+        <target state="translated">null이 아닌 'helpLinkUri' 값을 진단 설명자 생성자에 제공</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorDescription">
@@ -558,13 +581,13 @@
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatTitle">
-        <source>DiagnosticId for analyzers must be in specified format.</source>
-        <target state="translated">분석기에 대한 진단 ID는 지정된 형식이어야 합니다.</target>
+        <source>DiagnosticId for analyzers must be in specified format</source>
+        <target state="translated">분석기의 진단 ID는 지정된 형식이어야 함</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatMessage">
-        <source>Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.</source>
-        <target state="translated">범주 '{1}'에 속하는 진단 ID '{0}'이(가) 필요한 범위 내에 있지 않고/않거나 '{3}' 파일에 지정된 '{2}' 형식이 아닙니다.</target>
+        <source>Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'</source>
+        <target state="translated">'{1}' 범주에 속하는 진단 ID '{0}'이(가) 필요한 범위 내에 있지 않고/않거나 '{3}' 파일에 지정된 '{2}' 형식이 아닙니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeInSpecifiedFormatDescription">
@@ -573,8 +596,8 @@
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdTitle">
-        <source>DiagnosticId must be unique across analyzers.</source>
-        <target state="translated">진단 ID는 분석기 간에 고유해야 합니다.</target>
+        <source>DiagnosticId must be unique across analyzers</source>
+        <target state="translated">진단 ID는 분석기 간에 고유해야 함</target>
         <note />
       </trans-unit>
       <trans-unit id="UseUniqueDiagnosticIdMessage">
@@ -588,13 +611,13 @@
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeTitle">
-        <source>Category for analyzers must be from the specified values.</source>
-        <target state="translated">분석기에 대한 범주는 지정된 값이어야 합니다.</target>
+        <source>Category for analyzers must be from the specified values</source>
+        <target state="translated">분석기 범주는 지정된 값이어야 함</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeMessage">
-        <source>Category '{0}' is not from the allowed categories specified in the file '{1}'.</source>
-        <target state="translated">범주 '{0}'이(가) '{1}' 파일에 지정된 허용되는 범주가 아닙니다.</target>
+        <source>Category '{0}' is not from the allowed categories specified in the file '{1}'</source>
+        <target state="translated">'{0}' 범주가 '{1}' 파일에 지정된 허용 범주에 속해 있지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="UseCategoriesFromSpecifiedRangeDescription">
@@ -603,13 +626,13 @@
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidTitle">
-        <source>Invalid entry in analyzer category and diagnostic ID range specification file.</source>
-        <target state="translated">분석기 범주 및 진단 ID 범위 지정 파일의 항목이 잘못되었습니다.</target>
+        <source>Invalid entry in analyzer category and diagnostic ID range specification file</source>
+        <target state="translated">분석기 범주 및 진단 ID 범위 사양 파일의 항목이 잘못됨</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidMessage">
-        <source>Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'.</source>
-        <target state="translated">분석기 범주 및 진단 ID 범위 지정 파일 '{1}'의 항목 '{0}'이(가) 잘못되었습니다.</target>
+        <source>Invalid entry '{0}' in analyzer category and diagnostic ID range specification file '{1}'</source>
+        <target state="translated">분석기 범주 및 진단 ID 범위 사양 파일 '{1}'의 '{0}' 항목이 잘못되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerCategoryAndIdRangeFileInvalidDescription">
@@ -618,13 +641,13 @@
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantTitle">
-        <source>DiagnosticId for analyzers must be a non-null constant.</source>
-        <target state="translated">분석기에 대한 진단 ID는 null이 아닌 상수여야 합니다.</target>
+        <source>DiagnosticId for analyzers must be a non-null constant</source>
+        <target state="translated">분석기의 진단 ID는 null이 아닌 상수여야 함</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantMessage">
-        <source>Diagnostic Id for rule '{0}' must be a non-null constant.</source>
-        <target state="translated">규칙 '{0}'에 대한 진단 ID는 null이 아닌 상수여야 합니다.</target>
+        <source>Diagnostic Id for rule '{0}' must be a non-null constant</source>
+        <target state="translated">'{0}' 규칙의 진단 ID는 null이 아닌 상수여야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdMustBeAConstantDescription">

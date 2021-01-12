@@ -15,7 +15,7 @@ namespace OtherDll
     /// <remarks>
     /// Since Roslyn doesn't support cross-binary DFA, and this class is
     /// defined in a different binary, using this class from test source code
-    /// is a way to test handling of non-interprocedural results in dataflow 
+    /// is a way to test handling of non-interprocedural results in dataflow
     /// analysis implementations.
     /// </remarks>
     public class OtherDllClass<T>
@@ -30,7 +30,7 @@ namespace OtherDll
 
         public T? Default
         {
-            get { return default; }
+            get => default;
             set { }
         }
 
@@ -41,7 +41,7 @@ namespace OtherDll
                 Random r = new Random();
                 byte[] bytes = new byte[r.Next(20) + 10];
                 r.NextBytes(bytes);
-                bytes = bytes.Where(b => (byte)' ' <= b && b <= (byte)'~').ToArray();
+                bytes = bytes.Where(b => b is >= ((byte)' ') and <= ((byte)'~')).ToArray();
                 return Encoding.ASCII.GetString(bytes);
             }
 
@@ -73,7 +73,7 @@ namespace OtherDll
             Random r = new Random();
             byte[] bytes = new byte[r.Next(20) + 10];
             r.NextBytes(bytes);
-            bytes = bytes.Where(b => (byte)' ' <= b && b <= (byte)'~').ToArray();
+            bytes = bytes.Where(b => b is >= ((byte)' ') and <= ((byte)'~')).ToArray();
             return Encoding.ASCII.GetString(bytes);
         }
 
@@ -102,7 +102,7 @@ namespace OtherDll
             Random r = new Random();
             byte[] bytes = new byte[r.Next(20) + 10];
             r.NextBytes(bytes);
-            bytes = bytes.Where(b => (byte)' ' <= b && b <= (byte)'~').ToArray();
+            bytes = bytes.Where(b => b is >= ((byte)' ') and <= ((byte)'~')).ToArray();
             output = Encoding.ASCII.GetString(bytes);
         }
 
@@ -131,7 +131,7 @@ namespace OtherDll
             Random r = new Random();
             byte[] bytes = new byte[r.Next(20) + 10];
             r.NextBytes(bytes);
-            bytes = bytes.Where(b => (byte)' ' <= b && b <= (byte)'~').ToArray();
+            bytes = bytes.Where(b => b is >= ((byte)' ') and <= ((byte)'~')).ToArray();
             output = Encoding.ASCII.GetString(bytes);
         }
     }

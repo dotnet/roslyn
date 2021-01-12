@@ -38,8 +38,8 @@
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiMessage">
-        <source>Symbol '{0}' is missing nullability annotations in the declared API.</source>
-        <target state="translated">'{0}' sembolünde, bildirilen API'deki null atanabilirlik ek açıklamaları eksik.</target>
+        <source>Symbol '{0}' is missing nullability annotations in the declared API</source>
+        <target state="translated">'{0}' sembolünde, bildirilen API'deki null atanabilirlik ek açıklamaları eksik</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiTitle">
@@ -63,8 +63,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiMessage">
-        <source>Symbol '{0}' is not part of the declared API.</source>
-        <target state="translated">'{0}' sembolü bildirilen API'nin bir parçası değil.</target>
+        <source>Symbol '{0}' is not part of the declared API</source>
+        <target state="translated">'{0}' sembolü bildirilen API'nin bir parçası değil</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiTitle">
@@ -73,8 +73,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
-        <source>The symbol '{0}' appears more than once in the public API files.</source>
-        <target state="translated">'{0}' sembolü genel API dosyalarında birden çok kez görünüyor.</target>
+        <source>The symbol '{0}' appears more than once in the public API files</source>
+        <target state="translated">'{0}' sembolü, genel API dosyalarında birden çok kez görünüyor</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesTitle">
@@ -93,8 +93,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
-        <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</source>
-        <target state="translated">Oluşturucu devralınamaz temel sınıfını devralınabilir hale getirir, böylece korumalı üyelerini açığa çıkarır.</target>
+        <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</source>
+        <target state="translated">Oluşturucu, devralınamaz temel sınıfını devralınabilir hale getirir, böylece sınıfın korumalı üyelerini kullanıma sunar</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeTitle">
@@ -108,8 +108,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiMessage">
-        <source>Symbol '{0}' uses some oblivious reference types.</source>
-        <target state="translated">'{0}' sembolü, uyarısız atanabilen bazı başvuru türlerini kullanıyor.</target>
+        <source>Symbol '{0}' uses some oblivious reference types</source>
+        <target state="translated">'{0}' sembolü uyarısız atanabilen bazı başvuru türlerini kullanıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiTitle">
@@ -123,8 +123,18 @@
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
-        <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads.</source>
-        <target state="translated">İsteğe bağlı parametreleri olan genel API'nin, genel aşırı yüklemeleri arasında en çok parametreye sahip olması gerekir.</target>
+        <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads</source>
+        <target state="translated">İsteğe bağlı parametreler içeren genel API'nin, en çok parametreye genel aşırı yüklemelerinde sahip olması gerekir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingMessage">
+        <source>Public API file '{0}' is missing or not marked as an additional analyzer file</source>
+        <target state="translated">'{0}' genel API dosyası eksik veya ek bir çözümleyici dosyası olarak işaretlenmemiş</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingTitle">
+        <source>Missing shipped or unshipped public API file</source>
+        <target state="translated">Gönderilmiş veya gönderilmemiş genel API dosyası eksik</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
@@ -178,8 +188,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
-        <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">Tüm genel türler ve üyeler PublicAPI.txt içinde null atanabilirlik ek açıklamalarıyla bildirilmelidir. Bu işlem, kod incelemeleri ve kaynak denetimi geçmişindeki API null atanabilirlik değişikliklerine dikkat çeker ve hataya neden olan değişikliklerin önlenmesine yardımcı olur.</target>
+        <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
+        <target state="translated">PublicAPI.txt dosyalarında null atanabilirlik bilgilerini izlemek için `#nullable enable` bulunmalıdır veya bu tanılama gizlenmelidir. Null atanabilirlik etkin olduğunda PublicAPI.txt, null atanabilir (türde `?` soneki) veya null atanamaz (`!` soneki) türleri kaydeder. Ayrıca, hala bir kayıtsız başvuru türünü (satırda `~` ön eki) kullanan tüm API'leri de izler.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
@@ -188,8 +198,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
-        <source>Annotate nullability of types and members in the declared API</source>
-        <target state="translated">Bildirilen API'deki türlerin ve üyelerin null atanabilirliğine not ekle</target>
+        <source>Enable tracking of nullability of reference types in the declared API</source>
+        <target state="translated">Bildirilen API'de başvuru türlerinin null olduğunu izlemeyi etkinleştirin</target>
         <note />
       </trans-unit>
     </body>

@@ -24,7 +24,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
     /// </summary>
     internal partial class PropertySetAnalysis : ForwardDataFlowAnalysis<PropertySetAnalysisData, PropertySetAnalysisContext, PropertySetAnalysisResult, PropertySetBlockAnalysisResult, PropertySetAbstractValue>
     {
-        public static readonly PropertySetAnalysisDomain PropertySetAnalysisDomainInstance = new PropertySetAnalysisDomain(PropertySetAbstractValueDomain.Default);
+        public static readonly PropertySetAnalysisDomain PropertySetAnalysisDomainInstance = new(PropertySetAbstractValueDomain.Default);
 
         private PropertySetAnalysis(PropertySetAnalysisDomain analysisDomain, PropertySetDataFlowOperationVisitor operationVisitor)
             : base(analysisDomain, operationVisitor)
@@ -76,7 +76,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
 
             PointsToAnalysisResult? pointsToAnalysisResult;
-            ValueContentAnalysisResult? valueContentAnalysisResultOpt;
+            ValueContentAnalysisResult? valueContentAnalysisResult;
             if (!constructorMapper.RequiresValueContentAnalysis && !propertyMappers.RequiresValueContentAnalysis)
             {
                 pointsToAnalysisResult = PointsToAnalysis.TryGetOrComputeResult(
@@ -84,8 +84,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     owningSymbol,
                     analyzerOptions,
                     wellKnownTypeProvider,
+                    PointsToAnalysisKind.Complete,
                     interproceduralAnalysisConfig,
-                    interproceduralAnalysisPredicateOpt: null,
+                    interproceduralAnalysisPredicate: null,
                     pessimisticAnalysis,
                     performCopyAnalysis: false);
                 if (pointsToAnalysisResult == null)
@@ -93,21 +94,22 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     return null;
                 }
 
-                valueContentAnalysisResultOpt = null;
+                valueContentAnalysisResult = null;
             }
             else
             {
-                valueContentAnalysisResultOpt = ValueContentAnalysis.TryGetOrComputeResult(
+                valueContentAnalysisResult = ValueContentAnalysis.TryGetOrComputeResult(
                     cfg,
                     owningSymbol,
                     analyzerOptions,
                     wellKnownTypeProvider,
+                    PointsToAnalysisKind.Complete,
                     interproceduralAnalysisConfig,
                     out var copyAnalysisResult,
                     out pointsToAnalysisResult,
                     pessimisticAnalysis,
                     performCopyAnalysis: false);
-                if (valueContentAnalysisResultOpt == null)
+                if (valueContentAnalysisResult == null)
                 {
                     return null;
                 }
@@ -122,7 +124,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis,
                 pointsToAnalysisResult,
-                valueContentAnalysisResultOpt,
+                valueContentAnalysisResult,
                 TryGetOrComputeResultForAnalysisContext,
                 typeToTrackMetadataNames,
                 constructorMapper,
@@ -322,6 +324,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         }
 
         protected override PropertySetBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, PropertySetAnalysisData blockAnalysisData)
-            => new PropertySetBlockAnalysisResult(basicBlock, blockAnalysisData);
+            => new(basicBlock, blockAnalysisData);
     }
 }

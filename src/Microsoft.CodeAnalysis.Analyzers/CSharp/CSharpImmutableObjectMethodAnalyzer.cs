@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        public static readonly DiagnosticDescriptor DoNotIgnoreReturnValueDiagnosticRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DoNotIgnoreReturnValueDiagnosticRule = new(
             DiagnosticIds.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocation,
             s_localizableTitle,
             s_localizableMessage,
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
             }
 
             //If we can't find the method symbol, quit
-            if (!(model.GetSymbolInfo(candidateInvocation).Symbol is IMethodSymbol methodSymbol))
+            if (model.GetSymbolInfo(candidateInvocation, context.CancellationToken).Symbol is not IMethodSymbol methodSymbol)
             {
                 return;
             }
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
             }
 
             //If we're not in one of the known immutable types, quit
-            if (!(methodSymbol.ReceiverType is INamedTypeSymbol parentType))
+            if (methodSymbol.ReceiverType is not INamedTypeSymbol parentType)
             {
                 return;
             }

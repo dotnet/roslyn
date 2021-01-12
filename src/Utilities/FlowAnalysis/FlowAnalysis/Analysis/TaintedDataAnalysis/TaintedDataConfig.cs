@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis;
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
     /// <summary>
-    /// Manages tainted data sources, sanitizers, and sinks for all the 
+    /// Manages tainted data sources, sanitizers, and sinks for all the
     /// different tainted data analysis rules.
     /// </summary>
     /// <remarks>
@@ -23,7 +23,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// </remarks>
     internal class TaintedDataConfig
     {
-        private static readonly BoundedCacheWithFactory<Compilation, TaintedDataConfig> s_ConfigsByCompilation = new BoundedCacheWithFactory<Compilation, TaintedDataConfig>();
+        private static readonly BoundedCacheWithFactory<Compilation, TaintedDataConfig> s_ConfigsByCompilation = new();
 
         /// <summary>
         /// <see cref="WellKnownTypeProvider"/> for this instance's <see cref="Compilation"/>.
@@ -52,7 +52,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Gets a cached <see cref="TaintedDataConfig"/> for <paramref name="compilation"/>.
         /// </summary>
-        /// <param name="compilation">Whatev is being compiled.</param>
+        /// <param name="compilation">Whatever is being compiled.</param>
         /// <returns>The TaintedDataConfig.</returns>
         public static TaintedDataConfig GetOrCreate(Compilation compilation)
             => s_ConfigsByCompilation.GetOrCreateValue(compilation, Create);
@@ -194,19 +194,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.XPath:
                 case SinkKind.Xml:
                 case SinkKind.Xaml:
-                    return WebInputSources.SourceInfos;
+                    return WebInputSources.SourceInfos.AddRange(StringTranferSources.SourceInfos);
 
                 case SinkKind.InformationDisclosure:
-                    return InformationDisclosureSources.SourceInfos;
+                    return InformationDisclosureSources.SourceInfos.AddRange(StringTranferSources.SourceInfos);
 
                 case SinkKind.ZipSlip:
-                    return ZipSlipSources.SourceInfos;
+                    return ZipSlipSources.SourceInfos.AddRange(StringTranferSources.SourceInfos);
 
                 case SinkKind.HardcodedEncryptionKey:
-                    return HardcodedBytesSources.SourceInfos;
+                    return HardcodedBytesSources.SourceInfos.AddRange(StringTranferSources.SourceInfos);
 
                 case SinkKind.HardcodedCertificate:
-                    return HardcodedCertificateSources.SourceInfos.AddRange(HardcodedBytesSources.SourceInfos);
+                    return HardcodedCertificateSources.SourceInfos.AddRange(HardcodedBytesSources.SourceInfos).AddRange(StringTranferSources.SourceInfos);
 
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");
@@ -220,16 +220,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             {
                 case SinkKind.Sql:
                 case SinkKind.XPath:
-                    return PrimitiveTypeConverterSanitizers.SanitizerInfos;
+                    return PrimitiveTypeConverterSanitizers.SanitizerInfos.AddRange(AnySanitizers.SanitizerInfos);
 
                 case SinkKind.Xss:
-                    return XssSanitizers.SanitizerInfos;
+                    return XssSanitizers.SanitizerInfos.AddRange(PrimitiveTypeConverterSanitizers.SanitizerInfos).AddRange(AnySanitizers.SanitizerInfos);
 
                 case SinkKind.Ldap:
-                    return LdapSanitizers.SanitizerInfos;
+                    return LdapSanitizers.SanitizerInfos.AddRange(AnySanitizers.SanitizerInfos);
 
                 case SinkKind.Xml:
-                    return PrimitiveTypeConverterSanitizers.SanitizerInfos.Union(XmlSanitizers.SanitizerInfos);
+                    return XmlSanitizers.SanitizerInfos.AddRange(PrimitiveTypeConverterSanitizers.SanitizerInfos).AddRange(AnySanitizers.SanitizerInfos);
 
                 case SinkKind.Dll:
                 case SinkKind.InformationDisclosure:
@@ -240,10 +240,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.Xaml:
                 case SinkKind.HardcodedEncryptionKey:
                 case SinkKind.HardcodedCertificate:
-                    return ImmutableHashSet<SanitizerInfo>.Empty;
+                    return AnySanitizers.SanitizerInfos;
 
                 case SinkKind.ZipSlip:
-                    return ZipSlipSanitizers.SanitizerInfos;
+                    return ZipSlipSanitizers.SanitizerInfos.AddRange(AnySanitizers.SanitizerInfos);
 
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");

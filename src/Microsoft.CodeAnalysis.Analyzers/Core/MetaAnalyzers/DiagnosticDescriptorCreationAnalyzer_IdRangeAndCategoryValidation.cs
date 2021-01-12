@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
@@ -31,6 +32,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableAnalyzerCategoryAndIdRangeFileInvalidMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableAnalyzerCategoryAndIdRangeFileInvalidDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
+        /// <summary>
+        /// RS1018 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeInSpecifiedFormatTitle"/>)
+        /// </summary>
         public static readonly DiagnosticDescriptor DiagnosticIdMustBeInSpecifiedFormatRule = new DiagnosticDescriptor(
             DiagnosticIds.DiagnosticIdMustBeInSpecifiedFormatRuleId,
             s_localizableDiagnosticIdMustBeInSpecifiedFormatTitle,
@@ -41,6 +45,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDiagnosticIdMustBeInSpecifiedFormatDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        /// <summary>
+        /// RS1020 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.UseCategoriesFromSpecifiedRangeTitle"/>)
+        /// </summary>
         public static readonly DiagnosticDescriptor UseCategoriesFromSpecifiedRangeRule = new DiagnosticDescriptor(
             DiagnosticIds.UseCategoriesFromSpecifiedRangeRuleId,
             s_localizableUseCategoriesFromSpecifiedRangeTitle,
@@ -51,6 +58,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableUseCategoriesFromSpecifiedRangeDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        /// <summary>
+        /// RS1021 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidTitle"/>)
+        /// </summary>
         public static readonly DiagnosticDescriptor AnalyzerCategoryAndIdRangeFileInvalidRule = new DiagnosticDescriptor(
             DiagnosticIds.AnalyzerCategoryAndIdRangeFileInvalidRuleId,
             s_localizableAnalyzerCategoryAndIdRangeFileInvalidTitle,
@@ -64,14 +74,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static void AnalyzeAllowedIdsInfoList(
             string ruleId,
             IArgumentOperation argument,
-            AdditionalText? additionalTextOpt,
+            AdditionalText? additionalText,
             string? category,
             ImmutableArray<(string? prefix, int start, int end)> allowedIdsInfoList,
             Action<Diagnostic> addDiagnostic)
         {
             RoslynDebug.Assert(!allowedIdsInfoList.IsDefaultOrEmpty);
             RoslynDebug.Assert(category != null);
-            RoslynDebug.Assert(additionalTextOpt != null);
+            RoslynDebug.Assert(additionalText != null);
 
             var foundMatch = false;
             static bool ShouldValidateRange((string? prefix, int start, int end) range)
@@ -86,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 {
                     if (ShouldValidateRange(allowedIds))
                     {
-                        var suffix = ruleId.Substring(allowedIds.prefix.Length);
+                        var suffix = ruleId[allowedIds.prefix.Length..];
                         if (int.TryParse(suffix, out int ruleIdInt) &&
                             ruleIdInt >= allowedIds.start &&
                             ruleIdInt <= allowedIds.end)
@@ -119,8 +129,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     arg3 += !ShouldValidateRange(range) ? range.prefix + "XXXX" : $"{range.prefix}{range.start}-{range.prefix}{range.end}";
                 }
 
-                string arg4 = Path.GetFileName(additionalTextOpt.Path);
-                var diagnostic = Diagnostic.Create(DiagnosticIdMustBeInSpecifiedFormatRule, argument.Value.Syntax.GetLocation(), arg1, arg2, arg3, arg4);
+                string arg4 = Path.GetFileName(additionalText.Path);
+                var diagnostic = argument.Value.CreateDiagnostic(DiagnosticIdMustBeInSpecifiedFormatRule, arg1, arg2, arg3, arg4);
                 addDiagnostic(diagnostic);
             }
         }
@@ -173,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     // Category '{0}' is not from the allowed categories specified in the file '{1}'.
                     string arg1 = category ?? "<unknown>";
                     string arg2 = Path.GetFileName(additionalText.Path);
-                    var diagnostic = Diagnostic.Create(UseCategoriesFromSpecifiedRangeRule, argument.Value.Syntax.GetLocation(), arg1, arg2);
+                    var diagnostic = argument.Value.CreateDiagnostic(UseCategoriesFromSpecifiedRangeRule, arg1, arg2);
                     operationAnalysisContext.ReportDiagnostic(diagnostic);
                     return false;
                 }

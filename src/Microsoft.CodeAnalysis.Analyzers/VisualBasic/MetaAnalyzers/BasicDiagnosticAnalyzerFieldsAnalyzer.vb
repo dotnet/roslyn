@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicDiagnosticAnalyzerFieldsAnalyzer
-        Inherits DiagnosticAnalyzerFieldsAnalyzer(Of ClassBlockSyntax, FieldDeclarationSyntax, TypeSyntax, SimpleAsClauseSyntax)
+        Inherits DiagnosticAnalyzerFieldsAnalyzer(Of ClassBlockSyntax, StructureBlockSyntax, FieldDeclarationSyntax, TypeSyntax, SimpleAsClauseSyntax)
     End Class
 End Namespace
 

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             "Microsoft.CodeAnalysis.CSharp.Workspaces",
             "Microsoft.CodeAnalysis.VisualBasic.Workspaces");
 
-        public static readonly DiagnosticDescriptor DoNotUseTypesFromAssemblyDirectRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DoNotUseTypesFromAssemblyDirectRule = new(
             DiagnosticIds.DoNotUseTypesFromAssemblyRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -36,9 +36,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        public static readonly DiagnosticDescriptor DoNotUseTypesFromAssemblyIndirectRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DoNotUseTypesFromAssemblyIndirectRule = new(
             DiagnosticIds.DoNotUseTypesFromAssemblyRuleId,
             s_localizableTitle,
             s_localizableIndirectMessage,
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: s_localizableDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         protected abstract bool IsNamedTypeDeclarationBlock(SyntaxNode syntax);
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DoNotUseTypesFromAssemblyDirectRule, DoNotUseTypesFromAssemblyIndirectRule);

@@ -29,13 +29,18 @@ namespace Analyzer.Utilities
         public const string ExcludeAsyncVoidMethods = "exclude_async_void_methods";
 
         /// <summary>
+        /// Boolean option to enable platform compatibility analyzer for TFMs with lower version than net5.0 (https://docs.microsoft.com/visualstudio/code-quality/ca1416).
+        /// </summary>
+        public const string EnablePlatformAnalyzerOnPreNet5Target = "enable_platform_analyzer_on_pre_net5_target";
+
+        /// <summary>
         /// Option to configure analyzed output kinds, i.e. <see cref="Microsoft.CodeAnalysis.CompilationOptions.OutputKind"/> of the compilation.
         /// Allowed option values: One or more fields of <see cref="Microsoft.CodeAnalysis.CompilationOptions.OutputKind"/> as a comma separated list.
         /// </summary>
         public const string OutputKind = "output_kind";
 
         /// <summary>
-        /// Boolean option to configure if single letter type parameter names are not flagged for CA1715 (https://docs.microsoft.com/visualstudio/code-quality/ca1715-identifiers-should-have-correct-prefix).
+        /// Boolean option to configure if single letter type parameter names are not flagged for CA1715 (https://docs.microsoft.com/visualstudio/code-quality/ca1715).
         /// </summary>
         public const string ExcludeSingleLetterTypeParameters = "exclude_single_letter_type_parameters";
 
@@ -50,7 +55,7 @@ namespace Analyzer.Utilities
         public const string ExcludeExtensionMethodThisParameter = "exclude_extension_method_this_parameter";
 
         /// <summary>
-        /// String option to configure names of null check validation methods (separated by '|') that validate arguments passed to the method are non-null for CA1062 (https://docs.microsoft.com/visualstudio/code-quality/ca1062-validate-arguments-of-public-methods).
+        /// String option to configure names of null check validation methods (separated by '|') that validate arguments passed to the method are non-null for CA1062 (https://docs.microsoft.com/visualstudio/code-quality/ca1062).
         /// Allowed method name formats:
         ///   1. Method name only (includes all methods with the name, regardless of the containing type or namespace)
         ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
@@ -59,7 +64,7 @@ namespace Analyzer.Utilities
         public const string NullCheckValidationMethods = "null_check_validation_methods";
 
         /// <summary>
-        /// String option to configure names of additional string formatting methods (separated by '|') for CA2241 (https://docs.microsoft.com/visualstudio/code-quality/ca2241-provide-correct-arguments-to-formatting-methods).
+        /// String option to configure names of additional string formatting methods (separated by '|') for CA2241 (https://docs.microsoft.com/visualstudio/code-quality/ca2241).
         /// Allowed method name formats:
         ///   1. Method name only (includes all methods with the name, regardless of the containing type or namespace)
         ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
@@ -68,8 +73,15 @@ namespace Analyzer.Utilities
         public const string AdditionalStringFormattingMethods = "additional_string_formatting_methods";
 
         /// <summary>
+        /// Boolean option to enable heuristically detecting of additional string formatting methods for CA2241 (https://docs.microsoft.com/visualstudio/code-quality/ca2241).
+        /// A method is considered a string formatting method if it has a '<see cref="string"/> <c>format</c>' parameter followed by a <see langword="params"/> <see cref="object"/>[]' parameter.
+        /// The default value of this is <c>false</c>.
+        /// </summary>
+        public const string TryDetermineAdditionalStringFormattingMethodsAutomatically = "try_determine_additional_string_formatting_methods_automatically";
+
+        /// <summary>
         /// String option to configure names of symbols (separated by '|') that are excluded for analysis.
-        /// Configurable rules: CA1303 (https://docs.microsoft.com/visualstudio/code-quality/ca1303-do-not-pass-literals-as-localized-parameters).
+        /// Configurable rules: CA1303 (https://docs.microsoft.com/visualstudio/code-quality/ca1303).
         /// Allowed method name formats:
         ///   1. Symbol name only (includes all symbols with the name, regardless of the containing type or namespace)
         ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format.
@@ -80,7 +92,7 @@ namespace Analyzer.Utilities
 
         /// <summary>
         /// String option to configure names of types (separated by '|'), so that the type and all its derived types are excluded for analysis.
-        /// Configurable rules: CA1303 (https://docs.microsoft.com/visualstudio/code-quality/ca1303-do-not-pass-literals-as-localized-parameters).
+        /// Configurable rules: CA1303 (https://docs.microsoft.com/visualstudio/code-quality/ca1303).
         /// Allowed method name formats:
         ///   1. Type name only (includes all types with the name, regardless of the containing type or namespace)
         ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
@@ -90,7 +102,7 @@ namespace Analyzer.Utilities
 
         /// <summary>
         /// String option to configure names of symbols (separated by '|') that are disallowed in analysis.
-        /// Configurable rules: CA1031 (https://docs.microsoft.com/visualstudio/code-quality/ca1031-do-not-catch-general-exception-types).
+        /// Configurable rules: CA1031 (https://docs.microsoft.com/visualstudio/code-quality/ca1031).
         /// Allowed method name formats:
         ///   1. Symbol name only (includes all symbols with the name, regardless of the containing type or namespace)
         ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format.
@@ -101,7 +113,7 @@ namespace Analyzer.Utilities
 
         /// <summary>
         /// Enumeration option to configure unsafe DllImportSearchPath bits when using DefaultDllImportSearchPaths attribute.
-        /// Do not use the OR operator to represent the bitwise combination of its member values, use the integeral value directly.
+        /// Do not use the OR operator to represent the bitwise combination of its member values, use the integral value directly.
         /// </summary>
         public const string UnsafeDllImportSearchPathBits = "unsafe_DllImportSearchPath_bits";
 
@@ -122,7 +134,7 @@ namespace Analyzer.Utilities
 
         /// <summary>
         /// String option to configure names of types (separated by '|'), with their suffixes (separated by '->').
-        /// Configurable rules: CA1710 (https://docs.microsoft.com/visualstudio/code-quality/ca1710-identifiers-should-have-correct-suffix).
+        /// Configurable rules: CA1710 (https://docs.microsoft.com/visualstudio/code-quality/ca1710).
         /// Allowed type name formats:
         ///   1. Type name only (includes all types with the name, regardless of the containing type or namespace)
         ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
@@ -166,5 +178,31 @@ namespace Analyzer.Utilities
         /// Boolean option to configure if the naming heuristic should be used for CA1303 (https://docs.microsoft.com/en-us/visualstudio/code-quality/ca1303).
         /// </summary>
         public const string UseNamingHeuristic = "use_naming_heuristic";
+
+        /// <summary>
+        /// String option to configure names of additional methods (separated by '|') for CA1806 (https://docs.microsoft.com/visualstudio/code-quality/ca1806).
+        /// Allowed method name formats:
+        ///   1. Method name only (includes all methods with the name, regardless of the containing type or namespace)
+        ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
+        ///      with an optional "M:" prefix.
+        /// </summary>
+        public const string AdditionalUseResultsMethods = "additional_use_results_methods";
+
+        /// <summary>
+        /// String option to configure allowed suffixed (separated by '|').
+        /// Configurable rule: CA1711 (https://docs.microsoft.com/visualstudio/code-quality/ca1711).
+        /// </summary>
+        public const string AllowedSuffixes = "allowed_suffixes";
+
+        /// <summary>
+        /// Boolean option to configure whether to exclude structs when considering public fields.
+        /// </summary>
+        public const string ExcludeStructs = "exclude_structs";
+
+        /// <summary>
+        /// Boolean option to configure whether to exclude 'FirstOrDefault' and 'LastOrDefault' methods for
+        /// CA1826 (Do not use Enumerable methods on indexable collections. Instead use the collection directly).
+        /// </summary>
+        public const string ExcludeOrDefaultMethods = "exclude_ordefault_methods";
     }
 }

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.Fixers
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var binaryExpression = root.FindNode(sourceSpan, getInnermostNodeForTie: true).FirstAncestorOrSelf<BinaryExpressionSyntax>();
 
-            if (!(binaryExpression.Left is InvocationExpressionSyntax invocation))
+            if (binaryExpression.Left is not InvocationExpressionSyntax invocation)
             {
                 return document;
             }

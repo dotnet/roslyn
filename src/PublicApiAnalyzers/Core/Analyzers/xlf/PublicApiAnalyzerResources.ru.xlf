@@ -38,8 +38,8 @@
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiMessage">
-        <source>Symbol '{0}' is missing nullability annotations in the declared API.</source>
-        <target state="translated">В объявленном API для символа "{0}" отсутствуют заметки допустимости значений NULL.</target>
+        <source>Symbol '{0}' is missing nullability annotations in the declared API</source>
+        <target state="translated">В объявленном API для символа "{0}" отсутствуют заметки о допустимости значений NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiTitle">
@@ -63,7 +63,7 @@
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiMessage">
-        <source>Symbol '{0}' is not part of the declared API.</source>
+        <source>Symbol '{0}' is not part of the declared API</source>
         <target state="translated">Символ "{0}" не является частью объявленного API.</target>
         <note />
       </trans-unit>
@@ -73,7 +73,7 @@
         <note />
       </trans-unit>
       <trans-unit id="DuplicateSymbolsInPublicApiFilesMessage">
-        <source>The symbol '{0}' appears more than once in the public API files.</source>
+        <source>The symbol '{0}' appears more than once in the public API files</source>
         <target state="translated">Символ "{0}" встречается больше одного раза в файлах открытого API.</target>
         <note />
       </trans-unit>
@@ -84,16 +84,16 @@
       </trans-unit>
       <trans-unit id="EnableNullableInProjectToThePublicApiTitle">
         <source>Enable nullability annotations in the public API for project '{0}'</source>
-        <target state="translated">Включите заметки допустимости значений NULL в общедоступном API для проекта "{0}"</target>
+        <target state="translated">Включите заметки о допустимости значений NULL в общедоступном API для проекта "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableNullableInTheSolutionToThePublicApiTitle">
         <source>Enable nullability annotations in the public API for the solution</source>
-        <target state="translated">Включите заметки допустимости значений NULL в общедоступном API для решения</target>
+        <target state="translated">Включите заметки о допустимости значений NULL в общедоступном API для решения</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
-        <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</source>
+        <source>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</source>
         <target state="translated">Конструктор делает свой ненаследуемый базовый класс наследуемым, ставя под угрозу его защищенные элементы.</target>
         <note />
       </trans-unit>
@@ -108,7 +108,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ObliviousPublicApiMessage">
-        <source>Symbol '{0}' uses some oblivious reference types.</source>
+        <source>Symbol '{0}' uses some oblivious reference types</source>
         <target state="translated">Символ "{0}" использует некоторые игнорируемые ссылочные типы.</target>
         <note />
       </trans-unit>
@@ -123,8 +123,18 @@
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
-        <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads.</source>
-        <target state="translated">Открытый API с необязательными параметрами должен иметь основную часть параметров среди своих открытых перегрузок.</target>
+        <source>Public API with optional parameter(s) should have the most parameters amongst its public overloads</source>
+        <target state="translated">Большинство параметров открытого API с необязательными параметрами должны находиться среди открытых перегрузок этого API</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingMessage">
+        <source>Public API file '{0}' is missing or not marked as an additional analyzer file</source>
+        <target state="translated">Файл общедоступного API "{0}" отсутствует или не помечен как дополнительный файл анализатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PublicApiFileMissingTitle">
+        <source>Missing shipped or unshipped public API file</source>
+        <target state="translated">Отсутствует отправленный или неотправленный файл общедоступного API</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFilesInvalidMessage">
@@ -178,18 +188,18 @@
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
-        <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">Все открытые типы и элементы должны быть объявлены в PublicAPI.txt с заметками допустимости значений NULL. Это привлекает внимание к изменениям допустимости значений NULL в API при проверках кода и в журнале системы управления версиями и помогает предотвратить критические изменения.</target>
+        <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
+        <target state="translated">Для файлов PublicAPI.txt необходимо установить директиву #nullable enable, чтобы отслеживать сведения о допустимости значений NULL, либо отключить этот параметр диагностики. Если значения NULL являются допустимыми, в файлах PublicAPI.txt записываются типы, которые допускают значения NULL (суффикс "?" типа) или не допускают значения NULL (суффикс "!"). Также отслеживаются все API, в которых все еще используется ссылочный тип без заметок о допустимости значений NULL (префикс "~" в строке).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesMessage">
         <source>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
-        <target state="translated">В файле PublicAPI.txt отсутствует "#nullable enable", поэтому заметки допустимости значений NULL для API не записываются. Рекомендуется включить их отслеживание.</target>
+        <target state="translated">В файле PublicAPI.txt отсутствует "#nullable enable", поэтому заметки о допустимости значений NULL для API не записываются. Рекомендуется включить их отслеживание.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesTitle">
-        <source>Annotate nullability of types and members in the declared API</source>
-        <target state="translated">Аннотирование допустимости значений NULL для типов и элементов в объявленном API</target>
+        <source>Enable tracking of nullability of reference types in the declared API</source>
+        <target state="translated">Включение отслеживания допустимости значений NULL ссылочных типов в объявленном API</target>
         <note />
       </trans-unit>
     </body>

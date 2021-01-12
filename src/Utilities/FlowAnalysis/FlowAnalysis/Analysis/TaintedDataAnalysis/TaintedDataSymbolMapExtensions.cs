@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
@@ -131,6 +132,26 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         }
 
         /// <summary>
+        /// Determines if the given parameter is a tainted data source.
+        /// </summary>
+        /// <param name="sourceSymbolMap"></param>
+        /// <param name="parameterSymbol"></param>
+        /// <returns></returns>
+        public static bool IsSourceParameter(this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap, IParameterSymbol parameterSymbol, WellKnownTypeProvider wellKnownTypeProvider)
+        {
+            ISymbol containingSymbol = parameterSymbol.ContainingSymbol;
+            foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(containingSymbol.ContainingType))
+            {
+                if (sourceInfo.TaintedArguments.Any(match => match(parameterSymbol, wellKnownTypeProvider)))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Determines if the given array can be a tainted data source when its elements are all constant.
         /// </summary>
         /// <param name="sourceSymbolMap"></param>
@@ -164,7 +185,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap,
             IMethodSymbol method,
             ImmutableArray<IArgumentOperation> arguments,
-            ImmutableArray<string> taintedParameterNames,
+            ISet<string> taintedParameterNames,
             [NotNullWhen(returnValue: true)] out PooledHashSet<(string, string)>? taintedParameterPairs)
         {
             taintedParameterPairs = null;
@@ -185,6 +206,35 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             }
 
             return taintedParameterPairs != null;
+        }
+
+        /// <summary>
+        /// Determines if the property taints the instance.
+        /// </summary>
+        public static bool IsSourceTransferProperty(
+            this TaintedDataSymbolMap<SourceInfo> sourceSymbolMap,
+            IPropertyReferenceOperation propertyReferenceOperation)
+        {
+            if (propertyReferenceOperation.Instance?.Type is not INamedTypeSymbol namedType)
+            {
+                return false;
+            }
+
+            string name = propertyReferenceOperation.Member.Name;
+            if (propertyReferenceOperation.Member.Language != LanguageNames.CSharp && propertyReferenceOperation.Member.IsIndexer())
+            {
+                name = TaintedDataProperties.IndexerName; // In VB.NET for example the indexer name is `Item`. However let's keep the SourceInfo configuration language agnostic.
+            }
+
+            foreach (SourceInfo sourceInfo in sourceSymbolMap.GetInfosForType(namedType))
+            {
+                if (sourceInfo.TransferProperties.Contains(name))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

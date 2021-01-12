@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         {
             foreach (var key in map.Keys)
             {
-                Debug.Assert(key.CaptureIdOpt == null);
+                Debug.Assert(key.CaptureId == null);
             }
         }
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         {
             Debug.Assert(value.Kind != PointsToAbstractValueKind.Undefined);
             Debug.Assert(!key.IsLValueFlowCaptureEntity || value.Kind == PointsToAbstractValueKind.KnownLValueCaptures);
-            Debug.Assert(PointsToAnalysis.ShouldBeTracked(key));
+            Debug.Assert(PointsToAnalysis.ShouldBeTracked(key, PointsToAnalysisKind.Complete));
         }
     }
 }

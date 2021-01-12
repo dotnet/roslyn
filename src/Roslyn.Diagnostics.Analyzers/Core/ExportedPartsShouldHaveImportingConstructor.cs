@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable disable warnings
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,7 +25,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.ExportedPartsShouldHaveImportingConstructorMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.ExportedPartsShouldHaveImportingConstructorDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
-        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.ExportedPartsShouldHaveImportingConstructorRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -76,14 +78,14 @@ namespace Roslyn.Diagnostics.Analyzers
             });
         }
 
-        private static void AnalyzeSymbolForAttribute(ref SymbolAnalysisContext context, INamedTypeSymbol? exportAttributeOpt, INamedTypeSymbol? importingConstructorAttribute, INamedTypeSymbol namedType, IEnumerable<AttributeData> exportAttributes)
+        private static void AnalyzeSymbolForAttribute(ref SymbolAnalysisContext context, INamedTypeSymbol? exportAttribute, INamedTypeSymbol? importingConstructorAttribute, INamedTypeSymbol namedType, IEnumerable<AttributeData> exportAttributes)
         {
-            if (exportAttributeOpt is null)
+            if (exportAttribute is null)
             {
                 return;
             }
 
-            var exportAttributeApplication = exportAttributes.FirstOrDefault(ad => ad.AttributeClass.DerivesFrom(exportAttributeOpt));
+            var exportAttributeApplication = exportAttributes.FirstOrDefault(ad => ad.AttributeClass.DerivesFrom(exportAttribute));
             if (exportAttributeApplication is null)
             {
                 return;
@@ -104,7 +106,9 @@ namespace Roslyn.Diagnostics.Analyzers
                     if (exportAttributeApplication.ApplicationSyntaxReference is object)
                     {
                         // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                        context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.ImplicitConstructor, namedType.Name));
+                        context.ReportDiagnostic(
+                            exportAttributeApplication.ApplicationSyntaxReference.CreateDiagnostic(
+                                Rule, ScenarioProperties.ImplicitConstructor, context.CancellationToken, namedType.Name));
                     }
 
                     continue;
@@ -122,7 +126,9 @@ namespace Roslyn.Diagnostics.Analyzers
                 if (constructor.DeclaredAccessibility != Accessibility.Public)
                 {
                     // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, appliedImportingConstructorAttribute.ApplicationSyntaxReference.GetSyntax().GetLocation(), ScenarioProperties.NonPublicConstructor, namedType.Name));
+                    context.ReportDiagnostic(
+                        appliedImportingConstructorAttribute.ApplicationSyntaxReference.CreateDiagnostic(
+                            Rule, ScenarioProperties.NonPublicConstructor, context.CancellationToken, namedType.Name));
                     continue;
                 }
             }
@@ -139,7 +145,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 var properties = Equals(constructor, missingImportingConstructor) ? ScenarioProperties.MissingAttribute : ScenarioProperties.MultipleConstructors;
 
                 // '{0}' is MEF-exported and should have a single importing constructor of the correct form
-                context.ReportDiagnostic(Diagnostic.Create(Rule, constructor.DeclaringSyntaxReferences.First().GetSyntax().GetLocation(), properties, namedType.Name));
+                context.ReportDiagnostic(constructor.DeclaringSyntaxReferences.CreateDiagnostic(Rule, properties, context.CancellationToken, namedType.Name));
                 continue;
             }
         }
@@ -154,10 +160,10 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static class ScenarioProperties
         {
-            public static readonly ImmutableDictionary<string, string> ImplicitConstructor = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(ImplicitConstructor));
-            public static readonly ImmutableDictionary<string, string> NonPublicConstructor = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(NonPublicConstructor));
-            public static readonly ImmutableDictionary<string, string> MissingAttribute = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(MissingAttribute));
-            public static readonly ImmutableDictionary<string, string> MultipleConstructors = ImmutableDictionary.Create<string, string>().Add(nameof(Scenario), nameof(MultipleConstructors));
+            public static readonly ImmutableDictionary<string, string?> ImplicitConstructor = ImmutableDictionary.Create<string, string?>().Add(nameof(Scenario), nameof(ImplicitConstructor));
+            public static readonly ImmutableDictionary<string, string?> NonPublicConstructor = ImmutableDictionary.Create<string, string?>().Add(nameof(Scenario), nameof(NonPublicConstructor));
+            public static readonly ImmutableDictionary<string, string?> MissingAttribute = ImmutableDictionary.Create<string, string?>().Add(nameof(Scenario), nameof(MissingAttribute));
+            public static readonly ImmutableDictionary<string, string?> MultipleConstructors = ImmutableDictionary.Create<string, string?>().Add(nameof(Scenario), nameof(MultipleConstructors));
         }
     }
 }

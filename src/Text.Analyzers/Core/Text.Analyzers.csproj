@@ -6,12 +6,13 @@
       PackageId is used by Restore. If we set it to Text.Analyzers,
       Restore would conclude that there is a cyclic dependency between us and the Text.Analyzers nuget package.
     -->
-    <PackageId>*$(MSBuildProjectFullPath)*</PackageId>
+    <PackageId>*$(MSBuildProjectFile)*</PackageId>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Text.CSharp.Analyzers" />
     <InternalsVisibleTo Include="Text.VisualBasic.Analyzers" />
     <InternalsVisibleTo Include="Text.Analyzers.UnitTests" />
+    <PackageReference Include="Humanizer.Core" Version="$(HumanizerVersion)" />
   </ItemGroup>
   <Import Project="..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
   <Import Project="..\..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />

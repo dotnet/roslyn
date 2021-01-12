@@ -25,9 +25,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
     /// </remarks>
     internal partial class PropertySetAbstractValue
     {
-        public static readonly PropertySetAbstractValue Unknown = new PropertySetAbstractValue();
+        public static readonly PropertySetAbstractValue Unknown = new();
 
-        private static readonly ValuePool Pool = new ValuePool();
+        private static readonly ValuePool Pool = new();
 
         public static PropertySetAbstractValue GetInstance(PropertySetAbstractValueKind v1)
         {
@@ -161,23 +161,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 newLength = this.KnownPropertyAbstractValues.Length;
             }
 
-            ArrayBuilder<PropertySetAbstractValueKind> kinds = ArrayBuilder<PropertySetAbstractValueKind>.GetInstance(newLength);
-            try
-            {
-                kinds.AddRange(this.KnownPropertyAbstractValues);
+            using ArrayBuilder<PropertySetAbstractValueKind> kinds = ArrayBuilder<PropertySetAbstractValueKind>.GetInstance(newLength);
+            kinds.AddRange(this.KnownPropertyAbstractValues);
 
-                while (kinds.Count < newLength)
-                {
-                    kinds.Add(PropertySetAbstractValueKind.Unknown);
-                }
-
-                kinds[index] = kind;
-                return GetInstance(kinds);
-            }
-            finally
+            while (kinds.Count < newLength)
             {
-                kinds.Free();
+                kinds.Add(PropertySetAbstractValueKind.Unknown);
             }
+
+            kinds[index] = kind;
+            return GetInstance(kinds);
         }
     }
 }

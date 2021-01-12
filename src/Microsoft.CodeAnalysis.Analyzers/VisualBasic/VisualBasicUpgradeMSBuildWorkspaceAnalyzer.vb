@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Analyzer.Utilities.Extensions
 Imports Microsoft.CodeAnalysis.Analyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -35,9 +36,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers
                 Return
             End If
 
-            Dim symbolInfo = context.SemanticModel.GetSymbolInfo(identifierName)
+            Dim symbolInfo = context.SemanticModel.GetSymbolInfo(identifierName, context.CancellationToken)
             If symbolInfo.Symbol Is Nothing Then
-                context.ReportDiagnostic(Diagnostic.Create(UpgradeMSBuildWorkspaceDiagnosticRule, identifierName.GetLocation()))
+                context.ReportDiagnostic(identifierName.CreateDiagnostic(UpgradeMSBuildWorkspaceDiagnosticRule))
             End If
         End Sub
     End Class

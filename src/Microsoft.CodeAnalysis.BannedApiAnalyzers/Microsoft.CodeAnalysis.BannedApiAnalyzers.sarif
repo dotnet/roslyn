@@ -5,7 +5,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.BannedApiAnalyzers",
-        "version": "3.0.0",
+        "version": "3.3.3",
         "language": "en-US"
       },
       "rules": {
@@ -14,7 +14,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers",
-        "version": "3.0.0",
+        "version": "3.3.3",
         "language": "en-US"
       },
       "rules": {
@@ -50,6 +50,7 @@
               "C#"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }
@@ -76,7 +77,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers",
-        "version": "3.0.0",
+        "version": "3.3.3",
         "language": "en-US"
       },
       "rules": {
@@ -112,6 +113,7 @@
               "Visual Basic"
             ],
             "tags": [
+              "CompilationEnd",
               "Telemetry"
             ]
           }

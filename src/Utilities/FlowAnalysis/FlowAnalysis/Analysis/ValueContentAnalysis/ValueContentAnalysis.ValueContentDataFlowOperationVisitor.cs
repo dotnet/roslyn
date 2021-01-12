@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// <summary>
         /// Operation visitor to flow the data values across a given statement in a basic block.
         /// </summary>
-        private sealed class ValueContentDataFlowOperationVisitor : AnalysisEntityDataFlowOperationVisitor<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentAbstractValue>
+        private sealed class ValueContentDataFlowOperationVisitor : PredicateAnalysisEntityDataFlowOperationVisitor<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentAbstractValue>
         {
             private readonly ValueContentAnalysisDomain _valueContentAnalysisDomain;
 
@@ -65,6 +65,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
             protected override void ResetCurrentAnalysisData()
                 => CurrentAnalysisData.Reset(ValueDomain.UnknownOrMayBeValue);
+
+            protected override CopyAbstractValue GetCopyAbstractValue(IOperation operation)
+            {
+                if (DataFlowAnalysisContext.CopyAnalysisResult == null &&
+                    AnalysisEntityFactory.TryCreate(operation, out var entity) &&
+                    entity.CaptureId.HasValue &&
+                    AnalysisEntityFactory.TryGetCopyValueForFlowCapture(entity.CaptureId.Value.Id, out var copyValue) &&
+                    copyValue.Kind == CopyAbstractValueKind.KnownValueCopy)
+                {
+                    return copyValue;
+                }
+
+                return base.GetCopyAbstractValue(operation);
+            }
 
             #region Predicate analysis
             protected override PredicateValueKind SetValueForIsNullComparisonOperator(IOperation leftOperand, bool equals, ValueContentAnalysisData targetAnalysisData)
@@ -138,16 +152,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
             protected override ValueContentAnalysisData MergeAnalysisData(ValueContentAnalysisData value1, ValueContentAnalysisData value2)
                 => _valueContentAnalysisDomain.Merge(value1, value2);
-            protected override ValueContentAnalysisData MergeAnalysisDataForBackEdge(ValueContentAnalysisData value1, ValueContentAnalysisData value2)
+            protected override ValueContentAnalysisData MergeAnalysisDataForBackEdge(ValueContentAnalysisData value1, ValueContentAnalysisData value2, BasicBlock forBlock)
                 => _valueContentAnalysisDomain.MergeAnalysisDataForBackEdge(value1, value2);
             protected override void UpdateValuesForAnalysisData(ValueContentAnalysisData targetAnalysisData)
                 => UpdateValuesForAnalysisData(targetAnalysisData.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData);
             protected override ValueContentAnalysisData GetClonedAnalysisData(ValueContentAnalysisData analysisData)
                 => (ValueContentAnalysisData)analysisData.Clone();
             public override ValueContentAnalysisData GetEmptyAnalysisData()
-                => new ValueContentAnalysisData();
+                => new();
             protected override ValueContentAnalysisData GetExitBlockOutputData(ValueContentAnalysisResult analysisResult)
-                => new ValueContentAnalysisData(analysisResult.ExitBlockOutput.Data);
+                => new(analysisResult.ExitBlockOutput.Data);
             protected override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(ValueContentAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
                 => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData, throwBranchWithExceptionType);
             protected override bool Equals(ValueContentAnalysisData value1, ValueContentAnalysisData value2)
@@ -163,7 +177,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 _ = base.DefaultVisit(operation, argument);
                 if (operation.Type == null)
                 {
-                    return ValueContentAbstractValue.ContainsNullLiteralState;
+                    return operation.Kind == OperationKind.None ?
+                        ValueContentAbstractValue.MayBeContainsNonLiteralState :
+                        ValueContentAbstractValue.ContainsNullLiteralState;
                 }
 
                 if (ValueContentAbstractValue.IsSupportedType(operation.Type, out var valueTypeSymbol))
@@ -185,6 +201,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                             _ => ValueContentAbstractValue.MayBeContainsNonLiteralState,
                         };
                     }
+                }
+                else if (DataFlowAnalysisContext.GetValueForAdditionalSupportedValueTypeOperation is { } getValueFunc &&
+                    operation.Type is INamedTypeSymbol namedType &&
+                    DataFlowAnalysisContext.AdditionalSupportedValueTypes.Contains(namedType))
+                {
+                    return getValueFunc(operation);
                 }
 
                 return ValueDomain.UnknownOrMayBeValue;
