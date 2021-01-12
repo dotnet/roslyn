@@ -9516,6 +9516,59 @@ switch (e)
         }
 
         [Fact]
+        public void TypePattern_08()
+        {
+            UsingStatement($"_ = e is (a) or b;",
+                TestOptions.RegularWithPatternCombinators
+            );
+            
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.OrPattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.ParenthesizedExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                            }
+                            N(SyntaxKind.OrKeyword);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+        
+        [Fact]
         public void CompoundPattern_01()
         {
             UsingStatement(@"bool isLetter(char c) => c is >= 'a' and <= 'z' or >= 'A' and <= 'Z';",
@@ -10600,6 +10653,63 @@ switch (e)
                                 N(SyntaxKind.IdentifierName);
                                 {
                                     N(SyntaxKind.IdentifierToken, right);
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CastExpressionInPattern_04()
+        {
+            UsingStatement($"_ = e is (a)42 or b;",
+                TestOptions.RegularWithPatternCombinators
+            );
+            
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.OrPattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.CastExpression);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "42");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.OrKeyword);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
                                 }
                             }
                         }

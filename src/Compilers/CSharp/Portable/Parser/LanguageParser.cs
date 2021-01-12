@@ -11233,6 +11233,12 @@ tryAgain:
 
             this.EatToken();
 
+            if (forPattern && this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+            {
+                // In a pattern, an identifier can follow a cast unless it's a binary pattern token.
+                return !isBinaryPattern();
+            }
+
             switch (type)
             {
                 // If we have any of the following, we know it must be a cast:
@@ -11256,7 +11262,6 @@ tryAgain:
                         SyntaxKind.AmpersandToken or
                         SyntaxKind.AsteriskToken or
                         SyntaxKind.DotDotToken => true,
-                        SyntaxKind.IdentifierToken => !isBinaryPattern(),
                         var tk => CanFollowCast(tk)
                     };
 
