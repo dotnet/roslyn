@@ -426,8 +426,8 @@
         },
         "RS1034": {
           "id": "RS1034",
-          "shortDescription": "Prefer IsKind",
-          "fullDescription": "Prefer IsKind.",
+          "shortDescription": "Prefer 'IsKind' for checking syntax kinds",
+          "fullDescription": "Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.",
           "defaultLevel": "warning",
           "properties": {
             "category": "MicrosoftCodeAnalysisPerformance",

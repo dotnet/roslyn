@@ -34,4 +34,4 @@ RS1030 |  | Do not invoke Compilation.GetSemanticModel() method within a diagnos
 RS1031 |  | Define diagnostic title correctly |
 RS1032 |  | Define diagnostic message correctly |
 RS1033 |  | Define diagnostic description correctly |
-RS1034 |  | Prefer IsKind |
+RS1034 |  | Prefer 'IsKind' for checking syntax kinds |

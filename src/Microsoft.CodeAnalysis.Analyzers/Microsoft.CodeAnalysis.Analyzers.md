@@ -412,9 +412,9 @@ The diagnostic description should be one or multiple sentences ending with a pun
 |CodeFix|True|
 ---
 
-## RS1034: Prefer IsKind
+## RS1034: Prefer 'IsKind' for checking syntax kinds
 
-Prefer IsKind.
+Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.
 
 |Item|Value|
 |-|-|
