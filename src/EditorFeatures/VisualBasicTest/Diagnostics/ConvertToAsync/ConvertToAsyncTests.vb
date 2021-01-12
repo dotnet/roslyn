@@ -4,14 +4,18 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.ConvertToAsync
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
-    Public Class ChangeToAsyncTests
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.ConvertToAsync
+    Public Class ConvertToAsyncTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New VisualBasicConvertToAsyncFunctionCodeFixProvider())
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToAsync)>
-        Public Async Function CantAwaitAsyncSub1() As Threading.Tasks.Task
+        Public Async Function CantAwaitAsyncSub1() As Task
             Dim initial =
     <ModuleDeclaration>
     Async Function rtrt() As Task
@@ -31,10 +35,6 @@ Async Function gt() As Task
 End Function
 </ModuleDeclaration>
             Await TestAsync(initial, expected)
-        End Function
-
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Return (Nothing, New VisualBasicConvertToAsyncFunctionCodeFixProvider())
         End Function
     End Class
 End Namespace

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 _service = service;
                 _workspace = workspace;
-                _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(service._analyzerInfoCache, workspace);
+                _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(service._analyzerInfoCache);
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
