@@ -16,7 +16,10 @@ namespace CSharpSyntaxGenerator
 {
     public abstract class CachingSourceGenerator : ISourceGenerator
     {
-        private static CachedSourceGeneratorResult? s_cachedResult;
+        /// <summary>
+        /// ⚠ This value may be accessed by multiple threads.
+        /// </summary>
+        private static readonly WeakReference<CachedSourceGeneratorResult> s_cachedResult = new(null);
 
         protected abstract bool TryGetRelevantInput(in GeneratorExecutionContext context, out AdditionalText? input, out SourceText? inputText);
 
@@ -43,7 +46,7 @@ namespace CSharpSyntaxGenerator
             var currentChecksum = inputText.GetChecksum();
 
             // Read the current cached result once to avoid race conditions
-            if (s_cachedResult is { } cachedResult
+            if (s_cachedResult.TryGetTarget(out var cachedResult)
                 && cachedResult.Checksum.SequenceEqual(currentChecksum))
             {
                 AddSources(in context, sources: cachedResult.Sources, currentChecksum, CacheBehavior.None);
@@ -56,7 +59,7 @@ namespace CSharpSyntaxGenerator
             }
             else
             {
-                Volatile.Write(ref s_cachedResult, null);
+                s_cachedResult.SetTarget(null);
             }
 
             // Always report the diagnostics (if any)
@@ -83,13 +86,13 @@ namespace CSharpSyntaxGenerator
                     break;
 
                 case CacheBehavior.Clear:
-                    Volatile.Write(ref s_cachedResult, null);
+                    s_cachedResult.SetTarget(null);
                     break;
 
                 case CacheBehavior.Update:
                     // Overwrite the cached result with the new result. This is an opportunistic cache, so as long as
                     // the write is atomic (which it is for a single pointer) synchronization is unnecessary.
-                    Volatile.Write(ref s_cachedResult, new CachedSourceGeneratorResult(inputChecksum, sources));
+                    s_cachedResult.SetTarget(new CachedSourceGeneratorResult(inputChecksum, sources));
                     break;
 
                 default:
