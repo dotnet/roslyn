@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     if (candidate.Id.Equals(id))
                     {
-                        CSharpSyntaxNode syntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)candidate.Syntax);
+                        CSharpSyntaxNode syntax = applyParenthesizedOrNullSuppressionIfAnyCS((CSharpSyntaxNode)candidate.Syntax);
                         CSharpSyntaxNode parent = syntax;
 
                         do
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         {
                             case LanguageNames.CSharp:
                                 {
-                                    CSharpSyntaxNode syntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)candidate.Syntax);
+                                    CSharpSyntaxNode syntax = applyParenthesizedOrNullSuppressionIfAnyCS((CSharpSyntaxNode)candidate.Syntax);
                                     if (syntax.Parent is CSharp.Syntax.SwitchStatementSyntax switchStmt && switchStmt.Expression == syntax)
                                     {
                                         return true;
@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         {
                             case LanguageNames.CSharp:
                                 {
-                                    CSharpSyntaxNode syntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)candidate.Syntax);
+                                    CSharpSyntaxNode syntax = applyParenthesizedOrNullSuppressionIfAnyCS((CSharpSyntaxNode)candidate.Syntax);
                                     if (syntax.Parent is CSharp.Syntax.CommonForEachStatementSyntax forEach && forEach.Expression == syntax)
                                     {
                                         return true;
@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     case LanguageNames.CSharp:
                         {
-                            CSharpSyntaxNode syntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)captureReferenceSyntax);
+                            CSharpSyntaxNode syntax = applyParenthesizedOrNullSuppressionIfAnyCS((CSharpSyntaxNode)captureReferenceSyntax);
                             if (syntax.Parent is CSharp.Syntax.ConditionalAccessExpressionSyntax access &&
                                 access.Expression == syntax)
                             {
@@ -869,7 +869,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     return false;
                 }
 
-                CSharpSyntaxNode referenceSyntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)reference.Syntax);
+                CSharpSyntaxNode referenceSyntax = applyParenthesizedOrNullSuppressionIfAnyCS((CSharpSyntaxNode)reference.Syntax);
                 return referenceSyntax.Parent is AssignmentExpressionSyntax conditionalAccess &&
                        conditionalAccess.IsKind(CSharp.SyntaxKind.CoalesceAssignmentExpression) &&
                        conditionalAccess.Left == referenceSyntax;
@@ -889,8 +889,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         {
                             if (binOp.Syntax is CSharp.Syntax.BinaryExpressionSyntax binOpSyntax &&
                                 (binOpSyntax.Kind() == CSharp.SyntaxKind.LogicalAndExpression || binOpSyntax.Kind() == CSharp.SyntaxKind.LogicalOrExpression) &&
-                                binOpSyntax.Left == applyParenthesizedIfAnyCS((CSharpSyntaxNode)reference.Syntax) &&
-                                binOpSyntax.Right == applyParenthesizedIfAnyCS((CSharpSyntaxNode)binOp.RightOperand.Syntax))
+                                binOpSyntax.Left == applyParenthesizedOrNullSuppressionIfAnyCS((CSharpSyntaxNode)reference.Syntax) &&
+                                binOpSyntax.Right == applyParenthesizedOrNullSuppressionIfAnyCS((CSharpSyntaxNode)binOp.RightOperand.Syntax))
                             {
                                 return true;
                             }
@@ -981,7 +981,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     {
                         case LanguageNames.CSharp:
                             {
-                                CSharpSyntaxNode syntax = applyParenthesizedIfAnyCS((CSharpSyntaxNode)isNull.Operand.Syntax);
+                                CSharpSyntaxNode syntax = applyParenthesizedOrNullSuppressionIfAnyCS((CSharpSyntaxNode)isNull.Operand.Syntax);
                                 if (syntax.Parent is CSharp.Syntax.ConditionalAccessExpressionSyntax access &&
                                     access.Expression == syntax)
                                 {
@@ -1043,7 +1043,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                     break;
                             }
 
-                            syntax = applyParenthesizedIfAnyCS(syntax);
+                            syntax = applyParenthesizedOrNullSuppressionIfAnyCS(syntax);
 
                             if (syntax.Parent?.Parent is CSharp.Syntax.UsingStatementSyntax usingStmt &&
                                 usingStmt.Declaration == syntax.Parent)
@@ -1052,11 +1052,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             }
 
                             CSharpSyntaxNode parent = syntax.Parent;
-                            while (parent is PostfixUnaryExpressionSyntax { OperatorToken: { RawKind: (int)CSharp.SyntaxKind.ExclamationToken } })
-                            {
-                                syntax = parent;
-                                parent = parent.Parent;
-                            }
 
                             switch (parent?.Kind())
                             {
@@ -1200,9 +1195,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return false;
             }
 
-            CSharpSyntaxNode applyParenthesizedIfAnyCS(CSharpSyntaxNode syntax)
+            CSharpSyntaxNode applyParenthesizedOrNullSuppressionIfAnyCS(CSharpSyntaxNode syntax)
             {
-                while (syntax.Parent?.Kind() == CSharp.SyntaxKind.ParenthesizedExpression)
+                while (syntax.Parent is CSharp.Syntax.ParenthesizedExpressionSyntax or
+                                        PostfixUnaryExpressionSyntax { OperatorToken: { RawKind: (int)CSharp.SyntaxKind.ExclamationToken } })
                 {
                     syntax = syntax.Parent;
                 }
