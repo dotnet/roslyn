@@ -248,9 +248,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             // Always get and realise the classified spans, even if no expected spans are passed in, to at least validate that
             // exceptions aren't thrown
             var classifiedSpans = actualSignatureHelpItem.DocumentationFactory(CancellationToken.None).ToClassifiedSpans().ToList();
-            if (expectedTestItem.ClassificationTypeNames != null)
+            if (expectedTestItem.ClassificationTypeNames is { } classificationTypeNames)
             {
-                Assert.Equal(string.Join(", ", expectedTestItem.ClassificationTypeNames), string.Join(", ", classifiedSpans.Select(s => s.ClassificationType)));
+                Assert.Equal(string.Join(", ", classificationTypeNames), string.Join(", ", classifiedSpans.Select(s => s.ClassificationType)));
             }
         }
 

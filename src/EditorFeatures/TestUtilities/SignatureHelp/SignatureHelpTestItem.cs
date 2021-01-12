@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         /// <summary>
         /// The classification spans for the method documentation
         /// </summary>
-        public readonly IEnumerable<string>? ClassificationTypeNames;
+        public readonly ImmutableArray<string>? ClassificationTypeNames;
 
         public SignatureHelpTestItem(
             string? signature,
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             string? description = null,
             string? prettyPrintedSignature = null,
             bool isSelected = false,
-            IEnumerable<string>? classificationTypeNames = null)
+            ImmutableArray<string>? classificationTypeNames = null)
         {
             this.Signature = signature;
             this.MethodDocumentation = methodDocumentation;
