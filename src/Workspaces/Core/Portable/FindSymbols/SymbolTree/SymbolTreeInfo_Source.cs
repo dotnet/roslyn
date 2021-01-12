@@ -131,10 +131,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 lookup(globalNamespace, symbolMap);
 
-                foreach (var kvp in symbolMap)
-                {
-                    GenerateSourceNodes(kvp.Key, 0 /*index of root node*/, kvp.Value, list, lookup);
-                }
+                foreach (var (name, symbols) in symbolMap)
+                    GenerateSourceNodes(name, 0 /*index of root node*/, symbols, list, lookup);
             }
             finally
             {
@@ -166,10 +164,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     lookup(symbol, symbolMap);
                 }
 
-                foreach (var kvp in symbolMap)
-                {
-                    GenerateSourceNodes(kvp.Key, nodeIndex, kvp.Value, list, lookup);
-                }
+                foreach (var (symbolName, symbols) in symbolMap)
+                    GenerateSourceNodes(symbolName, nodeIndex, symbols, list, lookup);
             }
             finally
             {
