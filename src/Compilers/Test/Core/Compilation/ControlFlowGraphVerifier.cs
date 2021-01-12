@@ -1615,7 +1615,7 @@ endRegion:
                     switch (node)
                     {
                         case ILocalReferenceOperation localReference:
-                            if (localReference.Local.ContainingSymbol.IsTopLevelMainMethod() && !associatedSymbol.IsTopLevelMainMethod())
+                            if (localReference.Local.ContainingSymbol.IsTopLevelMainMethod() && !isInAssociatedSymbol(localReference.Local.ContainingSymbol, associatedSymbol))
                             {
                                 // Top-level locals can be referenced from locations in the same file that are not actually the top
                                 // level main. For these cases, we want to treat them like fields for the purposes of references,
@@ -1629,7 +1629,7 @@ endRegion:
                             method = methodReference.Method;
                             if (method.MethodKind == MethodKind.LocalFunction)
                             {
-                                if (method.ContainingSymbol.IsTopLevelMainMethod() && !associatedSymbol.IsTopLevelMainMethod())
+                                if (method.ContainingSymbol.IsTopLevelMainMethod() && !isInAssociatedSymbol(method.ContainingSymbol, associatedSymbol))
                                 {
                                     // Top-level local functions can be referenced from locations in the same file that are not actually the top
                                     // level main. For these cases, we want to treat them like class methods for the purposes of references,
@@ -1662,6 +1662,21 @@ endRegion:
                             referencedCaptureIds.Add(flowCaptureReference.Id);
                             break;
                     }
+                }
+
+                static bool isInAssociatedSymbol(ISymbol symbol, ISymbol associatedSymbol)
+                {
+                    while (symbol is IMethodSymbol m)
+                    {
+                        if ((object)m == associatedSymbol)
+                        {
+                            return true;
+                        }
+
+                        symbol = m.ContainingSymbol;
+                    }
+
+                    return false;
                 }
             }
 
@@ -1869,5 +1884,21 @@ endRegion:
             Assert.True(false, $"Unhandled node kind OperationKind.{n.Kind}");
             return false;
         }
+
+#nullable enable
+        private static bool IsTopLevelMainMethod([NotNullWhen(true)] this ISymbol? symbol)
+            => symbol is IMethodSymbol
+            {
+                Name: WellKnownMemberNames.TopLevelStatementsEntryPointMethodName,
+                ContainingType: { } containingType
+            } && containingType.IsTopLevelMainType();
+
+        private static bool IsTopLevelMainType([NotNullWhen(true)] this ISymbol? symbol)
+            => symbol is INamedTypeSymbol 
+            {
+                Name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
+                ContainingType: null,
+                ContainingNamespace: { IsGlobalNamespace: true }
+            };
     }
 }

@@ -117,20 +117,5 @@ namespace Microsoft.CodeAnalysis
 
             return false;
         }
-
-        internal static bool IsTopLevelMainMethod([NotNullWhen(true)] this ISymbol? symbol)
-            => symbol is IMethodSymbol
-            {
-                Name: WellKnownMemberNames.TopLevelStatementsEntryPointMethodName,
-                ContainingType: { } containingType
-            } && containingType.IsTopLevelMainType();
-
-        internal static bool IsTopLevelMainType([NotNullWhen(true)] this ISymbol? symbol)
-            => symbol is INamedTypeSymbol 
-            {
-                Name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
-                ContainingType: null,
-                ContainingNamespace: { IsGlobalNamespace: true }
-            };
     }
 }
