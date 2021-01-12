@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -47,6 +48,9 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
 
         private void Recurse(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode node, CancellationToken cancellationToken)
         {
+            if (node.ContainsDiagnostics && node.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                return;
+
             if (IsBlockStatement(node))
                 ProcessBlockStatement(context, severity, node);
 
@@ -60,11 +64,7 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
         private void ProcessBlockStatement(SyntaxTreeAnalysisContext context, ReportDiagnostic severity, SyntaxNode block)
         {
             // Don't examine broken blocks.
-            var endNodeOrToken = block.ChildNodesAndTokens().Last();
-            if (!endNodeOrToken.IsToken)
-                return;
-
-            var endToken = endNodeOrToken.AsToken();
+            var endToken = block.GetLastToken();
             if (endToken.IsMissing)
                 return;
 

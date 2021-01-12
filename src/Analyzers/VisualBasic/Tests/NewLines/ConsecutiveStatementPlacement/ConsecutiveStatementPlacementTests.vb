@@ -351,6 +351,66 @@ end class")
         End Function
 
         <Fact>
+        Public Async Function TestAfterDo1() As Task
+            Await TestWithOptionOn("
+class C
+    sub M()
+        do
+        [|loop|]
+        return
+    end sub
+end class", "
+class C
+    sub M()
+        do
+        loop
+
+        return
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function TestAfterDo2() As Task
+            Await TestWithOptionOn("
+class C
+    sub M()
+        do
+        [|loop while true|]
+        return
+    end sub
+end class", "
+class C
+    sub M()
+        do
+        loop while true
+
+        return
+    end sub
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function TestAfterDo3() As Task
+            Await TestWithOptionOn("
+class C
+    sub M()
+        do
+        [|loop until true|]
+        return
+    end sub
+end class", "
+class C
+    sub M()
+        do
+        loop until true
+
+        return
+    end sub
+end class")
+        End Function
+
+        <Fact>
         Public Async Function TestIfFollowedByIf() As Task
             Await TestWithOptionOn("
 class C

@@ -38,7 +38,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.NewLines.ConsecutiveStatementPlacem
         End Function
 
         Protected Overrides Function IsBlockStatement(node As SyntaxNode) As Boolean
-            Return TypeOf node Is EndBlockStatementSyntax OrElse TypeOf node Is NextStatementSyntax
+            Return TypeOf node Is EndBlockStatementSyntax OrElse
+                   TypeOf node Is NextStatementSyntax OrElse
+                   TypeOf node Is LoopStatementSyntax
         End Function
 
         Protected Overrides Function GetDiagnosticLocation(block As SyntaxNode) As Location
