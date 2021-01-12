@@ -1196,6 +1196,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
+                while (receiver is BoundConversion boundConversion)
+                {
+                    var conversion = boundConversion.Conversion;
+                    if (!(conversion.IsIdentity || conversion.IsReference))
+                    {
+                        return false;
+                    }
+
+                    receiver = boundConversion.Operand;
+                }
+
                 // bad: other.InitOnlyProperty = ...
                 if (!(receiver is BoundThisReference || receiver is BoundBaseReference))
                 {

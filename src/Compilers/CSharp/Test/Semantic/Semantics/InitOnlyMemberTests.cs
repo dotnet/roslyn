@@ -1660,6 +1660,60 @@ class Derived2 : Derived
                 );
         }
 
+        [Fact, WorkItem(50053, "https://github.com/dotnet/roslyn/issues/50053")]
+        public void PrivatelyImplementingInitOnlyProperty_ReferenceConversion()
+        {
+            string source = @"
+var x = new DerivedType() { SomethingElse = 42 };
+System.Console.Write(x.SomethingElse);
+
+public interface ISomething { int Property { get; init; } }
+public record BaseType : ISomething { int ISomething.Property { get; init; } }
+
+public record DerivedType : BaseType
+{
+    public int SomethingElse
+    {
+        get => ((ISomething)this).Property;
+        init => ((ISomething)this).Property = value;
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            // [ : BaseType::ISomething.set_Property] Cannot change initonly field outside its .ctor.
+            CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped);
+        }
+
+        [Fact, WorkItem(50053, "https://github.com/dotnet/roslyn/issues/50053")]
+        public void PrivatelyImplementingInitOnlyProperty_BoxingConversion()
+        {
+            string source = @"
+var x = new Type() { SomethingElse = 42 };
+
+public interface ISomething { int Property { get; init; } }
+
+public struct Type : ISomething
+{
+    int ISomething.Property { get; init; }
+
+    public int SomethingElse
+    {
+        get => throw null;
+        init => ((ISomething)this).Property = value;
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (13,17): error CS8852: Init-only property or indexer 'ISomething.Property' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
+                //         init => ((ISomething)this).Property = value;
+                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "((ISomething)this).Property").WithArguments("ISomething.Property").WithLocation(13, 17)
+                );
+        }
+
         [Fact]
         public void OverridingInitOnlyProperty()
         {
