@@ -2,15 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -33,6 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             _threadingContext = threadingContext;
             _streamingPresenter = streamingPresenter;
         }
+
+        async Task<IEnumerable<INavigableItem>> IGoToDefinitionService.FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
+            => await FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
 
         public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
         {

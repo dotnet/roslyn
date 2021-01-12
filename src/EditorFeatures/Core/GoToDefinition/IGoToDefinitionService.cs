@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor
     {
         /// <inheritdoc cref="CodeAnalysis.GoToDefinition.IFindDefinitionService.FindDefinitionsAsync(Document, int, CancellationToken)"/>
         // Keep changes to this method in sync with CodeAnalysis.GoToDefinition.IFindDefinitionService
+        // Obsoletion is tracked with https://github.com/dotnet/roslyn/issues/50391
         Task<IEnumerable<INavigableItem>?> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken);
 
         /// <summary>

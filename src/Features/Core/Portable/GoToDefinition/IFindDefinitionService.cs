@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -15,6 +15,6 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
         /// <summary>
         /// Finds the definitions for the symbol at the specific position in the document.
         /// </summary>
-        Task<IEnumerable<INavigableItem>?> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken);
+        Task<ImmutableArray<INavigableItem>> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken);
     }
 }
