@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 context.SemanticModel, position, context.Workspace, options, cancellationToken);
         }
 
-        protected override async Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, Lazy<ImmutableArray<ITypeSymbol>> inferredTypes, OptionSet options)
+        protected override async Task<bool> ShouldProvidePreselectedItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, Document document, int position, OptionSet options)
         {
             if (ShouldTriggerInArgumentLists(options))
             {
@@ -118,8 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // don't want to trigger after a number.  All other cases after dot are ok.
-            var tree = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = tree.FindToken(characterPosition);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(characterPosition);
             if (token.Kind() == SyntaxKind.DotToken)
             {
                 token = token.GetPreviousToken();
@@ -137,8 +137,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return null;
             }
 
-            var tree = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = tree.FindToken(characterPosition);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(characterPosition);
 
             if (!token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier))
             {
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             List<ISymbol> symbols,
             SyntaxContext context,
             bool preselect,
-            SupportedPlatformData supportedPlatformData)
+            SupportedPlatformData? supportedPlatformData)
         {
             var item = base.CreateItem(
                 completionContext,

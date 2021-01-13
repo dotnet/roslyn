@@ -1809,6 +1809,20 @@ public class C { } // end").Members[0];
 }");
         }
 
+        [Fact]
+        public void TestEnumDeclarationFromSymbol()
+        {
+            VerifySyntax<EnumDeclarationSyntax>(
+                    Generator.Declaration(
+                        _emptyCompilation.GetTypeByMetadataName("System.DateTimeKind")),
+@"public enum DateTimeKind
+{
+    Unspecified = 0,
+    Utc = 1,
+    Local = 2
+}");
+        }
+
         #endregion
 
         #region Add/Insert/Remove/Get declarations & members/elements

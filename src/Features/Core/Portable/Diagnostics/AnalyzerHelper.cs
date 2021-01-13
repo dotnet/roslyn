@@ -424,6 +424,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
                             }
                         }
+
                         break;
                     case LocationKind.ExternalFile:
                         {
@@ -446,6 +447,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, filePath), "diagnostic");
                             }
                         }
+
                         break;
                     default:
                         throw ExceptionUtilities.Unreachable;

@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             void UpdateTrackedDocument(Uri documentUri, SourceText text);
             void StopTracking(Uri documentUri);
             bool IsTracking(Uri documentUri);
+            IEnumerable<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments();
         }
 
         private class NonMutatingDocumentChangeTracker : IDocumentChangeTracker
@@ -31,6 +32,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 _tracker = tracker;
             }
+
+            public IEnumerable<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments()
+                => _tracker.GetTrackedDocuments();
 
             public bool IsTracking(Uri documentUri)
                 => _tracker.IsTracking(documentUri);
@@ -86,7 +90,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _trackedDocuments.Remove(documentUri);
             }
 
-            internal IEnumerable<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments()
+            public IEnumerable<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments()
                 => _trackedDocuments.Select(k => (k.Key, k.Value));
         }
 

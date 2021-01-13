@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.AddAwait
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.AddAwait), [Shared]>
     Friend Class VisualBasicAddAwaitCodeRefactoringProvider
-        Inherits AbstractAddAwaitCodeRefactoringProvider(Of InvocationExpressionSyntax)
+        Inherits AbstractAddAwaitCodeRefactoringProvider(Of ExpressionSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -24,6 +24,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.AddAwait
 
         Protected Overrides Function GetTitleWithConfigureAwait() As String
             Return VBFeaturesResources.Add_Await_and_ConfigureAwaitFalse
+        End Function
+
+        Protected Overrides Function IsInAsyncContext(node As SyntaxNode) As Boolean
+            For Each current In node.Ancestors()
+                Select Case current.Kind
+                    Case SyntaxKind.MultiLineFunctionLambdaExpression,
+                         SyntaxKind.MultiLineSubLambdaExpression,
+                         SyntaxKind.SingleLineFunctionLambdaExpression,
+                         SyntaxKind.SingleLineSubLambdaExpression
+                        Return DirectCast(current, LambdaExpressionSyntax).SubOrFunctionHeader.Modifiers.Any(SyntaxKind.AsyncKeyword)
+                    Case SyntaxKind.SubBlock,
+                         SyntaxKind.FunctionBlock
+                        Return DirectCast(current, MethodBlockBaseSyntax).BlockStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
+                End Select
+            Next
+
+            Return False
         End Function
     End Class
 End Namespace
