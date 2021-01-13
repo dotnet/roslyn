@@ -24,6 +24,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void DangerousTest()
+        {
+            stackOverflow();
+            void stackOverflow()
+            {
+                stackOverflow();
+            }
+        }
+
+        [Fact]
         public void TextIsCompleteSubmission()
         {
             Assert.Throws<ArgumentNullException>(() => SyntaxFactory.IsCompleteSubmission(null));
