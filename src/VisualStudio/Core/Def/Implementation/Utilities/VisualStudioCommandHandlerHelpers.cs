@@ -76,27 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             return false;
         }
 
-        public static bool IsBuildActive(IServiceProvider? serviceProvider)
-        {
-            // Using KnownUIContexts is faster in case when SBM's package was not loaded yet
-            if (KnownUIContexts.SolutionBuildingContext != null)
-            {
-                return KnownUIContexts.SolutionBuildingContext.IsActive;
-            }
-            else
-            {
-                // Unlikely case that above service is not available, let's try Solution Build Manager
-                if (serviceProvider?.GetService(typeof(SVsSolutionBuildManager)) is IVsSolutionBuildManager buildManager)
-                {
-                    buildManager.QueryBuildManagerBusy(out var buildBusy);
-                    return buildBusy != 0;
-                }
-                else
-                {
-                    Debug.Fail("Unable to determine whether build is active or not");
-                    return true;
-                }
-            }
-        }
+        public static bool IsBuildActive(IServiceProvider? serviceProvider) 
+            => KnownUIContexts.SolutionBuildingContext.IsActive;
     }
 }
