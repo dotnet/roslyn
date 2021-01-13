@@ -286,11 +286,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override string GetInsertionText(CompletionItem item, char ch)
         {
-            if (ch == ';' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
+            if (ch is ';' or '.' && SymbolCompletionItem.GetShouldProvideParenthesisCompletion(item))
             {
-                CompletionProvidersLogger.LogCommitUsingSemicolonToAddParenthesis();
-                var insertionText = SymbolCompletionItem.GetInsertionText(item);
-                return insertionText + "()";
+                CompletionProvidersLogger.LogCustomizedCommitToAddParenthesis(ch);
+                return SymbolCompletionItem.GetInsertionText(item) + "()";
             }
 
             return base.GetInsertionText(item, ch);
