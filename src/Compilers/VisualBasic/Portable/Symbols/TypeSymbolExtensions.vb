@@ -1321,6 +1321,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return New Cci.TypeReferenceWithAttributes(typeRef)
         End Function
+
+        <Extension>
+        Friend Function IsWellKnownTypeIsExternalInit(typeSymbol As TypeSymbol) As Boolean
+            Return typeSymbol.IsWellKnownCompilerServicesTopLevelType("IsExternalInit")
+        End Function
+
+        <Extension>
+        Private Function IsWellKnownCompilerServicesTopLevelType(typeSymbol As TypeSymbol, name As String) As Boolean
+            If Not String.Equals(typeSymbol.Name, name) Then
+                Return False
+            End If
+
+            Return IsCompilerServicesTopLevelType(typeSymbol)
+        End Function
+
+        <Extension>
+        Friend Function IsCompilerServicesTopLevelType(typeSymbol As TypeSymbol) As Boolean
+            Return typeSymbol.ContainingType Is Nothing AndAlso IsContainedInNamespace(typeSymbol, "System", "Runtime", "CompilerServices")
+        End Function
+
+        <Extension>
+        Private Function IsContainedInNamespace(typeSymbol As TypeSymbol, outerNS As String, midNS As String, innerNS As String) As Boolean
+            Dim innerNamespace = typeSymbol.ContainingNamespace
+            If Not String.Equals(innerNamespace?.Name, innerNS) Then
+                Return False
+            End If
+
+            Dim midNamespace = innerNamespace.ContainingNamespace
+            If Not String.Equals(midNamespace?.Name, midNS) Then
+                Return False
+            End If
+
+            Dim outerNamespace = midNamespace.ContainingNamespace
+            If Not String.Equals(outerNamespace?.Name, outerNS) Then
+                Return False
+            End If
+
+            Dim globalNamespace = outerNamespace.ContainingNamespace
+            Return globalNamespace IsNot Nothing AndAlso globalNamespace.IsGlobalNamespace
+        End Function
     End Module
 
 End Namespace

@@ -144,13 +144,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Indicates if the property can be written into, which means this 
         ''' property has a setter or it is a getter only autoproperty accessed 
-        ''' in a corresponding constructor or initializer
+        ''' in a corresponding constructor or initializer.
+        ''' If the setter is init-only, we also check that it is accessed in a constructor
+        ''' on Me/MyBase/MyClass or is a target of a member initializer in an object member
+        ''' initializer.
         ''' </summary>
-        Friend Function IsWritable(receiverOpt As BoundExpression, containingBinder As Binder) As Boolean
+        Friend Function IsWritable(receiverOpt As BoundExpression, containingBinder As Binder, isKnownTargetOfObjectMemberInintializer As Boolean) As Boolean
             Debug.Assert(containingBinder IsNot Nothing)
 
-            If Me.HasSet Then
-                Return True
+            Dim mostDerivedSet As MethodSymbol = Me.GetMostDerivedSetMethod()
+
+            If mostDerivedSet IsNot Nothing Then
+                If Not mostDerivedSet.IsInitOnly Then
+                    Return True
+                End If
+
+                If receiverOpt Is Nothing Then
+                    Return False
+                End If
+
+                ' ok: New C() With { .InitOnlyProperty = ... }
+                If isKnownTargetOfObjectMemberInintializer Then
+                    Debug.Assert(receiverOpt.Kind = BoundKind.WithLValueExpressionPlaceholder)
+                    Return True
+                End If
+
+                ' ok: setting on `Me`/`MyBase`/`MyClass` from an instance constructor
+                Dim containingMember As Symbol = containingBinder.ContainingMember
+                If If(TryCast(containingMember, MethodSymbol)?.MethodKind <> MethodKind.Constructor, True) Then
+                    Return False
+                End If
+
+                Select Case receiverOpt.Kind
+                    Case BoundKind.WithLValueExpressionPlaceholder
+                        ' This can be a `Me` reference used as a target for a `With` statement
+                        Dim currentBinder As Binder = containingBinder
+
+                        While currentBinder IsNot Nothing AndAlso currentBinder.ContainingMember Is containingMember
+                            Dim withBlockBinder = TryCast(currentBinder, WithBlockBinder)
+                            If withBlockBinder IsNot Nothing Then
+                                Return withBlockBinder.Info?.ExpressionPlaceholder Is receiverOpt AndAlso
+                                       withBlockBinder.Info.OriginalExpression.Kind = BoundKind.MeReference
+                            End If
+
+                            currentBinder = currentBinder.ContainingBinder
+                        End While
+
+                        Return False
+
+                    Case BoundKind.MeReference, BoundKind.MyBaseReference, BoundKind.MyClassReference
+                        Return True
+                    Case Else
+                        Return False
+                End Select
             End If
 
             Dim sourceProperty As SourcePropertySymbol = TryCast(Me, SourcePropertySymbol)

@@ -5611,4 +5611,16 @@
   <data name="WRN_AnalyzerReferencesFramework_Title" xml:space="preserve">
     <value>The loaded assembly references .NET Framework, which is not supported.</value>
   </data>
+  <data name="FEATURE_InitOnlySettersUsage" xml:space="preserve">
+    <value>assigning to or passing 'ByRef' properties with init-only setters</value>
+  </data>
+  <data name="ERR_AssignmentInitOnly" xml:space="preserve">
+    <value>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</value>
+  </data>
+  <data name="ERR_OverridingInitOnlyProperty" xml:space="preserve">
+    <value>'{0}' cannot override init-only '{1}'.</value>
+  </data>
+  <data name="ERR_PropertyDoesntImplementInitOnly" xml:space="preserve">
+    <value>Init-only '{0}' cannot be implemented.</value>
+  </data>
 </root>

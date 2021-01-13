@@ -933,7 +933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check return type, custom modifiers, parameters
             if (DeriveUseSiteDiagnosticFromType(ref result, this.ReturnTypeWithAnnotations,
-                                                MethodKind == MethodKind.PropertySet ?
+                                                IsInitOnly ?
                                                     AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit :
                                                     AllowedRequiredModifierType.None) ||
                 DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.RefCustomModifiers, AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) ||
