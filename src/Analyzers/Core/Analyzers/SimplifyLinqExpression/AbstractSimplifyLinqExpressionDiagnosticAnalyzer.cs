@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 context => AnalyzeInvocationOperation(context, whereMethodSymbol, linqMethodSymbols),
                 OperationKind.Invocation);
 
+            return;
+
             static bool TryGetEnumerableTypeSymbol(Compilation compilation, [NotNullWhen(true)] out INamedTypeSymbol? enumerableType)
             {
                 enumerableType = compilation.GetTypeByMetadataName(typeof(Enumerable)?.FullName!);
