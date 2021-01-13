@@ -94,14 +94,14 @@ namespace Text.Analyzers.UnitTests
         [Fact]
         public async Task CorrectWordDisallowedByGlobalXmlDictionary_Verify_EmitsDiagnostic()
         {
-            var source = "class Program { }";
+            var source = "class {|#0:Program|} { }";
             var dictionary = CreateXmlDictionary(null, new[] { "program" });
 
             await VerifyCSharpAsync(
                 source,
                 dictionary,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeRule)
-                    .WithLocation(1, 7)
+                    .WithLocation(0)
                     .WithArguments("Program", "Program"));
         }
 
@@ -117,14 +117,14 @@ namespace Text.Analyzers.UnitTests
         [Fact(Skip = "Adding additional files to specific projects is not yet supported")]
         public async Task MisspellingAllowedByDifferentProjectDictionary_Verify_EmitsDiagnostic()
         {
-            var source = "class Clazz {}";
+            var source = "class {|#0:Clazz|} {}";
             var dictionary = CreateDicDictionary(new[] { "clazz" });
 
             await VerifyCSharpAsync(
                 source,
                 dictionary,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeRule)
-                    .WithLocation(1, 7)
+                    .WithLocation(0)
                     .WithArguments("Clazz", "Clazz"));
         }
 
@@ -153,24 +153,24 @@ namespace Text.Analyzers.UnitTests
         [Fact]
         public async Task NamespaceMisspelled_Verify_EmitsDiagnostic()
         {
-            var source = "namespace Tests.MyNarmspace {}";
+            var source = "namespace Tests.{|#0:MyNarmspace|} {}";
 
             await VerifyCSharpAsync(
                 source,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.NamespaceRule)
-                    .WithLocation(1, 17)
+                    .WithLocation(0)
                     .WithArguments("Narmspace", "Tests.MyNarmspace"));
         }
 
         [Fact]
         public async Task NamespaceUnmeaningful_Verify_EmitsDiagnostic()
         {
-            var source = "namespace Tests.A {}";
+            var source = "namespace Tests.{|#0:A|} {}";
 
             await VerifyCSharpAsync(
                 source,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.NamespaceMoreMeaningfulNameRule)
-                    .WithLocation(1, 17)
+                    .WithLocation(0)
                     .WithArguments("A"));
         }
 
