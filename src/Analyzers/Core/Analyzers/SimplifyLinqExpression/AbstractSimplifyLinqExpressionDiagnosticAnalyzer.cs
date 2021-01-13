@@ -103,14 +103,8 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                     linqMethodSymbolsBuilder.AddRange(methodSymbol);
                 }
 
-                if (linqMethodSymbolsBuilder.Count == 0)
-                {
-                    linqMethods = default;
-                    return false;
-                }
-
                 linqMethods = linqMethodSymbolsBuilder.ToImmutable();
-                return true;
+                return linqMethods.Any();
             }
         }
 

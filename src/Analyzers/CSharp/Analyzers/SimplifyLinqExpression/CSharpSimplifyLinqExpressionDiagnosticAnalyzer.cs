@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.SimplifyLinqExpression;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
 {
@@ -34,24 +35,24 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
 
         protected override Location? TryGetArgumentListLocation(ImmutableArray<IArgumentOperation> arguments)
         {
-            var list = new List<ArgumentListSyntax>();
+            using var _ = ArrayBuilder<ArgumentListSyntax>.GetInstance(out var argumentLists);
             foreach (var argument in arguments)
             {
                 if (argument.Syntax is ArgumentSyntax argumentNode &&
                     argumentNode.Parent is ArgumentListSyntax argumentList)
                 {
-                    list.Add(argumentList);
+                    argumentLists.Add(argumentList);
                 }
             }
 
             // verify that all these arguments come from the same sytax list
-            if (!list.Any() ||
-                !list.TrueForAll(argList => argList == list[0]))
+            if (!argumentLists.Any() ||
+                !argumentLists.All(argList => argList == argumentLists[0]))
             {
                 return null;
             }
 
-            return list[0].GetLocation();
+            return argumentLists[0].GetLocation();
         }
     }
 }
