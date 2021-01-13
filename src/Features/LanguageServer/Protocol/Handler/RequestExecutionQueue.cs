@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private async Task ProcessSingleWorkItemAsync(QueueItem work, int requestId)
         {
-            var logIdName = $"{work.ClientName ?? "Default"}.{requestId++:00000000}.{work.MethodName}.{DateTime.Now:yyyy-MM-dd-HH-mm-ss}";
+            var logIdName = $"{_serverName}.{work.ClientName ?? "Default"}.{requestId++:00000000}.{work.MethodName}.{DateTime.Now:yyyy-MM-dd-HH-mm-ss}";
             var traceSource = _logger == null ? null : await _logger.CreateTraceSourceAsync(logIdName, _cancelSource.Token).ConfigureAwait(false);
 
             try
