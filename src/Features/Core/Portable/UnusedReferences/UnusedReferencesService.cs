@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
     [ExportWorkspaceService(typeof(IUnusedReferencesService), ServiceLayer.Default), Shared]
     internal class UnusedReferencesService : IUnusedReferencesService
     {
-        // We set this processing order because we want to favor transitive references when possible.
-        // For instance we process Projects before Packages, since a particular Package could be brought
-        // in transitively by a Project reference.
+        // This is the order that we look for used references. We set this processing order because we
+        // want to favor transitive references when possible. For instance we process Projects before
+        // Packages, since a particular Package could be brought in transitively by a Project reference.
         private static readonly ReferenceType[] _processingOrder = new[]
         {
             ReferenceType.Project,
