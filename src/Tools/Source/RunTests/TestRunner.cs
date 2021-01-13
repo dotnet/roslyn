@@ -47,8 +47,8 @@ namespace RunTests
             var sourceBranch = Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCH");
             if (sourceBranch is null)
             {
-                ConsoleUtil.WriteLine("BUILD_SOURCEBRANCH is not set");
                 sourceBranch = "local";
+                ConsoleUtil.WriteLine($@"BUILD_SOURCEBRANCH environment variable was not set. Using source branch ""{sourceBranch}"" instead");
                 Environment.SetEnvironmentVariable("BUILD_SOURCEBRANCH", sourceBranch);
             }
 
@@ -60,6 +60,15 @@ namespace RunTests
                 msbuildTestPayloadRoot = "$(RepoRoot)artifacts/testPayload";
             }
             var correlationPayload = $@"<HelixCorrelationPayload Include=""{msbuildTestPayloadRoot}/.duplicate"" />";
+
+            // TODO: it's possible we should be using the BUILD_SOURCEVERSIONAUTHOR instead here a la https://github.com/dotnet/arcade/blob/master/src/Microsoft.DotNet.Helix/Sdk/tools/xharness-runner/Readme.md#how-to-use
+            // however that variable isn't documented at https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml
+            var queuedBy = Environment.GetEnvironmentVariable("BUILD_QUEUEDBY");
+            if (queuedBy is null)
+            {
+                queuedBy = "roslyn";
+                ConsoleUtil.WriteLine($@"BUILD_QUEUEDBY environment variable was not set. Using value ""{queuedBy}"" instead");
+            }
 
             if (Environment.GetEnvironmentVariable("BUILD_REPOSITORY_NAME") is null)
                 Environment.SetEnvironmentVariable("BUILD_REPOSITORY_NAME", "dotnet/roslyn");
@@ -79,7 +88,7 @@ namespace RunTests
         <HelixType>test</HelixType>
         <HelixBuild>" + buildNumber + @"</HelixBuild>
         <HelixTargetQueues>" + _options.HelixQueueName + @"</HelixTargetQueues>
-        <Creator>rigibson</Creator>
+        <Creator>" + queuedBy + @"</Creator>
         <IncludeDotNetCli>true</IncludeDotNetCli>
         <DotNetCliPackageType>sdk</DotNetCliPackageType>
         <EnableAzurePipelinesReporter>" + (isAzureDevOpsRun ? "true" : "false") + @"</EnableAzurePipelinesReporter>
