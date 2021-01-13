@@ -107,56 +107,55 @@ $@"namespace B.C
                 fixedCode: expectedSourceOriginal);
         }
 
-        //        [Fact]
-        //        public async Task ChangeNamespace_SingleDocumentLocalReference()
-        //        {
-        //            var defaultNamespace = "A";
-        //            var declaredNamespace = "Foo.Bar";
+        [Fact]
+        public async Task ChangeNamespace_SingleDocumentLocalReference()
+        {
+            var @namespace = "Bar.Baz";
 
-        //            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-        //            var code =
-        //$@"
-        //<Workspace>
-        //    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        //        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-        //namespace [||]{declaredNamespace}
-        //{{
-        //    delegate void D1;
+            var folder = CreateFolderPath("A", "B", "C");
+            var code =
+$@"
+namespace [|{@namespace}|]
+{{
+    delegate void D1();
 
-        //    interface Class1
-        //    {{
-        //        void M1();
-        //    }}
+    interface Class1
+    {{
+        void M1();
+    }}
 
-        //    class Class2 : {declaredNamespace}.Class1
-        //    {{
-        //        {declaredNamespace}.D1 d;  
+    class Class2 : {@namespace}.Class1
+    {{
+        {@namespace}.D1 d;  
 
-        //        void {declaredNamespace}.Class1.M1(){{}}
-        //    }}
-        //}}</Document>
-        //    </Project>
-        //</Workspace>";
+        void {@namespace}.Class1.M1(){{}}
+    }}
+}}";
 
-        //            var expectedSourceOriginal =
-        //@"namespace A.B.C
-        //{
-        //    delegate void D1;
+            var expected =
+@"namespace A.B.C
+{
+    delegate void D1();
 
-        //    interface Class1
-        //    {
-        //        void M1();
-        //    }
+    interface Class1
+    {
+        void M1();
+    }
 
-        //    class Class2 : Class1
-        //    {
-        //        D1 d;
+    class Class2 : Class1
+    {
+        D1 d;
 
-        //        void Class1.M1() { }
-        //    }
-        //}";
-        //            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
-        //        }
+        void Class1.M1() { }
+    }
+}";
+
+            await RunTestAsync(
+                "Class1.cs",
+                code,
+                folder,
+                fixedCode: expected);
+        }
 
         //        [Fact]
         //        public async Task ChangeNamespace_WithCrefReference()
