@@ -131,6 +131,7 @@ namespace RunTests
                 " + lsCommand + @"
                 " + rehydrateCommand + @"
                 " + lsCommand + @"
+                dotnet --version
                 dotnet " + commandLineArguments + @"
             </Command>
             <Timeout>00:15:00</Timeout>
