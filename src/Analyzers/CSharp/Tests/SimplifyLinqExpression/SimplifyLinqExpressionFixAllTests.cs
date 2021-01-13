@@ -3,18 +3,25 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpression
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        CSharpSimplifyLinqExpressionDiagnosticAnalyzer,
+        CSharpSimplifyLinqExpressionCodeFixProvider>;
+
     public partial class SimplifyLinqExpressionTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task FixAllInDocument()
         {
-            await TestInRegularAndScriptAsync(
-@"
+            await new VerifyCS.Test
+            {
+                TestCode = @"
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -24,14 +31,14 @@ class C
     static void M()
     {
         IEnumerable<string> test = new List<string> { ""hello"", ""world"", ""!"" };
-        var test1 = {|FixAllInDocument:test.Where(x => x.Equals('!')).Any()|};
-        var test2 = test.Where(x => x.Equals('!')).SingleOrDefault();
-        var test3 = test.Where(x => x.Equals('!')).Last();
-        var test4 = test.Where(x => x.Equals('!')).Count();
-        var test5 = test.Where(x => x.Equals('!')).FirstOrDefault();
+        var test1 = [|test.Where(x => x.Equals('!')).Any()|];
+        var test2 = [|test.Where(x => x.Equals('!')).SingleOrDefault()|];
+        var test3 = [|test.Where(x => x.Equals('!')).Last()|];
+        var test4 = [|test.Where(x => x.Equals('!')).Count()|];
+        var test5 = [|test.Where(x => x.Equals('!')).FirstOrDefault()|];
     }
 }",
-@"
+                FixedCode = @"
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -47,14 +54,17 @@ class C
         var test4 = test.Count(x => x.Equals('!'));
         var test5 = test.FirstOrDefault(x => x.Equals('!'));
     }
-}");
+}",
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task NestedInDocument()
         {
-            await TestInRegularAndScriptAsync(
-@"
+
+            await new VerifyCS.Test
+            {
+                TestCode = @"
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -64,14 +74,14 @@ class C
     static void M()
     {
         var test = new List<string> { ""hello"", ""world"", ""!"" };
-        var test1 = {|FixAllInDocument:test.Where(x => x.Equals('!')).Any()|};
-        var test2 = test.Where(x => x.Equals('!')).SingleOrDefault();
-        var test3 = test.Where(x => x.Equals('!')).Last();
-        var test4 = test.Where(x => x.Equals('!')).Count();
-        var test5 = test.Where(a => a.Where(s => s.Equals(""hello"")).FirstOrDefault().Equals(""hello"")).FirstOrDefault();
+        var test1 = [|test.Where(x => x.Equals('!')).Any()|];
+        var test2 = [|test.Where(x => x.Equals('!')).SingleOrDefault()|];
+        var test3 = [|test.Where(x => x.Equals('!')).Last()|];
+        var test4 = [|test.Where(x => x.Equals('!')).Count()|];
+        var test5 = [|test.Where(a => [|a.Where(s => s.Equals(""hello"")).FirstOrDefault()|].Equals(""hello"")).FirstOrDefault()|];
     }
 }",
-@"
+                FixedCode = @"
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -87,7 +97,8 @@ class C
         var test4 = test.Count(x => x.Equals('!'));
         var test5 = test.FirstOrDefault(a => a.FirstOrDefault(s => s.Equals(""hello"")).Equals(""hello""));
     }
-}");
+}",
+            }.RunAsync();
         }
     }
 }

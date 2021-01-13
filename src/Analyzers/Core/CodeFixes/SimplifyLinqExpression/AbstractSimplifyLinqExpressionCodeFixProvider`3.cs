@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
 
                     return generator.InvocationExpression(
                             generator.MemberAccessExpression(expression, name),
-                            arguments);
+                            arguments).WithTriviaFrom(current);
                 });
 
             editor.ReplaceNode(root, updatedRoot);

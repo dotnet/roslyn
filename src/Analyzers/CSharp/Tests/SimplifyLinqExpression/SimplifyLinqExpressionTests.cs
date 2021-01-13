@@ -3,755 +3,395 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpression
 {
-    public partial class SimplifyLinqExpressionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    using VerifyCS = CSharpCodeFixVerifier<
+        CSharpSimplifyLinqExpressionDiagnosticAnalyzer,
+        CSharpSimplifyLinqExpressionCodeFixProvider>;
+
+    public partial class SimplifyLinqExpressionTests
     {
-        public SimplifyLinqExpressionTests(ITestOutputHelper logger)
-            : base(logger)
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        public static async Task TestAllowedMethodTypes(
+            [CombinatorialValues(
+                "x => x==1",
+                "(x) => x==1",
+                "x => { return x==1; }",
+                "(x) => { return x==1; }")]
+            string lambda,
+            [CombinatorialValues(
+                "First",
+                "Last",
+                "Single",
+                "Any",
+                "Count",
+                "SingleOrDefault",
+                "FirstOrDefault",
+                "LastOrDefault")]
+            string methodName)
         {
-        }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpSimplifyLinqExpressionDiagnosticAnalyzer(), new CSharpSimplifyLinqExpressionCodeFixProvider());
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestEnumerableTypeSingle()
-
-        {
-            var source = @"
+            await new VerifyCS.Test
+            {
+                TestCode = $@"
 using System;
 using System.Linq;
 using System.Collections.Generic;
  
 class Test
-{
+{{
     static void Main()
-    {
+    {{
         static IEnumerable<int> Data()
-        {
+        {{
             yield return 1;
             yield return 2;
-        }
+        }}
 
-        var test = [||]Data().Where(x => x==1).Single();
-    }
-}";
-            var fixedSource = @"
+        var test = [|Data().Where({lambda}).{methodName}()|];
+    }}
+}}",
+                FixedCode = $@"
 using System;
 using System.Linq;
 using System.Collections.Generic;
  
 class Test
-{
+{{
     static void Main()
-    {
+    {{
         static IEnumerable<int> Data()
-        {
+        {{
             yield return 1;
             yield return 2;
+        }}
+
+        var test = Data().{methodName}({lambda});
+    }}
+}}"
+            }.RunAsync();
         }
 
-        var test = Data().Single(x => x==1);
-    }
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestEnumerableTypeSingOrDefault()
-
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        public static async Task TestWhereWithIndexMethodTypes(
+            [CombinatorialValues(
+                "(x, index) => x==index",
+                "(x, index) => { return x==index; }")]
+            string lambda,
+            [CombinatorialValues(
+                "First",
+                "Last",
+                "Single",
+                "Any",
+                "Count",
+                "SingleOrDefault",
+                "FirstOrDefault",
+                "LastOrDefault")]
+            string methodName)
         {
-            var source = @"
+            var testCode = $@"
 using System;
 using System.Linq;
 using System.Collections.Generic;
  
 class Test
-{
+{{
     static void Main()
-    {
+    {{
         static IEnumerable<int> Data()
-        {
+        {{
             yield return 1;
             yield return 2;
+        }}
+
+        var test = Data().Where({lambda}).{methodName}();
+    }}
+}}";
+            await VerifyCS.VerifyAnalyzerAsync(testCode);
         }
 
-        var test = [||]Data().Where(x => x==1).SingleOrDefault();
-    }
-}";
-            var fixedSource = @"
-using System;
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        public async Task TestQueryComprehensionSyntax(
+            [CombinatorialValues(
+                "x => x==1",
+                "x => { return x==1; }")]
+            string lambda,
+            [CombinatorialValues(
+                "First",
+                "Last",
+                "Single",
+                "Any",
+                "Count",
+                "SingleOrDefault",
+                "FirstOrDefault",
+                "LastOrDefault")]
+            string methodName)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = $@"
 using System.Linq;
-using System.Collections.Generic;
- 
-class Test
-{
-    static void Main()
-    {
-        static IEnumerable<int> Data()
-        {
-            yield return 1;
-            yield return 2;
-        }
-
-        var test = Data().SingleOrDefault(x => x==1);
-    }
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
-
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestEnumerableTypeFirst()
-
-        {
-            var source = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
- 
-class Test
-{
-    static void Main()
-    {
-        static IEnumerable<int> Data()
-        {
-            yield return 1;
-            yield return 2;
-        }
-
-        var test = [||]Data().Where(x => x==1).First();
-    }
-}";
-            var fixedSource = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
- 
-class Test
-{
-    static void Main()
-    {
-        static IEnumerable<int> Data()
-        {
-            yield return 1;
-            yield return 2;
-        }
-
-        var test = Data().First(x => x==1);
-    }
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
-
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestEnumerableTypeFirstOrDefault()
-
-        {
-            var source = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
- 
-class Test
-{
-    static void Main()
-    {
-        static IEnumerable<int> Data()
-        {
-            yield return 1;
-            yield return 2;
-        }
-
-        var test = [||]Data().Where(x => x==1).FirstOrDefault();
-    }
-}";
-            var fixedSource = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
- 
-class Test
-{
-    static void Main()
-    {
-        static IEnumerable<int> Data()
-        {
-            yield return 1;
-            yield return 2;
-        }
-
-        var test = Data().FirstOrDefault(x => x==1);
-    }
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
-
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestEnumerableTypeLast()
-
-        {
-            var source = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
- 
-class Test
-{
-    static void Main()
-    {
-        static IEnumerable<int> Data()
-        {
-            yield return 1;
-            yield return 2;
-        }
-
-        var test = [||]Data().Where(x => x==1).Last();
-    }
-}";
-            var fixedSource = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
- 
-class Test
-{
-    static void Main()
-    {
-        static IEnumerable<int> Data()
-        {
-            yield return 1;
-            yield return 2;
-        }
-
-        var test = Data().Last(x => x==1);
-    }
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
-
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestEnumerableTypeLastOrDefault()
-
-        {
-            var source = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
- 
-class Test
-{
-    static void Main()
-    {
-        static IEnumerable<int> Data()
-        {
-            yield return 1;
-            yield return 2;
-        }
-
-        var test = [||]Data().Where(x => x==1).LastOrDefault();
-    }
-}";
-            var fixedSource = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
- 
-class Test
-{
-    static void Main()
-    {
-        static IEnumerable<int> Data()
-        {
-            yield return 1;
-            yield return 2;
-        }
-
-        var test = Data().LastOrDefault(x => x==1);
-    }
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
-
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestEnumerableTypeAny()
-
-        {
-            var source = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
- 
-class Test
-{
-    static void Main()
-    {
-        static IEnumerable<int> Data()
-        {
-            yield return 1;
-            yield return 2;
-        }
-
-        var test = [||]Data().Where(x => x==1).Any();
-    }
-}";
-            var fixedSource = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
- 
-class Test
-{
-    static void Main()
-    {
-        static IEnumerable<int> Data()
-        {
-            yield return 1;
-            yield return 2;
-        }
-
-        var test = Data().Any(x => x==1);
-    }
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
-
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestEnumerableTypeCount()
-
-        {
-            var source = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
- 
-class Test
-{
-    static void Main()
-    {
-        static IEnumerable<int> Data()
-        {
-            yield return 1;
-            yield return 2;
-        }
-
-        var test = [||]Data().Where(x => x==1).Count();
-    }
-}";
-            var fixedSource = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
- 
-class Test
-{
-    static void Main()
-    {
-        static IEnumerable<int> Data()
-        {
-            yield return 1;
-            yield return 2;
-        }
-
-        var test = Data().Count(x => x==1);
-    }
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
-
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestEnumerableFromQueryType()
-
-        {
-            var source = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
 
 class Test
-{
+{{
     static void M()
-    {
-        IEnumerable<int> test1 = from value in Enumerable.Range(0, 10) select value;
-        var test2 = [||]test1.Where(x => x == 1).First();
-    }
-}";
-            var fixedSource = @"
-using System;
+    {{
+        var test1 = [|(from value in Enumerable.Range(0, 10) select value).Where({lambda}).{methodName}()|];
+    }}
+}}",
+                FixedCode = $@"
 using System.Linq;
-using System.Collections.Generic;
 
 class Test
-{
+{{
     static void M()
-    {
-        IEnumerable<int> test1 = from value in Enumerable.Range(0, 10) select value;
-        var test2 = test1.First(x => x == 1);
-    }
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
+    {{
+        var test1 = (from value in Enumerable.Range(0, 10) select value).{methodName}({lambda});
+    }}
+}}"
+            }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestEnumerableListType()
-
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [InlineData("First")]
+        [InlineData("Last")]
+        [InlineData("Single")]
+        [InlineData("Any")]
+        [InlineData("Count")]
+        [InlineData("SingleOrDefault")]
+        [InlineData("FirstOrDefault")]
+        [InlineData("LastOrDefault")]
+        public async Task TestMultiLineLambda(string methodName)
         {
-            var source = @"
-using System.Collections.Generic;
-using System.Linq;
-
-class Test
-{
-    private static IEnumerable<string> _test1 = new List<string> { ""hello"", ""world"", ""!"" };
-    private bool _test2 = [||]_test1.Where(x => x.Equals(""!"")).Any();
-}";
-            var fixedSource = @"
-using System.Collections.Generic;
-using System.Linq;
-
-class Test
-{
-    private static IEnumerable<string> _test1 = new List<string> { ""hello"", ""world"", ""!"" };
-    private bool _test2 = _test1.Any(x => x.Equals(""!""));
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestComplexLambda()
-
-        {
-            var source = @"
+            await new VerifyCS.Test
+            {
+                TestCode = $@"
 using System;
 using System.Linq;
 using System.Collections.Generic;
 
 class Test
-{
+{{
     static void Main()
-    {
+    {{
         static IEnumerable<int> Data()
-        {
+        {{
             yield return 1;
             yield return 2;
-        }
+        }}
 
-        var test = [||]Data().Where(x => 
-        { 
+        var test = [|Data().Where(x => 
+        {{ 
             Console.Write(x);
             return x == 1;
-        }).LastOrDefault();
-    }
-}";
-            var fixedSource = @"
+        }}).{methodName}()|];
+    }}
+}}",
+                FixedCode = $@"
 using System;
 using System.Linq;
 using System.Collections.Generic;
 
 class Test
-{
+{{
     static void Main()
-    {
+    {{
         static IEnumerable<int> Data()
-        {
+        {{
             yield return 1;
             yield return 2;
-        }
+        }}
 
-        var test = Data().LastOrDefault(x => 
-        { 
+        var test = Data().{methodName}(x => 
+        {{ 
             Console.Write(x);
             return x == 1;
-        });
-    }
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
-
+        }});
+    }}
+}}"
+            }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestOutsideFunctionCallLambda()
-
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [InlineData("First", "string")]
+        [InlineData("Last", "string")]
+        [InlineData("Single", "string")]
+        [InlineData("Any", "bool")]
+        [InlineData("Count", "int")]
+        [InlineData("SingleOrDefault", "string")]
+        [InlineData("FirstOrDefault", "string")]
+        [InlineData("LastOrDefault", "string")]
+        public async Task TestOutsideFunctionCallLambda(string methodName, string returnType)
         {
-            var source = @"
+            await new VerifyCS.Test
+            {
+                TestCode = $@"
 using System;
 using System.Linq;
 using System.Collections.Generic;
 
 class Test
-{
+{{
     public static bool FooTest(string input)
-    {
+    {{
         return true;
-    }
+    }}
 
-    static IEnumerable<string> test = new List<string> { ""hello"", ""world"", ""!"" };
-    int result = [||]test.Where(x => FooTest(x)).Count();
-}";
-            var fixedSource = @"
+    static IEnumerable<string> test = new List<string> {{ ""hello"", ""world"", ""!"" }};
+    {returnType} result = [|test.Where(x => FooTest(x)).{methodName}()|];
+}}",
+                FixedCode = $@"
 using System;
 using System.Linq;
 using System.Collections.Generic;
 
 class Test
-{
+{{
     public static bool FooTest(string input)
-    {
+    {{
         return true;
-    }
+    }}
 
-    static IEnumerable<string> test = new List<string> { ""hello"", ""world"", ""!"" };
-    int result = test.Count(x => FooTest(x));
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
+    static IEnumerable<string> test = new List<string> {{ ""hello"", ""world"", ""!"" }};
+    {returnType} result = test.{methodName}(x => FooTest(x));
+}}"
+            }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestQueryable()
-
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [InlineData("First")]
+        [InlineData("Last")]
+        [InlineData("Single")]
+        [InlineData("Any")]
+        [InlineData("Count")]
+        [InlineData("SingleOrDefault")]
+        [InlineData("FirstOrDefault")]
+        [InlineData("LastOrDefault")]
+        public async Task TestQueryableIsNotConsidered(string methodName)
         {
-            var source = @"
+            var source = $@"
 using System;
 using System.Linq;
 using System.Collections.Generic;
 namespace demo
-{
+{{
     class Test
-    {
-        static List<int> testvar1 = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8 };
-        static IQueryable<int> testvar2 = testvar1.AsQueryable().Where(x => x % 2 == 0);
-        int output = [||]testvar2.Where(x => x == 4).Count();
-    }
-}";
-            await TestMissingInRegularAndScriptAsync(source);
+    {{
+        void M()
+        {{
+            List<int> testvar1 = new List<int> {{ 1, 2, 3, 4, 5, 6, 7, 8 }};
+            IQueryable<int> testvar2 = testvar1.AsQueryable().Where(x => x % 2 == 0);
+            var output = testvar2.Where(x => x == 4).{methodName}();
+        }}
+    }}
+}}";
+            await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestComplicatedLambda()
-
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        public async Task TestNestedLambda(
+            [CombinatorialValues(
+                "First",
+                "Last",
+                "Single",
+                "Any",
+                "Count",
+                "SingleOrDefault",
+                "FirstOrDefault",
+                "LastOrDefault")]
+            string firstMethod,
+            [CombinatorialValues(
+                "First",
+                "Last",
+                "Single",
+                "Any",
+                "Count",
+                "SingleOrDefault",
+                "FirstOrDefault",
+                "LastOrDefault")]
+            string secondMethod)
         {
-            var source = @"
+            var testCode = $@"
 using System;
 using System.Linq;
 using System.Collections.Generic;
 
 class Test
-{
-    static IEnumerable<string> test = new List<string> { ""hello"", ""world"", ""!"" };
-    string test5 = [||]test.Where(a => a.Where(s => s.Equals(""hello"")).FirstOrDefault().Equals(""hello"")).FirstOrDefault();
-}";
-            var fixedSource = @"
+{{
+    void M()
+    {{
+        IEnumerable<string> test = new List<string> {{ ""hello"", ""world"", ""!"" }};
+        var test5 = [|test.Where(a => [|a.Where(s => s.Equals(""hello"")).{secondMethod}()|].Equals(""hello"")).{firstMethod}()|];
+    }}
+}}";
+            var fixedCode = $@"
 using System;
 using System.Linq;
 using System.Collections.Generic;
 
 class Test
-{
-    static IEnumerable<string> test = new List<string> { ""hello"", ""world"", ""!"" };
-    string test5 = test.FirstOrDefault(a => a.Where(s => s.Equals(""hello"")).FirstOrDefault().Equals(""hello""));
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
-
+{{
+    void M()
+    {{
+        IEnumerable<string> test = new List<string> {{ ""hello"", ""world"", ""!"" }};
+        var test5 = test.{firstMethod}(a => a.{secondMethod}(s => s.Equals(""hello"")).Equals(""hello""));
+    }}
+}}";
+            await VerifyCS.VerifyCodeFixAsync(
+                testCode,
+                fixedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestNestedEnumerable()
-
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [InlineData("First")]
+        [InlineData("Last")]
+        [InlineData("Single")]
+        [InlineData("Any")]
+        [InlineData("Count")]
+        [InlineData("SingleOrDefault")]
+        [InlineData("FirstOrDefault")]
+        [InlineData("LastOrDefault")]
+        public async Task TestExplicitEnumerableCall(string methodName)
         {
-            var source = @"
+            await new VerifyCS.Test
+            {
+                TestCode = $@"
 using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
 class Test
-{
+{{
     static void Main()
-    {
-        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
-        [||]Enumerable.Where(test, (x => x == 1)).Single();
-    }
-}";
-            var fixedSource = @"
+    {{
+        IEnumerable<int> test = new List<int> {{ 1, 2, 3, 4, 5}};
+        [|Enumerable.Where(test, (x => x == 1)).{methodName}()|];
+    }}
+}}",
+                FixedCode = $@"
 using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
 class Test
-{
+{{
     static void Main()
-    {
-        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
-        Enumerable.Single(test, (x => x == 1));
-    }
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
-
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestNestedEnumerable2()
-
-        {
-            var source = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-
-class Test
-{
-    static void Main()
-    {
-        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
-        [||]Enumerable.Where(test, (x => x == 1)).First();
-    }
-}";
-            var fixedSource = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-
-class Test
-{
-    static void Main()
-    {
-        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
-        Enumerable.First(test, (x => x == 1));
-    }
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
-
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestParentheticalLambda()
-
-        {
-            var source = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-
-class Test
-{
-    static void Main()
-    {
-        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
-        [||]test.Where((x) => x == 1).Single();
-    }
-}";
-            var fixedSource = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-
-class Test
-{
-    static void Main()
-    {
-        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
-        test.Single((x) => x == 1);
-    }
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
-
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestParentheticalLambda2()
-
-        {
-            var source = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-
-class Test
-{
-    static void Main()
-    {
-        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
-        [||]test.Where((x, index) => (x- index) == 1).Single();
-    }
-}";
-            var fixedSource = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-
-class Test
-{
-    static void Main()
-    {
-        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
-        test.Single((x, index) => (x- index) == 1);
-    }
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
-
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestParentheticalLambda3()
-
-        {
-            var source = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-
-class Test
-{
-    static void Main()
-    {
-        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
-        [||]test.Where((int x) => x == 1).First();
-    }
-}";
-            var fixedSource = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-
-class Test
-{
-    static void Main()
-    {
-        IEnumerable<int> test = new List<int> { 1, 2, 3, 4, 5};
-        test.First((int x) => x == 1);
-    }
-}";
-            await TestInRegularAndScriptAsync(source, fixedSource);
-
+    {{
+        IEnumerable<int> test = new List<int> {{ 1, 2, 3, 4, 5}};
+        Enumerable.{methodName}(test, (x => x == 1));
+    }}
+}}"
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestUserDefinedWhere()
-
         {
             var source = @"
 using System;
@@ -779,35 +419,42 @@ namespace demo
         static void Main()
         {
             TestClass4 Test1 = new TestClass4();
-            TestClass4 test = [||]Test1.Where(y => true);
+            TestClass4 test = Test1.Where(y => true);
         }
     }
 }";
-            await TestMissingInRegularAndScriptAsync(source);
+            await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestArgumentsInSecondCall()
-
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
+        [InlineData("First")]
+        [InlineData("Last")]
+        [InlineData("Single")]
+        [InlineData("Any")]
+        [InlineData("Count")]
+        [InlineData("SingleOrDefault")]
+        [InlineData("FirstOrDefault")]
+        [InlineData("LastOrDefault")]
+        public async Task TestArgumentsInSecondCall(string methodName)
         {
-            var source = @"
+            var source = $@"
 using System;
 using System.Linq;
 using System.Collections.Generic;
-namespace demo
-{
-    class Test
-    {
-        static IEnumerable<string> test1 = new List<string> { ""hello"", ""world"", ""!"" };
-        bool test2 = [||]test1.Where(x => x == ""!"").Any(x => x.Length == 1);
-    }
-}";
-            await TestMissingInRegularAndScriptAsync(source);
+
+class Test
+{{
+    static void M()
+    {{
+        IEnumerable<string> test1 = new List<string>{{ ""hello"", ""world"", ""!"" }};
+        var test2 = test1.Where(x => x == ""!"").{methodName}(x => x.Length == 1);
+    }}
+}}";
+            await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestUnsupportedFunction()
-
         {
             var source = @"
 using System;
@@ -818,34 +465,14 @@ namespace demo
     class Test
     {
         static IEnumerable<int> test1 = new List<int> { 3, 12, 4, 6, 20 };
-        int test2 = [||]test1.Where(x => x > 0).Max();
+        int test2 = test1.Where(x => x > 0).Max();
     }
 }";
-            await TestMissingInRegularAndScriptAsync(source);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-        public async Task TestSelectFunction()
-
-        {
-            var source = @"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-namespace demo
-{
-    class Test
-    {
-        static IEnumerable<int> test1 = new List<int> { 3, 12, 4, 6, 20 };
-        int test2 = [||]test1.Select(x => x > 0).Single();
-    }
-}";
-            await TestMissingInRegularAndScriptAsync(source);
+            await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
         public async Task TestExpressionTreeInput()
-
         {
             var source = @"
 using System;
@@ -860,7 +487,7 @@ class Test
         string[] places = { ""Beach"", ""Pool"", ""Store"", ""House"",
                    ""Car"", ""Salon"", ""Mall"", ""Mountain""};
 
-        IQueryable<String> queryableData = companies.AsQueryable<string>();
+        IQueryable<String> queryableData = places.AsQueryable<string>();
         ParameterExpression pe = Expression.Parameter(typeof(string), ""place"");
 
         Expression left = Expression.Call(pe, typeof(string).GetMethod(""ToLower"", System.Type.EmptyTypes));
@@ -874,10 +501,10 @@ class Test
         Expression predicateBody = Expression.OrElse(e1, e2);
         Expression<Func<int, bool>> lambda1 = num => num < 5;
 
-        string result = [||]queryableData.Where(Expression.Lambda<Func<string, bool>>(predicateBody, new ParameterExpression[] { pe })).First();
+        string result = queryableData.Where(Expression.Lambda<Func<string, bool>>(predicateBody, new ParameterExpression[] { pe })).First();
     }
 }";
-            await TestMissingInRegularAndScriptAsync(source);
+            await VerifyCS.VerifyAnalyzerAsync(source);
         }
     }
 }
