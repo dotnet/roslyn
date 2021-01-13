@@ -725,7 +725,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // clean up the receiver
             var ultimateReceiver = receiver;
-            while (ultimateReceiver.Kind == BoundKind.QueryClause) ultimateReceiver = ((BoundQueryClause)ultimateReceiver).Value;
+            while (ultimateReceiver.Kind == BoundKind.QueryClause)
+            {
+                ultimateReceiver = ((BoundQueryClause)ultimateReceiver).Value;
+            }
             Debug.Assert(receiver.Type is object || ultimateReceiver.Type is null);
             if ((object?)ultimateReceiver.Type == null)
             {
