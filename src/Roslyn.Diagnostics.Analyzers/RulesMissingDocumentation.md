@@ -17,7 +17,7 @@ RS0040 |  | Defaultable types should have defaultable fields |
 RS0042 |  | Do not copy value |
 RS0043 |  | Do not call 'GetTestAccessor()' |
 RS0046 |  | Avoid the 'Opt' suffix |
-RS0049 |  | Instance of TemporaryArray<T>.AsRef() must be a 'using' variable |
+RS0049 |  | Instance of TemporaryArray\<T>.AsRef() must be a 'using' variable |
 RS0100 |  | Statements must be placed on their own line |
 RS0101 |  | Avoid multiple blank lines |
 RS0102 |  | Braces must not have blank lines between them |
