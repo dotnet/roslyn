@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return locations.ToArrayAndFree();
 
+            // local functions
             static bool ShouldInclude(INavigableItem item, bool typeOnly)
             {
                 if (!typeOnly)
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
 
                 // Removal of this codepath is tracked by https://github.com/dotnet/roslyn/issues/50391.
-                var goToDefinitionsService = document.GetLanguageService<IGoToDefinitionService>();
+                var goToDefinitionsService = document.GetRequiredLanguageService<IGoToDefinitionService>();
                 return await goToDefinitionsService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
             }
         }
