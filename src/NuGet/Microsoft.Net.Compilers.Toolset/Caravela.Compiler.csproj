@@ -8,8 +8,9 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
     <PackageDescription>
-      Caravela compiler Package.
+      PostSharp project "Caravela" compiler package.
       Referencing this package will cause the project to be built using the Caravela compiler contained in the package, as opposed to the version of the C# compiler installed with MSBuild.
+      This package is not meant to be used directly and only serves as a dependency for Caravela.Framework and Caravela.Framework.Sdk.
 
       This package requires either MSBuild 16.3 and .NET Framework 4.7.2+ or .NET Core 3.1+.
     </PackageDescription>
