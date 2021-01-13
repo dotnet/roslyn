@@ -397,24 +397,14 @@ namespace Text.Analyzers
             IEnumerable<string> GetMisspelledWords(string symbolName)
             {
                 var parser = new WordParser(symbolName, WordParserOptions.SplitCompoundWords);
-                if (parser.PeekWord() != null)
+
+                string? word;
+                while ((word = parser.NextWord()) != null)
                 {
-                    var word = parser.NextWord();
-                    if (word == null)
+                    if (!IsWordAcronym(word) && !IsWordNumeric(word) && !IsWordSpelledCorrectly(word))
                     {
-                        yield break;
-                    }
-
-                    do
-                    {
-                        if (IsWordAcronym(word) || IsWordNumeric(word) || IsWordSpelledCorrectly(word))
-                        {
-                            continue;
-                        }
-
                         yield return word;
                     }
-                    while ((word = parser.NextWord()) != null);
                 }
             }
 
