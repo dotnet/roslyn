@@ -381,7 +381,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 var protocol = workspace.ExportProvider.GetExportedValue<LanguageServerProtocol>();
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
                 var lspWorkspaceRegistrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
-                var serviceProvider = (Shell.IAsyncServiceProvider)workspace.ExportProvider.GetExportedValue<Shell.SVsServiceProvider>();
 
                 var languageServer = new InProcLanguageServer(
                     languageClient: new TestLanguageClient(),
