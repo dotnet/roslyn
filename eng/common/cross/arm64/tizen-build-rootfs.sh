@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-__ARM_SOFTFP_CrossDir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-__TIZEN_CROSSDIR="$__ARM_SOFTFP_CrossDir/tizen"
+__CrossDir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+__TIZEN_CROSSDIR="$__CrossDir/tizen"
 
 if [[ -z "$ROOTFS_DIR" ]]; then
     echo "ROOTFS_DIR is not defined."
@@ -14,7 +14,7 @@ mkdir -p $TIZEN_TMP_DIR
 
 # Download files
 echo ">>Start downloading files"
-VERBOSE=1 $__ARM_SOFTFP_CrossDir/tizen-fetch.sh $TIZEN_TMP_DIR
+VERBOSE=1 $__CrossDir/tizen-fetch.sh $TIZEN_TMP_DIR
 echo "<<Finish downloading files"
 
 echo ">>Start constructing Tizen rootfs"
@@ -30,6 +30,6 @@ rm -rf $TIZEN_TMP_DIR
 
 # Configure Tizen rootfs
 echo ">>Start configuring Tizen rootfs"
-ln -sfn asm-arm ./usr/include/asm
+ln -sfn asm-arm64 ./usr/include/asm
 patch -p1 < $__TIZEN_CROSSDIR/tizen.patch
 echo "<<Finish configuring Tizen rootfs"
