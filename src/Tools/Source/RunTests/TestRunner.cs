@@ -93,7 +93,7 @@ namespace RunTests
             var project = @"
 <Project Sdk=""Microsoft.DotNet.Helix.Sdk"" DefaultTargets=""Test"">
     <PropertyGroup>
-        <TestRunNamePrefix>" + jobName + @"</TestRunNamePrefix>
+        <TestRunNamePrefix>" + jobName + @"_</TestRunNamePrefix>
         <HelixSource>pr/" + sourceBranch + @"</HelixSource>
         <HelixType>test</HelixType>
         <HelixBuild>" + buildNumber + @"</HelixBuild>
