@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public static RequestContext Create(
             TextDocumentIdentifier? textDocument,
             string? clientName,
-            TraceSource? traceSource,
+            Action<string> traceInformation,
             ClientCapabilities clientCapabilities,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache,
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // document text. If document id is null here, this will just return null
             document = lspSolution.GetDocument(document?.Id);
 
-            return new RequestContext(lspSolution, traceSource, clientCapabilities, clientName, document, documentChangeTracker);
+            return new RequestContext(lspSolution, traceInformation, clientCapabilities, clientName, document, documentChangeTracker);
         }
 
         private static Document? FindDocument(ILspWorkspaceRegistrationService lspWorkspaceRegistrationService, TextDocumentIdentifier textDocument, string? clientName)
@@ -153,11 +152,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// Tracing object that can be used to log information about the status of requests.
         /// </summary>
-        private readonly TraceSource? _traceSource;
+        private readonly Action<string> _traceInformation;
 
         public RequestContext(
             Solution solution,
-            TraceSource? traceSource,
+            Action<string> traceInformation,
             ClientCapabilities clientCapabilities,
             string? clientName,
             Document? document,
@@ -168,7 +167,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ClientCapabilities = clientCapabilities;
             ClientName = clientName;
             _documentChangeTracker = documentChangeTracker;
-            _traceSource = traceSource;
+            _traceInformation = traceInformation;
         }
 
         /// <summary>
@@ -196,7 +195,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Logs an informational message.
         /// </summary>
         public void TraceInformation(string message)
-            => _traceSource?.TraceInformation(message);
+            => _traceInformation(message);
 
         private class NoOpDocumentChangeTracker : IDocumentChangeTracker
         {

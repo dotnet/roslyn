@@ -178,13 +178,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private async Task ProcessQueueAsync()
         {
+            TraceSource? traceSource = null;
             try
             {
+                var logIdName = $"{_serverName}.{DateTime.Now:yyyy-MM-dd-HH-mm-ss}";
+                traceSource = _logger == null ? null : await _logger.CreateTraceSourceAsync(logIdName, _cancelSource.Token).ConfigureAwait(false);
+
                 var requestId = 0;
                 while (!_cancelSource.IsCancellationRequested)
                 {
                     var work = await _queue.DequeueAsync().ConfigureAwait(false);
-                    await ProcessSingleWorkItemAsync(work, requestId++).ConfigureAwait(false);
+                    await ProcessSingleWorkItemAsync(traceSource, work, requestId++).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException e) when (e.CancellationToken == _cancelSource.Token)
@@ -196,22 +200,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 OnRequestServerShutdown($"Error occurred processing queue in {_serverName}: {e.Message}.");
             }
+            finally
+            {
+                traceSource?.Flush();
+                traceSource?.Close();
+            }
         }
 
-        private async Task ProcessSingleWorkItemAsync(QueueItem work, int requestId)
+        private async Task ProcessSingleWorkItemAsync(TraceSource? traceSource, QueueItem work, int requestId)
         {
-            var logIdName = $"{_serverName}.{work.ClientName ?? "Default"}.{requestId++:00000000}.{work.MethodName}.{DateTime.Now:yyyy-MM-dd-HH-mm-ss}";
-            var traceSource = _logger == null ? null : await _logger.CreateTraceSourceAsync(logIdName, _cancelSource.Token).ConfigureAwait(false);
-
             // Create a linked cancellation token to cancel any requests in progress when this shuts down
             var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;
 
-            var context = CreateRequestContext(work, traceSource);
+            var context = CreateRequestContext(traceSource, work, requestId);
 
             if (work.MutatesSolutionState)
             {
                 // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                await ProcessWorkAsync(work, context, traceSource, cancellationToken).ConfigureAwait(false);
+                await ProcessWorkAsync(work, context, cancellationToken).ConfigureAwait(false);
 
                 // Now that we've mutated our solution, clear out our saved state to ensure it gets recalculated
                 _lspSolutionCache.Remove(context.Solution.Workspace);
@@ -221,11 +227,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // Non mutating are fire-and-forget because they are by definition readonly. Any errors
                 // will be sent back to the client but we can still capture errors in queue processing
                 // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
-                _ = ProcessWorkAsync(work, context, traceSource, cancellationToken);
+                _ = ProcessWorkAsync(work, context, cancellationToken);
             }
         }
 
-        private static async Task ProcessWorkAsync(QueueItem work, RequestContext context, TraceSource? traceSource, CancellationToken cancellationToken)
+        private static async Task ProcessWorkAsync(QueueItem work, RequestContext context, CancellationToken cancellationToken)
         {
             try
             {
@@ -238,11 +244,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
                 // Report all other errors.
-            }
-            finally
-            {
-                traceSource?.Flush();
-                traceSource?.Close();
             }
         }
 
@@ -273,14 +274,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private RequestContext CreateRequestContext(QueueItem queueItem, TraceSource? traceSource)
+        private RequestContext CreateRequestContext(TraceSource? traceSource, QueueItem queueItem, int requestId)
         {
+            var logPrefix = $"{queueItem.ClientName ?? "Default"}.{requestId++:00000000}.{queueItem.MethodName}.{DateTime.Now:yyyy-MM-dd-HH-mm-ss}: ";
+            Action<string> traceInforation = m => traceSource?.TraceInformation(logPrefix + m);
+
             var trackerToUse = queueItem.MutatesSolutionState
                 ? (IDocumentChangeTracker)_documentChangeTracker
                 : new NonMutatingDocumentChangeTracker(_documentChangeTracker);
 
             return RequestContext.Create(
-                queueItem.TextDocument, queueItem.ClientName, traceSource, queueItem.ClientCapabilities, _workspaceRegistrationService, _lspSolutionCache, trackerToUse);
+                queueItem.TextDocument,
+                queueItem.ClientName,
+                traceInforation,
+                queueItem.ClientCapabilities,
+                _workspaceRegistrationService,
+                _lspSolutionCache,
+                trackerToUse);
         }
     }
 }
