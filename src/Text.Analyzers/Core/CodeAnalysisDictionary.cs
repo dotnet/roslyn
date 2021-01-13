@@ -62,8 +62,10 @@ namespace Text.Analyzers
         public static CodeAnalysisDictionary CreateFromXml(StreamReader streamReader)
         {
             var document = XDocument.Load(streamReader);
-            // TODO: Include Deprecated words and acronym CasingExceptions as noted here:
-            // https://docs.microsoft.com/en-us/visualstudio/code-quality/ca1704?view=vs-2019#to-add-words-to-a-custom-dictionary
+            // TODO: Include Deprecated/Compound terms as noted here:
+            // https://docs.microsoft.com/visualstudio/code-quality/how-to-customize-the-code-analysis-dictionary
+            // Tracked by:
+            // https://github.com/dotnet/roslyn-analyzers/issues/4693
             return new CodeAnalysisDictionary(
                 GetSectionWords(document, "Recognized", "Word"),
                 GetSectionWords(document, "Unrecognized", "Word")
