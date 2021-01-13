@@ -785,6 +785,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_BadSKunknown, ultimateReceiver.Syntax, ultimateReceiver.Type, MessageID.IDS_SK_TYVAR.Localize());
                 }
             }
+            else if (ultimateReceiver.Kind == BoundKind.TypeOrValueExpression)
+            {
+                // CheckValue will be called by MakeInvocationExpression when it makes the member access, which will resolve
+                // the type or value to the appropriate kind at that point.
+            }
             else if (receiver.Type!.IsVoidType())
             {
                 if (!receiver.HasAnyErrors && !node.HasErrors)
