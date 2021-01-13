@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             if (!context.IsTracking(context.Document.GetURI()))
             {
-                context.TraceInformation($"Ignoring diagnostics request for untracked document: {context.Document.FilePath}");
+                context.TraceInformation($"Ignoring diagnostics request for untracked document: {context.Document.GetURI()}");
                 return ImmutableArray<Document>.Empty;
             }
 
