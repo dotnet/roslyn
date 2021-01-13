@@ -13,6 +13,3 @@ abstract Microsoft.CodeAnalysis.Testing.SourceGeneratorTest<TVerifier>.CreateGen
 abstract Microsoft.CodeAnalysis.Testing.SourceGeneratorTest<TVerifier>.GetSourceGenerators() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISourceGenerator>
 override Microsoft.CodeAnalysis.Testing.SourceGeneratorTest<TVerifier>.GetDiagnosticAnalyzers() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer>
 override Microsoft.CodeAnalysis.Testing.SourceGeneratorTest<TVerifier>.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
-static Microsoft.CodeAnalysis.Testing.SourceGeneratorVerifier<TSourceGenerator, TTest, TVerifier>.VerifySourceGeneratorAsync(string source, Microsoft.CodeAnalysis.Testing.DiagnosticResult expected, string fixedSource) -> System.Threading.Tasks.Task
-static Microsoft.CodeAnalysis.Testing.SourceGeneratorVerifier<TSourceGenerator, TTest, TVerifier>.VerifySourceGeneratorAsync(string source, Microsoft.CodeAnalysis.Testing.DiagnosticResult[] expected, string fixedSource) -> System.Threading.Tasks.Task
-static Microsoft.CodeAnalysis.Testing.SourceGeneratorVerifier<TSourceGenerator, TTest, TVerifier>.VerifySourceGeneratorAsync(string source, string fixedSource) -> System.Threading.Tasks.Task
