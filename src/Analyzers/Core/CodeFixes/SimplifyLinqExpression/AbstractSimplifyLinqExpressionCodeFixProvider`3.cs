@@ -17,10 +17,10 @@ using Microsoft.CodeAnalysis.LanguageServices;
 namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
 {
     internal abstract class AbstractSimplifyLinqExpressionCodeFixProvider<TInvocationExpressionSyntax, TSimpleNameSyntax, TExpressionSyntax, TArgumentListSyntax> : SyntaxEditorBasedCodeFixProvider
-        where TInvocationExpressionSyntax : SyntaxNode
-        where TSimpleNameSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
         where TArgumentListSyntax : SyntaxNode
+        where TInvocationExpressionSyntax : TExpressionSyntax
+        where TSimpleNameSyntax : TExpressionSyntax
     {
         private const string SimplyfyLinqAnnotationKind = "linqTracking";
 
