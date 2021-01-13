@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -45,12 +44,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         /// <summary>
         /// Multiple cache requests or updates may be received concurrently.
-        /// We need this sempahore to ensure that we aren't making concurrent
+        /// We need this lock to ensure that we aren't making concurrent
         /// modifications to the _tokens dictionary.
         /// </summary>
-        private readonly SemaphoreSlim _semaphore = new(1);
+        private readonly object _accessLock;
 
-        #region protected by _semaphore
+        #region protected by _accessLock
         /// <summary>
         /// Maps a document URI to its n most recently cached token sets.
         /// </summary>
@@ -79,20 +78,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SemanticTokensCache()
         {
+            _accessLock = new object();
         }
 
         /// <summary>
         /// Updates the given document's token set cache. Removes old cache results if the document's
         /// cache is full.
         /// </summary>
-        public async Task UpdateCacheAsync(
-            Uri uri,
-            LSP.SemanticTokens tokens,
-            CancellationToken cancellationToken)
+        public void UpdateCache(Uri uri, LSP.SemanticTokens tokens)
         {
             Contract.ThrowIfNull(tokens.ResultId);
 
-            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            lock (_accessLock)
             {
                 // Case 1: Document does not currently have any token sets cached. Create a cache
                 // for the document and return.
@@ -119,12 +116,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// Returns the cached tokens data for a given document URI and resultId.
         /// Returns null if no match is found.
         /// </summary>
-        public async Task<int[]?> GetCachedTokensDataAsync(
-            Uri uri,
-            string resultId,
-            CancellationToken cancellationToken)
+        public int[]? GetCachedTokensData(Uri uri, string resultId)
         {
-            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            lock (_accessLock)
             {
                 if (!_tokens.TryGetValue(uri, out var tokenSets))
                 {

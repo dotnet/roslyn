@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Roslyn.Utilities;
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// <summary>
         /// Ensures we aren't making concurrent modifications to the list of cached items.
         /// </summary>
-        private readonly SemaphoreSlim _semaphore = new(1);
+        private readonly object _accessLock;
 
         /// <summary>
         /// Maximum number of cached items.
@@ -42,15 +40,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeActionsCache()
         {
+            _accessLock = new object();
         }
 
-        public async Task UpdateActionSetsAsync(
+        public void UpdateActionSets(
             Document document,
             LSP.Range range,
-            ImmutableArray<UnifiedSuggestedActionSet> cachedSuggestedActionSets,
-            CancellationToken cancellationToken)
+            ImmutableArray<UnifiedSuggestedActionSet> cachedSuggestedActionSets)
         {
-            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            lock (_accessLock)
             {
                 // If there's a value in the cache with the same document and range we're searching for,
                 // remove and replace it with our updated value.
@@ -73,12 +71,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// Attempts to retrieve the cached action sets that match the given document and range.
         /// Returns null if no match is found.
         /// </summary>
-        public async Task<ImmutableArray<UnifiedSuggestedActionSet>?> GetActionSetsAsync(
-            Document document,
-            LSP.Range range,
-            CancellationToken cancellationToken)
+        public ImmutableArray<UnifiedSuggestedActionSet>? GetActionSets(Document document, LSP.Range range)
         {
-            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            lock (_accessLock)
             {
                 foreach (var cachedItem in _cachedItems)
                 {

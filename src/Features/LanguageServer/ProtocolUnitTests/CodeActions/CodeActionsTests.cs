@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             Document document)
         {
             await RunGetCodeActionsAsync(workspace.CurrentSolution, caretLocation);
-            var cacheResults = await cache.GetActionSetsAsync(document, caretLocation.Range, CancellationToken.None);
+            var cacheResults = cache.GetActionSets(document, caretLocation.Range);
             Assert.NotNull(cacheResults);
         }
 

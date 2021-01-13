@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // See if we have a cache of the completion list we need
             if (_completionListCache != null && data.ResultId.HasValue)
             {
-                list = await _completionListCache.GetCachedCompletionListAsync(data.ResultId.Value, cancellationToken).ConfigureAwait(false);
+                list = _completionListCache.GetCachedCompletionList(data.ResultId.Value);
             }
 
             if (list == null)

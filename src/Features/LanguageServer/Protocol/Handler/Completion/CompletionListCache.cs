@@ -5,11 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 {
@@ -27,12 +24,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 
         /// <summary>
         /// Multiple cache requests or updates may be received concurrently.
-        /// We need this sempahore to ensure that we aren't making concurrent
+        /// We need this lock to ensure that we aren't making concurrent
         /// modifications to _nextResultId or _resultIdToCompletionList.
         /// </summary>
-        private readonly SemaphoreSlim _semaphore = new(1);
+        private readonly object _accessLock;
 
-        #region protected by _semaphore
+        #region protected by _accessLock
         /// <summary>
         /// The next resultId available to use.
         /// </summary>
@@ -49,6 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompletionListCache()
         {
+            _accessLock = new object();
         }
 
         /// <summary>
@@ -58,9 +56,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         /// <returns>
         /// The generated resultId associated with the passed in completion list.
         /// </returns>
-        public async Task<long> UpdateCacheAsync(CompletionList completionList, CancellationToken cancellationToken)
+        public long UpdateCache(CompletionList completionList)
         {
-            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            lock (_accessLock)
             {
                 // If cache exceeds maximum size, remove the oldest list in the cache
                 if (_resultIdToCompletionList.Count >= MaxCacheSize)
@@ -83,9 +81,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         /// Attempts to return the completion list in the cache associated with the given resultId.
         /// Returns null if no match is found.
         /// </summary>
-        public async Task<CompletionList?> GetCachedCompletionListAsync(long resultId, CancellationToken cancellationToken)
+        public CompletionList? GetCachedCompletionList(long resultId)
         {
-            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            lock (_accessLock)
             {
                 foreach (var (cachedResultId, cachedCompletionList) in _resultIdToCompletionList)
                 {

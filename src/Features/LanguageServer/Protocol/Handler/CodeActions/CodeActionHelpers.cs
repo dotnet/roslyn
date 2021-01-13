@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 return Array.Empty<VSCodeAction>();
             }
 
-            await codeActionsCache.UpdateActionSetsAsync(document, request.Range, actionSets.Value, cancellationToken).ConfigureAwait(false);
+            codeActionsCache.UpdateActionSets(document, request.Range, actionSets.Value);
             var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Each suggested action set should have a unique set number, which is used for grouping code actions together.
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                     return ImmutableArray<CodeAction>.Empty;
                 }
 
-                await codeActionsCache.UpdateActionSetsAsync(document, selection, actionSets.Value, cancellationToken).ConfigureAwait(false);
+                codeActionsCache.UpdateActionSets(document, selection, actionSets.Value);
             }
 
             var _ = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);

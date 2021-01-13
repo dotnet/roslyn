@@ -57,13 +57,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var resultId = _tokensCache.GetNextResultId();
             var newSemanticTokens = new LSP.SemanticTokens { ResultId = resultId, Data = newSemanticTokensData };
 
-            await _tokensCache.UpdateCacheAsync(
-                request.TextDocument.Uri, newSemanticTokens, cancellationToken).ConfigureAwait(false);
+            _tokensCache.UpdateCache(request.TextDocument.Uri, newSemanticTokens);
 
             // Getting the cached tokens for the document. If we don't have an applicable cached token set,
             // we can't calculate edits, so we must return all semantic tokens instead.
-            var oldSemanticTokensData = await _tokensCache.GetCachedTokensDataAsync(
-                request.TextDocument.Uri, request.PreviousResultId, cancellationToken).ConfigureAwait(false);
+            var oldSemanticTokensData = _tokensCache.GetCachedTokensData(request.TextDocument.Uri, request.PreviousResultId);
             if (oldSemanticTokensData == null)
             {
                 return newSemanticTokens;

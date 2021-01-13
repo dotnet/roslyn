@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (_completionListCache != null)
             {
                 // Cache the completion list so we can avoid recomputation in the resolve handler
-                resultId = await _completionListCache.UpdateCacheAsync(list, cancellationToken).ConfigureAwait(false);
+                resultId = _completionListCache.UpdateCache(list);
             }
 
             return new LSP.VSCompletionList

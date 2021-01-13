@@ -222,37 +222,37 @@ class A
 
             // 1 item in cache
             await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
-            var completionList = await cache.GetCachedCompletionListAsync(0, CancellationToken.None).ConfigureAwait(false);
+            var completionList = cache.GetCachedCompletionList(0);
             Assert.NotNull(completionList);
             Assert.True(testAccessor.GetCacheContents().Count == 1);
 
             // 2 items in cache
             await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
-            completionList = await cache.GetCachedCompletionListAsync(0, CancellationToken.None).ConfigureAwait(false);
+            completionList = cache.GetCachedCompletionList(0);
             Assert.NotNull(completionList);
-            completionList = await cache.GetCachedCompletionListAsync(1, CancellationToken.None).ConfigureAwait(false);
+            completionList = cache.GetCachedCompletionList(1);
             Assert.NotNull(completionList);
             Assert.True(testAccessor.GetCacheContents().Count == 2);
 
             // 3 items in cache
             await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
-            completionList = await cache.GetCachedCompletionListAsync(0, CancellationToken.None).ConfigureAwait(false);
+            completionList = cache.GetCachedCompletionList(0);
             Assert.NotNull(completionList);
-            completionList = await cache.GetCachedCompletionListAsync(1, CancellationToken.None).ConfigureAwait(false);
+            completionList = cache.GetCachedCompletionList(1);
             Assert.NotNull(completionList);
-            completionList = await cache.GetCachedCompletionListAsync(2, CancellationToken.None).ConfigureAwait(false);
+            completionList = cache.GetCachedCompletionList(2);
             Assert.NotNull(completionList);
             Assert.True(testAccessor.GetCacheContents().Count == 3);
 
             // Maximum size of cache (3) should not be exceeded - oldest item should be ejected
             await RunGetCompletionsAsync(workspace.CurrentSolution, completionParams).ConfigureAwait(false);
-            completionList = await cache.GetCachedCompletionListAsync(0, CancellationToken.None).ConfigureAwait(false);
+            completionList = cache.GetCachedCompletionList(0);
             Assert.Null(completionList);
-            completionList = await cache.GetCachedCompletionListAsync(1, CancellationToken.None).ConfigureAwait(false);
+            completionList = cache.GetCachedCompletionList(1);
             Assert.NotNull(completionList);
-            completionList = await cache.GetCachedCompletionListAsync(2, CancellationToken.None).ConfigureAwait(false);
+            completionList = cache.GetCachedCompletionList(2);
             Assert.NotNull(completionList);
-            completionList = await cache.GetCachedCompletionListAsync(3, CancellationToken.None).ConfigureAwait(false);
+            completionList = cache.GetCachedCompletionList(3);
             Assert.NotNull(completionList);
             Assert.True(testAccessor.GetCacheContents().Count == 3);
         }
