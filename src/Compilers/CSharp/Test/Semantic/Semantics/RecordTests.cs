@@ -1494,7 +1494,8 @@ record R(int x)
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "static ctor");
+            // [ : R::set_x] Cannot change initonly field outside its .ctor.
+            CompileAndVerify(comp, expectedOutput: "static ctor", verify: Verification.Skipped);
         }
 
         [Fact, WorkItem(50170, "https://github.com/dotnet/roslyn/issues/50170")]
