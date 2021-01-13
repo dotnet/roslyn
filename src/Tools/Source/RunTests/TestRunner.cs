@@ -93,7 +93,7 @@ namespace RunTests
             var project = @"
 <Project Sdk=""Microsoft.DotNet.Helix.Sdk"" DefaultTargets=""Test"">
     <PropertyGroup>
-        <TestRunNamePrefix>" + jobName + @"</TextRunNamePrefix>
+        <TestRunNamePrefix>" + jobName + @"</TestRunNamePrefix>
         <HelixSource>pr/" + sourceBranch + @"</HelixSource>
         <HelixType>test</HelixType>
         <HelixBuild>" + buildNumber + @"</HelixBuild>
@@ -120,7 +120,6 @@ namespace RunTests
                 cancellationToken: cancellationToken);
             var result = await process.Result;
 
-            // TODO: how do we handle publishing stuff like proc dumps when test runs have crashes?
             return new RunAllResult(result.ExitCode == 0, ImmutableArray<TestResult>.Empty, ImmutableArray.Create(result));
 
             static string getGlobalJsonPath()
@@ -140,8 +139,9 @@ namespace RunTests
 
             string makeHelixWorkItemProject(AssemblyInfo assemblyInfo)
             {
-                // TODO: there ideally shouldn't be a coupling between RunTests.dll running on Windows vs. Unix and
-                // the actual tests running on Windows vs. Unix. For now, however, this is convenient to help us generate the right stuff
+                // Currently, it's required for the client machine to use the same OS family as the target Helix queue.
+                // We could relax this and allow for example Linux clients to kick off Windows jobs, but we'd have to
+                // figure out solutions for issues such as creating file paths in the correct format for the target machine.
                 var isUnix = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
                 var commandLineArguments = _testExecutor.GetCommandLineArguments(assemblyInfo, isUnix);
