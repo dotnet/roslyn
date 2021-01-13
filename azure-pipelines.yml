@@ -66,12 +66,22 @@ jobs:
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
-    testRunName: 'Test Windows Desktop Release 32'
-    jobName: Test_Windows_Desktop_Release_32
+    testRunName: 'Test Windows Desktop Spanish Release 32'
+    jobName: Test_Windows_Desktop_Spanish_Release_32
+    buildJobName: Build_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
+    configuration: Release
+    testArguments: -testDesktop -test32 -helixQueueName Windows.10.Amd64.Server19H1.ES.Open
+
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows Desktop Spanish Release 32'
+    jobName: Test_Windows_Desktop_Spanish_Release_32
     buildJobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     testArguments: -testDesktop -test32
+    queueName: 'BuildPool.Windows.10.Amd64.ES.VS2017.Open'
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:

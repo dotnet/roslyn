@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         {
                             return true;
                         }
+
                         continue;
 
                     case CharacterSetModificationKind.Remove:
@@ -109,6 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         {
                             return false;
                         }
+
                         continue;
 
                     case CharacterSetModificationKind.Replace:

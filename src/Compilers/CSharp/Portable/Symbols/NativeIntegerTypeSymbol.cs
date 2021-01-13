@@ -334,6 +334,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
+
         public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol.UnderlyingMethod);
 
         public override int GetHashCode() => UnderlyingMethod.GetHashCode();

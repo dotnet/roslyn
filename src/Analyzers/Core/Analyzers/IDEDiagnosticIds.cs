@@ -113,9 +113,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string ConvertSwitchStatementToExpressionDiagnosticId = "IDE0066";
 
-        public const string DisposeObjectsBeforeLosingScopeDiagnosticId = "IDE0067";
-        public const string UseRecommendedDisposePatternDiagnosticId = "IDE0068";
-        public const string DisposableFieldsShouldBeDisposedDiagnosticId = "IDE0069";
+        // IDE0067-IDE0069 deprecated in favor of CA2000 and CA2213
+        // public const string DisposeObjectsBeforeLosingScopeDiagnosticId = "IDE0067";
+        // public const string UseRecommendedDisposePatternDiagnosticId = "IDE0068";
+        // public const string DisposableFieldsShouldBeDisposedDiagnosticId = "IDE0069";
 
         public const string UseSystemHashCode = "IDE0070";
 

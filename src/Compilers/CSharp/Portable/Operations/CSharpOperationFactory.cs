@@ -2297,17 +2297,13 @@ namespace Microsoft.CodeAnalysis.Operations
                 case FieldSymbol field:
                     {
                         var constantValue = field.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
-                        var receiver = new InstanceReferenceOperation(
-                            InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax, matchedType, isImplicit: true);
                         return new FieldReferenceOperation(
-                            field.GetPublicSymbol(), isDeclaration: false, receiver, _semanticModel, nameSyntax, field.Type.GetPublicSymbol(), constantValue, isImplicit: isImplicit);
+                            field.GetPublicSymbol(), isDeclaration: false, createReceiver(), _semanticModel, nameSyntax, field.Type.GetPublicSymbol(), constantValue, isImplicit: isImplicit);
                     }
                 case PropertySymbol property:
                     {
-                        var receiver = new InstanceReferenceOperation(
-                            InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax, matchedType, isImplicit: true);
                         return new PropertyReferenceOperation(
-                            property.GetPublicSymbol(), ImmutableArray<IArgumentOperation>.Empty, receiver, _semanticModel, nameSyntax, property.Type.GetPublicSymbol(),
+                            property.GetPublicSymbol(), ImmutableArray<IArgumentOperation>.Empty, createReceiver(), _semanticModel, nameSyntax, property.Type.GetPublicSymbol(),
                             isImplicit: isImplicit);
                     }
                 default:
@@ -2315,6 +2311,9 @@ namespace Microsoft.CodeAnalysis.Operations
                     // https://github.com/dotnet/roslyn/issues/33175
                     return OperationFactory.CreateInvalidOperation(_semanticModel, nameSyntax, ImmutableArray<IOperation>.Empty, isImplicit);
             }
+
+            IOperation? createReceiver()
+                => symbol?.IsStatic == false ? new InstanceReferenceOperation(InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax, matchedType, isImplicit: true) : null;
         }
 
         private IInstanceReferenceOperation CreateCollectionValuePlaceholderOperation(BoundObjectOrCollectionValuePlaceholder placeholder)
