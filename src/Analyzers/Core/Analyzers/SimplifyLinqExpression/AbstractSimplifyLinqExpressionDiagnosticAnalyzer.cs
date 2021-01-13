@@ -140,6 +140,8 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
             {
                 return;
             }
+            
+            return;
 
             var memberAccessExpressionLocation = previousInvocationInChain.Syntax.GetLocation();
             var argumentListLocation = TryGetArgumentListLocation(previousInvocationInChain.Arguments);
