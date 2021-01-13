@@ -14,6 +14,7 @@ using System.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace RunTests
 {
@@ -81,6 +82,8 @@ namespace RunTests
 
             var buildNumber = Environment.GetEnvironmentVariable("BUILD_BUILDNUMBER") ?? "0";
             var workItems = assemblyInfoList.Select(ai => makeHelixWorkItemProject(ai));
+
+            var globalJson = JsonConvert.DeserializeAnonymousType(File.ReadAllText(getGlobalJsonPath()), new { sdk = new { version = "" } });
             var project = @"
 <Project Sdk=""Microsoft.DotNet.Helix.Sdk"" DefaultTargets=""Test"">
     <PropertyGroup>
@@ -90,6 +93,7 @@ namespace RunTests
         <HelixTargetQueues>" + _options.HelixQueueName + @"</HelixTargetQueues>
         <Creator>" + queuedBy + @"</Creator>
         <IncludeDotNetCli>true</IncludeDotNetCli>
+        <DotNetCliVersion>" + globalJson.sdk.version + @"</DotNetCliVersion>
         <DotNetCliPackageType>sdk</DotNetCliPackageType>
         <EnableAzurePipelinesReporter>" + (isAzureDevOpsRun ? "true" : "false") + @"</EnableAzurePipelinesReporter>
     </PropertyGroup>
@@ -111,6 +115,21 @@ namespace RunTests
 
             // TODO: how do we handle publishing stuff like proc dumps when test runs have crashes?
             return new RunAllResult(result.ExitCode == 0, ImmutableArray<TestResult>.Empty, ImmutableArray.Create(result));
+
+            static string getGlobalJsonPath()
+            {
+                var path = AppContext.BaseDirectory;
+                while (path is object)
+                {
+                    var globalJsonPath = Path.Join(path, "global.json");
+                    if (File.Exists(globalJsonPath))
+                    {
+                        return globalJsonPath;
+                    }
+                    path = Path.GetDirectoryName(path);
+                }
+                throw new IOException($@"Could not find global.json by walking up from ""{AppContext.BaseDirectory}"".");
+            }
 
             string makeHelixWorkItemProject(AssemblyInfo assemblyInfo)
             {
