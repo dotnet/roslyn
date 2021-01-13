@@ -71,10 +71,10 @@ namespace RunTests
                 ConsoleUtil.WriteLine($@"BUILD_QUEUEDBY environment variable was not set. Using value ""{queuedBy}"" instead");
             }
 
-            var jobName = Environment.GetEnvironmentVariable("SYSTEM_JOBNAME");
+            var jobName = Environment.GetEnvironmentVariable("SYSTEM_JOBDISPLAYNAME");
             if (jobName is null)
             {
-                ConsoleUtil.WriteLine($"SYSTEM_JOBNAME environment variable was not set. Using a blank TestRunNamePrefix for Helix job.");
+                ConsoleUtil.WriteLine($"SYSTEM_JOBDISPLAYNAME environment variable was not set. Using a blank TestRunNamePrefix for Helix job.");
             }
 
             if (Environment.GetEnvironmentVariable("BUILD_REPOSITORY_NAME") is null)
