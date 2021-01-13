@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private RequestContext CreateRequestContext(TraceSource? traceSource, QueueItem queueItem, int requestId)
         {
-            var logPrefix = $"{queueItem.ClientName ?? "Default"}.{requestId++:00000000}.{queueItem.MethodName}.{DateTime.Now:yyyy-MM-dd-HH-mm-ss}: ";
+            var logPrefix = $"{queueItem.ClientName ?? "Default"}.{requestId++:00000000}.{queueItem.MethodName}: ";
             Action<string> traceInforation = m => traceSource?.TraceInformation(logPrefix + m);
 
             var trackerToUse = queueItem.MutatesSolutionState
