@@ -59,6 +59,47 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task FixAllInDocumentExplicitCall()
+        {
+
+            var testCode = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    static void M()
+    {
+        IEnumerable<string> test = new List<string> { ""hello"", ""world"", ""!"" };
+        var test1 = [|Enumerable.Where(test, x => x.Equals(""!"")).Any()|];
+        var test2 = [|Enumerable.Where(test, x => x.Equals(""!"")).SingleOrDefault()|];
+        var test3 = [|Enumerable.Where(test, x => x.Equals(""!"")).Last()|];
+        var test4 = [|Enumerable.Where(test, x => x.Equals(""!"")).Count()|];
+        var test5 = [|Enumerable.Where(test, x => x.Equals(""!"")).FirstOrDefault()|];
+    }
+}";
+            var fixedCode = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    static void M()
+    {
+        IEnumerable<string> test = new List<string> { ""hello"", ""world"", ""!"" };
+        var test1 = Enumerable.Any(test, x => x.Equals(""!""));
+        var test2 = Enumerable.SingleOrDefault(test, x => x.Equals(""!""));
+        var test3 = Enumerable.Last(test, x => x.Equals(""!""));
+        var test4 = Enumerable.Count(test, x => x.Equals(""!""));
+        var test5 = Enumerable.FirstOrDefault(test, x => x.Equals(""!""));
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(testCode, fixedCode);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task NestedInDocument()
         {
 
