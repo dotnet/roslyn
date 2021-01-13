@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _clientName = clientName;
 
-            _queue = new RequestExecutionQueue(this, lspWorkspaceRegistrationService, languageClient.Name);
+            _queue = new RequestExecutionQueue(this, lspWorkspaceRegistrationService, languageClient.Name, clientName);
             _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
             // Dedupe on DocumentId.  If we hear about the same document multiple times, we only need to process that id once.

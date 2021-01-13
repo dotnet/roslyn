@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal partial class RequestExecutionQueue
     {
         private readonly string _serverName;
-
+        private readonly string _clientName;
         private readonly AsyncQueue<QueueItem> _queue;
         private readonly CancellationTokenSource _cancelSource;
         private readonly DocumentChangeTracker _documentChangeTracker;
@@ -80,11 +80,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public RequestExecutionQueue(
             ILspLogger? logger,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
-            string serverName)
+            string serverName,
+            string clientName)
         {
             _logger = logger;
             _workspaceRegistrationService = workspaceRegistrationService;
             _serverName = serverName;
+            _clientName = clientName;
 
             _queue = new AsyncQueue<QueueItem>();
             _cancelSource = new CancellationTokenSource();
@@ -181,7 +183,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             TraceSource? traceSource = null;
             try
             {
-                var logIdName = $"{_serverName}.{DateTime.Now:yyyy-MM-dd-HH-mm-ss}";
+                var logIdName = $"{_serverName}.{_clientName ?? "Default"}.{DateTime.Now:yyyy-MM-dd-HH-mm-ss}";
                 traceSource = _logger == null ? null : await _logger.CreateTraceSourceAsync(logIdName, _cancelSource.Token).ConfigureAwait(false);
 
                 var requestId = 0;
@@ -276,8 +278,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private RequestContext CreateRequestContext(TraceSource? traceSource, QueueItem queueItem, int requestId)
         {
-            var logPrefix = $"{queueItem.ClientName ?? "Default"}.{requestId++:00000000}.{queueItem.MethodName}: ";
-            Action<string> traceInforation = m => traceSource?.TraceInformation(logPrefix + m);
+            var logPrefix = $"{requestId++:00000000}.{queueItem.MethodName}: ";
 
             var trackerToUse = queueItem.MutatesSolutionState
                 ? (IDocumentChangeTracker)_documentChangeTracker
@@ -286,11 +287,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return RequestContext.Create(
                 queueItem.TextDocument,
                 queueItem.ClientName,
-                traceInforation,
+                TraceInformation,
                 queueItem.ClientCapabilities,
                 _workspaceRegistrationService,
                 _lspSolutionCache,
                 trackerToUse);
+
+            void TraceInformation(string m) => traceSource?.TraceInformation(logPrefix + m);
         }
     }
 }
