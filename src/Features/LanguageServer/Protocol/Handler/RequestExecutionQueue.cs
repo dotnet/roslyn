@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
 
             var textDocument = handler.GetTextDocumentIdentifier(request);
-            var item = new QueueItem(mutatesSolutionState, clientCapabilities, clientName, textDocument,
+            var item = new QueueItem(mutatesSolutionState, clientCapabilities, clientName, methodName, textDocument,
                 callbackAsync: async (context, cancellationToken) =>
                 {
                     // Check if cancellation was requested while this was waiting in the queue
@@ -180,11 +180,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             try
             {
-                var traceSource = _logger == null ? null : await _logger.CreateTraceSourceAsync(_serverName, _cancelSource.Token).ConfigureAwait(false);
-
+                int requestId = 0;
                 while (!_cancelSource.IsCancellationRequested)
                 {
                     var work = await _queue.DequeueAsync().ConfigureAwait(false);
+
+                    var logIdName = $"{work.ClientName ?? "Default"}.{work.MethodName}.{requestId++}.{DateTime.Now:yyyy-MM-dd-HH-mm-ss}";
+                    var traceSource = _logger == null ? null : await _logger.CreateTraceSourceAsync(logIdName, _cancelSource.Token).ConfigureAwait(false);
 
                     // Create a linked cancellation token to cancel any requests in progress when this shuts down
                     var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;

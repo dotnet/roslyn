@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             /// <inheritdoc cref="RequestContext.ClientName" />
             public readonly string? ClientName;
+            public readonly string MethodName;
 
             /// <inheritdoc cref="RequestContext.ClientCapabilities" />
             public readonly ClientCapabilities ClientCapabilities;
@@ -39,11 +40,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// </summary>
             public readonly CancellationToken CancellationToken;
 
-            public QueueItem(bool mutatesSolutionState, ClientCapabilities clientCapabilities, string? clientName, TextDocumentIdentifier? textDocument, Func<RequestContext, CancellationToken, Task> callbackAsync, CancellationToken cancellationToken)
+            public QueueItem(
+                bool mutatesSolutionState,
+                ClientCapabilities clientCapabilities,
+                string? clientName,
+                string methodName,
+                TextDocumentIdentifier? textDocument,
+                Func<RequestContext, CancellationToken, Task> callbackAsync,
+                CancellationToken cancellationToken)
             {
                 MutatesSolutionState = mutatesSolutionState;
                 ClientCapabilities = clientCapabilities;
                 ClientName = clientName;
+                MethodName = methodName;
                 TextDocument = textDocument;
                 CallbackAsync = callbackAsync;
                 CancellationToken = cancellationToken;
