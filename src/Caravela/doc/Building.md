@@ -9,4 +9,4 @@ To build the Caravela compiler packages, you can either run `build -pack`, or yo
 To build a release version of the Caravela compiler:
 
 1. Set the version in eng\Versions.props.
-2. Run `build -c Release -pack /p:DotNetFinalVersionKind=release`. Without the last parameter, any pack produces a prerelease version, e.g. 3.8.0-dev.
+2. Run `build -c Release -pack`.

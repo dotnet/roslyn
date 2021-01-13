@@ -7,14 +7,16 @@
   <PropertyGroup>
     <MajorVersion>3</MajorVersion>
     <MinorVersion>8</MinorVersion>
-    <PatchVersion>102</PatchVersion>
+    <PatchVersion>0</PatchVersion>
     <PreReleaseVersionLabel>4</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
+    <VersionSuffix>preview</VersionSuffix>
+    <DotNetFinalVersionKind>caravela</DotNetFinalVersionKind>
     <!--
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
       Keep the setting conditional. The toolset sets the assembly version to 42.42.42.42 if not set explicitly.
     -->
-    <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(MajorVersion).$(MinorVersion).0.0</AssemblyVersion>
+    <AssemblyVersion>$(MajorVersion).$(MinorVersion).0.0</AssemblyVersion>
     <!--
       Arcade overrides our VersionPrefix when MajorVersion and MinorVersion are specified. Clear them so that
       we can keep the PatchVersion until we are using an SDK that includes https://github.com/dotnet/arcade/pull/3601

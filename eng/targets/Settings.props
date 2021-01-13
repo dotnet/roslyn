@@ -2,11 +2,11 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
   <PropertyGroup>
-    <Copyright>$(CopyrightMicrosoft)</Copyright>
+    <Copyright>© SharpCrafters s.r.o. All rights reserved.</Copyright>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageLicensePath>$(MSBuildThisFileDirectory)..\..\LICENSE.md</PackageLicensePath>
 
-    <RepositoryUrl>https://github.com/postsharp/Caravela.Compiler</RepositoryUrl>
+    <RepositoryUrl>https://github.com/postsharp/Caravela</RepositoryUrl>
     <PackageTags>PostSharp Caravela</PackageTags>
     <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\THIRD-PARTY-NOTICES.txt</ThirdPartyNoticesFilePath>
 

@@ -243,23 +243,10 @@
   -->
   <ItemGroup Condition="'$(IsPackable)' == 'true' and '$(IsShipping)' == 'true'">
     <None Include="$(ThirdPartyNoticesFilePath)" PackagePath="THIRD-PARTY-NOTICES.txt" Visible="false" Pack="true"/>
+  </ItemGroup>
+  <ItemGroup Condition="'$(IsPackable)' == 'true'">
     <None Include="$(PackageLicensePath)" PackagePath="LICENSE.md" Visible="false" Pack="true"/>
   </ItemGroup>
-
-  <!--
-    Append common text to package specific PackageDescription.
-  -->
-  <Target Name="_AppendCommonPackageDescription" 
-          BeforeTargets="InitializeStandardNuspecProperties;GenerateNuspec" 
-          DependsOnTargets="InitializeSourceControlInformation"
-          Condition="'$(IsPackable)' == 'true' AND '$(SourceControlInformationFeatureSupported)' == 'true'">
-    <PropertyGroup>
-      <PackageDescription>
-      $(PackageDescription)
-      This package was built from the source at $(PrivateRepositoryUrl)/commit/$(SourceRevisionId).
-      </PackageDescription>
-    </PropertyGroup>
-  </Target>
 
   <!-- Make sure additional files show up in Solution Explorer -->
   <ItemGroup>
