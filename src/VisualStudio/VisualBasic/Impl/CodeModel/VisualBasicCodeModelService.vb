@@ -7,6 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Formatting
@@ -33,13 +34,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
         Private ReadOnly _commitBufferManagerFactory As CommitBufferManagerFactory
 
-        Friend Sub New(provider As HostLanguageServices, editorOptionsFactoryService As IEditorOptionsFactoryService, refactorNotifyServices As IEnumerable(Of IRefactorNotifyService), commitBufferManagerFactory As CommitBufferManagerFactory)
+        Friend Sub New(provider As HostLanguageServices, editorOptionsFactoryService As IEditorOptionsFactoryService, refactorNotifyServices As IEnumerable(Of IRefactorNotifyService), commitBufferManagerFactory As CommitBufferManagerFactory, threadingContext As IThreadingContext)
             MyBase.New(
                 provider,
                 editorOptionsFactoryService,
                 refactorNotifyServices,
                 LineAdjustmentFormattingRule.Instance,
-                EndRegionFormattingRule.Instance)
+                EndRegionFormattingRule.Instance,
+                threadingContext)
 
             Me._commitBufferManagerFactory = commitBufferManagerFactory
         End Sub

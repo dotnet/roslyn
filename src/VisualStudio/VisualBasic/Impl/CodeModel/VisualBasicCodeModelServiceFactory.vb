@@ -10,6 +10,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
     <ExportLanguageServiceFactory(GetType(ICodeModelService), LanguageNames.VisualBasic), [Shared]>
@@ -19,19 +20,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Private ReadOnly _editorOptionsFactoryService As IEditorOptionsFactoryService
         Private ReadOnly _refactorNotifyServices As IEnumerable(Of IRefactorNotifyService)
         Private ReadOnly _commitBufferManagerFactory As CommitBufferManagerFactory
+        Private ReadOnly _threadingContext As IThreadingContext
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(editorOptionsFactoryService As IEditorOptionsFactoryService,
                         <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService),
-                        commitBufferManagerFactory As CommitBufferManagerFactory)
+                        commitBufferManagerFactory As CommitBufferManagerFactory,
+                        threadingContext As IThreadingContext)
             Me._editorOptionsFactoryService = editorOptionsFactoryService
             Me._refactorNotifyServices = refactorNotifyServices
             Me._commitBufferManagerFactory = commitBufferManagerFactory
+            Me._threadingContext = threadingContext
         End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicCodeModelService(provider, Me._editorOptionsFactoryService, _refactorNotifyServices, _commitBufferManagerFactory)
+            Return New VisualBasicCodeModelService(provider, Me._editorOptionsFactoryService, _refactorNotifyServices, _commitBufferManagerFactory, _threadingContext)
         End Function
     End Class
 End Namespace
