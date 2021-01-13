@@ -38,6 +38,34 @@ namespace Microsoft.CodeAnalysis.Testing
             }.RunAsync();
         }
 
+        [Fact]
+        public async Task AddSimpleFileWithDiagnostic()
+        {
+            await new CSharpSourceGeneratorTest<AddEmptyFileWithDiagnostic>
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"// Comment",
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        @"{|#0:|}// Comment",
+                        ("Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests\\Microsoft.CodeAnalysis.Testing.TestGenerators.AddEmptyFileWithDiagnostic\\EmptyGeneratedFile.cs", SourceText.From(string.Empty, Encoding.UTF8)),
+                    },
+                    ExpectedDiagnostics =
+                    {
+                        // /0/Test0.cs(1,1): warning SG0001: Message
+                        new DiagnosticResult(AddEmptyFileWithDiagnostic.Descriptor).WithLocation(0),
+                    },
+                },
+            }.RunAsync();
+        }
+
         private class CSharpSourceGeneratorTest<TSourceGenerator> : SourceGeneratorTest<DefaultVerifier>
             where TSourceGenerator : ISourceGenerator, new()
         {

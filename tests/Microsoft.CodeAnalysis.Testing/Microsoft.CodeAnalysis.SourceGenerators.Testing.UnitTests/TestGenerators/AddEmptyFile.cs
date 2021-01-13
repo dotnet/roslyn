@@ -4,13 +4,13 @@
 
 namespace Microsoft.CodeAnalysis.Testing.TestGenerators
 {
-    public sealed class AddEmptyFile : ISourceGenerator
+    public class AddEmptyFile : ISourceGenerator
     {
         public void Initialize(GeneratorInitializationContext context)
         {
         }
 
-        public void Execute(GeneratorExecutionContext context)
+        public virtual void Execute(GeneratorExecutionContext context)
         {
             context.AddSource("EmptyGeneratedFile", string.Empty);
         }

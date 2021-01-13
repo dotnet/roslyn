@@ -22,7 +22,11 @@ Public Class VisualBasicSourceGeneratorTest(Of TSourceGenerator As {ISourceGener
     End Property
 
     Protected Overrides Function CreateGeneratorDriver(project As Project, sourceGenerators As ImmutableArray(Of ISourceGenerator)) As GeneratorDriver
-        Return VisualBasicGeneratorDriver.Create(sourceGenerators, project.AnalyzerOptions.AdditionalFiles, CType(project.ParseOptions, VisualBasicParseOptions), project.AnalyzerOptions.AnalyzerConfigOptionsProvider)
+        Return VisualBasicGeneratorDriver.Create(
+            sourceGenerators,
+            project.AnalyzerOptions.AdditionalFiles,
+            CType(project.ParseOptions, VisualBasicParseOptions),
+            project.AnalyzerOptions.AnalyzerConfigOptionsProvider)
     End Function
 
     Protected Overrides Function CreateCompilationOptions() As CompilationOptions

@@ -42,6 +42,9 @@ namespace Microsoft.CodeAnalysis.Testing
         protected SourceGeneratorTest()
         {
             FixedState = new SolutionState(DefaultTestProjectName, Language, DefaultFilePathPrefix, DefaultFileExt);
+
+            // Disable test behaviors that don't make sense for source generator scenarios
+            TestBehaviors |= TestBehaviors.SkipSuppressionCheck | TestBehaviors.SkipGeneratedCodeCheck;
         }
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
@@ -71,8 +74,8 @@ namespace Microsoft.CodeAnalysis.Testing
             var fixedState = rawFixedState.WithProcessedMarkup(MarkupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, DefaultFilePath);
 
             await VerifyDiagnosticsAsync(new EvaluatedProjectState(testState, ReferenceAssemblies), testState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), testState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of test state"), cancellationToken).ConfigureAwait(false);
-            await VerifyDiagnosticsAsync(new EvaluatedProjectState(fixedState, ReferenceAssemblies), fixedState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), fixedState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of fixed state"), cancellationToken).ConfigureAwait(false);
-            await VerifySourceGeneratorAsync(testState, fixedState, Verify, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await VerifySourceGeneratorAsync(testState, fixedState, Verify, cancellationToken).ConfigureAwait(false);
+            await VerifyDiagnosticsAsync(new EvaluatedProjectState(fixedState, ReferenceAssemblies).WithAdditionalDiagnostics(diagnostics), fixedState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), fixedState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of test state with generated sources"), cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -83,12 +86,12 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="verifier">The verifier to use for test assertions.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        protected async Task VerifySourceGeneratorAsync(SolutionState testState, SolutionState fixedState, IVerifier verifier, CancellationToken cancellationToken)
+        protected async Task<ImmutableArray<Diagnostic>> VerifySourceGeneratorAsync(SolutionState testState, SolutionState fixedState, IVerifier verifier, CancellationToken cancellationToken)
         {
-            await VerifySourceGeneratorAsync(Language, GetSourceGenerators().ToImmutableArray(), testState, fixedState, ApplySourceGeneratorAsync, verifier.PushContext("Source generator application"), cancellationToken);
+            return await VerifySourceGeneratorAsync(Language, GetSourceGenerators().ToImmutableArray(), testState, fixedState, ApplySourceGeneratorAsync, verifier.PushContext("Source generator application"), cancellationToken);
         }
 
-        private async Task VerifySourceGeneratorAsync(
+        private async Task<ImmutableArray<Diagnostic>> VerifySourceGeneratorAsync(
             string language,
             ImmutableArray<ISourceGenerator> sourceGenerators,
             SolutionState oldState,
@@ -129,6 +132,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 verifier.Equal(newState.AdditionalFiles[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{newState.AdditionalFiles[i].filename}' was expected to be '{newState.AdditionalFiles[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
                 verifier.Equal(newState.AdditionalFiles[i].filename, updatedAdditionalDocuments[i].Name, $"file name was expected to be '{newState.AdditionalFiles[i].filename}' but was '{updatedAdditionalDocuments[i].Name}'");
             }
+
+            return diagnostics;
         }
 
         private async Task<(Project project, ImmutableArray<Diagnostic> diagnostics)> ApplySourceGeneratorAsync(ImmutableArray<ISourceGenerator> sourceGenerators, Project project, IVerifier verifier, CancellationToken cancellationToken)
