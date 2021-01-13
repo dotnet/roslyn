@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // Use local pipe to avoid blocking the current thread on networking IO.
             var localPipe = new Pipe(PipeOptionsWithUnlimitedWriterBuffer);
 
-            Exception? exception = null;
+            Exception? copyException = null;
 
             // start a task on a thread pool thread copying from the RPC pipe to a local pipe:
             var copyTask = Task.Run(async () =>
@@ -111,11 +111,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
                 catch (Exception e)
                 {
-                    exception = e;
+                    copyException = e;
                 }
                 finally
                 {
-                    await localPipe.Writer.CompleteAsync(exception).ConfigureAwait(false);
+                    await localPipe.Writer.CompleteAsync(copyException).ConfigureAwait(false);
                 }
             }, mustNotCancelToken);
 
@@ -125,17 +125,40 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var stream = localPipe.Reader.AsStream(leaveOpen: false);
                 return ReadData(stream, scopeId, checksums, serializerService, cancellationToken);
             }
-            catch (EndOfStreamException)
+            catch (EndOfStreamException) when (IsEndOfStreamExceptionExpected(copyException, cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                throw exception ?? ExceptionUtilities.Unreachable;
+                throw copyException ?? ExceptionUtilities.Unreachable;
             }
             finally
             {
                 // Make sure to complete the copy and pipes before returning, otherwise the caller could complete the
                 // reader and/or writer while they are still in use.
                 await copyTask.ConfigureAwait(false);
+            }
+
+            // Local functions
+            static bool IsEndOfStreamExceptionExpected(Exception? copyException, CancellationToken cancellationToken)
+            {
+                // The local pipe is only closed in the 'finally' block of 'copyTask'. If the reader fails with an
+                // EndOfStreamException, we known 'copyTask' has already completed its work.
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    // The writer closed early due to a cancellation request.
+                    return true;
+                }
+
+                if (copyException is not null)
+                {
+                    // An exception occurred while attempting to copy data to the local pipe. Catch and throw the
+                    // exception that occurred during that copy operation.
+                    return true;
+                }
+
+                // The reader attempted to read more data than was copied to the local pipe. Avoid catching the
+                // exception to reveal the faulty read stack in telemetry.
+                return false;
             }
         }
 
