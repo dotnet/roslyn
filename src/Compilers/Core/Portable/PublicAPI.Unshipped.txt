@@ -1,5 +1,6 @@
 Microsoft.CodeAnalysis.GeneratorAttribute.GeneratorAttribute(string firstLanguage, params string[] additionalLanguages) -> void
 Microsoft.CodeAnalysis.GeneratorAttribute.Languages.get -> string[]
+Microsoft.CodeAnalysis.GeneratorExecutionContext.SyntaxReceiverWithContext.get -> Microsoft.CodeAnalysis.ISyntaxReceiverWithContext
 Microsoft.CodeAnalysis.GeneratorSyntaxReceiverContext
 Microsoft.CodeAnalysis.GeneratorSyntaxReceiverContext.GeneratorSyntaxReceiverContext() -> void
 Microsoft.CodeAnalysis.GeneratorSyntaxReceiverContext.Node.get -> Microsoft.CodeAnalysis.SyntaxNode

@@ -204,6 +204,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var tree in compilation.SyntaxTrees)
                 {
                     var root = tree.GetRoot(cancellationToken);
+                    var semanticModel = compilation.GetSemanticModel(tree);
 
                     // https://github.com/dotnet/roslyn/issues/42629: should be possible to parallelize this
                     for (int i = 0; i < walkerBuilder.Count; i++)
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             try
                             {
-                                walker.Visit(root);
+                                walker.VisitWithModel(semanticModel, root);
                             }
                             catch (Exception e)
                             {

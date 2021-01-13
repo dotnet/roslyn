@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis
             AdditionalFiles = additionalTexts;
             AnalyzerConfigOptions = optionsProvider;
             SyntaxReceiver = syntaxReceiver as ISyntaxReceiver;
+            SyntaxReceiverWithContext = syntaxReceiver as ISyntaxReceiverWithContext;
             CancellationToken = cancellationToken;
             _additionalSources = additionalSources;
             _diagnostics = new DiagnosticBag();
@@ -60,6 +61,11 @@ namespace Microsoft.CodeAnalysis
         /// If the generator registered an <see cref="ISyntaxReceiver"/> during initialization, this will be the instance created for this generation pass.
         /// </summary>
         public ISyntaxReceiver? SyntaxReceiver { get; }
+
+        /// <summary>
+        /// If the generator registered an <see cref="ISyntaxReceiverWithContext"/> during initialization, this will be the instance created for this generation pass.
+        /// </summary>
+        public ISyntaxReceiverWithContext? SyntaxReceiverWithContext { get; }
 
         /// <summary>
         /// A <see cref="CancellationToken"/> that can be checked to see if the generation should be cancelled.
