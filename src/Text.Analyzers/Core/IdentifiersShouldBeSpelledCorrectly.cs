@@ -17,7 +17,7 @@ namespace Text.Analyzers
     /// CA1704: Identifiers should be spelled correctly
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class IdentifiersShouldBeSpelledCorrectlyAnalyzer : DiagnosticAnalyzer
+    public sealed class IdentifiersShouldBeSpelledCorrectlyAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1704";
 
@@ -43,19 +43,20 @@ namespace Text.Analyzers
         private static readonly LocalizableString s_localizableMessageMethodTypeParameterMoreMeaningfulName = new LocalizableResourceString(nameof(TextAnalyzersResources.IdentifiersShouldBeSpelledCorrectlyMessageMethodTypeParameterMoreMeaningfulName), TextAnalyzersResources.ResourceManager, typeof(TextAnalyzersResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(TextAnalyzersResources.IdentifiersShouldBeSpelledCorrectlyDescription), TextAnalyzersResources.ResourceManager, typeof(TextAnalyzersResources));
 
-        private static readonly SourceTextValueProvider<CodeAnalysisDictionary> _xmlDictionaryProvider = new SourceTextValueProvider<CodeAnalysisDictionary>(ParseXmlDictionary);
-        private static readonly SourceTextValueProvider<CodeAnalysisDictionary> _dicDictionaryProvider = new SourceTextValueProvider<CodeAnalysisDictionary>(ParseDicDictionary);
-        private static readonly CodeAnalysisDictionary _mainDictionary = GetMainDictionary();
+        private static readonly SourceTextValueProvider<CodeAnalysisDictionary> s_xmlDictionaryProvider = new SourceTextValueProvider<CodeAnalysisDictionary>(ParseXmlDictionary);
+        private static readonly SourceTextValueProvider<CodeAnalysisDictionary> s_dicDictionaryProvider = new SourceTextValueProvider<CodeAnalysisDictionary>(ParseDicDictionary);
+        private static readonly CodeAnalysisDictionary s_mainDictionary = GetMainDictionary();
 
-        internal static DiagnosticDescriptor FileParseRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor FileParseRule { get; } = new DiagnosticDescriptor(
             RuleId,
             s_localizableTitle,
             s_localizableMessageFileParse,
             DiagnosticCategory.Naming,
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
+            isEnabledByDefault: true,
+            customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
 
-        internal static DiagnosticDescriptor AssemblyRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor AssemblyRule { get; } = new DiagnosticDescriptor(
             RuleId,
             s_localizableTitle,
             s_localizableMessageAssembly,
@@ -63,10 +64,9 @@ namespace Text.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
 
-        internal static DiagnosticDescriptor NamespaceRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor NamespaceRule { get; } = new DiagnosticDescriptor(
             RuleId,
             s_localizableTitle,
             s_localizableMessageNamespace,
@@ -74,10 +74,9 @@ namespace Text.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
 
-        internal static DiagnosticDescriptor TypeRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor TypeRule { get; } = new DiagnosticDescriptor(
             RuleId,
             s_localizableTitle,
             s_localizableMessageType,
@@ -85,10 +84,9 @@ namespace Text.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
 
-        internal static DiagnosticDescriptor VariableRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor VariableRule { get; } = new DiagnosticDescriptor(
             RuleId,
             s_localizableTitle,
             s_localizableMessageVariable,
@@ -96,10 +94,9 @@ namespace Text.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
 
-        internal static DiagnosticDescriptor MemberRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor MemberRule { get; } = new DiagnosticDescriptor(
             RuleId,
             s_localizableTitle,
             s_localizableMessageMember,
@@ -107,10 +104,9 @@ namespace Text.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
 
-        internal static DiagnosticDescriptor MemberParameterRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor MemberParameterRule { get; } = new DiagnosticDescriptor(
             RuleId,
             s_localizableTitle,
             s_localizableMessageMemberParameter,
@@ -118,10 +114,9 @@ namespace Text.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
 
-        internal static DiagnosticDescriptor DelegateParameterRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor DelegateParameterRule { get; } = new DiagnosticDescriptor(
             RuleId,
             s_localizableTitle,
             s_localizableMessageDelegateParameter,
@@ -129,10 +124,9 @@ namespace Text.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
 
-        internal static DiagnosticDescriptor TypeTypeParameterRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor TypeTypeParameterRule { get; } = new DiagnosticDescriptor(
             RuleId,
             s_localizableTitle,
             s_localizableMessageTypeTypeParameter,
@@ -140,10 +134,9 @@ namespace Text.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
 
-        internal static DiagnosticDescriptor MethodTypeParameterRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor MethodTypeParameterRule { get; } = new DiagnosticDescriptor(
             RuleId,
             s_localizableTitle,
             s_localizableMessageMethodTypeParameter,
@@ -151,10 +144,9 @@ namespace Text.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
 
-        internal static DiagnosticDescriptor AssemblyMoreMeaningfulNameRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor AssemblyMoreMeaningfulNameRule { get; } = new DiagnosticDescriptor(
             RuleId,
             s_localizableTitle,
             s_localizableMessageAssemblyMoreMeaningfulName,
@@ -162,10 +154,9 @@ namespace Text.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
 
-        internal static DiagnosticDescriptor NamespaceMoreMeaningfulNameRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor NamespaceMoreMeaningfulNameRule { get; } = new DiagnosticDescriptor(
             RuleId,
             s_localizableTitle,
             s_localizableMessageNamespaceMoreMeaningfulName,
@@ -173,10 +164,9 @@ namespace Text.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
 
-        internal static DiagnosticDescriptor TypeMoreMeaningfulNameRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor TypeMoreMeaningfulNameRule { get; } = new DiagnosticDescriptor(
             RuleId,
             s_localizableTitle,
             s_localizableMessageTypeMoreMeaningfulName,
@@ -184,10 +174,9 @@ namespace Text.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
 
-        internal static DiagnosticDescriptor MemberMoreMeaningfulNameRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor MemberMoreMeaningfulNameRule { get; } = new DiagnosticDescriptor(
             RuleId,
             s_localizableTitle,
             s_localizableMessageMemberMoreMeaningfulName,
@@ -195,10 +184,9 @@ namespace Text.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
 
-        internal static DiagnosticDescriptor MemberParameterMoreMeaningfulNameRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor MemberParameterMoreMeaningfulNameRule { get; } = new DiagnosticDescriptor(
             RuleId,
             s_localizableTitle,
             s_localizableMessageMemberParameterMoreMeaningfulName,
@@ -206,10 +194,9 @@ namespace Text.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
 
-        internal static DiagnosticDescriptor DelegateParameterMoreMeaningfulNameRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor DelegateParameterMoreMeaningfulNameRule { get; } = new DiagnosticDescriptor(
             RuleId,
             s_localizableTitle,
             s_localizableMessageDelegateParameterMoreMeaningfulName,
@@ -217,10 +204,9 @@ namespace Text.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
 
-        internal static DiagnosticDescriptor TypeTypeParameterMoreMeaningfulNameRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor TypeTypeParameterMoreMeaningfulNameRule { get; } = new DiagnosticDescriptor(
             RuleId,
             s_localizableTitle,
             s_localizableMessageTypeTypeParameterMoreMeaningfulName,
@@ -228,10 +214,9 @@ namespace Text.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
 
-        internal static DiagnosticDescriptor MethodTypeParameterMoreMeaningfulNameRule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor MethodTypeParameterMoreMeaningfulNameRule { get; } = new DiagnosticDescriptor(
             RuleId,
             s_localizableTitle,
             s_localizableMessageMethodTypeParameterMoreMeaningfulName,
@@ -239,7 +224,6 @@ namespace Text.Analyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            helpLinkUri: "https://docs.microsoft.com/visualstudio/code-quality/ca1704",
             customTags: FxCopWellKnownDiagnosticTags.PortedFxCopRule);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
@@ -270,10 +254,10 @@ namespace Text.Analyzers
             analysisContext.RegisterCompilationStartAction(OnCompilationStart);
         }
 
-        private void OnCompilationStart(CompilationStartAnalysisContext compilationStartContext)
+        private static void OnCompilationStart(CompilationStartAnalysisContext compilationStartContext)
         {
             var dictionaries = ReadDictionaries();
-            var projectDictionary = CodeAnalysisDictionary.CreateFromDictionaries(dictionaries.Concat(_mainDictionary));
+            var projectDictionary = CodeAnalysisDictionary.CreateFromDictionaries(dictionaries.Concat(s_mainDictionary));
 
             compilationStartContext.RegisterOperationAction(AnalyzeVariable, OperationKind.VariableDeclarator);
             compilationStartContext.RegisterCompilationEndAction(AnalyzeAssembly);
@@ -299,7 +283,7 @@ namespace Text.Analyzers
                 {
                     var text = additionalFile.GetText(compilationStartContext.CancellationToken);
                     var isXml = additionalFile.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase);
-                    var provider = isXml ? _xmlDictionaryProvider : _dicDictionaryProvider;
+                    var provider = isXml ? s_xmlDictionaryProvider : s_dicDictionaryProvider;
 
                     if (!compilationStartContext.TryGetValue(text, provider, out var dictionary))
                     {
@@ -356,8 +340,8 @@ namespace Text.Analyzers
                 var symbolName = symbol.Name;
                 switch (symbol)
                 {
-                    case IFieldSymbol field:
-                        symbolName = RemovePrefixIfPresent("_", symbolName);
+                    case IFieldSymbol:
+                        symbolName = RemovePrefixIfPresent('_', symbolName);
                         break;
 
                     case IMethodSymbol method:
@@ -375,7 +359,7 @@ namespace Text.Analyzers
 
                         foreach (var typeParameter in method.TypeParameters)
                         {
-                            ReportDiagnosticsForSymbol(typeParameter, RemovePrefixIfPresent("T", typeParameter.Name), symbolContext.ReportDiagnostic);
+                            ReportDiagnosticsForSymbol(typeParameter, RemovePrefixIfPresent('T', typeParameter.Name), symbolContext.ReportDiagnostic);
                         }
 
                         break;
@@ -383,12 +367,12 @@ namespace Text.Analyzers
                     case INamedTypeSymbol type:
                         if (type.TypeKind == TypeKind.Interface)
                         {
-                            symbolName = RemovePrefixIfPresent("I", symbolName);
+                            symbolName = RemovePrefixIfPresent('I', symbolName);
                         }
 
                         foreach (var typeParameter in type.TypeParameters)
                         {
-                            ReportDiagnosticsForSymbol(typeParameter, RemovePrefixIfPresent("T", typeParameter.Name), symbolContext.ReportDiagnostic);
+                            ReportDiagnosticsForSymbol(typeParameter, RemovePrefixIfPresent('T', typeParameter.Name), symbolContext.ReportDiagnostic);
                         }
 
                         break;
@@ -464,24 +448,25 @@ namespace Text.Analyzers
         private static CodeAnalysisDictionary ParseDicDictionary(SourceText text)
             => text.Parse(CodeAnalysisDictionary.CreateFromDic);
 
-        private static string RemovePrefixIfPresent(string prefix, string name)
-            => name.StartsWith(prefix, StringComparison.Ordinal) ? name[1..] : name;
+        private static string RemovePrefixIfPresent(char prefix, string name)
+            => name.Length > 0 && name[0] == prefix ? name[1..] : name;
 
         private static Diagnostic GetMisspelledWordDiagnostic(ISymbol symbol, string misspelledWord)
         {
             return symbol.Kind switch
             {
-                SymbolKind.Assembly => Diagnostic.Create(AssemblyRule, Location.None, misspelledWord, symbol.Name),
-                SymbolKind.Namespace => Diagnostic.Create(NamespaceRule, symbol.Locations.First(), misspelledWord, symbol.ToDisplayString()),
-                SymbolKind.NamedType => Diagnostic.Create(TypeRule, symbol.Locations.First(), misspelledWord, symbol.ToDisplayString()),
-                SymbolKind.Method or SymbolKind.Property or SymbolKind.Event or SymbolKind.Field => Diagnostic.Create(MemberRule, symbol.Locations.First(), misspelledWord, symbol.ToDisplayString()),
+                SymbolKind.Assembly => symbol.CreateDiagnostic(AssemblyRule, misspelledWord, symbol.Name),
+                SymbolKind.Namespace => symbol.CreateDiagnostic(NamespaceRule, misspelledWord, symbol.ToDisplayString()),
+                SymbolKind.NamedType => symbol.CreateDiagnostic(TypeRule, misspelledWord, symbol.ToDisplayString()),
+                SymbolKind.Method or SymbolKind.Property or SymbolKind.Event or SymbolKind.Field
+                    => symbol.CreateDiagnostic(MemberRule, misspelledWord, symbol.ToDisplayString()),
                 SymbolKind.Parameter => symbol.ContainingType.TypeKind == TypeKind.Delegate
-                    ? Diagnostic.Create(DelegateParameterRule, symbol.Locations.First(), symbol.ContainingType.ToDisplayString(), misspelledWord, symbol.Name)
-                    : Diagnostic.Create(MemberParameterRule, symbol.Locations.First(), symbol.ContainingSymbol.ToDisplayString(), misspelledWord, symbol.Name),
+                    ? symbol.CreateDiagnostic(DelegateParameterRule, symbol.ContainingType.ToDisplayString(), misspelledWord, symbol.Name)
+                    : symbol.CreateDiagnostic(MemberParameterRule, symbol.ContainingSymbol.ToDisplayString(), misspelledWord, symbol.Name),
                 SymbolKind.TypeParameter => symbol.ContainingSymbol.Kind == SymbolKind.Method
-                    ? Diagnostic.Create(MethodTypeParameterRule, symbol.Locations.First(), symbol.ContainingSymbol.ToDisplayString(), misspelledWord, symbol.Name)
-                    : Diagnostic.Create(TypeTypeParameterRule, symbol.Locations.First(), symbol.ContainingSymbol.ToDisplayString(), misspelledWord, symbol.Name),
-                SymbolKind.Local => Diagnostic.Create(VariableRule, symbol.Locations.First(), misspelledWord, symbol.ToDisplayString()),
+                    ? symbol.CreateDiagnostic(MethodTypeParameterRule, symbol.ContainingSymbol.ToDisplayString(), misspelledWord, symbol.Name)
+                    : symbol.CreateDiagnostic(TypeTypeParameterRule, symbol.ContainingSymbol.ToDisplayString(), misspelledWord, symbol.Name),
+                SymbolKind.Local => symbol.CreateDiagnostic(VariableRule, misspelledWord, symbol.ToDisplayString()),
                 _ => throw new NotImplementedException($"Unknown SymbolKind: {symbol.Kind}"),
             };
         }
@@ -490,16 +475,17 @@ namespace Text.Analyzers
         {
             return symbol.Kind switch
             {
-                SymbolKind.Assembly => Diagnostic.Create(AssemblyMoreMeaningfulNameRule, Location.None, symbolName),
-                SymbolKind.Namespace => Diagnostic.Create(NamespaceMoreMeaningfulNameRule, symbol.Locations.First(), symbolName),
-                SymbolKind.NamedType => Diagnostic.Create(TypeMoreMeaningfulNameRule, symbol.Locations.First(), symbolName),
-                SymbolKind.Method or SymbolKind.Property or SymbolKind.Event or SymbolKind.Field => Diagnostic.Create(MemberMoreMeaningfulNameRule, symbol.Locations.First(), symbolName),
+                SymbolKind.Assembly => symbol.CreateDiagnostic(AssemblyMoreMeaningfulNameRule, symbolName),
+                SymbolKind.Namespace => symbol.CreateDiagnostic(NamespaceMoreMeaningfulNameRule, symbolName),
+                SymbolKind.NamedType => symbol.CreateDiagnostic(TypeMoreMeaningfulNameRule, symbolName),
+                SymbolKind.Method or SymbolKind.Property or SymbolKind.Event or SymbolKind.Field
+                    => symbol.CreateDiagnostic(MemberMoreMeaningfulNameRule, symbolName),
                 SymbolKind.Parameter => symbol.ContainingType.TypeKind == TypeKind.Delegate
-                    ? Diagnostic.Create(DelegateParameterMoreMeaningfulNameRule, symbol.Locations.First(), symbol.ContainingType.ToDisplayString(), symbolName)
-                    : Diagnostic.Create(MemberParameterMoreMeaningfulNameRule, symbol.Locations.First(), symbol.ContainingSymbol.ToDisplayString(), symbolName),
+                    ? symbol.CreateDiagnostic(DelegateParameterMoreMeaningfulNameRule, symbol.ContainingType.ToDisplayString(), symbolName)
+                    : symbol.CreateDiagnostic(MemberParameterMoreMeaningfulNameRule, symbol.ContainingSymbol.ToDisplayString(), symbolName),
                 SymbolKind.TypeParameter => symbol.ContainingSymbol.Kind == SymbolKind.Method
-                    ? Diagnostic.Create(MethodTypeParameterMoreMeaningfulNameRule, symbol.Locations.First(), symbol.ContainingSymbol.ToDisplayString(), symbol.Name)
-                    : Diagnostic.Create(TypeTypeParameterMoreMeaningfulNameRule, symbol.Locations.First(), symbol.ContainingSymbol.ToDisplayString(), symbol.Name),
+                    ? symbol.CreateDiagnostic(MethodTypeParameterMoreMeaningfulNameRule, symbol.ContainingSymbol.ToDisplayString(), symbol.Name)
+                    : symbol.CreateDiagnostic(TypeTypeParameterMoreMeaningfulNameRule, symbol.ContainingSymbol.ToDisplayString(), symbol.Name),
                 _ => throw new NotImplementedException($"Unknown SymbolKind: {symbol.Kind}"),
             };
         }

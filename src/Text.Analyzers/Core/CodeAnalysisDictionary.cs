@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -13,7 +14,7 @@ namespace Text.Analyzers
     /// XML or DIC code analysis dictionaries.
     /// </summary>
     /// <Remarks>
-    /// <seealso href="https://docs.microsoft.com/en-us/visualstudio/code-quality/how-to-customize-the-code-analysis-dictionary?view=vs-2019"/>
+    /// <seealso href="https://docs.microsoft.com/visualstudio/code-quality/how-to-customize-the-code-analysis-dictionary"/>
     /// </Remarks>
     internal sealed class CodeAnalysisDictionary
     {
@@ -24,8 +25,8 @@ namespace Text.Analyzers
         /// <param name="unrecognizedWords">Correctly spelled words that the spell checker will now report.</param>
         private CodeAnalysisDictionary(IEnumerable<string> recognizedWords, IEnumerable<string> unrecognizedWords)
         {
-            RecognizedWords = new HashSet<string>(recognizedWords, StringComparer.OrdinalIgnoreCase);
-            UnrecognizedWords = new HashSet<string>(unrecognizedWords, StringComparer.OrdinalIgnoreCase);
+            RecognizedWords = ImmutableHashSet.Create(StringComparer.OrdinalIgnoreCase, recognizedWords.ToArray());
+            UnrecognizedWords = ImmutableHashSet.Create(StringComparer.OrdinalIgnoreCase, unrecognizedWords.ToArray());
         }
 
         /// <summary>
@@ -38,7 +39,7 @@ namespace Text.Analyzers
         /// </Recognized>
         /// </code>
         /// </example>
-        public HashSet<string> RecognizedWords { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public ImmutableHashSet<string> RecognizedWords { get; }
 
         /// <summary>
         /// A list of correctly spelled words that the spell checker will now report.
@@ -50,7 +51,7 @@ namespace Text.Analyzers
         /// </Unrecognized>
         /// </code>
         /// </example>
-        public HashSet<string> UnrecognizedWords { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        public ImmutableHashSet<string> UnrecognizedWords { get; }
 
         /// <summary>
         /// Creates a new instance of this class with recognized and unrecognized words (if specified) loaded
@@ -81,9 +82,10 @@ namespace Text.Analyzers
             string word;
             while ((word = streamReader.ReadLine()) != null)
             {
-                if (!string.IsNullOrWhiteSpace(word.Trim()))
+                var trimmedWord = word.Trim();
+                if (trimmedWord.Length > 0)
                 {
-                    recognizedWords.Add(word);
+                    recognizedWords.Add(trimmedWord);
                 }
             }
 
@@ -92,8 +94,8 @@ namespace Text.Analyzers
 
         public static CodeAnalysisDictionary CreateFromDictionaries(IEnumerable<CodeAnalysisDictionary> dictionaries)
         {
-            var recognizedWords = dictionaries.Select(x => x.RecognizedWords).Aggregate<IEnumerable<string>>((x, y) => x.Union(y));
-            var unrecognizedWords = dictionaries.Select(x => x.UnrecognizedWords).Aggregate<IEnumerable<string>>((x, y) => x.Union(y));
+            var recognizedWords = dictionaries.Select(x => x.RecognizedWords).Aggregate((x, y) => x.Union(y));
+            var unrecognizedWords = dictionaries.Select(x => x.UnrecognizedWords).Aggregate((x, y) => x.Union(y));
             return new CodeAnalysisDictionary(recognizedWords, unrecognizedWords);
         }
 

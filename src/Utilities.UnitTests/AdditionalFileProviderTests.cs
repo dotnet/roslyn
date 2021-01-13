@@ -11,7 +11,6 @@ using Xunit;
 
 namespace Analyzers.Utilities.UnitTests
 {
-
 #pragma warning disable CS0419 // Ambiguous reference in cref attribute
     /// <summary>
     /// Tests for <see cref="Analyzer.Utilities.AdditionalFileProvider"/>.

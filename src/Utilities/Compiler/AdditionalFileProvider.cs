@@ -29,7 +29,8 @@ namespace Analyzer.Utilities
         /// </summary>
         /// <param name="options">Options passed to a <see cref="DiagnosticAnalyzer"/>.</param>
         /// <returns>An instance of <see cref="AdditionalFileProvider"/>.</returns>
-        public static AdditionalFileProvider FromOptions(AnalyzerOptions options) => new AdditionalFileProvider(options.AdditionalFiles);
+        public static AdditionalFileProvider FromOptions(AnalyzerOptions options)
+            => new AdditionalFileProvider(options.AdditionalFiles);
 
         /// <summary>
         /// Returns the first additional file whose name is the specified <paramref name="fileName"/>.
