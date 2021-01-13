@@ -107,6 +107,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         public async Task<TReport[]?> HandleRequestAsync(
             TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
+            context.TraceSource?.TraceInformation($"{this.GetType()} started getting diagnostics");
+
             // The progress object we will stream reports to.
             using var progress = BufferedProgress.Create(GetProgress(diagnosticsParams));
 
@@ -126,8 +128,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
             // last time we notified the client.  Report back either to the client so they can update accordingly.
-            foreach (var document in GetOrderedDocuments(context))
+            var orderedDocuments = GetOrderedDocuments(context);
+            context.TraceSource?.TraceInformation($"Processing {orderedDocuments.Length} documents");
+
+            foreach (var document in orderedDocuments)
             {
+                context.TraceSource?.TraceInformation($"Processing: {document.Name}");
+
                 if (!IncludeDocument(document, context.ClientName))
                 {
                     context.TraceSource?.TraceInformation($"Ignoring document '{document.Name}' because of razor/client-name mismatch");
@@ -153,6 +160,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
             // collecting and return that.
+            context.TraceSource?.TraceInformation($"{this.GetType()} finished getting diagnostics");
             return progress.GetValues();
         }
 

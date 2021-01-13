@@ -31,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             using var configuration = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(service, cancellationToken).ConfigureAwait(false);
 
             var traceSource = await configuration.RegisterLogSourceAsync(logId, new LogHub.LoggerOptions(), cancellationToken).ConfigureAwait(false);
+            traceSource.Switch.Level = SourceLevels.ActivityTracing | SourceLevels.Verbose;
             Trace.AutoFlush = true;
             return traceSource;
         }

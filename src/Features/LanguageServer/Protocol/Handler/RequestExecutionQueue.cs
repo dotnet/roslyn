@@ -184,30 +184,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 while (!_cancelSource.IsCancellationRequested)
                 {
                     var work = await _queue.DequeueAsync().ConfigureAwait(false);
-
-                    var logIdName = $"{work.ClientName ?? "Default"}.{work.MethodName}.{requestId++}.{DateTime.Now:yyyy-MM-dd-HH-mm-ss}";
-                    var traceSource = _logger == null ? null : await _logger.CreateTraceSourceAsync(logIdName, _cancelSource.Token).ConfigureAwait(false);
-
-                    // Create a linked cancellation token to cancel any requests in progress when this shuts down
-                    var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;
-
-                    var context = CreateRequestContext(work, traceSource);
-
-                    if (work.MutatesSolutionState)
-                    {
-                        // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                        await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
-
-                        // Now that we've mutated our solution, clear out our saved state to ensure it gets recalculated
-                        _lspSolutionCache.Remove(context.Solution.Workspace);
-                    }
-                    else
-                    {
-                        // Non mutating are fire-and-forget because they are by definition readonly. Any errors
-                        // will be sent back to the client but we can still capture errors in queue processing
-                        // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
-                        _ = work.CallbackAsync(context, cancellationToken).ReportNonFatalErrorAsync();
-                    }
+                    await ProcessSingleWorkItemAsync(work, requestId++).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException e) when (e.CancellationToken == _cancelSource.Token)
@@ -218,6 +195,41 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
                 OnRequestServerShutdown($"Error occurred processing queue in {_serverName}: {e.Message}.");
+            }
+        }
+
+        private async Task ProcessSingleWorkItemAsync(QueueItem work, int requestId)
+        {
+            var logIdName = $"{work.ClientName ?? "Default"}.{requestId++:00000000}.{work.MethodName}.{DateTime.Now:yyyy-MM-dd-HH-mm-ss}";
+            var traceSource = _logger == null ? null : await _logger.CreateTraceSourceAsync(logIdName, _cancelSource.Token).ConfigureAwait(false);
+
+            try
+            {
+                // Create a linked cancellation token to cancel any requests in progress when this shuts down
+                var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;
+
+                var context = CreateRequestContext(work, traceSource);
+
+                if (work.MutatesSolutionState)
+                {
+                    // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
+                    await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
+
+                    // Now that we've mutated our solution, clear out our saved state to ensure it gets recalculated
+                    _lspSolutionCache.Remove(context.Solution.Workspace);
+                }
+                else
+                {
+                    // Non mutating are fire-and-forget because they are by definition readonly. Any errors
+                    // will be sent back to the client but we can still capture errors in queue processing
+                    // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
+                    _ = work.CallbackAsync(context, cancellationToken).ReportNonFatalErrorAsync();
+                }
+            }
+            finally
+            {
+                traceSource?.Flush();
+                traceSource?.Close();
             }
         }
 
