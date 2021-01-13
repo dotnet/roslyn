@@ -92,6 +92,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 if (project == null)
                     return;
 
+                // if the project doesn't necessarily have an open file in it, then only include it if the user has full
+                // solution analysis on.
                 if (!isOpen)
                 {
                     var analysisScope = solution.Workspace.Options.GetOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, project.Language);
