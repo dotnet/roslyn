@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (work.MutatesSolutionState)
             {
                 // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                await ProcessWorkAsync(work, context, cancellationToken).ConfigureAwait(false);
+                await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
 
                 // Now that we've mutated our solution, clear out our saved state to ensure it gets recalculated
                 _lspSolutionCache.Remove(context.Solution.Workspace);
@@ -229,23 +229,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // Non mutating are fire-and-forget because they are by definition readonly. Any errors
                 // will be sent back to the client but we can still capture errors in queue processing
                 // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
-                _ = ProcessWorkAsync(work, context, cancellationToken);
-            }
-        }
-
-        private static async Task ProcessWorkAsync(QueueItem work, RequestContext context, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-                // Ignore cancellation entirely.
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
-            {
-                // Report all other errors.
+                _ = work.CallbackAsync(context, cancellationToken).ReportNonFatalErrorAsync();
             }
         }
 
