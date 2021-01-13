@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -61,6 +62,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         // used when preparing to handle a request, which happens in a single thread in the ProcessQueueAsync
         // method.
         private readonly Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)> _lspSolutionCache = new();
+        private readonly ILspLogger? _logger;
         private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
 
         public CancellationToken CancellationToken => _cancelSource.Token;
@@ -75,8 +77,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </remarks>
         public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 
-        public RequestExecutionQueue(ILspWorkspaceRegistrationService workspaceRegistrationService, string serverName)
+        public RequestExecutionQueue(
+            ILspLogger? logger,
+            ILspWorkspaceRegistrationService workspaceRegistrationService,
+            string serverName)
         {
+            _logger = logger;
             _workspaceRegistrationService = workspaceRegistrationService;
             _serverName = serverName;
 
@@ -174,6 +180,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             try
             {
+                var traceSource = _logger == null ? null : await _logger.CreateTraceSourceAsync(_serverName, _cancelSource.Token).ConfigureAwait(false);
+
                 while (!_cancelSource.IsCancellationRequested)
                 {
                     var work = await _queue.DequeueAsync().ConfigureAwait(false);
@@ -181,7 +189,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // Create a linked cancellation token to cancel any requests in progress when this shuts down
                     var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;
 
-                    var context = CreateRequestContext(work);
+                    var context = CreateRequestContext(work, traceSource);
 
                     if (work.MutatesSolutionState)
                     {
@@ -238,13 +246,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private RequestContext CreateRequestContext(QueueItem queueItem)
+        private RequestContext CreateRequestContext(QueueItem queueItem, TraceSource? traceSource)
         {
             var trackerToUse = queueItem.MutatesSolutionState
                 ? (IDocumentChangeTracker)_documentChangeTracker
                 : new NonMutatingDocumentChangeTracker(_documentChangeTracker);
 
-            return RequestContext.Create(queueItem.TextDocument, queueItem.ClientName, queueItem.ClientCapabilities, _workspaceRegistrationService, _lspSolutionCache, trackerToUse);
+            return RequestContext.Create(
+                queueItem.TextDocument, queueItem.ClientName, traceSource, queueItem.ClientCapabilities, _workspaceRegistrationService, _lspSolutionCache, trackerToUse);
         }
     }
 }

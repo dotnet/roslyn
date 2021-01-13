@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public static RequestContext Create(
             TextDocumentIdentifier? textDocument,
             string? clientName,
+            TraceSource? traceSource,
             ClientCapabilities clientCapabilities,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache,
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // document text. If document id is null here, this will just return null
             document = lspSolution.GetDocument(document?.Id);
 
-            return new RequestContext(lspSolution, clientCapabilities, clientName, document, documentChangeTracker);
+            return new RequestContext(lspSolution, traceSource, clientCapabilities, clientName, document, documentChangeTracker);
         }
 
         private static Document? FindDocument(ILspWorkspaceRegistrationService lspWorkspaceRegistrationService, TextDocumentIdentifier textDocument, string? clientName)
@@ -134,6 +136,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public readonly Solution Solution;
 
         /// <summary>
+        /// Tracing object that can be used to log information about the status of requests.
+        /// </summary>
+        public readonly TraceSource? TraceSource;
+
+        /// <summary>
         /// The client capabilities for the request.
         /// </summary>
         public readonly ClientCapabilities ClientCapabilities;
@@ -148,10 +155,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public readonly Document? Document;
 
-        public RequestContext(Solution solution, ClientCapabilities clientCapabilities, string? clientName, Document? document, IDocumentChangeTracker documentChangeTracker)
+        public RequestContext(
+            Solution solution,
+            TraceSource? traceSource,
+            ClientCapabilities clientCapabilities,
+            string? clientName,
+            Document? document,
+            IDocumentChangeTracker documentChangeTracker)
         {
             Document = document;
             Solution = solution;
+            TraceSource = traceSource;
             ClientCapabilities = clientCapabilities;
             ClientName = clientName;
             _documentChangeTracker = documentChangeTracker;

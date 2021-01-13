@@ -28,6 +28,7 @@ using Roslyn.Utilities;
 using StreamJsonRpc;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Shell = Microsoft.VisualStudio.Shell;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Services
 {
@@ -390,6 +391,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     mockDiagnosticService,
                     listenerProvider,
                     lspWorkspaceRegistrationService,
+                    asyncServiceProvider: null,
                     clientName: null);
                 return languageServer;
             }
@@ -570,7 +572,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         private class TestLanguageClient : AbstractInProcLanguageClient
         {
             public TestLanguageClient()
-                : base(null!, null!, null, null!, null!, null)
+                : base(null!, null!, null, null!, null!, null!, null)
             {
             }
 

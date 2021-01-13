@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
@@ -36,8 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             LanguageServerProtocol languageServerProtocol,
             VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService)
-            : base(languageServerProtocol, workspace, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, diagnosticsClientName: null)
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            SVsServiceProvider asyncServiceProvider)
+            : base(languageServerProtocol, workspace, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, diagnosticsClientName: null)
         {
             _globalOptionService = globalOptionService;
         }

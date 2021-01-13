@@ -142,6 +142,7 @@
     <MicrosoftVisualStudioLanguageStandardClassificationVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageStandardClassificationVersion>
     <MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion>2.0.1</MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion>
     <MicrosoftVisualStudioLiveShareWebEditorsVersion>2.2.0-preview1-t001</MicrosoftVisualStudioLiveShareWebEditorsVersion>
+    <MicrosoftVisualStudioLogHubVersion>16.9.1043</MicrosoftVisualStudioLogHubVersion>
     <MicrosoftVisualStudioOLEInteropVersion>7.10.6072</MicrosoftVisualStudioOLEInteropVersion>
     <MicrosoftVisualStudioPlatformVSEditorVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioPlatformVSEditorVersion>
     <MicrosoftVisualStudioProgressionCodeSchemaVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionCodeSchemaVersion>

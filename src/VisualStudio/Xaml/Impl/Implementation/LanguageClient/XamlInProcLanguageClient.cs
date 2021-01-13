@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
@@ -30,8 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, diagnosticsClientName: null)
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            SVsServiceProvider asyncServiceProvider)
+            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, diagnosticsClientName: null)
         {
         }
 

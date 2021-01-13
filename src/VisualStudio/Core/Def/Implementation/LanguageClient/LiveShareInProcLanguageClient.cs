@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
@@ -33,8 +34,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            DefaultCapabilitiesProvider defaultCapabilitiesProvider)
-            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, diagnosticsClientName: null)
+            DefaultCapabilitiesProvider defaultCapabilitiesProvider,
+            SVsServiceProvider asyncServiceProvider)
+            : base(languageServerProtocol, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, diagnosticsClientName: null)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }

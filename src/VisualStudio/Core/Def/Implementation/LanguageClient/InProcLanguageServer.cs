@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -23,6 +24,7 @@ using Microsoft.VisualStudio.Utilities.Internal;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
@@ -30,12 +32,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
     /// Defines the language server to be hooked up to an <see cref="ILanguageClient"/> using StreamJsonRpc.  This runs
     /// in proc as not all features provided by this server are available out of proc (e.g. some diagnostics).
     /// </summary>
-    internal class InProcLanguageServer : IAsyncDisposable
+    internal partial class InProcLanguageServer : IAsyncDisposable
     {
         /// <summary>
         /// Legacy support for LSP push diagnostics.
         /// </summary>
         private readonly IDiagnosticService? _diagnosticService;
+        private readonly VSShell.IAsyncServiceProvider? _asyncServiceProvider;
         private readonly IAsynchronousOperationListener _listener;
         private readonly string? _clientName;
         private readonly JsonRpc _jsonRpc;
@@ -64,6 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            VSShell.IAsyncServiceProvider? asyncServiceProvider,
             string? clientName)
         {
             _languageClient = languageClient;
@@ -79,10 +83,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _jsonRpc.StartListening();
 
             _diagnosticService = diagnosticService;
+            _asyncServiceProvider = asyncServiceProvider;
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _clientName = clientName;
 
-            _queue = new RequestExecutionQueue(lspWorkspaceRegistrationService, languageClient.Name);
+            _queue = new RequestExecutionQueue(this, lspWorkspaceRegistrationService, languageClient.Name);
             _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
             // Dedupe on DocumentId.  If we hear about the same document multiple times, we only need to process that id once.
