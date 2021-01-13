@@ -71,6 +71,12 @@ namespace RunTests
                 ConsoleUtil.WriteLine($@"BUILD_QUEUEDBY environment variable was not set. Using value ""{queuedBy}"" instead");
             }
 
+            var jobName = Environment.GetEnvironmentVariable("SYSTEM_JOBNAME");
+            if (jobName is null)
+            {
+                ConsoleUtil.WriteLine($"SYSTEM_JOBNAME environment variable was not set. Using a blank TestRunNamePrefix for Helix job.");
+            }
+
             if (Environment.GetEnvironmentVariable("BUILD_REPOSITORY_NAME") is null)
                 Environment.SetEnvironmentVariable("BUILD_REPOSITORY_NAME", "dotnet/roslyn");
 
@@ -87,6 +93,7 @@ namespace RunTests
             var project = @"
 <Project Sdk=""Microsoft.DotNet.Helix.Sdk"" DefaultTargets=""Test"">
     <PropertyGroup>
+        <TestRunNamePrefix>" + jobName + @"</TextRunNamePrefix>
         <HelixSource>pr/" + sourceBranch + @"</HelixSource>
         <HelixType>test</HelixType>
         <HelixBuild>" + buildNumber + @"</HelixBuild>
