@@ -1,6 +1,12 @@
 Microsoft.CodeAnalysis.GeneratorAttribute.GeneratorAttribute(string firstLanguage, params string[] additionalLanguages) -> void
 Microsoft.CodeAnalysis.GeneratorAttribute.Languages.get -> string[]
+Microsoft.CodeAnalysis.GeneratorSyntaxReceiverContext
+Microsoft.CodeAnalysis.GeneratorSyntaxReceiverContext.GeneratorSyntaxReceiverContext() -> void
+Microsoft.CodeAnalysis.GeneratorSyntaxReceiverContext.Node.get -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.GeneratorSyntaxReceiverContext.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel
 Microsoft.CodeAnalysis.ISyntaxReceiverBase
+Microsoft.CodeAnalysis.ISyntaxReceiverWithContext
+Microsoft.CodeAnalysis.ISyntaxReceiverWithContext.OnVisitSyntaxNode(Microsoft.CodeAnalysis.GeneratorSyntaxReceiverContext context) -> void
 Microsoft.CodeAnalysis.ITypeSymbol.IsRecord.get -> bool
 Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>
 Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.OperationWalker() -> void

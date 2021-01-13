@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -146,6 +146,28 @@ namespace Microsoft.CodeAnalysis
                 throw new InvalidOperationException(string.Format(CodeAnalysisResources.Single_type_per_generator_0, typeof(T).Name));
             }
         }
+    }
+
+    /// <summary>
+    /// Context passed to an <see cref="ISyntaxReceiverWithContext"/> when <see cref="ISyntaxReceiverWithContext.OnVisitSyntaxNode(GeneratorSyntaxReceiverContext)"/> is called
+    /// </summary>
+    public struct GeneratorSyntaxReceiverContext
+    {
+        internal GeneratorSyntaxReceiverContext(SyntaxNode node, SemanticModel semanticModel)
+        {
+            Node = node;
+            SemanticModel = semanticModel;
+        }
+
+        /// <summary>
+        /// The <see cref="SyntaxNode"/> currently being visited
+        /// </summary>
+        public SyntaxNode Node { get; }
+
+        /// <summary>
+        /// The <see cref="SemanticModel" /> that can be queried to obtain information about <see cref="Node"/>.
+        /// </summary>
+        public SemanticModel SemanticModel { get; }
     }
 
     internal readonly struct GeneratorEditContext
