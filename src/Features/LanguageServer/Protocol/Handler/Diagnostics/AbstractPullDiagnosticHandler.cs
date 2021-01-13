@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // Get the set of results the request said were previously reported.  We can use this to determine both
             // what to skip, and what files we have to tell the client have been removed.
             var previousResults = GetPreviousResults(diagnosticsParams) ?? Array.Empty<DiagnosticParams>();
+            context.TraceSource?.TraceInformation($"previousResults.Length={previousResults.Length}");
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
             // the user from squiggles or error-list.
@@ -128,10 +129,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             foreach (var document in GetOrderedDocuments(context))
             {
                 if (!IncludeDocument(document, context.ClientName))
+                {
+                    context.TraceSource?.TraceInformation($"Ignoring document '{document.Name}' because of razor/client-name mismatch");
                     continue;
+                }
 
                 if (DiagnosticsAreUnchanged(documentToPreviousDiagnosticParams, document))
                 {
+                    context.TraceSource?.TraceInformation($"Diagnostics were unchanged for document: {document.Name}");
+
                     // Nothing changed between the last request and this one.  Report a (null-diagnostics,
                     // same-result-id) response to the client as that means they should just preserve the current
                     // diagnostics they have for this file.
@@ -140,6 +146,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
                 else
                 {
+                    context.TraceSource?.TraceInformation($"Diagnostics were changed for document: {document.Name}");
                     await ComputeAndReportCurrentDiagnosticsAsync(context, progress, document, cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -194,12 +201,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var workspace = document.Project.Solution.Workspace;
             var isPull = workspace.IsPullDiagnostics(diagnosticMode);
 
+            context.TraceSource?.TraceInformation($"Getting '{(isPull ? "pull" : "push")}' diagnostics with mode '{diagnosticMode}'");
+
             using var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var result);
 
             if (isPull)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var diagnostics = await GetDiagnosticsAsync(context, document, diagnosticMode, cancellationToken).ConfigureAwait(false);
+                context.TraceSource?.TraceInformation($"Got {diagnostics.Length} diagnostics");
+
                 foreach (var diagnostic in diagnostics)
                     result.Add(ConvertDiagnostic(document, text, diagnostic));
             }
@@ -207,11 +218,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             progress.Report(RecordDiagnosticReport(document, result.ToArray()));
         }
 
-        private void HandleRemovedDocuments(RequestContext context, DiagnosticParams[]? previousResults, BufferedProgress<TReport> progress)
+        private void HandleRemovedDocuments(RequestContext context, DiagnosticParams[] previousResults, BufferedProgress<TReport> progress)
         {
-            if (previousResults == null)
-                return;
-
             foreach (var previousResult in previousResults)
             {
                 var textDocument = previousResult.TextDocument;
@@ -220,6 +228,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     var document = context.Solution.GetDocument(textDocument);
                     if (document == null)
                     {
+                        context.TraceSource?.TraceInformation($"Clearing diagnostics for removed document: {textDocument.Uri}");
+
                         // Client is asking server about a document that no longer exists (i.e. was removed/deleted from
                         // the workspace). Report a (null-diagnostics, null-result-id) response to the client as that
                         // means they should just consider the file deleted and should remove all diagnostics

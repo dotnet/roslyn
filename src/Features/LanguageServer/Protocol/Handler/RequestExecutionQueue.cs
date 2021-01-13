@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             try
             {
-                int requestId = 0;
+                var requestId = 0;
                 while (!_cancelSource.IsCancellationRequested)
                 {
                     var work = await _queue.DequeueAsync().ConfigureAwait(false);
