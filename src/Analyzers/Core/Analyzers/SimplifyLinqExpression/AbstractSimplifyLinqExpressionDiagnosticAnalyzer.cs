@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
         {
         }
 
+        protected abstract Location? TryGetArgumentListLocation(ImmutableArray<IArgumentOperation> arguments);
+        protected abstract IInvocationOperation? TryGetPreviousInvocationInChain(ImmutableArray<IArgumentOperation> arguments);
+
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -46,12 +49,12 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 return;
             }
 
-            if (!TryGetLinqWhereExtensionMethods(enumerableType, out var whereMethodSymbol))
+            if (!TryGetLinqWhereExtensionMethod(enumerableType, out var whereMethodSymbol))
             {
                 return;
             }
 
-            if (!TryGetLinqMethodsThatDotNotReturnEnumerables(enumerableType, out var linqMethodSymbols))
+            if (!TryGetLinqMethodsThatDoNotReturnEnumerables(enumerableType, out var linqMethodSymbols))
             {
                 return;
             }
@@ -62,17 +65,11 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
 
             static bool TryGetEnumerableTypeSymbol(Compilation compilation, [NotNullWhen(true)] out INamedTypeSymbol? enumerableType)
             {
-                if (typeof(Enumerable)?.FullName is string fullyQualifiedName)
-                {
-                    enumerableType = compilation.GetTypeByMetadataName(fullyQualifiedName);
-                    return enumerableType is not null;
-                }
-
-                enumerableType = null;
-                return false;
+                enumerableType = compilation.GetTypeByMetadataName(typeof(Enumerable)?.FullName!);
+                return enumerableType is not null;
             }
 
-            static bool TryGetLinqWhereExtensionMethods(INamedTypeSymbol enumerableType, [NotNullWhen(true)] out IMethodSymbol? whereMethod)
+            static bool TryGetLinqWhereExtensionMethod(INamedTypeSymbol enumerableType, [NotNullWhen(true)] out IMethodSymbol? whereMethod)
             {
                 foreach (var whereMethodSymbol in enumerableType.GetMembers(nameof(Enumerable.Where)).OfType<IMethodSymbol>())
                 {
@@ -85,6 +82,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                     if (parameters.Last().Type is INamedTypeSymbol systemFunc &&
                         systemFunc.Arity == 2)
                     {
+                        // This is the where overload that does not take and index (i.e. Where(source, Func<T, bool>) vs Where(source, Func<T, int, bool>))
                         whereMethod = whereMethodSymbol;
                         return true;
                     }
@@ -94,7 +92,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 return false;
             }
 
-            static bool TryGetLinqMethodsThatDotNotReturnEnumerables(INamedTypeSymbol enumerableType, out ImmutableArray<IMethodSymbol> linqMethods)
+            static bool TryGetLinqMethodsThatDoNotReturnEnumerables(INamedTypeSymbol enumerableType, out ImmutableArray<IMethodSymbol> linqMethods)
             {
                 using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var linqMethodSymbolsBuilder);
                 foreach (var methodName in _nonEnumerableReturningLinqMethodNames)
@@ -128,29 +126,36 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 return;
             }
 
-            if (invocation.Arguments.Single().Children.FirstOrDefault() is not IInvocationOperation previousInvocationInChain)
+            if (TryGetPreviousInvocationInChain(invocation.Arguments) is not IInvocationOperation previousInvocationInChain)
             {
                 // Invocation is not part of a chain of invocations (i.e. Where(x => x is not null).First())
                 return;
             }
 
             // Verify this is 'Where' followed by a non-enumerable returning method
-            if (IsInvocationNonEnumerableReturningLinqMethod(invocation) &&
-                IsWhereLinqMethod(previousInvocationInChain) &&
-                previousInvocationInChain.Arguments.Length == 2 &&
-                invocation.Arguments.Length == 1)
+            if (!IsInvocationNonEnumerableReturningLinqMethod(invocation) ||
+                !IsWhereLinqMethod(previousInvocationInChain) ||
+                previousInvocationInChain.Arguments.Length != 2 ||
+                invocation.Arguments.Length != 1)
             {
-                var memberAccessExpressionLocation = previousInvocationInChain.Syntax.GetLocation();
-                var lambdaExpressionLocation = previousInvocationInChain.Arguments.Last().Syntax.GetLocation();
-
-                context.ReportDiagnostic(
-                    DiagnosticHelper.Create(
-                        Descriptor,
-                        invocation.Syntax.GetLocation(),
-                        Descriptor.GetEffectiveSeverity(context.Compilation.Options),
-                        additionalLocations: new[] { memberAccessExpressionLocation, lambdaExpressionLocation },
-                        properties: null));
+                return;
             }
+
+            var memberAccessExpressionLocation = previousInvocationInChain.Syntax.GetLocation();
+            var argumentListLocation = TryGetArgumentListLocation(previousInvocationInChain.Arguments);
+            if (argumentListLocation is null)
+            {
+                // unable to find an argument list location
+                return;
+            }
+
+            context.ReportDiagnostic(
+                DiagnosticHelper.Create(
+                    Descriptor,
+                    invocation.Syntax.GetLocation(),
+                    Descriptor.GetEffectiveSeverity(context.Compilation.Options),
+                    additionalLocations: new[] { memberAccessExpressionLocation, argumentListLocation },
+                    properties: null));
 
             bool IsInvocationNonEnumerableReturningLinqMethod(IInvocationOperation invocation)
                 => linqMethods.Any(m => m.Equals(invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default));
