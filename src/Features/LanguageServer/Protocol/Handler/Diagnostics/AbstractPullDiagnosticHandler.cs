@@ -133,17 +133,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             foreach (var document in orderedDocuments)
             {
-                context.TraceSource?.TraceInformation($"Processing: {document.Name}");
+                context.TraceSource?.TraceInformation($"Processing: {document.FilePath}");
 
                 if (!IncludeDocument(document, context.ClientName))
                 {
-                    context.TraceSource?.TraceInformation($"Ignoring document '{document.Name}' because of razor/client-name mismatch");
+                    context.TraceSource?.TraceInformation($"Ignoring document '{document.FilePath}' because of razor/client-name mismatch");
                     continue;
                 }
 
                 if (DiagnosticsAreUnchanged(documentToPreviousDiagnosticParams, document))
                 {
-                    context.TraceSource?.TraceInformation($"Diagnostics were unchanged for document: {document.Name}");
+                    context.TraceSource?.TraceInformation($"Diagnostics were unchanged for document: {document.FilePath}");
 
                     // Nothing changed between the last request and this one.  Report a (null-diagnostics,
                     // same-result-id) response to the client as that means they should just preserve the current
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
                 else
                 {
-                    context.TraceSource?.TraceInformation($"Diagnostics were changed for document: {document.Name}");
+                    context.TraceSource?.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
                     await ComputeAndReportCurrentDiagnosticsAsync(context, progress, document, cancellationToken).ConfigureAwait(false);
                 }
             }

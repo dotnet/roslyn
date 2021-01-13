@@ -92,13 +92,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 if (project == null)
                     return;
 
-                // if the project doesn't necessarily have an open file in it, then only include it if the user has full
-                // solution analysis on.
                 if (!isOpen)
                 {
                     var analysisScope = solution.Workspace.Options.GetOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, project.Language);
                     if (analysisScope != BackgroundAnalysisScope.FullSolution)
+                    {
+                        context.TraceSource?.TraceInformation($"Skipping project '{project.Name}' as it has no open document and Full Solution Analysis is off");
                         return;
+                    }
                 }
 
                 // Otherwise, if the user has an open file from this project, or FSA is on, then include all the
@@ -107,8 +108,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 {
                     // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
                     // Each handler treats those as separate worlds that they are responsible for.
-                    if (!context.IsTracking(document.GetURI()))
-                        result.Add(document);
+                    if (context.IsTracking(document.GetURI()))
+                    {
+                        context.TraceSource?.TraceInformation($"Skipping tracked document: {document.FilePath}");
+                        continue;
+                    }
+
+                    result.Add(document);
                 }
             }
         }
