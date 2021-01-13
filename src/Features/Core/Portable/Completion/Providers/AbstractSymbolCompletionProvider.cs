@@ -415,10 +415,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             lock (s_cachedDocuments)
             {
-                var tuple = s_cachedDocuments.GetValue(document, d => Tuple.Create(position, new AsyncLazy<SyntaxContext>(ct => CreateContextAsync(d, position, ct), cacheResult: true)));
-                if (tuple.Item1 == position)
+                var (cachedPosition, cachedLazyContext) = s_cachedDocuments.GetValue(
+                    document, d => Tuple.Create(position, new AsyncLazy<SyntaxContext>(ct => CreateContextAsync(d, position, ct), cacheResult: true)));
+
+                if (cachedPosition == position)
                 {
-                    return tuple.Item2.GetValueAsync(cancellationToken);
+                    return cachedLazyContext.GetValueAsync(cancellationToken);
                 }
 
                 var lazyContext = new AsyncLazy<SyntaxContext>(ct => CreateContextAsync(document, position, ct), cacheResult: true);
