@@ -122,14 +122,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             static async Task<IEnumerable<INavigableItem>?> GetDefinitions(Document document, int position, CancellationToken cancellationToken)
             {
-                var findDefinitionService = document.Project.LanguageServices.GetService<IFindDefinitionService>();
+                var findDefinitionService = document.GetLanguageService<IFindDefinitionService>();
                 if (findDefinitionService != null)
                 {
                     return await findDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Removal of this codepath is tracked by https://github.com/dotnet/roslyn/issues/50391.
-                var goToDefinitionsService = document.Project.LanguageServices.GetRequiredService<IGoToDefinitionService>();
+                var goToDefinitionsService = document.GetLanguageService<IGoToDefinitionService>();
                 return await goToDefinitionsService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
             }
         }

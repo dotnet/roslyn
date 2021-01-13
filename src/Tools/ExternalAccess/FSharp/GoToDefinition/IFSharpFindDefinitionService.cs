@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.GoToDefinition
 {
-
     internal interface IFSharpFindDefinitionService
     {
         /// <summary>
