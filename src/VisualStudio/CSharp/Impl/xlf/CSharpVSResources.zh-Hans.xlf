@@ -90,7 +90,7 @@
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
         <source>Place open brace on new line for object, collection, array, and with initializers</source>
         <target state="new">Place open brace on new line for object, collection, array, and with initializers</target>
-        <note />
+        <note>{Locked="with"}</note>
       </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
