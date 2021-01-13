@@ -878,15 +878,13 @@ class C
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("G<S, T>", "List:\r\n\r\nItem 1.",
-                classificationTypeNames: new List<string>
-                {
+                classificationTypeNames: ImmutableArray.Create(
                     ClassificationTypeNames.Text,
                     ClassificationTypeNames.WhiteSpace,
                     ClassificationTypeNames.WhiteSpace,
                     ClassificationTypeNames.WhiteSpace,
                     ClassificationTypeNames.Text,
-                    ClassificationTypeNames.WhiteSpace
-                }));
+                    ClassificationTypeNames.WhiteSpace)));
 
             await TestAsync(markup, expectedOrderedItems);
         }
