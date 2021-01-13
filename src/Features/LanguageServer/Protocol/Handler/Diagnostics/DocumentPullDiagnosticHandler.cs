@@ -66,13 +66,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // handler treats those as separate worlds that they are responsible for.
             if (context.Document == null)
             {
-                context.TraceSource?.TraceInformation("Ignoring diagnostics request because no document was provided");
+                context.TraceInformation("Ignoring diagnostics request because no document was provided");
                 return ImmutableArray<Document>.Empty;
             }
 
             if (!context.IsTracking(context.Document.GetURI()))
             {
-                context.TraceSource?.TraceInformation($"Ignoring diagnostics request for untracked document: {context.Document.FilePath}");
+                context.TraceInformation($"Ignoring diagnostics request for untracked document: {context.Document.FilePath}");
                 return ImmutableArray<Document>.Empty;
             }
 

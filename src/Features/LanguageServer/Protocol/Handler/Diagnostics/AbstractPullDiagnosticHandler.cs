@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         public async Task<TReport[]?> HandleRequestAsync(
             TDiagnosticsParams diagnosticsParams, RequestContext context, CancellationToken cancellationToken)
         {
-            context.TraceSource?.TraceInformation($"{this.GetType()} started getting diagnostics");
+            context.TraceInformation($"{this.GetType()} started getting diagnostics");
 
             // The progress object we will stream reports to.
             using var progress = BufferedProgress.Create(GetProgress(diagnosticsParams));
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // Get the set of results the request said were previously reported.  We can use this to determine both
             // what to skip, and what files we have to tell the client have been removed.
             var previousResults = GetPreviousResults(diagnosticsParams) ?? Array.Empty<DiagnosticParams>();
-            context.TraceSource?.TraceInformation($"previousResults.Length={previousResults.Length}");
+            context.TraceInformation($"previousResults.Length={previousResults.Length}");
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
             // the user from squiggles or error-list.
@@ -129,21 +129,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
             // last time we notified the client.  Report back either to the client so they can update accordingly.
             var orderedDocuments = GetOrderedDocuments(context);
-            context.TraceSource?.TraceInformation($"Processing {orderedDocuments.Length} documents");
+            context.TraceInformation($"Processing {orderedDocuments.Length} documents");
 
             foreach (var document in orderedDocuments)
             {
-                context.TraceSource?.TraceInformation($"Processing: {document.FilePath}");
+                context.TraceInformation($"Processing: {document.FilePath}");
 
                 if (!IncludeDocument(document, context.ClientName))
                 {
-                    context.TraceSource?.TraceInformation($"Ignoring document '{document.FilePath}' because of razor/client-name mismatch");
+                    context.TraceInformation($"Ignoring document '{document.FilePath}' because of razor/client-name mismatch");
                     continue;
                 }
 
                 if (DiagnosticsAreUnchanged(documentToPreviousDiagnosticParams, document))
                 {
-                    context.TraceSource?.TraceInformation($"Diagnostics were unchanged for document: {document.FilePath}");
+                    context.TraceInformation($"Diagnostics were unchanged for document: {document.FilePath}");
 
                     // Nothing changed between the last request and this one.  Report a (null-diagnostics,
                     // same-result-id) response to the client as that means they should just preserve the current
@@ -153,14 +153,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
                 else
                 {
-                    context.TraceSource?.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
+                    context.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
                     await ComputeAndReportCurrentDiagnosticsAsync(context, progress, document, cancellationToken).ConfigureAwait(false);
                 }
             }
 
             // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
             // collecting and return that.
-            context.TraceSource?.TraceInformation($"{this.GetType()} finished getting diagnostics");
+            context.TraceInformation($"{this.GetType()} finished getting diagnostics");
             return progress.GetValues();
         }
 
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var workspace = document.Project.Solution.Workspace;
             var isPull = workspace.IsPullDiagnostics(diagnosticMode);
 
-            context.TraceSource?.TraceInformation($"Getting '{(isPull ? "pull" : "push")}' diagnostics with mode '{diagnosticMode}'");
+            context.TraceInformation($"Getting '{(isPull ? "pull" : "push")}' diagnostics with mode '{diagnosticMode}'");
 
             using var _ = ArrayBuilder<VSDiagnostic>.GetInstance(out var result);
 
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var diagnostics = await GetDiagnosticsAsync(context, document, diagnosticMode, cancellationToken).ConfigureAwait(false);
-                context.TraceSource?.TraceInformation($"Got {diagnostics.Length} diagnostics");
+                context.TraceInformation($"Got {diagnostics.Length} diagnostics");
 
                 foreach (var diagnostic in diagnostics)
                     result.Add(ConvertDiagnostic(document, text, diagnostic));
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     var document = context.Solution.GetDocument(textDocument);
                     if (document == null)
                     {
-                        context.TraceSource?.TraceInformation($"Clearing diagnostics for removed document: {textDocument.Uri}");
+                        context.TraceInformation($"Clearing diagnostics for removed document: {textDocument.Uri}");
 
                         // Client is asking server about a document that no longer exists (i.e. was removed/deleted from
                         // the workspace). Report a (null-diagnostics, null-result-id) response to the client as that

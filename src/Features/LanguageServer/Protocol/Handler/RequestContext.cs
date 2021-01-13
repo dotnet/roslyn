@@ -136,11 +136,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public readonly Solution Solution;
 
         /// <summary>
-        /// Tracing object that can be used to log information about the status of requests.
-        /// </summary>
-        public readonly TraceSource? TraceSource;
-
-        /// <summary>
         /// The client capabilities for the request.
         /// </summary>
         public readonly ClientCapabilities ClientCapabilities;
@@ -155,6 +150,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public readonly Document? Document;
 
+        /// <summary>
+        /// Tracing object that can be used to log information about the status of requests.
+        /// </summary>
+        private readonly TraceSource? _traceSource;
+
         public RequestContext(
             Solution solution,
             TraceSource? traceSource,
@@ -165,10 +165,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             Document = document;
             Solution = solution;
-            TraceSource = traceSource;
             ClientCapabilities = clientCapabilities;
             ClientName = clientName;
             _documentChangeTracker = documentChangeTracker;
+            _traceSource = traceSource;
         }
 
         /// <summary>
@@ -191,6 +191,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public bool IsTracking(Uri documentUri)
             => _documentChangeTracker.IsTracking(documentUri);
+
+        /// <summary>
+        /// Logs an informational message.
+        /// </summary>
+        public void TraceInformation(string message)
+            => _traceSource?.TraceInformation(message);
 
         private class NoOpDocumentChangeTracker : IDocumentChangeTracker
         {

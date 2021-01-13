@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     var analysisScope = solution.Workspace.Options.GetOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, project.Language);
                     if (analysisScope != BackgroundAnalysisScope.FullSolution)
                     {
-                        context.TraceSource?.TraceInformation($"Skipping project '{project.Name}' as it has no open document and Full Solution Analysis is off");
+                        context.TraceInformation($"Skipping project '{project.Name}' as it has no open document and Full Solution Analysis is off");
                         return;
                     }
                 }
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     // Each handler treats those as separate worlds that they are responsible for.
                     if (context.IsTracking(document.GetURI()))
                     {
-                        context.TraceSource?.TraceInformation($"Skipping tracked document: {document.FilePath}");
+                        context.TraceInformation($"Skipping tracked document: {document.FilePath}");
                         continue;
                     }
 
