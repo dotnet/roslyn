@@ -30,6 +30,10 @@
             Text="{Binding HelpText, ElementName=dialog}"
             Margin="12 12 12 18" />
 
+        <!--
+            The main content of this dialog, a table control of unused references, will be 
+            passed in via the constructor and set as the Child of this Border.
+        -->
         <Border
             x:Name="TablePanel"
             Grid.Row="1"
@@ -52,7 +56,6 @@
             <Button
                 x:Name="CancelButton"
                 x:Uid="CancelButton"
-                IsDefault="True"
                 IsCancel="True"
                 Margin="6, 0, 0, 0"
                 Content="{Binding Cancel, ElementName=dialog}" />
