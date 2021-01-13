@@ -76,12 +76,9 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 foreach (var whereMethodSymbol in enumerableType.GetMembers(nameof(Enumerable.Where)).OfType<IMethodSymbol>())
                 {
                     var parameters = whereMethodSymbol.Parameters;
-                    if (parameters.Length != 2)
-                    {
-                        continue;
-                    }
 
-                    if (parameters.Last().Type is INamedTypeSymbol systemFunc &&
+                    if (parameters.Length == 2 &&
+                        parameters.Last().Type is INamedTypeSymbol systemFunc &&
                         systemFunc.Arity == 2)
                     {
                         // This is the where overload that does not take and index (i.e. Where(source, Func<T, bool>) vs Where(source, Func<T, int, bool>))
@@ -136,8 +133,6 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
             {
                 return;
             }
-            
-            return;
 
             var memberAccessExpressionLocation = previousInvocationInChain.Syntax.GetLocation();
             var argumentListLocation = TryGetArgumentListLocation(previousInvocationInChain.Arguments);
@@ -154,6 +149,8 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                     Descriptor.GetEffectiveSeverity(context.Compilation.Options),
                     additionalLocations: new[] { memberAccessExpressionLocation, argumentListLocation },
                     properties: null));
+
+            return;
 
             bool IsInvocationNonEnumerableReturningLinqMethod(IInvocationOperation invocation)
                 => linqMethods.Any(m => m.Equals(invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default));
