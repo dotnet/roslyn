@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.Testing.Model
                 state.Sources.ToImmutableArray(),
                 state.AdditionalFiles.ToImmutableArray(),
                 state.AdditionalProjectReferences.ToImmutableArray(),
-                state.AdditionalReferences.ToImmutableArray())
+                state.AdditionalReferences.ToImmutableArray(),
+                ImmutableArray<Diagnostic>.Empty)
         {
         }
 
@@ -37,7 +38,8 @@ namespace Microsoft.CodeAnalysis.Testing.Model
             ImmutableArray<(string filename, SourceText content)> sources,
             ImmutableArray<(string filename, SourceText content)> additionalFiles,
             ImmutableArray<string> additionalProjectReferences,
-            ImmutableArray<MetadataReference> additionalReferences)
+            ImmutableArray<MetadataReference> additionalReferences,
+            ImmutableArray<Diagnostic> additionalDiagnostics)
         {
             Name = name;
             AssemblyName = assemblyName;
@@ -49,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Testing.Model
             AdditionalFiles = additionalFiles;
             AdditionalProjectReferences = additionalProjectReferences;
             AdditionalReferences = additionalReferences;
+            AdditionalDiagnostics = additionalDiagnostics;
         }
 
         public string Name { get; }
@@ -71,6 +74,8 @@ namespace Microsoft.CodeAnalysis.Testing.Model
 
         public ImmutableArray<MetadataReference> AdditionalReferences { get; }
 
+        public ImmutableArray<Diagnostic> AdditionalDiagnostics { get; }
+
         public EvaluatedProjectState WithSources(ImmutableArray<(string filename, SourceText content)> sources)
         {
             if (sources == Sources)
@@ -79,6 +84,16 @@ namespace Microsoft.CodeAnalysis.Testing.Model
             }
 
             return With(sources: sources);
+        }
+
+        public EvaluatedProjectState WithAdditionalDiagnostics(ImmutableArray<Diagnostic> additionalDiagnostics)
+        {
+            if (additionalDiagnostics == AdditionalDiagnostics)
+            {
+                return this;
+            }
+
+            return With(additionalDiagnostics: additionalDiagnostics);
         }
 
         private EvaluatedProjectState With(
@@ -91,7 +106,8 @@ namespace Microsoft.CodeAnalysis.Testing.Model
             Optional<ImmutableArray<(string filename, SourceText content)>> sources = default,
             Optional<ImmutableArray<(string filename, SourceText content)>> additionalFiles = default,
             Optional<ImmutableArray<string>> additionalProjectReferences = default,
-            Optional<ImmutableArray<MetadataReference>> additionalReferences = default)
+            Optional<ImmutableArray<MetadataReference>> additionalReferences = default,
+            Optional<ImmutableArray<Diagnostic>> additionalDiagnostics = default)
         {
             return new EvaluatedProjectState(
                 GetValueOrDefault(name, Name),
@@ -103,7 +119,8 @@ namespace Microsoft.CodeAnalysis.Testing.Model
                 GetValueOrDefault(sources, Sources),
                 GetValueOrDefault(additionalFiles, AdditionalFiles),
                 GetValueOrDefault(additionalProjectReferences, AdditionalProjectReferences),
-                GetValueOrDefault(additionalReferences, AdditionalReferences));
+                GetValueOrDefault(additionalReferences, AdditionalReferences),
+                GetValueOrDefault(additionalDiagnostics, AdditionalDiagnostics));
         }
 
         private static T GetValueOrDefault<T>(Optional<T> optionalValue, T defaultValue)
