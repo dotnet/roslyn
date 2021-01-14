@@ -156,9 +156,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         // 2000 range for experimental formatting enforcement
         public const string MultipleBlankLinesDiagnosticId = "IDE2000";
-        public const string WrapEmbeddedStatementDiagnosticId = "IDE2001";
+        public const string EmbeddedStatementPlacementDiagnosticId = "IDE2001";
         public const string ConsecutiveBracePlacementDiagnosticId = "IDE2002";
-        public const string ConsecutiveStatementPlacementBlockDiagnosticId = "IDE2003";
+        public const string ConsecutiveStatementPlacementDiagnosticId = "IDE2003";
+        public const string ConstructorInitializerPlacementDiagnosticId = "IDE2004";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

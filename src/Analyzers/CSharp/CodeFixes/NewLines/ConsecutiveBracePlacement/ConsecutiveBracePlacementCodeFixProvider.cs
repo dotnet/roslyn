@@ -21,11 +21,11 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal sealed class CSharpConsecutiveBracePlacementCodeFixProvider : CodeFixProvider
+    internal sealed class ConsecutiveBracePlacementCodeFixProvider : CodeFixProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpConsecutiveBracePlacementCodeFixProvider()
+        public ConsecutiveBracePlacementCodeFixProvider()
         {
         }
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
                 return;
             }
 
-            if (!CSharpConsecutiveBracePlacementDiagnosticAnalyzer.HasExcessBlankLinesAfter(
+            if (!ConsecutiveBracePlacementDiagnosticAnalyzer.HasExcessBlankLinesAfter(
                     text, firstBrace, out var secondBrace, out var lastEndOfLineTrivia))
             {
                 Debug.Fail("Could not match analyzer pattern");

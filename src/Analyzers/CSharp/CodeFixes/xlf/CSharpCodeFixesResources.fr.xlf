@@ -17,6 +17,11 @@
         <target state="translated">Passer les variables capturées en tant qu'arguments</target>
         <note />
       </trans-unit>
+      <trans-unit id="Place_colon_on_following_line">
+        <source>Place colon on following line</source>
+        <target state="new">Place colon on following line</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Place_statement_on_following_line">
         <source>Place statement on following line</source>
         <target state="new">Place statement on following line</target>

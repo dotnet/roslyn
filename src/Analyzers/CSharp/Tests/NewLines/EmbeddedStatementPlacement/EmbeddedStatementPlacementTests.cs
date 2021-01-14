@@ -5,17 +5,17 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.NewLines.WrapEmbeddedStatement;
+using Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.WrapEmbeddedStatement
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.EmbeddedStatementPlacement
 {
     using VerifyCS = CSharpCodeFixVerifier<
-        CSharpWrapEmbeddedStatementDiagnosticAnalyzer,
-        CSharpWrapEmbeddedStatementCodeFixProvider>;
+        EmbeddedStatementPlacementDiagnosticAnalyzer,
+        EmbeddedStatementPlacementCodeFixProvider>;
 
-    public class WrapEmbeddedStatementTests
+    public class EmbeddedStatementPlacementTests
     {
         [Fact]
         public async Task NoErrorOnWrappedStatement()

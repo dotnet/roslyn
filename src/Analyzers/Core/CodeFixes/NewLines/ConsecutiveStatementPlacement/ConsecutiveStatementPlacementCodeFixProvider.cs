@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.ConsecutiveStatementPlacementBlockDiagnosticId);
+            => ImmutableArray.Create(IDEDiagnosticIds.ConsecutiveStatementPlacementDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

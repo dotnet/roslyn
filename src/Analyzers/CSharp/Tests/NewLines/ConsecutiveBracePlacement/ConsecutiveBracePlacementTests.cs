@@ -12,8 +12,8 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NewLines.ConsecutiveBracePlacement
 {
     using VerifyCS = CSharpCodeFixVerifier<
-        CSharpConsecutiveBracePlacementDiagnosticAnalyzer,
-        CSharpConsecutiveBracePlacementCodeFixProvider>;
+        ConsecutiveBracePlacementDiagnosticAnalyzer,
+        ConsecutiveBracePlacementCodeFixProvider>;
 
     public class ConsecutiveBracePlacementTests
     {

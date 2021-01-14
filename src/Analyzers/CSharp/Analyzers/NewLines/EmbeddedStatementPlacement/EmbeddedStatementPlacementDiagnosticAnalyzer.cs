@@ -10,14 +10,14 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.NewLines.WrapEmbeddedStatement
+namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpWrapEmbeddedStatementDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class EmbeddedStatementPlacementDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public CSharpWrapEmbeddedStatementDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.WrapEmbeddedStatementDiagnosticId,
-                   EnforceOnBuildValues.WrapEmbeddedStatement,
+        public EmbeddedStatementPlacementDiagnosticAnalyzer()
+            : base(IDEDiagnosticIds.EmbeddedStatementPlacementDiagnosticId,
+                   EnforceOnBuildValues.EmbeddedStatementPlacement,
                    CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(

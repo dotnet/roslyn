@@ -18,19 +18,19 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.NewLines.WrapEmbeddedStatement
+namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
 {
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    internal sealed class CSharpWrapEmbeddedStatementCodeFixProvider : CodeFixProvider
+    internal sealed class EmbeddedStatementPlacementCodeFixProvider : CodeFixProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpWrapEmbeddedStatementCodeFixProvider()
+        public EmbeddedStatementPlacementCodeFixProvider()
         {
         }
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.WrapEmbeddedStatementDiagnosticId);
+            => ImmutableArray.Create(IDEDiagnosticIds.EmbeddedStatementPlacementDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.WrapEmbeddedStatement
 
             // fixup this statement and all nested statements that have an issue.
             var descendentStatements = startStatement.DescendantNodesAndSelf().OfType<StatementSyntax>();
-            var badStatements = descendentStatements.Where(s => CSharpWrapEmbeddedStatementDiagnosticAnalyzer.StatementNeedsWrapping(s));
+            var badStatements = descendentStatements.Where(s => EmbeddedStatementPlacementDiagnosticAnalyzer.StatementNeedsWrapping(s));
 
             // Walk from lower statements to higher so the higher up changes see the changes below.
             foreach (var badStatement in badStatements.OrderByDescending(s => s.SpanStart))
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.WrapEmbeddedStatement
                     {
                         // If the block's open { is not already on a new line, add an elastic marker so it will be placed there.
                         var currentBlock = (BlockSyntax)current;
-                        if (!CSharpWrapEmbeddedStatementDiagnosticAnalyzer.ContainsEndOfLineBetween(previousToken, openBrace))
+                        if (!EmbeddedStatementPlacementDiagnosticAnalyzer.ContainsEndOfLineBetween(previousToken, openBrace))
                         {
                             currentBlock = currentBlock.WithOpenBraceToken(
                                 AddLeadingTrivia(currentBlock.OpenBraceToken, SyntaxFactory.ElasticMarker));

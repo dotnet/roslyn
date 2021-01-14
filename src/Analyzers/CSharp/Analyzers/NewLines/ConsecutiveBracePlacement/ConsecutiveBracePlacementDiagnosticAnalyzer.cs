@@ -13,9 +13,9 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpConsecutiveBracePlacementDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class ConsecutiveBracePlacementDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public CSharpConsecutiveBracePlacementDiagnosticAnalyzer()
+        public ConsecutiveBracePlacementDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConsecutiveBracePlacementDiagnosticId,
                    EnforceOnBuildValues.ConsecutiveBracePlacement,
                    CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces,

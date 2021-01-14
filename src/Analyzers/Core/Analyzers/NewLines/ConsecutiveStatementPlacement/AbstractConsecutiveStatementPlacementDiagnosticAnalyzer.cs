@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
         where TExecutableStatementSyntax : SyntaxNode
     {
         protected AbstractConsecutiveStatementPlacementDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.ConsecutiveStatementPlacementBlockDiagnosticId,
+            : base(IDEDiagnosticIds.ConsecutiveStatementPlacementDiagnosticId,
                    EnforceOnBuildValues.ConsecutiveStatementPlacement,
                    CodeStyleOptions2.AllowStatementImmediatelyAfterBlock,
                    LanguageNames.CSharp,
