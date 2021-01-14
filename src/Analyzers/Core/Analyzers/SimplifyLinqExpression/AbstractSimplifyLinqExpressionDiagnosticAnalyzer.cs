@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
         }
 
         protected abstract Location? TryGetArgumentListLocation(ImmutableArray<IArgumentOperation> arguments);
-        protected abstract IInvocationOperation? TryGetPreviousInvocationInChain(ImmutableArray<IArgumentOperation> arguments);
+        protected abstract IInvocationOperation? TryGetNextInvocationInChain(IInvocationOperation invocation);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -94,10 +94,13 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
             static bool TryGetLinqMethodsThatDoNotReturnEnumerables(INamedTypeSymbol enumerableType, out ImmutableArray<IMethodSymbol> linqMethods)
             {
                 using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var linqMethodSymbolsBuilder);
-                foreach (var methodName in _nonEnumerableReturningLinqMethodNames)
+                foreach (var method in enumerableType.GetMembers().Where(x => x.Kind == SymbolKind.Method).OfType<IMethodSymbol>())
                 {
-                    var methodSymbol = enumerableType.GetMembers(methodName).OfType<IMethodSymbol>();
-                    linqMethodSymbolsBuilder.AddRange(methodSymbol);
+                    if (_nonEnumerableReturningLinqMethodNames.Any(name => name == method.Name) &&
+                        method.Parameters is { Length: 1 })
+                    {
+                        linqMethodSymbolsBuilder.AddRange(method);
+                    }
                 }
 
                 linqMethods = linqMethodSymbolsBuilder.ToImmutable();
@@ -114,28 +117,21 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
             }
 
             if (context.Operation is not IInvocationOperation invocation ||
-                invocation.Arguments.Length != 1)
+                !IsWhereLinqMethod(invocation))
             {
+                // we only care about Where methods on linq expressions
                 return;
             }
 
-            if (TryGetPreviousInvocationInChain(invocation.Arguments) is not IInvocationOperation previousInvocationInChain)
+            if (TryGetNextInvocationInChain(invocation) is not IInvocationOperation nextInvocation ||
+                !IsInvocationNonEnumerableReturningLinqMethod(nextInvocation))
             {
                 // Invocation is not part of a chain of invocations (i.e. Where(x => x is not null).First())
                 return;
             }
 
-            // Verify this is 'Where' followed by a non-enumerable returning method
-            if (!IsInvocationNonEnumerableReturningLinqMethod(invocation) ||
-                !IsWhereLinqMethod(previousInvocationInChain) ||
-                previousInvocationInChain.Arguments.Length != 2 ||
-                invocation.Arguments.Length != 1)
-            {
-                return;
-            }
-
-            var memberAccessExpressionLocation = previousInvocationInChain.Syntax.GetLocation();
-            var argumentListLocation = TryGetArgumentListLocation(previousInvocationInChain.Arguments);
+            var memberAccessExpressionLocation = invocation.Syntax.GetLocation();
+            var argumentListLocation = TryGetArgumentListLocation(invocation.Arguments);
             if (argumentListLocation is null)
             {
                 // unable to find an argument list location
@@ -145,7 +141,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
             context.ReportDiagnostic(
                 DiagnosticHelper.Create(
                     Descriptor,
-                    invocation.Syntax.GetLocation(),
+                    nextInvocation.Syntax.GetLocation(),
                     Descriptor.GetEffectiveSeverity(context.Compilation.Options),
                     additionalLocations: new[] { memberAccessExpressionLocation, argumentListLocation },
                     properties: null));

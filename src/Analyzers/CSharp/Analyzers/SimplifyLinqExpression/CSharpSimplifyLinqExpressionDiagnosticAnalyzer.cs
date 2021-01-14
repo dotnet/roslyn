@@ -15,23 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpSimplifyLinqExpressionDiagnosticAnalyzer : AbstractSimplifyLinqExpressionDiagnosticAnalyzer
     {
-        protected override IInvocationOperation? TryGetPreviousInvocationInChain(ImmutableArray<IArgumentOperation> arguments)
-        {
-            if (arguments.Length != 1)
-            {
-                return null;
-            }
-
-            var argument = arguments.Single();
-            if (argument.Syntax is not InvocationExpressionSyntax invocationExpression)
-            {
-                return null;
-            }
-
-            var model = argument.SemanticModel;
-            return model?.GetOperation(invocationExpression, default) as IInvocationOperation;
-        }
-
         protected override Location? TryGetArgumentListLocation(ImmutableArray<IArgumentOperation> arguments)
         {
             using var argumentLists = new TemporaryArray<ArgumentListSyntax>();
@@ -52,6 +35,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
             }
 
             return argumentLists[0].GetLocation();
+        }
+
+        protected override IInvocationOperation? TryGetNextInvocationInChain(IInvocationOperation invocation)
+        {
+            if (invocation.Parent is IArgumentOperation argument &&
+                argument.Parent is IInvocationOperation nextInvocation)
+            {
+                return nextInvocation;
+            }
+
+            return null;
         }
     }
 }
