@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal partial class RequestExecutionQueue
     {
         private readonly string _serverName;
-        private readonly string _clientName;
+        private readonly string? _clientName;
         private readonly AsyncQueue<QueueItem> _queue;
         private readonly CancellationTokenSource _cancelSource;
         private readonly DocumentChangeTracker _documentChangeTracker;
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ILspLogger? logger,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
             string serverName,
-            string clientName)
+            string? clientName)
         {
             _logger = logger;
             _workspaceRegistrationService = workspaceRegistrationService;
