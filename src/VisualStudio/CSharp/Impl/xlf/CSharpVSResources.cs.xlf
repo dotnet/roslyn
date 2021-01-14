@@ -7,6 +7,11 @@
         <target state="translated">Při vložení přidat chybějící direktivy using</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
+        <source>Allow blank line after colon in constructor initializer</source>
+        <target state="new">Allow blank line after colon in constructor initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
         <source>Allow blank lines between consecutive braces</source>
         <target state="new">Allow blank lines between consecutive braces</target>

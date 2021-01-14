@@ -1561,6 +1561,48 @@ class Class2
 }}
 ";
 
+        private static readonly string s_allow_bank_line_after_colon_in_constructor_initializer_true = $@"
+class Class
+{{
+//[
+    // {ServicesVSResources.Allow_colon}
+    public Class() :
+        base()
+    {{
+    }}
+//]
+}}
+";
+
+        private static readonly string s_allow_bank_line_after_colon_in_constructor_initializer_false = $@"
+namespace NS1
+{{
+    class Class
+    {{
+    //[
+        // {ServicesVSResources.Require_colon}
+        public Class()
+            : base()
+        {{
+        }}
+    //]
+    }}
+}}
+namespace NS2
+{{
+    class Class
+    {{
+    //[
+        // {ServicesVSResources.Over_colon}
+        public Class() :
+            base()
+        {{
+        }}
+    //]
+    }}
+}}
+";
+
         #endregion
 
         #region arithmetic binary parentheses
@@ -1988,6 +2030,7 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CSharpVSResources.Allow_embedded_statements_on_same_line, s_allow_embedded_statements_on_same_line_true, s_allow_embedded_statements_on_same_line_false, this, optionStore, newLinePreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CSharpVSResources.Allow_blank_lines_between_consecutive_braces, s_allow_blank_line_between_consecutive_braces_true, s_allow_blank_line_between_consecutive_braces_false, this, optionStore, newLinePreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, ServicesVSResources.Allow_statement_immediately_after_block, s_allow_statement_immediately_after_block_true, s_allow_statement_immediately_after_block_false, this, optionStore, newLinePreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CSharpVSResources.Allow_bank_line_after_colon_in_constructor_initializer, s_allow_bank_line_after_colon_in_constructor_initializer_true, s_allow_bank_line_after_colon_in_constructor_initializer_false, this, optionStore, newLinePreferencesGroupTitle));
         }
 
         private void AddParenthesesOptions(OptionStore optionStore)
