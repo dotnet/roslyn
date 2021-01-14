@@ -106,13 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             string bodySource,
             MethodKind kind = MethodKind.Regular)
         {
-            var source = kind switch
-            {
-                MethodKind.Iterator => "class C { IEnumerable<int> F() { " + bodySource + " } }",
-                MethodKind.Async => "class C { async Task<int> F() { " + bodySource + " } }",
-                MethodKind.ConstructorWithParameters => "class C { C" + bodySource + " }",
-                _ => "class C { void F() { " + bodySource + " } }",
-            };
+            var source = WrapMethodBodyWithClass(bodySource, kind);
 
             var tree = ParseSource(source);
             var root = tree.GetRoot();
@@ -130,6 +124,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             return (BlockSyntax)SyntaxFactory.SyntaxTree(declaration.Body).GetRoot();
         }
+
+        internal static string WrapMethodBodyWithClass(string bodySource, MethodKind kind = MethodKind.Regular)
+            => kind switch
+            {
+                MethodKind.Iterator => "class C { IEnumerable<int> F() { " + bodySource + " } }",
+                MethodKind.Async => "class C { async Task<int> F() { " + bodySource + " } }",
+                MethodKind.ConstructorWithParameters => "class C { C" + bodySource + " }",
+                _ => "class C { void F() { " + bodySource + " } }",
+            };
 
         internal static ActiveStatementsDescription GetActiveStatements(string oldSource, string newSource)
             => new ActiveStatementsDescription(oldSource, newSource);

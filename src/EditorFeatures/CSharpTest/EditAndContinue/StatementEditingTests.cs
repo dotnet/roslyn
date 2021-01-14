@@ -6952,6 +6952,11 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits("Insert [[A]]@2", "Insert [A]@3");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -6963,6 +6968,11 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits("Delete [[A]]@2", "Delete [A]@3");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -6974,6 +6984,11 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits("Reorder [B]@6 -> @3");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -6985,6 +7000,13 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits("Update [[A]]@2 -> [[A, B]]@2", "Insert [B]@6", "Delete [[B]]@5", "Delete [B]@6");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.attribute),
+                Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -6996,6 +7018,11 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits("Update [[A, B]]@2 -> [[A]]@2", "Insert [[B]]@5", "Insert [B]@6", "Delete [B]@6");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "[B]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7007,6 +7034,11 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits("Update [[return: A]]@2 -> [[A]]@2");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Update, "[A]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7018,6 +7050,11 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits("Update [[A]]@2 -> [[return: A]]@2");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Update, "return:", CSharpFeaturesResources.attribute_target));
         }
 
         [Fact]
@@ -7029,6 +7066,11 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits("Insert [[return: A]]@2", "Insert [A]@11");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "[return: A]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7040,6 +7082,11 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits("Delete [[return: A]]@2", "Delete [A]@11");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7051,6 +7098,11 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits("Reorder [B]@14 -> @11");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -7062,6 +7114,11 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits("Insert [[A]]@9", "Insert [A]@10");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7073,6 +7130,11 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits("Delete [[A]]@9", "Delete [A]@10");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "int i", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7084,6 +7146,11 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits("Reorder [B]@13 -> @10");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -7095,6 +7162,11 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits("Insert [[A]]@9", "Insert [A]@10");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7106,6 +7178,11 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits("Delete [[A]]@9", "Delete [A]@10");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "T", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7117,6 +7194,11 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits("Reorder [B]@13 -> @10");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics();
         }
 
         #endregion
