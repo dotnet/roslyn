@@ -10,4 +10,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         void TraceInformation(string message);
     }
+
+    internal class NoOpLspLogger : ILspLogger
+    {
+        public static readonly ILspLogger Instance = new NoOpLspLogger();
+
+        private NoOpLspLogger()
+        {
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public void TraceInformation(string message)
+        {
+        }
+    }
 }

@@ -36,23 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             return new LogHubLspLogger(configuration, traceSource);
         }
 
-        private class NoOpLspLogger : ILspLogger
-        {
-            public static readonly ILspLogger Instance = new NoOpLspLogger();
-
-            private NoOpLspLogger()
-            {
-            }
-
-            public void Dispose()
-            {
-            }
-
-            public void TraceInformation(string message)
-            {
-            }
-        }
-
         private class LogHubLspLogger : ILspLogger
         {
             private readonly TraceConfiguration _configuration;

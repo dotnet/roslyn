@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             try
             {
                 var logIdName = $"{_serverName}.{_clientName ?? "Default"}";
-                using var logger = _loggerProvider == null ? null : await _loggerProvider.CreateLoggerAsync(logIdName, _cancelSource.Token).ConfigureAwait(false);
+                using var logger = _loggerProvider == null ? NoOpLspLogger.Instance : await _loggerProvider.CreateLoggerAsync(logIdName, _cancelSource.Token).ConfigureAwait(false);
 
                 var requestId = 0;
                 while (!_cancelSource.IsCancellationRequested)
