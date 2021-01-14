@@ -7,7 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SimplifyLinqExpression;
 
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
 
         protected override Location? TryGetArgumentListLocation(ImmutableArray<IArgumentOperation> arguments)
         {
-            using var _ = ArrayBuilder<ArgumentListSyntax>.GetInstance(out var argumentLists);
+            using var argumentLists = new TemporaryArray<ArgumentListSyntax>();
             foreach (var argument in arguments)
             {
                 if (argument.Syntax is ArgumentSyntax argumentNode &&
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression
             }
 
             // verify that all these arguments come from the same sytax list
-            if (!argumentLists.Any() ||
+            if (argumentLists.Count == 0 ||
                 !argumentLists.All(argList => argList == argumentLists[0]))
             {
                 return null;
