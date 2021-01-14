@@ -221,6 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             GroupClauseLambda,                // tied to parent
             QueryContinuation,                // tied to parent
 
+            // Below are children of local function declarations
             TypeParameterList,                // tied to parent
             TypeParameterConstraintClause,    // tied to parent
             TypeParameter,                    // tied to parent
@@ -521,35 +522,29 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.AwaitExpression;
 
                 case SyntaxKind.TypeParameterList:
-                    isLeaf = false;
                     return Label.TypeParameterList;
 
                 case SyntaxKind.TypeParameterConstraintClause:
-                    isLeaf = false;
                     return Label.TypeParameterConstraintClause;
 
                 case SyntaxKind.TypeParameter:
-                    isLeaf = false; // children: attributes
+                    // children: attributes
                     return Label.TypeParameter;
 
                 case SyntaxKind.ParameterList:
-                    isLeaf = false;
                     return Label.ParameterList;
 
                 case SyntaxKind.BracketedParameterList:
-                    isLeaf = false;
                     return Label.BracketedParameterList;
 
                 case SyntaxKind.Parameter:
-                    isLeaf = false; // children: attributes
+                    // children: attributes
                     return Label.Parameter;
 
                 case SyntaxKind.AttributeList:
-                    isLeaf = false;
                     return Label.AttributeList;
 
                 case SyntaxKind.Attribute:
-                    isLeaf = true;
                     return Label.Attribute;
 
                 default:
